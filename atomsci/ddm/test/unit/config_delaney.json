@@ -1,0 +1,13 @@
+{
+    "dataset_key" : "./delaney-processed.csv",
+    "dataset_bucket" : "gsk_ml",
+    "featurizer": "ecfp",
+    "response_cols" : "measured log solubility in mols per litre",
+    "id_col" : "Compound ID",
+    "smiles_col" : "smiles",
+    "ecfp_size" : "1024",
+    "output_dir" : "pytest/delaney",
+    "transformers" : "True",
+    "datastore" : "False",
+    "save_results" : "False"
+}

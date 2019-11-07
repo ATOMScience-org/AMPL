@@ -1,0 +1,325 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pipeline.transformations &mdash; ATOM Data-Driven Modeling Pipeline 1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> ATOM Data-Driven Modeling Pipeline
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">ATOM Data-Driven Modeling Pipeline</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>pipeline.transformations</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for pipeline.transformations</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Classes providing different methods of transforming response data and/or features in datasets, beyond those</span>
+<span class="sd">provided by DeepChem.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">umap</span>
+
+<span class="kn">import</span> <span class="nn">deepchem</span> <span class="k">as</span> <span class="nn">dc</span>
+<span class="kn">from</span> <span class="nn">deepchem.trans.transformers</span> <span class="k">import</span> <span class="n">Transformer</span><span class="p">,</span> <span class="n">NormalizationTransformer</span>
+<span class="kn">from</span> <span class="nn">sklearn.preprocessing</span> <span class="k">import</span> <span class="n">RobustScaler</span><span class="p">,</span> <span class="n">Imputer</span>
+
+<span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="nb">format</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%(asctime)-15s</span><span class="s1"> </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;ATOM&#39;</span><span class="p">)</span>
+
+
+<span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="create_feature_transformers"><a class="viewcode-back" href="../../pipeline.html#pipeline.transformations.create_feature_transformers">[docs]</a><span class="k">def</span> <span class="nf">create_feature_transformers</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">model_dataset</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Fit a scaling and centering transformation to the feature matrix of the given dataset, and return a</span>
+<span class="sd">    DeepChem transformer object holding its parameters.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        params (argparse.namespace: Object containing the parameter list</span>
+<span class="sd">        model_dataset (ModelDataset): Contains the dataset to be transformed.</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        (list of DeepChem transformer objects): list of transformers for the feature matrix</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">feature_transform_type</span> <span class="o">==</span> <span class="s1">&#39;umap&#39;</span><span class="p">:</span>
+        <span class="c1"># Map feature vectors using UMAP for dimension reduction</span>
+        <span class="k">if</span> <span class="n">model_dataset</span><span class="o">.</span><span class="n">split_strategy</span> <span class="o">==</span> <span class="s1">&#39;k_fold_cv&#39;</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Warning: UMAP transformation may produce misleading results when used with K-fold split strategy.&quot;</span><span class="p">)</span>
+        <span class="n">train_dset</span> <span class="o">=</span> <span class="n">model_dataset</span><span class="o">.</span><span class="n">train_valid_dsets</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">transformers_x</span> <span class="o">=</span> <span class="p">[</span><span class="n">UMAPTransformer</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">train_dset</span><span class="p">)]</span>
+    <span class="k">elif</span> <span class="n">params</span><span class="o">.</span><span class="n">transformers</span><span class="o">==</span><span class="kc">True</span><span class="p">:</span>
+        <span class="c1"># TODO: Transformers on responses and features should be controlled only by parameters</span>
+        <span class="c1"># response_transform_type and feature_transform_type, rather than params.transformers.</span>
+
+        <span class="c1"># Scale and center feature matrix if featurization type calls for it</span>
+        <span class="n">transformers_x</span> <span class="o">=</span> <span class="n">model_dataset</span><span class="o">.</span><span class="n">featurization</span><span class="o">.</span><span class="n">create_feature_transformer</span><span class="p">(</span><span class="n">model_dataset</span><span class="o">.</span><span class="n">dataset</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">transformers_x</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">return</span> <span class="n">transformers_x</span></div>
+
+<span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="get_transformer_specific_metadata"><a class="viewcode-back" href="../../pipeline.html#pipeline.transformations.get_transformer_specific_metadata">[docs]</a><span class="k">def</span> <span class="nf">get_transformer_specific_metadata</span><span class="p">(</span><span class="n">params</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns a dictionary of parameters related to the currently selected transformer(s).</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        params (argparse.namespace: Object containing the parameter list</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        meta_dict (dict): Nested dictionary of parameters and values for each currently active</span>
+<span class="sd">        transformer.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">meta_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">feature_transform_type</span> <span class="o">==</span> <span class="s1">&#39;umap&#39;</span><span class="p">:</span>
+        <span class="n">umap_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+                        <span class="n">umap_dim</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">umap_dim</span><span class="p">,</span>
+                        <span class="n">umap_metric</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">umap_metric</span><span class="p">,</span>
+                        <span class="n">umap_targ_wt</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">umap_targ_wt</span><span class="p">,</span>
+                        <span class="n">umap_neighbors</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">umap_neighbors</span><span class="p">,</span>
+                        <span class="n">umap_min_dist</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">umap_min_dist</span> <span class="p">)</span>
+        <span class="n">meta_dict</span><span class="p">[</span><span class="s1">&#39;UmapSpecific&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">umap_dict</span>
+    <span class="k">return</span> <span class="n">meta_dict</span></div>
+
+<span class="c1"># ****************************************************************************************</span>
+
+<div class="viewcode-block" id="UMAPTransformer"><a class="viewcode-back" href="../../pipeline.html#pipeline.transformations.UMAPTransformer">[docs]</a><span class="k">class</span> <span class="nc">UMAPTransformer</span><span class="p">(</span><span class="n">Transformer</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Dimension reduction transformations using the UMAP algorithm.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        mapper (UMAP) : UMAP transformer</span>
+<span class="sd">        scaler (RobustScaler): Centering/scaling transformer</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">dataset</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initializes a UMAPTransformer object.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            params (Namespace): Contains parameters used to instantiate the transformer.</span>
+<span class="sd">            dataset (Dataset): Dataset used to &quot;train&quot; the projection mapping.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># TODO: decide whether to make n_epochs a parameter</span>
+        <span class="c1">#default_n_epochs = None</span>
+        <span class="n">default_n_epochs</span> <span class="o">=</span> <span class="mi">500</span>
+
+        <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">prediction_type</span> <span class="o">==</span> <span class="s1">&#39;classification&#39;</span><span class="p">:</span>
+            <span class="n">target_metric</span> <span class="o">=</span> <span class="s1">&#39;categorical&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">target_metric</span> <span class="o">=</span> <span class="s1">&#39;l2&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scaler</span> <span class="o">=</span> <span class="n">RobustScaler</span><span class="p">()</span>
+        <span class="c1"># Use Imputer to replace missing values (NaNs) with means for each column</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">imputer</span> <span class="o">=</span> <span class="n">Imputer</span><span class="p">()</span>
+        <span class="n">scaled_X</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scaler</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">imputer</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">X</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mapper</span> <span class="o">=</span> <span class="n">umap</span><span class="o">.</span><span class="n">UMAP</span><span class="p">(</span><span class="n">n_neighbors</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">umap_neighbors</span><span class="p">,</span> 
+                                <span class="n">n_components</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">umap_dim</span><span class="p">,</span>
+                                <span class="n">metric</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">umap_metric</span><span class="p">,</span>
+                                <span class="n">target_metric</span><span class="o">=</span><span class="n">target_metric</span><span class="p">,</span>
+                                <span class="n">target_weight</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">umap_targ_wt</span><span class="p">,</span>
+                                <span class="n">min_dist</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">umap_min_dist</span><span class="p">,</span>
+                                <span class="n">n_epochs</span><span class="o">=</span><span class="n">default_n_epochs</span><span class="p">)</span>
+        <span class="c1"># TODO: How to deal with multitask data?</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mapper</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">scaled_X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">dataset</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
+
+    <span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="UMAPTransformer.transform"><a class="viewcode-back" href="../../pipeline.html#pipeline.transformations.UMAPTransformer.transform">[docs]</a>    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="p">,</span> <span class="n">parallel</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">UMAPTransformer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">parallel</span><span class="o">=</span><span class="n">parallel</span><span class="p">)</span></div>
+
+    <span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="UMAPTransformer.transform_array"><a class="viewcode-back" href="../../pipeline.html#pipeline.transformations.UMAPTransformer.transform_array">[docs]</a>    <span class="k">def</span> <span class="nf">transform_array</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">w</span><span class="p">):</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mapper</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scaler</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">imputer</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">X</span><span class="p">)))</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">w</span><span class="p">)</span></div>
+
+    <span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="UMAPTransformer.untransform"><a class="viewcode-back" href="../../pipeline.html#pipeline.transformations.UMAPTransformer.untransform">[docs]</a>    <span class="k">def</span> <span class="nf">untransform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">z</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Reverses stored transformation on provided data.&quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Can&#39;t reverse a UMAP transformation&quot;</span><span class="p">)</span></div></div>
+    <span class="c1"># ****************************************************************************************</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, ATOM DDM Team.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.0',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

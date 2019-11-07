@@ -1,0 +1,15 @@
+{
+    "comment": "Input file",
+    "comment": "----------------------------------------",
+    "id_col": "Compound ID",
+    "smiles_col": "smiles",
+    "response_cols": "measured log solubility in mols per litre",
+
+    "comment": "Transformer",
+    "comment": "----------------------------------------",
+    "transformer_key": "",
+
+    "comment": "Results",
+    "comment": "----------------------------------------",
+    "result_dir": "predict"
+}

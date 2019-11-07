@@ -1,0 +1,10 @@
+{
+    "dataset_key" : "singletask_liability_datasets/CACNA1C_Human_CaV1.2_L_type_Calcium_Channel_Barracuda_Ephys_PIC50.csv",
+    "dataset_bucket" : "gsk_ml",
+    "featurizer": "graphconv",
+    "response_cols" : "PIC50",
+    "id_col" : "compound_id",
+    "smiles_col" : "rdkit_smiles",
+    "datastore" : "True",
+    "output_dir" : "/usr/local/data/pytest"
+}

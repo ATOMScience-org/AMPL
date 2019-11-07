@@ -1,0 +1,11 @@
+{
+    "ModelMetadata" : 
+        {
+        "TrainingDataset" : 
+            {
+                "dataset_key" : "/ds/data/public/delaney/delaney-processed.csv",
+                "dataset_bucket" : "gsk_ml"            },
+        "not_a_parameter":"test",
+        "not_a_parameter_either":"test2"
+        }
+}

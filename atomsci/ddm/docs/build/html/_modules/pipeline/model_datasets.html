@@ -1,0 +1,1423 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pipeline.model_datasets &mdash; ATOM Data-Driven Modeling Pipeline 1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> ATOM Data-Driven Modeling Pipeline
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">ATOM Data-Driven Modeling Pipeline</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>pipeline.model_datasets</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for pipeline.model_datasets</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd"> Classes for dealing with datasets for data-driven modeling.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">shutil</span>
+<span class="kn">from</span> <span class="nn">deepchem.data</span> <span class="k">import</span> <span class="n">DiskDataset</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">deepchem</span> <span class="k">as</span> <span class="nn">dc</span>
+<span class="kn">import</span> <span class="nn">pdb</span>
+<span class="kn">import</span> <span class="nn">uuid</span>
+<span class="kn">from</span> <span class="nn">atomsci.ddm.pipeline</span> <span class="k">import</span> <span class="n">featurization</span> <span class="k">as</span> <span class="n">feat</span>
+<span class="kn">from</span> <span class="nn">atomsci.ddm.pipeline</span> <span class="k">import</span> <span class="n">splitting</span> <span class="k">as</span> <span class="n">split</span>
+<span class="kn">from</span> <span class="nn">atomsci.clients</span> <span class="k">import</span> <span class="n">datastore_functions</span> <span class="k">as</span> <span class="n">dsf</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="k">import</span> <span class="n">Path</span>
+
+<span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="nb">format</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%(asctime)-15s</span><span class="s1"> </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">)</span>
+
+
+<span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="create_model_dataset"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_datasets.create_model_dataset">[docs]</a><span class="k">def</span> <span class="nf">create_model_dataset</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">featurization</span><span class="p">,</span> <span class="n">ds_client</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Factory function for creating DatastoreDataset or FileDataset objects.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        params (Namespace object): contains all parameter information.</span>
+<span class="sd">        </span>
+<span class="sd">        featurization (Featurization object): The featurization object created by ModelDataset or input as an argument</span>
+<span class="sd">        in the factory function.</span>
+<span class="sd">        </span>
+<span class="sd">        ds_client (Datastore client)</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        either (DatastoreDataset) or (FileDataset): instantiated ModelDataset subclass specified by params</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">datastore</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">DatastoreDataset</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">featurization</span><span class="p">,</span> <span class="n">ds_client</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">FileDataset</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">featurization</span><span class="p">)</span></div>
+
+
+<span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="create_minimal_dataset"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_datasets.create_minimal_dataset">[docs]</a><span class="k">def</span> <span class="nf">create_minimal_dataset</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">featurization</span><span class="p">,</span> <span class="n">contains_responses</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Create a MinimalDataset object for non-persistent data (e.g., a list of compounds or SMILES</span>
+<span class="sd">    strings or a data frame). This object will be suitable for running predictions on a pretrained</span>
+<span class="sd">    model, but not for training.</span>
+<span class="sd">    </span>
+<span class="sd">    Args:</span>
+<span class="sd">        params (Namespace object): contains all parameter information.</span>
+<span class="sd">        </span>
+<span class="sd">        featurization (Featurization object): The featurization object created by ModelDataset or input as an argument</span>
+<span class="sd">        in the factory function.</span>
+<span class="sd">        </span>
+<span class="sd">        contains_responses (Boolean): Boolean specifying whether the dataset has a column with response values</span>
+<span class="sd">        </span>
+<span class="sd">    Returns:</span>
+<span class="sd">        (MinimalDataset): a new MinimalDataset object</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">MinimalDataset</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">featurization</span><span class="p">,</span> <span class="n">contains_responses</span><span class="p">)</span></div>
+
+<span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="set_group_permissions"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_datasets.set_group_permissions">[docs]</a><span class="k">def</span> <span class="nf">set_group_permissions</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">data_owner</span><span class="o">=</span><span class="s1">&#39;gsk&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Set file group and permissions to standard values for a dataset containing proprietary</span>
+<span class="sd">    or public data, as indicated by &#39;data_owner&#39;.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        system (string): Determine the group ownership (at the moment &#39;LC&#39;, &#39;AD&#39;)</span>
+
+<span class="sd">        path (string): File path</span>
+
+<span class="sd">        data_owner (string): Who the data belongs to, either &#39;public&#39; or the name of a company (e.g. &#39;gsk&#39;) associated</span>
+<span class="sd">        with a restricted access group.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Currently, if we&#39;re not on an LC machine, we&#39;re on an AD-controlled system. This could change.</span>
+    <span class="k">if</span> <span class="n">system</span> <span class="o">!=</span> <span class="s1">&#39;LC&#39;</span><span class="p">:</span>
+        <span class="n">system</span> <span class="o">=</span> <span class="s1">&#39;AD&#39;</span>
+    <span class="n">owner_group_map</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">gsk</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;LC&#39;</span><span class="p">:</span> <span class="s1">&#39;gskcraa&#39;</span><span class="p">,</span> <span class="s1">&#39;AD&#39;</span><span class="p">:</span> <span class="s1">&#39;gskusers-ad&#39;</span><span class="p">},</span>
+                           <span class="n">public</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;LC&#39;</span><span class="p">:</span> <span class="s1">&#39;atom&#39;</span><span class="p">,</span> <span class="s1">&#39;AD&#39;</span><span class="p">:</span> <span class="s1">&#39;atom&#39;</span><span class="p">})</span>
+    <span class="n">group</span> <span class="o">=</span> <span class="n">owner_group_map</span><span class="p">[</span><span class="n">data_owner</span><span class="p">][</span><span class="n">system</span><span class="p">]</span>
+    <span class="n">path_metadata</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="c1"># TODO: MJT I have this if statement to deal with the permission errors on /ds/projdata. May not be necessary.</span>
+    <span class="k">if</span> <span class="n">path_metadata</span><span class="o">.</span><span class="n">group</span><span class="p">()</span> <span class="o">!=</span> <span class="n">group</span><span class="p">:</span>
+        <span class="n">shutil</span><span class="o">.</span><span class="n">chown</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">group</span><span class="o">=</span><span class="n">group</span><span class="p">)</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="mo">0o770</span><span class="p">)</span></div>
+
+<span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="key_value_list_to_dict"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_datasets.key_value_list_to_dict">[docs]</a><span class="k">def</span> <span class="nf">key_value_list_to_dict</span><span class="p">(</span><span class="n">kvp_list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Convert a key-value pair list from the datastore metadata into a proper dictionary</span>
+<span class="sd">    </span>
+<span class="sd">    Args:</span>
+<span class="sd">        kvp_list (list): List of key-value pairs</span>
+<span class="sd">        </span>
+<span class="sd">    Returns:</span>
+<span class="sd">        (dictionary): the kvp-list reformatted as a dictionary</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="nb">dict</span><span class="p">([(</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;key&#39;</span><span class="p">],</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">])</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">kvp_list</span><span class="p">])</span></div>
+
+<span class="c1"># ***************************************************************************************</span>
+<div class="viewcode-block" id="create_split_dataset_from_metadata"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_datasets.create_split_dataset_from_metadata">[docs]</a><span class="k">def</span> <span class="nf">create_split_dataset_from_metadata</span><span class="p">(</span><span class="n">model_metadata</span><span class="p">,</span> <span class="n">ds_client</span><span class="p">,</span> <span class="n">save_file</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Function that pulls the split metadata from the datastore and then joins that info with the dataset itself.</span>
+<span class="sd">    Args:</span>
+<span class="sd">        model_metadata (Namespace): Namespace object of model metadata</span>
+<span class="sd">        </span>
+<span class="sd">        ds_client: datastore client</span>
+<span class="sd">        </span>
+<span class="sd">        save_file (Boolean): Boolean specifying whether we want to save split dataset to disk</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        (DataFrame): DataFrame with subset information and response column</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">split_uuid</span> <span class="o">=</span> <span class="n">model_metadata</span><span class="o">.</span><span class="n">split_uuid</span>
+    <span class="n">dset_key</span> <span class="o">=</span> <span class="n">model_metadata</span><span class="o">.</span><span class="n">dataset_key</span>
+    <span class="n">bucket</span> <span class="o">=</span> <span class="n">model_metadata</span><span class="o">.</span><span class="n">bucket</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">dset_key</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">split_metadata</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">search_datasets_by_key_value</span><span class="p">(</span><span class="s1">&#39;split_dataset_uuid&#39;</span><span class="p">,</span> <span class="n">split_uuid</span><span class="p">,</span> <span class="n">ds_client</span><span class="p">,</span> <span class="n">operator</span><span class="o">=</span><span class="s1">&#39;in&#39;</span><span class="p">,</span>
+                                                          <span class="n">bucket</span><span class="o">=</span><span class="n">bucket</span><span class="p">)</span>
+        <span class="n">split_oid</span> <span class="o">=</span> <span class="n">split_metadata</span><span class="p">[</span><span class="s1">&#39;dataset_oid&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">split_df</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">retrieve_dataset_by_dataset_oid</span><span class="p">(</span><span class="n">split_oid</span><span class="p">,</span> <span class="n">client</span><span class="o">=</span><span class="n">ds_client</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error when loading split file:</span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">dataset_df</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">retrieve_dataset_by_datasetkey</span><span class="p">(</span><span class="n">dset_key</span><span class="p">,</span> <span class="n">bucket</span><span class="p">,</span> <span class="n">client</span><span class="o">=</span><span class="n">ds_client</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error when loading dataset:</span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1">#TODO Need to investigate why these are not the same length</span>
+        <span class="c1">#print(len(set(dataset_df[&#39;compound_id&#39;].values.tolist()) - set(split_df[&#39;cmpd_id&#39;].values.tolist())))</span>
+        <span class="n">joined_dataset</span> <span class="o">=</span> <span class="n">dataset_df</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">split_df</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;inner&#39;</span><span class="p">,</span> <span class="n">left_on</span><span class="o">=</span><span class="s1">&#39;compound_id&#39;</span><span class="p">,</span> <span class="n">right_on</span><span class="o">=</span><span class="s1">&#39;cmpd_id&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s1">&#39;cmpd_id&#39;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error when joining dataset with split dataset:</span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">save_file</span><span class="p">:</span>
+        <span class="n">shortened_key</span> <span class="o">=</span> <span class="n">dset_key</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">&#39;.csv&#39;</span><span class="p">)</span>
+        <span class="n">res_path</span> <span class="o">=</span> <span class="s1">&#39;/ds/projdata/gsk_data/split_joined_datasets&#39;</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_</span><span class="si">%s</span><span class="s1">_</span><span class="si">%s</span><span class="s1">_split_dataset.csv&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">shortened_key</span><span class="p">,</span> <span class="n">split_uuid</span><span class="p">,</span> <span class="n">model_metadata</span><span class="o">.</span><span class="n">splitter</span><span class="p">)</span>
+        <span class="n">joined_dataset</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">res_path</span><span class="p">,</span> <span class="n">filename</span><span class="p">),</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">joined_dataset</span></div>
+
+<span class="c1"># ***************************************************************************************</span>
+<div class="viewcode-block" id="save_joined_dataset"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_datasets.save_joined_dataset">[docs]</a><span class="k">def</span> <span class="nf">save_joined_dataset</span><span class="p">(</span><span class="n">joined_dataset</span><span class="p">,</span> <span class="n">split_metadata</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    </span>
+<span class="sd">    Args:</span>
+<span class="sd">        joined_dataset (DataFrame): DataFrame containing split information with the response column</span>
+<span class="sd">        </span>
+<span class="sd">        split_metadata (dictionary): Dictionary containing metadata with split info</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">split_metadata</span><span class="p">[</span><span class="s1">&#39;metadata&#39;</span><span class="p">])</span>
+    <span class="n">dset_key</span> <span class="o">=</span> <span class="n">split_metadata</span><span class="p">[</span><span class="s1">&#39;dataset_key&#39;</span><span class="p">]</span>
+    <span class="n">split_uuid</span> <span class="o">=</span> <span class="n">split_metadata</span><span class="p">[</span><span class="s1">&#39;metadata&#39;</span><span class="p">][</span><span class="s1">&#39;split_uuid&#39;</span><span class="p">]</span>
+    <span class="n">res_path</span> <span class="o">=</span> <span class="s1">&#39;/ds/projdata/gsk_data/split_joined_datasets&#39;</span>
+    <span class="n">filename</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_</span><span class="si">%s</span><span class="s1">_split_dataset.csv&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dset_key</span><span class="p">,</span> <span class="n">split_uuid</span><span class="p">)</span>
+    <span class="n">joined_dataset</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">res_path</span><span class="p">,</span> <span class="n">filename</span><span class="p">),</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    title = &#39;Joined dataset for dataset %s and split UUID %s&#39; % (dset_key, split_uuid)</span>
+<span class="sd">    description = &quot;Joined dataset dset_key %s with split labels for split UUID %s&quot; % (dset_key, split_uuid)</span>
+<span class="sd">    # TODO: Need a way to differentiate between original file and this</span>
+<span class="sd">    tags = split_metadata[&#39;tags&#39;]</span>
+<span class="sd">    key_values = split_metadata[&#39;metadata&#39;]</span>
+<span class="sd">    # dfs.upload_df_to_DS(joined_dataset, bucket, filename, title, description, tags, key_values, client=ds_client)</span>
+<span class="sd">    &#39;&#39;&#39;</span></div>
+
+<span class="c1"># ****************************************************************************************</span>
+
+<div class="viewcode-block" id="ModelDataset"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_datasets.ModelDataset">[docs]</a><span class="k">class</span> <span class="nc">ModelDataset</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Base class representing a dataset for data-driven modeling. Subclasses are specialized for dealing with</span>
+<span class="sd">    dataset objects persisted in the datastore or in the filesystem.</span>
+
+<span class="sd">    Attributes:</span>
+
+<span class="sd">        set in __init__:</span>
+<span class="sd">            params (Namespace object): contains all parameter information</span>
+<span class="sd">            </span>
+<span class="sd">            log (logger object): logger for all warning messages.</span>
+<span class="sd">            </span>
+<span class="sd">            dataset_name (str): set from the parameter object, the name of the dataset</span>
+<span class="sd">            </span>
+<span class="sd">            output_dit (str): The root directory for saving output files</span>
+<span class="sd">            </span>
+<span class="sd">            split_strategy (str): the flag for determining the split strategy (e.g. &#39;train_test_valid&#39;,&#39;k-fold&#39;)</span>
+<span class="sd">            </span>
+<span class="sd">            featurization (Featurization object): The featurization object created by ModelDataset or input as an</span>
+<span class="sd">            argument in the factory function.</span>
+<span class="sd">            </span>
+<span class="sd">            splitting (Splitting object): A splitting object created by the ModelDataset intiailization method</span>
+<span class="sd">            </span>
+<span class="sd">            combined_train_valid_data (dc.DiskDataset): A dataset object (initialized as None), of the merged train</span>
+<span class="sd">            and valid splits</span>
+
+<span class="sd">        set in get_featurized_data:</span>
+<span class="sd">            dataset: A new featurized DeepChem DiskDataset.</span>
+<span class="sd">            </span>
+<span class="sd">            n_features: The count of features (int)</span>
+<span class="sd">            </span>
+<span class="sd">            vals: The response col after featurization (np.array)</span>
+<span class="sd">            </span>
+<span class="sd">            attr: A pd.dataframe containing the compound ids and smiles</span>
+
+<span class="sd">        set in get_dataset_tasks:</span>
+<span class="sd">            tasks (list): list of prediction task columns</span>
+
+<span class="sd">        set in split_dataset or load_presplit_dataset:</span>
+<span class="sd">            train_valid_dsets:  A list of tuples of (training,validation) DeepChem Datasets</span>
+<span class="sd">            </span>
+<span class="sd">            test_dset: (dc.data.Dataset): The test dataset to be held out</span>
+<span class="sd">            </span>
+<span class="sd">            train_valid_attr: A list of tuples of (training,validation) attribute DataFrames</span>
+<span class="sd">            </span>
+<span class="sd">            test_attr: The attribute DataFrame for the test set, containing compound IDs and SMILES strings.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">featurization</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initializes ModelDataset object.</span>
+
+<span class="sd">        Arguments:</span>
+<span class="sd">            params (Namespace object): contains all parameter information.</span>
+<span class="sd">            </span>
+<span class="sd">            featurization: Featurization object; will be created if necessary based on params</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">params</span> <span class="o">=</span> <span class="n">params</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;ATOM&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dataset_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">dataset_name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dataset_oid</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">output_dir</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">split_strategy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">split_strategy</span>
+        <span class="c1"># By default, a ModelDataset contains both features and response data. Subclasses can</span>
+        <span class="c1"># override this.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">contains_responses</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="c1"># Create object to delegate featurization to</span>
+        <span class="k">if</span> <span class="n">featurization</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">featurization</span> <span class="o">=</span> <span class="n">feat</span><span class="o">.</span><span class="n">create_featurization</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Reuse existing Featurization object</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">featurization</span> <span class="o">=</span> <span class="n">featurization</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">previously_split</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">split_uuid</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span>
+                    <span class="s2">&quot;previously_split is set to True but no split_uuid provided for dataset </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span>
+                    <span class="nb">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset_name</span><span class="p">))</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">previously_split</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">split_uuid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;previously_split is set False; ignoring split_uuid passed as parameter&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">split_uuid</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">split_uuid</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">split_uuid</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">())</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">split_uuid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">split_uuid</span>
+        <span class="c1"># Create object to delegate splitting to.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">splitting</span> <span class="o">=</span> <span class="n">split</span><span class="o">.</span><span class="n">create_splitting</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">)</span>
+
+        <span class="c1"># Cache for combined training and validation data, used by k-fold CV code</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">combined_train_valid_data</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="c1"># Cache for subset-specific response values matched to IDs, used by k-fold CV code</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">subset_response_dict</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="ModelDataset.load_full_dataset"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_datasets.ModelDataset.load_full_dataset">[docs]</a>    <span class="k">def</span> <span class="nf">load_full_dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Loads the dataset from the datastore or the file system.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            NotImplementedError: The method is implemented by subclasses</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+    <span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="ModelDataset.check_task_columns"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_datasets.ModelDataset.check_task_columns">[docs]</a>    <span class="k">def</span> <span class="nf">check_task_columns</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dset_df</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Check that the data frame dset_df contains columns for the requested prediction tasks.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dset_df (pd.DataFrame): Dataset as a DataFrame that contains columns for the prediction tasks</span>
+<span class="sd">            </span>
+<span class="sd">        Raises:</span>
+<span class="sd">            Exception:</span>
+<span class="sd">                If self.get_dataset_tasks(dset_df) cannot retrieve prediction tasks for the dtaset</span>
+<span class="sd">                If missing prediction task columns from the input dataset</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_dataset_tasks</span><span class="p">(</span><span class="n">dset_df</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Unable to determine prediction tasks for dataset </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset_name</span><span class="p">)</span>
+        <span class="n">missing_tasks</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tasks</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">dset_df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">values</span><span class="p">))</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">missing_tasks</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Requested prediction task columns </span><span class="si">%s</span><span class="s2"> are missing from dataset </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">missing_tasks</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset_name</span><span class="p">))</span></div>
+
+    <span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="ModelDataset.load_featurized_data"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_datasets.ModelDataset.load_featurized_data">[docs]</a>    <span class="k">def</span> <span class="nf">load_featurized_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Loads prefeaturized data from the datastore or filesystem. Returns a data frame,</span>
+<span class="sd">        which is then passed to featurization.extract_prefeaturized_data() for processing.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            NotImplementedError: The method is implemented by subclasses</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+    <span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="ModelDataset.get_featurized_data"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_datasets.ModelDataset.get_featurized_data">[docs]</a>    <span class="k">def</span> <span class="nf">get_featurized_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Does whatever is necessary to prepare a featurized dataset.</span>
+<span class="sd">        Loads an existing prefeaturized dataset if one exists and if parameter previously_featurized is</span>
+<span class="sd">        set True; otherwise loads a raw dataset and featurizes it. Creates an associated DeepChem Dataset</span>
+<span class="sd">        object.</span>
+
+<span class="sd">        Side effects:</span>
+<span class="sd">            Sets the following attributes in the ModelDataset object:</span>
+<span class="sd">                dataset: A new featurized DeepChem DiskDataset.</span>
+<span class="sd">                n_features: The count of features (int)</span>
+<span class="sd">                vals: The response col after featurization (np.array)</span>
+<span class="sd">                attr: A pd.dataframe containing the compound ids and smiles</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">previously_featurized</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Attempting to load featurized dataset&quot;</span><span class="p">)</span>
+                <span class="n">featurized_dset_df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_featurized_data</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Got dataset, attempting to extract data&quot;</span><span class="p">)</span>
+                <span class="n">features</span><span class="p">,</span> <span class="n">ids</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">vals</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">attr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">featurization</span><span class="o">.</span><span class="n">extract_prefeaturized_data</span><span class="p">(</span>
+                                                           <span class="n">featurized_dset_df</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">n_features</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">featurization</span><span class="o">.</span><span class="n">get_feature_count</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Creating deepchem dataset&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span> <span class="o">=</span> <span class="n">DiskDataset</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">features</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">vals</span><span class="p">,</span> <span class="n">ids</span><span class="o">=</span><span class="n">ids</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Using prefeaturized data; number of features = &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_features</span><span class="p">))</span>
+                <span class="k">return</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Exception when trying to load featurized data:</span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Featurized dataset not previously saved for dataset </span><span class="si">%s</span><span class="s2">, creating new&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset_name</span><span class="p">)</span>
+                <span class="k">pass</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Creating new featurized dataset for dataset </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset_name</span><span class="p">)</span>
+        <span class="n">dset_df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_full_dataset</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">check_task_columns</span><span class="p">(</span><span class="n">dset_df</span><span class="p">)</span>
+        <span class="n">features</span><span class="p">,</span> <span class="n">ids</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">vals</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">attr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">featurization</span><span class="o">.</span><span class="n">featurize_data</span><span class="p">(</span><span class="n">dset_df</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_features</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">featurization</span><span class="o">.</span><span class="n">get_feature_count</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;number of features: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_features</span><span class="p">))</span>
+        <span class="c1"># Create the DeepChem dataset</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span> <span class="o">=</span> <span class="n">DiskDataset</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">features</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">vals</span><span class="p">,</span> <span class="n">ids</span><span class="o">=</span><span class="n">ids</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+
+    <span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="ModelDataset.get_dataset_tasks"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_datasets.ModelDataset.get_dataset_tasks">[docs]</a>    <span class="k">def</span> <span class="nf">get_dataset_tasks</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dset_df</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sets self.tasks to the list of prediction task columns defined for this dataset. If the dataset is in the datastore,</span>
+<span class="sd">        these should be available in the metadata. Otherwise we guess by looking at the column names in dset_df</span>
+<span class="sd">        and excluding features, compound IDs, SMILES string columns, etc.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            dset_df (pd.DataFrame): Dataset as a DataFrame that contains columns for the prediction tasks</span>
+<span class="sd">            </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            sucess (boolean): True is self.tasks is set. False if not user supplied.</span>
+<span class="sd">            </span>
+<span class="sd">        Side effects:</span>
+<span class="sd">            Sets the self.tasks attribute to be the list of prediction task columns</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># Superclass method just looks in params; is called by subclasses (therefore, should NOT raise an exception if this fails)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tasks</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">response_cols</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">response_cols</span><span class="p">)</span> <span class="o">==</span> <span class="nb">list</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">tasks</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">response_cols</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">tasks</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">response_cols</span><span class="p">]</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">tasks</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span></div>
+
+    <span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="ModelDataset.split_dataset"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_datasets.ModelDataset.split_dataset">[docs]</a>    <span class="k">def</span> <span class="nf">split_dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Splits the dataset into paired training/validation and test subsets, according to the split strategy</span>
+<span class="sd">        selected by the model params. For traditional train/valid/test splits, there is only one training/validation</span>
+<span class="sd">        pair. For k-fold cross-validation splits, there are k different train/valid pairs; the validation sets are</span>
+<span class="sd">        disjoint but the training sets overlap.</span>
+
+
+<span class="sd">        Side effects:</span>
+<span class="sd">            Sets the following attributes in the ModelDataset object:</span>
+<span class="sd">                train_valid_dsets:  A list of tuples of (training,validation) DeepChem Datasets</span>
+<span class="sd">                </span>
+<span class="sd">                test_dset: (dc.data.Dataset): The test dataset to be held out</span>
+<span class="sd">                </span>
+<span class="sd">                train_valid_attr: A list of tuples of (training,validation) attribute DataFrames</span>
+<span class="sd">                </span>
+<span class="sd">                test_attr: The attribute DataFrame for the test set, containing compound IDs and SMILES strings.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">train_valid_dsets</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">test_dset</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">train_valid_attr</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">test_attr</span> <span class="o">=</span> \
+            <span class="bp">self</span><span class="o">.</span><span class="n">splitting</span><span class="o">.</span><span class="n">split_dataset</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">attr</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">smiles_col</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">train_valid_dsets</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Dataset </span><span class="si">%s</span><span class="s2"> did not split properly&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset_name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">prediction_type</span> <span class="o">==</span> <span class="s1">&#39;classification&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_classes</span><span class="p">():</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Dataset </span><span class="si">{}</span><span class="s2"> does not have all classes represented in a split&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset_name</span><span class="p">))</span></div>
+
+    <span class="c1"># ****************************************************************************************</span>
+
+    <span class="k">def</span> <span class="nf">_check_classes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Checks to see if all classes are represented in all splits</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            (Boolean): boolean specifying if all classes are specified in all splits</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">train</span><span class="p">,</span> <span class="n">valid</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">train_valid_dsets</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">train</span><span class="o">.</span><span class="n">y</span> <span class="o">==</span> <span class="n">train</span><span class="o">.</span><span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">valid</span><span class="o">.</span><span class="n">y</span> <span class="o">==</span> <span class="n">valid</span><span class="o">.</span><span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+                <span class="k">return</span> <span class="kc">False</span>
+        <span class="n">tmp_y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">test_dset</span><span class="o">.</span><span class="n">y</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">tmp_y</span> <span class="o">==</span> <span class="n">tmp_y</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="c1"># ****************************************************************************************</span>
+
+<div class="viewcode-block" id="ModelDataset.get_split_metadata"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_datasets.ModelDataset.get_split_metadata">[docs]</a>    <span class="k">def</span> <span class="nf">get_split_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Creates a dictionary of the parameters related to dataset splitting, to be saved in the model tracker</span>
+<span class="sd">        along with the other metadata needed to reproduce a model run.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            dict: A dictionary containing the data needed to reproduce the current dataset training/validation/test</span>
+<span class="sd">            splits, including the lists of compound IDs for each split subset</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">split_data</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+            <span class="n">split_strategy</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">split_strategy</span><span class="p">,</span>
+            <span class="n">splitter</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">splitter</span><span class="p">,</span>
+            <span class="n">num_folds</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">splitting</span><span class="o">.</span><span class="n">num_folds</span><span class="p">,</span>
+            <span class="n">split_valid_frac</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">split_valid_frac</span><span class="p">,</span>
+            <span class="n">split_test_frac</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">split_test_frac</span><span class="p">,</span>
+            <span class="n">split_uuid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">split_uuid</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">Splitting</span><span class="o">=</span><span class="n">split_data</span><span class="p">)</span></div>
+
+    <span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="ModelDataset.create_dataset_split_table"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_datasets.ModelDataset.create_dataset_split_table">[docs]</a>    <span class="k">def</span> <span class="nf">create_dataset_split_table</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Generates a data frame containing the information needed to reconstruct the current</span>
+<span class="sd">        train/valid/test or k-fold split.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            split_df (DataFrame): Table with one row per compound in the dataset, with columns:</span>
+<span class="sd">                cmpd_id:    Compound ID</span>
+<span class="sd">                </span>
+<span class="sd">                subset:     The subset the compound was assigned to in the split. Either &#39;train&#39;, &#39;valid&#39;,</span>
+<span class="sd">                            &#39;test&#39;, or &#39;train_valid&#39;. &#39;train_valid&#39; is used for a k-fold split to indicate</span>
+<span class="sd">                            that the compound was rotated between training and validation sets.</span>
+<span class="sd">                            </span>
+<span class="sd">                fold:       For a k-fold split, an integer indicating the fold in which the compound was in</span>
+<span class="sd">                            the validation set. Is zero for compounds in the test set and for all compounds</span>
+<span class="sd">                            when a train/valid/test split was used.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ids</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">subsets</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">folds</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c1"># ksm: Consider moving this method to the Splitting class</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">split_strategy</span> <span class="o">==</span> <span class="s1">&#39;k_fold_cv&#39;</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">fold</span><span class="p">,</span> <span class="p">(</span><span class="n">train_attr</span><span class="p">,</span> <span class="n">valid_attr</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">train_valid_attr</span><span class="p">):</span>
+                <span class="n">nvalid</span> <span class="o">=</span> <span class="n">valid_attr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">ids</span> <span class="o">=</span> <span class="n">ids</span> <span class="o">+</span> <span class="n">valid_attr</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+                <span class="n">subsets</span> <span class="o">+=</span> <span class="p">[</span><span class="s1">&#39;train_valid&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">nvalid</span>
+                <span class="n">folds</span> <span class="o">+=</span> <span class="p">[</span><span class="n">fold</span><span class="p">]</span> <span class="o">*</span> <span class="n">nvalid</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">train_attr</span><span class="p">,</span> <span class="n">valid_attr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">train_valid_attr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">ntrain</span> <span class="o">=</span> <span class="n">train_attr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">ids</span> <span class="o">=</span> <span class="n">ids</span> <span class="o">+</span> <span class="n">train_attr</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+            <span class="n">subsets</span> <span class="o">+=</span> <span class="p">[</span><span class="s1">&#39;train&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">ntrain</span>
+
+            <span class="n">nvalid</span> <span class="o">=</span> <span class="n">valid_attr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">ids</span> <span class="o">=</span> <span class="n">ids</span> <span class="o">+</span> <span class="n">valid_attr</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+            <span class="n">subsets</span> <span class="o">+=</span> <span class="p">[</span><span class="s1">&#39;valid&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">nvalid</span>
+            <span class="n">folds</span> <span class="o">+=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">ntrain</span><span class="o">+</span><span class="n">nvalid</span><span class="p">)</span>
+
+        <span class="n">ntest</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">test_attr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">ids</span> <span class="o">=</span> <span class="n">ids</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">test_attr</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+        <span class="n">subsets</span> <span class="o">+=</span> <span class="p">[</span><span class="s1">&#39;test&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">ntest</span>
+        <span class="n">folds</span> <span class="o">+=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">ntest</span>
+
+        <span class="n">split_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">cmpd_id</span><span class="o">=</span><span class="n">ids</span><span class="p">,</span> <span class="n">subset</span><span class="o">=</span><span class="n">subsets</span><span class="p">,</span> <span class="n">fold</span><span class="o">=</span><span class="n">folds</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">split_df</span></div>
+
+    <span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="ModelDataset.load_presplit_dataset"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_datasets.ModelDataset.load_presplit_dataset">[docs]</a>    <span class="k">def</span> <span class="nf">load_presplit_dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">directory</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Loads a table of compound IDs assigned to split subsets, and uses them to split</span>
+<span class="sd">        the currently loaded featurized dataset.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            directory (str): Optional directory where the split table is stored; used only by FileDataset.</span>
+<span class="sd">            </span>
+<span class="sd">            Defaults to the directory containing the current dataset.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            success (boolean): True if the split table was loaded successfully and used to split the dataset.</span>
+
+<span class="sd">            Side effects:</span>
+<span class="sd">                Sets the following attributes of the ModelDataset object</span>
+<span class="sd">                    train_valid_dsets:  A list of tuples of (training,validation) DeepChem Datasets</span>
+<span class="sd">                    </span>
+<span class="sd">                    test_dset: (dc.data.Dataset): The test dataset to be held out</span>
+<span class="sd">                    </span>
+<span class="sd">                    train_valid_attr: A list of tuples of (training,validation) attribute DataFrames</span>
+<span class="sd">                    </span>
+<span class="sd">                    test_attr: The attribute DataFrame for the test set, containing compound IDs and SMILES strings.</span>
+<span class="sd">            Raises:</span>
+<span class="sd">                Exception: Catches exceptions from split.select_dset_by_attr_ids</span>
+<span class="sd">                            or from other errors while splitting dataset using metadata</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># Load the split table from the datastore or filesystem</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">split_df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_dataset_split_table</span><span class="p">(</span><span class="n">directory</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Error when loading dataset split table:</span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+            <span class="c1"># Create a new split_uuid if we failed to find a split table based on the old one</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">split_uuid</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">())</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">train_valid_attr</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">train_valid_dsets</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># ksm: We should *really* consider moving this code to the Splitting subclasses</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">split_strategy</span> <span class="o">==</span> <span class="s1">&#39;k_fold_cv&#39;</span><span class="p">:</span>
+            <span class="n">train_valid_df</span> <span class="o">=</span> <span class="n">split_df</span><span class="p">[</span><span class="n">split_df</span><span class="o">.</span><span class="n">subset</span> <span class="o">==</span> <span class="s1">&#39;train_valid&#39;</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">splitting</span><span class="o">.</span><span class="n">num_folds</span><span class="p">):</span>
+                <span class="n">train_df</span> <span class="o">=</span> <span class="n">train_valid_df</span><span class="p">[</span><span class="n">train_valid_df</span><span class="o">.</span><span class="n">fold</span> <span class="o">!=</span> <span class="n">f</span><span class="p">]</span>
+                <span class="n">valid_df</span> <span class="o">=</span> <span class="n">train_valid_df</span><span class="p">[</span><span class="n">train_valid_df</span><span class="o">.</span><span class="n">fold</span> <span class="o">==</span> <span class="n">f</span><span class="p">]</span>
+                <span class="n">train_dset</span> <span class="o">=</span> <span class="n">split</span><span class="o">.</span><span class="n">select_dset_by_id_list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">,</span> <span class="n">train_df</span><span class="o">.</span><span class="n">cmpd_id</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+                <span class="n">valid_dset</span> <span class="o">=</span> <span class="n">split</span><span class="o">.</span><span class="n">select_dset_by_id_list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">,</span> <span class="n">valid_df</span><span class="o">.</span><span class="n">cmpd_id</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+                <span class="n">train_attr</span> <span class="o">=</span> <span class="n">split</span><span class="o">.</span><span class="n">select_attrs_by_dset_ids</span><span class="p">(</span><span class="n">train_dset</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">attr</span><span class="p">)</span>
+                <span class="n">valid_attr</span> <span class="o">=</span> <span class="n">split</span><span class="o">.</span><span class="n">select_attrs_by_dset_ids</span><span class="p">(</span><span class="n">valid_dset</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">attr</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">train_valid_dsets</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">train_dset</span><span class="p">,</span> <span class="n">valid_dset</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">train_valid_attr</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">train_attr</span><span class="p">,</span> <span class="n">valid_attr</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">train_df</span> <span class="o">=</span> <span class="n">split_df</span><span class="p">[</span><span class="n">split_df</span><span class="o">.</span><span class="n">subset</span> <span class="o">==</span> <span class="s1">&#39;train&#39;</span><span class="p">]</span>
+            <span class="n">valid_df</span> <span class="o">=</span> <span class="n">split_df</span><span class="p">[</span><span class="n">split_df</span><span class="o">.</span><span class="n">subset</span> <span class="o">==</span> <span class="s1">&#39;valid&#39;</span><span class="p">]</span>
+            <span class="n">train_dset</span> <span class="o">=</span> <span class="n">split</span><span class="o">.</span><span class="n">select_dset_by_id_list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">,</span> <span class="n">train_df</span><span class="o">.</span><span class="n">cmpd_id</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+            <span class="n">valid_dset</span> <span class="o">=</span> <span class="n">split</span><span class="o">.</span><span class="n">select_dset_by_id_list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">,</span> <span class="n">valid_df</span><span class="o">.</span><span class="n">cmpd_id</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+            <span class="n">train_attr</span> <span class="o">=</span> <span class="n">split</span><span class="o">.</span><span class="n">select_attrs_by_dset_ids</span><span class="p">(</span><span class="n">train_dset</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">attr</span><span class="p">)</span>
+            <span class="n">valid_attr</span> <span class="o">=</span> <span class="n">split</span><span class="o">.</span><span class="n">select_attrs_by_dset_ids</span><span class="p">(</span><span class="n">valid_dset</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">attr</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">train_valid_dsets</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">train_dset</span><span class="p">,</span> <span class="n">valid_dset</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">train_valid_attr</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">train_attr</span><span class="p">,</span> <span class="n">valid_attr</span><span class="p">))</span>
+
+        <span class="n">test_df</span> <span class="o">=</span> <span class="n">split_df</span><span class="p">[</span><span class="n">split_df</span><span class="o">.</span><span class="n">subset</span> <span class="o">==</span> <span class="s1">&#39;test&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">test_dset</span> <span class="o">=</span> <span class="n">split</span><span class="o">.</span><span class="n">select_dset_by_id_list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">,</span> <span class="n">test_df</span><span class="o">.</span><span class="n">cmpd_id</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">test_attr</span> <span class="o">=</span> <span class="n">split</span><span class="o">.</span><span class="n">select_attrs_by_dset_ids</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">test_dset</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">attr</span><span class="p">)</span>
+
+        <span class="c1"># TODO: For Maggie. Retest when datastore integration is complete</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Previous dataset split restored&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
+
+
+    <span class="c1"># ****************************************************************************************</span>
+
+<div class="viewcode-block" id="ModelDataset.combined_training_data"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_datasets.ModelDataset.combined_training_data">[docs]</a>    <span class="k">def</span> <span class="nf">combined_training_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns a DeepChem Dataset object containing data for the combined training &amp; validation compounds.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            combined_dataset (dc.data.DiskDataset): Dataset containing the combined training</span>
+<span class="sd">            and validation data.</span>
+<span class="sd">            </span>
+<span class="sd">        Side effects:</span>
+<span class="sd">            Overwrites the combined_train_valid_data attribute of the ModelDataset with the combined data</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># All of the splits have the same combined train/valid data, regardless of whether we&#39;re using</span>
+        <span class="c1"># k-fold or train/valid/test splitting.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">combined_train_valid_data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="p">(</span><span class="n">train</span><span class="p">,</span> <span class="n">valid</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">train_valid_dsets</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">combined_X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">train</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="n">valid</span><span class="o">.</span><span class="n">X</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">combined_y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">train</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">valid</span><span class="o">.</span><span class="n">y</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">combined_ids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">train</span><span class="o">.</span><span class="n">ids</span><span class="p">,</span> <span class="n">valid</span><span class="o">.</span><span class="n">ids</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">combined_train_valid_data</span> <span class="o">=</span> <span class="n">DiskDataset</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">combined_X</span><span class="p">,</span> <span class="n">combined_y</span><span class="p">,</span> <span class="n">ids</span><span class="o">=</span><span class="n">combined_ids</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">combined_train_valid_data</span></div>
+
+    <span class="c1"># ****************************************************************************************</span>
+
+<div class="viewcode-block" id="ModelDataset.has_all_feature_columns"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_datasets.ModelDataset.has_all_feature_columns">[docs]</a>    <span class="k">def</span> <span class="nf">has_all_feature_columns</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dset_df</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compare the columns in dataframe dset_df against the feature columns required by</span>
+<span class="sd">        the current featurization and descriptor_type param. Returns True if dset_df contains</span>
+<span class="sd">        all the required columns.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            dset_df (DataFrame): Feature matrix</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            (Boolean): boolean specifying whether there are any missing columns in dset_df</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">missing_cols</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">featurization</span><span class="o">.</span><span class="n">get_feature_columns</span><span class="p">())</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">dset_df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">missing_cols</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span></div>
+
+    <span class="c1"># *************************************************************************************</span>
+
+<div class="viewcode-block" id="ModelDataset.get_subset_response_dict"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_datasets.ModelDataset.get_subset_response_dict">[docs]</a>    <span class="k">def</span> <span class="nf">get_subset_response_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subset</span><span class="p">,</span> <span class="n">transformers</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns a dictionary mapping compound IDs in the given dataset subset to arrays of response values.</span>
+<span class="sd">        Used by the perf_data module under k-fold CV.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            subset (string): Label of subset, &#39;train&#39;, &#39;test&#39;, or &#39;valid&#39;</span>
+<span class="sd">            transformers: Transformers object for full dataset</span>
+<span class="sd">            </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            (dict): dictionary mapping compound ids to untransformed response values</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">subset</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">subset_response_dict</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">subset</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;train&#39;</span><span class="p">,</span> <span class="s1">&#39;valid&#39;</span><span class="p">):</span>
+                <span class="n">dataset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">combined_training_data</span><span class="p">()</span>
+            <span class="k">elif</span> <span class="n">subset</span> <span class="o">==</span> <span class="s1">&#39;test&#39;</span><span class="p">:</span>
+                <span class="n">dataset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">test_dset</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Unknown dataset subset type &quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span> <span class="o">%</span> <span class="n">subset</span><span class="p">)</span>
+
+            <span class="n">y</span> <span class="o">=</span> <span class="n">dc</span><span class="o">.</span><span class="n">trans</span><span class="o">.</span><span class="n">undo_transforms</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">transformers</span><span class="p">)</span>
+            <span class="n">response_vals</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">([(</span><span class="nb">id</span><span class="p">,</span> <span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">,:])</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="nb">id</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">ids</span><span class="p">)])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">subset_response_dict</span><span class="p">[</span><span class="n">subset</span><span class="p">]</span> <span class="o">=</span> <span class="n">response_vals</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">subset_response_dict</span><span class="p">[</span><span class="n">subset</span><span class="p">]</span></div>
+        
+    <span class="c1"># *************************************************************************************</span>
+
+    <span class="k">def</span> <span class="nf">_get_split_key</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Creates the proper CSV name for a split file</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            (str): String containing the dataset name, split type, and split_UUID. Used as key in datastore or filename</span>
+<span class="sd">            on disk.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="s1">&#39;</span><span class="si">{0}</span><span class="s1">_</span><span class="si">{1}</span><span class="s1">_</span><span class="si">{2}</span><span class="s1">.csv&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">splitting</span><span class="o">.</span><span class="n">get_split_prefix</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">split_uuid</span><span class="p">)</span></div>
+
+<span class="c1"># ****************************************************************************************</span>
+
+<div class="viewcode-block" id="MinimalDataset"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_datasets.MinimalDataset">[docs]</a><span class="k">class</span> <span class="nc">MinimalDataset</span><span class="p">(</span><span class="n">ModelDataset</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A lightweight dataset class that does not support persistence or splitting, and therefore can be</span>
+<span class="sd">    used for predictions with an existing model, but not for training a model. Is not expected to</span>
+<span class="sd">    contain response columns, i.e. the ground truth is assumed to be unknown.</span>
+
+<span class="sd">        Attributes:</span>
+
+<span class="sd">        set in __init__:</span>
+<span class="sd">            params (Namespace object): contains all parameter information</span>
+<span class="sd">            log (logger object): logger for all warning messages.</span>
+<span class="sd">            featurization (Featurization object): The featurization object created by ModelDataset or input as an optional argument in the factory function.</span>
+
+<span class="sd">        set in get_featurized_data:</span>
+<span class="sd">            dataset: A new featurized DeepChem DiskDataset.</span>
+<span class="sd">            n_features: The count of features (int)</span>
+<span class="sd">            attr: A pd.dataframe containing the compound ids and smiles</span>
+
+<span class="sd">        set in get_dataset_tasks:</span>
+<span class="sd">            tasks (list): list of prediction task columns</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">featurization</span><span class="p">,</span> <span class="n">contains_responses</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initializes MinimalDataset object.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            params (Namespace object): contains all parameter information.</span>
+
+<span class="sd">            featurization: Featurization object. Unlike in other ModelDataset subclasses, the featurization object must</span>
+<span class="sd">            be provided at creation time.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">params</span> <span class="o">=</span> <span class="n">params</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;ATOM&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">featurization</span> <span class="o">=</span> <span class="n">featurization</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_features</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tasks</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">attr</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">contains_responses</span> <span class="o">=</span> <span class="n">contains_responses</span>
+
+    <span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="MinimalDataset.get_dataset_tasks"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_datasets.MinimalDataset.get_dataset_tasks">[docs]</a>    <span class="k">def</span> <span class="nf">get_dataset_tasks</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dset_df</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sets self.tasks to the list of prediction task columns defined for this dataset. These should be defined in</span>
+<span class="sd">        the params.response_cols list that was provided when this object was created.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            dset_df (pd.DataFrame): Ignored in this version.</span>
+<span class="sd">            </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Success (bool): Returns true if task names are retrieved.</span>
+<span class="sd">            </span>
+<span class="sd">        Side effects:</span>
+<span class="sd">            Sets the task attribute of the MinimalDataset object to a list of task names.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">get_dataset_tasks</span><span class="p">(</span><span class="n">dset_df</span><span class="p">)</span></div>
+
+    <span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="MinimalDataset.get_featurized_data"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_datasets.MinimalDataset.get_featurized_data">[docs]</a>    <span class="k">def</span> <span class="nf">get_featurized_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dset_df</span><span class="p">,</span> <span class="n">is_featurized</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Featurizes the compound data provided in data frame dset_df, and creates an</span>
+<span class="sd">        associated DeepChem Dataset object.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dset_df (DataFrame): DataFrame either with compound id and smiles string or Feature matrix</span>
+<span class="sd">            </span>
+<span class="sd">            is_featurized (Boolean): boolean specifying whether the dset_df is already featurized</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            None</span>
+<span class="sd">            </span>
+<span class="sd">        Side effects:</span>
+<span class="sd">            Sets the following attributes in the ModelDataset object:</span>
+<span class="sd">            </span>
+<span class="sd">                dataset: A new featurized DeepChem Dataset.</span>
+<span class="sd">                </span>
+<span class="sd">                n_features: The count of features (int)</span>
+<span class="sd">                </span>
+<span class="sd">                attr: A pd.dataframe containing the compound ids and smiles</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span>
+        <span class="k">if</span> <span class="n">is_featurized</span><span class="p">:</span>
+            <span class="c1"># Input data frame already contains feature columns</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Formatting already featurized data...&quot;</span><span class="p">)</span>
+            <span class="n">feature_cols</span> <span class="o">=</span> <span class="p">[</span><span class="n">dset_df</span><span class="p">[</span><span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">featurization</span><span class="o">.</span><span class="n">get_feature_columns</span><span class="p">()]</span>
+            <span class="n">features</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">feature_cols</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">ids</span> <span class="o">=</span> <span class="n">dset_df</span><span class="p">[</span><span class="n">params</span><span class="o">.</span><span class="n">id_col</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+            <span class="c1">#TODO: check size is right</span>
+            <span class="n">nrows</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ids</span><span class="p">)</span>
+            <span class="n">ncols</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">response_cols</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">contains_responses</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">vals</span> <span class="o">=</span> <span class="n">dset_df</span><span class="p">[</span><span class="n">params</span><span class="o">.</span><span class="n">response_cols</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nrows</span><span class="p">,</span><span class="n">ncols</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">attr</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="n">params</span><span class="o">.</span><span class="n">smiles_col</span><span class="p">:</span> <span class="n">dset_df</span><span class="p">[</span><span class="n">params</span><span class="o">.</span><span class="n">smiles_col</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">},</span>
+                                 <span class="n">index</span><span class="o">=</span><span class="n">dset_df</span><span class="p">[</span><span class="n">params</span><span class="o">.</span><span class="n">id_col</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Done&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Featurizing data...&quot;</span><span class="p">)</span>
+            <span class="n">features</span><span class="p">,</span> <span class="n">ids</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">vals</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">attr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">featurization</span><span class="o">.</span><span class="n">featurize_data</span><span class="p">(</span><span class="n">dset_df</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Done&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_features</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">featurization</span><span class="o">.</span><span class="n">get_feature_count</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;number of features: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_features</span><span class="p">))</span>
+        <span class="c1"># Create the DeepChem dataset</span>
+        <span class="c1"># TODO: Try this with NumpyDataset instead. It may require special handling in ModelWrapper</span>
+        <span class="c1"># classes, because NumpyDataset.y has different dimensionality than DiskDataset.y for the</span>
+        <span class="c1"># same singletask dataset. Or it may not, since we aren&#39;t comparing predictions against real</span>
+        <span class="c1"># values for MinimalDataset objects.</span>
+        <span class="c1">#self.dataset = NumpyDataset(features, self.vals, ids=ids)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span> <span class="o">=</span> <span class="n">DiskDataset</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">features</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">vals</span><span class="p">,</span> <span class="n">ids</span><span class="o">=</span><span class="n">ids</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+
+    <span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="MinimalDataset.save_featurized_data"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_datasets.MinimalDataset.save_featurized_data">[docs]</a>    <span class="k">def</span> <span class="nf">save_featurized_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">featurized_dset_df</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Does nothing, since a MinimalDataset object does not persist its data.</span>
+<span class="sd">        </span>
+<span class="sd">            Args:</span>
+<span class="sd">                featurized_dset_df (pd.DataFrame): Ignored.</span>
+<span class="sd">        &quot;&quot;&quot;</span></div></div>
+
+<span class="c1"># ****************************************************************************************</span>
+
+<div class="viewcode-block" id="DatastoreDataset"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_datasets.DatastoreDataset">[docs]</a><span class="k">class</span> <span class="nc">DatastoreDataset</span><span class="p">(</span><span class="n">ModelDataset</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Subclass representing a dataset for data-driven modeling that lives in the datastore.</span>
+
+<span class="sd">        Attributes:</span>
+
+<span class="sd">        set in __init__:</span>
+<span class="sd">            params (Namespace object): contains all parameter information</span>
+<span class="sd">            log (logger object): logger for all warning messages.</span>
+<span class="sd">            dataset_name (str): set from the parameter object, the name of the dataset</span>
+<span class="sd">            output_dit (str): The root directory for saving output files</span>
+<span class="sd">            split_strategy (str): the flag for determining the split strategy (e.g. &#39;train_test_valid&#39;,&#39;k-fold&#39;)</span>
+<span class="sd">            featurization (Featurization object): The featurization object created by ModelDataset or input as an optional argument in the factory function.</span>
+<span class="sd">            splitting (Splitting object): A splitting object created by the ModelDataset intiailization method</span>
+<span class="sd">            combined_train_valid_data (dc.DiskDataset): A dataset object (initialized as None), of the merged train and valid splits</span>
+<span class="sd">            ds_client (datastore client):</span>
+
+<span class="sd">        set in get_featurized_data:</span>
+<span class="sd">            dataset: A new featurized DeepChem DiskDataset.</span>
+<span class="sd">            n_features: The count of features (int)</span>
+<span class="sd">            vals: The response col after featurization (np.array)</span>
+<span class="sd">            attr: A pd.dataframe containing the compound ids and smiles</span>
+
+<span class="sd">        set in get_dataset_tasks:</span>
+<span class="sd">            tasks (list): list of prediction task columns</span>
+
+<span class="sd">        set in split_dataset or load_presplit_dataset:</span>
+<span class="sd">            train_valid_dsets:  A list of tuples of (training,validation) DeepChem Datasets</span>
+<span class="sd">            test_dset: (dc.data.Dataset): The test dataset to be held out</span>
+<span class="sd">            train_valid_attr: A list of tuples of (training,validation) attribute DataFrames</span>
+<span class="sd">            test_attr: The attribute DataFrame for the test set, containing compound IDs and SMILES strings.</span>
+
+<span class="sd">        set in load_full_dataset()</span>
+<span class="sd">            dataset_key (str): The datastore key pointing to the dataset</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1">#TODO: Added featurization=None as default, is this ok?</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">featurization</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ds_client</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initializes DatastoreDataset object.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            params (Namespace object): contains all parameter information.</span>
+
+<span class="sd">            ds_client: datastore client.</span>
+
+<span class="sd">            featurization: Featurization object; will be created if necessary based on params</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">featurization</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dataset_oid</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">dataset_name</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dataset_name</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">dataset_name</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dataset_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">dataset_key</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.csv&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ds_client</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ds_client</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">config_client</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ds_client</span> <span class="o">=</span> <span class="n">ds_client</span>
+
+    <span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="DatastoreDataset.load_full_dataset"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_datasets.DatastoreDataset.load_full_dataset">[docs]</a>    <span class="k">def</span> <span class="nf">load_full_dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Loads the dataset from the datastore</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            dset_df: Dataset as a DataFrame</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            Exception if dset_df is None or empty due to error in loading in dataset.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dataset_key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">dataset_key</span>
+        <span class="n">dset_df</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">retrieve_dataset_by_datasetkey</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset_key</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">bucket</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ds_client</span><span class="p">)</span>
+        <span class="n">dataset_metadata</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">retrieve_dataset_by_datasetkey</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset_key</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">bucket</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ds_client</span><span class="p">,</span>
+                                                          <span class="n">return_metadata</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dataset_oid</span> <span class="o">=</span> <span class="n">dataset_metadata</span><span class="p">[</span><span class="s1">&#39;dataset_oid&#39;</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">dset_df</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Failed to load dataset </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset_key</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">dset_df</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Dataset </span><span class="si">%s</span><span class="s2"> is empty&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset_key</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">dset_df</span></div>
+
+    <span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="DatastoreDataset.get_dataset_tasks"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_datasets.DatastoreDataset.get_dataset_tasks">[docs]</a>    <span class="k">def</span> <span class="nf">get_dataset_tasks</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dset_df</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sets self.tasks to the list of prediction task columns defined for this dataset. If the dataset is in the datastore,</span>
+<span class="sd">        these should be available in the metadata. Otherwise we guess by looking at the column names in dset_df</span>
+<span class="sd">        and excluding features, compound IDs, SMILES string columns, etc.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            dset_df (pd.DataFrame): Dataset containing the prediction tasks</span>
+<span class="sd">            </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Success (bool): Returns true if task names are retrieved.</span>
+<span class="sd">            </span>
+<span class="sd">        Side effects:</span>
+<span class="sd">            Sets the task attribute of the DatastoreDataset object to a list of task names.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">get_dataset_tasks</span><span class="p">(</span><span class="n">dset_df</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># If not specified by user, get tasks from dataset info</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">dataset_info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ds_client</span><span class="o">.</span><span class="n">ds_datasets</span><span class="o">.</span><span class="n">get_bucket_dataset</span><span class="p">(</span><span class="n">bucket_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">bucket</span><span class="p">,</span>
+                                                                             <span class="n">dataset_key</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset_key</span><span class="p">)</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
+                <span class="n">keyval_dict</span> <span class="o">=</span> <span class="n">key_value_list_to_dict</span><span class="p">(</span><span class="n">dataset_info</span><span class="p">[</span><span class="s1">&#39;metadata&#39;</span><span class="p">])</span>
+                <span class="n">task_name</span> <span class="o">=</span> <span class="n">keyval_dict</span><span class="p">[</span><span class="s1">&#39;task_name&#39;</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">tasks</span> <span class="o">=</span> <span class="p">[</span><span class="n">task_name</span><span class="p">]</span>
+                <span class="k">return</span> <span class="kc">True</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="c1"># Try to guess tasks from data frame columns, assuming that tasks are anything that doesn&#39;t look</span>
+                <span class="c1"># like a compound ID, SMILES string, other compound identifier, or feature</span>
+                <span class="n">non_task_cols</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;compound_id&#39;</span><span class="p">,</span> <span class="s1">&#39;rdkit_smiles&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">id_col</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">smiles_col</span><span class="p">,</span> <span class="s1">&#39;inchi_key&#39;</span><span class="p">,</span>
+                                 <span class="s1">&#39;inchi_string&#39;</span><span class="p">,</span> <span class="s1">&#39;smiles&#39;</span><span class="p">,</span> <span class="s1">&#39;smiles_out&#39;</span><span class="p">,</span> <span class="s1">&#39;lost_frags&#39;</span><span class="p">}</span> <span class="o">|</span> <span class="nb">set</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">featurization</span><span class="o">.</span><span class="n">get_feature_columns</span><span class="p">())</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">tasks</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">dset_df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">values</span><span class="p">)</span> <span class="o">-</span> <span class="n">non_task_cols</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tasks</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">tasks</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Unable to determine prediction task(s) for dataset </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset_name</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
+
+    <span class="c1"># ****************************************************************************************</span>
+
+<div class="viewcode-block" id="DatastoreDataset.save_featurized_data"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_datasets.DatastoreDataset.save_featurized_data">[docs]</a>    <span class="k">def</span> <span class="nf">save_featurized_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">featurized_dset_df</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Save a featurized dataset to the datastore</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            featurized_dset_df: DataFrame containing the featurized dataset.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">featurized_dset_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">featurization</span><span class="o">.</span><span class="n">get_featurized_dset_name</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset_name</span><span class="p">)</span>
+        <span class="n">featurized_dset_key</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">dataset_key</span><span class="p">),</span> <span class="n">featurized_dset_name</span><span class="p">)</span>
+
+        <span class="c1"># Add metadata key/value pairs from source object, if it came from datastore</span>
+        <span class="n">dataset_info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ds_client</span><span class="o">.</span><span class="n">ds_datasets</span><span class="o">.</span><span class="n">get_bucket_dataset</span><span class="p">(</span><span class="n">bucket_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">bucket</span><span class="p">,</span>
+                                                                     <span class="n">dataset_key</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset_key</span><span class="p">)</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
+        <span class="n">keyval_dict</span> <span class="o">=</span> <span class="n">key_value_list_to_dict</span><span class="p">(</span><span class="n">dataset_info</span><span class="p">[</span><span class="s1">&#39;metadata&#39;</span><span class="p">])</span>
+        <span class="c1"># Give the current user credit for creating the prefeaturized dataset</span>
+        <span class="n">keyval_dict</span><span class="p">[</span><span class="s1">&#39;user&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;USER&#39;</span><span class="p">]</span>
+        <span class="c1"># Add some key/value pairs to indicate the parent dataset and featurization used</span>
+        <span class="n">keyval_dict</span><span class="p">[</span><span class="s1">&#39;parent_dataset_key&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset_key</span>
+        <span class="n">keyval_dict</span><span class="p">[</span><span class="s1">&#39;parent_dataset_bucket&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">bucket</span>
+        <span class="n">keyval_dict</span><span class="p">[</span><span class="s1">&#39;parent_dataset_oid&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset_oid</span>
+        <span class="n">keyval_dict</span><span class="p">[</span><span class="s1">&#39;featurization&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">featurization</span><span class="p">)</span>
+        <span class="c1"># Get the tags from the original dataset, and add some more to indicate this is a prefeaturized</span>
+        <span class="c1"># dataset, plus some clues to its provenance</span>
+        <span class="n">tag_list</span> <span class="o">=</span> <span class="n">dataset_info</span><span class="p">[</span><span class="s1">&#39;tags&#39;</span><span class="p">]</span>
+        <span class="n">tag_list</span> <span class="o">+=</span> <span class="p">[</span><span class="s1">&#39;prefeaturized&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset_name</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">featurizer</span><span class="o">.</span><span class="n">lower</span><span class="p">()]</span>
+
+        <span class="n">dataset_metadata</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">upload_df_to_DS</span><span class="p">(</span><span class="n">featurized_dset_df</span><span class="p">,</span>
+                           <span class="n">bucket</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">bucket</span><span class="p">,</span>
+                           <span class="n">filename</span><span class="o">=</span><span class="n">featurized_dset_key</span><span class="p">,</span>
+                           <span class="n">title</span><span class="o">=</span><span class="n">featurized_dset_key</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">),</span>
+                           <span class="n">description</span><span class="o">=</span><span class="s1">&#39;Data from dataset </span><span class="si">%s</span><span class="s1"> featurized with </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                           <span class="bp">self</span><span class="o">.</span><span class="n">dataset_name</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">featurization</span><span class="p">)),</span>
+                           <span class="n">tags</span><span class="o">=</span><span class="n">tag_list</span><span class="p">,</span>
+                           <span class="n">key_values</span><span class="o">=</span><span class="n">keyval_dict</span><span class="p">,</span>
+                           <span class="n">client</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ds_client</span><span class="p">,</span>
+                           <span class="n">dataset_key</span><span class="o">=</span><span class="n">featurized_dset_key</span><span class="p">,</span>
+                           <span class="n">return_metadata</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="c1"># Set the OID for the featurized dataset</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dataset_oid</span> <span class="o">=</span> <span class="n">dataset_metadata</span><span class="p">[</span><span class="s1">&#39;dataset_oid&#39;</span><span class="p">]</span></div>
+
+    <span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="DatastoreDataset.load_featurized_data"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_datasets.DatastoreDataset.load_featurized_data">[docs]</a>    <span class="k">def</span> <span class="nf">load_featurized_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Loads prefeaturized data from the datastore. Returns a data frame,</span>
+<span class="sd">        which is then passed to featurization.extract_prefeaturized_data() for processing.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            featurized_dset_df (pd.DataFrame): dataframe of the prefeaturized data, needs futher processing</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># If a dataset OID for a specific featurized dataset was provided, use it</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">dataset_oid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># Check the tags for this OID to make sure it&#39;s really the correct prefeaturized dataset.</span>
+            <span class="n">metadata</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">retrieve_dataset_by_dataset_oid</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">dataset_oid</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ds_client</span><span class="p">,</span>
+                             <span class="n">return_metadata</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">tags</span> <span class="o">=</span> <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;tags&#39;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="p">(</span><span class="s1">&#39;prefeaturized&#39;</span> <span class="ow">in</span> <span class="n">tags</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset_name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="n">tags</span> 
+                                        <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">featurizer</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="n">tags</span><span class="p">):</span>
+                <span class="n">featurized_dset_df</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">retrieve_dataset_by_dataset_oid</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">dataset_oid</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ds_client</span><span class="p">)</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_all_feature_columns</span><span class="p">(</span><span class="n">featurized_dset_df</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">dataset_oid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">dataset_oid</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">dataset_key</span> <span class="o">=</span> <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;dataset_key&#39;</span><span class="p">]</span>
+                    <span class="k">return</span> <span class="n">featurized_dset_df</span>
+        <span class="c1"># Check to see if the dataset specified by params.dataset_key is already featurized</span>
+        <span class="n">metadata</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">retrieve_dataset_by_datasetkey</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">dataset_key</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">bucket</span><span class="p">,</span>
+                                                      <span class="bp">self</span><span class="o">.</span><span class="n">ds_client</span><span class="p">,</span> <span class="n">return_metadata</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s1">&#39;prefeaturized&#39;</span> <span class="ow">in</span> <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;tags&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Loading prefeaturized dataset from key </span><span class="si">%s</span><span class="s2">, bucket </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span>
+                           <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">dataset_key</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">bucket</span><span class="p">))</span>
+            <span class="n">featurized_dset_df</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">retrieve_dataset_by_datasetkey</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">dataset_key</span><span class="p">,</span> 
+                                                                    <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">bucket</span><span class="p">,</span> 
+                                                                    <span class="bp">self</span><span class="o">.</span><span class="n">ds_client</span><span class="p">)</span>
+            <span class="c1"># Check that dataframe has columns needed for descriptor type</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_all_feature_columns</span><span class="p">(</span><span class="n">featurized_dset_df</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">dataset_key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">dataset_key</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">dataset_oid</span> <span class="o">=</span> <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;dataset_oid&#39;</span><span class="p">]</span>
+                <span class="k">return</span> <span class="n">featurized_dset_df</span>
+        <span class="c1"># Otherwise, look it up by key and bucket</span>
+        <span class="n">featurized_dset_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">featurization</span><span class="o">.</span><span class="n">get_featurized_dset_name</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset_name</span><span class="p">)</span>
+        <span class="n">featurized_dset_key</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">dataset_key</span><span class="p">),</span> <span class="n">featurized_dset_name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Looking up prefeaturized dataset at key </span><span class="si">%s</span><span class="s2">, bucket </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">featurized_dset_key</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">bucket</span><span class="p">))</span>
+        <span class="n">featurized_dset_df</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">retrieve_dataset_by_datasetkey</span><span class="p">(</span><span class="n">featurized_dset_key</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">bucket</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ds_client</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dataset_key</span> <span class="o">=</span> <span class="n">featurized_dset_key</span>
+
+        <span class="c1"># Look up the OID for the featurized dataset. We&#39;ll need this later when we save the model metadata.</span>
+        <span class="n">featurized_dset_metadata</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">retrieve_dataset_by_datasetkey</span><span class="p">(</span><span class="n">featurized_dset_key</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">bucket</span><span class="p">,</span> 
+                                                                      <span class="bp">self</span><span class="o">.</span><span class="n">ds_client</span><span class="p">,</span> <span class="n">return_metadata</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dataset_oid</span> <span class="o">=</span> <span class="n">featurized_dset_metadata</span><span class="p">[</span><span class="s1">&#39;dataset_oid&#39;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">featurized_dset_df</span></div>
+
+    <span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="DatastoreDataset.save_split_dataset"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_datasets.DatastoreDataset.save_split_dataset">[docs]</a>    <span class="k">def</span> <span class="nf">save_split_dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">directory</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Saves a table of compound IDs assigned to each split subset of a dataset.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            directory:    Ignored; included only for compatibility with the FileDataset version of this method.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># TODO: For Maggie. Retest when datastore integration is complete</span>
+        <span class="n">split_df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_dataset_split_table</span><span class="p">()</span>
+        <span class="n">split_table_key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_split_key</span><span class="p">()</span>
+
+        <span class="n">keyval_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">user</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;USER&#39;</span><span class="p">],</span> <span class="n">full_dataset_key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset_key</span><span class="p">,</span>
+                           <span class="n">full_dataset_bucket</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">bucket</span><span class="p">,</span> <span class="n">full_dataset_oid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset_oid</span><span class="p">,</span>
+                           <span class="n">split_dataset_uuid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">split_uuid</span><span class="p">,</span>
+                           <span class="n">file_category</span><span class="o">=</span> <span class="s1">&#39;ml_data_split&#39;</span><span class="p">)</span>
+        <span class="n">tag_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;split_table&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset_name</span><span class="p">]</span>
+
+        <span class="n">dsf</span><span class="o">.</span><span class="n">upload_df_to_DS</span><span class="p">(</span><span class="n">split_df</span><span class="p">,</span>
+                           <span class="n">bucket</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">bucket</span><span class="p">,</span>
+                           <span class="n">filename</span><span class="o">=</span><span class="n">split_table_key</span><span class="p">,</span>
+                           <span class="n">title</span><span class="o">=</span><span class="n">split_table_key</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">),</span>
+                           <span class="n">description</span><span class="o">=</span><span class="s1">&#39;Dataset </span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1"> split compound assignment table&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                                        <span class="bp">self</span><span class="o">.</span><span class="n">dataset_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">splitting</span><span class="o">.</span><span class="n">get_split_prefix</span><span class="p">()),</span>
+                           <span class="n">tags</span><span class="o">=</span><span class="n">tag_list</span><span class="p">,</span>
+                           <span class="n">key_values</span><span class="o">=</span><span class="n">keyval_dict</span><span class="p">,</span>
+                           <span class="n">client</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ds_client</span><span class="p">,</span>
+                           <span class="n">dataset_key</span><span class="o">=</span><span class="n">split_table_key</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Dataset split_uuid = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">split_uuid</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Dataset split table saved to datastore bucket </span><span class="si">%s</span><span class="s1"> with dataset_key </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">bucket</span><span class="p">,</span>
+                      <span class="n">split_table_key</span><span class="p">))</span></div>
+
+    <span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="DatastoreDataset.load_dataset_split_table"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_datasets.DatastoreDataset.load_dataset_split_table">[docs]</a>    <span class="k">def</span> <span class="nf">load_dataset_split_table</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">directory</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Loads from the datastore a table of compound IDs assigned to each split subset of a dataset.</span>
+<span class="sd">        Called by load_presplit_dataset().</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            directory:    Ignored; included only for compatibility with the FileDataset version of this method.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            split_df (Dataframe): Split table retrieved from datastore</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">split_metadata</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">search_datasets_by_key_value</span><span class="p">(</span><span class="s1">&#39;split_dataset_uuid&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">split_uuid</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ds_client</span><span class="p">,</span>
+                                                          <span class="n">operator</span><span class="o">=</span><span class="s1">&#39;in&#39;</span><span class="p">,</span>
+                                                          <span class="n">bucket</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">bucket</span><span class="p">)</span>
+        <span class="n">split_oid</span> <span class="o">=</span> <span class="n">split_metadata</span><span class="p">[</span><span class="s1">&#39;dataset_oid&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">split_df</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">retrieve_dataset_by_dataset_oid</span><span class="p">(</span><span class="n">split_oid</span><span class="p">,</span> <span class="n">client</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ds_client</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">split_df</span></div></div>
+
+
+
+<span class="c1"># ****************************************************************************************</span>
+
+
+<div class="viewcode-block" id="FileDataset"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_datasets.FileDataset">[docs]</a><span class="k">class</span> <span class="nc">FileDataset</span><span class="p">(</span><span class="n">ModelDataset</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Subclass representing a dataset for data-driven modeling that lives in the filesystem.</span>
+
+<span class="sd">    Attributes:</span>
+
+<span class="sd">        set in __init__:</span>
+<span class="sd">            params (Namespace object): contains all parameter information</span>
+<span class="sd">            </span>
+<span class="sd">            log (logger object): logger for all warning messages.</span>
+<span class="sd">            </span>
+<span class="sd">            dataset_name (str): set from the parameter object, the name of the dataset</span>
+<span class="sd">            </span>
+<span class="sd">            output_dit (str): The root directory for saving output files</span>
+<span class="sd">            </span>
+<span class="sd">            split_strategy (str): the flag for determining the split strategy (e.g. &#39;train_test_valid&#39;,&#39;k-fold&#39;)</span>
+<span class="sd">            </span>
+<span class="sd">            featurization (Featurization object): The featurization object created by ModelDataset or input as an</span>
+<span class="sd">            optional argument in the factory function.</span>
+<span class="sd">            </span>
+<span class="sd">            splitting (Splitting object): A splitting object created by the ModelDataset intiailization method</span>
+<span class="sd">            </span>
+<span class="sd">            combined_train_valid_data (dc.DiskDataset): A dataset object (initialized as None), of the merged train and</span>
+<span class="sd">            valid splits</span>
+<span class="sd">            </span>
+<span class="sd">            ds_client (datastore client):</span>
+
+<span class="sd">        set in get_featurized_data:</span>
+<span class="sd">            dataset: A new featurized DeepChem DiskDataset.</span>
+<span class="sd">            </span>
+<span class="sd">            n_features: The count of features (int)</span>
+<span class="sd">            </span>
+<span class="sd">            vals: The response col after featurization (np.array)</span>
+<span class="sd">            </span>
+<span class="sd">            attr: A pd.dataframe containing the compound ids and smiles</span>
+
+<span class="sd">        set in get_dataset_tasks:</span>
+<span class="sd">            tasks (list): list of prediction task columns</span>
+
+<span class="sd">        set in split_dataset or load_presplit_dataset:</span>
+<span class="sd">            train_valid_dsets:  A list of tuples of (training,validation) DeepChem Datasets</span>
+<span class="sd">            </span>
+<span class="sd">            test_dset: (dc.data.Dataset): The test dataset to be held out</span>
+<span class="sd">            </span>
+<span class="sd">            train_valid_attr: A list of tuples of (training,validation) attribute DataFrames</span>
+<span class="sd">            </span>
+<span class="sd">            test_attr: The attribute DataFrame for the test set, containing compound IDs and SMILES strings.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">featurization</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initializes FileDataset object.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            params (Namespace object): contains all parameter information.</span>
+<span class="sd">            </span>
+<span class="sd">            featurization: Featurization object; will be created if necessary based on params</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">featurization</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">dataset_name</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dataset_name</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">dataset_name</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dataset_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">dataset_key</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.csv&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+
+    <span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="FileDataset.load_full_dataset"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_datasets.FileDataset.load_full_dataset">[docs]</a>    <span class="k">def</span> <span class="nf">load_full_dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Loads the dataset from the file system.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            dset_df: Dataset as a DataFrame loaded in from a CSV</span>
+<span class="sd">        </span>
+<span class="sd">        Raises:</span>
+<span class="sd">            exception: if dataset is empty or failed to load</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">dataset_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">dataset_key</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">dataset_path</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Dataset file </span><span class="si">%s</span><span class="s2"> does not exist&quot;</span> <span class="o">%</span> <span class="n">dataset_path</span><span class="p">)</span>
+        <span class="n">dset_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">dataset_path</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">dset_df</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Failed to load dataset </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">dataset_path</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">dset_df</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Dataset </span><span class="si">%s</span><span class="s2"> is empty&quot;</span> <span class="o">%</span> <span class="n">dataset_path</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">dset_df</span></div>
+
+    <span class="c1"># ****************************************************************************************</span>
+
+<div class="viewcode-block" id="FileDataset.get_dataset_tasks"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_datasets.FileDataset.get_dataset_tasks">[docs]</a>    <span class="k">def</span> <span class="nf">get_dataset_tasks</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dset_df</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the list of prediction task columns defined for this dataset. If the dataset is in the datastore,</span>
+<span class="sd">        these should be available in the metadata. Otherwise you can guess by looking at the column names in dset_df</span>
+<span class="sd">        and excluding features, compound IDs, SMILES string columns, etc.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            dset_df (pd.DataFrame): Dataset as a DataFrame that contains columns for the prediction tasks</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            sucess (boolean): True is self.tasks is set. False if not user supplied.</span>
+<span class="sd">        </span>
+<span class="sd">        Side effects:</span>
+<span class="sd">            Sets the self.tasks attribute of FileDataset to be the list of prediction task columns</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">get_dataset_tasks</span><span class="p">(</span><span class="n">dset_df</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Guess: Tasks are anything that doesn&#39;t look like a compound ID, SMILES string, other compound identifier,</span>
+            <span class="c1"># or feature</span>
+            <span class="n">non_task_cols</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;compound_id&#39;</span><span class="p">,</span> <span class="s1">&#39;rdkit_smiles&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">id_col</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">smiles_col</span><span class="p">,</span> <span class="s1">&#39;inchi_key&#39;</span><span class="p">,</span>
+                             <span class="s1">&#39;inchi_string&#39;</span><span class="p">,</span> <span class="s1">&#39;smiles&#39;</span><span class="p">,</span> <span class="s1">&#39;smiles_out&#39;</span><span class="p">,</span> <span class="s1">&#39;lost_frags&#39;</span><span class="p">}</span> <span class="o">|</span> <span class="nb">set</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">featurization</span><span class="o">.</span><span class="n">get_feature_columns</span><span class="p">())</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tasks</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">dset_df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">values</span><span class="p">)</span> <span class="o">-</span> <span class="n">non_task_cols</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tasks</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">tasks</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Unable to determine prediction task(s) for dataset </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset_name</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
+
+    <span class="c1"># ****************************************************************************************</span>
+
+<div class="viewcode-block" id="FileDataset.save_featurized_data"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_datasets.FileDataset.save_featurized_data">[docs]</a>    <span class="k">def</span> <span class="nf">save_featurized_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">featurized_dset_df</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Save a featurized dataset to the filesystem.</span>
+<span class="sd">        </span>
+<span class="sd">            Args:</span>
+<span class="sd">                featurized_dset_df (pd.DataFrame): Dataset as a DataFrame that contains the featurized data</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">featurized_dset_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">featurization</span><span class="o">.</span><span class="n">get_featurized_dset_name</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset_name</span><span class="p">)</span>
+        <span class="n">dataset_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">dataset_key</span><span class="p">)</span>
+        <span class="n">data_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dataset_dir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">featurization</span><span class="o">.</span><span class="n">get_featurized_data_subdir</span><span class="p">())</span>
+        <span class="n">featurized_dset_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data_dir</span><span class="p">,</span> <span class="n">featurized_dset_name</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">featurized_dset_path</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Featurized file already exists. Continuing:&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">data_dir</span><span class="p">):</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">data_dir</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="c1"># TODO: Get data_owner from params or elsewhere, pass it to set_group_permissions().</span>
+                <span class="n">set_group_permissions</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">system</span><span class="p">,</span> <span class="n">data_dir</span><span class="p">)</span>
+
+            <span class="n">featurized_dset_df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">featurized_dset_path</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">set_group_permissions</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">system</span><span class="p">,</span> <span class="n">featurized_dset_path</span><span class="p">)</span></div>
+
+    <span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="FileDataset.load_featurized_data"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_datasets.FileDataset.load_featurized_data">[docs]</a>    <span class="k">def</span> <span class="nf">load_featurized_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Loads prefeaturized data from the filesystem. Returns a data frame,</span>
+<span class="sd">        which is then passed to featurization.extract_prefeaturized_data() for processing.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            featurized_dset_df (pd.DataFrame): dataframe of the prefeaturized data, needs futher processing</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># First check to set if dataset already has the feature columns we need</span>
+        <span class="n">dset_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">dataset_key</span><span class="p">,</span> <span class="n">index_col</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_all_feature_columns</span><span class="p">(</span><span class="n">dset_df</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dataset_key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">dataset_key</span>
+            <span class="k">return</span> <span class="n">dset_df</span>
+
+        <span class="c1"># Otherwise, generate the expected path for the featurized dataset</span>
+        <span class="n">featurized_dset_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">featurization</span><span class="o">.</span><span class="n">get_featurized_dset_name</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset_name</span><span class="p">)</span>
+        <span class="n">dataset_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">dataset_key</span><span class="p">)</span>
+        <span class="n">data_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dataset_dir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">featurization</span><span class="o">.</span><span class="n">get_featurized_data_subdir</span><span class="p">())</span>
+        <span class="n">featurized_dset_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data_dir</span><span class="p">,</span> <span class="n">featurized_dset_name</span><span class="p">)</span>
+        <span class="n">featurized_dset_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">featurized_dset_path</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dataset_key</span> <span class="o">=</span> <span class="n">featurized_dset_path</span>
+        <span class="k">return</span> <span class="n">featurized_dset_df</span></div>
+
+    <span class="c1"># ****************************************************************************************</span>
+
+<div class="viewcode-block" id="FileDataset.save_split_dataset"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_datasets.FileDataset.save_split_dataset">[docs]</a>    <span class="k">def</span> <span class="nf">save_split_dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">directory</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Saves a table of compound IDs and split subset assignments for the current dataset.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            directory (str): Directory where the split table will be created. Defaults to the directory</span>
+<span class="sd">            of the current dataset.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">split_df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_dataset_split_table</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">directory</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">directory</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">dataset_key</span><span class="p">)</span>
+        <span class="n">split_table_file</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{0}</span><span class="s1">/</span><span class="si">{1}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_split_key</span><span class="p">())</span>
+        <span class="n">split_df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">split_table_file</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Dataset split table saved to </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">split_table_file</span><span class="p">)</span></div>
+
+    <span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="FileDataset.load_dataset_split_table"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_datasets.FileDataset.load_dataset_split_table">[docs]</a>    <span class="k">def</span> <span class="nf">load_dataset_split_table</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">directory</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Loads from the filesystem a table of compound IDs assigned to each split subset of a dataset.</span>
+<span class="sd">        Called by load_presplit_dataset().</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            directory (str): Directory where the split table will be created. Defaults to the directory</span>
+<span class="sd">            of the current dataset.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">directory</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">directory</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">dataset_key</span><span class="p">)</span>
+        <span class="n">split_table_file</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{0}</span><span class="s1">/</span><span class="si">{1}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_split_key</span><span class="p">())</span>
+        <span class="n">split_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">split_table_file</span><span class="p">,</span> <span class="n">index_col</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">split_df</span></div></div>
+
+
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, ATOM DDM Team.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.0',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

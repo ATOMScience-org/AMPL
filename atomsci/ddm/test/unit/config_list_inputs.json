@@ -1,0 +1,30 @@
+{
+    "ModelMetadata" : 
+        {
+        "TrainingDataset" : 
+            {
+                "dataset_key" : "/ds/data/public/delaney/delaney-processed.csv",
+                "dataset_bucket" : "gsk_ml",
+                "descriptor_type" : "moe",
+                "descriptor_key" : "None"
+            },
+        "ModelSpecific" : 
+            {
+                "system" : "twintron-blue",
+                "previously_split" : "True"
+            }
+        },
+    "ModelTrainSelectionParameters" : 
+        {
+            "NNSpecific":
+                {
+                    "layer_sizes" : "42,42",
+                    "batch_size" : 63,
+                    "response_cols": "task1,task2,task3",
+                    "transformers": "False"
+                },
+    "IgnoreThisHeading" :
+            {"model_type" : "NN,RF",
+            "hyperparam" : "true"}
+        }
+}

@@ -1,0 +1,1591 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pipeline.perf_data &mdash; ATOM Data-Driven Modeling Pipeline 1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> ATOM Data-Driven Modeling Pipeline
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">ATOM Data-Driven Modeling Pipeline</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>pipeline.perf_data</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for pipeline.perf_data</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Contains class PerfData and its subclasses, which are objects for collecting and computing model performance metrics</span>
+<span class="sd">and predictions</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<span class="kn">import</span> <span class="nn">deepchem</span> <span class="k">as</span> <span class="nn">dc</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="k">import</span> <span class="n">roc_auc_score</span><span class="p">,</span> <span class="n">confusion_matrix</span><span class="p">,</span> <span class="n">average_precision_score</span><span class="p">,</span> <span class="n">precision_score</span><span class="p">,</span> <span class="n">recall_score</span>
+<span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="k">import</span> <span class="n">accuracy_score</span><span class="p">,</span> <span class="n">matthews_corrcoef</span><span class="p">,</span> <span class="n">cohen_kappa_score</span><span class="p">,</span> <span class="n">log_loss</span>
+<span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="k">import</span> <span class="n">r2_score</span><span class="p">,</span> <span class="n">mean_absolute_error</span><span class="p">,</span> <span class="n">mean_squared_error</span>
+<span class="kn">from</span> <span class="nn">sklearn.preprocessing</span> <span class="k">import</span> <span class="n">label_binarize</span>
+
+<span class="c1"># ******************************************************************************************************************************</span>
+<div class="viewcode-block" id="rms_error"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.rms_error">[docs]</a><span class="k">def</span> <span class="nf">rms_error</span><span class="p">(</span><span class="n">y_real</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Calculates the root mean squared error. Score function used for model selection.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        y_real (np.array): Array of ground truth values</span>
+<span class="sd">        y_pred (np.array): Array of predicted values</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        (np.array): root mean squared error of the input</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">mean_squared_error</span><span class="p">(</span><span class="n">y_real</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">))</span></div>
+
+<span class="c1"># ---------------------------------------------</span>
+<div class="viewcode-block" id="negative_predictive_value"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.negative_predictive_value">[docs]</a><span class="k">def</span> <span class="nf">negative_predictive_value</span><span class="p">(</span><span class="n">y_real</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Computes negative predictive value of a binary classification model: NPV = TN/(TN+FN).</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        y_real (np.array): Array of ground truth values</span>
+<span class="sd">        y_pred (np.array): Array of predicted values</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        (float): The negative predictive value</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">TN</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">((</span><span class="n">y_pred</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">y_real</span> <span class="o">==</span> <span class="mi">0</span><span class="p">))</span>
+    <span class="n">FN</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">((</span><span class="n">y_pred</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">y_real</span> <span class="o">==</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">TN</span><span class="p">)</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="n">TN</span><span class="o">+</span><span class="n">FN</span><span class="p">)</span></div>
+
+<span class="c1"># ******************************************************************************************************************************</span>
+
+<span class="c1"># params.model_choice_score_type must be a key in one of the dictionaries below:</span>
+<span class="n">regr_score_func</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">r2</span> <span class="o">=</span> <span class="n">r2_score</span><span class="p">,</span> <span class="n">mae</span> <span class="o">=</span> <span class="n">mean_absolute_error</span><span class="p">,</span> <span class="n">rmse</span> <span class="o">=</span> <span class="n">rms_error</span><span class="p">)</span>
+<span class="n">classif_score_func</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">roc_auc</span> <span class="o">=</span> <span class="n">roc_auc_score</span><span class="p">,</span> <span class="n">precision</span> <span class="o">=</span> <span class="n">precision_score</span><span class="p">,</span> <span class="n">ppv</span> <span class="o">=</span> <span class="n">precision_score</span><span class="p">,</span> <span class="n">recall</span> <span class="o">=</span> <span class="n">recall_score</span><span class="p">,</span> 
+                          <span class="n">npv</span> <span class="o">=</span> <span class="n">negative_predictive_value</span><span class="p">,</span> <span class="n">cross_entropy</span> <span class="o">=</span> <span class="n">log_loss</span><span class="p">,</span> <span class="n">accuracy</span> <span class="o">=</span> <span class="n">accuracy_score</span><span class="p">,</span>
+                          <span class="n">avg_precision</span> <span class="o">=</span> <span class="n">average_precision_score</span><span class="p">,</span> <span class="n">mcc</span> <span class="o">=</span> <span class="n">matthews_corrcoef</span><span class="p">,</span> <span class="n">kappa</span> <span class="o">=</span> <span class="n">cohen_kappa_score</span><span class="p">)</span>
+
+<span class="c1"># The following score types are loss functions, meaning the result must be sign flipped so we can maximize it in model selection</span>
+<span class="n">loss_funcs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;mae&#39;</span><span class="p">,</span> <span class="s1">&#39;rmse&#39;</span><span class="p">,</span> <span class="s1">&#39;cross_entropy&#39;</span><span class="p">}</span>
+
+<span class="c1"># The following score types for classification require predicted class probabilities rather than class labels as input</span>
+<span class="n">uses_class_probs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;roc_auc&#39;</span><span class="p">,</span> <span class="s1">&#39;avg_precision&#39;</span><span class="p">,</span> <span class="s1">&#39;cross_entropy&#39;</span><span class="p">}</span>
+
+<span class="c1"># ******************************************************************************************************************************</span>
+<div class="viewcode-block" id="create_perf_data"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.create_perf_data">[docs]</a><span class="k">def</span> <span class="nf">create_perf_data</span><span class="p">(</span><span class="n">prediction_type</span><span class="p">,</span> <span class="n">model_dataset</span><span class="p">,</span> <span class="n">transformers</span><span class="p">,</span> <span class="n">subset</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Factory function that creates the right kind of PerfData object for the given subset,</span>
+<span class="sd">    prediction_type (classification or regression) and split strategy (k-fold or train/valid/test).</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        prediction_type (str): classification or regression.</span>
+<span class="sd">        </span>
+<span class="sd">        model_dataset (ModelDataset): Object representing the full dataset.</span>
+<span class="sd">        </span>
+<span class="sd">        transformers (list): A list of transformer objects.</span>
+<span class="sd">        </span>
+<span class="sd">        subset (str): Label in [&#39;train&#39;, &#39;valid&#39;, &#39;test&#39;, &#39;full&#39;], indicating the type of subset of dataset for tracking predictions</span>
+<span class="sd">        </span>
+<span class="sd">        **kwargs: Additional PerfData subclass arguments</span>
+<span class="sd">        </span>
+<span class="sd">    Returns:</span>
+<span class="sd">        PerfData object</span>
+<span class="sd">        </span>
+<span class="sd">    Raises:</span>
+<span class="sd">        ValueError: if split_strategy not in [&#39;train_valid_test&#39;,&#39;k_fold_cv&#39;]</span>
+<span class="sd">        ValueError: prediction_type not in [&#39;regression&#39;,&#39;classification&#39;]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">split_strategy</span> <span class="o">=</span> <span class="n">model_dataset</span><span class="o">.</span><span class="n">split_strategy</span>
+    <span class="k">if</span> <span class="n">prediction_type</span> <span class="o">==</span> <span class="s1">&#39;regression&#39;</span><span class="p">:</span>
+        <span class="c1">#if subset in [&#39;test&#39;, &#39;full&#39;] or split_strategy == &#39;train_valid_test&#39;:</span>
+        <span class="k">if</span> <span class="n">subset</span> <span class="o">==</span> <span class="s1">&#39;full&#39;</span> <span class="ow">or</span> <span class="n">split_strategy</span> <span class="o">==</span> <span class="s1">&#39;train_valid_test&#39;</span><span class="p">:</span>
+            <span class="c1"># Called simple because no need to track compound IDs across multiple training folds</span>
+            <span class="k">return</span> <span class="n">SimpleRegressionPerfData</span><span class="p">(</span><span class="n">model_dataset</span><span class="p">,</span> <span class="n">transformers</span><span class="p">,</span> <span class="n">subset</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">split_strategy</span> <span class="o">==</span> <span class="s1">&#39;k_fold_cv&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">KFoldRegressionPerfData</span><span class="p">(</span><span class="n">model_dataset</span><span class="p">,</span> <span class="n">transformers</span><span class="p">,</span> <span class="n">subset</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Unknown split_strategy </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">split_strategy</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">prediction_type</span> <span class="o">==</span> <span class="s1">&#39;classification&#39;</span><span class="p">:</span>
+        <span class="c1">#if subset in [&#39;test&#39;, &#39;full&#39;] or split_strategy == &#39;train_valid_test&#39;:</span>
+        <span class="k">if</span> <span class="n">subset</span> <span class="o">==</span> <span class="s1">&#39;full&#39;</span> <span class="ow">or</span> <span class="n">split_strategy</span> <span class="o">==</span> <span class="s1">&#39;train_valid_test&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">SimpleClassificationPerfData</span><span class="p">(</span><span class="n">model_dataset</span><span class="p">,</span> <span class="n">transformers</span><span class="p">,</span> <span class="n">subset</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">split_strategy</span> <span class="o">==</span> <span class="s1">&#39;k_fold_cv&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">KFoldClassificationPerfData</span><span class="p">(</span><span class="n">model_dataset</span><span class="p">,</span> <span class="n">transformers</span><span class="p">,</span> <span class="n">subset</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Unknown split_strategy </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">split_strategy</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Unknown prediction type </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">prediction_type</span><span class="p">)</span></div>
+
+<span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="PerfData"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.PerfData">[docs]</a><span class="k">class</span> <span class="nc">PerfData</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Class with methods for accumulating prediction data over multiple cross-validation folds</span>
+<span class="sd">    and computing performance metrics after all folds have been run. Abstract class with</span>
+<span class="sd">    concrete subclasses for classification and regression models.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># ****************************************************************************************</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_dataset</span><span class="p">,</span> <span class="n">subset</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initialize any attributes that are common to all PerfData subclasses</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+    <span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="PerfData.accumulate_preds"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.PerfData.accumulate_preds">[docs]</a>    <span class="k">def</span> <span class="nf">accumulate_preds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">predicted_vals</span><span class="p">,</span> <span class="n">ids</span><span class="p">,</span> <span class="n">pred_stds</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Raises:</span>
+<span class="sd">            NotImplementedError: The method is implemented by subclasses</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+    <span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="PerfData.get_pred_values"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.PerfData.get_pred_values">[docs]</a>    <span class="k">def</span> <span class="nf">get_pred_values</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Raises:</span>
+<span class="sd">            NotImplementedError: The method is implemented by subclasses</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+    <span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="PerfData.get_real_values"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.PerfData.get_real_values">[docs]</a>    <span class="k">def</span> <span class="nf">get_real_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ids</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Raises:</span>
+<span class="sd">            NotImplementedError: The method is implemented by subclasses</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+    <span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="PerfData.compute_perf_metrics"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.PerfData.compute_perf_metrics">[docs]</a>    <span class="k">def</span> <span class="nf">compute_perf_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">per_task</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Raises:</span>
+<span class="sd">            NotImplementedError: The method is implemented by subclasses</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+    <span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="PerfData.get_prediction_results"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.PerfData.get_prediction_results">[docs]</a>    <span class="k">def</span> <span class="nf">get_prediction_results</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Raises:</span>
+<span class="sd">            NotImplementedError: The method is implemented by subclasses</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+    <span class="c1"># ****************************************************************************************</span>
+    <span class="k">def</span> <span class="nf">_reshape_preds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">predicted_vals</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Raises:</span>
+<span class="sd">            NotImplementedError: The method is implemented by subclasses</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+
+<span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="RegressionPerfData"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.RegressionPerfData">[docs]</a><span class="k">class</span> <span class="nc">RegressionPerfData</span><span class="p">(</span><span class="n">PerfData</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Class with methods for accumulating regression model prediction data over multiple</span>
+<span class="sd">    cross-validation folds and computing performance metrics after all folds have been run.</span>
+<span class="sd">    Abstract class with concrete subclasses for different split strategies.</span>
+<span class="sd">    </span>
+<span class="sd">    Attributes:</span>
+<span class="sd">        set in __init__</span>
+<span class="sd">            num_tasks (int): Set to None, the number of tasks</span>
+
+<span class="sd">            num_cmpds (int): Set to None, the number of compounds</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># ****************************************************************************************</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_dataset</span><span class="p">,</span> <span class="n">subset</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initialize any attributes that are common to all RegressionPerfData subclasses.</span>
+<span class="sd">        </span>
+<span class="sd">        Side effects:</span>
+<span class="sd">            num_tasks (int) is set as a RegressionPerfData attribute</span>
+
+<span class="sd">            num_cmps (int) is set as a RegressionPerfData attribute</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Mainly this is to document the atributes that methods in this class expect the</span>
+        <span class="c1"># subclasses to define. Subclasses don&#39;t need to call this superclass method.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_tasks</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_cmpds</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">perf_metrics</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model_score</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="RegressionPerfData.accumulate_preds"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.RegressionPerfData.accumulate_preds">[docs]</a>    <span class="k">def</span> <span class="nf">accumulate_preds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">predicted_vals</span><span class="p">,</span> <span class="n">ids</span><span class="p">,</span> <span class="n">pred_stds</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Raises:</span>
+<span class="sd">            NotImplementedError: The method is implemented by subclasses</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+    <span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="RegressionPerfData.get_pred_values"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.RegressionPerfData.get_pred_values">[docs]</a>    <span class="k">def</span> <span class="nf">get_pred_values</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Raises:</span>
+<span class="sd">            NotImplementedError: The method is implemented by subclasses</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+    <span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="RegressionPerfData.compute_perf_metrics"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.RegressionPerfData.compute_perf_metrics">[docs]</a>    <span class="k">def</span> <span class="nf">compute_perf_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">per_task</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Raises:</span>
+<span class="sd">            NotImplementedError: The method is implemented by subclasses</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+
+    <span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="RegressionPerfData.model_choice_score"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.RegressionPerfData.model_choice_score">[docs]</a>    <span class="k">def</span> <span class="nf">model_choice_score</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">score_type</span><span class="o">=</span><span class="s1">&#39;r2&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Computes a score function based on the accumulated predicted values, to be used for selecting</span>
+<span class="sd">        the best training epoch and other hyperparameters.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            score_type (str): The name of the scoring metric to be used, e.g. &#39;r2&#39;,</span>
+<span class="sd">                              &#39;neg_mean_squared_error&#39;, &#39;neg_mean_absolute_error&#39;, etc.; see</span>
+<span class="sd">                              https://scikit-learn.org/stable/modules/model_evaluation.html#scoring-parameter</span>
+<span class="sd">                              and sklearn.metrics.SCORERS.keys() for a complete list of options.</span>
+<span class="sd">                              Larger values of the score function indicate better models.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            score (float): A score function value. For multitask models, this will be averaged</span>
+<span class="sd">                           over tasks.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ids</span><span class="p">,</span> <span class="n">pred_vals</span><span class="p">,</span> <span class="n">stds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_pred_values</span><span class="p">()</span>
+        <span class="n">real_vals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_real_values</span><span class="p">()</span>
+        <span class="n">scorer</span> <span class="o">=</span> <span class="n">regr_score_func</span><span class="p">[</span><span class="n">score_type</span><span class="p">]</span>
+        <span class="n">scores</span> <span class="o">=</span> <span class="n">scorer</span><span class="p">(</span><span class="n">real_vals</span><span class="p">,</span> <span class="n">pred_vals</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">model_score</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">scores</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">score_type</span> <span class="ow">in</span> <span class="n">loss_funcs</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">model_score</span> <span class="o">=</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">model_score</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_score</span></div>
+
+
+    <span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="RegressionPerfData.get_prediction_results"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.RegressionPerfData.get_prediction_results">[docs]</a>    <span class="k">def</span> <span class="nf">get_prediction_results</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns a dictionary of performance metrics for a regression model.</span>
+<span class="sd">        The dictionary values should contain only primitive Python types, so that it can</span>
+<span class="sd">        be easily JSONified.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            per_task (bool): True if calculating per-task metrics, False otherwise.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            pred_results (dict): dictionary of performance metrics for a regression model.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pred_results</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c1"># Get the mean and SD of R^2 scores over folds. If only single fold training was done, the SD will be None.</span>
+        <span class="n">r2_means</span><span class="p">,</span> <span class="n">r2_stds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_perf_metrics</span><span class="p">()</span>
+        <span class="n">pred_results</span><span class="p">[</span><span class="s1">&#39;r2_score&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">r2_means</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">r2_stds</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">pred_results</span><span class="p">[</span><span class="s1">&#39;r2_std&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">r2_stds</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)))</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_tasks</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">pred_results</span><span class="p">[</span><span class="s1">&#39;task_r2_scores&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">r2_means</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">r2_stds</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">pred_results</span><span class="p">[</span><span class="s1">&#39;task_r2_stds&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">r2_stds</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+
+        <span class="c1"># Compute some other performance metrics. We do these differently than R^2, in that we compute the</span>
+        <span class="c1"># metrics from the average predicted values, rather than computing them separately for each fold</span>
+        <span class="c1"># and then averaging the metrics. If people start asking for SDs of MAE and RMSE scores over folds,</span>
+        <span class="c1"># we&#39;ll change the code to compute all metrics the same way.</span>
+
+        <span class="p">(</span><span class="n">ids</span><span class="p">,</span> <span class="n">pred_vals</span><span class="p">,</span> <span class="n">pred_stds</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_pred_values</span><span class="p">()</span>
+        <span class="n">real_vals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_real_values</span><span class="p">()</span>
+        <span class="n">mae_scores</span> <span class="o">=</span> <span class="n">mean_absolute_error</span><span class="p">(</span><span class="n">real_vals</span><span class="p">,</span> <span class="n">pred_vals</span><span class="p">,</span> <span class="n">multioutput</span><span class="o">=</span><span class="s1">&#39;raw_values&#39;</span><span class="p">)</span>
+        <span class="n">pred_results</span><span class="p">[</span><span class="s1">&#39;mae_score&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">mae_scores</span><span class="p">))</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_tasks</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">pred_results</span><span class="p">[</span><span class="s1">&#39;task_mae_scores&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mae_scores</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+
+        <span class="n">rms_scores</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">mean_squared_error</span><span class="p">(</span><span class="n">real_vals</span><span class="p">,</span> <span class="n">pred_vals</span><span class="p">,</span> <span class="n">multioutput</span><span class="o">=</span><span class="s1">&#39;raw_values&#39;</span><span class="p">))</span>
+        <span class="n">pred_results</span><span class="p">[</span><span class="s1">&#39;rms_score&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">rms_scores</span><span class="p">))</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_tasks</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">pred_results</span><span class="p">[</span><span class="s1">&#39;task_rms_scores&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">rms_scores</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+
+        <span class="c1"># Add model choice score if one was computed</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_score</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">pred_results</span><span class="p">[</span><span class="s1">&#39;model_choice_score&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_score</span>
+
+        <span class="n">pred_results</span><span class="p">[</span><span class="s1">&#39;num_compounds&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_cmpds</span>
+        <span class="n">pred_results</span><span class="p">[</span><span class="s1">&#39;mean_response_vals&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">real_vals</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+        <span class="n">pred_results</span><span class="p">[</span><span class="s1">&#39;std_response_vals&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">real_vals</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">pred_results</span></div>
+
+    <span class="c1"># ****************************************************************************************</span>
+    <span class="k">def</span> <span class="nf">_reshape_preds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">predicted_vals</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Reshape an array of regression model predictions to a standard (ncmpds, ntasks)</span>
+<span class="sd">        format. Checks that the task dimension matches what we expect for the dataset.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            predicted_vals (np.array): array of regression model predictions.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            predicted_vals (np.array): reshaped array</span>
+<span class="sd">            </span>
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: if the dimensions of the predicted value do not match the dimensions of num_tasks for</span>
+<span class="sd">            RegressionPerfData</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># For regression models, predicted_vals can be 1D, 2D or 3D array depending on the type of</span>
+        <span class="c1"># underlying DeepChem model.</span>
+        <span class="n">dim</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">predicted_vals</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="n">ncmpds</span> <span class="o">=</span> <span class="n">predicted_vals</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">dim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="c1"># Single task model</span>
+            <span class="n">predicted_vals</span> <span class="o">=</span> <span class="n">predicted_vals</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">ncmpds</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+            <span class="n">ntasks</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ntasks</span> <span class="o">=</span> <span class="n">predicted_vals</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">ntasks</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_tasks</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Predicted value dimensions don&#39;t match num_tasks for RegressionPerfData&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">dim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="c1"># FCNet models generate predictions with an extra dimension, possibly for the number of</span>
+            <span class="c1"># classes, which is always 1 for regression models.</span>
+            <span class="n">predicted_vals</span> <span class="o">=</span> <span class="n">predicted_vals</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">ncmpds</span><span class="p">,</span><span class="n">ntasks</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">predicted_vals</span></div>
+
+    <span class="c1"># ****************************************************************************************</span>
+
+<span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="ClassificationPerfData"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.ClassificationPerfData">[docs]</a><span class="k">class</span> <span class="nc">ClassificationPerfData</span><span class="p">(</span><span class="n">PerfData</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Class with methods for accumulating classification model prediction data over multiple</span>
+<span class="sd">    cross-validation folds and computing performance metrics after all folds have been run.</span>
+<span class="sd">    Abstract class with concrete subclasses for different split strategies.</span>
+<span class="sd">    </span>
+<span class="sd">    Attributes:</span>
+<span class="sd">        set in __init__</span>
+<span class="sd">            num_tasks (int): Set to None, the number of tasks</span>
+
+<span class="sd">            num_cmpds (int): Set to None, the number of compounds</span>
+
+<span class="sd">            num_classes (int): Set to None, the number of classes</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># ****************************************************************************************</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_dataset</span><span class="p">,</span> <span class="n">subset</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initialize any attributes that are common to all ClassificationPerfData subclasses</span>
+<span class="sd">        </span>
+<span class="sd">        Side effects:</span>
+<span class="sd">            num_tasks (int) is set as a ClassificationPerfData attribute</span>
+
+<span class="sd">            num_cmps (int) is set as a ClassificationPerfData attribute</span>
+
+<span class="sd">            num_classes (int) is set as a ClassificationPerfData attribute</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Mainly this is to document the atributes that methods in this class expect the</span>
+        <span class="c1"># subclasses to define. Subclasses don&#39;t need to call this superclass method.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_tasks</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_cmpds</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_classes</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">perf_metrics</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model_score</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="ClassificationPerfData.accumulate_preds"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.ClassificationPerfData.accumulate_preds">[docs]</a>    <span class="k">def</span> <span class="nf">accumulate_preds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">predicted_vals</span><span class="p">,</span> <span class="n">ids</span><span class="p">,</span> <span class="n">pred_stds</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Raises:</span>
+<span class="sd">            NotImplementedError: The method is implemented by subclasses</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+    <span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="ClassificationPerfData.get_pred_values"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.ClassificationPerfData.get_pred_values">[docs]</a>    <span class="k">def</span> <span class="nf">get_pred_values</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Raises:</span>
+<span class="sd">            NotImplementedError: The method is implemented by subclasses</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+
+    <span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="ClassificationPerfData.model_choice_score"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.ClassificationPerfData.model_choice_score">[docs]</a>    <span class="k">def</span> <span class="nf">model_choice_score</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">score_type</span><span class="o">=</span><span class="s1">&#39;roc_auc&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Computes a score function based on the accumulated predicted values, to be used for selecting</span>
+<span class="sd">        the best training epoch and other hyperparameters.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            score_type (str): The name of the scoring metric to be used, e.g. &#39;roc_auc&#39;, &#39;precision&#39;,</span>
+<span class="sd">                              &#39;recall&#39;, &#39;f1&#39;; see </span>
+<span class="sd">                              https://scikit-learn.org/stable/modules/model_evaluation.html#scoring-parameter</span>
+<span class="sd">                              and sklearn.metrics.SCORERS.keys() for a complete list of options.</span>
+<span class="sd">                              Larger values of the score function indicate better models.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            score (float): A score function value. For multitask models, this will be averaged</span>
+<span class="sd">                           over tasks.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ids</span><span class="p">,</span> <span class="n">pred_classes</span><span class="p">,</span> <span class="n">class_probs</span><span class="p">,</span> <span class="n">prob_stds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_pred_values</span><span class="p">()</span>
+        <span class="n">real_vals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_real_values</span><span class="p">()</span>
+        <span class="n">scorer</span> <span class="o">=</span> <span class="n">classif_score_func</span><span class="p">[</span><span class="n">score_type</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_classes</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="c1"># If more than 2 classes, real_vals is indicator matrix (one-hot encoded). This is breaking out different arrays</span>
+            <span class="c1"># for each task</span>
+            <span class="n">real_val_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">real_vals</span><span class="p">[:,</span><span class="n">i</span><span class="p">,:]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_tasks</span><span class="p">)]</span>
+            <span class="n">class_prob_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">class_probs</span><span class="p">[:,</span><span class="n">i</span><span class="p">,:]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_tasks</span><span class="p">)]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># sklearn metrics functions are expecting single array of 1s and 0s for real_vals_list</span>
+            <span class="c1"># Only wants class_probs for class_one</span>
+            <span class="n">real_val_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">real_vals</span><span class="p">[:,</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_tasks</span><span class="p">)]</span>
+            <span class="n">class_prob_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">class_probs</span><span class="p">[:,</span><span class="n">i</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_tasks</span><span class="p">)]</span>
+
+        <span class="k">if</span> <span class="n">score_type</span> <span class="ow">in</span> <span class="n">uses_class_probs</span><span class="p">:</span>
+            <span class="n">scores</span> <span class="o">=</span> <span class="p">[</span><span class="n">scorer</span><span class="p">(</span><span class="n">real_val_list</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">class_prob_list</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_tasks</span><span class="p">)]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">pred_class_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">pred_classes</span><span class="p">[:,</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_tasks</span><span class="p">)]</span>
+            <span class="n">scores</span> <span class="o">=</span> <span class="p">[</span><span class="n">scorer</span><span class="p">(</span><span class="n">real_val_list</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">pred_class_list</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_tasks</span><span class="p">)]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model_score</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">scores</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">score_type</span> <span class="ow">in</span> <span class="n">loss_funcs</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">model_score</span> <span class="o">=</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">model_score</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_score</span></div>
+
+    <span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="ClassificationPerfData.get_prediction_results"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.ClassificationPerfData.get_prediction_results">[docs]</a>    <span class="k">def</span> <span class="nf">get_prediction_results</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns a dictionary of performance metrics for a classification model.</span>
+<span class="sd">        The dictionary values will contain only primitive Python types, so that it can</span>
+<span class="sd">        be easily JSONified.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            per_task (bool): True if calculating per-task metrics, False otherwise.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            pred_results (dict): dictionary of performance metrics for a classification model.</span>
+<span class="sd">            </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pred_results</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="p">(</span><span class="n">ids</span><span class="p">,</span> <span class="n">pred_classes</span><span class="p">,</span> <span class="n">class_probs</span><span class="p">,</span> <span class="n">prob_stds</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_pred_values</span><span class="p">()</span>
+
+        <span class="n">real_vals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_real_values</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_classes</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">real_val_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">real_vals</span><span class="p">[:,</span><span class="n">i</span><span class="p">,:]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_tasks</span><span class="p">)]</span>
+            <span class="n">class_prob_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">class_probs</span><span class="p">[:,</span><span class="n">i</span><span class="p">,:]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_tasks</span><span class="p">)]</span>
+            <span class="n">real_classes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">real_vals</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">real_classes</span> <span class="o">=</span> <span class="n">real_vals</span>
+            <span class="n">real_val_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">real_vals</span><span class="p">[:,</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_tasks</span><span class="p">)]</span>
+            <span class="n">class_prob_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">class_probs</span><span class="p">[:,</span><span class="n">i</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_tasks</span><span class="p">)]</span>
+
+        <span class="c1"># Get the mean and SD of ROC AUC scores over folds. If only single fold training was done, the SD will be None.</span>
+        <span class="n">roc_auc_means</span><span class="p">,</span> <span class="n">roc_auc_stds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_perf_metrics</span><span class="p">()</span>
+        <span class="n">pred_results</span><span class="p">[</span><span class="s1">&#39;roc_auc_score&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">roc_auc_means</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">roc_auc_stds</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">pred_results</span><span class="p">[</span><span class="s1">&#39;roc_auc_std&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">roc_auc_stds</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)))</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_tasks</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">pred_results</span><span class="p">[</span><span class="s1">&#39;task_roc_auc_scores&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">roc_auc_means</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">roc_auc_stds</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">pred_results</span><span class="p">[</span><span class="s1">&#39;task_roc_auc_stds&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">roc_auc_stds</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+
+        <span class="c1"># Compute some other performance metrics. We do these differently than ROC AUC, in that we compute the</span>
+        <span class="c1"># metrics from the average predicted values, rather than computing them separately for each fold</span>
+        <span class="c1"># and then averaging the metrics. If people start asking for SDs of the other metrics over folds,</span>
+        <span class="c1"># we&#39;ll change the code to compute all metrics the same way.</span>
+
+        <span class="c1"># JEA check to see which tasks are multi-label</span>
+        <span class="c1"># set multi-label tasks to average=&#39;macro&#39;</span>
+        <span class="c1"># eventually make this user defined parameter, but it needs</span>
+        <span class="c1"># to match roc_auc_score() and any other related metric scores </span>
+        <span class="c1"># to have a consistent class weighting scheme</span>
+        <span class="n">label_cnt</span><span class="o">=</span><span class="p">[</span><span class="n">real_classes</span><span class="p">[:,</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_tasks</span><span class="p">)]</span>
+        <span class="n">average_type</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;macro&#39;</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">label_cnt</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span> <span class="o">&gt;</span> <span class="mi">2</span> <span class="k">else</span> <span class="s1">&#39;binary&#39;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_tasks</span><span class="p">)]</span>
+
+        <span class="n">prc_aucs</span> <span class="o">=</span> <span class="p">[</span><span class="n">average_precision_score</span><span class="p">(</span><span class="n">real_val_list</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">class_prob_list</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">average</span><span class="o">=</span><span class="s1">&#39;macro&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_tasks</span><span class="p">)]</span>
+        <span class="n">pred_results</span><span class="p">[</span><span class="s1">&#39;prc_auc_score&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">prc_aucs</span><span class="p">))</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_tasks</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">pred_results</span><span class="p">[</span><span class="s1">&#39;task_prc_auc_scores&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">prc_aucs</span>
+
+        <span class="n">cross_entropies</span> <span class="o">=</span> <span class="p">[</span><span class="n">log_loss</span><span class="p">(</span><span class="n">real_val_list</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">class_prob_list</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_tasks</span><span class="p">)]</span>
+        <span class="n">pred_results</span><span class="p">[</span><span class="s1">&#39;cross_entropy&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">cross_entropies</span><span class="p">))</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_tasks</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">pred_results</span><span class="p">[</span><span class="s1">&#39;task_cross_entropies&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cross_entropies</span>
+
+        <span class="c1"># Add model choice score if one was computed</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_score</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">pred_results</span><span class="p">[</span><span class="s1">&#39;model_choice_score&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_score</span>
+
+        <span class="c1"># For the remaining metrics, we have to loop over tasks, and pass class labels instead of probs and indicators</span>
+
+        <span class="n">precisions</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">precision_score</span><span class="p">(</span><span class="n">real_classes</span><span class="p">[:,</span><span class="n">i</span><span class="p">],</span> <span class="n">pred_classes</span><span class="p">[:,</span><span class="n">i</span><span class="p">],</span><span class="n">average</span><span class="o">=</span><span class="n">average_type</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_tasks</span><span class="p">)]</span>
+        <span class="n">pred_results</span><span class="p">[</span><span class="s1">&#39;precision&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">precisions</span><span class="p">))</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_tasks</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">pred_results</span><span class="p">[</span><span class="s1">&#39;task_precisions&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">precisions</span>
+
+        <span class="n">recalls</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">recall_score</span><span class="p">(</span><span class="n">real_classes</span><span class="p">[:,</span><span class="n">i</span><span class="p">],</span> <span class="n">pred_classes</span><span class="p">[:,</span><span class="n">i</span><span class="p">],</span><span class="n">average</span><span class="o">=</span><span class="n">average_type</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_tasks</span><span class="p">)]</span>
+        <span class="n">pred_results</span><span class="p">[</span><span class="s1">&#39;recall_score&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">recalls</span><span class="p">))</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_tasks</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">pred_results</span><span class="p">[</span><span class="s1">&#39;task_recalls&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">recalls</span>
+
+        <span class="n">npvs</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">negative_predictive_value</span><span class="p">(</span><span class="n">real_classes</span><span class="p">[:,</span><span class="n">i</span><span class="p">],</span> <span class="n">pred_classes</span><span class="p">[:,</span><span class="n">i</span><span class="p">]))</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_tasks</span><span class="p">)]</span>
+        <span class="n">pred_results</span><span class="p">[</span><span class="s1">&#39;npv&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">npvs</span><span class="p">))</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_tasks</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">pred_results</span><span class="p">[</span><span class="s1">&#39;task_npvs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">npvs</span>
+
+        <span class="n">accuracies</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">accuracy_score</span><span class="p">(</span><span class="n">real_classes</span><span class="p">[:,</span><span class="n">i</span><span class="p">],</span> <span class="n">pred_classes</span><span class="p">[:,</span><span class="n">i</span><span class="p">]))</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_tasks</span><span class="p">)]</span>
+        <span class="n">pred_results</span><span class="p">[</span><span class="s1">&#39;accuracy_score&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">accuracies</span><span class="p">))</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_tasks</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">pred_results</span><span class="p">[</span><span class="s1">&#39;task_accuracies&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">accuracies</span>
+
+        <span class="n">kappas</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">cohen_kappa_score</span><span class="p">(</span><span class="n">real_classes</span><span class="p">[:,</span><span class="n">i</span><span class="p">],</span> <span class="n">pred_classes</span><span class="p">[:,</span><span class="n">i</span><span class="p">]))</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_tasks</span><span class="p">)]</span>
+        <span class="n">pred_results</span><span class="p">[</span><span class="s1">&#39;kappa&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">kappas</span><span class="p">))</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_tasks</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">pred_results</span><span class="p">[</span><span class="s1">&#39;task_kappas&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kappas</span>
+
+        <span class="n">matthews_ccs</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">matthews_corrcoef</span><span class="p">(</span><span class="n">real_classes</span><span class="p">[:,</span><span class="n">i</span><span class="p">],</span> <span class="n">pred_classes</span><span class="p">[:,</span><span class="n">i</span><span class="p">]))</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_tasks</span><span class="p">)]</span>
+        <span class="n">pred_results</span><span class="p">[</span><span class="s1">&#39;matthews_cc&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">matthews_ccs</span><span class="p">))</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_tasks</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">pred_results</span><span class="p">[</span><span class="s1">&#39;task_matthews_ccs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">matthews_ccs</span>
+
+        <span class="n">confusion_matrices</span> <span class="o">=</span> <span class="p">[</span><span class="n">confusion_matrix</span><span class="p">(</span><span class="n">real_classes</span><span class="p">[:,</span><span class="n">i</span><span class="p">],</span> <span class="n">pred_classes</span><span class="p">[:,</span><span class="n">i</span><span class="p">])</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_tasks</span><span class="p">)]</span>
+        <span class="n">pred_results</span><span class="p">[</span><span class="s1">&#39;confusion_matrix&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">confusion_matrices</span>
+        <span class="n">pred_results</span><span class="p">[</span><span class="s1">&#39;num_compounds&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_cmpds</span>
+
+        <span class="k">return</span> <span class="n">pred_results</span></div>
+
+    <span class="c1"># ****************************************************************************************</span>
+    <span class="k">def</span> <span class="nf">_reshape_preds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">predicted_vals</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Reshape an array of classification model predictions to a standard (ncmpds, ntasks, nclasses)</span>
+<span class="sd">        format. Checks that the task and class dimensions match what we expect for the dataset.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            predicted_vals (np.array): array of classification model predictions</span>
+<span class="sd">            </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            predicted_vals (np.array): reshaped array of classification model predictions</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># For classification models, predicted_vals can be 2D or 3D array depending on whether the</span>
+        <span class="c1"># underlying DeepChem or sklearn model supports multitask datasets.</span>
+        <span class="n">dim</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">predicted_vals</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="n">ncmpds</span> <span class="o">=</span> <span class="n">predicted_vals</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">dim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="c1"># Single task model</span>
+            <span class="n">ntasks</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="n">nclasses</span> <span class="o">=</span> <span class="n">predicted_vals</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">predicted_vals</span> <span class="o">=</span> <span class="n">predicted_vals</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">ncmpds</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">nclasses</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ntasks</span> <span class="o">=</span> <span class="n">predicted_vals</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">nclasses</span> <span class="o">=</span> <span class="n">predicted_vals</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">nclasses</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_classes</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Predicted value dimensions doesn&#39;t match num_classes for ClassificationPerfData&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ntasks</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_tasks</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Predicted value dimensions doesn&#39;t match num_tasks for ClassificationPerfData&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">predicted_vals</span></div>
+
+
+<span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="KFoldRegressionPerfData"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.KFoldRegressionPerfData">[docs]</a><span class="k">class</span> <span class="nc">KFoldRegressionPerfData</span><span class="p">(</span><span class="n">RegressionPerfData</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Class with methods for accumulating regression model prediction data over multiple</span>
+<span class="sd">    cross-validation folds and computing performance metrics after all folds have been run.</span>
+<span class="sd">    </span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        Set in __init__:</span>
+<span class="sd">            subset (str): Label of the type of subset of dataset for tracking predictions</span>
+
+<span class="sd">            num_cmps (int): The number of compounds in the dataset</span>
+
+<span class="sd">            num_tasks (int): The number of tasks in the dataset</span>
+
+<span class="sd">            pred-vals (dict): The dictionary of prediction results</span>
+
+<span class="sd">            folds (int): Initialized at zero, flag for determining which k-fold is being assessed</span>
+
+<span class="sd">            transformers (list of Transformer objects): from input arguments</span>
+
+<span class="sd">            real_vals (dict): The dictionary containing the origin response column values</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># ****************************************************************************************</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_dataset</span><span class="p">,</span> <span class="n">transformers</span><span class="p">,</span> <span class="n">subset</span><span class="p">,</span> <span class="n">transformed</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        # Initialize any attributes that are common to all KFoldRegressionPerfData subclasses</span>
+<span class="sd">        Args:</span>
+<span class="sd">            model_dataset (ModelDataset object): contains the dataset and related methods</span>
+
+<span class="sd">            transformers (list of transformer objects): contains the list of transformers used to transform the dataset</span>
+
+<span class="sd">            subset (str): Label in [&#39;train&#39;, &#39;valid&#39;, &#39;test&#39;, &#39;full&#39;], indicating the type of subset of dataset for</span>
+<span class="sd">            tracking predictions</span>
+
+<span class="sd">            transformed (bool): True if values to be passed to accumulate preds function are transformed values</span>
+<span class="sd">            </span>
+<span class="sd">        Side effects:</span>
+<span class="sd">            Sets the following attributes of KFoldRegressionPerfData:</span>
+<span class="sd">                subset (str): Label of the type of subset of dataset for tracking predictions</span>
+
+<span class="sd">                num_cmps (int): The number of compounds in the dataset</span>
+
+<span class="sd">                num_tasks (int): The number of tasks in the dataset</span>
+
+<span class="sd">                pred_vals (dict): The dictionary of prediction results</span>
+
+<span class="sd">                folds (int): Initialized at zero, flag for determining which k-fold is being assessed</span>
+
+<span class="sd">                transformers (list of Transformer objects): from input arguments</span>
+
+<span class="sd">                real_vals (dict): The dictionary containing the origin response column values</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">subset</span> <span class="o">=</span> <span class="n">subset</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">subset</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;train&#39;</span><span class="p">,</span> <span class="s1">&#39;valid&#39;</span><span class="p">):</span>
+            <span class="n">dataset</span> <span class="o">=</span> <span class="n">model_dataset</span><span class="o">.</span><span class="n">combined_training_data</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">subset</span> <span class="o">==</span> <span class="s1">&#39;test&#39;</span><span class="p">:</span>
+            <span class="n">dataset</span> <span class="o">=</span> <span class="n">model_dataset</span><span class="o">.</span><span class="n">test_dset</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Unknown dataset subset type &quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">subset</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_cmpds</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_tasks</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pred_vals</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">([(</span><span class="nb">id</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_tasks</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">))</span> <span class="k">for</span> <span class="nb">id</span> <span class="ow">in</span> <span class="n">dataset</span><span class="o">.</span><span class="n">ids</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">folds</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">perf_metrics</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model_score</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="c1"># Want predictions and real values to be in the same space, either transformed or untransformed</span>
+        <span class="k">if</span> <span class="n">transformed</span><span class="p">:</span>
+            <span class="c1"># Predictions passed to accumulate_preds() will be transformed</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">real_vals</span> <span class="o">=</span> <span class="n">model_dataset</span><span class="o">.</span><span class="n">get_subset_response_dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">subset</span><span class="p">,</span> <span class="p">[])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">transformers</span> <span class="o">=</span> <span class="n">transformers</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># If these were never transformed, transformers will be [], which is fine with undo_transforms</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">real_vals</span> <span class="o">=</span> <span class="n">model_dataset</span><span class="o">.</span><span class="n">get_subset_response_dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">subset</span><span class="p">,</span> <span class="n">transformers</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">transformers</span> <span class="o">=</span> <span class="p">[]</span>
+
+
+    <span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="KFoldRegressionPerfData.accumulate_preds"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.KFoldRegressionPerfData.accumulate_preds">[docs]</a>    <span class="k">def</span> <span class="nf">accumulate_preds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">predicted_vals</span><span class="p">,</span> <span class="n">ids</span><span class="p">,</span> <span class="n">pred_stds</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add training, validation or test set predictions from the current fold to the data structure</span>
+<span class="sd">        where we keep track of them.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            predicted_vals (np.array): Array of the predicted values for the current dataset</span>
+
+<span class="sd">            ids (np.array): An np.array of compound ids for the current dataset</span>
+
+<span class="sd">            pred_stds (np.array): An array of the standard deviation in the predictions, not used in this method</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            None</span>
+<span class="sd">        </span>
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If Predicted value dimensions don&#39;t match num_tasks for RegressionPerfData</span>
+<span class="sd">            </span>
+<span class="sd">        Side effects:</span>
+<span class="sd">            Overwrites the attribute pred_vals</span>
+
+<span class="sd">            Increments folds by 1</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># For regression models, predicted_vals can be 1D, 2D or 3D array depending on the type of</span>
+        <span class="c1"># underlying DeepChem model. Reshape the array to (ncmpds, ntasks) regardless.</span>
+        <span class="n">dim</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">predicted_vals</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="n">ncmpds</span> <span class="o">=</span> <span class="n">predicted_vals</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">dim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="c1"># Single task model</span>
+            <span class="n">predicted_vals</span> <span class="o">=</span> <span class="n">predicted_vals</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">ncmpds</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+            <span class="n">ntasks</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ntasks</span> <span class="o">=</span> <span class="n">predicted_vals</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">ntasks</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_tasks</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Predicted value dimensions don&#39;t match num_tasks for RegressionPerfData&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">dim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="c1"># FCNet models generate predictions with an extra dimension, possibly for the number of</span>
+            <span class="c1"># classes, which is always 1 for regression models.</span>
+            <span class="n">predicted_vals</span> <span class="o">=</span> <span class="n">predicted_vals</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">ncmpds</span><span class="p">,</span><span class="n">ntasks</span><span class="p">))</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="nb">id</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ids</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pred_vals</span><span class="p">[</span><span class="nb">id</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">pred_vals</span><span class="p">[</span><span class="nb">id</span><span class="p">],</span> <span class="n">predicted_vals</span><span class="p">[</span><span class="n">i</span><span class="p">,:]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">)),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">folds</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">predicted_vals</span> <span class="o">=</span> <span class="n">dc</span><span class="o">.</span><span class="n">trans</span><span class="o">.</span><span class="n">undo_transforms</span><span class="p">(</span><span class="n">predicted_vals</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformers</span><span class="p">)</span>
+        <span class="n">r2_scores</span> <span class="o">=</span> <span class="n">r2_score</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_real_values</span><span class="p">(</span><span class="n">ids</span><span class="p">),</span> <span class="n">predicted_vals</span><span class="p">,</span> <span class="n">multioutput</span><span class="o">=</span><span class="s1">&#39;raw_values&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">perf_metrics</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">r2_scores</span><span class="p">))</span></div>
+
+
+    <span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="KFoldRegressionPerfData.get_pred_values"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.KFoldRegressionPerfData.get_pred_values">[docs]</a>    <span class="k">def</span> <span class="nf">get_pred_values</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the predicted values accumulated over training, with any transformations undone.</span>
+<span class="sd">        If self.subset is &#39;train&#39; or &#39;test&#39;, the function will return averages over the training folds for each compound</span>
+<span class="sd">        along with standard deviations when there are predictions from multiple folds. Otherwise, returns a</span>
+<span class="sd">        single predicted value for each compound. </span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            ids (np.array): list of compound IDs</span>
+
+<span class="sd">            vals (np.array): (ncmpds, ntasks) array of mean predicted values</span>
+
+<span class="sd">            fold_stds (np.array): (ncmpds, ntasks) array of standard deviations over folds if applicable, and None</span>
+<span class="sd">            otherwise.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ids</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pred_vals</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">subset</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;train&#39;</span><span class="p">,</span> <span class="s1">&#39;test&#39;</span><span class="p">]:</span>
+            <span class="n">vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">dc</span><span class="o">.</span><span class="n">trans</span><span class="o">.</span><span class="n">undo_transforms</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pred_vals</span><span class="p">[</span><span class="nb">id</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformers</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                                   <span class="k">for</span> <span class="nb">id</span> <span class="ow">in</span> <span class="n">ids</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">folds</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">stds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">dc</span><span class="o">.</span><span class="n">trans</span><span class="o">.</span><span class="n">undo_transforms</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pred_vals</span><span class="p">[</span><span class="nb">id</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformers</span><span class="p">)</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                                       <span class="k">for</span> <span class="nb">id</span> <span class="ow">in</span> <span class="n">ids</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">stds</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">dc</span><span class="o">.</span><span class="n">trans</span><span class="o">.</span><span class="n">undo_transforms</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pred_vals</span><span class="p">[</span><span class="nb">id</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformers</span><span class="p">)</span> <span class="k">for</span> <span class="nb">id</span> <span class="ow">in</span> <span class="n">ids</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">stds</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">ids</span><span class="p">,</span> <span class="n">vals</span><span class="p">,</span> <span class="n">stds</span><span class="p">)</span></div>
+
+
+    <span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="KFoldRegressionPerfData.get_real_values"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.KFoldRegressionPerfData.get_real_values">[docs]</a>    <span class="k">def</span> <span class="nf">get_real_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ids</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the real dataset response values, with any transformations undone, as an (ncmpds, ntasks) array</span>
+<span class="sd">        in the same ID order as get_pred_values() (unless ids is specified).</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            ids (list of str): Optional list of compound IDs to return values for.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Np.array (ncmpds, ntasks) of the real dataset response values, with any transformations undone, in the same</span>
+<span class="sd">            ID order as get_pred_values().</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">ids</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">ids</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pred_vals</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="n">real_vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">real_vals</span><span class="p">[</span><span class="nb">id</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span> <span class="k">for</span> <span class="nb">id</span> <span class="ow">in</span> <span class="n">ids</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">dc</span><span class="o">.</span><span class="n">trans</span><span class="o">.</span><span class="n">undo_transforms</span><span class="p">(</span><span class="n">real_vals</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformers</span><span class="p">)</span></div>
+
+
+
+    <span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="KFoldRegressionPerfData.compute_perf_metrics"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.KFoldRegressionPerfData.compute_perf_metrics">[docs]</a>    <span class="k">def</span> <span class="nf">compute_perf_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">per_task</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Computes the R-squared metrics for each task based on the accumulated values, averaged over</span>
+<span class="sd">        training folds, along with standard deviations of the scores. If per_task is False, the scores </span>
+<span class="sd">        are averaged over tasks and the overall standard deviation is reported instead.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            per_task (bool): True if calculating per-task metrics, False otherwise.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            A tuple (r2_mean, r2_std):</span>
+
+<span class="sd">                r2_mean: A numpy array of mean R^2 scores for each task, averaged over folds, if per_task is True.</span>
+<span class="sd">                         Otherwise, a float giving the R^2 score averaged over both folds and tasks.</span>
+
+<span class="sd">                r2_std:  A numpy array of standard deviations over folds of R^2 values, if per_task is True.</span>
+<span class="sd">                         Otherwise, a float giving the overall standard deviation.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">r2_scores</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">perf_metrics</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">per_task</span><span class="p">:</span>
+            <span class="n">r2_mean</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">r2_scores</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">r2_std</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">r2_scores</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">r2_mean</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">r2_scores</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
+            <span class="n">r2_std</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">r2_scores</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">r2_mean</span><span class="p">,</span> <span class="n">r2_std</span><span class="p">)</span></div></div>
+
+
+<span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="KFoldClassificationPerfData"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.KFoldClassificationPerfData">[docs]</a><span class="k">class</span> <span class="nc">KFoldClassificationPerfData</span><span class="p">(</span><span class="n">ClassificationPerfData</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Class with methods for accumulating classification model performance data over multiple</span>
+<span class="sd">    cross-validation folds and computing performance metrics after all folds have been run.</span>
+<span class="sd">    </span>
+<span class="sd">    Attributes:</span>
+<span class="sd">        Set in __init__:</span>
+<span class="sd">            subset (str): Label of the type of subset of dataset for tracking predictions</span>
+<span class="sd">            num_cmps (int): The number of compounds in the dataset</span>
+<span class="sd">            num_tasks (int): The number of tasks in the dataset</span>
+<span class="sd">            pred-vals (dict): The dictionary of prediction results</span>
+<span class="sd">            folds (int): Initialized at zero, flag for determining which k-fold is being assessed </span>
+<span class="sd">            transformers (list of Transformer objects): from input arguments</span>
+<span class="sd">            real_vals (dict): The dictionary containing the origin response column values</span>
+<span class="sd">            class_names (np.array): Assumes the classes are of deepchem index type (e.g. 0,1,2,...)</span>
+<span class="sd">            num_classes (int): The number of classes to predict on</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_dataset</span><span class="p">,</span> <span class="n">transformers</span><span class="p">,</span> <span class="n">subset</span><span class="p">,</span> <span class="n">predict_probs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">transformed</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Initialize any attributes that are common to all KFoldClassificationPerfData subclasses</span>
+<span class="sd">        </span>
+<span class="sd">         Args:</span>
+<span class="sd">            model_dataset (ModelDataset object): contains the dataset and related methods</span>
+
+<span class="sd">            transformers (list of transformer objects): contains the list of transformers used to transform the dataset</span>
+
+<span class="sd">            subset (str): Label in [&#39;train&#39;, &#39;valid&#39;, &#39;test&#39;, &#39;full&#39;], indicating the type of subset of dataset for</span>
+<span class="sd">            tracking predictions</span>
+
+<span class="sd">            predict_probs (bool): True if using classifier supports probabilistic predictions, False otherwise</span>
+
+<span class="sd">            transformed (bool): True if values to be passed to accumulate preds function are transformed values</span>
+<span class="sd">            </span>
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError if subset not in [&#39;train&#39;,&#39;valid&#39;,&#39;test&#39;], unsupported dataset subset</span>
+
+<span class="sd">            NotImplementedError if predict_probs is not True, non-probabilistic classifiers are not supported yet</span>
+<span class="sd">            </span>
+<span class="sd">        Side effects:</span>
+<span class="sd">            Sets the following attributes of KFoldRegressionPerfData:</span>
+<span class="sd">                subset (str): Label of the type of subset of dataset for tracking predictions</span>
+
+<span class="sd">                num_cmps (int): The number of compounds in the dataset</span>
+
+<span class="sd">                num_tasks (int): The number of tasks in the dataset</span>
+
+<span class="sd">                pred_vals (dict): The dictionary of prediction results</span>
+
+<span class="sd">                folds (int): Initialized at zero, flag for determining which k-fold is being assessed</span>
+
+<span class="sd">                transformers (list of Transformer objects): from input arguments</span>
+
+<span class="sd">                real_vals (dict): The dictionary containing the origin response column values in one-hot encoding</span>
+
+<span class="sd">                class_names (np.array): Assumes the classes are of deepchem index type (e.g. 0,1,2,...)</span>
+
+<span class="sd">                num_classes (int): The number of classes to predict on                </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">subset</span> <span class="o">=</span> <span class="n">subset</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">subset</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;train&#39;</span><span class="p">,</span> <span class="s1">&#39;valid&#39;</span><span class="p">):</span>
+            <span class="n">dataset</span> <span class="o">=</span> <span class="n">model_dataset</span><span class="o">.</span><span class="n">combined_training_data</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">subset</span> <span class="o">==</span> <span class="s1">&#39;test&#39;</span><span class="p">:</span>
+            <span class="n">dataset</span> <span class="o">=</span> <span class="n">model_dataset</span><span class="o">.</span><span class="n">test_dset</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Unknown dataset subset type &quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">subset</span><span class="p">)</span>
+
+        <span class="c1"># All currently used classifiers generate class probabilities in their predict methods;</span>
+        <span class="c1"># if in the future we implement a classification algorithm such as kNN that doesn&#39;t support</span>
+        <span class="c1"># probabilistic predictions, the ModelWrapper for that classifier should pass predict_probs=False</span>
+        <span class="c1"># when constructing this object. When that happens, modify the code in this class to support</span>
+        <span class="c1"># this option.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">predict_probs</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Need to add support for non-probabilistic classifiers&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_cmpds</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_tasks</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="c1"># TODO: We assume the y values are class indices (0, 1, 2, ...) because deepchem is picky. Need to check for 2.1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">class_names</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">flatten</span><span class="p">())))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_classes</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">class_names</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pred_vals</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">([(</span><span class="nb">id</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_tasks</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_classes</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">))</span> <span class="k">for</span> <span class="nb">id</span> <span class="ow">in</span> <span class="n">dataset</span><span class="o">.</span><span class="n">ids</span><span class="p">])</span>
+        <span class="c1"># Convert true values to one-hot encoding</span>
+        <span class="c1"># TODO: The label_binarize call is incredibly slow; find an alternative. Or allow the PerfData structures for</span>
+        <span class="c1"># multiple epochs on the same data subset to share real_vals, so we only have to compute this once.</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">real_vals</span> <span class="o">=</span> <span class="n">model_dataset</span><span class="o">.</span><span class="n">get_subset_response_dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">subset</span><span class="p">,</span> <span class="p">[])</span>
+
+        <span class="c1">#if self.num_classes == 2:</span>
+        <span class="c1">#    self.real_vals = dict([(id, dataset.y[i,:]) for i, id in enumerate(dataset.ids)])</span>
+        <span class="c1">#else:</span>
+        <span class="c1">#    self.real_vals = dict([(id, label_binarize(dataset.y[i,:], self.class_names)) for i, id in enumerate(dataset.ids)])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">folds</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">perf_metrics</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model_score</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">transformed</span><span class="p">:</span>
+            <span class="c1"># Predictions passed to accumulate_preds() will be transformed</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">transformers</span> <span class="o">=</span> <span class="n">transformers</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">transformers</span> <span class="o">=</span> <span class="p">[]</span>
+
+
+    <span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="KFoldClassificationPerfData.accumulate_preds"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.KFoldClassificationPerfData.accumulate_preds">[docs]</a>    <span class="k">def</span> <span class="nf">accumulate_preds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">predicted_vals</span><span class="p">,</span> <span class="n">ids</span><span class="p">,</span> <span class="n">pred_stds</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add training, validation or test set predictions from the current fold to the data structure</span>
+<span class="sd">        where we keep track of them.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            predicted_vals (np.array): Array of the predicted values for the current dataset</span>
+
+<span class="sd">            ids (np.array): An np.array of compound ids for the current dataset</span>
+
+<span class="sd">            pred_stds (np.array): An array of the standard deviation in the predictions, not used in this method</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            None</span>
+<span class="sd">                  </span>
+<span class="sd">        Side effects:</span>
+<span class="sd">            Overwrites the attribute pred_vals</span>
+
+<span class="sd">            Increments folds by 1</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">class_probs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reshape_preds</span><span class="p">(</span><span class="n">predicted_vals</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="nb">id</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ids</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pred_vals</span><span class="p">[</span><span class="nb">id</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">pred_vals</span><span class="p">[</span><span class="nb">id</span><span class="p">],</span> <span class="n">class_probs</span><span class="p">[</span><span class="n">i</span><span class="p">,:,:]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">num_tasks</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">)),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">folds</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">real_vals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_real_values</span><span class="p">(</span><span class="n">ids</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_classes</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="c1"># If more than 2 classes, real_vals is indicator matrix (one-hot encoded). This is breaking out different arrays</span>
+            <span class="c1"># for each task</span>
+            <span class="n">real_val_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">real_vals</span><span class="p">[:,</span><span class="n">i</span><span class="p">,:]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_tasks</span><span class="p">)]</span>
+            <span class="n">class_prob_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">class_probs</span><span class="p">[:,</span><span class="n">i</span><span class="p">,:]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_tasks</span><span class="p">)]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># sklearn metrics functions are expecting single array of 1s and 0s for real_vals_list</span>
+            <span class="c1"># Only wants class_probs for class_one</span>
+            <span class="n">real_val_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">real_vals</span><span class="p">[:,</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_tasks</span><span class="p">)]</span>
+            <span class="n">class_prob_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">class_probs</span><span class="p">[:,</span><span class="n">i</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_tasks</span><span class="p">)]</span>
+
+        <span class="n">class_prob_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">dc</span><span class="o">.</span><span class="n">trans</span><span class="o">.</span><span class="n">undo_transforms</span><span class="p">(</span><span class="n">class_prob_list</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformers</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_tasks</span><span class="p">)]</span>
+        <span class="n">roc_aucs</span> <span class="o">=</span> <span class="p">[</span><span class="n">roc_auc_score</span><span class="p">(</span><span class="n">real_val_list</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">class_prob_list</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">average</span><span class="o">=</span><span class="s1">&#39;macro&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_tasks</span><span class="p">)]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">perf_metrics</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">roc_aucs</span><span class="p">))</span></div>
+
+    <span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="KFoldClassificationPerfData.get_pred_values"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.KFoldClassificationPerfData.get_pred_values">[docs]</a>    <span class="k">def</span> <span class="nf">get_pred_values</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the predicted values accumulated over training, with any transformations undone.  If self.subset </span>
+<span class="sd">        is &#39;train&#39; or &#39;test&#39;, the function will return mean class probabilities over the training folds for each</span>
+<span class="sd">        compound, and return the most probable class. Otherwise, returns a single set of predicted probabilites for each </span>
+<span class="sd">        validation set compound.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            ids (list): list of compound IDs.</span>
+<span class="sd">            </span>
+<span class="sd">            pred_classes (np.array): an (ncmpds, ntasks) array of predicted classes.</span>
+<span class="sd">            </span>
+<span class="sd">            class_probs (np.array): a (ncmpds, ntasks, nclasses) array of predicted probabilities for the classes, and </span>
+<span class="sd">            </span>
+<span class="sd">            prob_stds (np.array): a (ncmpds, ntasks, nclasses) array of standard errors over folds for the class</span>
+<span class="sd">            probability estimates (only available for the &#39;train&#39; and &#39;test&#39; subsets; None otherwise).</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ids</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pred_vals</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">subset</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;train&#39;</span><span class="p">,</span> <span class="s1">&#39;test&#39;</span><span class="p">]:</span>
+            <span class="n">class_probs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">dc</span><span class="o">.</span><span class="n">trans</span><span class="o">.</span><span class="n">undo_transforms</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pred_vals</span><span class="p">[</span><span class="nb">id</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformers</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                                   <span class="k">for</span> <span class="nb">id</span> <span class="ow">in</span> <span class="n">ids</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">prob_stds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">dc</span><span class="o">.</span><span class="n">trans</span><span class="o">.</span><span class="n">undo_transforms</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pred_vals</span><span class="p">[</span><span class="nb">id</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformers</span><span class="p">)</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                                   <span class="k">for</span> <span class="nb">id</span> <span class="ow">in</span> <span class="n">ids</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">class_probs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">dc</span><span class="o">.</span><span class="n">trans</span><span class="o">.</span><span class="n">undo_transforms</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pred_vals</span><span class="p">[</span><span class="nb">id</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformers</span><span class="p">)</span> <span class="k">for</span> <span class="nb">id</span> <span class="ow">in</span> <span class="n">ids</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">prob_stds</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="c1"># TODO: If class names can be other than 0, 1, 2, etc., index self.class_names by max class indices and return that</span>
+        <span class="c1"># as pred_classes.</span>
+        <span class="n">pred_classes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">class_probs</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">ids</span><span class="p">,</span> <span class="n">pred_classes</span><span class="p">,</span> <span class="n">class_probs</span><span class="p">,</span> <span class="n">prob_stds</span><span class="p">)</span></div>
+
+
+    <span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="KFoldClassificationPerfData.get_real_values"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.KFoldClassificationPerfData.get_real_values">[docs]</a>    <span class="k">def</span> <span class="nf">get_real_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ids</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the real dataset response values as an (ncmpds, ntasks, nclasses) array of indicator bits</span>
+<span class="sd">        (if nclasses &gt; 2) or an (ncmpds, ntasks) array of binary classes (if nclasses == 2),</span>
+<span class="sd">        with compound IDs in the same order as in the return from get_pred_values() (unless ids is specified).</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            ids (list of str): Optional list of compound IDs to return values for.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            np.array of shape (ncmpds, tasks, nclasses): of either indicator bits or a 2D array of binary classes</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">ids</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">ids</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pred_vals</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_classes</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">real_vals</span><span class="p">[</span><span class="nb">id</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">num_classes</span><span class="p">))</span> <span class="k">for</span> <span class="nb">id</span> <span class="ow">in</span> <span class="n">ids</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">real_vals</span><span class="p">[</span><span class="nb">id</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span> <span class="k">for</span> <span class="nb">id</span> <span class="ow">in</span> <span class="n">ids</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span></div>
+
+
+    <span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="KFoldClassificationPerfData.compute_perf_metrics"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.KFoldClassificationPerfData.compute_perf_metrics">[docs]</a>    <span class="k">def</span> <span class="nf">compute_perf_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">per_task</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Computes the ROC AUC metrics for each task based on the accumulated values, averaged over</span>
+<span class="sd">        training folds, along with standard deviations of the scores. If per_task is False, the scores </span>
+<span class="sd">        are averaged over tasks and the overall standard deviation is reported instead.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            per_task (bool): True if calculating per-task metrics, False otherwise.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            A tuple (roc_auc_mean, roc_auc_std):</span>
+
+<span class="sd">                roc_auc_mean: A numpy array of mean ROC AUC scores for each task, averaged over folds, if per_task is</span>
+<span class="sd">                True.</span>
+<span class="sd">                              Otherwise, a float giving the ROC AUC score averaged over both folds and tasks.</span>
+
+<span class="sd">                roc_auc_std:  A numpy array of standard deviations over folds of ROC AUC values, if per_task is True.</span>
+<span class="sd">                              Otherwise, a float giving the overall standard deviation.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">roc_auc_scores</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">perf_metrics</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">per_task</span><span class="p">:</span>
+            <span class="n">roc_auc_mean</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">roc_auc_scores</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">roc_auc_std</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">roc_auc_scores</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">roc_auc_mean</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">roc_auc_scores</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
+            <span class="n">roc_auc_std</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">roc_auc_scores</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">roc_auc_mean</span><span class="p">,</span> <span class="n">roc_auc_std</span><span class="p">)</span></div></div>
+
+
+<span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="SimpleRegressionPerfData"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.SimpleRegressionPerfData">[docs]</a><span class="k">class</span> <span class="nc">SimpleRegressionPerfData</span><span class="p">(</span><span class="n">RegressionPerfData</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Class with methods for accumulating regression model prediction data from training,</span>
+<span class="sd">    validation or test sets and computing performance metrics.</span>
+<span class="sd">    </span>
+<span class="sd">    Attributes:</span>
+<span class="sd">        Set in __init__:</span>
+<span class="sd">            subset (str): Label of the type of subset of dataset for tracking predictions</span>
+
+<span class="sd">            num_cmps (int): The number of compounds in the dataset</span>
+
+<span class="sd">            num_tasks (int): The number of tasks in the dataset</span>
+
+<span class="sd">            pred-vals (dict): The dictionary of prediction results</span>
+
+<span class="sd">            folds (int): Initialized at zero, flag for determining which k-fold is being assessed</span>
+
+<span class="sd">            transformers (list of Transformer objects): from input arguments</span>
+
+<span class="sd">            real_vals (dict): The dictionary containing the origin response column values</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># ****************************************************************************************</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_dataset</span><span class="p">,</span> <span class="n">transformers</span><span class="p">,</span> <span class="n">subset</span><span class="p">,</span> <span class="n">transformed</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Initialize any attributes that are common to all SimpleRegressionPerfData subclasses</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            model_dataset (ModelDataset object): contains the dataset and related methods</span>
+
+<span class="sd">            transformers (list of transformer objects): contains the list of transformers used to transform the dataset</span>
+
+<span class="sd">            subset (str): Label in [&#39;train&#39;, &#39;valid&#39;, &#39;test&#39;, &#39;full&#39;], indicating the type of subset of dataset for</span>
+<span class="sd">            tracking predictions</span>
+
+<span class="sd">            transformed (bool): True if values to be passed to accumulate preds function are transformed values</span>
+<span class="sd">            </span>
+<span class="sd">        Raises: </span>
+<span class="sd">            ValueError: if subset not in [&#39;train&#39;,&#39;valid&#39;,&#39;test&#39;,&#39;full&#39;], subset not supported</span>
+<span class="sd">            </span>
+<span class="sd">        Side effects:</span>
+<span class="sd">            Sets the following attributes of KFoldRegressionPerfData:</span>
+<span class="sd">                subset (str): Label of the type of subset of dataset for tracking predictions</span>
+
+<span class="sd">                num_cmps (int): The number of compounds in the dataset</span>
+
+<span class="sd">                num_tasks (int): The number of tasks in the dataset</span>
+
+<span class="sd">                pred_vals (dict): The dictionary of prediction results</span>
+
+<span class="sd">                transformers (list of Transformer objects): from input arguments</span>
+
+<span class="sd">                real_vals (dict): The dictionary containing the origin response column values</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">subset</span> <span class="o">=</span> <span class="n">subset</span>
+        <span class="k">if</span> <span class="n">subset</span> <span class="o">==</span> <span class="s1">&#39;train&#39;</span><span class="p">:</span>
+            <span class="n">dataset</span> <span class="o">=</span> <span class="n">model_dataset</span><span class="o">.</span><span class="n">train_valid_dsets</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">subset</span> <span class="o">==</span> <span class="s1">&#39;valid&#39;</span><span class="p">:</span>
+            <span class="n">dataset</span> <span class="o">=</span> <span class="n">model_dataset</span><span class="o">.</span><span class="n">train_valid_dsets</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">subset</span> <span class="o">==</span> <span class="s1">&#39;test&#39;</span><span class="p">:</span>
+            <span class="n">dataset</span> <span class="o">=</span> <span class="n">model_dataset</span><span class="o">.</span><span class="n">test_dset</span>
+        <span class="k">elif</span> <span class="n">subset</span> <span class="o">==</span> <span class="s1">&#39;full&#39;</span><span class="p">:</span>
+            <span class="n">dataset</span> <span class="o">=</span> <span class="n">model_dataset</span><span class="o">.</span><span class="n">dataset</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Unknown dataset subset type &quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span> <span class="o">%</span> <span class="n">subset</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_cmpds</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_tasks</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pred_vals</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pred_stds</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ids</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">ids</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">perf_metrics</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model_score</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">transformed</span><span class="p">:</span>
+            <span class="c1"># Predictions passed to accumulate_preds() will be transformed</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">transformers</span> <span class="o">=</span> <span class="n">transformers</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">real_vals</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">y</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">real_vals</span> <span class="o">=</span> <span class="n">dc</span><span class="o">.</span><span class="n">trans</span><span class="o">.</span><span class="n">undo_transforms</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">transformers</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">transformers</span> <span class="o">=</span> <span class="p">[]</span>
+
+
+    <span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="SimpleRegressionPerfData.accumulate_preds"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.SimpleRegressionPerfData.accumulate_preds">[docs]</a>    <span class="k">def</span> <span class="nf">accumulate_preds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">predicted_vals</span><span class="p">,</span> <span class="n">ids</span><span class="p">,</span> <span class="n">pred_stds</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add training, validation or test set predictions to the data structure</span>
+<span class="sd">        where we keep track of them.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            predicted_vals (np.array): Array of predicted values</span>
+
+<span class="sd">            ids (list): List of the compound ids of the dataset</span>
+
+<span class="sd">            pred_stds (np.array): Optional np.array of the prediction standard deviations</span>
+<span class="sd">            </span>
+<span class="sd">        Side effects:</span>
+<span class="sd">            Reshapes the predicted values and the standard deviations (if they are given)</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">pred_vals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reshape_preds</span><span class="p">(</span><span class="n">predicted_vals</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">pred_stds</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pred_stds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reshape_preds</span><span class="p">(</span><span class="n">pred_stds</span><span class="p">)</span>
+        <span class="n">pred_vals</span> <span class="o">=</span> <span class="n">dc</span><span class="o">.</span><span class="n">trans</span><span class="o">.</span><span class="n">undo_transforms</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pred_vals</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformers</span><span class="p">)</span>
+        <span class="n">r2_scores</span> <span class="o">=</span> <span class="n">r2_score</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">real_vals</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pred_vals</span><span class="p">,</span> <span class="n">multioutput</span><span class="o">=</span><span class="s1">&#39;raw_values&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">perf_metrics</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">r2_scores</span><span class="p">))</span></div>
+
+
+    <span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="SimpleRegressionPerfData.get_pred_values"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.SimpleRegressionPerfData.get_pred_values">[docs]</a>    <span class="k">def</span> <span class="nf">get_pred_values</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the predicted values accumulated over training, with any transformations undone.  Returns</span>
+<span class="sd">        a tuple (ids, values, stds), where ids is the list of compound IDs, values is a (ncmpds, ntasks) array</span>
+<span class="sd">        of predictions, and stds is always None for this class.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Tuple (ids, vals, stds)</span>
+<span class="sd">                ids (list): Contains the dataset compound ids</span>
+
+<span class="sd">                vals (np.array): Contains (ncmpds, ntasks) array of prediction</span>
+
+<span class="sd">                stds (np.array): Contains (ncmpds, ntasks) array of prediction standard deviations</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">vals</span> <span class="o">=</span> <span class="n">dc</span><span class="o">.</span><span class="n">trans</span><span class="o">.</span><span class="n">undo_transforms</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pred_vals</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformers</span><span class="p">)</span>
+        <span class="n">stds</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pred_stds</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">stds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pred_stds</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">transformers</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">transformers</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">dc</span><span class="o">.</span><span class="n">trans</span><span class="o">.</span><span class="n">NormalizationTransformer</span><span class="p">):</span>
+                <span class="c1"># Untransform the standard deviations, if we can. This is a bit of a hack, but it works for</span>
+                <span class="c1"># NormalizationTransformer, since the standard deviations used to scale the data are</span>
+                <span class="c1"># stored in the transformer object.</span>
+                    <span class="n">y_stds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformers</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">y_stds</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+                    <span class="n">stds</span> <span class="o">=</span> <span class="n">stds</span> <span class="o">/</span> <span class="n">y_stds</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ids</span><span class="p">,</span> <span class="n">vals</span><span class="p">,</span> <span class="n">stds</span><span class="p">)</span></div>
+
+
+    <span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="SimpleRegressionPerfData.get_real_values"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.SimpleRegressionPerfData.get_real_values">[docs]</a>    <span class="k">def</span> <span class="nf">get_real_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ids</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the real dataset response values, with any transformations undone, as an (ncmpds, ntasks) array</span>
+<span class="sd">        with compounds in the same ID order as in the return from get_pred_values().</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            ids: Ignored for this class</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            np.array: Containing the real dataset response values with transformations undone.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">dc</span><span class="o">.</span><span class="n">trans</span><span class="o">.</span><span class="n">undo_transforms</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">real_vals</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformers</span><span class="p">)</span></div>
+
+
+    <span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="SimpleRegressionPerfData.compute_perf_metrics"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.SimpleRegressionPerfData.compute_perf_metrics">[docs]</a>    <span class="k">def</span> <span class="nf">compute_perf_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">per_task</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the R-squared metrics for each task or averaged over tasks based on the accumulated values</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            per_task (bool): True if calculating per-task metrics, False otherwise.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            A tuple (r2_score, std): </span>
+<span class="sd">                r2_score (np.array): An array of scores for each task, if per_task is True.</span>
+<span class="sd">                Otherwise, it is a float containing the average R^2 score over tasks.</span>
+
+<span class="sd">                std: Always None for this class.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">r2_scores</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">perf_metrics</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">per_task</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_tasks</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">r2_scores</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">r2_scores</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span> <span class="kc">None</span><span class="p">)</span></div></div>
+
+
+
+<span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="SimpleClassificationPerfData"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.SimpleClassificationPerfData">[docs]</a><span class="k">class</span> <span class="nc">SimpleClassificationPerfData</span><span class="p">(</span><span class="n">ClassificationPerfData</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Class with methods for collecting classification model prediction and performance data from single-fold</span>
+<span class="sd">    training and prediction runs.</span>
+<span class="sd">        </span>
+<span class="sd">    Attributes:</span>
+<span class="sd">        Set in __init__:</span>
+<span class="sd">            subset (str): Label of the type of subset of dataset for tracking predictions</span>
+
+<span class="sd">            num_cmps (int): The number of compounds in the dataset</span>
+
+<span class="sd">            num_tasks (int): The number of tasks in the dataset</span>
+
+<span class="sd">            pred-vals (dict): The dictionary of prediction results</span>
+
+<span class="sd">            folds (int): Initialized at zero, flag for determining which k-fold is being assessed</span>
+
+<span class="sd">            transformers (list of Transformer objects): from input arguments</span>
+
+<span class="sd">            real_vals (dict): The dictionary containing the origin response column values</span>
+
+<span class="sd">            class_names (np.array): Assumes the classes are of deepchem index type (e.g. 0,1,2,...)</span>
+
+<span class="sd">            num_classes (int): The number of classes to predict on</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_dataset</span><span class="p">,</span> <span class="n">transformers</span><span class="p">,</span> <span class="n">subset</span><span class="p">,</span> <span class="n">predict_probs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">transformed</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Initialize any attributes that are common to all SimpleClassificationPerfData subclasses</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            model_dataset (ModelDataset object): contains the dataset and related methods</span>
+
+<span class="sd">            transformers (list of transformer objects): contains the list of transformers used to transform the dataset</span>
+
+<span class="sd">            subset (str): Label in [&#39;train&#39;, &#39;valid&#39;, &#39;test&#39;, &#39;full&#39;], indicating the type of subset of dataset for</span>
+<span class="sd">            tracking predictions</span>
+
+<span class="sd">            predict_probs (bool): True if using classifier supports probabilistic predictions, False otherwise</span>
+
+<span class="sd">            transformed (bool): True if values to be passed to accumulate preds function are transformed values</span>
+<span class="sd">            </span>
+<span class="sd">        Raises: </span>
+<span class="sd">            ValueError: if subset not in [&#39;train&#39;,&#39;valid&#39;,&#39;test&#39;,&#39;full&#39;], subset not supported</span>
+
+<span class="sd">            NotImplementedError: if predict_probs is not True, non-probabilistic functions are not supported yet</span>
+<span class="sd">            </span>
+<span class="sd">        Side effects:</span>
+<span class="sd">            Sets the following attributes of KFoldRegressionPerfData:</span>
+<span class="sd">                subset (str): Label of the type of subset of dataset for tracking predictions</span>
+
+<span class="sd">                num_cmps (int): The number of compounds in the dataset</span>
+
+<span class="sd">                num_tasks (int): The number of tasks in the dataset</span>
+
+<span class="sd">                pred_vals (dict): The dictionary of prediction results</span>
+
+<span class="sd">                transformers (list of Transformer objects): from input arguments</span>
+
+<span class="sd">                real_vals (dict): The dictionary containing the origin response column values</span>
+
+<span class="sd">                class_names (np.array): Assumes the classes are of deepchem index type (e.g. 0,1,2,...)</span>
+
+<span class="sd">                num_classes (int): The number of classes to predict on</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">subset</span> <span class="o">=</span> <span class="n">subset</span>
+        <span class="k">if</span> <span class="n">subset</span> <span class="o">==</span> <span class="s1">&#39;train&#39;</span><span class="p">:</span>
+            <span class="n">dataset</span> <span class="o">=</span> <span class="n">model_dataset</span><span class="o">.</span><span class="n">train_valid_dsets</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">subset</span> <span class="o">==</span> <span class="s1">&#39;valid&#39;</span><span class="p">:</span>
+            <span class="n">dataset</span> <span class="o">=</span> <span class="n">model_dataset</span><span class="o">.</span><span class="n">train_valid_dsets</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">subset</span> <span class="o">==</span> <span class="s1">&#39;test&#39;</span><span class="p">:</span>
+            <span class="n">dataset</span> <span class="o">=</span> <span class="n">model_dataset</span><span class="o">.</span><span class="n">test_dset</span>
+        <span class="k">elif</span> <span class="n">subset</span> <span class="o">==</span> <span class="s1">&#39;full&#39;</span><span class="p">:</span>
+            <span class="n">dataset</span> <span class="o">=</span> <span class="n">model_dataset</span><span class="o">.</span><span class="n">dataset</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Unknown dataset subset type &quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span> <span class="o">%</span> <span class="n">subset</span><span class="p">)</span>
+
+        <span class="c1"># All currently used classifiers generate class probabilities in their predict methods;</span>
+        <span class="c1"># if in the future we implement a classification algorithm such as kNN that doesn&#39;t support</span>
+        <span class="c1"># probabilistic predictions, the ModelWrapper for that classifier should pass predict_probs=False</span>
+        <span class="c1"># when constructing this object. When that happens, modify the code in this class to support</span>
+        <span class="c1"># this option.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">predict_probs</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Need to add support for non-probabilistic classifiers&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_cmpds</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">num_tasks</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">num_tasks</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pred_vals</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pred_stds</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ids</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">ids</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">perf_metrics</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model_score</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">transformed</span><span class="p">:</span>
+            <span class="c1"># Predictions passed to accumulate_preds() will be transformed</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">transformers</span> <span class="o">=</span> <span class="n">transformers</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">transformers</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c1"># TODO: Everything down to here is same as in SimpleRegressionPerfData.__init__.</span>
+        <span class="c1"># TODO: Consider defining a SimplePerfData class with the common stuff in its __init__</span>
+        <span class="c1"># TODO: method, and doing multiple inheritance so we can call it from here.</span>
+
+        <span class="c1"># TODO: Not sure if DeepChem supports arbitary class names in classification datasets; for now we</span>
+        <span class="c1"># assume the y values are class indices (0, 1, 2, ...).</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">class_names</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">flatten</span><span class="p">())))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_classes</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">class_names</span><span class="p">)</span>
+        <span class="c1"># Convert true values to one-hot encoding</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_classes</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">real_vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">label_binarize</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">y</span><span class="p">[:,</span><span class="n">j</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">class_names</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">num_classes</span><span class="p">)</span>
+                                             <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_tasks</span><span class="p">)],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">real_vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">label_binarize</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">y</span><span class="p">[:,</span><span class="n">j</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">class_names</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+                                             <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_tasks</span><span class="p">)],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+
+    <span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="SimpleClassificationPerfData.accumulate_preds"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.SimpleClassificationPerfData.accumulate_preds">[docs]</a>    <span class="k">def</span> <span class="nf">accumulate_preds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">predicted_vals</span><span class="p">,</span> <span class="n">ids</span><span class="p">,</span> <span class="n">pred_stds</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add training, validation or test set predictions from the current dataset to the data structure</span>
+<span class="sd">        where we keep track of them.</span>
+<span class="sd">        </span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            predicted_vals (np.array): Array of predicted values</span>
+
+<span class="sd">            ids (list): List of the compound ids of the dataset</span>
+
+<span class="sd">            pred_stds (np.array): Optional np.array of the prediction standard deviations</span>
+<span class="sd">            </span>
+<span class="sd">        Side effects:</span>
+<span class="sd">            Reshapes the predicted values and the standard deviations (if they are given)</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pred_vals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reshape_preds</span><span class="p">(</span><span class="n">predicted_vals</span><span class="p">)</span>
+        <span class="n">class_probs</span> <span class="o">=</span> <span class="n">dc</span><span class="o">.</span><span class="n">trans</span><span class="o">.</span><span class="n">undo_transforms</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pred_vals</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformers</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">pred_stds</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pred_stds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reshape_preds</span><span class="p">(</span><span class="n">pred_stds</span><span class="p">)</span>
+        <span class="n">real_vals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_real_values</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_classes</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="c1"># If more than 2 classes, real_vals is indicator matrix (one-hot encoded). This is breaking out different arrays</span>
+            <span class="c1"># for each task</span>
+            <span class="n">real_val_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">real_vals</span><span class="p">[:,</span><span class="n">i</span><span class="p">,:]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_tasks</span><span class="p">)]</span>
+            <span class="n">class_prob_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">class_probs</span><span class="p">[:,</span><span class="n">i</span><span class="p">,:]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_tasks</span><span class="p">)]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># sklearn metrics functions are expecting single array of 1s and 0s for real_vals_list</span>
+            <span class="c1"># Only wants class_probs for class_one</span>
+            <span class="n">real_val_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">real_vals</span><span class="p">[:,</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_tasks</span><span class="p">)]</span>
+            <span class="n">class_prob_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">class_probs</span><span class="p">[:,</span><span class="n">i</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_tasks</span><span class="p">)]</span>
+
+        <span class="n">class_prob_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">dc</span><span class="o">.</span><span class="n">trans</span><span class="o">.</span><span class="n">undo_transforms</span><span class="p">(</span><span class="n">class_prob_list</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformers</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_tasks</span><span class="p">)]</span>
+        <span class="n">roc_aucs</span> <span class="o">=</span> <span class="p">[</span><span class="n">roc_auc_score</span><span class="p">(</span><span class="n">real_val_list</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">class_prob_list</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">average</span><span class="o">=</span><span class="s1">&#39;macro&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_tasks</span><span class="p">)]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">perf_metrics</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">roc_aucs</span><span class="p">))</span></div>
+
+    <span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="SimpleClassificationPerfData.get_pred_values"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.SimpleClassificationPerfData.get_pred_values">[docs]</a>    <span class="k">def</span> <span class="nf">get_pred_values</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the predicted values accumulated over training, with any transformations undone.</span>
+<span class="sd">        If self.subset is &#39;train&#39;, the function will average class probabilities over the k-1 folds in which each</span>
+<span class="sd">        compound was part of the training set, and return the most probable class. Otherwise, there should be a</span>
+<span class="sd">        single set of predicted probabilites for each validation or test set compound. Returns a tuple (ids,</span>
+<span class="sd">        pred_classes, class_probs, prob_stds), where ids is the list of compound IDs, pred_classes is an</span>
+<span class="sd">        (ncmpds, ntasks) array of predicted classes, class_probs is a (ncmpds, ntasks, nclasses) array of predicted</span>
+<span class="sd">        probabilities for the classes, and prob_stds is a (ncmpds, ntasks, nclasses) array of standard errors for the</span>
+<span class="sd">        class probability estimates.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Tuple (ids, pred_classes, class_probs, prob_stds)</span>
+<span class="sd">                ids (list): Contains the dataset compound ids</span>
+
+<span class="sd">                pred_classes (np.array): Contains (ncmpds, ntasks) array of prediction classes</span>
+
+<span class="sd">                class_probs (np.array): Contains (ncmpds, ntasks, nclasses) array of predict class probabilities</span>
+
+<span class="sd">                prob_stds (np.array): Contains (ncmpds, ntasks, nclasses) array of standard errors for the class</span>
+<span class="sd">                probability estimates</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">class_probs</span> <span class="o">=</span> <span class="n">dc</span><span class="o">.</span><span class="n">trans</span><span class="o">.</span><span class="n">undo_transforms</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pred_vals</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformers</span><span class="p">)</span>
+        <span class="c1"># TODO: If class names can be other than 0, 1, 2, etc., index self.class_names by max class indices and return that</span>
+        <span class="c1"># as pred_classes.</span>
+        <span class="n">pred_classes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">class_probs</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">prob_stds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pred_stds</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ids</span><span class="p">,</span> <span class="n">pred_classes</span><span class="p">,</span> <span class="n">class_probs</span><span class="p">,</span> <span class="n">prob_stds</span><span class="p">)</span></div>
+
+
+    <span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="SimpleClassificationPerfData.get_real_values"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.SimpleClassificationPerfData.get_real_values">[docs]</a>    <span class="k">def</span> <span class="nf">get_real_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ids</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the real dataset response values as an (ncmpds, ntasks, nclasses) array of indicator bits.</span>
+<span class="sd">        If nclasses == 2, the returned array has dimension (ncmpds, ntasks).</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            ids: Ignored for this class</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            np.array of the response values of the real dataset as indicator bits</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">real_vals</span></div>
+
+
+    <span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="SimpleClassificationPerfData.compute_perf_metrics"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.SimpleClassificationPerfData.compute_perf_metrics">[docs]</a>    <span class="k">def</span> <span class="nf">compute_perf_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">per_task</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the ROC_AUC metrics for each task based on the accumulated predictions. If</span>
+<span class="sd">        per_task is False, returns the average ROC AUC over tasks.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            per_task (bool): Whether to return individual ROC AUC scores for each task</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A tuple (roc_auc, std):</span>
+<span class="sd">                roc_auc: A numpy array of ROC AUC scores, if per_task is True. Otherwise,</span>
+<span class="sd">                         a float giving the mean ROC AUC score over tasks.</span>
+
+<span class="sd">                std:     Placeholder for an array of standard deviations. Always None for this class.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">roc_auc_scores</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">perf_metrics</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">per_task</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_tasks</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">roc_auc_scores</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">roc_auc_scores</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span> <span class="kc">None</span><span class="p">)</span></div></div>
+
+
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, ATOM DDM Team.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.0',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

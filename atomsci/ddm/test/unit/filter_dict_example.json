@@ -1,0 +1,10 @@
+{ "model_uuid" : "uuid_1",
+            "ModelMetadata.TrainingDataset.dataset_key" : "['=', 2]",
+            "ModelMetadata.TrainingDataset.dataset_bucket" : "['>', 2]",
+            "ModelMetadata.TrainingDataset.dataset_oid" : "['>=', 2]",
+            "ModelMetadata.TrainingDataset.class_names" : "['in', [1,2,3]]",
+            "ModelMetadata.TrainingDataset.num_classes" : "['<', 2]",
+            "ModelMetadata.TrainingDataset.feature_transform_type" : "['<=', 2]",
+            "ModelMetadata.TrainingDataset.response_transform_type" : "['!=', 3]",
+            "ModelMetadata.TrainingDataset.id_col" : "['nin', [0,1,3,4]]"
+  }

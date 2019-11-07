@@ -1,0 +1,1186 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pipeline.parameter_parser &mdash; ATOM Data-Driven Modeling Pipeline 1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> ATOM Data-Driven Modeling Pipeline
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">ATOM Data-Driven Modeling Pipeline</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>pipeline.parameter_parser</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for pipeline.parameter_parser</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">argparse</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">datetime</span>
+
+<span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;ATOM&#39;</span><span class="p">)</span>
+<span class="c1"># TODO: mjt, do we need to deal with parameters with options?</span>
+<span class="c1"># e.g. [&quot;dk&quot;,&quot;d&quot;,&quot;r&quot;,&quot;s&quot;,&quot;f&quot;,&quot;n&quot;,&quot;dd&quot;,&quot;sl&quot;,&quot;y&quot;]</span>
+
+<span class="c1"># Parameters that may take lists of values, usually but not always in the context of a hyperparam search</span>
+
+<span class="n">convert_to_float_list</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;dropouts&#39;</span><span class="p">,</span><span class="s1">&#39;weight_init_stddevs&#39;</span><span class="p">,</span><span class="s1">&#39;bias_init_consts&#39;</span><span class="p">,</span><span class="s1">&#39;learning_rate&#39;</span><span class="p">,</span>
+                         <span class="s1">&#39;umap_targ_wt&#39;</span><span class="p">,</span> <span class="s1">&#39;umap_min_dist&#39;</span><span class="p">,</span> <span class="s1">&#39;dropout_list&#39;</span><span class="p">,</span><span class="s1">&#39;weight_decay_penalty&#39;</span><span class="p">,</span>
+                         <span class="s1">&#39;xgb_learning_rate&#39;</span><span class="p">,</span>
+                         <span class="s1">&#39;xgb_gamma&#39;</span><span class="p">,</span>
+                         <span class="s2">&quot;xgb_min_child_weight&quot;</span><span class="p">,</span>
+                         <span class="s2">&quot;xgb_subsample&quot;</span><span class="p">,</span>
+                         <span class="s2">&quot;xgb_colsample_bytree&quot;</span>
+                         <span class="p">}</span>
+<span class="n">convert_to_int_list</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;layer_sizes&#39;</span><span class="p">,</span><span class="s1">&#39;rf_max_features&#39;</span><span class="p">,</span><span class="s1">&#39;rf_estimators&#39;</span><span class="p">,</span> <span class="s1">&#39;rf_max_depth&#39;</span><span class="p">,</span>
+                       <span class="s1">&#39;umap_dim&#39;</span><span class="p">,</span> <span class="s1">&#39;umap_neighbors&#39;</span><span class="p">,</span> <span class="s1">&#39;layer_nums&#39;</span><span class="p">,</span> <span class="s1">&#39;node_nums&#39;</span><span class="p">,</span>
+                       <span class="s2">&quot;xgb_max_depth&quot;</span><span class="p">,</span>  <span class="s2">&quot;xgb_n_estimators&quot;</span><span class="p">}</span>
+<span class="n">convert_to_numeric_list</span> <span class="o">=</span> <span class="n">convert_to_float_list</span> <span class="o">|</span> <span class="n">convert_to_int_list</span>
+<span class="n">keep_as_list</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;dropouts&#39;</span><span class="p">,</span><span class="s1">&#39;weight_init_stddevs&#39;</span><span class="p">,</span><span class="s1">&#39;bias_init_consts&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;layer_sizes&#39;</span><span class="p">,</span><span class="s1">&#39;dropout_list&#39;</span><span class="p">,</span><span class="s1">&#39;layer_nums&#39;</span><span class="p">}</span>
+<span class="n">not_a_list_outside_of_hyperparams</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;learning_rate&#39;</span><span class="p">,</span><span class="s1">&#39;weight_decay_penalty&#39;</span><span class="p">,</span>
+                                     <span class="s1">&#39;xgb_learning_rate&#39;</span><span class="p">,</span>
+                                     <span class="s1">&#39;xgb_gamma&#39;</span><span class="p">,</span>
+                                     <span class="s2">&quot;xgb_min_child_weight&quot;</span><span class="p">,</span>
+                                     <span class="s2">&quot;xgb_subsample&quot;</span><span class="p">,</span>
+                                     <span class="s2">&quot;xgb_colsample_bytree&quot;</span><span class="p">,</span>
+                                     <span class="s2">&quot;xgb_max_depth&quot;</span><span class="p">,</span>  <span class="s2">&quot;xgb_n_estimators&quot;</span>
+                                     <span class="p">}</span>
+<span class="n">convert_to_str_list</span> <span class="o">=</span> \
+    <span class="p">{</span><span class="s1">&#39;response_cols&#39;</span><span class="p">,</span><span class="s1">&#39;model_type&#39;</span><span class="p">,</span><span class="s1">&#39;featurizer&#39;</span><span class="p">,</span><span class="s1">&#39;splitter&#39;</span><span class="p">,</span><span class="s1">&#39;umap_metric&#39;</span><span class="p">,</span><span class="s1">&#39;weight_decay_penalty_type&#39;</span><span class="p">,</span><span class="s1">&#39;descriptor_type&#39;</span><span class="p">}</span>
+<span class="n">not_a_str_list_outside_of_hyperparams</span> <span class="o">=</span> \
+    <span class="p">{</span><span class="s1">&#39;model_type&#39;</span><span class="p">,</span><span class="s1">&#39;featurizer&#39;</span><span class="p">,</span><span class="s1">&#39;splitter&#39;</span><span class="p">,</span><span class="s1">&#39;umap_metric&#39;</span><span class="p">,</span><span class="s1">&#39;weight_decay_penalty_type&#39;</span><span class="p">,</span><span class="s1">&#39;descriptor_type&#39;</span><span class="p">}</span>
+
+<span class="c1">#**********************************************************************************************************</span>
+<div class="viewcode-block" id="to_str"><a class="viewcode-back" href="../../pipeline.html#pipeline.parameter_parser.to_str">[docs]</a><span class="k">def</span> <span class="nf">to_str</span><span class="p">(</span><span class="n">params_obj</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Converts a namespace.argparse object or a dict into a string for command line input</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            params_obj (argparse.Namespace or dict): an argparse namespace object or dict to be converted into a</span>
+<span class="sd">            command line input. E.g. namespace_obj = argparse.Namespace(arg1 = val1, arg2 = val2, arg3 = val3) or</span>
+<span class="sd">            dict = {arg1: val1, arg2: val2, arg3: val3}</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            str_params (str): parameters returned as a string.</span>
+<span class="sd">                E.g. str_params = &#39;--arg1 val1 --arg2 val2 --arg3 val3&#39;</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># This command converts the namespace_obj to a dict, with the spaces replaced with</span>
+    <span class="c1"># a temporary string.</span>
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">params_obj</span><span class="p">)</span> <span class="o">==</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="n">strobj</span> <span class="o">=</span> <span class="n">dict_to_list</span><span class="p">(</span><span class="n">params_obj</span><span class="p">,</span><span class="n">replace_spaces</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">strobj</span> <span class="o">=</span> <span class="n">dict_to_list</span><span class="p">(</span><span class="nb">vars</span><span class="p">(</span><span class="n">params_obj</span><span class="p">),</span><span class="n">replace_spaces</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">separator</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span>
+    <span class="n">str_params</span> <span class="o">=</span> <span class="n">separator</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">strobj</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">str_params</span></div>
+
+
+
+<span class="c1">#**********************************************************************************************************</span>
+<div class="viewcode-block" id="wrapper"><a class="viewcode-back" href="../../pipeline.html#pipeline.parameter_parser.wrapper">[docs]</a><span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">any_arg</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;&quot;Wrapper to handle the ParseParams class. Calls the correct method depending on the input argument type</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            *any_arg: any single input of a str, dict, argparse.Namespace, or list</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            argparse.Namespace: a Namespace.argparse object containing default parameters + user specified parameters</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            TypeError: Input argument must be a configuration file (str), dict, argparse.Namespace, or list</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">any_arg</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">inp_arg</span> <span class="o">=</span> <span class="n">any_arg</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">inp_arg</span><span class="p">,</span><span class="nb">str</span><span class="p">):</span>
+            <span class="n">list_inp</span> <span class="o">=</span> <span class="n">parse_config_file</span><span class="p">(</span><span class="n">config_file_path</span> <span class="o">=</span> <span class="n">inp_arg</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">parse_command_line</span><span class="p">(</span><span class="n">list_inp</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">inp_arg</span><span class="p">,</span> <span class="p">(</span><span class="nb">dict</span><span class="p">,</span><span class="n">argparse</span><span class="o">.</span><span class="n">Namespace</span><span class="p">)):</span>
+            <span class="n">list_inp</span> <span class="o">=</span> <span class="n">parse_namespace</span><span class="p">(</span><span class="n">inp_arg</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">parse_command_line</span><span class="p">(</span><span class="n">list_inp</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">inp_arg</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="c1"># This conditional statement checks for the positional argument &#39;--config_file&#39;</span>
+            <span class="c1"># and parses the input .json configuration file into a list type input</span>
+            <span class="k">if</span> <span class="n">inp_arg</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;--config_file&#39;</span> <span class="ow">or</span> <span class="n">inp_arg</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;--config&#39;</span><span class="p">:</span>
+                <span class="n">list_inp</span> <span class="o">=</span> <span class="n">parse_config_file</span><span class="p">(</span><span class="n">config_file_path</span> <span class="o">=</span> <span class="n">inp_arg</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                <span class="c1"># If there are additional arguments beyond the config_file input</span>
+                <span class="c1"># the following if statement properly appends the remaining arguments</span>
+                <span class="c1">#</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">inp_arg</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+                    <span class="n">just_args</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">inp_arg</span><span class="p">[</span><span class="mi">2</span><span class="p">:]</span> <span class="k">if</span> <span class="s2">&quot;--&quot;</span> <span class="ow">in</span> <span class="n">x</span><span class="p">]</span>
+                    <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">just_args</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">list_inp</span><span class="p">:</span>
+                            <span class="n">idx</span> <span class="o">=</span> <span class="n">list_inp</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+                            <span class="k">if</span> <span class="s2">&quot;--&quot;</span> <span class="ow">in</span> <span class="n">list_inp</span><span class="p">[</span><span class="n">idx</span><span class="o">+</span><span class="mi">1</span><span class="p">]:</span>
+                                <span class="n">list_inp</span><span class="p">[</span><span class="n">idx</span><span class="p">:</span><span class="n">idx</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="n">list_inp</span><span class="p">[</span><span class="n">idx</span><span class="p">:</span><span class="n">idx</span><span class="o">+</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+                    <span class="n">list_inp</span> <span class="o">+=</span> <span class="n">inp_arg</span><span class="p">[</span><span class="mi">2</span><span class="p">:]</span>
+                <span class="k">return</span> <span class="n">parse_command_line</span><span class="p">(</span><span class="n">list_inp</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">inp_arg</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">inp_arg</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">:</span><span class="mi">9</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;Namespace&#39;</span><span class="p">:</span>
+                    <span class="n">eval_arg</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="s1">&#39;argparse.&#39;</span> <span class="o">+</span> <span class="n">inp_arg</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="n">eval_arg</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">eval_arg</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">inp_arg</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">eval_arg</span><span class="p">,</span> <span class="p">(</span><span class="nb">dict</span><span class="p">,</span><span class="n">argparse</span><span class="o">.</span><span class="n">Namespace</span><span class="p">)):</span>
+                    <span class="n">list_inp</span> <span class="o">=</span> <span class="n">parse_namespace</span><span class="p">(</span><span class="n">eval_arg</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="n">parse_command_line</span><span class="p">(</span><span class="n">list_inp</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">parse_command_line</span><span class="p">(</span><span class="n">eval_arg</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">parse_command_line</span><span class="p">(</span><span class="n">inp_arg</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Input argument must be a configuration file (str), dict, argparse.Namespace, or list&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Input argument must be a configuration file (str), dict, argparse.Namespace, or list&quot;</span><span class="p">)</span></div>
+
+<span class="c1">#**********************************************************************************************************</span>
+
+
+<div class="viewcode-block" id="parse_config_file"><a class="viewcode-back" href="../../pipeline.html#pipeline.parameter_parser.parse_config_file">[docs]</a><span class="k">def</span> <span class="nf">parse_config_file</span><span class="p">(</span><span class="n">config_file_path</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;&quot;Method to convert a .json configuration file to a Namespace object. Does the following conversions:</span>
+<span class="sd">    .json -&gt; hierarchical dict -&gt; flat dict -&gt; dict_to_list.</span>
+<span class="sd">    WARNING: if there are two identical parameters on the same hierarchical level in the config.json, the .json will</span>
+<span class="sd">    inherently silence the parameter higher up on the list without flagging a duplication. However, duplicate</span>
+<span class="sd">    parameters in two different hierarchies or subdictionaries will be flagged by this parser.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        config_file_path(str): PATH to configuration .json file</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        argparse.Namespace: a Namespace.argparse object containing default parameters + user specified parameters</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Loads the .json config file</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">config_file_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">config</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+
+    <span class="c1"># If the config file is a hierarchical dict, it flattens the dictionary, otherwise, the dict is unchanged</span>
+    <span class="n">flat_dict</span> <span class="o">=</span> <span class="n">flatten_dict</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="p">{})</span>
+
+    <span class="c1"># there are several optional naming conventions for parameters, the following lines of code replace the optional</span>
+    <span class="c1"># names with the expected parameter names</span>
+    <span class="n">replace_json_names_dict</span> <span class="o">=</span> \
+        <span class="p">{</span><span class="s1">&#39;dataset_bucket&#39;</span><span class="p">:</span><span class="s1">&#39;bucket&#39;</span><span class="p">,</span><span class="s1">&#39;feat_type&#39;</span><span class="p">:</span><span class="s1">&#39;featurizer&#39;</span><span class="p">,</span><span class="s1">&#39;y&#39;</span><span class="p">:</span><span class="s1">&#39;response_cols&#39;</span><span class="p">,</span><span class="s1">&#39;optimizer&#39;</span><span class="p">:</span><span class="s1">&#39;optimizer_type&#39;</span><span class="p">}</span>
+    <span class="n">orig_keys</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">flat_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">vals</span> <span class="ow">in</span> <span class="n">replace_json_names_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">orig_keys</span><span class="p">:</span>
+            <span class="n">flat_dict</span><span class="p">[</span><span class="n">vals</span><span class="p">]</span> <span class="o">=</span> <span class="n">flat_dict</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+
+    <span class="c1">#dictionary comprehension that retains only the keys that are in the accepted list of parameters</span>
+    <span class="k">if</span> <span class="s1">&#39;hyperparam&#39;</span> <span class="ow">in</span> <span class="n">orig_keys</span> <span class="ow">and</span> <span class="n">flat_dict</span><span class="p">[</span><span class="s1">&#39;hyperparam&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">default</span> <span class="o">=</span> <span class="n">list_defaults</span><span class="p">(</span><span class="n">hyperparam</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">default</span> <span class="o">=</span> <span class="n">list_defaults</span><span class="p">()</span>
+    <span class="n">keep</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">vars</span><span class="p">(</span><span class="n">default</span><span class="p">)</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+    <span class="n">newdict</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">flat_dict</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">keep</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">flat_dict</span><span class="p">}</span>
+
+    <span class="c1"># Writes a warning for any arguments that are not in the default list of parameters</span>
+    <span class="n">extra_keys</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">flat_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="k">if</span> <span class="n">x</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">newdict</span><span class="o">.</span><span class="n">keys</span><span class="p">()]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">extra_keys</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">extra_keys</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; are not part of the accepted list of parameters and will be ignored&quot;</span><span class="p">)</span>
+    <span class="n">newdict</span><span class="p">[</span><span class="s1">&#39;config_file&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">config_file_path</span>
+    <span class="k">return</span> <span class="n">dict_to_list</span><span class="p">(</span><span class="n">newdict</span><span class="p">)</span></div>
+
+<span class="c1">#***********************************************************************************************************</span>
+<div class="viewcode-block" id="flatten_dict"><a class="viewcode-back" href="../../pipeline.html#pipeline.parameter_parser.flatten_dict">[docs]</a><span class="k">def</span> <span class="nf">flatten_dict</span><span class="p">(</span><span class="n">inp_dict</span><span class="p">,</span><span class="n">newdict</span> <span class="o">=</span> <span class="p">{}):</span>
+
+    <span class="sd">&quot;&quot;&quot;Method to flatten a hierarchical dictionary. Used in parse_config_file(). Throws error if there are duplicated</span>
+<span class="sd">    keys in the dictionary. WARNING: immediately throws error upon first detection of duplications.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        inp_dict(dict): hierarchical dictionary</span>
+
+<span class="sd">        newdict(empty dict): empty dictionary, name of output flattened dictionary</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        newdict(dict): Flattened dictionary.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">inp_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span><span class="nb">dict</span><span class="p">):</span>
+            <span class="n">flatten_dict</span><span class="p">(</span><span class="n">val</span><span class="p">,</span><span class="n">newdict</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">newdict</span> <span class="ow">and</span> <span class="n">newdict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">!=</span> <span class="n">val</span><span class="p">:</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; appears several times. Overwriting with value: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">val</span><span class="p">))</span>
+                <span class="n">newdict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">newdict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+    <span class="k">return</span> <span class="n">newdict</span></div>
+
+<span class="c1">#***********************************************************************************************************</span>
+
+<div class="viewcode-block" id="parse_namespace"><a class="viewcode-back" href="../../pipeline.html#pipeline.parameter_parser.parse_namespace">[docs]</a><span class="k">def</span> <span class="nf">parse_namespace</span><span class="p">(</span><span class="n">namespace_params</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Method to convert namespace object to dictionary, then pass the value to dict_to_list. Will simply pass a</span>
+<span class="sd">    dictionary</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        namespace_params(dictionary or namespace.argparse object)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        argparse.Namespace: a Namespace.argparse object containing default parameters + user specified parameters</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">namespace_params</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">dict_to_list</span><span class="p">(</span><span class="n">namespace_params</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">namespace_params</span><span class="p">,</span><span class="n">argparse</span><span class="o">.</span><span class="n">Namespace</span><span class="p">):</span>
+        <span class="n">namespace_params</span> <span class="o">=</span> <span class="nb">vars</span><span class="p">(</span><span class="n">namespace_params</span><span class="p">)</span>
+    <span class="c1"># If the namespace object or dictionary is a hierarchical dict, it flattens the dictionary, otherwise, the dict</span>
+    <span class="c1"># is unchanged</span>
+
+    <span class="n">flat_dict</span> <span class="o">=</span> <span class="n">flatten_dict</span><span class="p">(</span><span class="n">namespace_params</span><span class="p">,</span> <span class="p">{})</span>
+
+    <span class="c1"># there are several optional naming conventions for parameters, the following lines of code replace the optional</span>
+    <span class="c1"># names with the expected parameter names</span>
+    <span class="n">replace_json_names_dict</span> <span class="o">=</span> \
+        <span class="p">{</span><span class="s1">&#39;dataset_bucket&#39;</span><span class="p">:</span><span class="s1">&#39;bucket&#39;</span><span class="p">,</span><span class="s1">&#39;feat_type&#39;</span><span class="p">:</span><span class="s1">&#39;featurizer&#39;</span><span class="p">,</span><span class="s1">&#39;y&#39;</span><span class="p">:</span><span class="s1">&#39;response_cols&#39;</span><span class="p">,</span><span class="s1">&#39;optimizer&#39;</span><span class="p">:</span><span class="s1">&#39;optimizer_type&#39;</span><span class="p">}</span>
+    <span class="n">orig_keys</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">flat_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">vals</span> <span class="ow">in</span> <span class="n">replace_json_names_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">orig_keys</span><span class="p">:</span>
+            <span class="n">flat_dict</span><span class="p">[</span><span class="n">vals</span><span class="p">]</span> <span class="o">=</span> <span class="n">flat_dict</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+
+    <span class="c1">#dictionary comprehension that retains only the keys that are in the accepted list of parameters</span>
+    <span class="n">default</span> <span class="o">=</span> <span class="n">list_defaults</span><span class="p">()</span>
+    <span class="n">keep</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">vars</span><span class="p">(</span><span class="n">default</span><span class="p">)</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+    <span class="n">newdict</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">flat_dict</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">keep</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">flat_dict</span><span class="p">}</span>
+
+    <span class="c1"># Writes a warning for any arguments that are not in the default list of parameters</span>
+    <span class="n">extra_keys</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">flat_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="k">if</span> <span class="n">x</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">newdict</span><span class="o">.</span><span class="n">keys</span><span class="p">()]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">extra_keys</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">extra_keys</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; are not part of the accepted list of parameters and will be ignored&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">dict_to_list</span><span class="p">(</span><span class="n">newdict</span><span class="p">)</span></div>
+
+<span class="c1">#***********************************************************************************************************</span>
+
+<div class="viewcode-block" id="dict_to_list"><a class="viewcode-back" href="../../pipeline.html#pipeline.parameter_parser.dict_to_list">[docs]</a><span class="k">def</span> <span class="nf">dict_to_list</span><span class="p">(</span><span class="n">inp_dictionary</span><span class="p">,</span><span class="n">replace_spaces</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Method to convert dictionary to a modified list of strings for input to argparse. Adds a &#39;--&#39; in front of keys</span>
+<span class="sd">    in the dictionary.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        inp_dictionary (dict): Flat dictionary of parameters</span>
+
+<span class="sd">        replae_spaces (bool): A flag for replace spaces with replace_spaces_str for handling spaces in command line.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        (list): a list of default parameters + user specified parameters</span>
+
+<span class="sd">        None if inp_dictionary is None</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1">#if replace_spaces is true, replaces spaces with replace_spaces_str for os command line calls</span>
+    <span class="n">replace_spaces_str</span> <span class="o">=</span> <span class="s2">&quot;@&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">inp_dictionary</span><span class="p">,</span><span class="nb">dict</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;input to dict_to_list should be a dictionary!&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Handles optional names for the dictionary.</span>
+    <span class="n">optional_names_dict</span> <span class="o">=</span> \
+        <span class="p">{</span><span class="s1">&#39;dataset_bucket&#39;</span><span class="p">:</span><span class="s1">&#39;bucket&#39;</span><span class="p">,</span><span class="s1">&#39;feat_type&#39;</span><span class="p">:</span><span class="s1">&#39;featurizer&#39;</span><span class="p">,</span><span class="s1">&#39;y&#39;</span><span class="p">:</span><span class="s1">&#39;response_cols&#39;</span><span class="p">,</span><span class="s1">&#39;optimizer&#39;</span><span class="p">:</span><span class="s1">&#39;optimizer_type&#39;</span><span class="p">}</span>
+    <span class="n">orig_keys</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">inp_dictionary</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">vals</span> <span class="ow">in</span> <span class="n">optional_names_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">orig_keys</span><span class="p">:</span>
+            <span class="n">inp_dictionary</span><span class="p">[</span><span class="n">vals</span><span class="p">]</span> <span class="o">=</span> <span class="n">inp_dictionary</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+    <span class="n">temp_list_to_command_line</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c1"># Special case handling for arguments that are False or True by default</span>
+    <span class="n">default_false</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;previously_split&#39;</span><span class="p">,</span><span class="s1">&#39;use_shortlist&#39;</span><span class="p">,</span><span class="s1">&#39;datastore&#39;</span><span class="p">,</span> <span class="s1">&#39;save_results&#39;</span><span class="p">,</span><span class="s1">&#39;tab_latent_reps&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;tab_tsne&#39;</span><span class="p">,</span><span class="s1">&#39;tuned&#39;</span><span class="p">,</span><span class="s1">&#39;visualize_results&#39;</span><span class="p">,</span><span class="s1">&#39;verbose&#39;</span><span class="p">,</span> <span class="s1">&#39;hyperparam&#39;</span><span class="p">,</span> <span class="s1">&#39;split_only&#39;</span><span class="p">,</span> <span class="s1">&#39;rerun&#39;</span><span class="p">]</span>
+    <span class="n">default_true</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;transformers&#39;</span><span class="p">,</span><span class="s1">&#39;compute_metrics&#39;</span><span class="p">,</span><span class="s1">&#39;previously_featurized&#39;</span><span class="p">,</span><span class="s1">&#39;uncertainty&#39;</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">inp_dictionary</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">default_false</span><span class="p">:</span>
+            <span class="n">true_options</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;True&#39;</span><span class="p">,</span><span class="s1">&#39;true&#39;</span><span class="p">,</span><span class="s1">&#39;ture&#39;</span><span class="p">,</span><span class="s1">&#39;TRUE&#39;</span><span class="p">,</span><span class="s1">&#39;Ture&#39;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="ow">in</span> <span class="n">true_options</span><span class="p">:</span>
+                <span class="n">temp_list_to_command_line</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;--&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">key</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">default_true</span><span class="p">:</span>
+            <span class="n">false_options</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;False&#39;</span><span class="p">,</span><span class="s1">&#39;false&#39;</span><span class="p">,</span><span class="s1">&#39;flase&#39;</span><span class="p">,</span><span class="s1">&#39;FALSE&#39;</span><span class="p">,</span><span class="s1">&#39;Flase&#39;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="ow">in</span> <span class="n">false_options</span><span class="p">:</span>
+                <span class="n">temp_list_to_command_line</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;--&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">key</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">temp_list_to_command_line</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;--&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">key</span><span class="p">))</span>
+            <span class="c1"># Special case handling for null values</span>
+            <span class="n">null_options</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;null&#39;</span><span class="p">,</span><span class="s1">&#39;Null&#39;</span><span class="p">,</span><span class="s1">&#39;none&#39;</span><span class="p">,</span><span class="s1">&#39;None&#39;</span><span class="p">,</span><span class="s1">&#39;N/A&#39;</span><span class="p">,</span><span class="s1">&#39;n/a&#39;</span><span class="p">,</span><span class="s1">&#39;NaN&#39;</span><span class="p">,</span><span class="s1">&#39;nan&#39;</span><span class="p">,</span><span class="s1">&#39;NAN&#39;</span><span class="p">,</span><span class="s1">&#39;NONE&#39;</span><span class="p">,</span><span class="s1">&#39;NULL&#39;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="ow">in</span> <span class="n">null_options</span><span class="p">:</span>
+                <span class="n">temp_list_to_command_line</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;None&#39;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="n">sep</span> <span class="o">=</span> <span class="s2">&quot;,&quot;</span>
+                <span class="n">newval</span> <span class="o">=</span> <span class="n">sep</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">value</span><span class="p">])</span>
+                <span class="k">if</span> <span class="n">replace_spaces</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+                    <span class="n">temp_list_to_command_line</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">newval</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span><span class="n">replace_spaces_str</span><span class="p">))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">temp_list_to_command_line</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">newval</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">newval</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">replace_spaces</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+                    <span class="n">temp_list_to_command_line</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">newval</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span><span class="n">replace_spaces_str</span><span class="p">))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">temp_list_to_command_line</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">newval</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">temp_list_to_command_line</span></div>
+
+<span class="c1">#***********************************************************************************************************</span>
+
+<div class="viewcode-block" id="list_defaults"><a class="viewcode-back" href="../../pipeline.html#pipeline.parameter_parser.list_defaults">[docs]</a><span class="k">def</span> <span class="nf">list_defaults</span><span class="p">(</span><span class="n">hyperparam</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Creates temporary required variables, to generate a Namespace.argparse object of defaults.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        argparse.Namespace: a Namespace.argparse object containing default parameters + user specified parameters</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1">#TODO: These required_vars are no longer required, but are very convenient for testing.</span>
+    <span class="c1"># Replace these vars after refactoring testing.</span>
+    <span class="k">if</span> <span class="n">hyperparam</span><span class="p">:</span>
+        <span class="n">required_vars</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;--dataset_key&#39;</span><span class="p">,</span><span class="s1">&#39;/ds/data/public/delaney/delaney-processed.csv&#39;</span><span class="p">,</span>
+                     <span class="s1">&#39;--bucket&#39;</span><span class="p">,</span><span class="s1">&#39;gsk_ml&#39;</span><span class="p">,</span> <span class="s1">&#39;--hyperparam&#39;</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">required_vars</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;--dataset_key&#39;</span><span class="p">,</span><span class="s1">&#39;/ds/data/public/delaney/delaney-processed.csv&#39;</span><span class="p">,</span>
+                     <span class="s1">&#39;--bucket&#39;</span><span class="p">,</span><span class="s1">&#39;gsk_ml&#39;</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">parse_command_line</span><span class="p">(</span><span class="n">required_vars</span><span class="p">)</span></div>
+<span class="c1">#***********************************************************************************************************</span>
+
+<div class="viewcode-block" id="parse_command_line"><a class="viewcode-back" href="../../pipeline.html#pipeline.parameter_parser.parse_command_line">[docs]</a><span class="k">def</span> <span class="nf">parse_command_line</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Parses a command line argument or a specifically formatted list of strings into a Namespace.argparse object.</span>
+
+<span class="sd">    String input is in the following format:</span>
+<span class="sd">        args = [&#39;--arg1&#39;,&#39;val1&#39;,&#39;--arg2&#39;,&#39;val2&#39;,&#39;--arg3&#39;,&#39;val3&#39;]</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        args(None or list): If args is none, parse_command_line parses sys.argv if it . If args is a list, the list is</span>
+<span class="sd">        parsed</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        parsed_args (argparse.Namespace): an object containing default parameters + user specific parameters</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># The following conditional checks for duplicates in the input list</span>
+    <span class="k">if</span> <span class="n">args</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">newlist</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span><span class="n">args</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">newlist</span> <span class="o">=</span> <span class="n">args</span>
+        <span class="n">just_args</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">newlist</span> <span class="k">if</span> <span class="s2">&quot;--&quot;</span> <span class="ow">in</span> <span class="n">x</span><span class="p">]</span>
+        <span class="n">duplicates</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">just_args</span> <span class="k">if</span> <span class="n">just_args</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">])</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">duplicates</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">duplicates</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; appears several times. &quot;</span><span class="p">)</span>
+
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">get_parser</span><span class="p">()</span>
+    <span class="n">parsed_args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">postprocess_args</span><span class="p">(</span><span class="n">parsed_args</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="get_parser"><a class="viewcode-back" href="../../pipeline.html#pipeline.parameter_parser.get_parser">[docs]</a><span class="k">def</span> <span class="nf">get_parser</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Method that performs the actual parsing of pre-processed parameters. Modify this method to add/change/remove</span>
+<span class="sd">    parameters</span>
+
+<span class="sd">    Args: None</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        parser (argparse.Namespace): an object containing default parameters + user specific parameters</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Conditional help strings for layer sizes and dropouts. Modify these dictionaries to change the help string</span>
+    <span class="n">layer_size_options</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;graphconv&#39;</span><span class="p">:</span> <span class="s1">&#39;[64,64,128]&#39;</span><span class="p">,</span> <span class="s1">&#39;ecfp&#39;</span><span class="p">:</span> <span class="s1">&#39;[1000,500]&#39;</span><span class="p">,</span> <span class="s1">&#39;descriptors&#39;</span><span class="p">:</span> <span class="s1">&#39;[200,100]&#39;</span><span class="p">}</span>
+    <span class="n">dropout_options</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;graphconv&#39;</span><span class="p">:</span> <span class="s1">&#39;[0,0,0]&#39;</span><span class="p">,</span><span class="s1">&#39;non-graphconv&#39;</span><span class="p">:</span><span class="s1">&#39;[0.40,0.40]&#39;</span><span class="p">}</span>
+    <span class="n">weight_init_stddevs_options</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;all&#39;</span><span class="p">:</span> <span class="s1">&#39;[0.02,0.02]&#39;</span><span class="p">}</span>
+    <span class="n">bias_init_consts_options</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;all&#39;</span><span class="p">:</span><span class="s1">&#39;[1.0,1.0]&#39;</span><span class="p">}</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span>
+        <span class="n">description</span><span class="o">=</span>
+        <span class="s1">&#39;Parses a command line argument or a specifically formatted list of strings into a Namespace.argparse object.&#39;</span><span class="p">,</span>
+        <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentDefaultsHelpFormatter</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--config_file&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;config_file&#39;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Full path to the optional configuration file.&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--hyperparam&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;hyperparam&#39;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Boolean flag to indicate whether we are running the hyperparameter search script&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">hyperparam</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--split_only&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;split_only&#39;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Boolean flag to indicate whether we want to just split the datasets when running the hyperparameter &#39;</span>
+             <span class="s1">&#39;search script&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">split_only</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+            <span class="s1">&#39;--nn_size_scale_factor&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;nn_size_scale_factor&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+            <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Scaling factor for constraining network size based on number of parameters in the network for &#39;</span>
+                 <span class="s1">&#39;hyperparam search&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+            <span class="s1">&#39;--rerun&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span> <span class="s1">&#39;rerun&#39;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span>
+            <span class="n">help</span><span class="o">=</span><span class="s1">&#39;If False, check model tracker to see if a model with that particular param combination has &#39;</span>
+                 <span class="s1">&#39;already been built&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">rerun</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+            <span class="s1">&#39;--max_jobs&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;max_jobs&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">80</span><span class="p">,</span>
+            <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Max number of jobs to be in the queue at one time for an LC machine&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--search_type&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;search_type&#39;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;grid&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Type of hyperparameter search to do. Options = [grid, random, geometric, and user_specified]&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--lc_account&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;lc_account&#39;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;baasic&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;LC account to charge hyperparameter batch runs to&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--dataset_key&#39;</span><span class="p">,</span> <span class="s1">&#39;-dk&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;dataset_key&#39;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Datastore key or file path for dataset&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--bucket&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;bucket&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;gsk_ml&#39;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Name of datastore bucket&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--dataset_oid&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;dataset_oid&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;dataset_oid to the dataset in the datastore&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--dataset_file&#39;</span><span class="p">,</span> <span class="s1">&#39;-d&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;dataset_file&#39;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Name of dataset CSV file. No longer used; dataset file comes from dataset_key basename&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--result_dir&#39;</span><span class="p">,</span> <span class="s1">&#39;-r&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;result_dir&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;/usr/local/data&#39;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Parent of directory where result files will be written&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--splitter&#39;</span><span class="p">,</span> <span class="s1">&#39;-s&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;splitter&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;scaffold&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Type of splitter to use: index, random, scaffold, butina, ave_min, or stratified&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--previously_split&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;previously_split&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Use if you want to load in previously split train, validation, and test csv files.&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">previously_split</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--split_uuid&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;split_uuid&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;UUID for csv file containing train, validation, and test split information.&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--model_type&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;model_type&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Type of model to fit (neural network or random forest&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--featurizer&#39;</span><span class="p">,</span> <span class="s1">&#39;-f&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;featurizer&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Type of featurizer to use on chemical structures. Current supported options: &#39;</span>
+             <span class="s1">&#39;[&quot;ecfp&quot;,&quot;graphconv&quot;,&quot;molvae&quot;,&quot;descriptors&quot;]. Further information on descriptors are in &#39;</span>
+             <span class="s1">&#39;descriptor_type&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--previously_featurized&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;previously_featurized&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_false&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Use if you want to load in previously featurized data files.&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">previously_featurized</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--baseline_epoch&#39;</span><span class="p">,</span> <span class="s1">&#39;-b&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;baseline_epoch&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Baseline epoch at which to evaluate performance for DNN models&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--ecfp_radius&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;ecfp_radius&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Radius used for ECFP generation&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--ecfp_size&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;ecfp_size&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">1024</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Size of ECFP bit vectors&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--rf_estimators&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;rf_estimators&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;500&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Number of estimators to use in random forest models&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--rf_max_features&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;rf_max_features&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;32&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Max number of features to split random forest nodes&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--rf_max_depth&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;rf_max_depth&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;The maximum depth of a decision tree in the random forest&#39;</span><span class="p">)</span>
+
+<span class="c1">#****************************************************************************************</span>
+<span class="c1"># xgboost parameters</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--xgb_n_estimators&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;xgb_n_estimators&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;100&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Number of estimators to use in xgboost models&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--xgb_max_depth&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;xgb_max_depth&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;6&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Maximum tree depth for base learners.&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--xgb_learning_rate&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;xgb_learning_rate&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;0.1&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Boosting learning rate (xgb’s “eta”)&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--xgb_gamma&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;xgb_gamma&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;0.0&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Minimum loss reduction required to make a further partition on a leaf node of the tree&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--xgb_min_child_weight&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;xgb_min_child_weight&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;1.0&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39; Minimum sum of instance weight(hessian) needed in a child.&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--xgb_subsample&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;xgb_subsample&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;1.0&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Subsample ratio of the training instance.&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--xgb_colsample_bytree&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;xgb_colsample_bytree&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;1.0&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Subsample ratio of columns when constructing each tree.&#39;</span><span class="p">)</span>
+
+
+    <span class="n">temp_layer_size_string</span> <span class="o">=</span> <span class="p">[</span><span class="n">key</span> <span class="o">+</span> <span class="s1">&#39;:&#39;</span> <span class="o">+</span> <span class="n">value</span> <span class="o">+</span> <span class="s1">&#39;,&#39;</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span><span class="n">value</span> <span class="ow">in</span> <span class="n">layer_size_options</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span>
+    <span class="n">separator</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span>
+    <span class="n">layer_size_help_string</span> <span class="o">=</span> \
+        <span class="p">(</span><span class="s1">&#39;Comma-separated list of layer sizes for NN models with default values conditional on featurizer: &#39;</span>
+         <span class="o">+</span> <span class="n">separator</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">temp_layer_size_string</span><span class="p">))</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--layer_sizes&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;layer_sizes&#39;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="n">layer_size_help_string</span><span class="p">)</span>
+
+    <span class="n">temp_weight_init_stddevs_string</span> <span class="o">=</span> <span class="p">[</span><span class="n">key</span> <span class="o">+</span> <span class="s1">&#39;:&#39;</span> <span class="o">+</span> <span class="n">value</span> <span class="o">+</span> <span class="s1">&#39;,&#39;</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">weight_init_stddevs_options</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span>
+    <span class="n">separator</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span>
+    <span class="n">weight_init_stddevs_help_string</span> <span class="o">=</span> \
+        <span class="p">(</span><span class="s1">&#39;Comma-separated list of standard deviations per layer for initializing weights in dense NN models with &#39;</span>
+         <span class="s1">&#39;conditional values: &#39;</span> <span class="o">+</span> <span class="n">separator</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">temp_weight_init_stddevs_string</span><span class="p">))</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--weight_init_stddevs&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;weight_init_stddevs&#39;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="n">weight_init_stddevs_help_string</span><span class="p">)</span>
+
+    <span class="n">temp_dropout_string</span> <span class="o">=</span> <span class="p">[</span><span class="n">key</span> <span class="o">+</span> <span class="s1">&#39;:&#39;</span> <span class="o">+</span> <span class="n">value</span> <span class="o">+</span> <span class="s1">&#39;,&#39;</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">dropout_options</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span>
+    <span class="n">separator</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span>
+    <span class="n">dropout_help_string</span> <span class="o">=</span> \
+        <span class="p">(</span><span class="s1">&#39;Comma-separated list of dropout rates per layer for NN models with default values conditional on featurizer: &#39;</span>
+         <span class="o">+</span> <span class="n">separator</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">temp_dropout_string</span><span class="p">))</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--dropouts&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;dropouts&#39;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="n">dropout_help_string</span><span class="p">)</span>
+
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--node_nums&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;node_nums&#39;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Comma-separated list of number of nodes per layer for permutation of NN layers&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--layer_nums&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;layer_nums&#39;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Comma-separated list of number of layers for permutation of NN layers&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--dropout_list&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;dropout_list&#39;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Comma-separated list of dropout rates for permutation of NN layers&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--max_final_layer_size&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;max_final_layer_size&#39;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;The max number of nodes in the last layer; max_final_layer_size = min(node_nums) if min(node_nums) &gt; &#39;</span>
+             <span class="s1">&#39;max_final_layer_size&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--weight_decay_penalty&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;weight_decay_penalty&#39;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;0.0001&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;weight_decay_penalty: float. The magnitude of the weight decay penalty to use. default 0.0001&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--weight_decay_penalty_type&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;weight_decay_penalty_type&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;l2&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;weight_decay_penalty_type: str. The type of penalty to use for weight decay, either &#39;l1&#39; or &#39;l2&#39;. &quot;</span>
+             <span class="s2">&quot;default: l2&quot;</span><span class="p">)</span>
+
+    <span class="n">temp_bias_init_consts_string</span> <span class="o">=</span> <span class="p">[</span><span class="n">key</span> <span class="o">+</span> <span class="s1">&#39;:&#39;</span> <span class="o">+</span> <span class="n">value</span> <span class="o">+</span> <span class="s1">&#39;,&#39;</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">bias_init_consts_options</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span>
+    <span class="n">separator</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span>
+    <span class="n">bias_init_consts_help_string</span> <span class="o">=</span> \
+        <span class="p">(</span><span class="s1">&#39;Comma-separated list of initial bias parameters per layer for dense NN models with conditional values: &#39;</span>
+         <span class="o">+</span> <span class="n">separator</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">temp_bias_init_consts_string</span><span class="p">))</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--bias_init_consts&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;bias_init_consts&#39;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="n">bias_init_consts_help_string</span><span class="p">)</span>
+
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--uncertainty&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;uncertainty&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_false&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Compute uncertainty estimates for regression model predictions&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">uncertainty</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--transformers&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;transformers&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_false&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;transformation on regression output&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">transformers</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--umap_dim&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;umap_dim&#39;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;10&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Dimension of projected feature space, if UMAP transformation is requested&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--umap_neighbors&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;umap_neighbors&#39;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;20&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Number of nearest neighbors used in UMAP projection, if UMAP transformation is requested&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--umap_metric&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;umap_metric&#39;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;euclidean&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Distance metric used, if UMAP transformation is requested&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--umap_min_dist&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;umap_min_dist&#39;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;0.05&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Minimum distance used in UMAP projection, if UMAP transformation is requested&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--umap_targ_wt&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;umap_targ_wt&#39;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;0.0&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Weight given to training set response values in UMAP projection, if UMAP transformation is requested&#39;</span><span class="p">)</span>
+
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--optimizer_type&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;optimizer_type&#39;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;adam&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Optimizer for graph conv&#39;</span><span class="p">),</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--batch_size&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;batch_size&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Batch size&#39;</span><span class="p">)</span>  <span class="c1"># conditional</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--num_model_tasks&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;num_model_tasks&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Number of tasks to run for. 1 means a singletask model, &gt; 1 means a multitask model&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--prediction_type&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;prediction_type&#39;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;regression&#39;</span><span class="p">,</span>
+        <span class="n">choices</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;regression&#39;</span><span class="p">,</span> <span class="s1">&#39;classification&#39;</span><span class="p">],</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Is this a regression or classification problem?&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--task_type&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;task_type&#39;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;pxc50&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Type of task&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--model_choice_score_type&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;model_choice_score_type&#39;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Type of score function used to choose best epoch and/or hyperparameters&#39;</span><span class="p">)</span>
+
+    <span class="c1"># conditional</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--class_name&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;class_name&#39;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;User specified list of names of each class&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--class_number&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;class_number&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;User specified number of classes&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--learning_rate&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;learning_rate&#39;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;0.0005&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Learning rate for dense NN models&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--dataset_dir&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;dataset_dir&#39;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Subdirectory where dataset lives&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--derived_dir&#39;</span><span class="p">,</span> <span class="s1">&#39;-dd&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;derived_dir&#39;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Directory where shortlist lives&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--use_shortlist&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;use_shortlist&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Use a list of assays&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">use_shortlist</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--shortlist_key&#39;</span><span class="p">,</span> <span class="s1">&#39;-sl&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;shortlist_key&#39;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;CSV file of assays of interest&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--mol_vae_model_file&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;mol_vae_model_file&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Trained model HDF5 file path, only needed for MolVAE featurizer&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--system&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;system&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;twintron-blue&#39;</span><span class="p">,</span>
+        <span class="n">choices</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;LC&#39;</span><span class="p">,</span> <span class="s1">&#39;twintron-blue&#39;</span><span class="p">],</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;System you are running on, LC or twintron-blue&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--response_cols&#39;</span><span class="p">,</span> <span class="s1">&#39;-y&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;response_cols&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;name of column(s) containing response values. Will default to last column if not specified. &#39;</span>
+             <span class="s1">&#39;Input as a string of comma separated values&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--smiles_col&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;smiles_col&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;rdkit_smiles&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Name of column containing SMILES strings. Will default to rdkit_smiles if not specified&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--id_col&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;id_col&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;compound_id&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Name of column containing compound IDs. Will default to compound_id if not specified&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--datastore&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;datastore&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Get input file from datastore based on a key of dataset_key&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">datastore</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--descriptor_key&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;descriptor_key&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Base of key for descriptor table file. Subset files will be prepended with `subset` &#39;</span>
+             <span class="s1">&#39;and appended with the dataset name&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--descriptor_spec_key&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;descriptor_spec_key&#39;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="s1">&#39;descriptor_sets_sources_by_descr_type.csv&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Datastore key or file path for a table specifying descriptor columns for each descriptor type&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--descriptor_spec_bucket&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;descriptor_spec_bucket&#39;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="s1">&#39;public&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Bucket where descriptor specification is located for a descriptor type&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--descriptor_type&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;descriptor_type&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;moe&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Type of descriptors being used as features, e.g. moe, dragon7, used when featurizer = &quot;descriptors&quot;&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--descriptor_bucket&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;descriptor_bucket&#39;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="s1">&#39;gskdata&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;datastore bucket for the descriptor file&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--descriptor_oid&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;descriptor_oid&#39;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;dataset_oid for the descriptor file in the datastore&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--mordred_cpus&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;mordred_cpus&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Max number of CPUs to use for Mordred descriptor computations. None means use all available&#39;</span><span class="p">)</span>
+
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--autoencoder_key&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;autoencoder_key&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Base of key for the autoencoder. Not yet implemented&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--autoencoder_type&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;autoencoder_type&#39;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="s1">&#39;molvae&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Type of autoencoder being used as features, not yet implemented&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--autoencoder_bucket&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;autoencoder_bucket&#39;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="s1">&#39;gsk_ml&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;datastore bucket for the autoencoder file&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--autoencoder_oid&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;autoencoder_oid&#39;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;dataset_oid for the autoencoder file in the datastore&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--model_filter&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;model_filter&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Path to the model filter configuration file. Is loaded and stored as a dictionary&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--save_results&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;save_results&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Save model results to Mongo DB&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--collection_name&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;collection_name&#39;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;model_tracker&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;MongoDB collection to save model results in&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--hyperparam_uuid&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;hyperparam_uuid&#39;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;UUID of hyperparam search run model was generated in. Not applicable for single-run jobs&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--max_epochs&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;max_epochs&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Maximum number of training epochs to run for DNN models&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--model_bucket&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;model_bucket&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;gsk_ml&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Bucket in the datastore for the model&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--model_family&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;model_family&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;DeepChemV2.1&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Type of model framework (e.g. deepchem, sklearn)&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--model_uuid&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;model_uuid&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;UUID generated after model creation (pythonic_ID)&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--mol_vae_model_uuid&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;mol_vae_model_uuid&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Trained model HDF5 file path, only needed for MolVAE featurizer&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--normalization_type&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;normalization_type&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;no_normalization&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;type of normalization&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--transformer_key&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;transformer_key&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Path to a saved transformer (stored as tuple, e.g. (transform_features, transform_respose))&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--transformer_bucket&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;transformer_bucket&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;gsk_ml&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Datastore bucket where the transformer is stored&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--transformer_oid&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;transformer_oid&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Dataset oid of the transformer is stored&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--feature_transform_type&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;feature_transform_type&#39;</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;normalization&#39;</span><span class="p">,</span> <span class="s1">&#39;umap&#39;</span><span class="p">],</span>
+        <span class="n">default</span><span class="o">=</span><span class="s1">&#39;normalization&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;type of transformation for the features&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--response_transform_type&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;response_transform_type&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;normalization&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;type of normalization for the response column&#39;</span><span class="p">)</span>
+    <span class="n">current_time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%A_</span><span class="si">%d</span><span class="s2">_%B_%Y_%I:%M%p&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--time_generated&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;time_generated&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">current_time</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Timestamp of when the model was completed (ttb clock is incorrect) &#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--tuned&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;tuned&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;True if the model has been trained for the best value, false otherwise&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">tuned</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--units&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;units&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Units of the input dataset &#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--visualize_results&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;visualize_results&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;True/False flag for use of visualization module&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">visualize_results</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--git_hash_code&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;git_hash_code&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Git hash of the commit used to build/train the model&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--dependencies&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;dependencies&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Software dependencies, e.g. Docker image or Conda environment&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--kubernetes_pod&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;kubernetes_pod&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Kubernetes pod ID&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--model_key&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;model_key&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Path or datastore key to a previously saved model.&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--dataset_name&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;dataset_name&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Parameter for naming output files/dataset objects,&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--min_compound_number&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;min_compound_number&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Threshold number of compounds in a dataset required to train a model&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--split_strategy&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;split_strategy&#39;</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;train_valid_test&#39;</span><span class="p">,</span> <span class="s1">&#39;k_fold_cv&#39;</span><span class="p">],</span>
+        <span class="n">default</span><span class="o">=</span><span class="s1">&#39;train_valid_test&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Choice of splitting type&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--split_train_frac&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;split_train_frac&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Fraction of data to put in train set for train_valid_test split strategy&#39;</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--split_valid_frac&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;split_valid_frac&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Fraction of data to put in validation set for train_valid_test split strategy&#39;</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--split_test_frac&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;split_test_frac&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Fraction of data to put in held-out test set&#39;</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--cutoff&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;cutoff&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mf">0.18</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;cutoff Tanimoto similarity for clustering in Butina splitter&#39;</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--num_folds&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;num_folds&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Number of k-folds to use in k-fold cross validation&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--verbose&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;verbose&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;True/False flag for setting verbosity&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--python_path&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;python_path&#39;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;python&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Path to desired python version&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--script_dir&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;script_dir&#39;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;.&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Path where pipeline file you want to run hyperparam search from is located&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--script_name&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;script_name&#39;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Name of script to run&#39;</span><span class="p">)</span>
+    <span class="n">output_dir_default</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--output_dir&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;output_dir&#39;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">output_dir_default</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;File location where the model output will be saved. Defauts to &lt;result_dir&gt;/&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--tab_latent_reps&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;tab_latent_reps&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Tabulate encoded features for later visualization&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">tab_latent_reps</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--tab_tsne&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;tab_tsne&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Transform encoded features using tSNE and tabulate for later visualization&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">tab_tsne</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="c1"># additional parameters:</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--model_dataset_oid&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;model_dataset_oid&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;OID of the model dataset inserted into the datastore&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--compute_metrics&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;compute_metrics&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_false&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Boolean flag for prediction mode for outputting performance metrics against ground truth (True) and &#39;</span>
+             <span class="s1">&#39;when you have no ground truth (False).&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">compute_metrics</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">parser</span></div>
+
+<span class="c1">#***********************************************************************************************************</span>
+<div class="viewcode-block" id="postprocess_args"><a class="viewcode-back" href="../../pipeline.html#pipeline.parameter_parser.postprocess_args">[docs]</a><span class="k">def</span> <span class="nf">postprocess_args</span><span class="p">(</span><span class="n">parsed_args</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Postprocessing for the parsed arguments.</span>
+<span class="sd">    Replaces any string in null_options with a NoneType</span>
+
+<span class="sd">    Replaces any string that matches replace_with_space with whitespace.</span>
+
+<span class="sd">    Parses arguments in convert_to_float_list into a list of floats, if the hyperparams option is True.</span>
+<span class="sd">    E.g. parsed_args.dropouts = &quot;0.001,0.001 0.002,0.002 0.03,003&quot;</span>
+<span class="sd">        -&gt; parsed_args.dropouts = [[0.001,0.001], [0.002,0.002], [0.03,003]]</span>
+
+<span class="sd">    Parses arguments in convert_to_int_list into a list of ints, if the hyperparams options is True.</span>
+<span class="sd">    E.g. parsed_args.layer_sizes = &quot;10,100 20,200 30,300&quot;</span>
+<span class="sd">        -&gt; parsed_args.layer_sizes = [[10,100], [20,200], [30,300]]</span>
+
+<span class="sd">    Parameters in keep_as_list are kept as lists, even if there is a single item in the list.</span>
+
+<span class="sd">    Parameters in convert_to_str_list are converted to a list of strings.</span>
+<span class="sd">    E.g. parsed_args.model_type = &quot;NN,RF&quot;</span>
+<span class="sd">        -&gt; parsed_args.model_type = [&#39;NN&#39;,&#39;RF&#39;].</span>
+
+<span class="sd">    If there is a single item in the list (no commas), the repsonse is kept as a StringType, unless it is in</span>
+<span class="sd">    response_cols, which is passed as a list</span>
+
+<span class="sd">    Setting conditional options for descriptor_key. Current only descriptor_type option is &#39;moe&#39;</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        parsed_args (argparse.Namespace): Raw parsed arguments.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        parsed_args (argparse.Namespace): a argparse.Namespace object containing properly processed arguments.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        Exception: layer_sizes, dropouts, weight_init_stddevs and bias_init_consts arguments must be the same length</span>
+
+<span class="sd">        Exception: parameters within not_a_list_outside_of_hyperparams are not accepted as a list if hyperparams</span>
+<span class="sd">        is False</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">replace_with_space</span> <span class="o">=</span> <span class="s2">&quot;@&quot;</span>
+    <span class="n">null_options</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;null&#39;</span><span class="p">,</span><span class="s1">&#39;Null&#39;</span><span class="p">,</span><span class="s1">&#39;none&#39;</span><span class="p">,</span><span class="s1">&#39;None&#39;</span><span class="p">,</span><span class="s1">&#39;N/A&#39;</span><span class="p">,</span><span class="s1">&#39;n/a&#39;</span><span class="p">,</span><span class="s1">&#39;NaN&#39;</span><span class="p">,</span><span class="s1">&#39;nan&#39;</span><span class="p">,</span><span class="s1">&#39;NAN&#39;</span><span class="p">,</span><span class="s1">&#39;NONE&#39;</span><span class="p">,</span><span class="s1">&#39;NULL&#39;</span><span class="p">,</span><span class="s1">&#39;NA&#39;</span><span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">keys</span><span class="p">,</span><span class="n">vals</span> <span class="ow">in</span> <span class="n">parsed_args</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">vals</span> <span class="ow">in</span> <span class="n">null_options</span><span class="p">:</span>
+            <span class="n">parsed_args</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">keys</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="s2">&quot;@&quot;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">vals</span><span class="p">):</span>
+            <span class="n">parsed_args</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">keys</span><span class="p">]</span> <span class="o">=</span> <span class="n">vals</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">replace_with_space</span><span class="p">,</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
+
+    <span class="c1">#postprocessing to add in the model_filter dictionary for the model zoo.</span>
+    <span class="k">if</span> <span class="n">parsed_args</span><span class="o">.</span><span class="n">model_filter</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1">#TODO: Use model_wrapper to allow for other formats?</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">parsed_args</span><span class="o">.</span><span class="n">model_filter</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">config</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+        <span class="n">parsed_args</span><span class="o">.</span><span class="n">model_filter</span> <span class="o">=</span> <span class="n">flatten_dict</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="p">{})</span>
+
+    <span class="c1"># Check that split_valid_frac+split_test_frac leaves room for a training set</span>
+    <span class="k">if</span> <span class="n">parsed_args</span><span class="o">.</span><span class="n">split_strategy</span> <span class="o">==</span> <span class="s1">&#39;train_valid_test&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">parsed_args</span><span class="o">.</span><span class="n">split_valid_frac</span> <span class="o">+</span> <span class="n">parsed_args</span><span class="o">.</span><span class="n">split_test_frac</span> <span class="o">&gt;=</span> <span class="mf">1.0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Split fractions for validation and test sets leave no room for training set.&quot;</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">parsed_args</span><span class="o">.</span><span class="n">split_strategy</span> <span class="o">==</span> <span class="s1">&#39;k_fold_cv&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">parsed_args</span><span class="o">.</span><span class="n">split_test_frac</span> <span class="o">&gt;=</span> <span class="mf">1.0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Split fraction for test set leaves no room for training and validation data.&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Set conditional defaults for model_choice_score_type based on prediction_type</span>
+    <span class="k">if</span> <span class="n">parsed_args</span><span class="o">.</span><span class="n">model_choice_score_type</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">parsed_args</span><span class="o">.</span><span class="n">prediction_type</span> <span class="o">==</span> <span class="s1">&#39;classification&#39;</span><span class="p">:</span>
+            <span class="n">parsed_args</span><span class="o">.</span><span class="n">model_choice_score_type</span> <span class="o">=</span> <span class="s1">&#39;roc_auc&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">parsed_args</span><span class="o">.</span><span class="n">model_choice_score_type</span> <span class="o">=</span> <span class="s1">&#39;r2&#39;</span>
+
+    <span class="c1"># Convert arguments passed as comma-separated values into lists</span>
+    <span class="k">if</span> <span class="n">parsed_args</span><span class="o">.</span><span class="n">hyperparam</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">convert_to_str_list</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">parsed_args</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">item</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">parsed_args</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">item</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">parsed_args</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">item</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)]</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">parsed_args</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">item</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">item</span> <span class="o">!=</span><span class="s1">&#39;response_cols&#39;</span><span class="p">:</span>
+                    <span class="n">parsed_args</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">item</span><span class="p">]</span> <span class="o">=</span> <span class="n">parsed_args</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">item</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">convert_to_numeric_list</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">parsed_args</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">item</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+
+                <span class="c1"># splits a list of space separated strings e.g. [--dropouts 0.001,0.001 0.002,0.002]</span>
+                <span class="c1"># e.g. [--dropouts 0.001,0.001 0.002,0.002] -&gt; [[0.001,0.001],[0.002,0.002]]</span>
+                <span class="n">current_value</span> <span class="o">=</span> <span class="n">parsed_args</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">item</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)</span>
+                <span class="n">newlist</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">vals</span> <span class="ow">in</span> <span class="n">current_value</span><span class="p">:</span>
+                    <span class="n">temp_split</span> <span class="o">=</span> <span class="n">vals</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">convert_to_int_list</span><span class="p">:</span>
+                        <span class="n">newlist</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">temp_split</span><span class="p">])</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">newlist</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">temp_split</span><span class="p">])</span>
+                    <span class="c1"># Once a new list of lists is generated, pass to parsed_args</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">newlist</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                        <span class="n">parsed_args</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">item</span><span class="p">]</span> <span class="o">=</span> <span class="n">newlist</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                        <span class="c1">#newlist is a list of lists, need to extract down to the lowest layer, as necessary</span>
+                        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">newlist</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">item</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">keep_as_list</span><span class="p">:</span>
+                            <span class="n">parsed_args</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">item</span><span class="p">]</span> <span class="o">=</span> <span class="n">parsed_args</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">item</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">parsed_args</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">item</span><span class="p">]</span> <span class="o">=</span> <span class="n">newlist</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">convert_to_numeric_list</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">parsed_args</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">item</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">current_value</span> <span class="o">=</span> <span class="n">parsed_args</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">item</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">convert_to_int_list</span><span class="p">:</span>
+                    <span class="n">newlist</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">current_value</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">newlist</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">current_value</span><span class="p">]</span>
+                <span class="c1"># Once a new list of lists is generated, pass to parsed_args</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">newlist</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">item</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">keep_as_list</span><span class="p">:</span>
+                    <span class="n">parsed_args</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">item</span><span class="p">]</span> <span class="o">=</span> <span class="n">newlist</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">parsed_args</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">item</span><span class="p">]</span> <span class="o">=</span> <span class="n">newlist</span>
+                <span class="k">if</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">not_a_list_outside_of_hyperparams</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">parsed_args</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">item</span><span class="p">],</span> <span class="nb">list</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> is not accepted as a list if hyperparams is False&quot;</span> <span class="o">%</span><span class="n">item</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">not_a_str_list_outside_of_hyperparams</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">parsed_args</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">item</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="s1">&#39;,&#39;</span> <span class="ow">in</span> <span class="n">parsed_args</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">item</span><span class="p">]</span> <span class="ow">or</span> <span class="s1">&#39; &#39;</span> <span class="ow">in</span> <span class="n">parsed_args</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">item</span><span class="p">]:</span>
+                    <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> cannot contain a comma or whitespace when hyperparams is False&quot;</span> <span class="o">%</span><span class="n">item</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">parsed_args</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="s1">&#39;response_cols&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">current_value</span> <span class="o">=</span> <span class="n">parsed_args</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="s1">&#39;response_cols&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+            <span class="n">parsed_args</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="s1">&#39;response_cols&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">current_value</span>
+        <span class="c1"># Checks that the layer sizes, dropouts, weight_init_stddevs, and bias_init_consts are the same length</span>
+        <span class="c1"># if they are non-default</span>
+        <span class="k">if</span> <span class="n">parsed_args</span><span class="o">.</span><span class="n">layer_sizes</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">nlayers</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">parsed_args</span><span class="o">.</span><span class="n">layer_sizes</span><span class="p">)</span>
+            <span class="k">if</span> <span class="p">((</span><span class="n">parsed_args</span><span class="o">.</span><span class="n">dropouts</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">parsed_args</span><span class="o">.</span><span class="n">dropouts</span><span class="p">)</span> <span class="o">!=</span> <span class="n">nlayers</span><span class="p">)</span> <span class="ow">or</span>
+                <span class="p">(</span><span class="n">parsed_args</span><span class="o">.</span><span class="n">weight_init_stddevs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">parsed_args</span><span class="o">.</span><span class="n">weight_init_stddevs</span><span class="p">)</span> <span class="o">!=</span> <span class="n">nlayers</span><span class="p">)</span> <span class="ow">or</span>
+                <span class="p">(</span><span class="n">parsed_args</span><span class="o">.</span><span class="n">bias_init_consts</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">parsed_args</span><span class="o">.</span><span class="n">bias_init_consts</span><span class="p">)</span> <span class="o">!=</span> <span class="n">nlayers</span><span class="p">)):</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;layer_sizes, dropouts, weight_init_stddevs and bias_init_consts arguments must be the &quot;</span>
+                                <span class="s2">&quot;same length&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">parsed_args</span></div>
+
+<span class="c1">#***********************************************************************************************************</span>
+<div class="viewcode-block" id="prune_defaults"><a class="viewcode-back" href="../../pipeline.html#pipeline.parameter_parser.prune_defaults">[docs]</a><span class="k">def</span> <span class="nf">prune_defaults</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">keep_params</span><span class="o">=</span><span class="p">{}):</span>
+    <span class="sd">&quot;&quot;&quot;Removes parameters that are not in keep_params or in get_defaults</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        params (argparse.Namespace): Raw parsed arguments.</span>
+<span class="sd">        keep_params (list): List of parameters to keep</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        new_dict (dict): Pruned argument dictionary</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">get_parser</span><span class="p">()</span>
+    <span class="n">new_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">argparse</span><span class="o">.</span><span class="n">Namespace</span><span class="p">):</span>
+        <span class="n">inner_dict</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="vm">__dict__</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">inner_dict</span> <span class="o">=</span> <span class="n">params</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">inner_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keep_params</span> <span class="ow">or</span> <span class="n">parser</span><span class="o">.</span><span class="n">get_default</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)]:</span>
+            <span class="n">new_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+    <span class="k">return</span> <span class="n">new_dict</span></div>
+
+<span class="c1">#***********************************************************************************************************</span>
+
+<div class="viewcode-block" id="main"><a class="viewcode-back" href="../../pipeline.html#pipeline.parameter_parser.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">argument</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Entry point when script is run from a shell&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">argument</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;--help&#39;</span><span class="p">,</span> <span class="s1">&#39;-h&#39;</span><span class="p">]:</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="n">parse_command_line</span><span class="p">(</span><span class="n">argument</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="n">wrapper</span><span class="p">(</span><span class="n">argument</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">params</span></div>
+
+<span class="c1">#***********************************************************************************************************</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Entry point when script is run from a shell. Raises an error if there are duplicate arguments&quot;&quot;&quot;</span>
+    <span class="n">just_args</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span> <span class="k">if</span> <span class="s2">&quot;--&quot;</span> <span class="ow">in</span> <span class="n">x</span><span class="p">]</span>
+    <span class="n">duplicates</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">just_args</span> <span class="k">if</span> <span class="n">just_args</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">])</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">duplicates</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">duplicates</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; appears several times. &quot;</span><span class="p">)</span>
+    <span class="n">main</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, ATOM DDM Team.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.0',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

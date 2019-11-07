@@ -1,0 +1,42 @@
+{
+    "comment": "System",
+    "comment": "----------------------------------------",
+    "system": "LC",
+    "datastore": "False",
+    "save_results": "False",
+    "data_owner": "username",
+
+    "comment": "Input file",
+    "comment": "----------------------------------------",
+    "comment": "Note: dataset_key must be a path/file name: E.G. ./dataset.csv",
+    "dataset_key": "./hlm_clearance_curated_fit.csv",
+    "id_col": "compound_id",
+    "smiles_col": "rdkit_smiles",
+    "response_cols": "VALUE_NUM_mean",
+
+    "comment": "Features",
+    "comment": "----------------------------------------",
+    "featurizer": "computed_descriptors",
+
+    "comment": "Descriptors",
+    "comment": "----------------------------------------",
+    "descriptor_spec_bucket": "",
+    "descriptor_spec_key": "../../../data/descriptor_sets_sources_by_descr_type.csv",
+    "descriptor_type": "mordred_filtered",
+
+    "comment": "Model",
+    "comment": "----------------------------------------",
+    "model_type": "NN",
+
+    "comment": "Neural network",
+    "comment": "----------------------------------------",
+    "dropouts": "0.4,0.4",
+    "layer_sizes": "200,100",
+    "learning_rate": "0.0005",
+    "max_epochs": "50",
+
+    "comment": "Results",
+    "comment": "----------------------------------------",    
+    "result_dir": "result"
+}
+

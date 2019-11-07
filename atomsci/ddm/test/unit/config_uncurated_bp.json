@@ -1,0 +1,10 @@
+{
+    "dataset_key" : "/ds/projdata/gsk_data/GSK_derived/PK_parameters/gsk_blood_plasma_partition_rat_crit_res_data.csv",
+    "dataset_bucket" : "gskdata",
+    "featurizer": "graphconv",
+    "response_cols" : "VALUE_NUM",
+    "id_col" : "CMPD_NUMBER",
+    "smiles_col" : "rdkit_smiles",
+    "datastore" : "True",
+    "output_dir" : "/usr/local/data/pytest"
+}

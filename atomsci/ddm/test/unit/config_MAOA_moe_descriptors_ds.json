@@ -1,0 +1,20 @@
+{
+    "dataset_key" : "/ds/projdata/gsk_data/GSK_datasets/liability_assays/annotated/MAOA_Monoamine_Oxidase_A_MAOA_Human_FLINT_Dev_Panel_PIC50.csv",
+    "dataset_bucket" : "gsk_ml",
+    "result_dir" : "pytest/MAOA_moe_descriptors_ds/result",
+    "splitter" : "random",
+    "id_col" : "compound_id",
+    "smiles_col" : "rdkit_smiles",
+    "response_cols" : "MAOA_Monoamine_Oxidase_A_MAOA_Human_FLINT_Dev_Panel_PIC50",
+    "model_type" : "NN",
+    "featurizer" : "descriptors",
+    "datastore" : "True",
+    "transformers" : "True",
+    "uncertainty" : "False", 
+    "bucket" : "gsk_ml",
+    "descriptor_key" : "/ds/projdata/gsk_data/GSK_Descriptors/all_GSK_Compound_2D_3D_MOE_Descriptors_Scaled_With_Smiles_And_Inchi.csv",
+    "descriptor_type" : "moe",
+    "save_results" : "False",
+    "dataset_name" : "MAOA_Monoamine_Oxidase_A_MAOA_Human_FLINT_Dev_Panel_PIC50",
+    "output_dir" : "pytest/MAOA_moe_descriptors_ds/output"
+}

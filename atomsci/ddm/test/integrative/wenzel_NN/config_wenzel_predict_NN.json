@@ -1,0 +1,20 @@
+{
+    "comment": "Input file",
+    "comment": "----------------------------------------",
+    "id_col": "compound_id",
+    "smiles_col": "rdkit_smiles",
+    "response_cols": "VALUE_NUM_mean",
+
+    "comment": "Descriptors",
+    "comment": "----------------------------------------",
+    "descriptor_spec_bucket": "",
+    "descriptor_spec_key": "../../../data/descriptor_sets_sources_by_descr_type.csv",
+
+    "comment": "Transformer",
+    "comment": "----------------------------------------",
+    "transformer_key": "",
+
+    "comment": "Results",
+    "comment": "----------------------------------------",
+    "result_dir": "predict"
+}

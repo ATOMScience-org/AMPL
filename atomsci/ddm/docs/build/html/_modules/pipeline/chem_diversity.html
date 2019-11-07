@@ -1,0 +1,490 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pipeline.chem_diversity &mdash; ATOM Data-Driven Modeling Pipeline 1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> ATOM Data-Driven Modeling Pipeline
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">ATOM Data-Driven Modeling Pipeline</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>pipeline.chem_diversity</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for pipeline.chem_diversity</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Functions to generate matrices or vectors of distances between compounds</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">rdkit</span> <span class="k">import</span> <span class="n">Chem</span>
+<span class="kn">from</span> <span class="nn">rdkit.Chem</span> <span class="k">import</span> <span class="n">AllChem</span>
+<span class="kn">from</span> <span class="nn">scipy.spatial.distance</span> <span class="k">import</span> <span class="n">pdist</span>
+<span class="kn">from</span> <span class="nn">scipy.spatial.distance</span> <span class="k">import</span> <span class="n">cdist</span>
+<span class="kn">from</span> <span class="nn">scipy.spatial.distance</span> <span class="k">import</span> <span class="n">squareform</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">inspect</span>
+
+<span class="kn">from</span> <span class="nn">atomsci.clients</span> <span class="k">import</span> <span class="n">datastore_functions</span> <span class="k">as</span> <span class="n">dsf</span>
+<span class="kn">from</span> <span class="nn">atomsci.ddm.pipeline</span> <span class="k">import</span> <span class="n">dist_metrics</span>
+
+<div class="viewcode-block" id="calc_dist_smiles"><a class="viewcode-back" href="../../pipeline.html#pipeline.chem_diversity.calc_dist_smiles">[docs]</a><span class="k">def</span> <span class="nf">calc_dist_smiles</span><span class="p">(</span>
+    <span class="n">feat_type</span><span class="p">,</span> <span class="n">dist_met</span><span class="p">,</span> <span class="n">smiles_arr1</span><span class="p">,</span> <span class="n">smiles_arr2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">calc_type</span><span class="o">=</span><span class="s1">&#39;nearest&#39;</span><span class="p">,</span> <span class="n">num_nearest</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="o">**</span><span class="n">metric_kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns a vector of distances, either between all compounds in a single matrix or between two matrices.</span>
+<span class="sd">    </span>
+<span class="sd">    Args:</span>
+<span class="sd">        feature_type: How the data should be featurized. Current options include ECFP, MOE, or Dragon7.</span>
+<span class="sd">        </span>
+<span class="sd">        dist_met: What distance metric to use. Current options include tanimoto, cosine, cityblock, euclidean, or any</span>
+<span class="sd">        other metric supported by scipy.spatial.distance.pdist()..</span>
+<span class="sd">        </span>
+<span class="sd">        smiles_arr1 (list): List of SMILES strings.</span>
+<span class="sd">        </span>
+<span class="sd">        smiles_arr2 (list): Optional, second list of SMILES strings. Can have only 1 member if wanting compound to</span>
+<span class="sd">        matrix comparison.</span>
+<span class="sd">        </span>
+<span class="sd">        calc_type: Type of calculation to use to process distance matrix. Options: nearest, farthest, average, or all.</span>
+<span class="sd">        </span>
+<span class="sd">        num_nearest: Additional parameter for calc_types nearest, nth_nearest and avg_n_nearest.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        dists: vector or array of distances</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">within_dset</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">if</span> <span class="n">feat_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;ECFP&#39;</span><span class="p">,</span><span class="s1">&#39;ecfp&#39;</span><span class="p">]</span> <span class="ow">and</span> <span class="n">dist_met</span><span class="o">==</span><span class="s1">&#39;tanimoto&#39;</span><span class="p">:</span>
+        <span class="c1"># TODO: Handle other metrics for fingerprints, as in calc_dist_diskdataset()</span>
+        <span class="n">mols1</span> <span class="o">=</span> <span class="p">[</span><span class="n">Chem</span><span class="o">.</span><span class="n">MolFromSmiles</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">smiles_arr1</span><span class="p">]</span>
+        <span class="n">fprints1</span> <span class="o">=</span> <span class="p">[</span><span class="n">AllChem</span><span class="o">.</span><span class="n">GetMorganFingerprintAsBitVect</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1024</span><span class="p">)</span> <span class="k">for</span> <span class="n">mol</span> <span class="ow">in</span> <span class="n">mols1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">smiles_arr2</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">smiles_arr2</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">cpd_mol</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">MolFromSmiles</span><span class="p">(</span><span class="n">smiles_arr2</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="n">cpd_fprint</span> <span class="o">=</span> <span class="n">AllChem</span><span class="o">.</span><span class="n">GetMorganFingerprintAsBitVect</span><span class="p">(</span><span class="n">cpd_mol</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1024</span><span class="p">)</span>
+                <span class="c1"># Vector of distances</span>
+                <span class="k">return</span> <span class="n">calc_summary</span><span class="p">(</span><span class="n">dist_metrics</span><span class="o">.</span><span class="n">tanimoto_single</span><span class="p">(</span><span class="n">cpd_fprint</span><span class="p">,</span> <span class="n">fprints1</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span> <span class="n">calc_type</span><span class="p">,</span> 
+                                    <span class="n">num_nearest</span><span class="p">,</span> <span class="n">within_dset</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">mols2</span> <span class="o">=</span> <span class="p">[</span><span class="n">Chem</span><span class="o">.</span><span class="n">MolFromSmiles</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">smiles_arr2</span><span class="p">]</span>
+                <span class="n">fprints2</span> <span class="o">=</span> <span class="p">[</span><span class="n">AllChem</span><span class="o">.</span><span class="n">GetMorganFingerprintAsBitVect</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1024</span><span class="p">)</span> <span class="k">for</span> <span class="n">mol</span> <span class="ow">in</span> <span class="n">mols2</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">fprints2</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">within_dset</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="n">calc_summary</span><span class="p">(</span><span class="n">dist_metrics</span><span class="o">.</span><span class="n">tanimoto</span><span class="p">(</span><span class="n">fprints1</span><span class="p">,</span> <span class="n">fprints2</span><span class="p">),</span> <span class="n">calc_type</span><span class="p">,</span> <span class="n">num_nearest</span><span class="p">,</span> <span class="n">within_dset</span><span class="p">)</span>
+        
+    <span class="k">elif</span> <span class="n">dist_met</span> <span class="o">==</span> <span class="s1">&#39;mcs&#39;</span><span class="p">:</span>
+        <span class="n">mols1</span> <span class="o">=</span> <span class="p">[</span><span class="n">Chem</span><span class="o">.</span><span class="n">MolFromSmiles</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">smiles_arr1</span><span class="p">]</span>
+        <span class="n">n_atms</span> <span class="o">=</span> <span class="p">[</span><span class="n">mol</span><span class="o">.</span><span class="n">GetNumAtoms</span><span class="p">()</span> <span class="k">for</span> <span class="n">mol</span> <span class="ow">in</span> <span class="n">mols1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">smiles_arr2</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">smiles_arr2</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">cpd_mol</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">MolFromSmiles</span><span class="p">(</span><span class="n">smiles_arr2</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="c1"># Vector of distances</span>
+                <span class="k">return</span> <span class="n">calc_summary</span><span class="p">(</span><span class="n">dist_metrics</span><span class="o">.</span><span class="n">mcs_single</span><span class="p">(</span>
+                    <span class="n">cpd_mol</span><span class="p">,</span> <span class="n">mols1</span><span class="p">,</span> <span class="n">n_atms</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span> <span class="n">calc_type</span><span class="p">,</span> <span class="n">num_nearest</span><span class="p">,</span> <span class="n">within_dset</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">mols2</span> <span class="o">=</span> <span class="p">[</span><span class="n">Chem</span><span class="o">.</span><span class="n">MolFromSmiles</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">smiles_arr2</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">mols2</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="n">calc_summary</span><span class="p">(</span><span class="n">dist_metrics</span><span class="o">.</span><span class="n">mcs</span><span class="p">(</span><span class="n">mols1</span><span class="p">,</span> <span class="n">mols2</span><span class="p">),</span> <span class="n">calc_type</span><span class="p">,</span> <span class="n">num_nearest</span><span class="p">,</span> <span class="n">within_dset</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    
+    <span class="k">elif</span> <span class="n">feat_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;descriptors&#39;</span><span class="p">,</span> <span class="s1">&#39;moe&#39;</span><span class="p">]:</span>
+        <span class="n">feats1</span> <span class="o">=</span> <span class="n">get_descriptors</span><span class="p">(</span><span class="n">smiles_arr1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">feats1</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">smiles_arr2</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">feats2</span> <span class="o">=</span> <span class="n">get_descriptors</span><span class="p">(</span><span class="n">smiles_arr2</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">feats2</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">return</span>
+                <span class="k">return</span> <span class="n">calc_summary</span><span class="p">(</span><span class="n">cdist</span><span class="p">(</span><span class="n">feats1</span><span class="p">,</span> <span class="n">feats2</span><span class="p">,</span> <span class="n">dist_met</span><span class="p">),</span> <span class="n">calc_type</span><span class="p">,</span> <span class="n">num_nearest</span><span class="p">,</span> <span class="n">within_dset</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">calc_summary</span><span class="p">(</span><span class="n">pdist</span><span class="p">(</span><span class="n">feats1</span><span class="p">,</span> <span class="n">dist_met</span><span class="p">,</span> <span class="o">**</span><span class="n">metric_kwargs</span><span class="p">),</span> <span class="n">calc_type</span><span class="p">,</span> <span class="n">num_nearest</span><span class="p">,</span> <span class="n">within_dset</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="calc_dist_diskdataset"><a class="viewcode-back" href="../../pipeline.html#pipeline.chem_diversity.calc_dist_diskdataset">[docs]</a><span class="k">def</span> <span class="nf">calc_dist_diskdataset</span><span class="p">(</span>
+    <span class="n">feat_type</span><span class="p">,</span> <span class="n">dist_met</span><span class="p">,</span> <span class="n">dataset1</span><span class="p">,</span> <span class="n">dataset2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">calc_type</span><span class="o">=</span><span class="s1">&#39;nearest&#39;</span><span class="p">,</span> <span class="n">num_nearest</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="o">**</span><span class="n">metric_kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns a vector of distances, either between all compounds in a single dataset or between two datasets, given</span>
+<span class="sd">    as DeepChem Dataset objects.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        feature_type: How the data should be featurized. Current options include ECFP, MOE, or Dragon7.</span>
+<span class="sd">        </span>
+<span class="sd">        dist_met: What distance metric to use. Current options include tanimoto, cosine, cityblock, euclidean, or any</span>
+<span class="sd">        other metric supported by scipy.spatial.distance.pdist().</span>
+<span class="sd">        </span>
+<span class="sd">        dataset1: deepchem Dataset. dataset1.X should be the feature matrix.</span>
+<span class="sd">        </span>
+<span class="sd">        dataset2: Optional, second deepchem Dataset.</span>
+<span class="sd">        </span>
+<span class="sd">        calc_type: Type of calculation to use to process distance matrix. Options: nearest, farthest, average, or all.</span>
+<span class="sd">        num_nearest: Additional parameter for calc_types nearest, nth_nearest and avg_n_nearest.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        dists: vector or array of distances</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">dataset2</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">calc_dist_feat_array</span><span class="p">(</span><span class="n">feat_type</span><span class="p">,</span> <span class="n">dist_met</span><span class="p">,</span> <span class="n">dataset1</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="n">dataset2</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="n">calc_type</span><span class="p">,</span> <span class="n">num_nearest</span><span class="p">,</span> <span class="o">**</span><span class="n">metric_kwargs</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">calc_dist_feat_array</span><span class="p">(</span><span class="n">feat_type</span><span class="p">,</span> <span class="n">dist_met</span><span class="p">,</span> <span class="n">dataset1</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">calc_type</span><span class="p">,</span> <span class="n">num_nearest</span><span class="p">,</span> <span class="o">**</span><span class="n">metric_kwargs</span><span class="p">)</span></div>
+    
+<div class="viewcode-block" id="calc_dist_feat_array"><a class="viewcode-back" href="../../pipeline.html#pipeline.chem_diversity.calc_dist_feat_array">[docs]</a><span class="k">def</span> <span class="nf">calc_dist_feat_array</span><span class="p">(</span><span class="n">feat_type</span><span class="p">,</span> <span class="n">dist_met</span><span class="p">,</span> <span class="n">feat1</span><span class="p">,</span> <span class="n">feat2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">calc_type</span><span class="o">=</span><span class="s1">&#39;nearest&#39;</span><span class="p">,</span> <span class="n">num_nearest</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="o">**</span><span class="n">metric_kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns a vector or array of distances, either between all compounds in a single dataset or between two datasets,</span>
+<span class="sd">    given the feature matrices for the dataset(s).</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        feature_type: How the data should be featurized. Current options include ECFP, MOE, or Dragon7.</span>
+<span class="sd">        </span>
+<span class="sd">        dist_met: What distance metric to use. Current options include tanimoto, cosine, cityblock, euclidean, or any</span>
+<span class="sd">        other metric supported by scipy.spatial.distance.pdist().</span>
+<span class="sd">        </span>
+<span class="sd">        feat1: feature matrix as a numpy array</span>
+<span class="sd">        </span>
+<span class="sd">        feat2: Optional, second feature matrix</span>
+<span class="sd">        </span>
+<span class="sd">        calc_type: Type of calculation to use to process distance matrix. Options: nearest, farthest, average, or all.</span>
+<span class="sd">        </span>
+<span class="sd">        num_nearest: Additional parameter for calc_types nearest, nth_nearest and avg_n_nearest.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        dists: vector or array of distances</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">within_dset</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">if</span> <span class="n">feat_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;ECFP&#39;</span><span class="p">,</span> <span class="s1">&#39;ecfp&#39;</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="n">dist_met</span> <span class="o">==</span> <span class="s1">&#39;tanimoto&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">feat2</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">feat2</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="c1"># Vector of distances</span>
+                    <span class="k">return</span> <span class="n">calc_summary</span><span class="p">(</span><span class="n">dist_metrics</span><span class="o">.</span><span class="n">tanimoto_single</span><span class="p">(</span><span class="n">feat2</span><span class="p">,</span> <span class="n">feat1</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span> <span class="n">calc_type</span><span class="p">,</span> 
+                                        <span class="n">num_nearest</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">calc_summary</span><span class="p">(</span><span class="n">dist_metrics</span><span class="o">.</span><span class="n">tanimoto</span><span class="p">(</span><span class="n">feat1</span><span class="p">,</span> <span class="n">feat2</span><span class="p">),</span> <span class="n">calc_type</span><span class="p">,</span> <span class="n">num_nearest</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">calc_summary</span><span class="p">(</span><span class="n">dist_metrics</span><span class="o">.</span><span class="n">tanimoto</span><span class="p">(</span><span class="n">feat1</span><span class="p">),</span> <span class="n">calc_type</span><span class="p">,</span> <span class="n">num_nearest</span><span class="p">,</span> <span class="n">within_dset</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">feat2</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">calc_summary</span><span class="p">(</span><span class="n">cdist</span><span class="p">(</span><span class="n">feat1</span><span class="p">,</span> <span class="n">feat2</span><span class="p">,</span> <span class="n">dist_met</span><span class="p">),</span> <span class="n">calc_type</span><span class="p">,</span> <span class="n">num_nearest</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">calc_summary</span><span class="p">(</span><span class="n">pdist</span><span class="p">(</span><span class="n">feat1</span><span class="p">,</span> <span class="n">dist_met</span><span class="p">,</span> <span class="o">**</span><span class="n">metric_kwargs</span><span class="p">),</span> <span class="n">calc_type</span><span class="p">,</span> <span class="n">num_nearest</span><span class="p">,</span> <span class="n">within_dset</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">feat_type</span> <span class="o">==</span> <span class="s1">&#39;descriptors&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">feat2</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">calc_summary</span><span class="p">(</span><span class="n">cdist</span><span class="p">(</span><span class="n">feat1</span><span class="p">,</span> <span class="n">feat2</span><span class="p">,</span> <span class="n">dist_met</span><span class="p">),</span> <span class="n">calc_type</span><span class="p">,</span> <span class="n">num_nearest</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">calc_summary</span><span class="p">(</span><span class="n">pdist</span><span class="p">(</span><span class="n">feat1</span><span class="p">,</span> <span class="n">dist_met</span><span class="p">,</span> <span class="o">**</span><span class="n">metric_kwargs</span><span class="p">),</span> <span class="n">calc_type</span><span class="p">,</span> <span class="n">num_nearest</span><span class="p">,</span> <span class="n">within_dset</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+    
+
+
+<div class="viewcode-block" id="calc_summary"><a class="viewcode-back" href="../../pipeline.html#pipeline.chem_diversity.calc_summary">[docs]</a><span class="k">def</span> <span class="nf">calc_summary</span><span class="p">(</span><span class="n">dist_arr</span><span class="p">,</span> <span class="n">calc_type</span><span class="p">,</span> <span class="n">num_nearest</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">within_dset</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns a summary of the distances in dist_arr, depending on calc_type.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        dist_arr: (np.array): Either a 2D distance matrix, or a 1D condensed distance matrix (flattened upper triangle).</span>
+
+<span class="sd">        calc_type (str): The type of summary values to return:</span>
+<span class="sd">        </span>
+<span class="sd">            all:            The distance matrix itself</span>
+<span class="sd">            </span>
+<span class="sd">            nearest:        The distances to the num_nearest nearest neighbors of each compound (except compound itself)</span>
+<span class="sd">            </span>
+<span class="sd">            nth_nearest:    The distance to the num_nearest&#39;th nearest neighbor</span>
+<span class="sd">            </span>
+<span class="sd">            avg_n_nearest:  The average of the num_nearest nearest neighbor distances</span>
+<span class="sd">            </span>
+<span class="sd">            farthest:       The distance to the farthest neighbor</span>
+<span class="sd">            </span>
+<span class="sd">            avg:            The average of all distances for each compound</span>
+
+<span class="sd">        num_nearest (int):  Additional parameter for calc_types nearest, nth_nearest and avg_n_nearest.</span>
+<span class="sd">        </span>
+<span class="sd">        within_dset (bool): True if input distances are between compounds in the same dataset.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        </span>
+<span class="sd">        dists (np.array):  A numpy array of distances. For calc_type &#39;nearest&#39; with num_nearest &gt; 1, this is a 2D array</span>
+<span class="sd">        with a row for each compound; otherwise it is a 1D array.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">calc_type</span> <span class="o">==</span> <span class="s1">&#39;all&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">dist_arr</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dist_arr</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">dist_mat</span> <span class="o">=</span> <span class="n">squareform</span><span class="p">(</span><span class="n">dist_arr</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">dist_mat</span> <span class="o">=</span> <span class="n">dist_arr</span>
+
+    <span class="k">if</span> <span class="n">calc_type</span> <span class="o">==</span> <span class="s1">&#39;farthest&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">dist_mat</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">calc_type</span> <span class="o">==</span> <span class="s1">&#39;avg&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">dist_mat</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">calc_type</span> <span class="o">==</span> <span class="s1">&#39;nearest&#39;</span><span class="p">:</span>
+        <span class="n">nn_dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">dist_mat</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">within_dset</span><span class="p">:</span>
+            <span class="c1"># Exclude the zero distances between each compound and itself. But don&#39;t exclude</span>
+            <span class="c1"># zero distances between different compounds!</span>
+            <span class="n">nn_dist</span> <span class="o">=</span> <span class="n">nn_dist</span><span class="p">[:,</span><span class="mi">1</span><span class="p">:(</span><span class="n">num_nearest</span><span class="o">+</span><span class="mi">1</span><span class="p">)]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">nn_dist</span> <span class="o">=</span> <span class="n">nn_dist</span><span class="p">[:,:</span><span class="n">num_nearest</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">num_nearest</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">nn_dist</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">nn_dist</span>
+
+    <span class="k">if</span> <span class="n">calc_type</span> <span class="o">==</span> <span class="s1">&#39;nth_nearest&#39;</span><span class="p">:</span>
+        <span class="n">nn_dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">dist_mat</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">within_dset</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">nn_dist</span><span class="p">[:,</span><span class="n">num_nearest</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">nn_dist</span><span class="p">[:,</span><span class="n">num_nearest</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">calc_type</span> <span class="o">==</span> <span class="s1">&#39;avg_n_nearest&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">within_dset</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">dist_mat</span><span class="p">)[:,</span><span class="mi">1</span><span class="p">:(</span><span class="n">num_nearest</span><span class="o">+</span><span class="mi">1</span><span class="p">)]</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">dist_mat</span><span class="p">)[:,:</span><span class="n">num_nearest</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;calc_type </span><span class="si">%s</span><span class="s2"> is not valid&quot;</span> <span class="o">%</span> <span class="n">calc_type</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span></div>
+        
+<div class="viewcode-block" id="get_descriptors"><a class="viewcode-back" href="../../pipeline.html#pipeline.chem_diversity.get_descriptors">[docs]</a><span class="k">def</span> <span class="nf">get_descriptors</span><span class="p">(</span><span class="n">smiles_arr</span><span class="p">):</span>
+    <span class="n">ds_client</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">config_client</span><span class="p">(</span><span class="n">token</span><span class="o">=</span><span class="s1">&#39;/usr/local/data/ds_token.txt&#39;</span><span class="p">)</span>
+
+    <span class="n">full_feature_matrix_key</span> <span class="o">=</span> <span class="s1">&#39;/ds/projdata/gsk_data/GSK_datasets/eXP_Panel_Min_100_Cmpds/scaled_descriptors/&#39;</span> \
+                              <span class="s1">&#39;subset_all_GSK_Compound_2D_3D_MOE_Descriptors_Scaled_With_Smiles_And_Inchi_HTR2A_5_&#39;</span> \
+                              <span class="s1">&#39;HT2A_Human_Antagonist_HEK_Luminescence_f_PIC50.csv&#39;</span>
+    <span class="n">full_feature_matrix</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">retrieve_dataset_by_datasetkey</span><span class="p">(</span><span class="n">full_feature_matrix_key</span><span class="p">,</span> <span class="s1">&#39;gskdata&#39;</span><span class="p">,</span> <span class="n">ds_client</span><span class="p">)</span>
+    <span class="n">smiles_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">smiles_arr</span><span class="p">)</span>
+    <span class="c1">#df = full_feature_matrix.merge(</span>
+    <span class="c1">#    smiles_df, how=&#39;inner&#39;, left_on=&#39;smiles&#39;, right_on=smiles_df.columns[0])</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">full_feature_matrix</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span>
+    <span class="k">del</span> <span class="n">full_feature_matrix</span>
+    <span class="n">descriptor_features</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span> <span class="k">if</span> <span class="n">x</span> <span class="ow">not</span> <span class="ow">in</span>
+                               <span class="p">[</span><span class="s1">&#39;compound_id&#39;</span><span class="p">,</span> <span class="s1">&#39;inchi_key&#39;</span><span class="p">,</span> <span class="s1">&#39;smiles&#39;</span><span class="p">,</span> <span class="s1">&#39;smiles_out&#39;</span><span class="p">,</span>
+                                <span class="s1">&#39;lost_frags&#39;</span><span class="p">,</span> <span class="s1">&#39;inchi_string&#39;</span><span class="p">,</span> <span class="s1">&#39;pxc50&#39;</span><span class="p">,</span> <span class="s1">&#39;rdkit_smiles&#39;</span><span class="p">,</span>
+                                <span class="s1">&#39;HTR2A_5_HT2A_Human_Antagonist_HEK_Luminescence_f_PIC50&#39;</span><span class="p">]]</span>
+    <span class="c1">#TODO this probably doesn&#39;t work</span>
+    <span class="k">return</span> <span class="n">df</span><span class="p">[</span><span class="n">descriptor_features</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="upload_distmatrix_to_DS"><a class="viewcode-back" href="../../pipeline.html#pipeline.chem_diversity.upload_distmatrix_to_DS">[docs]</a><span class="k">def</span> <span class="nf">upload_distmatrix_to_DS</span><span class="p">(</span>
+    <span class="n">dist_matrix</span><span class="p">,</span><span class="n">feature_type</span><span class="p">,</span><span class="n">compound_ids</span><span class="p">,</span><span class="n">bucket</span><span class="p">,</span><span class="n">title</span><span class="p">,</span><span class="n">description</span><span class="p">,</span><span class="n">tags</span><span class="p">,</span><span class="n">key_values</span><span class="p">,</span><span class="n">filepath</span><span class="o">=</span><span class="s2">&quot;./&quot;</span><span class="p">,</span><span class="n">dataset_key</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Uploads distance matrix in the data store with the appropriate tags</span>
+<span class="sd">    </span>
+<span class="sd">    Args:</span>
+<span class="sd">        dist_matrix: dist_matrix computed using</span>
+<span class="sd">        </span>
+<span class="sd">        feature_type: How was the data featurized.</span>
+<span class="sd">        </span>
+<span class="sd">        dist_met: What distance metric was used.</span>
+<span class="sd">        </span>
+<span class="sd">        compound_ids = list of compound ids corresponding to the distance matrix (assumes that distance matrix is square</span>
+<span class="sd">        and is the distance between all compounds in a dataset)</span>
+<span class="sd">        </span>
+<span class="sd">        bucket = bucket the file will be put in</span>
+<span class="sd">        </span>
+<span class="sd">        title = title of the file in (human friendly format)</span>
+<span class="sd">        </span>
+<span class="sd">        description = long text box to describe file (background/use notes)</span>
+<span class="sd">        </span>
+<span class="sd">        tags = must be a list.</span>
+<span class="sd">        </span>
+<span class="sd">        key_values = key:value pairs to enable future users to find the file. Must be a dictionary.</span>
+<span class="sd">        </span>
+<span class="sd">        filepath = local path where you want to store the pickled dataframe</span>
+<span class="sd">        </span>
+<span class="sd">        dataset_key = If updating a file already in the datastore enter the corresponding dataset_key. </span>
+<span class="sd">                      If not, leave as &#39;none&#39; and the dataset_key will be automatically generated.</span>
+<span class="sd">                      </span>
+<span class="sd">    Returns:</span>
+<span class="sd">         None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">dist_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">dist_matrix</span><span class="p">)</span>
+    <span class="n">dist_df</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">compound_ids</span>
+    <span class="n">dist_df</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="n">compound_ids</span>
+    <span class="n">fnm</span> <span class="o">=</span> <span class="s2">&quot;distmatrix_nm&quot;</span>
+    <span class="n">filename</span> <span class="o">=</span> <span class="n">fn</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;nm&quot;</span><span class="p">,</span><span class="n">feature_type</span><span class="p">)</span>
+    <span class="n">dist_pkl</span> <span class="o">=</span> <span class="n">dist_df</span><span class="o">.</span><span class="n">to_pickle</span><span class="p">(</span><span class="n">filepath</span><span class="o">+</span><span class="n">filename</span><span class="p">)</span>
+    <span class="n">dsf</span><span class="o">.</span><span class="n">upload_file_to_DS</span><span class="p">(</span><span class="n">bucket</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">description</span><span class="p">,</span> <span class="n">tags</span><span class="p">,</span> <span class="n">key_values</span><span class="p">,</span> <span class="n">filepath</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">dataset_key</span><span class="p">,</span> <span class="n">client</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, ATOM DDM Team.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.0',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

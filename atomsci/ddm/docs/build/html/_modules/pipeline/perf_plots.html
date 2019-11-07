@@ -1,0 +1,799 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pipeline.perf_plots &mdash; ATOM Data-Driven Modeling Pipeline 1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> ATOM Data-Driven Modeling Pipeline
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">ATOM Data-Driven Modeling Pipeline</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>pipeline.perf_plots</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for pipeline.perf_plots</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Plotting routines for visualizing performance of regression and classification models</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="kn">import</span> <span class="nn">matplotlib</span>
+
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">seaborn</span> <span class="k">as</span> <span class="nn">sns</span>
+<span class="kn">import</span> <span class="nn">umap</span>
+<span class="kn">import</span> <span class="nn">sklearn.metrics</span> <span class="k">as</span> <span class="nn">metrics</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">matplotlib.backends.backend_pdf</span> <span class="k">import</span> <span class="n">PdfPages</span>
+<span class="kn">from</span> <span class="nn">mpl_toolkits.mplot3d</span> <span class="k">import</span> <span class="n">Axes3D</span>
+
+<span class="kn">from</span> <span class="nn">atomsci.ddm.pipeline</span> <span class="k">import</span> <span class="n">perf_data</span> <span class="k">as</span> <span class="n">perf</span>
+
+<span class="c1">#matplotlib.style.use(&#39;ggplot&#39;)</span>
+<span class="n">matplotlib</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">&#39;xtick&#39;</span><span class="p">,</span> <span class="n">labelsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+<span class="n">matplotlib</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">&#39;ytick&#39;</span><span class="p">,</span> <span class="n">labelsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+<span class="n">matplotlib</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">&#39;axes&#39;</span><span class="p">,</span> <span class="n">labelsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+
+
+<span class="c1">#------------------------------------------------------------------------------------------------------------------------</span>
+<div class="viewcode-block" id="plot_pred_vs_actual"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_plots.plot_pred_vs_actual">[docs]</a><span class="k">def</span> <span class="nf">plot_pred_vs_actual</span><span class="p">(</span><span class="n">MP</span><span class="p">,</span> <span class="n">epoch_label</span><span class="o">=</span><span class="s1">&#39;best&#39;</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">error_bars</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">pdf_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Plot predicted vs actual values from regression model for the specified dataset subset (train, </span>
+<span class="sd">    valid, test or full) for the dataset in ModelPipeline MP.  If threshold is given, draw dashed lines</span>
+<span class="sd">    in both directions (e.g. to indicate an activity threshold). If pdf_dir is given, output the</span>
+<span class="sd">    plots to PDF files in the given directory; otherwise they are drawn on the current output device. If </span>
+<span class="sd">    uncertainty estimates are included in the model predictions and error_bars is True, error bars will be </span>
+<span class="sd">    drawn at +- 1 SD from predicted y values.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">params</span> <span class="o">=</span> <span class="n">MP</span><span class="o">.</span><span class="n">params</span>
+    <span class="c1"># For now restrict this to regression models. </span>
+    <span class="c1"># TODO: Implement a version of plot_pred_vs_actual for classification models.</span>
+    <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">prediction_type</span> <span class="o">!=</span> <span class="s1">&#39;regression&#39;</span><span class="p">:</span>
+        <span class="n">MP</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;plot_pred_vs_actual is currently for regression models only.&quot;</span><span class="p">)</span>
+        <span class="k">return</span>
+    <span class="n">wrapper</span> <span class="o">=</span> <span class="n">MP</span><span class="o">.</span><span class="n">model_wrapper</span>
+    <span class="k">if</span> <span class="n">pdf_dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">pdf_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">pdf_dir</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_</span><span class="si">%s</span><span class="s1">_</span><span class="si">%s</span><span class="s1">_</span><span class="si">%s</span><span class="s1">_pred_vs_actual.pdf&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">dataset_name</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">model_type</span><span class="p">,</span>
+                                <span class="n">params</span><span class="o">.</span><span class="n">featurizer</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">splitter</span><span class="p">))</span>
+        <span class="n">pdf</span> <span class="o">=</span> <span class="n">PdfPages</span><span class="p">(</span><span class="n">pdf_path</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">MP</span><span class="o">.</span><span class="n">run_mode</span> <span class="o">==</span> <span class="s1">&#39;training&#39;</span><span class="p">:</span>
+        <span class="n">subsets</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;train&#39;</span><span class="p">,</span> <span class="s1">&#39;valid&#39;</span><span class="p">,</span> <span class="s1">&#39;test&#39;</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">subsets</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;full&#39;</span><span class="p">]</span>
+    <span class="n">dataset_name</span> <span class="o">=</span> <span class="n">MP</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">dataset_name</span>
+    <span class="n">splitter</span> <span class="o">=</span> <span class="n">MP</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">splitter</span>
+    <span class="n">model_type</span> <span class="o">=</span> <span class="n">MP</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">model_type</span>
+    <span class="n">featurizer</span> <span class="o">=</span> <span class="n">MP</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">featurizer</span>
+    <span class="n">tasks</span> <span class="o">=</span> <span class="n">MP</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">response_cols</span>
+    <span class="n">task_type</span> <span class="o">=</span> <span class="n">MP</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">task_type</span>
+    <span class="k">for</span> <span class="n">subset</span> <span class="ow">in</span> <span class="n">subsets</span><span class="p">:</span>
+        <span class="n">perf_data</span> <span class="o">=</span> <span class="n">wrapper</span><span class="o">.</span><span class="n">get_perf_data</span><span class="p">(</span><span class="n">subset</span><span class="p">,</span> <span class="n">epoch_label</span><span class="p">)</span>
+        <span class="n">pred_results</span> <span class="o">=</span> <span class="n">perf_data</span><span class="o">.</span><span class="n">get_prediction_results</span><span class="p">()</span>
+        <span class="n">y_actual</span> <span class="o">=</span> <span class="n">perf_data</span><span class="o">.</span><span class="n">get_real_values</span><span class="p">()</span>
+        <span class="n">ids</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">,</span> <span class="n">y_std</span> <span class="o">=</span> <span class="n">perf_data</span><span class="o">.</span><span class="n">get_pred_values</span><span class="p">()</span>
+        <span class="n">r2</span> <span class="o">=</span> <span class="n">pred_results</span><span class="p">[</span><span class="s1">&#39;r2_score&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">perf_data</span><span class="o">.</span><span class="n">num_tasks</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">r2_scores</span> <span class="o">=</span> <span class="n">pred_results</span><span class="p">[</span><span class="s1">&#39;task_r2_scores&#39;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">r2_scores</span> <span class="o">=</span> <span class="p">[</span><span class="n">r2</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">MP</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">num_model_tasks</span><span class="p">):</span>
+            <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mf">12.0</span><span class="p">,</span><span class="mf">12.0</span><span class="p">))</span>
+            <span class="n">title</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="se">\n</span><span class="si">%s</span><span class="s1"> split </span><span class="si">%s</span><span class="s1"> model on </span><span class="si">%s</span><span class="s1"> features</span><span class="se">\n</span><span class="si">%s</span><span class="s1"> subset predicted vs actual </span><span class="si">%s</span><span class="s1">, R^2 = </span><span class="si">%.3f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                     <span class="n">dataset_name</span><span class="p">,</span> <span class="n">splitter</span><span class="p">,</span> <span class="n">model_type</span><span class="p">,</span> <span class="n">featurizer</span><span class="p">,</span> <span class="n">subset</span><span class="p">,</span> <span class="n">tasks</span><span class="p">[</span><span class="n">t</span><span class="p">],</span> <span class="n">r2_scores</span><span class="p">[</span><span class="n">t</span><span class="p">])</span>
+            <span class="c1"># Force axes to have same scale</span>
+            <span class="n">ymin</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">y_actual</span><span class="p">[:,</span><span class="n">t</span><span class="p">]),</span> <span class="nb">min</span><span class="p">(</span><span class="n">y_pred</span><span class="p">[:,</span><span class="n">t</span><span class="p">]))</span>
+            <span class="n">ymax</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">y_actual</span><span class="p">[:,</span><span class="n">t</span><span class="p">]),</span> <span class="nb">max</span><span class="p">(</span><span class="n">y_pred</span><span class="p">[:,</span><span class="n">t</span><span class="p">]))</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="n">ymin</span><span class="p">,</span> <span class="n">ymax</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="n">ymin</span><span class="p">,</span> <span class="n">ymax</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">error_bars</span> <span class="ow">and</span> <span class="n">y_std</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="c1"># Draw error bars</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">errorbar</span><span class="p">(</span><span class="n">y_actual</span><span class="p">[:,</span><span class="n">t</span><span class="p">],</span> <span class="n">y_pred</span><span class="p">[:,</span><span class="n">t</span><span class="p">],</span> <span class="n">y_std</span><span class="p">[:,</span><span class="n">t</span><span class="p">],</span> <span class="n">c</span><span class="o">=</span><span class="s1">&#39;blue&#39;</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;o&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.4</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">y_actual</span><span class="p">[:,</span><span class="n">t</span><span class="p">],</span> <span class="n">y_pred</span><span class="p">[:,</span><span class="n">t</span><span class="p">],</span> <span class="n">s</span><span class="o">=</span><span class="mi">9</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s1">&#39;blue&#39;</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;o&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.4</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Observed value&#39;</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Predicted value&#39;</span><span class="p">)</span>
+            <span class="c1"># Draw an identity line</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="n">ymin</span><span class="p">,</span><span class="n">ymax</span><span class="p">],</span> <span class="p">[</span><span class="n">ymin</span><span class="p">,</span><span class="n">ymax</span><span class="p">],</span> <span class="n">c</span><span class="o">=</span><span class="s1">&#39;forestgreen&#39;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;--&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">threshold</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">axvline</span><span class="p">(</span><span class="n">threshold</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;--&#39;</span><span class="p">)</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">axhline</span><span class="p">(</span><span class="n">threshold</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;--&#39;</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">fontdict</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;fontsize&#39;</span> <span class="p">:</span> <span class="mi">10</span><span class="p">})</span>
+            <span class="k">if</span> <span class="n">pdf_dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">pdf</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">pdf_dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">pdf</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="n">MP</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Wrote plot to </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">pdf_path</span><span class="p">)</span></div>
+
+
+<span class="c1">#------------------------------------------------------------------------------------------------------------------------</span>
+<div class="viewcode-block" id="plot_perf_vs_epoch"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_plots.plot_perf_vs_epoch">[docs]</a><span class="k">def</span> <span class="nf">plot_perf_vs_epoch</span><span class="p">(</span><span class="n">MP</span><span class="p">,</span> <span class="n">pdf_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Plot the current NN model&#39;s standard performance metric (r2_score or roc_auc_score) vs epoch number for the training and </span>
+<span class="sd">    validation subsets. If the model was trained with k-fold CV, plot error bars or shading out to += 1 SD from the mean</span>
+<span class="sd">    score metric values. Also plot the validation set score used for ranking training epochs and other hyperparameters </span>
+<span class="sd">    against epoch number.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">wrapper</span> <span class="o">=</span> <span class="n">MP</span><span class="o">.</span><span class="n">model_wrapper</span>
+    <span class="k">if</span> <span class="s1">&#39;train_epoch_perfs&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">wrapper</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;plot_perf_vs_epoch() can only be called for NN models&quot;</span><span class="p">)</span>
+    <span class="n">subset_perf</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">training</span> <span class="o">=</span> <span class="n">wrapper</span><span class="o">.</span><span class="n">train_epoch_perfs</span><span class="p">,</span> <span class="n">validation</span> <span class="o">=</span> <span class="n">wrapper</span><span class="o">.</span><span class="n">valid_epoch_perfs</span><span class="p">,</span> 
+                       <span class="n">test</span> <span class="o">=</span> <span class="n">wrapper</span><span class="o">.</span><span class="n">test_epoch_perfs</span><span class="p">)</span>
+    <span class="n">subset_std</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">training</span> <span class="o">=</span> <span class="n">wrapper</span><span class="o">.</span><span class="n">train_epoch_perf_stds</span><span class="p">,</span> <span class="n">validation</span> <span class="o">=</span> <span class="n">wrapper</span><span class="o">.</span><span class="n">valid_epoch_perf_stds</span><span class="p">,</span> 
+                       <span class="n">test</span> <span class="o">=</span> <span class="n">wrapper</span><span class="o">.</span><span class="n">test_epoch_perf_stds</span><span class="p">)</span>
+    <span class="n">num_folds</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">MP</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">train_valid_dsets</span><span class="p">)</span>
+    <span class="n">model_scores</span> <span class="o">=</span> <span class="n">wrapper</span><span class="o">.</span><span class="n">model_choice_scores</span>
+    <span class="n">model_score_type</span> <span class="o">=</span> <span class="n">MP</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">model_choice_score_type</span>
+    <span class="n">num_epochs</span> <span class="o">=</span> <span class="n">MP</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">max_epochs</span>
+    <span class="n">best_epoch</span> <span class="o">=</span> <span class="n">wrapper</span><span class="o">.</span><span class="n">best_epoch</span>
+    <span class="n">baseline_epoch</span> <span class="o">=</span> <span class="n">MP</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">baseline_epoch</span>
+
+
+    <span class="n">epoch</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">num_epochs</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">MP</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">prediction_type</span> <span class="o">==</span> <span class="s1">&#39;regression&#39;</span><span class="p">:</span>
+        <span class="n">perf_label</span> <span class="o">=</span> <span class="s1">&#39;R-squared&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">perf_label</span> <span class="o">=</span> <span class="s1">&#39;ROC AUC&#39;</span>
+
+    <span class="k">if</span> <span class="n">pdf_dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">pdf_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">pdf_dir</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_perf_vs_epoch.pdf&#39;</span> <span class="o">%</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">MP</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">output_dir</span><span class="p">))</span>
+        <span class="n">pdf</span> <span class="o">=</span> <span class="n">PdfPages</span><span class="p">(</span><span class="n">pdf_path</span><span class="p">)</span>
+    <span class="n">subset_colors</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">training</span><span class="o">=</span><span class="s1">&#39;blue&#39;</span><span class="p">,</span> <span class="n">validation</span><span class="o">=</span><span class="s1">&#39;forestgreen&#39;</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">)</span>
+    <span class="n">subset_shades</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">training</span><span class="o">=</span><span class="s1">&#39;deepskyblue&#39;</span><span class="p">,</span> <span class="n">validation</span><span class="o">=</span><span class="s1">&#39;lightgreen&#39;</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="s1">&#39;hotpink&#39;</span><span class="p">)</span>
+    <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+    <span class="n">title</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> dataset</span><span class="se">\n</span><span class="si">%s</span><span class="s1"> vs epoch for </span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1"> model on </span><span class="si">%s</span><span class="s1"> features with </span><span class="si">%s</span><span class="s1"> split</span><span class="se">\n</span><span class="s1">Best validation set performance at epoch </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="n">MP</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">dataset_name</span><span class="p">,</span> <span class="n">perf_label</span><span class="p">,</span> <span class="n">MP</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">model_type</span><span class="p">,</span>  <span class="n">MP</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">prediction_type</span><span class="p">,</span>
+            <span class="n">MP</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">featurizer</span><span class="p">,</span>  <span class="n">MP</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">splitter</span><span class="p">,</span>  <span class="n">best_epoch</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">subset</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;training&#39;</span><span class="p">,</span> <span class="s1">&#39;validation&#39;</span><span class="p">,</span> <span class="s1">&#39;test&#39;</span><span class="p">]:</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">epoch</span><span class="p">,</span> <span class="n">subset_perf</span><span class="p">[</span><span class="n">subset</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="n">subset_colors</span><span class="p">[</span><span class="n">subset</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="n">subset</span><span class="p">)</span>
+        <span class="c1"># Add shading to show variance across folds</span>
+        <span class="k">if</span> <span class="n">num_folds</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">fill_between</span><span class="p">(</span><span class="n">epoch</span><span class="p">,</span> <span class="n">subset_perf</span><span class="p">[</span><span class="n">subset</span><span class="p">]</span> <span class="o">+</span> <span class="n">subset_std</span><span class="p">[</span><span class="n">subset</span><span class="p">],</span> <span class="n">subset_perf</span><span class="p">[</span><span class="n">subset</span><span class="p">]</span> <span class="o">-</span> <span class="n">subset_std</span><span class="p">[</span><span class="n">subset</span><span class="p">],</span>
+                            <span class="n">alpha</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">facecolor</span><span class="o">=</span><span class="n">subset_shades</span><span class="p">[</span><span class="n">subset</span><span class="p">],</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">axvline</span><span class="p">(</span><span class="n">best_epoch</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;forestgreen&#39;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;--&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Epoch&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">perf_label</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">fontdict</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;fontsize&#39;</span> <span class="p">:</span> <span class="mi">12</span><span class="p">})</span>
+    <span class="n">legend</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s1">&#39;lower right&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">pdf_dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">pdf</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
+
+    <span class="c1"># Now plot the score used for choosing the best epoch and model params</span>
+    <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+    <span class="n">title</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> dataset</span><span class="se">\n</span><span class="si">%s</span><span class="s1"> vs epoch for </span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1"> model on </span><span class="si">%s</span><span class="s1"> features with </span><span class="si">%s</span><span class="s1"> split</span><span class="se">\n</span><span class="s1">Best validation set performance at epoch </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="n">MP</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">dataset_name</span><span class="p">,</span> <span class="n">model_score_type</span><span class="p">,</span> <span class="n">MP</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">model_type</span><span class="p">,</span>  <span class="n">MP</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">prediction_type</span><span class="p">,</span>
+            <span class="n">MP</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">featurizer</span><span class="p">,</span>  <span class="n">MP</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">splitter</span><span class="p">,</span>  <span class="n">best_epoch</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">epoch</span><span class="p">,</span> <span class="n">model_scores</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">subset_colors</span><span class="p">[</span><span class="s1">&#39;validation&#39;</span><span class="p">])</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">axvline</span><span class="p">(</span><span class="n">best_epoch</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;--&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Epoch&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">model_score_type</span> <span class="ow">in</span> <span class="n">perf</span><span class="o">.</span><span class="n">loss_funcs</span><span class="p">:</span>
+        <span class="n">score_label</span> <span class="o">=</span> <span class="s2">&quot;negative </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">model_score_type</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">score_label</span> <span class="o">=</span> <span class="n">model_score_type</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">score_label</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">fontdict</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;fontsize&#39;</span> <span class="p">:</span> <span class="mi">12</span><span class="p">})</span>
+    <span class="k">if</span> <span class="n">pdf_dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">pdf</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
+        <span class="n">pdf</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="n">MP</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Wrote plot to </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">pdf_path</span><span class="p">)</span></div>
+
+
+
+<span class="c1">#------------------------------------------------------------------------------------------------------------------------</span>
+<div class="viewcode-block" id="get_perf_curve_data"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_plots.get_perf_curve_data">[docs]</a><span class="k">def</span> <span class="nf">get_perf_curve_data</span><span class="p">(</span><span class="n">MP</span><span class="p">,</span> <span class="n">epoch_label</span><span class="p">,</span> <span class="n">curve_type</span><span class="o">=</span><span class="s1">&#39;ROC&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Common code for ROC and precision-recall curves. Returns true classes and active class probabilities</span>
+<span class="sd">    for each training/test data subset.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">MP</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">prediction_type</span> <span class="o">!=</span> <span class="s1">&#39;classification&#39;</span><span class="p">:</span>
+        <span class="n">MP</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Can only plot </span><span class="si">%s</span><span class="s2"> curve for classification models&quot;</span> <span class="o">%</span> <span class="n">curve_type</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">{}</span>
+
+    <span class="k">if</span> <span class="n">MP</span><span class="o">.</span><span class="n">run_mode</span> <span class="o">==</span> <span class="s1">&#39;training&#39;</span><span class="p">:</span>
+        <span class="n">subsets</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;train&#39;</span><span class="p">,</span> <span class="s1">&#39;valid&#39;</span><span class="p">,</span> <span class="s1">&#39;test&#39;</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">subsets</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;full&#39;</span><span class="p">]</span>
+    <span class="n">wrapper</span> <span class="o">=</span> <span class="n">MP</span><span class="o">.</span><span class="n">model_wrapper</span>
+    <span class="n">curve_data</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">subset</span> <span class="ow">in</span> <span class="n">subsets</span><span class="p">:</span>
+        <span class="n">perf_data</span> <span class="o">=</span> <span class="n">wrapper</span><span class="o">.</span><span class="n">get_perf_data</span><span class="p">(</span><span class="n">subset</span><span class="p">,</span> <span class="n">epoch_label</span><span class="p">)</span>
+        <span class="n">true_classes</span> <span class="o">=</span> <span class="n">perf_data</span><span class="o">.</span><span class="n">get_real_values</span><span class="p">()</span>
+        <span class="n">ids</span><span class="p">,</span> <span class="n">pred_classes</span><span class="p">,</span> <span class="n">class_probs</span><span class="p">,</span> <span class="n">prob_stds</span> <span class="o">=</span> <span class="n">perf_data</span><span class="o">.</span><span class="n">get_pred_values</span><span class="p">()</span>
+        <span class="n">ntasks</span> <span class="o">=</span> <span class="n">class_probs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">nclasses</span> <span class="o">=</span> <span class="n">class_probs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">nclasses</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">MP</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> curve plot is only supported for binary classifiers&quot;</span> <span class="o">%</span> <span class="n">curve_type</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">{}</span>
+        <span class="n">prob_active</span> <span class="o">=</span> <span class="n">class_probs</span><span class="p">[:,:,</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">roc_aucs</span> <span class="o">=</span> <span class="p">[</span><span class="n">metrics</span><span class="o">.</span><span class="n">roc_auc_score</span><span class="p">(</span><span class="n">true_classes</span><span class="p">[:,</span><span class="n">i</span><span class="p">],</span> <span class="n">prob_active</span><span class="p">[:,</span><span class="n">i</span><span class="p">],</span> <span class="n">average</span><span class="o">=</span><span class="s1">&#39;macro&#39;</span><span class="p">)</span> 
+                    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ntasks</span><span class="p">)]</span>
+        <span class="n">prc_aucs</span> <span class="o">=</span> <span class="p">[</span><span class="n">metrics</span><span class="o">.</span><span class="n">average_precision_score</span><span class="p">(</span><span class="n">true_classes</span><span class="p">[:,</span><span class="n">i</span><span class="p">],</span> <span class="n">prob_active</span><span class="p">[:,</span><span class="n">i</span><span class="p">],</span> <span class="n">average</span><span class="o">=</span><span class="s1">&#39;macro&#39;</span><span class="p">)</span> 
+                    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ntasks</span><span class="p">)]</span>
+        <span class="n">curve_data</span><span class="p">[</span><span class="n">subset</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">true_classes</span><span class="o">=</span><span class="n">true_classes</span><span class="p">,</span> <span class="n">prob_active</span><span class="o">=</span><span class="n">prob_active</span><span class="p">,</span> <span class="n">roc_aucs</span><span class="o">=</span><span class="n">roc_aucs</span><span class="p">,</span> <span class="n">prc_aucs</span><span class="o">=</span><span class="n">prc_aucs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">curve_data</span></div>
+
+<span class="c1">#------------------------------------------------------------------------------------------------------------------------</span>
+<div class="viewcode-block" id="plot_ROC_curve"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_plots.plot_ROC_curve">[docs]</a><span class="k">def</span> <span class="nf">plot_ROC_curve</span><span class="p">(</span><span class="n">MP</span><span class="p">,</span> <span class="n">epoch_label</span><span class="o">=</span><span class="s1">&#39;best&#39;</span><span class="p">,</span> <span class="n">pdf_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Plot ROC curves for a classification model.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">params</span> <span class="o">=</span> <span class="n">MP</span><span class="o">.</span><span class="n">params</span>
+    <span class="n">curve_data</span> <span class="o">=</span> <span class="n">get_perf_curve_data</span><span class="p">(</span><span class="n">MP</span><span class="p">,</span> <span class="n">epoch_label</span><span class="p">,</span> <span class="s1">&#39;ROC&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">curve_data</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="k">if</span> <span class="n">MP</span><span class="o">.</span><span class="n">run_mode</span> <span class="o">==</span> <span class="s1">&#39;training&#39;</span><span class="p">:</span>
+        <span class="c1"># Draw overlapping ROC curves for train, valid and test sets</span>
+        <span class="n">subsets</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;train&#39;</span><span class="p">,</span> <span class="s1">&#39;valid&#39;</span><span class="p">,</span> <span class="s1">&#39;test&#39;</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">subsets</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;full&#39;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">pdf_dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">pdf_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">pdf_dir</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_</span><span class="si">%s</span><span class="s1">_model_</span><span class="si">%s</span><span class="s1">_features_</span><span class="si">%s</span><span class="s1">_split_ROC_curves.pdf&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                                <span class="n">params</span><span class="o">.</span><span class="n">dataset_name</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">model_type</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">featurizer</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">splitter</span><span class="p">))</span>
+        <span class="n">pdf</span> <span class="o">=</span> <span class="n">PdfPages</span><span class="p">(</span><span class="n">pdf_path</span><span class="p">)</span>
+    <span class="n">subset_colors</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">train</span><span class="o">=</span><span class="s1">&#39;blue&#39;</span><span class="p">,</span> <span class="n">valid</span><span class="o">=</span><span class="s1">&#39;forestgreen&#39;</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">,</span> <span class="n">full</span><span class="o">=</span><span class="s1">&#39;purple&#39;</span><span class="p">)</span>
+    <span class="c1"># For multitask, do a separate figure for each task</span>
+    <span class="n">ntasks</span> <span class="o">=</span> <span class="n">curve_data</span><span class="p">[</span><span class="n">subsets</span><span class="p">[</span><span class="mi">0</span><span class="p">]][</span><span class="s1">&#39;prob_active&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ntasks</span><span class="p">):</span>
+        <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+        <span class="n">title</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> dataset</span><span class="se">\n</span><span class="s1">ROC curve for </span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1"> classifier on </span><span class="si">%s</span><span class="s1"> features with </span><span class="si">%s</span><span class="s1"> split&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                           <span class="n">params</span><span class="o">.</span><span class="n">dataset_name</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">response_cols</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> 
+                           <span class="n">params</span><span class="o">.</span><span class="n">model_type</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">featurizer</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">splitter</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">subset</span> <span class="ow">in</span> <span class="n">subsets</span><span class="p">:</span>
+            <span class="n">fpr</span><span class="p">,</span> <span class="n">tpr</span><span class="p">,</span> <span class="n">thresholds</span> <span class="o">=</span> <span class="n">metrics</span><span class="o">.</span><span class="n">roc_curve</span><span class="p">(</span><span class="n">curve_data</span><span class="p">[</span><span class="n">subset</span><span class="p">][</span><span class="s1">&#39;true_classes&#39;</span><span class="p">][:,</span><span class="n">i</span><span class="p">],</span>
+                                                     <span class="n">curve_data</span><span class="p">[</span><span class="n">subset</span><span class="p">][</span><span class="s1">&#39;prob_active&#39;</span><span class="p">][:,</span><span class="n">i</span><span class="p">])</span>
+      
+            <span class="n">roc_auc</span> <span class="o">=</span> <span class="n">curve_data</span><span class="p">[</span><span class="n">subset</span><span class="p">][</span><span class="s1">&#39;roc_aucs&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">fpr</span><span class="p">,</span> <span class="n">tpr</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">subset_colors</span><span class="p">[</span><span class="n">subset</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: AUC = </span><span class="si">%.3f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">subset</span><span class="p">,</span> <span class="n">roc_auc</span><span class="p">))</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;False positive rate&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;True positive rate&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">fontdict</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;fontsize&#39;</span> <span class="p">:</span> <span class="mi">12</span><span class="p">})</span>
+        <span class="n">legend</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s1">&#39;lower right&#39;</span><span class="p">)</span>
+    
+        <span class="k">if</span> <span class="n">pdf_dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">pdf</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">pdf_dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">pdf</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="n">MP</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Wrote plot to </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">pdf_path</span><span class="p">)</span></div>
+
+
+<span class="c1">#------------------------------------------------------------------------------------------------------------------------</span>
+<div class="viewcode-block" id="plot_prec_recall_curve"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_plots.plot_prec_recall_curve">[docs]</a><span class="k">def</span> <span class="nf">plot_prec_recall_curve</span><span class="p">(</span><span class="n">MP</span><span class="p">,</span> <span class="n">epoch_label</span><span class="o">=</span><span class="s1">&#39;best&#39;</span><span class="p">,</span> <span class="n">pdf_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Plot precision-recall curves for a classification model.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">params</span> <span class="o">=</span> <span class="n">MP</span><span class="o">.</span><span class="n">params</span>
+    <span class="n">curve_data</span> <span class="o">=</span> <span class="n">get_perf_curve_data</span><span class="p">(</span><span class="n">MP</span><span class="p">,</span> <span class="n">epoch_label</span><span class="p">,</span> <span class="s1">&#39;precision-recall&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">curve_data</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="k">if</span> <span class="n">MP</span><span class="o">.</span><span class="n">run_mode</span> <span class="o">==</span> <span class="s1">&#39;training&#39;</span><span class="p">:</span>
+        <span class="c1"># Draw overlapping PR curves for train, valid and test sets</span>
+        <span class="n">subsets</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;train&#39;</span><span class="p">,</span> <span class="s1">&#39;valid&#39;</span><span class="p">,</span> <span class="s1">&#39;test&#39;</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">subsets</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;full&#39;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">pdf_dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">pdf_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">pdf_dir</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_</span><span class="si">%s</span><span class="s1">_model_</span><span class="si">%s</span><span class="s1">_features_</span><span class="si">%s</span><span class="s1">_split_PRC_curves.pdf&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                                <span class="n">params</span><span class="o">.</span><span class="n">dataset_name</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">model_type</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">featurizer</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">splitter</span><span class="p">))</span>
+        <span class="n">pdf</span> <span class="o">=</span> <span class="n">PdfPages</span><span class="p">(</span><span class="n">pdf_path</span><span class="p">)</span>
+    <span class="n">subset_colors</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">train</span><span class="o">=</span><span class="s1">&#39;blue&#39;</span><span class="p">,</span> <span class="n">valid</span><span class="o">=</span><span class="s1">&#39;forestgreen&#39;</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">,</span> <span class="n">full</span><span class="o">=</span><span class="s1">&#39;purple&#39;</span><span class="p">)</span>
+    <span class="c1"># For multitask, do a separate figure for each task</span>
+    <span class="n">ntasks</span> <span class="o">=</span> <span class="n">curve_data</span><span class="p">[</span><span class="n">subsets</span><span class="p">[</span><span class="mi">0</span><span class="p">]][</span><span class="s1">&#39;prob_active&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ntasks</span><span class="p">):</span>
+        <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+        <span class="n">title</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> dataset</span><span class="se">\n</span><span class="s1">Precision-recall curve for </span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1"> classifier on </span><span class="si">%s</span><span class="s1"> features with </span><span class="si">%s</span><span class="s1"> split&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                           <span class="n">params</span><span class="o">.</span><span class="n">dataset_name</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">response_cols</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> 
+                           <span class="n">params</span><span class="o">.</span><span class="n">model_type</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">featurizer</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">splitter</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">subset</span> <span class="ow">in</span> <span class="n">subsets</span><span class="p">:</span>
+            <span class="n">precision</span><span class="p">,</span> <span class="n">recall</span><span class="p">,</span> <span class="n">thresholds</span> <span class="o">=</span> <span class="n">metrics</span><span class="o">.</span><span class="n">precision_recall_curve</span><span class="p">(</span><span class="n">curve_data</span><span class="p">[</span><span class="n">subset</span><span class="p">][</span><span class="s1">&#39;true_classes&#39;</span><span class="p">][:,</span><span class="n">i</span><span class="p">],</span>
+                                                     <span class="n">curve_data</span><span class="p">[</span><span class="n">subset</span><span class="p">][</span><span class="s1">&#39;prob_active&#39;</span><span class="p">][:,</span><span class="n">i</span><span class="p">])</span>
+      
+            <span class="n">prc_auc</span> <span class="o">=</span> <span class="n">curve_data</span><span class="p">[</span><span class="n">subset</span><span class="p">][</span><span class="s1">&#39;prc_aucs&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">recall</span><span class="p">,</span> <span class="n">precision</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">subset_colors</span><span class="p">[</span><span class="n">subset</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: AUC = </span><span class="si">%.3f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">subset</span><span class="p">,</span> <span class="n">prc_auc</span><span class="p">))</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Recall&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Precision&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">fontdict</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;fontsize&#39;</span> <span class="p">:</span> <span class="mi">12</span><span class="p">})</span>
+        <span class="n">legend</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s1">&#39;lower right&#39;</span><span class="p">)</span>
+    
+        <span class="k">if</span> <span class="n">pdf_dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">pdf</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">pdf_dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">pdf</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="n">MP</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Wrote plot to </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">pdf_path</span><span class="p">)</span></div>
+
+<span class="c1">#------------------------------------------------------------------------------------------------------------------------</span>
+<div class="viewcode-block" id="plot_umap_feature_projections"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_plots.plot_umap_feature_projections">[docs]</a><span class="k">def</span> <span class="nf">plot_umap_feature_projections</span><span class="p">(</span><span class="n">MP</span><span class="p">,</span> <span class="n">ndim</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">num_neighbors</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">min_dist</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> 
+                                  <span class="n">fit_to_train</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                                  <span class="n">dist_metric</span><span class="o">=</span><span class="s1">&#39;euclidean&#39;</span><span class="p">,</span> <span class="n">dist_metric_kwds</span><span class="o">=</span><span class="p">{},</span> 
+                                  <span class="n">target_weight</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">random_seed</span><span class="o">=</span><span class="mi">17</span><span class="p">,</span> <span class="n">pdf_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Take numeric features (descriptors, fingerprints, etc.) input to a model, project them to</span>
+<span class="sd">    2 or 3 dimensions, and draw a scatterplot of the projected coordinates, with markers shape-coded</span>
+<span class="sd">    to indicate whether the associated compound was in the training, validation or test set. For classification</span>
+<span class="sd">    models, also use the marker shape to indicate whether the compound&#39;s class was correctly predicted, and use</span>
+<span class="sd">    color to indicate whether the true class was active or inactive. For regression models, use the marker color</span>
+<span class="sd">    to indicate the discrepancy between the predicted and actual values.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">3</span><span class="p">):</span>
+      <span class="n">MP</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;Only 2D and 3D visualizations are supported by plot_umap_feature_projections()&#39;</span><span class="p">)</span>
+      <span class="k">return</span>
+    <span class="n">params</span> <span class="o">=</span> <span class="n">MP</span><span class="o">.</span><span class="n">params</span>
+    <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">featurizer</span> <span class="o">==</span> <span class="s1">&#39;graphconv&#39;</span><span class="p">:</span>
+        <span class="n">MP</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;plot_umap_feature_projections() does not support GraphConv models.&#39;</span><span class="p">)</span>
+        <span class="k">return</span>
+    <span class="n">split_strategy</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">split_strategy</span>
+    <span class="k">if</span> <span class="n">pdf_dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">pdf_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">pdf_dir</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_</span><span class="si">%s</span><span class="s1">_model_</span><span class="si">%s</span><span class="s1">_split_umap_</span><span class="si">%s</span><span class="s1">_</span><span class="si">%d</span><span class="s1">d_projection.pdf&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                                <span class="n">params</span><span class="o">.</span><span class="n">dataset_name</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">model_type</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">splitter</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">featurizer</span><span class="p">,</span> <span class="n">ndim</span><span class="p">))</span>
+        <span class="n">pdf</span> <span class="o">=</span> <span class="n">PdfPages</span><span class="p">(</span><span class="n">pdf_path</span><span class="p">)</span>
+
+    <span class="n">dataset</span> <span class="o">=</span> <span class="n">MP</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">dataset</span>
+    <span class="n">ncmpds</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">ntasks</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">nfeat</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">cmpd_ids</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">features</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="c1"># TODO: Need an option to pass in a training (or combined training &amp; validation) dataset, in addition</span>
+    <span class="c1"># to a dataset on which we ran predictions with the same model, to display as training and test data.</span>
+
+    <span class="k">if</span> <span class="n">split_strategy</span> <span class="o">==</span> <span class="s1">&#39;train_valid_test&#39;</span><span class="p">:</span>
+        <span class="n">subsets</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;train&#39;</span><span class="p">,</span> <span class="s1">&#39;valid&#39;</span><span class="p">,</span> <span class="s1">&#39;test&#39;</span><span class="p">]</span>
+        <span class="n">train_dset</span><span class="p">,</span> <span class="n">valid_dset</span> <span class="o">=</span> <span class="n">MP</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">train_valid_dsets</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">features</span><span class="p">[</span><span class="s1">&#39;train&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">train_dset</span><span class="o">.</span><span class="n">X</span>
+        <span class="n">cmpd_ids</span><span class="p">[</span><span class="s1">&#39;train&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">train_dset</span><span class="o">.</span><span class="n">ids</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># For k-fold split, every compound in combined training &amp; validation set is in the validation</span>
+        <span class="c1"># set for 1 fold and in the training set for the k-1 others.</span>
+        <span class="n">subsets</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;valid&#39;</span><span class="p">,</span> <span class="s1">&#39;test&#39;</span><span class="p">]</span>
+        <span class="n">features</span><span class="p">[</span><span class="s1">&#39;train&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="n">nfeat</span><span class="p">))</span>
+        <span class="n">cmpd_ids</span><span class="p">[</span><span class="s1">&#39;train&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">valid_dset</span> <span class="o">=</span> <span class="n">MP</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">combined_train_valid_data</span>
+    <span class="n">features</span><span class="p">[</span><span class="s1">&#39;valid&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">valid_dset</span><span class="o">.</span><span class="n">X</span>
+    <span class="n">cmpd_ids</span><span class="p">[</span><span class="s1">&#39;valid&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">valid_dset</span><span class="o">.</span><span class="n">ids</span>
+
+    <span class="n">test_dset</span> <span class="o">=</span> <span class="n">MP</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">test_dset</span>
+    <span class="n">features</span><span class="p">[</span><span class="s1">&#39;test&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">test_dset</span><span class="o">.</span><span class="n">X</span>
+    <span class="n">cmpd_ids</span><span class="p">[</span><span class="s1">&#39;test&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">test_dset</span><span class="o">.</span><span class="n">ids</span>
+
+    <span class="n">all_features</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">features</span><span class="p">[</span><span class="n">subset</span><span class="p">]</span> <span class="k">for</span> <span class="n">subset</span> <span class="ow">in</span> <span class="n">subsets</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">fit_to_train</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">split_strategy</span> <span class="o">==</span> <span class="s1">&#39;train_valid_test&#39;</span><span class="p">:</span>
+            <span class="n">fit_features</span> <span class="o">=</span> <span class="n">features</span><span class="p">[</span><span class="s1">&#39;train&#39;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">fit_features</span> <span class="o">=</span> <span class="n">features</span><span class="p">[</span><span class="s1">&#39;valid&#39;</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">fit_features</span> <span class="o">=</span> <span class="n">all_features</span>
+
+    <span class="n">epoch_label</span> <span class="o">=</span> <span class="s1">&#39;best&#39;</span>
+    <span class="n">pred_vals</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">real_vals</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">subset</span> <span class="ow">in</span> <span class="n">subsets</span><span class="p">:</span>
+        <span class="n">perf_data</span> <span class="o">=</span> <span class="n">MP</span><span class="o">.</span><span class="n">model_wrapper</span><span class="o">.</span><span class="n">get_perf_data</span><span class="p">(</span><span class="n">subset</span><span class="p">,</span> <span class="n">epoch_label</span><span class="p">)</span>
+        <span class="n">y_actual</span> <span class="o">=</span> <span class="n">perf_data</span><span class="o">.</span><span class="n">get_real_values</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">MP</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">prediction_type</span> <span class="o">==</span> <span class="s1">&#39;classification&#39;</span><span class="p">:</span>
+            <span class="n">ids</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">,</span> <span class="n">class_probs</span><span class="p">,</span> <span class="n">y_std</span> <span class="o">=</span> <span class="n">perf_data</span><span class="o">.</span><span class="n">get_pred_values</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ids</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">,</span> <span class="n">y_std</span> <span class="o">=</span> <span class="n">perf_data</span><span class="o">.</span><span class="n">get_pred_values</span><span class="p">()</span>
+        <span class="c1"># Have to get predictions and real values in same order as in dataset subset</span>
+        <span class="n">pred_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">([(</span><span class="nb">id</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">[</span><span class="n">i</span><span class="p">,:])</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="nb">id</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ids</span><span class="p">)])</span>
+        <span class="n">real_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">([(</span><span class="nb">id</span><span class="p">,</span> <span class="n">y_actual</span><span class="p">[</span><span class="n">i</span><span class="p">,:])</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="nb">id</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ids</span><span class="p">)])</span>
+        <span class="n">pred_vals</span><span class="p">[</span><span class="n">subset</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">pred_dict</span><span class="p">[</span><span class="nb">id</span><span class="p">]</span> <span class="k">for</span> <span class="nb">id</span> <span class="ow">in</span> <span class="n">cmpd_ids</span><span class="p">[</span><span class="n">subset</span><span class="p">]],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">real_vals</span><span class="p">[</span><span class="n">subset</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">real_dict</span><span class="p">[</span><span class="nb">id</span><span class="p">]</span> <span class="k">for</span> <span class="nb">id</span> <span class="ow">in</span> <span class="n">cmpd_ids</span><span class="p">[</span><span class="n">subset</span><span class="p">]],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="n">all_actual</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">real_vals</span><span class="p">[</span><span class="n">subset</span><span class="p">]</span> <span class="k">for</span> <span class="n">subset</span> <span class="ow">in</span> <span class="n">subsets</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="n">ntasks</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">fit_to_train</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">split_strategy</span> <span class="o">==</span> <span class="s1">&#39;train_valid_test&#39;</span><span class="p">:</span>
+            <span class="n">fit_actual</span> <span class="o">=</span> <span class="n">real_vals</span><span class="p">[</span><span class="s1">&#39;train&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="n">ntasks</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">fit_actual</span> <span class="o">=</span> <span class="n">real_vals</span><span class="p">[</span><span class="s1">&#39;valid&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="n">ntasks</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">fit_actual</span> <span class="o">=</span> <span class="n">all_actual</span>
+    <span class="n">preds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">pred_vals</span><span class="p">[</span><span class="n">subset</span><span class="p">]</span> <span class="k">for</span> <span class="n">subset</span> <span class="ow">in</span> <span class="n">subsets</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="n">ntasks</span><span class="p">))</span>
+    <span class="n">compound_ids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">cmpd_ids</span><span class="p">[</span><span class="n">subset</span><span class="p">]</span> <span class="k">for</span> <span class="n">subset</span> <span class="ow">in</span> <span class="n">subsets</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+
+    <span class="k">if</span> <span class="n">MP</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">prediction_type</span> <span class="o">==</span> <span class="s1">&#39;classification&#39;</span><span class="p">:</span>
+        <span class="n">target_metric</span> <span class="o">=</span> <span class="s1">&#39;categorical&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">target_metric</span> <span class="o">=</span> <span class="s1">&#39;euclidean&#39;</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ntasks</span><span class="p">):</span>
+        <span class="n">mapper</span> <span class="o">=</span> <span class="n">umap</span><span class="o">.</span><span class="n">UMAP</span><span class="p">(</span><span class="n">n_neighbors</span><span class="o">=</span><span class="n">num_neighbors</span><span class="p">,</span> <span class="n">n_components</span><span class="o">=</span><span class="n">ndim</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="n">dist_metric</span><span class="p">,</span> <span class="n">target_metric</span><span class="o">=</span><span class="n">target_metric</span><span class="p">,</span>
+                           <span class="n">metric_kwds</span><span class="o">=</span><span class="n">dist_metric_kwds</span><span class="p">,</span> <span class="n">target_weight</span><span class="o">=</span><span class="n">target_weight</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="n">random_seed</span><span class="p">)</span>
+        <span class="c1"># Ideally, the mapper should be fit to the training data only, and then applied to the validation and test sets</span>
+        <span class="n">mapper</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">fit_features</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">fit_actual</span><span class="p">[:,</span><span class="n">i</span><span class="p">])</span>
+        <span class="n">proj</span> <span class="o">=</span> <span class="n">mapper</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">all_features</span><span class="p">)</span>
+        <span class="n">proj_cols</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;umap_X&#39;</span><span class="p">,</span> <span class="s1">&#39;umap_Y&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="n">proj_cols</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;umap_Z&#39;</span><span class="p">)</span>
+        <span class="n">proj_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_records</span><span class="p">(</span><span class="n">proj</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">proj_cols</span><span class="p">)</span>
+        <span class="n">proj_df</span><span class="p">[</span><span class="s1">&#39;compound_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">compound_ids</span>
+        <span class="n">proj_df</span><span class="p">[</span><span class="s1">&#39;actual&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">all_actual</span><span class="p">[:,</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">dset_subset</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;training&#39;</span><span class="p">]</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">cmpd_ids</span><span class="p">[</span><span class="s1">&#39;train&#39;</span><span class="p">])</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;valid&#39;</span><span class="p">]</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">cmpd_ids</span><span class="p">[</span><span class="s1">&#39;valid&#39;</span><span class="p">])</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;test&#39;</span><span class="p">]</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">cmpd_ids</span><span class="p">[</span><span class="s1">&#39;test&#39;</span><span class="p">])</span>
+    
+        <span class="k">if</span> <span class="n">dist_metric</span> <span class="o">==</span> <span class="s1">&#39;minkowski&#39;</span><span class="p">:</span>
+          <span class="n">metric_name</span> <span class="o">=</span> <span class="s1">&#39;minkowski(</span><span class="si">%.2f</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="n">dist_metric_kwds</span><span class="p">[</span><span class="s1">&#39;p&#39;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+          <span class="n">metric_name</span> <span class="o">=</span> <span class="n">dist_metric</span>
+
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span><span class="mi">15</span><span class="p">))</span>
+        <span class="n">title</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> dataset</span><span class="se">\n</span><span class="si">%s</span><span class="s1"> features projected to </span><span class="si">%d</span><span class="s1">D with </span><span class="si">%s</span><span class="s1"> metric</span><span class="se">\n</span><span class="si">%d</span><span class="s1"> neighbors, min_dist = </span><span class="si">%.3f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                      <span class="n">params</span><span class="o">.</span><span class="n">dataset_name</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">featurizer</span><span class="p">,</span> <span class="n">ndim</span><span class="p">,</span> <span class="n">metric_name</span><span class="p">,</span> <span class="n">num_neighbors</span><span class="p">,</span> <span class="n">min_dist</span><span class="p">)</span>
+    
+        <span class="k">if</span> <span class="n">MP</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">prediction_type</span> <span class="o">==</span> <span class="s1">&#39;classification&#39;</span><span class="p">:</span>
+            <span class="n">is_correct</span> <span class="o">=</span> <span class="p">(</span><span class="n">all_actual</span><span class="p">[:,</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="n">preds</span><span class="p">[:,</span><span class="n">i</span><span class="p">])</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="p">[(</span><span class="s1">&#39;incorrect&#39;</span><span class="p">,</span> <span class="s1">&#39;correct&#39;</span><span class="p">)[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">is_correct</span><span class="p">]</span>
+            <span class="c1"># Mark predictions as correct or incorrect; check that class representations are the same.</span>
+            <span class="n">proj_df</span><span class="p">[</span><span class="s1">&#39;subset&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">/</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">vals</span> <span class="k">for</span> <span class="n">vals</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">dset_subset</span><span class="p">,</span><span class="n">result</span><span class="p">)]</span>
+            <span class="n">green_red_pal</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span> <span class="p">:</span> <span class="s1">&#39;forestgreen&#39;</span><span class="p">,</span> <span class="mi">1</span> <span class="p">:</span> <span class="s1">&#39;red&#39;</span><span class="p">}</span>
+            <span class="n">marker_map</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;training/correct&#39;</span> <span class="p">:</span> <span class="s1">&#39;o&#39;</span><span class="p">,</span> <span class="s1">&#39;training/incorrect&#39;</span> <span class="p">:</span> <span class="s1">&#39;s&#39;</span><span class="p">,</span> 
+                        <span class="s1">&#39;valid/correct&#39;</span> <span class="p">:</span> <span class="s1">&#39;^&#39;</span><span class="p">,</span> <span class="s1">&#39;valid/incorrect&#39;</span> <span class="p">:</span> <span class="s1">&#39;v&#39;</span><span class="p">,</span> 
+                        <span class="s1">&#39;test/correct&#39;</span> <span class="p">:</span> <span class="s1">&#39;P&#39;</span><span class="p">,</span> <span class="s1">&#39;test/incorrect&#39;</span> <span class="p">:</span> <span class="s1">&#39;*&#39;</span><span class="p">}</span>
+            <span class="n">size_map</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;training/correct&#39;</span> <span class="p">:</span> <span class="mi">49</span><span class="p">,</span> <span class="s1">&#39;training/incorrect&#39;</span> <span class="p">:</span> <span class="mi">64</span><span class="p">,</span> 
+                        <span class="s1">&#39;valid/correct&#39;</span> <span class="p">:</span> <span class="mi">81</span><span class="p">,</span> <span class="s1">&#39;valid/incorrect&#39;</span> <span class="p">:</span> <span class="mi">125</span><span class="p">,</span> 
+                        <span class="s1">&#39;test/correct&#39;</span> <span class="p">:</span> <span class="mi">125</span><span class="p">,</span> <span class="s1">&#39;test/incorrect&#39;</span> <span class="p">:</span> <span class="mi">225</span><span class="p">}</span>
+            <span class="k">if</span> <span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">)</span>
+                <span class="n">sns</span><span class="o">.</span><span class="n">scatterplot</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="s1">&#39;umap_X&#39;</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s1">&#39;umap_Y&#39;</span><span class="p">,</span> <span class="n">hue</span><span class="o">=</span><span class="s1">&#39;actual&#39;</span><span class="p">,</span> <span class="n">palette</span><span class="o">=</span><span class="n">green_red_pal</span><span class="p">,</span> 
+                        <span class="n">style</span><span class="o">=</span><span class="s1">&#39;subset&#39;</span><span class="p">,</span> <span class="n">markers</span><span class="o">=</span><span class="n">marker_map</span><span class="p">,</span>
+                        <span class="n">style_order</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;training/correct&#39;</span><span class="p">,</span> <span class="s1">&#39;training/incorrect&#39;</span><span class="p">,</span> <span class="s1">&#39;valid/correct&#39;</span><span class="p">,</span> <span class="s1">&#39;valid/incorrect&#39;</span><span class="p">,</span>
+                                     <span class="s1">&#39;test/correct&#39;</span><span class="p">,</span> <span class="s1">&#39;test/incorrect&#39;</span> <span class="p">],</span>
+                        <span class="n">size</span><span class="o">=</span><span class="s1">&#39;subset&#39;</span><span class="p">,</span> <span class="n">sizes</span><span class="o">=</span><span class="n">size_map</span><span class="p">,</span>
+                        <span class="n">data</span><span class="o">=</span><span class="n">proj_df</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+                <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">,</span> <span class="n">projection</span><span class="o">=</span><span class="s1">&#39;3d&#39;</span><span class="p">)</span>
+                <span class="n">colors</span> <span class="o">=</span> <span class="p">[</span><span class="n">green_red_pal</span><span class="p">[</span><span class="n">a</span><span class="p">]</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">proj_df</span><span class="o">.</span><span class="n">actual</span><span class="o">.</span><span class="n">values</span><span class="p">]</span>
+                <span class="n">markers</span> <span class="o">=</span> <span class="p">[</span><span class="n">marker_map</span><span class="p">[</span><span class="n">subset</span><span class="p">]</span> <span class="k">for</span> <span class="n">subset</span> <span class="ow">in</span> <span class="n">proj_df</span><span class="o">.</span><span class="n">subset</span><span class="o">.</span><span class="n">values</span><span class="p">]</span>
+                <span class="c1">#ax.scatter(proj_df.umap_X.values, proj_df.umap_Y.values, proj_df.umap_Z.values, c=colors, m=markers, s=49)</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">proj_df</span><span class="o">.</span><span class="n">umap_X</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">proj_df</span><span class="o">.</span><span class="n">umap_Y</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">proj_df</span><span class="o">.</span><span class="n">umap_Z</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">colors</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="mi">49</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># regression model</span>
+            <span class="n">proj_df</span><span class="p">[</span><span class="s1">&#39;subset&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">dset_subset</span>
+            <span class="n">proj_df</span><span class="p">[</span><span class="s1">&#39;error&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">preds</span><span class="p">[:,</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">all_actual</span><span class="p">[:,</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">marker_map</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;training&#39;</span> <span class="p">:</span> <span class="s1">&#39;o&#39;</span><span class="p">,</span> <span class="s1">&#39;valid&#39;</span> <span class="p">:</span> <span class="s1">&#39;v&#39;</span><span class="p">,</span> <span class="s1">&#39;test&#39;</span> <span class="p">:</span> <span class="s1">&#39;P&#39;</span><span class="p">}</span>
+            <span class="n">ncol</span> <span class="o">=</span> <span class="mi">12</span>
+            <span class="n">blue_red_pal</span> <span class="o">=</span> <span class="n">sns</span><span class="o">.</span><span class="n">blend_palette</span><span class="p">([</span><span class="s1">&#39;red&#39;</span><span class="p">,</span> <span class="s1">&#39;green&#39;</span><span class="p">,</span> <span class="s1">&#39;blue&#39;</span><span class="p">],</span> <span class="mi">12</span><span class="p">,</span> <span class="n">as_cmap</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">)</span>
+                <span class="c1">#sns.scatterplot(x=&#39;umap_X&#39;, y=&#39;umap_Y&#39;, hue=&#39;error&#39;,</span>
+                <span class="n">sns</span><span class="o">.</span><span class="n">scatterplot</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="s1">&#39;umap_X&#39;</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s1">&#39;umap_Y&#39;</span><span class="p">,</span> <span class="n">hue</span><span class="o">=</span><span class="s1">&#39;error&#39;</span><span class="p">,</span> <span class="n">palette</span><span class="o">=</span><span class="n">blue_red_pal</span><span class="p">,</span> 
+                        <span class="n">size</span><span class="o">=</span><span class="s1">&#39;actual&#39;</span><span class="p">,</span> <span class="n">sizes</span><span class="o">=</span><span class="p">(</span><span class="mi">49</span><span class="p">,</span><span class="mi">144</span><span class="p">),</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.95</span><span class="p">,</span>
+                        <span class="n">style</span><span class="o">=</span><span class="s1">&#39;subset&#39;</span><span class="p">,</span> <span class="n">markers</span><span class="o">=</span><span class="n">marker_map</span><span class="p">,</span> <span class="n">style_order</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;training&#39;</span><span class="p">,</span> <span class="s1">&#39;valid&#39;</span><span class="p">,</span> <span class="s1">&#39;test&#39;</span><span class="p">],</span>
+                        <span class="n">data</span><span class="o">=</span><span class="n">proj_df</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+                <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">,</span> <span class="n">projection</span><span class="o">=</span><span class="s1">&#39;3d&#39;</span><span class="p">)</span>
+                <span class="c1"># Map errors to palette indices</span>
+                <span class="n">errs</span> <span class="o">=</span> <span class="n">proj_df</span><span class="o">.</span><span class="n">error</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+                <span class="n">ind</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">errs</span> <span class="o">-</span> <span class="nb">min</span><span class="p">(</span><span class="n">errs</span><span class="p">)</span>
+                <span class="n">ind</span><span class="p">[</span><span class="n">ind</span> <span class="o">&gt;=</span> <span class="n">ncol</span><span class="p">]</span> <span class="o">=</span> <span class="n">ncol</span><span class="o">-</span><span class="mi">1</span>
+                <span class="n">colors</span> <span class="o">=</span> <span class="p">[</span><span class="n">blue_red_pal</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">ind</span><span class="p">]</span>
+                <span class="n">markers</span> <span class="o">=</span> <span class="p">[</span><span class="n">marker_map</span><span class="p">[</span><span class="n">subset</span><span class="p">]</span> <span class="k">for</span> <span class="n">subset</span> <span class="ow">in</span> <span class="n">proj_df</span><span class="o">.</span><span class="n">subset</span><span class="o">.</span><span class="n">values</span><span class="p">]</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">proj_df</span><span class="o">.</span><span class="n">umap_X</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">proj_df</span><span class="o">.</span><span class="n">umap_Y</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">proj_df</span><span class="o">.</span><span class="n">umap_Z</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">colors</span><span class="p">,</span> <span class="n">m</span><span class="o">=</span><span class="n">markers</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="mi">49</span><span class="p">)</span>
+    
+    
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">fontdict</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;fontsize&#39;</span> <span class="p">:</span> <span class="mi">10</span><span class="p">})</span>
+    <span class="k">if</span> <span class="n">pdf_dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">pdf</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">pdf_dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">pdf</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="n">MP</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Wrote plot to </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">pdf_path</span><span class="p">)</span></div>
+
+<span class="c1">#------------------------------------------------------------------------------------------------------------------------</span>
+<div class="viewcode-block" id="plot_umap_train_set_neighbors"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_plots.plot_umap_train_set_neighbors">[docs]</a><span class="k">def</span> <span class="nf">plot_umap_train_set_neighbors</span><span class="p">(</span><span class="n">MP</span><span class="p">,</span> <span class="n">num_neighbors</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">min_dist</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> 
+                                  <span class="n">dist_metric</span><span class="o">=</span><span class="s1">&#39;euclidean&#39;</span><span class="p">,</span> <span class="n">dist_metric_kwds</span><span class="o">=</span><span class="p">{},</span> 
+                                  <span class="n">random_seed</span><span class="o">=</span><span class="mi">17</span><span class="p">,</span> <span class="n">pdf_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Project features of whole dataset to 2 dimensions, without regard to response values. Plot training &amp; validation set</span>
+<span class="sd">    or training and test set compounds, color- and symbol-coded according to actual classification and split set.</span>
+<span class="sd">    The plot does not take predicted values into account at all. Does not work with regression data.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ndim</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="n">params</span> <span class="o">=</span> <span class="n">MP</span><span class="o">.</span><span class="n">params</span>
+    <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">prediction_type</span> <span class="o">!=</span> <span class="s1">&#39;classification&#39;</span><span class="p">:</span>
+        <span class="n">MP</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;plot_umap_train_set_neighbors() doesn&#39;t work with regression data&quot;</span><span class="p">)</span>
+        <span class="k">return</span>
+    <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">featurizer</span> <span class="o">==</span> <span class="s1">&#39;graphconv&#39;</span><span class="p">:</span>
+        <span class="n">MP</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;plot_umap_train_set_neighbors() does not support GraphConv models.&#39;</span><span class="p">)</span>
+        <span class="k">return</span>
+    <span class="n">split_strategy</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">split_strategy</span>
+    <span class="k">if</span> <span class="n">pdf_dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">pdf_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">pdf_dir</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_</span><span class="si">%s</span><span class="s1">_model_</span><span class="si">%s</span><span class="s1">_split_umap_</span><span class="si">%s</span><span class="s1">_</span><span class="si">%d</span><span class="s1">d_projection.pdf&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                                <span class="n">params</span><span class="o">.</span><span class="n">dataset_name</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">model_type</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">splitter</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">featurizer</span><span class="p">,</span> <span class="n">ndim</span><span class="p">))</span>
+        <span class="n">pdf</span> <span class="o">=</span> <span class="n">PdfPages</span><span class="p">(</span><span class="n">pdf_path</span><span class="p">)</span>
+
+    <span class="n">dataset</span> <span class="o">=</span> <span class="n">MP</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">dataset</span>
+    <span class="n">ncmpds</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">ntasks</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">nfeat</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">cmpd_ids</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">features</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="c1"># TODO: Need an option to pass in a training (or combined training &amp; validation) dataset, in addition</span>
+    <span class="c1"># to a dataset on which we ran predictions with the same model, to display as training and test data.</span>
+
+    <span class="k">if</span> <span class="n">split_strategy</span> <span class="o">==</span> <span class="s1">&#39;train_valid_test&#39;</span><span class="p">:</span>
+        <span class="n">subsets</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;train&#39;</span><span class="p">,</span> <span class="s1">&#39;valid&#39;</span><span class="p">,</span> <span class="s1">&#39;test&#39;</span><span class="p">]</span>
+        <span class="n">train_dset</span><span class="p">,</span> <span class="n">valid_dset</span> <span class="o">=</span> <span class="n">MP</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">train_valid_dsets</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">features</span><span class="p">[</span><span class="s1">&#39;train&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">train_dset</span><span class="o">.</span><span class="n">X</span>
+        <span class="n">cmpd_ids</span><span class="p">[</span><span class="s1">&#39;train&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">train_dset</span><span class="o">.</span><span class="n">ids</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># For k-fold split, every compound in combined training &amp; validation set is in the validation</span>
+        <span class="c1"># set for 1 fold and in the training set for the k-1 others.</span>
+        <span class="n">subsets</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;valid&#39;</span><span class="p">,</span> <span class="s1">&#39;test&#39;</span><span class="p">]</span>
+        <span class="n">features</span><span class="p">[</span><span class="s1">&#39;train&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="n">nfeat</span><span class="p">))</span>
+        <span class="n">cmpd_ids</span><span class="p">[</span><span class="s1">&#39;train&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">valid_dset</span> <span class="o">=</span> <span class="n">MP</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">combined_train_valid_data</span>
+    <span class="n">features</span><span class="p">[</span><span class="s1">&#39;valid&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">valid_dset</span><span class="o">.</span><span class="n">X</span>
+    <span class="n">cmpd_ids</span><span class="p">[</span><span class="s1">&#39;valid&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">valid_dset</span><span class="o">.</span><span class="n">ids</span>
+
+    <span class="n">test_dset</span> <span class="o">=</span> <span class="n">MP</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">test_dset</span>
+    <span class="n">features</span><span class="p">[</span><span class="s1">&#39;test&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">test_dset</span><span class="o">.</span><span class="n">X</span>
+    <span class="n">cmpd_ids</span><span class="p">[</span><span class="s1">&#39;test&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">test_dset</span><span class="o">.</span><span class="n">ids</span>
+
+    <span class="n">all_features</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">features</span><span class="p">[</span><span class="n">subset</span><span class="p">]</span> <span class="k">for</span> <span class="n">subset</span> <span class="ow">in</span> <span class="n">subsets</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="n">epoch_label</span> <span class="o">=</span> <span class="s1">&#39;best&#39;</span>
+    <span class="n">pred_vals</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">real_vals</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">subset</span> <span class="ow">in</span> <span class="n">subsets</span><span class="p">:</span>
+        <span class="n">perf_data</span> <span class="o">=</span> <span class="n">MP</span><span class="o">.</span><span class="n">model_wrapper</span><span class="o">.</span><span class="n">get_perf_data</span><span class="p">(</span><span class="n">subset</span><span class="p">,</span> <span class="n">epoch_label</span><span class="p">)</span>
+        <span class="n">y_actual</span> <span class="o">=</span> <span class="n">perf_data</span><span class="o">.</span><span class="n">get_real_values</span><span class="p">()</span>
+        <span class="n">ids</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">,</span> <span class="n">class_probs</span><span class="p">,</span> <span class="n">y_std</span> <span class="o">=</span> <span class="n">perf_data</span><span class="o">.</span><span class="n">get_pred_values</span><span class="p">()</span>
+        <span class="c1"># Have to get predictions and real values in same order as in dataset subset</span>
+        <span class="n">real_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">([(</span><span class="nb">id</span><span class="p">,</span> <span class="n">y_actual</span><span class="p">[</span><span class="n">i</span><span class="p">,:])</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="nb">id</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ids</span><span class="p">)])</span>
+        <span class="n">real_vals</span><span class="p">[</span><span class="n">subset</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">real_dict</span><span class="p">[</span><span class="nb">id</span><span class="p">]</span> <span class="k">for</span> <span class="nb">id</span> <span class="ow">in</span> <span class="n">cmpd_ids</span><span class="p">[</span><span class="n">subset</span><span class="p">]],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="n">all_actual</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">real_vals</span><span class="p">[</span><span class="n">subset</span><span class="p">]</span> <span class="k">for</span> <span class="n">subset</span> <span class="ow">in</span> <span class="n">subsets</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="n">ntasks</span><span class="p">))</span>
+    <span class="n">compound_ids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">cmpd_ids</span><span class="p">[</span><span class="n">subset</span><span class="p">]</span> <span class="k">for</span> <span class="n">subset</span> <span class="ow">in</span> <span class="n">subsets</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ntasks</span><span class="p">):</span>
+        <span class="n">mapper</span> <span class="o">=</span> <span class="n">umap</span><span class="o">.</span><span class="n">UMAP</span><span class="p">(</span><span class="n">n_neighbors</span><span class="o">=</span><span class="n">num_neighbors</span><span class="p">,</span> <span class="n">n_components</span><span class="o">=</span><span class="n">ndim</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="n">dist_metric</span><span class="p">,</span>
+                           <span class="n">metric_kwds</span><span class="o">=</span><span class="n">dist_metric_kwds</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="n">random_seed</span><span class="p">)</span>
+        <span class="n">mapper</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">all_features</span><span class="p">)</span>
+        <span class="n">proj</span> <span class="o">=</span> <span class="n">mapper</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">all_features</span><span class="p">)</span>
+        <span class="n">proj_cols</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;umap_X&#39;</span><span class="p">,</span> <span class="s1">&#39;umap_Y&#39;</span><span class="p">]</span>
+        <span class="n">proj_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_records</span><span class="p">(</span><span class="n">proj</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">proj_cols</span><span class="p">)</span>
+        <span class="n">proj_df</span><span class="p">[</span><span class="s1">&#39;compound_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">compound_ids</span>
+        <span class="n">proj_df</span><span class="p">[</span><span class="s1">&#39;actual&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">all_actual</span><span class="p">[:,</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">dset_subset</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;train&#39;</span><span class="p">]</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">cmpd_ids</span><span class="p">[</span><span class="s1">&#39;train&#39;</span><span class="p">])</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;valid&#39;</span><span class="p">]</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">cmpd_ids</span><span class="p">[</span><span class="s1">&#39;valid&#39;</span><span class="p">])</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;test&#39;</span><span class="p">]</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">cmpd_ids</span><span class="p">[</span><span class="s1">&#39;test&#39;</span><span class="p">])</span>
+        <span class="n">proj_df</span><span class="p">[</span><span class="s1">&#39;dset_subset&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">dset_subset</span>
+    
+        <span class="k">if</span> <span class="n">dist_metric</span> <span class="o">==</span> <span class="s1">&#39;minkowski&#39;</span><span class="p">:</span>
+          <span class="n">metric_name</span> <span class="o">=</span> <span class="s1">&#39;minkowski(</span><span class="si">%.2f</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="n">dist_metric_kwds</span><span class="p">[</span><span class="s1">&#39;p&#39;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+          <span class="n">metric_name</span> <span class="o">=</span> <span class="n">dist_metric</span>
+
+        <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">featurizer</span> <span class="o">==</span> <span class="s1">&#39;ecfp&#39;</span><span class="p">:</span>
+            <span class="n">feat_type</span> <span class="o">=</span> <span class="s1">&#39;ECFP&#39;</span>
+        <span class="k">elif</span> <span class="n">params</span><span class="o">.</span><span class="n">featurizer</span> <span class="o">==</span> <span class="s1">&#39;descriptors&#39;</span><span class="p">:</span>
+            <span class="n">feat_type</span> <span class="o">=</span> <span class="s1">&#39;precomputed </span><span class="si">%s</span><span class="s1"> descriptor&#39;</span> <span class="o">%</span> <span class="n">params</span><span class="o">.</span><span class="n">descriptor_type</span>
+        <span class="k">elif</span> <span class="n">params</span><span class="o">.</span><span class="n">featurizer</span> <span class="o">==</span> <span class="s1">&#39;computed_descriptors&#39;</span><span class="p">:</span>
+            <span class="n">feat_type</span> <span class="o">=</span> <span class="s1">&#39;computed </span><span class="si">%s</span><span class="s1"> descriptor&#39;</span> <span class="o">%</span> <span class="n">params</span><span class="o">.</span><span class="n">descriptor_type</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">feat_type</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">featurizer</span>
+            
+    
+        <span class="n">classif</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="s1">&#39;inactive&#39;</span><span class="p">]</span><span class="o">*</span><span class="n">proj_df</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">classif</span><span class="p">[</span><span class="n">proj_df</span><span class="o">.</span><span class="n">actual</span> <span class="o">==</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;active&#39;</span>
+        <span class="n">proj_df</span><span class="p">[</span><span class="s1">&#39;classif&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">classif</span>
+        <span class="n">proj_df</span><span class="p">[</span><span class="s1">&#39;subset&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">/</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">vals</span> <span class="k">for</span> <span class="n">vals</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">dset_subset</span><span class="p">,</span><span class="n">classif</span><span class="p">)]</span>
+        <span class="k">for</span> <span class="n">subset</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;valid&#39;</span><span class="p">,</span> <span class="s1">&#39;test&#39;</span><span class="p">]:</span>
+            <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span><span class="mi">15</span><span class="p">))</span>
+            <span class="n">proj_plt_df</span> <span class="o">=</span> <span class="n">proj_df</span><span class="p">[(</span><span class="n">proj_df</span><span class="o">.</span><span class="n">dset_subset</span> <span class="o">==</span> <span class="s1">&#39;train&#39;</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">proj_df</span><span class="o">.</span><span class="n">dset_subset</span> <span class="o">==</span> <span class="n">subset</span><span class="p">)]</span>
+            <span class="k">if</span> <span class="n">subset</span> <span class="o">==</span> <span class="s1">&#39;valid&#39;</span><span class="p">:</span>
+                <span class="n">pal</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;train/active&#39;</span> <span class="p">:</span> <span class="s1">&#39;forestgreen&#39;</span><span class="p">,</span> <span class="s1">&#39;train/inactive&#39;</span> <span class="p">:</span> <span class="s1">&#39;red&#39;</span><span class="p">,</span> 
+                            <span class="s1">&#39;valid/active&#39;</span> <span class="p">:</span> <span class="s1">&#39;blue&#39;</span><span class="p">,</span> <span class="s1">&#39;valid/inactive&#39;</span> <span class="p">:</span> <span class="s1">&#39;magenta&#39;</span><span class="p">}</span>
+                <span class="n">marker_map</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;train/active&#39;</span> <span class="p">:</span> <span class="s1">&#39;o&#39;</span><span class="p">,</span> <span class="s1">&#39;train/inactive&#39;</span> <span class="p">:</span> <span class="s1">&#39;s&#39;</span><span class="p">,</span> 
+                            <span class="s1">&#39;valid/active&#39;</span> <span class="p">:</span> <span class="s1">&#39;*&#39;</span><span class="p">,</span> <span class="s1">&#39;valid/inactive&#39;</span> <span class="p">:</span> <span class="s1">&#39;v&#39;</span><span class="p">}</span>
+                <span class="n">size_map</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;train/active&#39;</span> <span class="p">:</span> <span class="mi">64</span><span class="p">,</span> <span class="s1">&#39;train/inactive&#39;</span> <span class="p">:</span> <span class="mi">49</span><span class="p">,</span> 
+                            <span class="s1">&#39;valid/active&#39;</span> <span class="p">:</span> <span class="mi">192</span><span class="p">,</span> <span class="s1">&#39;valid/inactive&#39;</span> <span class="p">:</span> <span class="mi">81</span><span class="p">}</span>
+                <span class="n">style_order</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;train/inactive&#39;</span><span class="p">,</span> <span class="s1">&#39;valid/inactive&#39;</span><span class="p">,</span> <span class="s1">&#39;train/active&#39;</span><span class="p">,</span> <span class="s1">&#39;valid/active&#39;</span> <span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">pal</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;train/active&#39;</span> <span class="p">:</span> <span class="s1">&#39;forestgreen&#39;</span><span class="p">,</span> <span class="s1">&#39;train/inactive&#39;</span> <span class="p">:</span> <span class="s1">&#39;red&#39;</span><span class="p">,</span> 
+                            <span class="s1">&#39;test/active&#39;</span> <span class="p">:</span> <span class="s1">&#39;blue&#39;</span><span class="p">,</span> <span class="s1">&#39;test/inactive&#39;</span> <span class="p">:</span> <span class="s1">&#39;magenta&#39;</span><span class="p">}</span>
+                <span class="n">marker_map</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;train/active&#39;</span> <span class="p">:</span> <span class="s1">&#39;o&#39;</span><span class="p">,</span> <span class="s1">&#39;train/inactive&#39;</span> <span class="p">:</span> <span class="s1">&#39;s&#39;</span><span class="p">,</span> 
+                            <span class="s1">&#39;test/active&#39;</span> <span class="p">:</span> <span class="s1">&#39;*&#39;</span><span class="p">,</span> <span class="s1">&#39;test/inactive&#39;</span> <span class="p">:</span> <span class="s1">&#39;v&#39;</span><span class="p">}</span>
+                <span class="n">size_map</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;train/active&#39;</span> <span class="p">:</span> <span class="mi">64</span><span class="p">,</span> <span class="s1">&#39;train/inactive&#39;</span> <span class="p">:</span> <span class="mi">49</span><span class="p">,</span> 
+                            <span class="s1">&#39;test/active&#39;</span> <span class="p">:</span> <span class="mi">192</span><span class="p">,</span> <span class="s1">&#39;test/inactive&#39;</span> <span class="p">:</span> <span class="mi">81</span><span class="p">}</span>
+                <span class="n">style_order</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;train/inactive&#39;</span><span class="p">,</span> <span class="s1">&#39;test/inactive&#39;</span><span class="p">,</span> <span class="s1">&#39;train/active&#39;</span><span class="p">,</span> <span class="s1">&#39;test/active&#39;</span> <span class="p">]</span>
+            <span class="n">sns</span><span class="o">.</span><span class="n">scatterplot</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="s1">&#39;umap_X&#39;</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s1">&#39;umap_Y&#39;</span><span class="p">,</span> <span class="n">hue</span><span class="o">=</span><span class="s1">&#39;subset&#39;</span><span class="p">,</span> <span class="n">palette</span><span class="o">=</span><span class="n">pal</span><span class="p">,</span>
+                        <span class="n">style</span><span class="o">=</span><span class="s1">&#39;subset&#39;</span><span class="p">,</span> <span class="n">markers</span><span class="o">=</span><span class="n">marker_map</span><span class="p">,</span>
+                        <span class="n">style_order</span><span class="o">=</span><span class="n">style_order</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="s1">&#39;subset&#39;</span><span class="p">,</span> <span class="n">sizes</span><span class="o">=</span><span class="n">size_map</span><span class="p">,</span>
+                        <span class="n">data</span><span class="o">=</span><span class="n">proj_plt_df</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
+            <span class="n">title</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> dataset</span><span class="se">\n</span><span class="si">%s</span><span class="s1"> features projected to 2D with </span><span class="si">%s</span><span class="s1"> metric</span><span class="se">\n</span><span class="s1">Training and </span><span class="si">%s</span><span class="s1"> subsets from </span><span class="si">%s</span><span class="s1"> splitter&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                      <span class="n">params</span><span class="o">.</span><span class="n">dataset_name</span><span class="p">,</span> <span class="n">feat_type</span><span class="p">,</span> <span class="n">metric_name</span><span class="p">,</span> <span class="n">subset</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">splitter</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">fontdict</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;fontsize&#39;</span> <span class="p">:</span> <span class="mi">10</span><span class="p">})</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">pdf_dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">pdf</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">pdf_dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">pdf</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="n">MP</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Wrote plot to </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">pdf_path</span><span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, ATOM DDM Team.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.0',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

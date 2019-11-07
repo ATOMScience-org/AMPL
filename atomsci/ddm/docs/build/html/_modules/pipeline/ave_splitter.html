@@ -1,0 +1,822 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pipeline.ave_splitter &mdash; ATOM Data-Driven Modeling Pipeline 1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> ATOM Data-Driven Modeling Pipeline
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">ATOM Data-Driven Modeling Pipeline</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>pipeline.ave_splitter</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for pipeline.ave_splitter</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Code to split a DeepChem dataset in such a way as to minimize the AVE bias, as described in </span>
+<span class="sd">Wallach &amp; Heifets, doi://10.1021/acs.jcim.7b00403</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1">#</span>
+<span class="c1"># Copyright 2017 Atomwise Inc.</span>
+<span class="c1">#</span>
+<span class="c1"># Permission is hereby granted, free of charge, to any person obtaining a copy of this software and </span>
+<span class="c1"># associated documentation files (the &quot;Software&quot;), to deal in the Software without restriction, </span>
+<span class="c1"># including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, </span>
+<span class="c1"># and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, </span>
+<span class="c1"># subject to the following conditions:</span>
+<span class="c1"># </span>
+<span class="c1"># The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.</span>
+<span class="c1">#</span>
+<span class="c1"># THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, </span>
+<span class="c1"># INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR </span>
+<span class="c1"># PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, </span>
+<span class="c1"># DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, </span>
+<span class="c1"># OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</span>
+<span class="c1">#</span>
+
+<span class="kn">from</span> <span class="nn">deepchem.splits.splitters</span> <span class="k">import</span> <span class="n">Splitter</span>
+<span class="kn">from</span> <span class="nn">scipy.spatial.distance</span> <span class="k">import</span> <span class="n">cdist</span><span class="p">,</span> <span class="n">pdist</span><span class="p">,</span> <span class="n">squareform</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">numpy.random</span> <span class="k">import</span> <span class="n">shuffle</span><span class="p">,</span> <span class="n">permutation</span>
+<span class="kn">import</span> <span class="nn">random</span>
+<span class="kn">from</span> <span class="nn">multiprocessing</span> <span class="k">import</span> <span class="n">Pool</span>
+<span class="kn">from</span> <span class="nn">time</span> <span class="k">import</span> <span class="n">time</span><span class="p">,</span> <span class="n">asctime</span>
+
+<span class="kn">from</span> <span class="nn">atomsci.clients</span> <span class="k">import</span> <span class="n">datastore_functions</span> <span class="k">as</span> <span class="n">dsf</span>
+<span class="kn">from</span> <span class="nn">atomsci.ddm.pipeline</span> <span class="k">import</span> <span class="n">featurization</span> <span class="k">as</span> <span class="n">feat</span>
+<span class="kn">from</span> <span class="nn">atomsci.ddm.pipeline</span> <span class="k">import</span> <span class="n">model_datasets</span> <span class="k">as</span> <span class="n">md</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="nb">format</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%(asctime)-15s</span><span class="s1"> </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="c1"># Set up logging</span>
+<span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;ATOM&#39;</span><span class="p">)</span>
+
+
+<span class="n">POP_SIZE</span> <span class="o">=</span> <span class="mi">100</span>
+<span class="n">NEXT_GEN_FACTOR</span> <span class="o">=</span> <span class="mi">20</span>
+<span class="n">MAX_SET_OVERLAP_FRACTION</span> <span class="o">=</span> <span class="mf">0.8</span>
+<span class="n">RM_PROB</span> <span class="o">=</span> <span class="mf">0.2</span>
+<span class="n">ADD_PROB</span> <span class="o">=</span> <span class="mf">0.2</span>
+<span class="n">MIN_AV</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="n">MIN_IV</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="n">MIN_AT</span> <span class="o">=</span> <span class="mi">30</span>
+<span class="n">MIN_IT</span> <span class="o">=</span> <span class="mi">30</span>
+<span class="n">TARGET_BIAS</span> <span class="o">=</span> <span class="mf">0.01</span>
+
+<span class="kn">import</span> <span class="nn">matplotlib</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">seaborn</span> <span class="k">as</span> <span class="nn">sns</span>
+
+<span class="c1">#*******************************************************************************************************************************************</span>
+<div class="viewcode-block" id="Cdist"><a class="viewcode-back" href="../../pipeline.html#pipeline.ave_splitter.Cdist">[docs]</a><span class="k">def</span> <span class="nf">Cdist</span><span class="p">(</span><span class="n">params</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Single-argument wrapper for cdist, to be called from Pool.map()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">cdist</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">params</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">params</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> </div>
+
+<span class="c1">#*******************************************************************************************************************************************</span>
+<div class="viewcode-block" id="calc_dist_mat"><a class="viewcode-back" href="../../pipeline.html#pipeline.ave_splitter.calc_dist_mat">[docs]</a><span class="k">def</span> <span class="nf">calc_dist_mat</span><span class="p">(</span><span class="n">feat1</span><span class="p">,</span> <span class="n">feat2</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">pool</span><span class="p">,</span> <span class="n">num_workers</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculate distance matrix between rows of feat1 and rows of feat2</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">num_workers</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="p">)</span> <span class="p">:</span>
+        <span class="n">interval</span><span class="p">,</span> <span class="n">remainder</span> <span class="o">=</span> <span class="nb">divmod</span><span class="p">(</span> <span class="nb">len</span><span class="p">(</span><span class="n">feat1</span><span class="p">),</span> <span class="nb">min</span><span class="p">(</span> <span class="nb">len</span><span class="p">(</span><span class="n">feat1</span><span class="p">),</span> <span class="n">num_workers</span><span class="o">-</span><span class="mi">1</span> <span class="p">)</span> <span class="p">)</span>
+        <span class="n">interval</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span> <span class="n">interval</span><span class="p">,</span> <span class="mi">1</span> <span class="p">)</span>
+        <span class="n">chunks</span> <span class="o">=</span> <span class="n">pool</span><span class="o">.</span><span class="n">map</span><span class="p">(</span> <span class="n">Cdist</span><span class="p">,</span> <span class="p">[</span> <span class="p">(</span><span class="n">feat1</span><span class="p">[</span><span class="n">r</span><span class="p">:</span><span class="nb">min</span><span class="p">(</span><span class="n">r</span><span class="o">+</span><span class="n">interval</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">feat1</span><span class="p">)</span> <span class="p">)</span> <span class="p">],</span> <span class="n">feat2</span><span class="p">,</span> <span class="n">metric</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">feat1</span><span class="p">),</span> <span class="n">interval</span> <span class="p">)</span> <span class="p">]</span> <span class="p">)</span> 
+        <span class="n">dist_mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span> <span class="n">chunks</span> <span class="p">)</span> 
+    <span class="k">else</span> <span class="p">:</span>
+        <span class="n">dist_mat</span> <span class="o">=</span> <span class="n">cdist</span><span class="p">(</span> <span class="n">feat1</span><span class="p">,</span> <span class="n">feat2</span><span class="p">,</span> <span class="n">metric</span> <span class="p">)</span>
+    <span class="k">return</span> <span class="n">dist_mat</span></div>
+
+
+<span class="c1">#*******************************************************************************************************************************************</span>
+<div class="viewcode-block" id="analyze_split"><a class="viewcode-back" href="../../pipeline.html#pipeline.ave_splitter.analyze_split">[docs]</a><span class="k">def</span> <span class="nf">analyze_split</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">id_col</span><span class="o">=</span><span class="s1">&#39;compound_id&#39;</span><span class="p">,</span> <span class="n">smiles_col</span><span class="o">=</span><span class="s1">&#39;rdkit_smiles&#39;</span><span class="p">,</span> <span class="n">active_col</span><span class="o">=</span><span class="s1">&#39;active&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Evaluate the AVE bias for the training/validation and training/test set splits of the given dataset.</span>
+<span class="sd">    Also show the active frequencies in each subset and for the dataset as a whole.</span>
+<span class="sd">    id_col, smiles_col and active_col are defaults to be used in case they aren&#39;t found in the dataset metadata; if found</span>
+<span class="sd">    the metadata values are used instead.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">dset_key</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">dataset_key</span>
+    <span class="n">bucket</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">bucket</span>
+    <span class="n">split_uuid</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">split_uuid</span>
+
+    <span class="n">ds_client</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">config_client</span><span class="p">()</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">split_metadata</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">search_datasets_by_key_value</span><span class="p">(</span><span class="s1">&#39;split_dataset_uuid&#39;</span><span class="p">,</span> <span class="n">split_uuid</span><span class="p">,</span> <span class="n">ds_client</span><span class="p">,</span> <span class="n">operator</span><span class="o">=</span><span class="s1">&#39;in&#39;</span><span class="p">,</span> <span class="n">bucket</span><span class="o">=</span><span class="n">bucket</span><span class="p">)</span>
+        <span class="n">split_oid</span> <span class="o">=</span> <span class="n">split_metadata</span><span class="p">[</span><span class="s1">&#39;dataset_oid&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">split_df</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">retrieve_dataset_by_dataset_oid</span><span class="p">(</span><span class="n">split_oid</span><span class="p">,</span> <span class="n">client</span><span class="o">=</span><span class="n">ds_client</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error when loading split file:</span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+        <span class="k">raise</span>
+    
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">dataset_df</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">retrieve_dataset_by_datasetkey</span><span class="p">(</span><span class="n">dset_key</span><span class="p">,</span> <span class="n">bucket</span><span class="p">,</span> <span class="n">client</span><span class="o">=</span><span class="n">ds_client</span><span class="p">)</span>
+        <span class="n">dataset_meta</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">retrieve_dataset_by_datasetkey</span><span class="p">(</span><span class="n">dset_key</span><span class="p">,</span> <span class="n">bucket</span><span class="p">,</span> <span class="n">client</span><span class="o">=</span><span class="n">ds_client</span><span class="p">,</span> <span class="n">return_metadata</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error when loading dataset:</span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+        <span class="k">raise</span>
+    <span class="n">kv_dict</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">get_key_val</span><span class="p">(</span><span class="n">dataset_meta</span><span class="p">[</span><span class="s1">&#39;metadata&#39;</span><span class="p">])</span>
+    <span class="n">id_col</span> <span class="o">=</span> <span class="n">kv_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id_col&#39;</span><span class="p">,</span> <span class="n">id_col</span><span class="p">)</span>
+    <span class="n">smiles_col</span> <span class="o">=</span> <span class="n">kv_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;smiles_col&#39;</span><span class="p">,</span> <span class="n">smiles_col</span><span class="p">)</span>
+    <span class="n">active_col</span> <span class="o">=</span> <span class="n">kv_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;response_col&#39;</span><span class="p">,</span> <span class="n">active_col</span><span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Dataset has </span><span class="si">%d</span><span class="s1"> unique compound IDs&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">dataset_df</span><span class="p">[</span><span class="n">id_col</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Split table has </span><span class="si">%d</span><span class="s1"> unique compound IDs&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">split_df</span><span class="o">.</span><span class="n">cmpd_id</span><span class="o">.</span><span class="n">values</span><span class="p">)))</span>
+
+        <span class="n">dset_df</span> <span class="o">=</span> <span class="n">dataset_df</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">split_df</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;inner&#39;</span><span class="p">,</span> <span class="n">left_on</span><span class="o">=</span><span class="n">id_col</span><span class="p">,</span> <span class="n">right_on</span><span class="o">=</span><span class="s1">&#39;cmpd_id&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s1">&#39;cmpd_id&#39;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error when joining dataset with split dataset:</span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+        <span class="k">raise</span>
+
+    <span class="n">featurization</span> <span class="o">=</span> <span class="n">feat</span><span class="o">.</span><span class="n">create_featurization</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">md</span><span class="o">.</span><span class="n">create_model_dataset</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">featurization</span><span class="p">,</span> <span class="n">ds_client</span><span class="p">)</span>
+    <span class="n">data</span><span class="o">.</span><span class="n">get_featurized_data</span><span class="p">()</span>
+    <span class="n">feat_arr</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">X</span>
+    <span class="c1"># TODO: impute missing values if necessary</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]))</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;AVEMinSplitter only works on binary classification datasets&#39;</span><span class="p">)</span>
+    <span class="n">ids</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">ids</span>
+    <span class="n">active_ind</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">y</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">inactive_ind</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">y</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">active_feat</span> <span class="o">=</span> <span class="n">feat_arr</span><span class="p">[</span><span class="n">active_ind</span><span class="p">,:]</span>
+    <span class="n">inactive_feat</span> <span class="o">=</span> <span class="n">feat_arr</span><span class="p">[</span><span class="n">inactive_ind</span><span class="p">,:]</span>
+    <span class="n">num_active</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">active_ind</span><span class="p">)</span>
+    <span class="n">num_inactive</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">inactive_ind</span><span class="p">)</span>
+    <span class="n">active_ids</span> <span class="o">=</span> <span class="n">ids</span><span class="p">[</span><span class="n">active_ind</span><span class="p">]</span>
+    <span class="n">inactive_ids</span> <span class="o">=</span> <span class="n">ids</span><span class="p">[</span><span class="n">inactive_ind</span><span class="p">]</span>
+    <span class="n">active_id_ind</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">active_ids</span><span class="p">,</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">active_ids</span><span class="p">))))</span>
+    <span class="n">inactive_id_ind</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">inactive_ids</span><span class="p">,</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">inactive_ids</span><span class="p">))))</span>
+    <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">featurizer</span> <span class="o">==</span> <span class="s1">&#39;ecfp&#39;</span><span class="p">:</span>
+        <span class="n">metric</span> <span class="o">=</span> <span class="s1">&#39;jaccard&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">metric</span> <span class="o">=</span> <span class="s1">&#39;euclidean&#39;</span>
+
+    <span class="c1"># Calculate distance thresholds where nearest neighborfunction should be evaluated</span>
+    <span class="k">if</span> <span class="n">metric</span> <span class="o">==</span> <span class="s1">&#39;jaccard&#39;</span><span class="p">:</span>
+        <span class="n">max_nn_dist</span> <span class="o">=</span> <span class="mf">1.0</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">nan_mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">feat_arr</span><span class="p">)</span>
+        <span class="n">nnan</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">nan_mat</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">nnan</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Input feature matrix has </span><span class="si">%d</span><span class="s1"> NaN elements&#39;</span> <span class="o">%</span> <span class="n">nnan</span><span class="p">)</span>
+            <span class="n">not_nan</span> <span class="o">=</span> <span class="o">~</span><span class="n">nan_mat</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">feat_arr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+                <span class="n">feat_arr</span><span class="p">[</span><span class="n">nan_mat</span><span class="p">[:,</span><span class="n">i</span><span class="p">],</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">feat_arr</span><span class="p">[</span><span class="n">not_nan</span><span class="p">[:,</span><span class="n">i</span><span class="p">],</span><span class="n">i</span><span class="p">])</span>
+        <span class="n">nn_dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">squareform</span><span class="p">(</span><span class="n">pdist</span><span class="p">(</span><span class="n">feat_arr</span><span class="p">,</span> <span class="n">metric</span><span class="p">)))[:,</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">med_nn_dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">nn_dist</span><span class="p">)</span>
+        <span class="n">max_nn_dist</span> <span class="o">=</span> <span class="mf">3.0</span><span class="o">*</span><span class="n">med_nn_dist</span>
+    <span class="n">ndist</span> <span class="o">=</span> <span class="mi">100</span>
+    <span class="n">dist_thresh</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">max_nn_dist</span><span class="p">,</span> <span class="n">ndist</span><span class="p">)</span>
+
+    <span class="c1"># Compute distance matrices between subsets</span>
+    <span class="n">num_workers</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">aa_dist</span> <span class="o">=</span> <span class="n">calc_dist_mat</span><span class="p">(</span><span class="n">active_feat</span><span class="p">,</span> <span class="n">active_feat</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">num_workers</span> <span class="p">)</span>
+    <span class="n">ii_dist</span> <span class="o">=</span> <span class="n">calc_dist_mat</span><span class="p">(</span><span class="n">inactive_feat</span><span class="p">,</span> <span class="n">inactive_feat</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">num_workers</span> <span class="p">)</span>
+    <span class="n">ai_dist</span> <span class="o">=</span> <span class="n">calc_dist_mat</span><span class="p">(</span><span class="n">active_feat</span><span class="p">,</span> <span class="n">inactive_feat</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">num_workers</span> <span class="p">)</span>
+    <span class="n">ia_dist</span> <span class="o">=</span> <span class="n">ai_dist</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
+
+    <span class="n">subsets</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">dset_df</span><span class="o">.</span><span class="n">subset</span><span class="o">.</span><span class="n">values</span><span class="p">))</span>
+    <span class="n">subset_active_ind</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">subset_inactive_ind</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">if</span> <span class="s1">&#39;train&#39;</span> <span class="ow">in</span> <span class="n">subsets</span><span class="p">:</span>
+        <span class="c1"># this is a TVT split</span>
+        <span class="n">subsets</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;train&#39;</span><span class="p">,</span> <span class="s1">&#39;valid&#39;</span><span class="p">,</span> <span class="s1">&#39;test&#39;</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">subset</span> <span class="ow">in</span> <span class="n">subsets</span><span class="p">:</span>
+            <span class="n">subset_df</span> <span class="o">=</span> <span class="n">dset_df</span><span class="p">[</span><span class="n">dset_df</span><span class="o">.</span><span class="n">subset</span> <span class="o">==</span> <span class="n">subset</span><span class="p">]</span>
+            <span class="n">active_df</span> <span class="o">=</span> <span class="n">subset_df</span><span class="p">[</span><span class="n">subset_df</span><span class="p">[</span><span class="n">active_col</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">]</span>
+            <span class="n">inactive_df</span> <span class="o">=</span> <span class="n">subset_df</span><span class="p">[</span><span class="n">subset_df</span><span class="p">[</span><span class="n">active_col</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span>
+            <span class="n">subset_active_ids</span> <span class="o">=</span> <span class="n">active_df</span><span class="p">[</span><span class="n">id_col</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+            <span class="n">subset_inactive_ids</span> <span class="o">=</span> <span class="n">inactive_df</span><span class="p">[</span><span class="n">id_col</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+            <span class="n">subset_active_ind</span><span class="p">[</span><span class="n">subset</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">active_id_ind</span><span class="p">[</span><span class="nb">id</span><span class="p">]</span> <span class="k">for</span> <span class="nb">id</span> <span class="ow">in</span> <span class="n">subset_active_ids</span><span class="p">]</span>
+            <span class="n">subset_inactive_ind</span><span class="p">[</span><span class="n">subset</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">inactive_id_ind</span><span class="p">[</span><span class="nb">id</span><span class="p">]</span> <span class="k">for</span> <span class="nb">id</span> <span class="ow">in</span> <span class="n">subset_inactive_ids</span><span class="p">]</span>
+
+        <span class="n">taI</span> <span class="o">=</span> <span class="n">subset_active_ind</span><span class="p">[</span><span class="s1">&#39;train&#39;</span><span class="p">]</span>
+        <span class="n">tiI</span> <span class="o">=</span> <span class="n">subset_inactive_ind</span><span class="p">[</span><span class="s1">&#39;train&#39;</span><span class="p">]</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Results for </span><span class="si">%s</span><span class="s2"> split with </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> features:&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">splitter</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">descriptor_type</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">featurizer</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">valid_set</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;valid&#39;</span><span class="p">,</span> <span class="s1">&#39;test&#39;</span><span class="p">]:</span>
+            <span class="n">vaI</span> <span class="o">=</span> <span class="n">subset_active_ind</span><span class="p">[</span><span class="n">valid_set</span><span class="p">]</span>
+            <span class="n">viI</span> <span class="o">=</span> <span class="n">subset_inactive_ind</span><span class="p">[</span><span class="n">valid_set</span><span class="p">]</span>
+            <span class="n">split_params</span> <span class="o">=</span> <span class="p">((</span><span class="n">vaI</span><span class="p">,</span> <span class="n">viI</span><span class="p">,</span> <span class="n">taI</span><span class="p">,</span> <span class="n">tiI</span><span class="p">),</span> <span class="n">aa_dist</span><span class="p">,</span> <span class="n">ii_dist</span><span class="p">,</span> <span class="n">ai_dist</span><span class="p">,</span> <span class="n">ia_dist</span><span class="p">,</span> <span class="n">dist_thresh</span><span class="p">)</span>
+            <span class="n">plot_nn_dist_distr</span><span class="p">(</span><span class="n">split_params</span><span class="p">)</span>
+            <span class="n">bias</span> <span class="o">=</span> <span class="n">plot_bias</span><span class="p">(</span><span class="n">split_params</span><span class="p">,</span> <span class="n">niter</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;For train/</span><span class="si">%s</span><span class="s2"> split: AVE bias = </span><span class="si">%.5f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">valid_set</span><span class="p">,</span> <span class="n">bias</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># TODO: deal with k-fold splits later</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;k-fold CV splits not supported yet&#39;</span><span class="p">)</span>
+        <span class="k">return</span>
+
+    <span class="c1"># Tabulate the fractions of actives in the full dataset and each subset</span>
+    <span class="n">subset_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">size_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">frac_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">active_frac_list</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="n">dset_size</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">dset_active</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">y</span><span class="p">)</span>
+    <span class="n">subset_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;full dataset&#39;</span><span class="p">)</span>
+    <span class="n">size_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dset_size</span><span class="p">)</span>
+    <span class="n">frac_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>
+    <span class="n">active_frac_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dset_active</span><span class="o">/</span><span class="n">dset_size</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">subset</span> <span class="ow">in</span> <span class="n">subsets</span><span class="p">:</span>
+        <span class="n">active_size</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">subset_active_ind</span><span class="p">[</span><span class="n">subset</span><span class="p">])</span>
+        <span class="n">inactive_size</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">subset_inactive_ind</span><span class="p">[</span><span class="n">subset</span><span class="p">])</span>
+        <span class="n">subset_size</span> <span class="o">=</span> <span class="n">active_size</span><span class="o">+</span><span class="n">inactive_size</span>
+        <span class="n">active_frac</span> <span class="o">=</span> <span class="n">active_size</span><span class="o">/</span><span class="n">subset_size</span>
+        <span class="n">subset_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">subset</span><span class="p">)</span>
+        <span class="n">size_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">subset_size</span><span class="p">)</span>
+        <span class="n">frac_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">subset_size</span><span class="o">/</span><span class="n">dset_size</span><span class="p">)</span>
+        <span class="n">active_frac_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">active_frac</span><span class="p">)</span>
+    <span class="n">frac_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="n">subset_list</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">size_list</span><span class="p">,</span> <span class="n">fraction</span><span class="o">=</span><span class="n">frac_list</span><span class="p">,</span> <span class="n">active_frac</span><span class="o">=</span><span class="n">active_frac_list</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">Split subsets:&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">frac_df</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">frac_df</span></div>
+
+
+<span class="c1">#*******************************************************************************************************************************************</span>
+<div class="viewcode-block" id="check_split_similarity"><a class="viewcode-back" href="../../pipeline.html#pipeline.ave_splitter.check_split_similarity">[docs]</a><span class="k">def</span> <span class="nf">check_split_similarity</span><span class="p">(</span> <span class="n">params</span> <span class="p">)</span> <span class="p">:</span> 
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compare index sets given by params[0:3] against the corresponding sets given by params[4] and return True if</span>
+<span class="sd">    any have more than a certain fraction of molecules in common.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">bias_split</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
+        <span class="n">set1</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">set2</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">bias_split</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">i</span><span class="p">])</span>
+        <span class="n">max_overlap</span> <span class="o">=</span> <span class="n">MAX_SET_OVERLAP_FRACTION</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">set1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">set1</span> <span class="o">&amp;</span> <span class="n">set2</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">max_overlap</span><span class="p">:</span>
+         <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">return</span> <span class="kc">False</span></div>
+
+<span class="c1">#*******************************************************************************************************************************************</span>
+<div class="viewcode-block" id="calc_bias"><a class="viewcode-back" href="../../pipeline.html#pipeline.ave_splitter.calc_bias">[docs]</a><span class="k">def</span> <span class="nf">calc_bias</span><span class="p">(</span><span class="n">params</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute the AVE bias objective function for the split set given by params[0], based on the distance matrices in the remaining params</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">split_set</span><span class="p">,</span> <span class="n">aa_dist</span><span class="p">,</span> <span class="n">ii_dist</span><span class="p">,</span> <span class="n">ai_dist</span><span class="p">,</span> <span class="n">ia_dist</span><span class="p">,</span> <span class="n">thresholds</span> <span class="o">=</span> <span class="n">params</span><span class="p">[:]</span>
+    <span class="n">vaI</span><span class="p">,</span> <span class="n">viI</span><span class="p">,</span> <span class="n">taI</span><span class="p">,</span> <span class="n">tiI</span> <span class="o">=</span> <span class="n">split_set</span>
+    
+    <span class="c1"># get the slices of the distance matrices</span>
+    <span class="n">aTest_aTrain_D</span> <span class="o">=</span> <span class="n">aa_dist</span><span class="p">[</span> <span class="n">np</span><span class="o">.</span><span class="n">ix_</span><span class="p">(</span> <span class="n">vaI</span><span class="p">,</span> <span class="n">taI</span> <span class="p">)</span> <span class="p">]</span>
+    <span class="n">aTest_iTrain_D</span> <span class="o">=</span> <span class="n">ai_dist</span><span class="p">[</span> <span class="n">np</span><span class="o">.</span><span class="n">ix_</span><span class="p">(</span> <span class="n">vaI</span><span class="p">,</span> <span class="n">tiI</span> <span class="p">)</span> <span class="p">]</span>
+    <span class="n">iTest_aTrain_D</span> <span class="o">=</span> <span class="n">ia_dist</span><span class="p">[</span> <span class="n">np</span><span class="o">.</span><span class="n">ix_</span><span class="p">(</span> <span class="n">viI</span><span class="p">,</span> <span class="n">taI</span> <span class="p">)</span> <span class="p">]</span> 
+    <span class="n">iTest_iTrain_D</span> <span class="o">=</span> <span class="n">ii_dist</span><span class="p">[</span> <span class="n">np</span><span class="o">.</span><span class="n">ix_</span><span class="p">(</span> <span class="n">viI</span><span class="p">,</span> <span class="n">tiI</span> <span class="p">)</span> <span class="p">]</span>
+
+    <span class="c1"># Compute the nearest training set neighbor distances for each test set compound </span>
+    <span class="n">aa_nn_dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">aTest_aTrain_D</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">ai_nn_dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">aTest_iTrain_D</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">ia_nn_dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">iTest_aTrain_D</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">ii_nn_dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">iTest_iTrain_D</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+ 
+    <span class="n">aTest_aTrain_func</span> <span class="o">=</span> <span class="p">[</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">aa_nn_dist</span> <span class="o">&lt;</span> <span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">thresholds</span> <span class="p">]</span>
+    <span class="n">aTest_iTrain_func</span> <span class="o">=</span> <span class="p">[</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">ai_nn_dist</span> <span class="o">&lt;</span> <span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">thresholds</span> <span class="p">]</span>
+    <span class="n">iTest_aTrain_func</span> <span class="o">=</span> <span class="p">[</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">ia_nn_dist</span> <span class="o">&lt;</span> <span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">thresholds</span> <span class="p">]</span>
+    <span class="n">iTest_iTrain_func</span> <span class="o">=</span> <span class="p">[</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">ii_nn_dist</span> <span class="o">&lt;</span> <span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">thresholds</span> <span class="p">]</span>
+
+    <span class="n">aTest_aTrain_S</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">aTest_aTrain_func</span><span class="p">)</span>
+    <span class="n">aTest_iTrain_S</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">aTest_iTrain_func</span><span class="p">)</span>
+    <span class="n">iTest_iTrain_S</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">iTest_iTrain_func</span><span class="p">)</span>
+    <span class="n">iTest_aTrain_S</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">iTest_aTrain_func</span><span class="p">)</span>
+
+    <span class="c1"># Make debiasing more stringent by preventing negative and positive components from cancelling each other out</span>
+    <span class="n">aBias</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">aTest_aTrain_S</span> <span class="o">-</span> <span class="n">aTest_iTrain_S</span><span class="p">)</span>
+    <span class="n">iBias</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">iTest_iTrain_S</span> <span class="o">-</span> <span class="n">iTest_aTrain_S</span><span class="p">)</span>
+    <span class="n">bias</span> <span class="o">=</span> <span class="n">aBias</span> <span class="o">+</span> <span class="n">iBias</span>
+    <span class="k">return</span> <span class="n">bias</span></div>
+
+
+<span class="c1">#*******************************************************************************************************************************************</span>
+<div class="viewcode-block" id="plot_nn_dist_distr"><a class="viewcode-back" href="../../pipeline.html#pipeline.ave_splitter.plot_nn_dist_distr">[docs]</a><span class="k">def</span> <span class="nf">plot_nn_dist_distr</span><span class="p">(</span><span class="n">params</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Plot distributions of nearest neighbor distances</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">split_set</span><span class="p">,</span> <span class="n">aa_dist</span><span class="p">,</span> <span class="n">ii_dist</span><span class="p">,</span> <span class="n">ai_dist</span><span class="p">,</span> <span class="n">ia_dist</span><span class="p">,</span> <span class="n">thresholds</span> <span class="o">=</span> <span class="n">params</span><span class="p">[:]</span>
+    <span class="n">vaI</span><span class="p">,</span> <span class="n">viI</span><span class="p">,</span> <span class="n">taI</span><span class="p">,</span> <span class="n">tiI</span> <span class="o">=</span> <span class="n">split_set</span>
+    
+    <span class="c1"># get the slices of the distance matrices</span>
+    <span class="n">aTest_aTrain_D</span> <span class="o">=</span> <span class="n">aa_dist</span><span class="p">[</span> <span class="n">np</span><span class="o">.</span><span class="n">ix_</span><span class="p">(</span> <span class="n">vaI</span><span class="p">,</span> <span class="n">taI</span> <span class="p">)</span> <span class="p">]</span>
+    <span class="n">aTest_iTrain_D</span> <span class="o">=</span> <span class="n">ai_dist</span><span class="p">[</span> <span class="n">np</span><span class="o">.</span><span class="n">ix_</span><span class="p">(</span> <span class="n">vaI</span><span class="p">,</span> <span class="n">tiI</span> <span class="p">)</span> <span class="p">]</span>
+    <span class="n">iTest_aTrain_D</span> <span class="o">=</span> <span class="n">ia_dist</span><span class="p">[</span> <span class="n">np</span><span class="o">.</span><span class="n">ix_</span><span class="p">(</span> <span class="n">viI</span><span class="p">,</span> <span class="n">taI</span> <span class="p">)</span> <span class="p">]</span> 
+    <span class="n">iTest_iTrain_D</span> <span class="o">=</span> <span class="n">ii_dist</span><span class="p">[</span> <span class="n">np</span><span class="o">.</span><span class="n">ix_</span><span class="p">(</span> <span class="n">viI</span><span class="p">,</span> <span class="n">tiI</span> <span class="p">)</span> <span class="p">]</span>
+
+    <span class="n">aa_nn_dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">aTest_aTrain_D</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">ai_nn_dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">aTest_iTrain_D</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">ia_nn_dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">iTest_aTrain_D</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">ii_nn_dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">iTest_iTrain_D</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="c1"># Plot distributions of nearest-neighbor distances</span>
+    <span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span><span class="mi">12</span><span class="p">))</span>
+    <span class="n">sns</span><span class="o">.</span><span class="n">kdeplot</span><span class="p">(</span><span class="n">aa_nn_dist</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;AA&#39;</span><span class="p">)</span>
+    <span class="n">sns</span><span class="o">.</span><span class="n">kdeplot</span><span class="p">(</span><span class="n">ai_nn_dist</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;AI&#39;</span><span class="p">)</span>
+    <span class="n">sns</span><span class="o">.</span><span class="n">kdeplot</span><span class="p">(</span><span class="n">ia_nn_dist</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;II&#39;</span><span class="p">)</span>
+    <span class="n">sns</span><span class="o">.</span><span class="n">kdeplot</span><span class="p">(</span><span class="n">ii_nn_dist</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;IA&#39;</span><span class="p">)</span></div>
+
+<span class="c1">#*******************************************************************************************************************************************</span>
+<div class="viewcode-block" id="plot_bias"><a class="viewcode-back" href="../../pipeline.html#pipeline.ave_splitter.plot_bias">[docs]</a><span class="k">def</span> <span class="nf">plot_bias</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">niter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Plot nearest neighbor functions used to compute AVE bias. Used in place of calc_bias for debugging splitter code.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">split_set</span><span class="p">,</span> <span class="n">aa_dist</span><span class="p">,</span> <span class="n">ii_dist</span><span class="p">,</span> <span class="n">ai_dist</span><span class="p">,</span> <span class="n">ia_dist</span><span class="p">,</span> <span class="n">thresholds</span> <span class="o">=</span> <span class="n">params</span><span class="p">[:]</span>
+    <span class="n">vaI</span><span class="p">,</span> <span class="n">viI</span><span class="p">,</span> <span class="n">taI</span><span class="p">,</span> <span class="n">tiI</span> <span class="o">=</span> <span class="n">split_set</span>
+    
+    <span class="c1"># get the slices of the distance matrices</span>
+    <span class="n">aTest_aTrain_D</span> <span class="o">=</span> <span class="n">aa_dist</span><span class="p">[</span> <span class="n">np</span><span class="o">.</span><span class="n">ix_</span><span class="p">(</span> <span class="n">vaI</span><span class="p">,</span> <span class="n">taI</span> <span class="p">)</span> <span class="p">]</span>
+    <span class="n">aTest_iTrain_D</span> <span class="o">=</span> <span class="n">ai_dist</span><span class="p">[</span> <span class="n">np</span><span class="o">.</span><span class="n">ix_</span><span class="p">(</span> <span class="n">vaI</span><span class="p">,</span> <span class="n">tiI</span> <span class="p">)</span> <span class="p">]</span>
+    <span class="n">iTest_aTrain_D</span> <span class="o">=</span> <span class="n">ia_dist</span><span class="p">[</span> <span class="n">np</span><span class="o">.</span><span class="n">ix_</span><span class="p">(</span> <span class="n">viI</span><span class="p">,</span> <span class="n">taI</span> <span class="p">)</span> <span class="p">]</span> 
+    <span class="n">iTest_iTrain_D</span> <span class="o">=</span> <span class="n">ii_dist</span><span class="p">[</span> <span class="n">np</span><span class="o">.</span><span class="n">ix_</span><span class="p">(</span> <span class="n">viI</span><span class="p">,</span> <span class="n">tiI</span> <span class="p">)</span> <span class="p">]</span>
+
+    <span class="n">aa_nn_dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">aTest_aTrain_D</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">ai_nn_dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">aTest_iTrain_D</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">ia_nn_dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">iTest_aTrain_D</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">ii_nn_dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">iTest_iTrain_D</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">aTest_aTrain_func</span> <span class="o">=</span> <span class="p">[</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">aa_nn_dist</span> <span class="o">&lt;</span> <span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">thresholds</span> <span class="p">]</span>
+    <span class="n">aTest_iTrain_func</span> <span class="o">=</span> <span class="p">[</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">ai_nn_dist</span> <span class="o">&lt;</span> <span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">thresholds</span> <span class="p">]</span>
+    <span class="n">iTest_aTrain_func</span> <span class="o">=</span> <span class="p">[</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">ia_nn_dist</span> <span class="o">&lt;</span> <span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">thresholds</span> <span class="p">]</span>
+    <span class="n">iTest_iTrain_func</span> <span class="o">=</span> <span class="p">[</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">ii_nn_dist</span> <span class="o">&lt;</span> <span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">thresholds</span> <span class="p">]</span>
+
+    <span class="n">aTest_aTrain_S</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">aTest_aTrain_func</span><span class="p">)</span>
+    <span class="n">aTest_iTrain_S</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">aTest_iTrain_func</span><span class="p">)</span>
+    <span class="n">iTest_iTrain_S</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">iTest_iTrain_func</span><span class="p">)</span>
+    <span class="n">iTest_aTrain_S</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">iTest_aTrain_func</span><span class="p">)</span>
+
+    <span class="c1">#aBias = aTest_aTrain_S - aTest_iTrain_S</span>
+    <span class="c1">#iBias = iTest_iTrain_S - iTest_aTrain_S</span>
+    <span class="c1">#bias = aBias + iBias</span>
+
+    <span class="c1"># ksm: Make debiasing more stringent by preventing negative and positive components from cancelling each other out</span>
+    <span class="n">aBias</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">aTest_aTrain_S</span> <span class="o">-</span> <span class="n">aTest_iTrain_S</span><span class="p">)</span>
+    <span class="n">iBias</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">iTest_iTrain_S</span> <span class="o">-</span> <span class="n">iTest_aTrain_S</span><span class="p">)</span>
+    <span class="n">bias</span> <span class="o">=</span> <span class="n">aBias</span> <span class="o">+</span> <span class="n">iBias</span>
+
+    <span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">18</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">thresholds</span><span class="p">,</span> <span class="n">aTest_aTrain_func</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;blue&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;AA&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">thresholds</span><span class="p">,</span> <span class="n">aTest_iTrain_func</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;AI&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">fill_between</span><span class="p">(</span><span class="n">thresholds</span><span class="p">,</span> <span class="n">aTest_iTrain_func</span><span class="p">,</span> <span class="n">aTest_aTrain_func</span><span class="p">,</span> <span class="n">facecolor</span><span class="o">=</span><span class="s1">&#39;blue&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Distance&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;NN Function&#39;</span><span class="p">)</span>
+    <span class="n">legend</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+    <span class="n">title</span> <span class="o">=</span> <span class="s2">&quot;AA - AI = </span><span class="si">%.3f</span><span class="se">\n</span><span class="s2">Iteration: </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aBias</span><span class="p">,</span> <span class="n">niter</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">title</span><span class="p">)</span>
+
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">thresholds</span><span class="p">,</span> <span class="n">iTest_iTrain_func</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;blue&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;II&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">thresholds</span><span class="p">,</span> <span class="n">iTest_aTrain_func</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;IA&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">fill_between</span><span class="p">(</span><span class="n">thresholds</span><span class="p">,</span> <span class="n">iTest_iTrain_func</span><span class="p">,</span> <span class="n">iTest_aTrain_func</span><span class="p">,</span> <span class="n">facecolor</span><span class="o">=</span><span class="s1">&#39;hotpink&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Distance&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;NN Function&#39;</span><span class="p">)</span>
+    <span class="n">legend</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+    <span class="n">title</span> <span class="o">=</span> <span class="s2">&quot;II - IA = </span><span class="si">%.3f</span><span class="se">\n</span><span class="s2">Total bias = </span><span class="si">%.3f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">iBias</span><span class="p">,</span> <span class="n">bias</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">title</span><span class="p">)</span>
+
+    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+
+    <span class="k">return</span> <span class="n">bias</span></div>
+
+<span class="c1">#*******************************************************************************************************************************************</span>
+<div class="viewcode-block" id="AVEMinSplitter"><a class="viewcode-back" href="../../pipeline.html#pipeline.ave_splitter.AVEMinSplitter">[docs]</a><span class="k">class</span> <span class="nc">AVEMinSplitter</span><span class="p">(</span><span class="n">Splitter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Class for splitting a DeepChem dataset using distances between feature vectors and binary classifications to compute</span>
+<span class="sd">    the AVE bias for a candidate split and find a split that minimizes the bias.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="s1">&#39;jaccard&#39;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">num_workers</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_iter</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="n">ndist</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">debug_mode</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="n">verbose</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">metric</span> <span class="o">=</span> <span class="n">metric</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_workers</span> <span class="o">=</span> <span class="n">num_workers</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">debug_mode</span> <span class="o">=</span> <span class="n">debug_mode</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_iter</span> <span class="o">=</span> <span class="n">max_iter</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dist_thresh</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ndist</span> <span class="o">=</span> <span class="n">ndist</span>
+
+        <span class="c1"># Set up multiprocessing pools</span>
+        <span class="k">if</span> <span class="n">num_workers</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">calc_dist_pool</span> <span class="o">=</span> <span class="n">Pool</span><span class="p">(</span><span class="n">processes</span> <span class="o">=</span> <span class="n">num_workers</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">split_sim_pool</span> <span class="o">=</span> <span class="n">Pool</span><span class="p">(</span><span class="n">processes</span> <span class="o">=</span> <span class="n">num_workers</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">calc_bias_pool</span> <span class="o">=</span> <span class="n">Pool</span><span class="p">(</span><span class="n">processes</span> <span class="o">=</span> <span class="n">num_workers</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">calc_dist_pool</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">split_sim_pool</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">calc_bias_pool</span> <span class="o">=</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="AVEMinSplitter.split"><a class="viewcode-back" href="../../pipeline.html#pipeline.ave_splitter.AVEMinSplitter.split">[docs]</a>    <span class="k">def</span> <span class="nf">split</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="p">,</span> <span class="n">frac_train</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">frac_valid</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">frac_test</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">log_every_n</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Split dataset into training and validation sets that minimize the AVE bias. A test set is not generated;</span>
+<span class="sd">        to do a 3-way split, call this function twice.</span>
+<span class="sd">        TODO: This would mean calculating the distance matrices twice, though. Change to do both splits in the same call.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">feat</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">X</span>
+        <span class="c1"># Compute overall nearest neighbor distances for each compound</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">metric</span> <span class="o">==</span> <span class="s1">&#39;jaccard&#39;</span><span class="p">:</span>
+            <span class="n">max_nn_dist</span> <span class="o">=</span> <span class="mf">1.0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">nan_mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">feat</span><span class="p">)</span>
+            <span class="n">nnan</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">nan_mat</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">nnan</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Input feature matrix has </span><span class="si">%d</span><span class="s1"> NaN elements&#39;</span> <span class="o">%</span> <span class="n">nnan</span><span class="p">)</span>
+                <span class="n">not_nan</span> <span class="o">=</span> <span class="o">~</span><span class="n">nan_mat</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">feat</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+                    <span class="n">feat</span><span class="p">[</span><span class="n">nan_mat</span><span class="p">[:,</span><span class="n">i</span><span class="p">],</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">feat</span><span class="p">[</span><span class="n">not_nan</span><span class="p">[:,</span><span class="n">i</span><span class="p">],</span><span class="n">i</span><span class="p">])</span>
+            <span class="n">nn_dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">squareform</span><span class="p">(</span><span class="n">pdist</span><span class="p">(</span><span class="n">feat</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">metric</span><span class="p">)))[:,</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">med_nn_dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">nn_dist</span><span class="p">)</span>
+            <span class="n">max_nn_dist</span> <span class="o">=</span> <span class="mf">3.0</span><span class="o">*</span><span class="n">med_nn_dist</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">debug_mode</span><span class="p">:</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Median NN distance = </span><span class="si">%.3f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">med_nn_dist</span><span class="p">)</span>
+                <span class="c1"># Plot distribution of overall NN distances</span>
+                <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span><span class="mi">8</span><span class="p">))</span>
+                <span class="n">sns</span><span class="o">.</span><span class="n">kdeplot</span><span class="p">(</span><span class="n">nn_dist</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Overall NN distance distribution&#39;</span><span class="p">)</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">axvline</span><span class="p">(</span><span class="n">med_nn_dist</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;forestgreen&#39;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;--&#39;</span><span class="p">)</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">axvline</span><span class="p">(</span><span class="mf">3.0</span><span class="o">*</span><span class="n">med_nn_dist</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;--&#39;</span><span class="p">)</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dist_thresh</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">max_nn_dist</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ndist</span><span class="p">)</span>
+
+        <span class="n">y_dim</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">shape</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">y_dim</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">y_dim</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;AVEMinSplitter only works for single task datasets&#39;</span><span class="p">)</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]))</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;AVEMinSplitter only works on binary classification datasets&#39;</span><span class="p">)</span>
+        <span class="n">active_ind</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">y</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">inactive_ind</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">y</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">active_feat</span> <span class="o">=</span> <span class="n">feat</span><span class="p">[</span><span class="n">active_ind</span><span class="p">,:]</span>
+        <span class="n">inactive_feat</span> <span class="o">=</span> <span class="n">feat</span><span class="p">[</span><span class="n">inactive_ind</span><span class="p">,:]</span>
+        <span class="n">num_active</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">active_ind</span><span class="p">)</span>
+        <span class="n">num_inactive</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">inactive_ind</span><span class="p">)</span>
+
+        <span class="n">aa_dist</span> <span class="o">=</span> <span class="n">calc_dist_mat</span><span class="p">(</span><span class="n">active_feat</span><span class="p">,</span> <span class="n">active_feat</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">metric</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">calc_dist_pool</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_workers</span> <span class="p">)</span>
+        <span class="n">ii_dist</span> <span class="o">=</span> <span class="n">calc_dist_mat</span><span class="p">(</span><span class="n">inactive_feat</span><span class="p">,</span> <span class="n">inactive_feat</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">metric</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">calc_dist_pool</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_workers</span> <span class="p">)</span>
+        <span class="n">ai_dist</span> <span class="o">=</span> <span class="n">calc_dist_mat</span><span class="p">(</span><span class="n">active_feat</span><span class="p">,</span> <span class="n">inactive_feat</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">metric</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">calc_dist_pool</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_workers</span> <span class="p">)</span>
+        <span class="n">ia_dist</span> <span class="o">=</span> <span class="n">ai_dist</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
+
+        <span class="n">pop</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="n">num_train_actives</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">num_active</span> <span class="o">*</span> <span class="n">frac_train</span><span class="p">)</span>
+        <span class="n">num_train_inactives</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">num_inactive</span> <span class="o">*</span> <span class="n">frac_train</span><span class="p">)</span>
+        <span class="k">assert</span><span class="p">(</span><span class="n">num_train_actives</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">num_train_inactives</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="p">)</span>
+
+        <span class="c1"># Map indices of active and inactive compounds to indices within the active and inactive sets</span>
+        <span class="n">active_arr</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">num_active</span><span class="p">))</span>
+        <span class="n">inactive_arr</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">num_inactive</span><span class="p">))</span>
+
+        <span class="c1"># randomly select an initial population of splits</span>
+        <span class="k">while</span> <span class="p">(</span><span class="nb">len</span> <span class="p">(</span><span class="n">pop</span> <span class="p">)</span> <span class="o">&lt;</span> <span class="n">POP_SIZE</span> <span class="p">)</span> <span class="p">:</span>
+            <span class="n">shuffle</span><span class="p">(</span><span class="n">active_arr</span><span class="p">)</span>
+            <span class="n">shuffle</span><span class="p">(</span><span class="n">inactive_arr</span><span class="p">)</span>
+            <span class="c1"># Each split set is a tuple: (valid_actives, valid_inactives, train_actives, train_inactives)</span>
+            <span class="n">pop</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">active_arr</span><span class="p">[</span><span class="n">num_train_actives</span><span class="p">:],</span> <span class="n">inactive_arr</span><span class="p">[</span><span class="n">num_train_inactives</span><span class="p">:],</span> 
+                        <span class="n">active_arr</span><span class="p">[:</span><span class="n">num_train_actives</span><span class="p">],</span> <span class="n">inactive_arr</span><span class="p">[:</span><span class="n">num_train_inactives</span><span class="p">]))</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">debug_mode</span><span class="p">:</span>
+            <span class="n">plot_nn_dist_distr</span><span class="p">((</span><span class="n">pop</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">aa_dist</span><span class="p">,</span> <span class="n">ii_dist</span><span class="p">,</span> <span class="n">ai_dist</span><span class="p">,</span> <span class="n">ia_dist</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dist_thresh</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">iter_count</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">max_iter</span><span class="p">):</span>
+            <span class="c1"># Calculate biases for each split and remove splits that are similar to less biased splits</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Calculating biases&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_workers</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">biases</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calc_bias_pool</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">calc_bias</span><span class="p">,</span> <span class="p">((</span><span class="n">split</span><span class="p">,</span> <span class="n">aa_dist</span><span class="p">,</span> <span class="n">ii_dist</span><span class="p">,</span> <span class="n">ai_dist</span><span class="p">,</span> <span class="n">ia_dist</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dist_thresh</span><span class="p">)</span> <span class="k">for</span> <span class="n">split</span> <span class="ow">in</span> <span class="n">pop</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">debug_mode</span><span class="p">:</span>
+                    <span class="n">biases</span> <span class="o">=</span> <span class="p">[]</span>
+                    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">split</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">pop</span><span class="p">):</span>
+                        <span class="k">if</span> <span class="n">k</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                            <span class="n">bias</span> <span class="o">=</span> <span class="n">plot_bias</span><span class="p">((</span><span class="n">split</span><span class="p">,</span> <span class="n">aa_dist</span><span class="p">,</span> <span class="n">ii_dist</span><span class="p">,</span> <span class="n">ai_dist</span><span class="p">,</span> <span class="n">ia_dist</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dist_thresh</span><span class="p">),</span> <span class="n">iter_count</span><span class="p">)</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">bias</span> <span class="o">=</span> <span class="n">calc_bias</span><span class="p">((</span><span class="n">split</span><span class="p">,</span> <span class="n">aa_dist</span><span class="p">,</span> <span class="n">ii_dist</span><span class="p">,</span> <span class="n">ai_dist</span><span class="p">,</span> <span class="n">ia_dist</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dist_thresh</span><span class="p">))</span>
+                        <span class="n">biases</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bias</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">biases</span> <span class="o">=</span> <span class="p">[</span><span class="n">calc_bias</span><span class="p">((</span><span class="n">split</span><span class="p">,</span> <span class="n">aa_dist</span><span class="p">,</span> <span class="n">ii_dist</span><span class="p">,</span> <span class="n">ai_dist</span><span class="p">,</span> <span class="n">ia_dist</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dist_thresh</span><span class="p">))</span> <span class="k">for</span> <span class="n">split</span> <span class="ow">in</span> <span class="n">pop</span><span class="p">]</span>
+            <span class="n">bias_splits</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">biases</span><span class="p">,</span> <span class="n">pop</span><span class="p">))</span>
+            <span class="n">num_splits</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">bias_splits</span><span class="p">)</span>
+
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Removing similar splits&quot;</span><span class="p">)</span>
+            <span class="n">skip_indices</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_splits</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">skip_indices</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="n">active_valid</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">bias_splits</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+                <span class="n">inactive_valid</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">bias_splits</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+                <span class="n">active_train</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">bias_splits</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">])</span>
+                <span class="n">inactive_train</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">bias_splits</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="mi">3</span><span class="p">])</span>
+
+                <span class="n">indices_to_check</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">num_splits</span><span class="p">))</span> <span class="o">-</span> <span class="n">skip_indices</span><span class="p">)</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_workers</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">split_sim_pool</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">check_split_similarity</span><span class="p">,</span> <span class="p">((</span><span class="n">active_valid</span><span class="p">,</span> <span class="n">inactive_valid</span><span class="p">,</span> <span class="n">active_train</span><span class="p">,</span> <span class="n">inactive_train</span><span class="p">,</span> <span class="n">bias_splits</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
+                                                                <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">indices_to_check</span><span class="p">))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">results</span> <span class="o">=</span> <span class="p">[</span><span class="n">check_split_similarity</span><span class="p">((</span><span class="n">active_valid</span><span class="p">,</span> <span class="n">inactive_valid</span><span class="p">,</span> <span class="n">active_train</span><span class="p">,</span> <span class="n">inactive_train</span><span class="p">,</span> <span class="n">bias_splits</span><span class="p">[</span><span class="n">j</span><span class="p">]))</span>
+                                                                <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">indices_to_check</span><span class="p">]</span>
+                <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">is_sim</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">indices_to_check</span><span class="p">,</span> <span class="n">results</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">is_sim</span><span class="p">:</span>
+                        <span class="n">skip_indices</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>
+                <span class="n">num_skipped</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">skip_indices</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">num_splits</span> <span class="o">-</span> <span class="n">num_skipped</span> <span class="o">&lt;</span> <span class="n">NEXT_GEN_FACTOR</span><span class="p">:</span>
+                    <span class="k">break</span>
+            <span class="c1"># remove the top overlapping splits</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Found </span><span class="si">%d</span><span class="s2"> splits with &gt; 0.8 overlap with better scoring sets&quot;</span> <span class="o">%</span> <span class="n">num_skipped</span><span class="p">)</span>
+            <span class="n">num_remove</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">num_skipped</span><span class="p">,</span> <span class="n">num_splits</span> <span class="o">-</span> <span class="n">NEXT_GEN_FACTOR</span><span class="p">)</span>
+            <span class="c1"># code added in case 0 removed</span>
+            <span class="n">remove_indices</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">skip_indices</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)[:</span><span class="n">num_remove</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">remove_indices</span><span class="p">:</span>
+                <span class="k">del</span> <span class="n">bias_splits</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> 
+    
+            <span class="c1"># select the top NEXT_GEN_FACTOR sets</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;population size after similarity filter: </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">bias_splits</span><span class="p">))</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;select the next generation&quot;</span><span class="p">)</span>
+            <span class="n">new_splits</span> <span class="o">=</span> <span class="n">bias_splits</span><span class="p">[</span> <span class="p">:</span><span class="n">NEXT_GEN_FACTOR</span> <span class="p">]</span>
+            <span class="n">best_split</span> <span class="o">=</span> <span class="n">bias_splits</span><span class="p">[</span> <span class="mi">0</span> <span class="p">]</span>
+            <span class="n">best_bias</span> <span class="o">=</span> <span class="n">best_split</span><span class="p">[</span> <span class="mi">0</span> <span class="p">]</span>
+   
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;iter = </span><span class="si">%d</span><span class="s2">  best_bias = </span><span class="si">%.3f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">iter_count</span><span class="p">,</span> <span class="n">best_bias</span><span class="p">))</span>
+     
+            <span class="c1"># If bias for best split is less than our target, exit the genetic optimization loop</span>
+            <span class="k">if</span> <span class="n">best_bias</span> <span class="o">&lt;</span> <span class="n">TARGET_BIAS</span><span class="p">:</span>
+                 <span class="k">break</span>
+    
+            <span class="c1"># &quot;Recombine&quot; and &quot;mutate&quot; the top scoring (least biased) splits to make a new population of splits </span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;breed&quot;</span><span class="p">)</span>
+            <span class="n">pop</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">while</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">pop</span> <span class="p">)</span> <span class="o">&lt;</span> <span class="n">POP_SIZE</span> <span class="p">)</span> <span class="p">:</span>
+                <span class="c1"># randomly choose a pair</span>
+                <span class="n">pair</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">new_splits</span><span class="p">,</span> <span class="mi">2</span> <span class="p">)</span>
+    
+                <span class="c1"># for each subset of indices, select a new set from the union of indices for that subset</span>
+                <span class="n">newActiveIndicesV</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">pair</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">pair</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span> 
+                <span class="n">newInactiveIndicesV</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">pair</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">pair</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span> 
+                <span class="n">newActiveIndicesT</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">pair</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">])</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">pair</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">])</span>
+                <span class="n">newInactiveIndicesT</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">pair</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="mi">3</span><span class="p">])</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">pair</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="mi">3</span><span class="p">])</span> 
+  
+                <span class="n">avSize</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">newActiveIndicesV</span> <span class="p">)</span><span class="o">/</span><span class="mi">2</span> <span class="p">)</span> 
+                <span class="n">ivSize</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">newInactiveIndicesV</span> <span class="p">)</span><span class="o">/</span><span class="mi">2</span> <span class="p">)</span> 
+                <span class="n">atSize</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">newActiveIndicesT</span> <span class="p">)</span><span class="o">/</span><span class="mi">2</span> <span class="p">)</span> 
+                <span class="n">itSize</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">newInactiveIndicesT</span> <span class="p">)</span><span class="o">/</span><span class="mi">2</span> <span class="p">)</span> 
+      
+                <span class="n">newActiveIndicesV</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">newActiveIndicesV</span> <span class="p">)</span>
+                <span class="n">newInactiveIndicesV</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">newInactiveIndicesV</span> <span class="p">)</span>
+                <span class="n">newActiveIndicesT</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">newActiveIndicesT</span> <span class="p">)</span>
+                <span class="n">newInactiveIndicesT</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">newInactiveIndicesT</span> <span class="p">)</span>
+      
+                <span class="c1"># make sure there are no overlapping molecules between training/validation sets</span>
+                <span class="n">newActiveIndices</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">newActiveIndicesV</span><span class="p">,</span> <span class="n">newActiveIndicesT</span><span class="p">)</span> <span class="p">)</span> <span class="p">)</span>
+                <span class="n">newInactiveIndices</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">newInactiveIndicesV</span><span class="p">,</span> <span class="n">newInactiveIndicesT</span><span class="p">)</span> <span class="p">)</span> <span class="p">)</span>
+                <span class="n">overlapActives</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">([</span> <span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">newActiveIndices</span> <span class="k">if</span> <span class="n">newActiveIndices</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">x</span> <span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="p">]</span> <span class="p">)</span> <span class="p">)</span>
+                <span class="n">overlapInactives</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">([</span> <span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">newInactiveIndices</span> <span class="k">if</span> <span class="n">newInactiveIndices</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">x</span> <span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="p">]</span> <span class="p">)</span> <span class="p">)</span>
+                <span class="n">shuffle</span><span class="p">(</span><span class="n">overlapActives</span> <span class="p">)</span>
+                <span class="n">shuffle</span><span class="p">(</span><span class="n">overlapInactives</span> <span class="p">)</span>
+                <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">overlapA</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">overlapActives</span> <span class="p">)</span> <span class="p">:</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="n">idx</span> <span class="o">%</span> <span class="mi">2</span> <span class="p">)</span> <span class="p">:</span>
+                             <span class="n">newActiveIndicesV</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">newActiveIndicesV</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">newActiveIndicesV</span> <span class="o">==</span> <span class="n">overlapA</span> <span class="p">)</span> <span class="p">)</span>
+                    <span class="k">else</span> <span class="p">:</span>
+                             <span class="n">newActiveIndicesT</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">newActiveIndicesT</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">newActiveIndicesT</span> <span class="o">==</span> <span class="n">overlapA</span> <span class="p">)</span> <span class="p">)</span>
+                <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">overlapI</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">overlapInactives</span> <span class="p">)</span> <span class="p">:</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="n">idx</span> <span class="o">%</span> <span class="mi">2</span> <span class="p">)</span> <span class="p">:</span>
+                             <span class="n">newInactiveIndicesV</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">newInactiveIndicesV</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">newInactiveIndicesV</span> <span class="o">==</span> <span class="n">overlapI</span> <span class="p">)</span> <span class="p">)</span>
+                    <span class="k">else</span> <span class="p">:</span>
+                             <span class="n">newInactiveIndicesT</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">newInactiveIndicesT</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">newInactiveIndicesT</span> <span class="o">==</span> <span class="n">overlapI</span> <span class="p">)</span> <span class="p">)</span>
+  
+                <span class="n">newActiveIndices</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">newActiveIndicesV</span><span class="p">,</span> <span class="n">newActiveIndicesT</span><span class="p">)</span> <span class="p">)</span> <span class="p">)</span>
+                <span class="n">newInactiveIndices</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">newInactiveIndicesV</span><span class="p">,</span> <span class="n">newInactiveIndicesT</span><span class="p">)</span> <span class="p">)</span> <span class="p">)</span>
+                <span class="k">assert</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">([</span> <span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">newActiveIndices</span> <span class="k">if</span> <span class="n">newActiveIndices</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">x</span> <span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="p">]</span> <span class="p">)</span> <span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="p">)</span> 
+                <span class="k">assert</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">([</span> <span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">newInactiveIndices</span> <span class="k">if</span> <span class="n">newInactiveIndices</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">x</span> <span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="p">]</span> <span class="p">)</span> <span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="p">)</span> 
+  
+                <span class="n">avSize</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">avSize</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">newActiveIndicesV</span> <span class="p">)</span> <span class="p">)</span>
+                <span class="n">ivSize</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">ivSize</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">newInactiveIndicesV</span> <span class="p">)</span> <span class="p">)</span>
+                <span class="n">atSize</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">atSize</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">newActiveIndicesT</span> <span class="p">)</span> <span class="p">)</span>
+                <span class="n">itSize</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">itSize</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">newInactiveIndicesT</span> <span class="p">)</span> <span class="p">)</span>
+  
+                <span class="k">if</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">()</span> <span class="o">&lt;</span> <span class="n">RM_PROB</span> <span class="ow">and</span> <span class="n">avSize</span> <span class="o">&gt;</span> <span class="n">MIN_AV</span> <span class="p">)</span> <span class="p">:</span>
+                    <span class="n">avSize</span> <span class="o">-=</span> <span class="mi">1</span> 
+                <span class="k">if</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">()</span> <span class="o">&lt;</span> <span class="n">ADD_PROB</span> <span class="p">)</span> <span class="p">:</span>
+                    <span class="n">avSize</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">()</span> <span class="o">&lt;</span> <span class="n">RM_PROB</span> <span class="ow">and</span> <span class="n">ivSize</span> <span class="o">&gt;</span> <span class="n">MIN_IV</span> <span class="p">)</span> <span class="p">:</span>
+                    <span class="n">ivSize</span> <span class="o">-=</span> <span class="mi">1</span> 
+                <span class="k">if</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">()</span> <span class="o">&lt;</span> <span class="n">ADD_PROB</span> <span class="p">)</span> <span class="p">:</span>
+                    <span class="n">ivSize</span> <span class="o">+=</span> <span class="mi">1</span> 
+                <span class="k">if</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">()</span> <span class="o">&lt;</span> <span class="n">RM_PROB</span> <span class="ow">and</span> <span class="n">atSize</span> <span class="o">&gt;</span> <span class="n">MIN_AT</span> <span class="p">)</span> <span class="p">:</span>
+                    <span class="n">atSize</span> <span class="o">-=</span> <span class="mi">1</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">()</span> <span class="o">&lt;</span> <span class="n">ADD_PROB</span> <span class="p">)</span> <span class="p">:</span>
+                    <span class="n">atSize</span> <span class="o">+=</span> <span class="mi">1</span> 
+                <span class="k">if</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">()</span> <span class="o">&lt;</span> <span class="n">RM_PROB</span> <span class="ow">and</span> <span class="n">itSize</span> <span class="o">&gt;</span> <span class="n">MIN_IT</span> <span class="p">)</span> <span class="p">:</span>
+                    <span class="n">itSize</span> <span class="o">-=</span> <span class="mi">1</span> 
+                <span class="k">if</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">()</span> <span class="o">&lt;</span> <span class="n">ADD_PROB</span> <span class="p">)</span> <span class="p">:</span>
+                    <span class="n">itSize</span> <span class="o">+=</span> <span class="mi">1</span> 
+      
+                <span class="n">avSamp</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">newActiveIndicesV</span><span class="p">),</span> <span class="nb">min</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">newActiveIndicesV</span> <span class="p">),</span> <span class="nb">max</span><span class="p">(</span><span class="n">avSize</span><span class="p">,</span> <span class="n">MIN_AV</span> <span class="p">)</span> <span class="p">)</span> <span class="p">)</span> 
+                <span class="n">ivSamp</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">newInactiveIndicesV</span><span class="p">),</span> <span class="nb">min</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">newInactiveIndicesV</span> <span class="p">),</span> <span class="nb">max</span><span class="p">(</span><span class="n">ivSize</span><span class="p">,</span> <span class="n">MIN_IV</span> <span class="p">)</span> <span class="p">)</span> <span class="p">)</span>
+                <span class="n">atSamp</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">newActiveIndicesT</span><span class="p">),</span> <span class="nb">min</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">newActiveIndicesT</span> <span class="p">),</span> <span class="nb">max</span><span class="p">(</span><span class="n">atSize</span><span class="p">,</span> <span class="n">MIN_AT</span> <span class="p">)</span> <span class="p">)</span> <span class="p">)</span>
+                <span class="n">itSamp</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">newInactiveIndicesT</span><span class="p">),</span> <span class="nb">min</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">newInactiveIndicesT</span> <span class="p">),</span> <span class="nb">max</span><span class="p">(</span><span class="n">itSize</span><span class="p">,</span> <span class="n">MIN_IT</span> <span class="p">)</span> <span class="p">)</span> <span class="p">)</span>
+   
+                <span class="n">pop</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">avSamp</span><span class="p">,</span> <span class="n">ivSamp</span><span class="p">,</span> <span class="n">atSamp</span><span class="p">,</span> <span class="n">itSamp</span><span class="p">))</span> 
+
+        <span class="c1"># End of genetic optimization loop</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">debug_mode</span><span class="p">:</span>
+            <span class="n">plot_nn_dist_distr</span><span class="p">((</span><span class="n">best_split</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">aa_dist</span><span class="p">,</span> <span class="n">ii_dist</span><span class="p">,</span> <span class="n">ai_dist</span><span class="p">,</span> <span class="n">ia_dist</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dist_thresh</span><span class="p">))</span>
+            <span class="n">final_bias</span> <span class="o">=</span> <span class="n">plot_bias</span><span class="p">((</span><span class="n">best_split</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">aa_dist</span><span class="p">,</span> <span class="n">ii_dist</span><span class="p">,</span> <span class="n">ai_dist</span><span class="p">,</span> <span class="n">ia_dist</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dist_thresh</span><span class="p">),</span> <span class="n">iter_count</span><span class="p">)</span>
+        <span class="n">active_valid</span><span class="p">,</span> <span class="n">inactive_valid</span><span class="p">,</span> <span class="n">active_train</span><span class="p">,</span> <span class="n">inactive_train</span> <span class="o">=</span> <span class="n">best_split</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="c1"># Map indices within active/inactive sets back to indices in original dataset</span>
+        <span class="n">train_inds</span> <span class="o">=</span> <span class="n">permutation</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">active_ind</span><span class="p">[</span><span class="n">active_train</span><span class="p">],</span> <span class="n">inactive_ind</span><span class="p">[</span><span class="n">inactive_train</span><span class="p">])))</span>
+        <span class="n">valid_inds</span> <span class="o">=</span> <span class="n">permutation</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">active_ind</span><span class="p">[</span><span class="n">active_valid</span><span class="p">],</span> <span class="n">inactive_ind</span><span class="p">[</span><span class="n">inactive_valid</span><span class="p">])))</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Final split has </span><span class="si">%d</span><span class="s2"> training, </span><span class="si">%d</span><span class="s2"> validation cmpds&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">train_inds</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">valid_inds</span><span class="p">)))</span>
+        <span class="k">return</span> <span class="n">train_inds</span><span class="p">,</span> <span class="n">valid_inds</span><span class="p">,</span> <span class="p">[]</span></div></div>
+
+
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, ATOM DDM Team.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.0',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

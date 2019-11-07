@@ -1,0 +1,15 @@
+{
+   "dataset_key" : "/ds/data/public/delaney/delaney-processed.csv",
+   "dataset_bucket" : "gsk_ml",
+   "max_epochs": "100",
+   "featurizer": "ecfp",
+   "y" : "measured log solubility in mols per litre",
+   "id_col" : "Compound ID",
+   "smiles_col" : "smiles",
+   "ecfp_size" : "1024",
+   "datastore": "True",
+   "result_dir": "/p/lscratchh/minnich2/new_test/delaney_tests",
+   "system": "LC",
+   "model_type": "NN,RF",
+   "featurizer": "ECFP,GC"
+}

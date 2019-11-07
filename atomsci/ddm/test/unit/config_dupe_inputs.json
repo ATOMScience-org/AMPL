@@ -1,0 +1,18 @@
+{
+    "ModelMetadata" : 
+        {
+        "TrainingDataset" : 
+            {
+                "dataset_key" : "/ds/data/public/delaney/delaney-processed.csv",
+                "dataset_bucket" : "gsk_ml",
+                "system" : "LC"
+            },
+        "ModelSpecific" : 
+            {
+                "system" : "twintron-blue",
+                "previously_split" : "True"
+            }
+        },
+    "dataset_bucket" : "gsk_ml",
+    "object_oid" : "fail"
+}

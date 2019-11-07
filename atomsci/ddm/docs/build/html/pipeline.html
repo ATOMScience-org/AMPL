@@ -1,0 +1,2749 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pipeline package &mdash; ATOM Data-Driven Modeling Pipeline 1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> ATOM Data-Driven Modeling Pipeline
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">pipeline package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#pipeline-ave-splitter-module">pipeline.ave_splitter module</a></li>
+<li><a class="reference internal" href="#module-pipeline.chem_diversity">pipeline.chem_diversity module</a></li>
+<li><a class="reference internal" href="#pipeline-compare-models-module">pipeline.compare_models module</a></li>
+<li><a class="reference internal" href="#module-pipeline.dist_metrics">pipeline.dist_metrics module</a></li>
+<li><a class="reference internal" href="#pipeline-diversity-plots-module">pipeline.diversity_plots module</a></li>
+<li><a class="reference internal" href="#pipeline-featurization-module">pipeline.featurization module</a></li>
+<li><a class="reference internal" href="#module-pipeline.hyper_perf_plots">pipeline.hyper_perf_plots module</a></li>
+<li><a class="reference internal" href="#module-pipeline.mlmt_client_wrapper">pipeline.mlmt_client_wrapper module</a></li>
+<li><a class="reference internal" href="#pipeline-model-datasets-module">pipeline.model_datasets module</a></li>
+<li><a class="reference internal" href="#pipeline-model-pipeline-module">pipeline.model_pipeline module</a></li>
+<li><a class="reference internal" href="#module-pipeline.model_tracker">pipeline.model_tracker module</a></li>
+<li><a class="reference internal" href="#module-pipeline.model_wrapper">pipeline.model_wrapper module</a></li>
+<li><a class="reference internal" href="#module-pipeline.parameter_parser">pipeline.parameter_parser module</a></li>
+<li><a class="reference internal" href="#module-pipeline.perf_data">pipeline.perf_data module</a></li>
+<li><a class="reference internal" href="#module-pipeline.perf_plots">pipeline.perf_plots module</a></li>
+<li><a class="reference internal" href="#pipeline-splitting-module">pipeline.splitting module</a></li>
+<li><a class="reference internal" href="#module-pipeline.transformations">pipeline.transformations module</a></li>
+<li><a class="reference internal" href="#module-pipeline">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">ATOM Data-Driven Modeling Pipeline</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>pipeline package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/pipeline.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="pipeline-package">
+<h1>pipeline package<a class="headerlink" href="#pipeline-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="pipeline-ave-splitter-module">
+<h2>pipeline.ave_splitter module<a class="headerlink" href="#pipeline-ave-splitter-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-pipeline.chem_diversity">
+<span id="pipeline-chem-diversity-module"></span><h2>pipeline.chem_diversity module<a class="headerlink" href="#module-pipeline.chem_diversity" title="Permalink to this headline">¶</a></h2>
+<p>Functions to generate matrices or vectors of distances between compounds</p>
+<dl class="function">
+<dt id="pipeline.chem_diversity.calc_dist_diskdataset">
+<code class="descclassname">pipeline.chem_diversity.</code><code class="descname">calc_dist_diskdataset</code><span class="sig-paren">(</span><em>feat_type</em>, <em>dist_met</em>, <em>dataset1</em>, <em>dataset2=None</em>, <em>calc_type='nearest'</em>, <em>num_nearest=1</em>, <em>**metric_kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/chem_diversity.html#calc_dist_diskdataset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.chem_diversity.calc_dist_diskdataset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a vector of distances, either between all compounds in a single dataset or between two datasets, given
+as DeepChem Dataset objects.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><p class="first">feature_type: How the data should be featurized. Current options include ECFP, MOE, or Dragon7.</p>
+<p>dist_met: What distance metric to use. Current options include tanimoto, cosine, cityblock, euclidean, or any
+other metric supported by scipy.spatial.distance.pdist().</p>
+<p>dataset1: deepchem Dataset. dataset1.X should be the feature matrix.</p>
+<p>dataset2: Optional, second deepchem Dataset.</p>
+<p class="last">calc_type: Type of calculation to use to process distance matrix. Options: nearest, farthest, average, or all.
+num_nearest: Additional parameter for calc_types nearest, nth_nearest and avg_n_nearest.</p>
+</dd>
+<dt>Returns:</dt>
+<dd>dists: vector or array of distances</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="pipeline.chem_diversity.calc_dist_feat_array">
+<code class="descclassname">pipeline.chem_diversity.</code><code class="descname">calc_dist_feat_array</code><span class="sig-paren">(</span><em>feat_type</em>, <em>dist_met</em>, <em>feat1</em>, <em>feat2=None</em>, <em>calc_type='nearest'</em>, <em>num_nearest=1</em>, <em>**metric_kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/chem_diversity.html#calc_dist_feat_array"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.chem_diversity.calc_dist_feat_array" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a vector or array of distances, either between all compounds in a single dataset or between two datasets,
+given the feature matrices for the dataset(s).</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><p class="first">feature_type: How the data should be featurized. Current options include ECFP, MOE, or Dragon7.</p>
+<p>dist_met: What distance metric to use. Current options include tanimoto, cosine, cityblock, euclidean, or any
+other metric supported by scipy.spatial.distance.pdist().</p>
+<p>feat1: feature matrix as a numpy array</p>
+<p>feat2: Optional, second feature matrix</p>
+<p>calc_type: Type of calculation to use to process distance matrix. Options: nearest, farthest, average, or all.</p>
+<p class="last">num_nearest: Additional parameter for calc_types nearest, nth_nearest and avg_n_nearest.</p>
+</dd>
+<dt>Returns:</dt>
+<dd>dists: vector or array of distances</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="pipeline.chem_diversity.calc_dist_smiles">
+<code class="descclassname">pipeline.chem_diversity.</code><code class="descname">calc_dist_smiles</code><span class="sig-paren">(</span><em>feat_type</em>, <em>dist_met</em>, <em>smiles_arr1</em>, <em>smiles_arr2=None</em>, <em>calc_type='nearest'</em>, <em>num_nearest=1</em>, <em>**metric_kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/chem_diversity.html#calc_dist_smiles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.chem_diversity.calc_dist_smiles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a vector of distances, either between all compounds in a single matrix or between two matrices.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><p class="first">feature_type: How the data should be featurized. Current options include ECFP, MOE, or Dragon7.</p>
+<p>dist_met: What distance metric to use. Current options include tanimoto, cosine, cityblock, euclidean, or any
+other metric supported by scipy.spatial.distance.pdist()..</p>
+<p>smiles_arr1 (list): List of SMILES strings.</p>
+<p>smiles_arr2 (list): Optional, second list of SMILES strings. Can have only 1 member if wanting compound to
+matrix comparison.</p>
+<p>calc_type: Type of calculation to use to process distance matrix. Options: nearest, farthest, average, or all.</p>
+<p class="last">num_nearest: Additional parameter for calc_types nearest, nth_nearest and avg_n_nearest.</p>
+</dd>
+<dt>Returns:</dt>
+<dd>dists: vector or array of distances</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="pipeline.chem_diversity.calc_summary">
+<code class="descclassname">pipeline.chem_diversity.</code><code class="descname">calc_summary</code><span class="sig-paren">(</span><em>dist_arr</em>, <em>calc_type</em>, <em>num_nearest=1</em>, <em>within_dset=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/chem_diversity.html#calc_summary"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.chem_diversity.calc_summary" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a summary of the distances in dist_arr, depending on calc_type.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><p class="first">dist_arr: (np.array): Either a 2D distance matrix, or a 1D condensed distance matrix (flattened upper triangle).</p>
+<p>calc_type (str): The type of summary values to return:</p>
+<blockquote>
+<div><p>all:            The distance matrix itself</p>
+<p>nearest:        The distances to the num_nearest nearest neighbors of each compound (except compound itself)</p>
+<p>nth_nearest:    The distance to the num_nearest’th nearest neighbor</p>
+<p>avg_n_nearest:  The average of the num_nearest nearest neighbor distances</p>
+<p>farthest:       The distance to the farthest neighbor</p>
+<p>avg:            The average of all distances for each compound</p>
+</div></blockquote>
+<p>num_nearest (int):  Additional parameter for calc_types nearest, nth_nearest and avg_n_nearest.</p>
+<p class="last">within_dset (bool): True if input distances are between compounds in the same dataset.</p>
+</dd>
+</dl>
+<p>Returns:</p>
+<blockquote>
+<div>dists (np.array):  A numpy array of distances. For calc_type ‘nearest’ with num_nearest &gt; 1, this is a 2D array
+with a row for each compound; otherwise it is a 1D array.</div></blockquote>
+</dd></dl>
+
+<dl class="function">
+<dt id="pipeline.chem_diversity.get_descriptors">
+<code class="descclassname">pipeline.chem_diversity.</code><code class="descname">get_descriptors</code><span class="sig-paren">(</span><em>smiles_arr</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/chem_diversity.html#get_descriptors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.chem_diversity.get_descriptors" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pipeline.chem_diversity.upload_distmatrix_to_DS">
+<code class="descclassname">pipeline.chem_diversity.</code><code class="descname">upload_distmatrix_to_DS</code><span class="sig-paren">(</span><em>dist_matrix</em>, <em>feature_type</em>, <em>compound_ids</em>, <em>bucket</em>, <em>title</em>, <em>description</em>, <em>tags</em>, <em>key_values</em>, <em>filepath='./'</em>, <em>dataset_key=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/chem_diversity.html#upload_distmatrix_to_DS"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.chem_diversity.upload_distmatrix_to_DS" title="Permalink to this definition">¶</a></dt>
+<dd><p>Uploads distance matrix in the data store with the appropriate tags</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><p class="first">dist_matrix: dist_matrix computed using</p>
+<p>feature_type: How was the data featurized.</p>
+<p>dist_met: What distance metric was used.</p>
+<p>compound_ids = list of compound ids corresponding to the distance matrix (assumes that distance matrix is square
+and is the distance between all compounds in a dataset)</p>
+<p>bucket = bucket the file will be put in</p>
+<p>title = title of the file in (human friendly format)</p>
+<p>description = long text box to describe file (background/use notes)</p>
+<p>tags = must be a list.</p>
+<p>key_values = key:value pairs to enable future users to find the file. Must be a dictionary.</p>
+<p>filepath = local path where you want to store the pickled dataframe</p>
+<dl class="last docutils">
+<dt>dataset_key = If updating a file already in the datastore enter the corresponding dataset_key. </dt>
+<dd>If not, leave as ‘none’ and the dataset_key will be automatically generated.</dd>
+</dl>
+</dd>
+<dt>Returns:</dt>
+<dd>None</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="pipeline-compare-models-module">
+<h2>pipeline.compare_models module<a class="headerlink" href="#pipeline-compare-models-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-pipeline.dist_metrics">
+<span id="pipeline-dist-metrics-module"></span><h2>pipeline.dist_metrics module<a class="headerlink" href="#module-pipeline.dist_metrics" title="Permalink to this headline">¶</a></h2>
+<p>Distance metrics for compounds: Tanimoto and maximum common substructure (MCS)</p>
+<dl class="function">
+<dt id="pipeline.dist_metrics.mcs">
+<code class="descclassname">pipeline.dist_metrics.</code><code class="descname">mcs</code><span class="sig-paren">(</span><em>mols1</em>, <em>mols2=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/dist_metrics.html#mcs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.dist_metrics.mcs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute average variant of MCS distance between molecules.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pipeline.dist_metrics.mcs_single">
+<code class="descclassname">pipeline.dist_metrics.</code><code class="descname">mcs_single</code><span class="sig-paren">(</span><em>mol</em>, <em>mols</em>, <em>n_atms</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/dist_metrics.html#mcs_single"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.dist_metrics.mcs_single" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get per-molecule MCS distance vector.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pipeline.dist_metrics.mcs_worker">
+<code class="descclassname">pipeline.dist_metrics.</code><code class="descname">mcs_worker</code><span class="sig-paren">(</span><em>k</em>, <em>mols</em>, <em>n_atms</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/dist_metrics.html#mcs_worker"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.dist_metrics.mcs_worker" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get per-molecule MCS distance vector.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pipeline.dist_metrics.parallel_dist_multi">
+<code class="descclassname">pipeline.dist_metrics.</code><code class="descname">parallel_dist_multi</code><span class="sig-paren">(</span><em>inp_lst</em>, <em>worker_fn</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/dist_metrics.html#parallel_dist_multi"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.dist_metrics.parallel_dist_multi" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method for multiprocessor distance matrix computation.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pipeline.dist_metrics.parallel_dist_single">
+<code class="descclassname">pipeline.dist_metrics.</code><code class="descname">parallel_dist_single</code><span class="sig-paren">(</span><em>inp_lst</em>, <em>worker_fn</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/dist_metrics.html#parallel_dist_single"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.dist_metrics.parallel_dist_single" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method for multiprocessor distance matrix computation.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pipeline.dist_metrics.tanimoto">
+<code class="descclassname">pipeline.dist_metrics.</code><code class="descname">tanimoto</code><span class="sig-paren">(</span><em>fps1</em>, <em>fps2=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/dist_metrics.html#tanimoto"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.dist_metrics.tanimoto" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute Tanimoto distance between given ECFP fingerprints.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pipeline.dist_metrics.tanimoto_single">
+<code class="descclassname">pipeline.dist_metrics.</code><code class="descname">tanimoto_single</code><span class="sig-paren">(</span><em>fp</em>, <em>fps</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/dist_metrics.html#tanimoto_single"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.dist_metrics.tanimoto_single" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get per-fingerprint Tanimoto distance vector.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pipeline.dist_metrics.tanimoto_worker">
+<code class="descclassname">pipeline.dist_metrics.</code><code class="descname">tanimoto_worker</code><span class="sig-paren">(</span><em>k</em>, <em>fps</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/dist_metrics.html#tanimoto_worker"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.dist_metrics.tanimoto_worker" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get per-fingerprint Tanimoto distance vector.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="pipeline-diversity-plots-module">
+<h2>pipeline.diversity_plots module<a class="headerlink" href="#pipeline-diversity-plots-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="pipeline-featurization-module">
+<h2>pipeline.featurization module<a class="headerlink" href="#pipeline-featurization-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-pipeline.hyper_perf_plots">
+<span id="pipeline-hyper-perf-plots-module"></span><h2>pipeline.hyper_perf_plots module<a class="headerlink" href="#module-pipeline.hyper_perf_plots" title="Permalink to this headline">¶</a></h2>
+<p>Plotting routines for visualizing performance of models from hyperparameter search</p>
+<dl class="function">
+<dt id="pipeline.hyper_perf_plots.hyper_perf_plot_file">
+<code class="descclassname">pipeline.hyper_perf_plots.</code><code class="descname">hyper_perf_plot_file</code><span class="sig-paren">(</span><em>dset_name</em>, <em>col_name='pilot_fixed'</em>, <em>pred_type='regression'</em>, <em>top_n=1</em>, <em>subset='test'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/hyper_perf_plots.html#hyper_perf_plot_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.hyper_perf_plots.hyper_perf_plot_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get results for models in the given collection. For each training dataset, separate the
+results by model type and featurizer, and make a scatter plot of &lt;subset&gt; set r2_score vs
+model type/featurizer combo. Then make plots of r2 vs model parameters relevant for each
+model type.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pipeline.hyper_perf_plots.hyper_perf_plots">
+<code class="descclassname">pipeline.hyper_perf_plots.</code><code class="descname">hyper_perf_plots</code><span class="sig-paren">(</span><em>collection='pilot_fixed'</em>, <em>pred_type='regression'</em>, <em>top_n=1</em>, <em>subset='test'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/hyper_perf_plots.html#hyper_perf_plots"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.hyper_perf_plots.hyper_perf_plots" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get results for models in the given collection. For each training dataset, separate the
+results by model type and featurizer, and make a scatter plot of &lt;subset&gt; set r2_score vs
+model type/featurizer combo. Then make plots of r2 vs model parameters relevant for each
+model type.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pipeline.hyper_perf_plots.plot_timings">
+<code class="descclassname">pipeline.hyper_perf_plots.</code><code class="descname">plot_timings</code><span class="sig-paren">(</span><em>timings_file</em>, <em>out_dir</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/hyper_perf_plots.html#plot_timings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.hyper_perf_plots.plot_timings" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pipeline.hyper_perf_plots.plot_uncertainties">
+<code class="descclassname">pipeline.hyper_perf_plots.</code><code class="descname">plot_uncertainties</code><span class="sig-paren">(</span><em>results_df</em>, <em>col_name='pilot'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/hyper_perf_plots.html#plot_uncertainties"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.hyper_perf_plots.plot_uncertainties" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get results for models in the given collection. For each training dataset, separate the
+results by model type and featurizer, and make a scatter plot of &lt;subset&gt; set r2_score vs
+model type/featurizer combo. Then make plots of r2 vs model parameters relevant for each
+model type.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pipeline.mlmt_client_wrapper">
+<span id="pipeline-mlmt-client-wrapper-module"></span><h2>pipeline.mlmt_client_wrapper module<a class="headerlink" href="#module-pipeline.mlmt_client_wrapper" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="pipeline.mlmt_client_wrapper.MLMTClientWrapper">
+<em class="property">class </em><code class="descclassname">pipeline.mlmt_client_wrapper.</code><code class="descname">MLMTClientWrapper</code><span class="sig-paren">(</span><em>mlmt_client=None</em>, <em>ds_client=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/mlmt_client_wrapper.html#MLMTClientWrapper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.mlmt_client_wrapper.MLMTClientWrapper" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="pipeline.mlmt_client_wrapper.MLMTClientWrapper.delete_collections">
+<code class="descname">delete_collections</code><span class="sig-paren">(</span><em>filter_dict</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/mlmt_client_wrapper.html#MLMTClientWrapper.delete_collections"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.mlmt_client_wrapper.MLMTClientWrapper.delete_collections" title="Permalink to this definition">¶</a></dt>
+<dd><p>Delete specified collections.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><p class="first">filter_dict (dict): The dictionary containing names of collections
+to be deleted. Must be of the following form:</p>
+<blockquote class="last">
+<div><p>{</p>
+<blockquote>
+<div><p>‘collection_names’: List of collection names to be deleted.
+If excluded then all collection names are returned.</p>
+<p>‘keep_metrics’ : True if the behind-the-scenes collection
+<code class="docutils literal notranslate"><span class="pre">collection_name</span> <span class="pre">+</span> <span class="pre">'_metrics'</span></code> should NOT also be
+deleted. If excluded then defaults to False.</p>
+<p># Special Key:</p>
+<p>test_internal_error (bool, optional): If True, trigger a
+500 error. For testing purposes only. Default False.</p>
+</div></blockquote>
+<p>}</p>
+</div></blockquote>
+</dd>
+<dt>Returns:</dt>
+<dd><p class="first">dict: Output dictionary of the form:</p>
+<blockquote class="last">
+<div><p>{</p>
+<blockquote>
+<div><p>‘status’: The status code of the delete operation, one of
+(200 OK, 400 Bad Request, or 500 Internal Server Error).</p>
+<p># These two keys may or may not be present:</p>
+<p>‘errors’: Errors encountered,</p>
+<p>‘trace’ : Stack Trace of fatal error</p>
+</div></blockquote>
+<p>}</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pipeline.mlmt_client_wrapper.MLMTClientWrapper.delete_from_collection">
+<code class="descname">delete_from_collection</code><span class="sig-paren">(</span><em>filter_dict</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/mlmt_client_wrapper.html#MLMTClientWrapper.delete_from_collection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.mlmt_client_wrapper.MLMTClientWrapper.delete_from_collection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Delete specified items from a collection.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><p class="first">filter_dict (dict): The dictionary containing information on which
+items to delete. Must be one of the following forms:</p>
+<blockquote>
+<div><p>{</p>
+<blockquote>
+<div><p>‘collection_name’ : The collection to delete from,</p>
+<p>‘ids’: List of items to delete filtered by ‘_id’</p>
+</div></blockquote>
+<p>}</p>
+<p>or</p>
+<p>{</p>
+<blockquote>
+<div><p>‘collection_name’ : The collection to delete from,</p>
+<p>‘keep_metrics’ : True if assoicated metrics should NOT
+also be deleted; If excluded then defaults to False,</p>
+<p>‘model_uuids’: List of items to delete, filtered by
+‘model_uuid’</p>
+</div></blockquote>
+<p>}</p>
+</div></blockquote>
+<p>The former allows for deletion of specific items. The latter allows
+for bulk deletes of a model’s metadata and all its metrics.
+The former is not fully supported yet - see
+<a class="reference external" href="https://lc.llnl.gov/jira/browse/ATOM-204">https://lc.llnl.gov/jira/browse/ATOM-204</a>.</p>
+<p>Special Key:</p>
+<p class="last">test_internal_error (bool, optional): If True, trigger a 500 error.
+For testing purposes only. Default False.</p>
+</dd>
+<dt>Returns:</dt>
+<dd><p class="first">dict: Output dictionary of the form:</p>
+<blockquote class="last">
+<div><p>{</p>
+<blockquote>
+<div><p>‘status’: The status code of the delete operation, one of
+(200 OK, 400 Bad Request, or 500 Internal Server Error).</p>
+<p># These two keys may or may not be present:</p>
+<p>‘errors’: Errors encountered,</p>
+<p>‘trace’ : Stack Trace of fatal error</p>
+</div></blockquote>
+<p>}</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pipeline.mlmt_client_wrapper.MLMTClientWrapper.get_collection_generator">
+<code class="descname">get_collection_generator</code><span class="sig-paren">(</span><em>filter_dict</em>, <em>log=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/mlmt_client_wrapper.html#MLMTClientWrapper.get_collection_generator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.mlmt_client_wrapper.MLMTClientWrapper.get_collection_generator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get all items in a collection.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><p class="first">filter_dict (dict): The dictionary to filter results on.
+Must be of the following form:</p>
+<blockquote>
+<div><p>{</p>
+<blockquote>
+<div><p>‘collection_name’: The collection to return</p>
+<p># Special Key:</p>
+<p>test_internal_error (bool, optional): If True, trigger a
+500 error. For testing purposes only. Default False.</p>
+</div></blockquote>
+<p>}</p>
+</div></blockquote>
+<p class="last">log (bool): True if logs should print. False otherwise.
+Default False.</p>
+</dd>
+<dt>Returns:</dt>
+<dd><p class="first">generator of dictionaries of the form:</p>
+<blockquote class="last">
+<div><p>{</p>
+<blockquote>
+<div><p>‘status’: The status code of the get operation,
+# one of (200 OK, 400 Bad Request, or 500 Internal Server
+Error)</p>
+<p># These three keys may or may not be present:</p>
+<p>‘item’: An item in the collection (metadata if it’s a main
+collection, metrics if it’s a metrics collection),</p>
+<p>‘errors’: Errors encountered,</p>
+<p>‘trace’ : Stack Trace of fatal error</p>
+</div></blockquote>
+<p>}</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pipeline.mlmt_client_wrapper.MLMTClientWrapper.get_collection_names">
+<code class="descname">get_collection_names</code><span class="sig-paren">(</span><em>filter_dict</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/mlmt_client_wrapper.html#MLMTClientWrapper.get_collection_names"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.mlmt_client_wrapper.MLMTClientWrapper.get_collection_names" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the names of all existing collections.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><p class="first">filter_dict (dict): The dictionary to filter results on.
+Must be of the following form:</p>
+<blockquote class="last">
+<div><p>{</p>
+<blockquote>
+<div><p>‘substring’: If a collection name includes this substring
+then it will be returned. If excluded then all collection
+names are returned.</p>
+<p># Special Key:
+test_internal_error (bool, optional): If True, trigger a
+500 error. For testing purposes only. Default False.</p>
+</div></blockquote>
+<p>}</p>
+</div></blockquote>
+</dd>
+<dt>Returns:</dt>
+<dd><p class="first">dict: Output dictionary of the form:</p>
+<blockquote class="last">
+<div><p>{</p>
+<blockquote>
+<div><p>‘status’: The status code of the get operation, one of
+(200 OK, 400 Bad Request, or 500 Internal Server Error).</p>
+<p># These three keys may or may not be present:</p>
+<p>‘matching_collection_names’: The list of matches,</p>
+<p>‘errors’: Errors encountered,</p>
+<p>‘trace’ : Stack Trace of fatal error</p>
+</div></blockquote>
+<p>}</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pipeline.mlmt_client_wrapper.MLMTClientWrapper.get_full_metadata_generator">
+<code class="descname">get_full_metadata_generator</code><span class="sig-paren">(</span><em>filter_dict</em>, <em>log=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/mlmt_client_wrapper.html#MLMTClientWrapper.get_full_metadata_generator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.mlmt_client_wrapper.MLMTClientWrapper.get_full_metadata_generator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Query model metadata (plus its TrainingRun metrics) from MongoDB.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><p class="first">filter_dict (dict): The dictionary to filter macthing model metadata dicts on.
+Hierarchy is represented with dots, as follows:</p>
+<blockquote>
+<div><p>{</p>
+<blockquote>
+<div><p>‘ModelMetadata.ModelParameters.model_type’ : ‘NN’</p>
+<p># Special Keys:</p>
+<p>collection_name (str): The Mongo collection to be used.</p>
+<p>pop_id (bool, optional): If True, pop the ‘_id’ field from
+the returned dicts. Default True.</p>
+<p>test_internal_error (bool, optional): If True, trigger a
+500 error. For testing purposes only. Default False.</p>
+</div></blockquote>
+<p>}</p>
+</div></blockquote>
+<p class="last">log (bool): True if logs should print. False otherwise.
+Default False.</p>
+</dd>
+<dt>Returns:</dt>
+<dd><p class="first">generator of dictionaries of the form:</p>
+<blockquote class="last">
+<div><p>{</p>
+<blockquote>
+<div><p>‘status’: The status code of the get operation,
+# one of (200 OK, 400 Bad Request, or 500 Internal Server
+Error)</p>
+<p># These three keys may or may not be present:</p>
+<p>‘item’: A matching metadata item,</p>
+<p>‘errors’: Errors encountered,</p>
+<p>‘trace’ : Stack Trace of fatal error</p>
+</div></blockquote>
+<p>}</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pipeline.mlmt_client_wrapper.MLMTClientWrapper.get_metadata_generator">
+<code class="descname">get_metadata_generator</code><span class="sig-paren">(</span><em>filter_dict</em>, <em>log=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/mlmt_client_wrapper.html#MLMTClientWrapper.get_metadata_generator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.mlmt_client_wrapper.MLMTClientWrapper.get_metadata_generator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Query model metadata from MongoDB.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><p class="first">filter_dict (dict): The dictionary to filter macthing model
+metadata dicts on. Hierarchy is represented with dots, as follows:</p>
+<blockquote>
+<div><p>{</p>
+<blockquote>
+<div><p>‘ModelMetadata.ModelParameters.model_type’ : ‘NN’</p>
+<p># Special Keys:</p>
+<p>collection_name (str): The Mongo collection to be used.</p>
+<p>pop_id (bool, optional): If True, pop the ‘_id’ field from
+the returned dicts. Default True.</p>
+<p>test_internal_error (bool, optional): If True, trigger a
+500 error. For testing purposes only. Default False.</p>
+</div></blockquote>
+<p>}</p>
+</div></blockquote>
+<p class="last">log (bool): True if logs should print. False otherwise.
+Default False.</p>
+</dd>
+<dt>Returns:</dt>
+<dd><p class="first">generator of dictionaries of the form:</p>
+<blockquote class="last">
+<div><p>{</p>
+<blockquote>
+<div><p>‘status’: The status code of the get operation,
+# one of (200 OK, 400 Bad Request, or 500 Internal Server
+Error)</p>
+<p># These three keys may or may not be present:</p>
+<p>‘item’: A matching metadata item,</p>
+<p>‘errors’: Errors encountered,</p>
+<p>‘trace’ : Stack Trace of fatal error</p>
+</div></blockquote>
+<p>}</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pipeline.mlmt_client_wrapper.MLMTClientWrapper.get_metrics_generator">
+<code class="descname">get_metrics_generator</code><span class="sig-paren">(</span><em>filter_dict</em>, <em>log=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/mlmt_client_wrapper.html#MLMTClientWrapper.get_metrics_generator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.mlmt_client_wrapper.MLMTClientWrapper.get_metrics_generator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Query model metrics from MongoDB.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><p class="first">filter_dict (dict): The dictionary to filter macthing model
+metrics dicts on. Hierarchy is represented with dots, as follows:</p>
+<blockquote>
+<div><p>{</p>
+<blockquote>
+<div><p>‘ModelMetrics.TrainingRun.PredictionResults.r2_score’ : 0.5,</p>
+<p># Special Keys:</p>
+<p>collection_name (str): The Mongo collection to be used.</p>
+<p>pop_id (bool, optional): If True, pop the ‘_id’ field from
+the return dicts. Default True.</p>
+<p>test_internal_error (bool, optional): If True, trigger a
+500 error. For testing purposes only. Default False.</p>
+</div></blockquote>
+<p>}</p>
+</div></blockquote>
+<p class="last">log (bool): True if logs should print. False otherwise.
+Default False.</p>
+</dd>
+<dt>Returns:</dt>
+<dd><p class="first">generator of dictionaries of the form:</p>
+<blockquote class="last">
+<div><p>{</p>
+<blockquote>
+<div><p>‘status’: The status code of the get operation,
+# one of (200 OK, 400 Bad Request, or 500 Internal Server Error)</p>
+<p># These three keys may or may not be present:</p>
+<p>‘item’: A matching metrics item,</p>
+<p>‘errors’: Errors encountered,</p>
+<p>‘trace’ : Stack Trace of fatal error</p>
+</div></blockquote>
+<p>}</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pipeline.mlmt_client_wrapper.MLMTClientWrapper.get_models_generator">
+<code class="descname">get_models_generator</code><span class="sig-paren">(</span><em>filter_dict</em>, <em>log=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/mlmt_client_wrapper.html#MLMTClientWrapper.get_models_generator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.mlmt_client_wrapper.MLMTClientWrapper.get_models_generator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get specific objects in a collection.</p>
+<p><code class="docutils literal notranslate"><span class="pre">get_model_metadata_generator</span></code> will return only the metadata portion
+of matching dicts.</p>
+<p><code class="docutils literal notranslate"><span class="pre">get_model_metrics_generator</span></code> will return only the metrics portion of
+matching dicts.</p>
+<p><code class="docutils literal notranslate"><span class="pre">get_collection_generator</span></code> will return the entire collectiion.
+Furthermore, this only returns the metadata collection or the metrics
+collection.</p>
+<p>This function will return specific metadata (along with appropriate
+metrics inline) from the collection.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><p class="first">filter_dict (dict): The dictionary to filter results on.
+Hierarchy is represented with dots, as follows:</p>
+<blockquote>
+<div><p>{</p>
+<blockquote>
+<div><p>‘ModelMetadata.ModelParameters.model_type’ : ‘NN’,</p>
+<p>‘ModelMetrics.TrainingRun.PredictionResults.r2_score’ : 0.5,</p>
+<p># Special Keys:</p>
+<p>collection_name (str): The Mongo collection to be used.</p>
+<p>pop_id (bool, optional): If True, pop the ‘_id’ field from
+the return dicts. Default True.</p>
+<p>test_internal_error (bool, optional): If True, trigger a
+500 error. For testing purposes only. Default False.</p>
+</div></blockquote>
+<p>}</p>
+</div></blockquote>
+<p class="last">log (bool): True if logs should print. False otherwise.
+Default False.</p>
+</dd>
+<dt>Returns:</dt>
+<dd><dl class="first last docutils">
+<dt>generator of dictionaries of the form:</dt>
+<dd><p class="first">{</p>
+<blockquote>
+<div><p>‘status’: The status code of the get operation,
+# one of (200 OK, 400 Bad Request, or 500 Internal Server
+Error)</p>
+<p># These three keys may or may not be present:</p>
+<p>‘item’: A matching model (metadata plus matching metrics)</p>
+<p>‘errors’: Errors encountered,</p>
+<p>‘trace’ : Stack Trace of fatal error</p>
+</div></blockquote>
+<p class="last">}</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pipeline.mlmt_client_wrapper.MLMTClientWrapper.instantiate_mlmt_client">
+<code class="descname">instantiate_mlmt_client</code><span class="sig-paren">(</span><em>use_production_server=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/mlmt_client_wrapper.html#MLMTClientWrapper.instantiate_mlmt_client"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.mlmt_client_wrapper.MLMTClientWrapper.instantiate_mlmt_client" title="Permalink to this definition">¶</a></dt>
+<dd><p>Instantiate the mlmt_client.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>use_production_server (bool): True if production server should be
+used. False if local server should be used. Default True. Local
+server should only be used for testing.</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pipeline.mlmt_client_wrapper.MLMTClientWrapper.port_metrics">
+<code class="descname">port_metrics</code><span class="sig-paren">(</span><em>filter_dict</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/mlmt_client_wrapper.html#MLMTClientWrapper.port_metrics"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.mlmt_client_wrapper.MLMTClientWrapper.port_metrics" title="Permalink to this definition">¶</a></dt>
+<dd><p>Port data to latest database schema.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><p class="first">filter_dict (dict): The dictionary to filter results on.
+Must be of the following form:</p>
+<blockquote class="last">
+<div><p>{</p>
+<blockquote>
+<div><p>‘collection_name’: The collection to port data in.</p>
+<p># Special Key:</p>
+<p>test_internal_error (bool, optional): If True, trigger a
+500 error. For testing purposes only. Default False.</p>
+</div></blockquote>
+<p>}</p>
+</div></blockquote>
+</dd>
+<dt>Returns:</dt>
+<dd><p class="first">dict: Output dictionary of the form:</p>
+<blockquote class="last">
+<div><p>{</p>
+<blockquote>
+<div><p>‘status’: The status code of the get operation, one of
+(200 OK, 400 Bad Request, or 500 Internal Server Error).</p>
+<p># These two keys may or may not be present:</p>
+<p>‘errors’: Errors encountered,</p>
+<p>‘trace’ : Stack Trace of fatal error</p>
+</div></blockquote>
+<p>}</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pipeline.mlmt_client_wrapper.MLMTClientWrapper.save_metadata">
+<code class="descname">save_metadata</code><span class="sig-paren">(</span><em>model_metadata_dict</em>, <em>log=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/mlmt_client_wrapper.html#MLMTClientWrapper.save_metadata"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.mlmt_client_wrapper.MLMTClientWrapper.save_metadata" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save model metadata to MongoDB.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><p class="first">model_metadata_dict (dict): The dictionary of model metadata.
+Must be of the following form:</p>
+<blockquote>
+<div><p>{</p>
+<blockquote>
+<div><p>time_built: Time the model was built,</p>
+<p>model_uuid: Unique identifier for this model,</p>
+<p>ModelMetadata: {…} # The metadata to save.</p>
+<p># Special Keys:</p>
+<p>collection_name (str): The Mongo collection to be used.</p>
+<p>add_indexes (bool, optional): If True, then add indexes.
+Default False.</p>
+<p>test_internal_error (bool, optional): If True, trigger a
+500 error. For testing purposes only. Default False.</p>
+</div></blockquote>
+<p>}</p>
+</div></blockquote>
+<p class="last">log (bool): True if logs should print. False otherwise.
+Default False.</p>
+</dd>
+<dt>Returns:</dt>
+<dd><p class="first">dict: Output dictionary of the form:</p>
+<blockquote class="last">
+<div><p>{</p>
+<blockquote>
+<div><p>‘status’: The status code of the save operation,
+# one of (200 OK, 400 Bad Request, or 500 Internal Server
+Error).</p>
+<p># These two keys may or may not be present:</p>
+<p>‘errors’: Errors encountered,</p>
+<p>‘trace’ : Stack Trace of fatal error</p>
+</div></blockquote>
+<p>}</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pipeline.mlmt_client_wrapper.MLMTClientWrapper.save_metrics">
+<code class="descname">save_metrics</code><span class="sig-paren">(</span><em>model_metrics_dict</em>, <em>log=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/mlmt_client_wrapper.html#MLMTClientWrapper.save_metrics"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.mlmt_client_wrapper.MLMTClientWrapper.save_metrics" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save model metrics to MongoDB.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><p class="first">model_metrics_dict (dict): The dictionary of model metrics.
+Must be of the following form:</p>
+<blockquote>
+<div><p>{</p>
+<blockquote>
+<div><p>‘model_uuid’ : The model_uuid of the model run to produce
+these metrics</p>
+<p>‘ModelMetrics’ : {</p>
+<blockquote>
+<div><blockquote>
+<div><p>‘TrainingRun’ : [</p>
+<blockquote>
+<div><blockquote>
+<div><p>{</p>
+<blockquote>
+<div><p>‘label’: ‘best’,</p>
+<p>‘subset’ : ‘train’,</p>
+<p>‘PredictionResults’ : {…}</p>
+</div></blockquote>
+<p>},</p>
+</div></blockquote>
+<p>…</p>
+<p>], # TrainingRun can also just be a single {…}</p>
+</div></blockquote>
+</div></blockquote>
+<p>‘PredictionRuns’: [{…}, …] # or {…}</p>
+</div></blockquote>
+<p>},</p>
+<p># Special Keys:</p>
+<p>collection_name (str): The Mongo collection to be used.
+Keep in mind that this function will automatically add
+‘_metrics’ to the end of the collection name.</p>
+<p>add_indexes (bool, optional): If True, then add indexes.
+Default False.</p>
+<p>test_internal_error (bool, optional): If True, trigger a 500
+error. For testing purposes only. Default False.</p>
+</div></blockquote>
+<p>}</p>
+</div></blockquote>
+<p class="last">log (bool): True if logs should print. False otherwise.
+Default False.</p>
+</dd>
+<dt>Returns:</dt>
+<dd><p class="first">dict: Output dictionary of the form:</p>
+<blockquote class="last">
+<div><p>{</p>
+<blockquote>
+<div><p>‘status’: The status code of the save operation,
+# one of (200 OK, 400 Bad Request, or 500 Internal Server
+Error).</p>
+<p># These two keys may or may not be present:</p>
+<p>‘errors’: Errors encountered,</p>
+<p>‘trace’ : Stack Trace of fatal error</p>
+</div></blockquote>
+<p>}</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pipeline.mlmt_client_wrapper.MLMTClientWrapper.update_metadata">
+<code class="descname">update_metadata</code><span class="sig-paren">(</span><em>updates_dict</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/mlmt_client_wrapper.html#MLMTClientWrapper.update_metadata"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.mlmt_client_wrapper.MLMTClientWrapper.update_metadata" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update model metadata in MongoDB.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><p class="first">updates_dict (dict): The dictionary of model metadata. Hierarchy is
+represented with dots, as follows:</p>
+<blockquote class="last">
+<div><p>{</p>
+<blockquote>
+<div><p>‘model_uuid’: model_uuid of the model to update,</p>
+<p>‘ModelMetadata.ModelSpecific.model_type’: ‘RF’
+# The metadata to update,</p>
+<p># Special Keys:</p>
+<p>collection_name (str): The Mongo collection to be used.</p>
+<p>test_internal_error (bool, optional): If True, trigger a
+500 error. For testing purposes only. Default False.</p>
+</div></blockquote>
+<p>}</p>
+</div></blockquote>
+</dd>
+<dt>Returns:</dt>
+<dd><p class="first">dict: Output dictionary of the form:</p>
+<blockquote class="last">
+<div><p>{</p>
+<blockquote>
+<div><p>‘status’: The status code of the update operation, one of
+(200 OK, 400 Bad Request, or 500 Internal Server Error).</p>
+<p># These two keys may or may not be present:</p>
+<p>‘errors’: Errors encountered,</p>
+<p>‘trace’ : Stack Trace of fatal error</p>
+</div></blockquote>
+<p>}</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="pipeline.mlmt_client_wrapper.MongoInsertionException">
+<em class="property">exception </em><code class="descclassname">pipeline.mlmt_client_wrapper.</code><code class="descname">MongoInsertionException</code><a class="reference internal" href="_modules/pipeline/mlmt_client_wrapper.html#MongoInsertionException"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.mlmt_client_wrapper.MongoInsertionException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pipeline.mlmt_client_wrapper.MongoQueryException">
+<em class="property">exception </em><code class="descclassname">pipeline.mlmt_client_wrapper.</code><code class="descname">MongoQueryException</code><a class="reference internal" href="_modules/pipeline/mlmt_client_wrapper.html#MongoQueryException"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.mlmt_client_wrapper.MongoQueryException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pipeline.mlmt_client_wrapper.get_generator">
+<code class="descclassname">pipeline.mlmt_client_wrapper.</code><code class="descname">get_generator</code><span class="sig-paren">(</span><em>mlmt_client</em>, <em>filter_dict</em>, <em>log=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/mlmt_client_wrapper.html#get_generator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.mlmt_client_wrapper.get_generator" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="pipeline-model-datasets-module">
+<h2>pipeline.model_datasets module<a class="headerlink" href="#pipeline-model-datasets-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="pipeline-model-pipeline-module">
+<h2>pipeline.model_pipeline module<a class="headerlink" href="#pipeline-model-pipeline-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-pipeline.model_tracker">
+<span id="pipeline-model-tracker-module"></span><h2>pipeline.model_tracker module<a class="headerlink" href="#module-pipeline.model_tracker" title="Permalink to this headline">¶</a></h2>
+<p>Module to interface model pipeline to model tracker service.</p>
+<dl class="exception">
+<dt id="pipeline.model_tracker.DatastoreInsertionException">
+<em class="property">exception </em><code class="descclassname">pipeline.model_tracker.</code><code class="descname">DatastoreInsertionException</code><a class="reference internal" href="_modules/pipeline/model_tracker.html#DatastoreInsertionException"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.model_tracker.DatastoreInsertionException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pipeline.model_tracker.MLMTClientInstantiationException">
+<em class="property">exception </em><code class="descclassname">pipeline.model_tracker.</code><code class="descname">MLMTClientInstantiationException</code><a class="reference internal" href="_modules/pipeline/model_tracker.html#MLMTClientInstantiationException"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.model_tracker.MLMTClientInstantiationException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pipeline.model_tracker.UnableToTarException">
+<em class="property">exception </em><code class="descclassname">pipeline.model_tracker.</code><code class="descname">UnableToTarException</code><a class="reference internal" href="_modules/pipeline/model_tracker.html#UnableToTarException"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.model_tracker.UnableToTarException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pipeline.model_tracker.get_full_metadata">
+<code class="descclassname">pipeline.model_tracker.</code><code class="descname">get_full_metadata</code><span class="sig-paren">(</span><em>filter_dict</em>, <em>client_wrapper</em>, <em>collection_name='model_tracker'</em>, <em>log=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_tracker.html#get_full_metadata"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.model_tracker.get_full_metadata" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve relevant full metadata (including TrainingRun metrics).</p>
+<p>Retrieve full metadata of models matching given criteria.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>filter_dict (dict): dictionary to filter on</dd>
+<dt>Returns:</dt>
+<dd>A list of matching full model metadata (including TrainingRun metrics) dictionaries. Raises MongoQueryException if the query fails.</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="pipeline.model_tracker.get_metadata">
+<code class="descclassname">pipeline.model_tracker.</code><code class="descname">get_metadata</code><span class="sig-paren">(</span><em>filter_dict</em>, <em>client_wrapper</em>, <em>collection_name='model_tracker'</em>, <em>log=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_tracker.html#get_metadata"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.model_tracker.get_metadata" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve relevant metadata.</p>
+<p>Retrieve metadata matching given criteria.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>filter_dict (dict): dictionary to filter on</dd>
+<dt>Returns:</dt>
+<dd>A list of matching metadata dictionaries. Raises MongoQueryException if
+the query fails.</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="pipeline.model_tracker.get_metrics">
+<code class="descclassname">pipeline.model_tracker.</code><code class="descname">get_metrics</code><span class="sig-paren">(</span><em>pipeline</em>, <em>filter_dict=None</em>, <em>collection_name='model_tracker'</em>, <em>log=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_tracker.html#get_metrics"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.model_tracker.get_metrics" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapper for mlmt_client.get_model_metrics(). Retrieves a list of performance metrics dictionaries
+matching a query filter, or by default all performance results for the current model UUID, from all training
+and/or prediction runs.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><p class="first">pipeline (ModelPipeline): The ModelPipeline object managing the training or prediction run.</p>
+<p class="last">filter_dict (dict): An optional dictionary of query criteria. If not specified, the function
+returns all performance results for the current model UUID, from all training and/or prediction runs.</p>
+</dd>
+<dt>Returns:</dt>
+<dd>A list of dicts containing training and prediction performance metrics. Raises MongoQueryException if the query fails.</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="pipeline.model_tracker.get_models">
+<code class="descclassname">pipeline.model_tracker.</code><code class="descname">get_models</code><span class="sig-paren">(</span><em>filter_dict</em>, <em>client_wrapper</em>, <em>collection_name='model_tracker'</em>, <em>log=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_tracker.html#get_models"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.model_tracker.get_models" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve relevant models.</p>
+<p>Retrieve models matching given criteria.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>filter_dict (dict): dictionary to filter on</dd>
+<dt>Returns:</dt>
+<dd>A list of matching model dictionaries (matching metadata with matching
+metrics). Raises MongoQueryException if the query fails.</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="pipeline.model_tracker.save_metrics">
+<code class="descclassname">pipeline.model_tracker.</code><code class="descname">save_metrics</code><span class="sig-paren">(</span><em>pipeline</em>, <em>model_metrics</em>, <em>collection_name='model_tracker'</em>, <em>log=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_tracker.html#save_metrics"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.model_tracker.save_metrics" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapper for mlmt_client save_model_metrics() function. Stores the performance metrics from a training
+or prediction run in the model tracker database.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><p class="first">pipeline (ModelPipeline): The ModelPipeline object managing the training or prediction run.</p>
+<dl class="docutils">
+<dt>model_metrics (dict): A dictionary containing the performance metrics data to be stored. It should have one of the following forms:</dt>
+<dd><p class="first">{‘model_uuid’ : &lt;model_UUID&gt;, ‘ModelMetrics’ : {‘TrainingRun’ : {‘label’ : label, ‘subset’ : subset, ‘PredictionResults’ : results}}
+{‘model_uuid’ : &lt;model_UUID&gt;, ‘ModelMetrics’ : {‘PredictionRuns’ : {‘time_run’ : time_run, ‘dataset_oid’ : dataset_oid, &lt;etc.&gt;,</p>
+<blockquote class="last">
+<div>‘PredictionResults’ : results}}</div></blockquote>
+</dd>
+</dl>
+<p class="last">The dict will be appended to the appropriate model’s list of metrics dicts in the model tracker DB.</p>
+</dd>
+<dt>Returns:</dt>
+<dd>None if insertion was successful, raises MLMTClientInstantiationException or MongoInsertionException otherwise.</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="pipeline.model_tracker.save_model">
+<code class="descclassname">pipeline.model_tracker.</code><code class="descname">save_model</code><span class="sig-paren">(</span><em>pipeline</em>, <em>collection_name='model_tracker'</em>, <em>log=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_tracker.html#save_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.model_tracker.save_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save the model.</p>
+<p>Save the model files to the datastore and save the model metadata dict to the Mongo database.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>pipeline (ModelPipeline object): the pipeline to use
+collection_name (str): the name of the Mongo DB collection to use
+log (bool): True if logs should be printed, default False
+use_personal_client (bool): True if personal client should be used (i.e. for testing), default False</dd>
+<dt>Returns:</dt>
+<dd>None if insertion was successful, raises UnableToTarException, DatastoreInsertionException, MLMTClientInstantiationException
+or MongoInsertionException otherwise</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pipeline.model_wrapper">
+<span id="pipeline-model-wrapper-module"></span><h2>pipeline.model_wrapper module<a class="headerlink" href="#module-pipeline.model_wrapper" title="Permalink to this headline">¶</a></h2>
+<p>Contains class ModelWrapper and its subclasses, which are wrappers for DeepChem and scikit-learn model classes.</p>
+<dl class="class">
+<dt id="pipeline.model_wrapper.DCNNModelWrapper">
+<em class="property">class </em><code class="descclassname">pipeline.model_wrapper.</code><code class="descname">DCNNModelWrapper</code><span class="sig-paren">(</span><em>params</em>, <em>featurizer</em>, <em>ds_client</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#DCNNModelWrapper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.model_wrapper.DCNNModelWrapper" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pipeline.model_wrapper.ModelWrapper" title="pipeline.model_wrapper.ModelWrapper"><code class="xref py py-class docutils literal notranslate"><span class="pre">pipeline.model_wrapper.ModelWrapper</span></code></a></p>
+<p>Contains methods to load in a dataset, split and featurize the data, fit a model to the train dataset,
+generate predictions for an input dataset, and generate performance metrics for these predictions.</p>
+<dl class="docutils">
+<dt>Attributes:</dt>
+<dd><dl class="first last docutils">
+<dt>Set in __init__</dt>
+<dd>params (argparse.Namespace): The argparse.Namespace parameter object that contains all parameter information
+featurziation (Featurization object): The featurization object created outside of model_wrapper
+log (log): The logger
+output_dir (str): The parent path of the model directory
+transformers (list): Initialized as an empty list, stores the transformers on the response col
+transformers_x (list): Initialized as an empty list, stores the transformers on the featurizers
+model_dir (str): The subdirectory under output_dir that contains the model. Created in setup_model_dirs.
+best_model_dir (str): The subdirectory under output_dir that contains the best model. Created in setup_model_dirs
+baseline_model_dir (str): The subdirectory under output_dir that contains the baseline epoch model.
+g: The tensorflow graph object
+sess: The tensor flow graph session
+model: The dc.models.GraphConvModel, fcnet.MultitaskRegressor, or fcnet.MultitaskClassifier object, as specified by the params attribute</dd>
+<dt>Created in train:</dt>
+<dd><p class="first">data (ModelDataset): contains the dataset, set in pipeline
+best_epoch (int): Initialized as None, keeps track of the epoch with the best validation score
+train_perf_data (np.array of PerfData): Initialized as an empty array,</p>
+<blockquote>
+<div>contains the predictions and performance of the training dataset</div></blockquote>
+<dl class="last docutils">
+<dt>valid_perf_data (np.array of PerfData): Initialized as an empty array,</dt>
+<dd>contains the predictions and performance of the validation dataset</dd>
+<dt>train_epoch_perfs (np.array of dicts): Initialized as an empty array,</dt>
+<dd>contains a list of dictionaries of predicted values and metrics on the training dataset</dd>
+<dt>valid_epoch_perfs (np.array of dicts): Initialized as an empty array,</dt>
+<dd>contains a list of dictionaries of predicted values and metrics on the validation dataset</dd>
+</dl>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="method">
+<dt id="pipeline.model_wrapper.DCNNModelWrapper.generate_predictions">
+<code class="descname">generate_predictions</code><span class="sig-paren">(</span><em>dataset</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#DCNNModelWrapper.generate_predictions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.model_wrapper.DCNNModelWrapper.generate_predictions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates predictions for specified dataset with current model, as well as standard deviations
+if params.uncertainty=True</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>dataset: the deepchem DiskDataset to generate predictions for</dd>
+<dt>Returns:</dt>
+<dd>(pred, std): tuple of predictions for compounds and standard deviation estimates, if requested.
+Each element of tuple is a numpy array of shape (ncmpds, ntasks, nclasses), where nclasses = 1 for regression
+models.</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pipeline.model_wrapper.DCNNModelWrapper.get_model_specific_metadata">
+<code class="descname">get_model_specific_metadata</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#DCNNModelWrapper.get_model_specific_metadata"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.model_wrapper.DCNNModelWrapper.get_model_specific_metadata" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a dictionary of parameter settings for this ModelWrapper object that are specific
+to neural network models.</p>
+<dl class="docutils">
+<dt>Returns:</dt>
+<dd><dl class="first last docutils">
+<dt>model_spec_metdata (dict): A dictionary of the parameter sets for the DCNNModelWrapper object.</dt>
+<dd>Parameters are saved under the key ‘NNSpecific’ as a subdictionary.</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pipeline.model_wrapper.DCNNModelWrapper.get_perf_data">
+<code class="descname">get_perf_data</code><span class="sig-paren">(</span><em>subset</em>, <em>epoch_label=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#DCNNModelWrapper.get_perf_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.model_wrapper.DCNNModelWrapper.get_perf_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns predicted values and metrics from a training, validation or test subset
+of the current dataset, or the full dataset. subset may be ‘train’, ‘valid’, ‘test’ or ‘full’,
+epoch_label indicates the training epoch we want results for, and may be ‘best’ or
+‘baseline’. Results are returned as a PerfData object of the appropriate class for the model’s
+split strategy and prediction type.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>subset (str): Label for the current subset of the dataset (choices [‘train’,’valid’,’test’,’full’])
+epoch_label (str): Label for the training epoch we want results for (choices [‘best’,’baseline’])</dd>
+<dt>Returns:</dt>
+<dd>PerfData object: Performance object pulled from the appropriate subset</dd>
+<dt>Raises:</dt>
+<dd>ValueError: if epoch_label not in [‘best’,’baseline’]
+ValueError: If subset not in [‘train’,’valid’,’test’,’full’]</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pipeline.model_wrapper.DCNNModelWrapper.get_pred_results">
+<code class="descname">get_pred_results</code><span class="sig-paren">(</span><em>subset</em>, <em>epoch_label=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#DCNNModelWrapper.get_pred_results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.model_wrapper.DCNNModelWrapper.get_pred_results" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns predicted values and metrics from a training, validation or test subset
+of the current dataset, or the full dataset. subset may be ‘train’, ‘valid’, ‘test’
+accordingly.  epoch_label indicates the training epoch we want results for, and may be
+‘best’ or ‘baseline’. Results are returned as a dictionary of parameter, value pairs.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>subset (str): Label for the current subset of the dataset (choices [‘train’,’valid’,’test’,’full’])
+epoch_label (str): Label for the training epoch we want results for (choices [‘best’,’baseline’])</dd>
+<dt>Returns:</dt>
+<dd>dict: A dictionary of parameter/ value pairs of the prediction values and results of the dataset subset</dd>
+<dt>Raises:</dt>
+<dd>ValueError: if epoch_label not in [‘best’,’baseline’]
+ValueError: If subset not in [‘train’,’valid’,’test’,’full’]</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pipeline.model_wrapper.DCNNModelWrapper.recreate_model">
+<code class="descname">recreate_model</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#DCNNModelWrapper.recreate_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.model_wrapper.DCNNModelWrapper.recreate_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Replaces the current self.model object with a new DeepChem Model object of the correct type for the
+requested featurizer and prediction type</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pipeline.model_wrapper.DCNNModelWrapper.reload_model">
+<code class="descname">reload_model</code><span class="sig-paren">(</span><em>reload_dir</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#DCNNModelWrapper.reload_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.model_wrapper.DCNNModelWrapper.reload_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads a saved neural net model from the specified directory.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>reload_dir (str): Directory where saved model is located.
+model_dataset (ModelDataset Object): contains the current full dataset</dd>
+<dt>Side effects:</dt>
+<dd>Resets the value of model, transformers, and transformers_x</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pipeline.model_wrapper.DCNNModelWrapper.train">
+<code class="descname">train</code><span class="sig-paren">(</span><em>pipeline</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#DCNNModelWrapper.train"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.model_wrapper.DCNNModelWrapper.train" title="Permalink to this definition">¶</a></dt>
+<dd><p>Trains a neural net model for multiple epochs, choose the epoch with the best validation
+set performance, refits the model for that number of epochs, and saves the tuned model.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>pipeline (ModelPipeline): The ModelPipeline instance for this model run.</dd>
+<dt>Side effects:</dt>
+<dd><dl class="first last docutils">
+<dt>Sets the following attributes for DCNNModelWrapper:</dt>
+<dd><p class="first">data (ModelDataset): contains the dataset, set in pipeline
+best_epoch (int): Initialized as None, keeps track of the epoch with the best validation score
+train_perf_data (list of PerfData): Initialized as an empty array,</p>
+<blockquote>
+<div>contains the predictions and performance of the training dataset</div></blockquote>
+<dl class="last docutils">
+<dt>valid_perf_data (list of PerfData): Initialized as an empty array,</dt>
+<dd>contains the predictions and performance of the validation dataset</dd>
+<dt>train_epoch_perfs (np.array): Initialized as an empty array,</dt>
+<dd>contains a list of dictionaries of predicted values and metrics on the training dataset</dd>
+<dt>valid_epoch_perfs (np.array of dicts): Initialized as an empty array,</dt>
+<dd>contains a list of dictionaries of predicted values and metrics on the validation dataset</dd>
+</dl>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pipeline.model_wrapper.DCRFModelWrapper">
+<em class="property">class </em><code class="descclassname">pipeline.model_wrapper.</code><code class="descname">DCRFModelWrapper</code><span class="sig-paren">(</span><em>params</em>, <em>featurizer</em>, <em>ds_client</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#DCRFModelWrapper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.model_wrapper.DCRFModelWrapper" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pipeline.model_wrapper.ModelWrapper" title="pipeline.model_wrapper.ModelWrapper"><code class="xref py py-class docutils literal notranslate"><span class="pre">pipeline.model_wrapper.ModelWrapper</span></code></a></p>
+<p>Contains methods to load in a dataset, split and featurize the data, fit a model to the train dataset,
+generate predictions for an input dataset, and generate performance metrics for these predictions.</p>
+<dl class="docutils">
+<dt>Attributes:</dt>
+<dd><dl class="first last docutils">
+<dt>Set in __init__</dt>
+<dd>params (argparse.Namespace): The argparse.Namespace parameter object that contains all parameter information
+featurization (Featurization object): The featurization object created outside of model_wrapper
+log (log): The logger
+output_dir (str): The parent path of the model directory
+transformers (list): Initialized as an empty list, stores the transformers on the response col
+transformers_x (list): Initialized as an empty list, stores the transformers on the featurizers
+model_dir (str): The subdirectory under output_dir that contains the model. Created in setup_model_dirs.
+best_model_dir (str): The subdirectory under output_dir that contains the best model. Created in setup_model_dirs
+baseline_model_dir (str): The subdirectory under output_dir that contains the baseline epoch model.
+model: The dc.models.sklearn_models.SklearnModel as specified by the params attribute</dd>
+<dt>Created in train:</dt>
+<dd>data (ModelDataset): contains the dataset, set in pipeline
+best_epoch (int): Set to 0, not applicable to deepchem random forest models
+train_perf_data (PerfData): Contains the predictions and performance of the training dataset
+valid_perf_data (PerfData): Contains the predictions and performance of the validation dataset
+train_perfs (dict): A dictionary of predicted values and metrics on the training dataset
+valid_perfs (dict): A dictionary of predicted values and metrics on the training dataset</dd>
+</dl>
+</dd>
+</dl>
+<dl class="method">
+<dt id="pipeline.model_wrapper.DCRFModelWrapper.generate_predictions">
+<code class="descname">generate_predictions</code><span class="sig-paren">(</span><em>dataset</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#DCRFModelWrapper.generate_predictions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.model_wrapper.DCRFModelWrapper.generate_predictions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates predictions for specified dataset, as well as uncertainty values if params.uncertainty=True</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>dataset: the deepchem DiskDataset to generate predictions for</dd>
+<dt>Returns:</dt>
+<dd>(pred, std): numpy arrays containing predictions for compounds and the standard error estimates.</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pipeline.model_wrapper.DCRFModelWrapper.get_model_specific_metadata">
+<code class="descname">get_model_specific_metadata</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#DCRFModelWrapper.get_model_specific_metadata"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.model_wrapper.DCRFModelWrapper.get_model_specific_metadata" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a dictionary of parameter settings for this ModelWrapper object that are specific
+to random forest models.</p>
+<dl class="docutils">
+<dt>Returns:</dt>
+<dd>model_spec_metadata (dict): Returns random forest specific metadata as a subdict under the key ‘RFSpecific’</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pipeline.model_wrapper.DCRFModelWrapper.get_perf_data">
+<code class="descname">get_perf_data</code><span class="sig-paren">(</span><em>subset</em>, <em>epoch_label=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#DCRFModelWrapper.get_perf_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.model_wrapper.DCRFModelWrapper.get_perf_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns predicted values and metrics from a training, validation or test subset
+of the current dataset, or the full dataset.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>subset (str): may be ‘train’, ‘valid’, ‘test’ or ‘full’
+epoch_label (not used in random forest, but kept as part of the method structure)</dd>
+<dt>Results:</dt>
+<dd>PerfData object: Subclass of perfdata object associated with the appropriate subset’s split strategy and prediction type.</dd>
+<dt>Raises:</dt>
+<dd>ValueError: if subset not in [‘train’,’valid’,’test’,’full’]</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pipeline.model_wrapper.DCRFModelWrapper.get_pred_results">
+<code class="descname">get_pred_results</code><span class="sig-paren">(</span><em>subset</em>, <em>epoch_label=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#DCRFModelWrapper.get_pred_results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.model_wrapper.DCRFModelWrapper.get_pred_results" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns predicted values and metrics from a training, validation or test subset
+of the current dataset, or the full dataset.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>subset: ‘train’, ‘valid’, ‘test’ or ‘full’ accordingly.
+epoch_label: ignored; this function always returns the results for the current model.</dd>
+<dt>Returns:</dt>
+<dd>A dictionary of parameter, value pairs, in the format expected by the
+PredictionResults element of the ModelMetrics data.</dd>
+<dt>Raises:</dt>
+<dd>ValueError: if subset not in [‘train’,’valid’,’test’,’full’]</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pipeline.model_wrapper.DCRFModelWrapper.reload_model">
+<code class="descname">reload_model</code><span class="sig-paren">(</span><em>reload_dir</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#DCRFModelWrapper.reload_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.model_wrapper.DCRFModelWrapper.reload_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads a saved random forest model from the specified directory. Also loads any transformers that
+were saved with it.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>reload_dir (str): Directory where saved model is located.
+model_dataset (ModelDataset Object): contains the current full dataset</dd>
+<dt>Side effects:</dt>
+<dd>Resets the value of model, transformers, and transformers_x</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pipeline.model_wrapper.DCRFModelWrapper.train">
+<code class="descname">train</code><span class="sig-paren">(</span><em>pipeline</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#DCRFModelWrapper.train"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.model_wrapper.DCRFModelWrapper.train" title="Permalink to this definition">¶</a></dt>
+<dd><p>Trains a random forest model and saves the trained model.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>pipeline (ModelPipeline): The ModelPipeline instance for this model run.</dd>
+<dt>Returns:</dt>
+<dd>None</dd>
+<dt>Side effects:</dt>
+<dd>data (ModelDataset): contains the dataset, set in pipeline
+best_epoch (int): Set to 0, not applicable to deepchem random forest models
+train_perf_data (PerfData): Contains the predictions and performance of the training dataset
+valid_perf_data (PerfData): Contains the predictions and performance of the validation dataset
+train_perfs (dict): A dictionary of predicted values and metrics on the training dataset
+valid_perfs (dict): A dictionary of predicted values and metrics on the training dataset</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pipeline.model_wrapper.DCxgboostModelWrapper">
+<em class="property">class </em><code class="descclassname">pipeline.model_wrapper.</code><code class="descname">DCxgboostModelWrapper</code><span class="sig-paren">(</span><em>params</em>, <em>featurizer</em>, <em>ds_client</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#DCxgboostModelWrapper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.model_wrapper.DCxgboostModelWrapper" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pipeline.model_wrapper.ModelWrapper" title="pipeline.model_wrapper.ModelWrapper"><code class="xref py py-class docutils literal notranslate"><span class="pre">pipeline.model_wrapper.ModelWrapper</span></code></a></p>
+<p>Contains methods to load in a dataset, split and featurize the data, fit a model to the train dataset,
+generate predictions for an input dataset, and generate performance metrics for these predictions.</p>
+<dl class="docutils">
+<dt>Attributes:</dt>
+<dd><dl class="first last docutils">
+<dt>Set in __init__</dt>
+<dd>params (argparse.Namespace): The argparse.Namespace parameter object that contains all parameter information
+featurization (Featurization object): The featurization object created outside of model_wrapper
+log (log): The logger
+output_dir (str): The parent path of the model directory
+transformers (list): Initialized as an empty list, stores the transformers on the response col
+transformers_x (list): Initialized as an empty list, stores the transformers on the featurizers
+model_dir (str): The subdirectory under output_dir that contains the model. Created in setup_model_dirs.
+best_model_dir (str): The subdirectory under output_dir that contains the best model. Created in setup_model_dirs
+baseline_model_dir (str): The subdirectory under output_dir that contains the baseline epoch model.
+model: The dc.models.sklearn_models.SklearnModel as specified by the params attribute</dd>
+<dt>Created in train:</dt>
+<dd>data (ModelDataset): contains the dataset, set in pipeline
+best_epoch (int): Set to 0, not applicable
+train_perf_data (PerfObjects): Contains the predictions and performance of the training dataset
+valid_perf_data (PerfObjects): Contains the predictions and performance of the validation dataset
+train_perfs (dict): A dictionary of predicted values and metrics on the training dataset
+valid_perfs (dict): A dictionary of predicted values and metrics on the validation dataset</dd>
+</dl>
+</dd>
+</dl>
+<dl class="method">
+<dt id="pipeline.model_wrapper.DCxgboostModelWrapper.generate_predictions">
+<code class="descname">generate_predictions</code><span class="sig-paren">(</span><em>dataset</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#DCxgboostModelWrapper.generate_predictions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.model_wrapper.DCxgboostModelWrapper.generate_predictions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates predictions for specified dataset, as well as uncertainty values if params.uncertainty=True</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>dataset: the deepchem DiskDataset to generate predictions for</dd>
+<dt>Returns:</dt>
+<dd>(pred, std): numpy arrays containing predictions for compounds and the standard error estimates.</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pipeline.model_wrapper.DCxgboostModelWrapper.get_model_specific_metadata">
+<code class="descname">get_model_specific_metadata</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#DCxgboostModelWrapper.get_model_specific_metadata"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.model_wrapper.DCxgboostModelWrapper.get_model_specific_metadata" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a dictionary of parameter settings for this ModelWrapper object that are specific
+to xgboost models.</p>
+<dl class="docutils">
+<dt>Returns:</dt>
+<dd>model_spec_metadata (dict): Returns xgboost specific metadata as a subdict under the key ‘xgbSpecific’</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pipeline.model_wrapper.DCxgboostModelWrapper.get_perf_data">
+<code class="descname">get_perf_data</code><span class="sig-paren">(</span><em>subset</em>, <em>epoch_label=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#DCxgboostModelWrapper.get_perf_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.model_wrapper.DCxgboostModelWrapper.get_perf_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns predicted values and metrics from a training, validation or test subset
+of the current dataset, or the full dataset.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>subset (str): may be ‘train’, ‘valid’, ‘test’ or ‘full’
+epoch_label (not used in random forest, but kept as part of the method structure)</dd>
+<dt>Results:</dt>
+<dd>PerfData object: Subclass of perfdata object associated with the appropriate subset’s split strategy and prediction type.</dd>
+<dt>Raises:</dt>
+<dd>ValueError: if subset not in [‘train’,’valid’,’test’,’full’]</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pipeline.model_wrapper.DCxgboostModelWrapper.get_pred_results">
+<code class="descname">get_pred_results</code><span class="sig-paren">(</span><em>subset</em>, <em>epoch_label=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#DCxgboostModelWrapper.get_pred_results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.model_wrapper.DCxgboostModelWrapper.get_pred_results" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns predicted values and metrics from a training, validation or test subset
+of the current dataset, or the full dataset.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>subset: ‘train’, ‘valid’, ‘test’ or ‘full’ accordingly.
+epoch_label: ignored; this function always returns the results for the current model.</dd>
+<dt>Returns:</dt>
+<dd>A dictionary of parameter, value pairs, in the format expected by the
+PredictionResults element of the ModelMetrics data.</dd>
+<dt>Raises:</dt>
+<dd>ValueError: if subset not in [‘train’,’valid’,’test’,’full’]</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pipeline.model_wrapper.DCxgboostModelWrapper.reload_model">
+<code class="descname">reload_model</code><span class="sig-paren">(</span><em>reload_dir</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#DCxgboostModelWrapper.reload_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.model_wrapper.DCxgboostModelWrapper.reload_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads a saved xgboost model from the specified directory. Also loads any transformers that
+were saved with it.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>reload_dir (str): Directory where saved model is located.
+model_dataset (ModelDataset Object): contains the current full dataset</dd>
+<dt>Side effects:</dt>
+<dd>Resets the value of model, transformers, and transformers_x</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pipeline.model_wrapper.DCxgboostModelWrapper.train">
+<code class="descname">train</code><span class="sig-paren">(</span><em>pipeline</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#DCxgboostModelWrapper.train"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.model_wrapper.DCxgboostModelWrapper.train" title="Permalink to this definition">¶</a></dt>
+<dd><p>Trains a xgboost model and saves the trained model.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>pipeline (ModelPipeline): The ModelPipeline instance for this model run.</dd>
+<dt>Returns:</dt>
+<dd>None</dd>
+<dt>Side effects:</dt>
+<dd>data (ModelDataset): contains the dataset, set in pipeline
+best_epoch (int): Set to 0, not applicable to deepchem xgboost models
+train_perf_data (PerfData): Contains the predictions and performance of the training dataset
+valid_perf_data (PerfData): Contains the predictions and performance of the validation dataset
+train_perfs (dict): A dictionary of predicted values and metrics on the training dataset
+valid_perfs (dict): A dictionary of predicted values and metrics on the training dataset</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pipeline.model_wrapper.ModelWrapper">
+<em class="property">class </em><code class="descclassname">pipeline.model_wrapper.</code><code class="descname">ModelWrapper</code><span class="sig-paren">(</span><em>params</em>, <em>featurizer</em>, <em>ds_client</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#ModelWrapper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.model_wrapper.ModelWrapper" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Wrapper for DeepChem and sklearn model objects. Provides methods to train and test a model,
+generate predictions for an input dataset, and generate performance metrics for these predictions.</p>
+<blockquote>
+<div><p>Attributes:
+Set in __init__</p>
+<blockquote>
+<div>params (argparse.Namespace): The argparse.Namespace parameter object that contains all parameter information
+featurziation (Featurization object): The featurization object created outside of model_wrapper
+log (log): The logger
+output_dir (str): The parent path of the model directory
+transformers (list): Initialized as an empty list, stores the transformers on the response col
+transformers_x (list): Initialized as an empty list, stores the transformers on the featurizers</div></blockquote>
+<dl class="docutils">
+<dt>set in setup_model_dirs:</dt>
+<dd>best_model_dir (str): The subdirectory under output_dir that contains the best model. Created in setup_model_dirs
+baseline_model_dir (str): The subdirectory under output_dir that contains the baseline epoch model. Created in setup_model_dirs</dd>
+</dl>
+</div></blockquote>
+<dl class="method">
+<dt id="pipeline.model_wrapper.ModelWrapper.create_transformers">
+<code class="descname">create_transformers</code><span class="sig-paren">(</span><em>model_dataset</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#ModelWrapper.create_transformers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.model_wrapper.ModelWrapper.create_transformers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize transformers for responses and/or features, and persist them for later.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>model_dataset: The ModelDataset object that handles the current dataset</dd>
+<dt>Side effects</dt>
+<dd><dl class="first last docutils">
+<dt>Overwrites the attributes:</dt>
+<dd>transformers: A list of deepchem transformation objects on response_col, only if conditions are met
+transformers_x: A list of deepchem trasformation objects on featurizers, only if conditions are met.
+params.transformer_key: A string pointing to the dataset key containing the transformer in the datastore, or the path to the transformer</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pipeline.model_wrapper.ModelWrapper.generate_predictions">
+<code class="descname">generate_predictions</code><span class="sig-paren">(</span><em>dataset</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#ModelWrapper.generate_predictions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.model_wrapper.ModelWrapper.generate_predictions" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>Args:</dt>
+<dd>dataset:</dd>
+</dl>
+<p>Returns:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pipeline.model_wrapper.ModelWrapper.get_full_dataset_perf_data">
+<code class="descname">get_full_dataset_perf_data</code><span class="sig-paren">(</span><em>model_dataset</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#ModelWrapper.get_full_dataset_perf_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.model_wrapper.ModelWrapper.get_full_dataset_perf_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the predicted values and metrics from the current model for the full current dataset,
+as a PerfData object.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>model_dataset (DiskDataset): Stores the current dataset and related methods</dd>
+<dt>Returns:</dt>
+<dd>perf_data: PerfData object containing the predicted values and metrics for the current full dataset</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pipeline.model_wrapper.ModelWrapper.get_full_dataset_pred_results">
+<code class="descname">get_full_dataset_pred_results</code><span class="sig-paren">(</span><em>model_dataset</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#ModelWrapper.get_full_dataset_pred_results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.model_wrapper.ModelWrapper.get_full_dataset_pred_results" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns predicted values and metrics from the current model for the full current dataset,
+as a dictionary in the format expected by the model tracker.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>model_dataset (DiskDataset): Stores the current dataset and related methods</dd>
+<dt>Returns:</dt>
+<dd>dict: A dictionary containing predicted values and metrics for the current full dataset</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pipeline.model_wrapper.ModelWrapper.get_model_specific_metadata">
+<code class="descname">get_model_specific_metadata</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#ModelWrapper.get_model_specific_metadata"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.model_wrapper.ModelWrapper.get_model_specific_metadata" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a dictionary of parameter settings for this ModelWrapper object that are specific
+to the model type.</p>
+<dl class="docutils">
+<dt>Raises:</dt>
+<dd>NotImplementedError: The method is implemented by subclasses</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pipeline.model_wrapper.ModelWrapper.get_num_features">
+<code class="descname">get_num_features</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#ModelWrapper.get_num_features"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.model_wrapper.ModelWrapper.get_num_features" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the number of dimensions of the feature space, taking both featurization method
+and transformers into account.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pipeline.model_wrapper.ModelWrapper.get_test_perf_data">
+<code class="descname">get_test_perf_data</code><span class="sig-paren">(</span><em>model_dir</em>, <em>model_dataset</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#ModelWrapper.get_test_perf_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.model_wrapper.ModelWrapper.get_test_perf_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the predicted values and metrics for the current test dataset against
+the version of the model stored in model_dir, as a PerfData object.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>model_dir (str): Directory where the saved model is stored
+model_dataset (DiskDataset): Stores the current dataset and related methods</dd>
+<dt>Returns:</dt>
+<dd>perf_data: PerfData object containing the predicted values and metrics for the current test dataset</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pipeline.model_wrapper.ModelWrapper.get_test_pred_results">
+<code class="descname">get_test_pred_results</code><span class="sig-paren">(</span><em>model_dir</em>, <em>model_dataset</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#ModelWrapper.get_test_pred_results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.model_wrapper.ModelWrapper.get_test_pred_results" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns predicted values and metrics for the current test dataset against the version
+of the model stored in model_dir, as a dictionary in the format expected by the model tracker.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>model_dir (str): Directory where the saved model is stored
+model_dataset (DiskDataset): Stores the current dataset and related methods</dd>
+<dt>Returns:</dt>
+<dd>dict: A dictionary containing the prediction values and metrics for the current dataset.</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pipeline.model_wrapper.ModelWrapper.get_train_valid_pred_results">
+<code class="descname">get_train_valid_pred_results</code><span class="sig-paren">(</span><em>perf_data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#ModelWrapper.get_train_valid_pred_results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.model_wrapper.ModelWrapper.get_train_valid_pred_results" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns predicted values and metrics for the current training or validation set,
+based on the information stored in perf_data, which is a model_wrapper.PerfData object.
+The intent is preserve the predictions and metrics from the initial training and
+validation model fitting cycle; these will differ in the k-fold cross-validation
+case from the predictions of the model that is retrained on the combined training &amp;
+validation set. Results are returned as a dictionary of parameter, value pairs in
+the format expected by the model tracker.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>perf_data: A PerfData object that stores the predicted values and metrics</dd>
+<dt>Returns:</dt>
+<dd>dict: A dictionary of the prediction results</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pipeline.model_wrapper.ModelWrapper.reload_model">
+<code class="descname">reload_model</code><span class="sig-paren">(</span><em>reload_dir</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#ModelWrapper.reload_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.model_wrapper.ModelWrapper.reload_model" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>Args:</dt>
+<dd>reload_dir:</dd>
+</dl>
+<p>Returns:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pipeline.model_wrapper.ModelWrapper.setup_model_dirs">
+<code class="descname">setup_model_dirs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#ModelWrapper.setup_model_dirs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.model_wrapper.ModelWrapper.setup_model_dirs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets up paths and directories for persisting models at particular training epochs, used by
+the DeepChem model classes.</p>
+<dl class="docutils">
+<dt>Side effects:</dt>
+<dd><dl class="first last docutils">
+<dt>Sets the following attributes of ModelWrapper:</dt>
+<dd><p class="first">best_model_dir (str): The subdirectory under output_dir that contains the best model. Created in setup_model_dirs
+baseline_model_dir (str): The subdirectory under output_dir that contains the baseline epoch model.</p>
+<blockquote class="last">
+<div>Created in setup_model_dirs</div></blockquote>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pipeline.model_wrapper.ModelWrapper.train">
+<code class="descname">train</code><span class="sig-paren">(</span><em>pipeline</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#ModelWrapper.train"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.model_wrapper.ModelWrapper.train" title="Permalink to this definition">¶</a></dt>
+<dd><p>Trains a model (for multiple epochs if applicable), and saves the tuned model.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>pipeline (ModelPipeline): The ModelPipeline instance for this model run.</dd>
+<dt>Raises:</dt>
+<dd>NotImplementedError: The method is implemented by subclasses</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pipeline.model_wrapper.ModelWrapper.transform_dataset">
+<code class="descname">transform_dataset</code><span class="sig-paren">(</span><em>dataset</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#ModelWrapper.transform_dataset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.model_wrapper.ModelWrapper.transform_dataset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transform the responses and/or features in the given DeepChem dataset using the current transformers.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>dataset: The DeepChem DiskDataset that contains a dataset</dd>
+<dt>Returns:</dt>
+<dd>transformed_dataset: The trasformed DeepChem DiskDataset</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="pipeline.model_wrapper.create_model_wrapper">
+<code class="descclassname">pipeline.model_wrapper.</code><code class="descname">create_model_wrapper</code><span class="sig-paren">(</span><em>params</em>, <em>featurizer</em>, <em>ds_client=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#create_model_wrapper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.model_wrapper.create_model_wrapper" title="Permalink to this definition">¶</a></dt>
+<dd><p>Factory function for creating Model objects of the correct subclass for params.model_type.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>params (Namespace) : Parameters passed to the model pipeline
+featurizer (Featurization): Object managing the featurization of compounds
+ds_client (DatastoreClient): Interface to the file datastore</dd>
+<dt>Returns:</dt>
+<dd>model (pipeline.Model): Wrapper for DeepChem, sklearn or other model.</dd>
+<dt>Raises:</dt>
+<dd>ValueError: Only params.model_type = ‘NN’, ‘RF’ or ‘xgboost’ is supported.</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pipeline.parameter_parser">
+<span id="pipeline-parameter-parser-module"></span><h2>pipeline.parameter_parser module<a class="headerlink" href="#module-pipeline.parameter_parser" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="pipeline.parameter_parser.dict_to_list">
+<code class="descclassname">pipeline.parameter_parser.</code><code class="descname">dict_to_list</code><span class="sig-paren">(</span><em>inp_dictionary</em>, <em>replace_spaces=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/parameter_parser.html#dict_to_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.parameter_parser.dict_to_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to convert dictionary to a modified list of strings for input to argparse. Adds a ‘–’ in front of keys
+in the dictionary.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><p class="first">inp_dictionary (dict): Flat dictionary of parameters</p>
+<p class="last">replae_spaces (bool): A flag for replace spaces with replace_spaces_str for handling spaces in command line.</p>
+</dd>
+<dt>Returns:</dt>
+<dd><p class="first">(list): a list of default parameters + user specified parameters</p>
+<p class="last">None if inp_dictionary is None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="pipeline.parameter_parser.flatten_dict">
+<code class="descclassname">pipeline.parameter_parser.</code><code class="descname">flatten_dict</code><span class="sig-paren">(</span><em>inp_dict</em>, <em>newdict={}</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/parameter_parser.html#flatten_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.parameter_parser.flatten_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to flatten a hierarchical dictionary. Used in parse_config_file(). Throws error if there are duplicated
+keys in the dictionary. WARNING: immediately throws error upon first detection of duplications.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><p class="first">inp_dict(dict): hierarchical dictionary</p>
+<p class="last">newdict(empty dict): empty dictionary, name of output flattened dictionary</p>
+</dd>
+<dt>Returns:</dt>
+<dd>newdict(dict): Flattened dictionary.</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="pipeline.parameter_parser.get_parser">
+<code class="descclassname">pipeline.parameter_parser.</code><code class="descname">get_parser</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/parameter_parser.html#get_parser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.parameter_parser.get_parser" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method that performs the actual parsing of pre-processed parameters. Modify this method to add/change/remove
+parameters</p>
+<p>Args: None</p>
+<dl class="docutils">
+<dt>Returns:</dt>
+<dd>parser (argparse.Namespace): an object containing default parameters + user specific parameters</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="pipeline.parameter_parser.list_defaults">
+<code class="descclassname">pipeline.parameter_parser.</code><code class="descname">list_defaults</code><span class="sig-paren">(</span><em>hyperparam=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/parameter_parser.html#list_defaults"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.parameter_parser.list_defaults" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates temporary required variables, to generate a Namespace.argparse object of defaults.</p>
+<dl class="docutils">
+<dt>Returns:</dt>
+<dd>argparse.Namespace: a Namespace.argparse object containing default parameters + user specified parameters</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="pipeline.parameter_parser.main">
+<code class="descclassname">pipeline.parameter_parser.</code><code class="descname">main</code><span class="sig-paren">(</span><em>argument</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/parameter_parser.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.parameter_parser.main" title="Permalink to this definition">¶</a></dt>
+<dd><p>Entry point when script is run from a shell</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pipeline.parameter_parser.parse_command_line">
+<code class="descclassname">pipeline.parameter_parser.</code><code class="descname">parse_command_line</code><span class="sig-paren">(</span><em>args=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/parameter_parser.html#parse_command_line"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.parameter_parser.parse_command_line" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parses a command line argument or a specifically formatted list of strings into a Namespace.argparse object.</p>
+<dl class="docutils">
+<dt>String input is in the following format:</dt>
+<dd>args = [‘–arg1’,’val1’,’–arg2’,’val2’,’–arg3’,’val3’]</dd>
+<dt>Args:</dt>
+<dd>args(None or list): If args is none, parse_command_line parses sys.argv if it . If args is a list, the list is
+parsed</dd>
+<dt>Returns:</dt>
+<dd>parsed_args (argparse.Namespace): an object containing default parameters + user specific parameters</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="pipeline.parameter_parser.parse_config_file">
+<code class="descclassname">pipeline.parameter_parser.</code><code class="descname">parse_config_file</code><span class="sig-paren">(</span><em>config_file_path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/parameter_parser.html#parse_config_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.parameter_parser.parse_config_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>“Method to convert a .json configuration file to a Namespace object. Does the following conversions:
+.json -&gt; hierarchical dict -&gt; flat dict -&gt; dict_to_list.
+WARNING: if there are two identical parameters on the same hierarchical level in the config.json, the .json will
+inherently silence the parameter higher up on the list without flagging a duplication. However, duplicate
+parameters in two different hierarchies or subdictionaries will be flagged by this parser.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>config_file_path(str): PATH to configuration .json file</dd>
+<dt>Returns:</dt>
+<dd>argparse.Namespace: a Namespace.argparse object containing default parameters + user specified parameters</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="pipeline.parameter_parser.parse_namespace">
+<code class="descclassname">pipeline.parameter_parser.</code><code class="descname">parse_namespace</code><span class="sig-paren">(</span><em>namespace_params=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/parameter_parser.html#parse_namespace"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.parameter_parser.parse_namespace" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to convert namespace object to dictionary, then pass the value to dict_to_list. Will simply pass a
+dictionary</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>namespace_params(dictionary or namespace.argparse object)</dd>
+<dt>Returns:</dt>
+<dd>argparse.Namespace: a Namespace.argparse object containing default parameters + user specified parameters</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="pipeline.parameter_parser.postprocess_args">
+<code class="descclassname">pipeline.parameter_parser.</code><code class="descname">postprocess_args</code><span class="sig-paren">(</span><em>parsed_args</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/parameter_parser.html#postprocess_args"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.parameter_parser.postprocess_args" title="Permalink to this definition">¶</a></dt>
+<dd><p>Postprocessing for the parsed arguments.
+Replaces any string in null_options with a NoneType</p>
+<p>Replaces any string that matches replace_with_space with whitespace.</p>
+<p>Parses arguments in convert_to_float_list into a list of floats, if the hyperparams option is True.
+E.g. parsed_args.dropouts = “0.001,0.001 0.002,0.002 0.03,003”</p>
+<blockquote>
+<div>-&gt; parsed_args.dropouts = [[0.001,0.001], [0.002,0.002], [0.03,003]]</div></blockquote>
+<p>Parses arguments in convert_to_int_list into a list of ints, if the hyperparams options is True.
+E.g. parsed_args.layer_sizes = “10,100 20,200 30,300”</p>
+<blockquote>
+<div>-&gt; parsed_args.layer_sizes = [[10,100], [20,200], [30,300]]</div></blockquote>
+<p>Parameters in keep_as_list are kept as lists, even if there is a single item in the list.</p>
+<p>Parameters in convert_to_str_list are converted to a list of strings.
+E.g. parsed_args.model_type = “NN,RF”</p>
+<blockquote>
+<div>-&gt; parsed_args.model_type = [‘NN’,’RF’].</div></blockquote>
+<p>If there is a single item in the list (no commas), the repsonse is kept as a StringType, unless it is in
+response_cols, which is passed as a list</p>
+<p>Setting conditional options for descriptor_key. Current only descriptor_type option is ‘moe’</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>parsed_args (argparse.Namespace): Raw parsed arguments.</dd>
+<dt>Returns:</dt>
+<dd>parsed_args (argparse.Namespace): a argparse.Namespace object containing properly processed arguments.</dd>
+<dt>Raises:</dt>
+<dd><p class="first">Exception: layer_sizes, dropouts, weight_init_stddevs and bias_init_consts arguments must be the same length</p>
+<p class="last">Exception: parameters within not_a_list_outside_of_hyperparams are not accepted as a list if hyperparams
+is False</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="pipeline.parameter_parser.prune_defaults">
+<code class="descclassname">pipeline.parameter_parser.</code><code class="descname">prune_defaults</code><span class="sig-paren">(</span><em>params</em>, <em>keep_params={}</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/parameter_parser.html#prune_defaults"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.parameter_parser.prune_defaults" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes parameters that are not in keep_params or in get_defaults</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>params (argparse.Namespace): Raw parsed arguments.
+keep_params (list): List of parameters to keep</dd>
+<dt>Returns:</dt>
+<dd>new_dict (dict): Pruned argument dictionary</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="pipeline.parameter_parser.to_str">
+<code class="descclassname">pipeline.parameter_parser.</code><code class="descname">to_str</code><span class="sig-paren">(</span><em>params_obj</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/parameter_parser.html#to_str"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.parameter_parser.to_str" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts a namespace.argparse object or a dict into a string for command line input</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>params_obj (argparse.Namespace or dict): an argparse namespace object or dict to be converted into a
+command line input. E.g. namespace_obj = argparse.Namespace(arg1 = val1, arg2 = val2, arg3 = val3) or
+dict = {arg1: val1, arg2: val2, arg3: val3}</dd>
+<dt>Returns:</dt>
+<dd><dl class="first last docutils">
+<dt>str_params (str): parameters returned as a string.</dt>
+<dd>E.g. str_params = ‘–arg1 val1 –arg2 val2 –arg3 val3’</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="pipeline.parameter_parser.wrapper">
+<code class="descclassname">pipeline.parameter_parser.</code><code class="descname">wrapper</code><span class="sig-paren">(</span><em>*any_arg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/parameter_parser.html#wrapper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.parameter_parser.wrapper" title="Permalink to this definition">¶</a></dt>
+<dd><p>“Wrapper to handle the ParseParams class. Calls the correct method depending on the input argument type</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><a href="#id1"><span class="problematic" id="id2">*</span></a>any_arg: any single input of a str, dict, argparse.Namespace, or list</dd>
+<dt>Returns:</dt>
+<dd>argparse.Namespace: a Namespace.argparse object containing default parameters + user specified parameters</dd>
+<dt>Raises:</dt>
+<dd>TypeError: Input argument must be a configuration file (str), dict, argparse.Namespace, or list</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pipeline.perf_data">
+<span id="pipeline-perf-data-module"></span><h2>pipeline.perf_data module<a class="headerlink" href="#module-pipeline.perf_data" title="Permalink to this headline">¶</a></h2>
+<p>Contains class PerfData and its subclasses, which are objects for collecting and computing model performance metrics
+and predictions</p>
+<dl class="class">
+<dt id="pipeline.perf_data.ClassificationPerfData">
+<em class="property">class </em><code class="descclassname">pipeline.perf_data.</code><code class="descname">ClassificationPerfData</code><span class="sig-paren">(</span><em>model_dataset</em>, <em>subset</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/perf_data.html#ClassificationPerfData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.perf_data.ClassificationPerfData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pipeline.perf_data.PerfData" title="pipeline.perf_data.PerfData"><code class="xref py py-class docutils literal notranslate"><span class="pre">pipeline.perf_data.PerfData</span></code></a></p>
+<p>Class with methods for accumulating classification model prediction data over multiple
+cross-validation folds and computing performance metrics after all folds have been run.
+Abstract class with concrete subclasses for different split strategies.</p>
+<dl class="docutils">
+<dt>Attributes:</dt>
+<dd><dl class="first last docutils">
+<dt>set in __init__</dt>
+<dd><p class="first">num_tasks (int): Set to None, the number of tasks</p>
+<p>num_cmpds (int): Set to None, the number of compounds</p>
+<p class="last">num_classes (int): Set to None, the number of classes</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="method">
+<dt id="pipeline.perf_data.ClassificationPerfData.accumulate_preds">
+<code class="descname">accumulate_preds</code><span class="sig-paren">(</span><em>predicted_vals</em>, <em>ids</em>, <em>pred_stds=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/perf_data.html#ClassificationPerfData.accumulate_preds"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.perf_data.ClassificationPerfData.accumulate_preds" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>Raises:</dt>
+<dd>NotImplementedError: The method is implemented by subclasses</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pipeline.perf_data.ClassificationPerfData.get_pred_values">
+<code class="descname">get_pred_values</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/perf_data.html#ClassificationPerfData.get_pred_values"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.perf_data.ClassificationPerfData.get_pred_values" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>Raises:</dt>
+<dd>NotImplementedError: The method is implemented by subclasses</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pipeline.perf_data.ClassificationPerfData.get_prediction_results">
+<code class="descname">get_prediction_results</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/perf_data.html#ClassificationPerfData.get_prediction_results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.perf_data.ClassificationPerfData.get_prediction_results" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a dictionary of performance metrics for a classification model.
+The dictionary values will contain only primitive Python types, so that it can
+be easily JSONified.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>per_task (bool): True if calculating per-task metrics, False otherwise.</dd>
+<dt>Returns:</dt>
+<dd>pred_results (dict): dictionary of performance metrics for a classification model.</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pipeline.perf_data.ClassificationPerfData.model_choice_score">
+<code class="descname">model_choice_score</code><span class="sig-paren">(</span><em>score_type='roc_auc'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/perf_data.html#ClassificationPerfData.model_choice_score"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.perf_data.ClassificationPerfData.model_choice_score" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes a score function based on the accumulated predicted values, to be used for selecting
+the best training epoch and other hyperparameters.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><dl class="first last docutils">
+<dt>score_type (str): The name of the scoring metric to be used, e.g. ‘roc_auc’, ‘precision’,</dt>
+<dd>‘recall’, ‘f1’; see 
+<a class="reference external" href="https://scikit-learn.org/stable/modules/model_evaluation.html#scoring-parameter">https://scikit-learn.org/stable/modules/model_evaluation.html#scoring-parameter</a>
+and sklearn.metrics.SCORERS.keys() for a complete list of options.
+Larger values of the score function indicate better models.</dd>
+</dl>
+</dd>
+<dt>Returns:</dt>
+<dd><dl class="first last docutils">
+<dt>score (float): A score function value. For multitask models, this will be averaged</dt>
+<dd>over tasks.</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pipeline.perf_data.KFoldClassificationPerfData">
+<em class="property">class </em><code class="descclassname">pipeline.perf_data.</code><code class="descname">KFoldClassificationPerfData</code><span class="sig-paren">(</span><em>model_dataset</em>, <em>transformers</em>, <em>subset</em>, <em>predict_probs=True</em>, <em>transformed=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/perf_data.html#KFoldClassificationPerfData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.perf_data.KFoldClassificationPerfData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pipeline.perf_data.ClassificationPerfData" title="pipeline.perf_data.ClassificationPerfData"><code class="xref py py-class docutils literal notranslate"><span class="pre">pipeline.perf_data.ClassificationPerfData</span></code></a></p>
+<p>Class with methods for accumulating classification model performance data over multiple
+cross-validation folds and computing performance metrics after all folds have been run.</p>
+<dl class="docutils">
+<dt>Attributes:</dt>
+<dd><dl class="first last docutils">
+<dt>Set in __init__:</dt>
+<dd>subset (str): Label of the type of subset of dataset for tracking predictions
+num_cmps (int): The number of compounds in the dataset
+num_tasks (int): The number of tasks in the dataset
+pred-vals (dict): The dictionary of prediction results
+folds (int): Initialized at zero, flag for determining which k-fold is being assessed 
+transformers (list of Transformer objects): from input arguments
+real_vals (dict): The dictionary containing the origin response column values
+class_names (np.array): Assumes the classes are of deepchem index type (e.g. 0,1,2,…)
+num_classes (int): The number of classes to predict on</dd>
+</dl>
+</dd>
+</dl>
+<dl class="method">
+<dt id="pipeline.perf_data.KFoldClassificationPerfData.accumulate_preds">
+<code class="descname">accumulate_preds</code><span class="sig-paren">(</span><em>predicted_vals</em>, <em>ids</em>, <em>pred_stds=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/perf_data.html#KFoldClassificationPerfData.accumulate_preds"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.perf_data.KFoldClassificationPerfData.accumulate_preds" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add training, validation or test set predictions from the current fold to the data structure
+where we keep track of them.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><p class="first">predicted_vals (np.array): Array of the predicted values for the current dataset</p>
+<p>ids (np.array): An np.array of compound ids for the current dataset</p>
+<p class="last">pred_stds (np.array): An array of the standard deviation in the predictions, not used in this method</p>
+</dd>
+<dt>Returns:</dt>
+<dd>None</dd>
+<dt>Side effects:</dt>
+<dd><p class="first">Overwrites the attribute pred_vals</p>
+<p class="last">Increments folds by 1</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pipeline.perf_data.KFoldClassificationPerfData.compute_perf_metrics">
+<code class="descname">compute_perf_metrics</code><span class="sig-paren">(</span><em>per_task=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/perf_data.html#KFoldClassificationPerfData.compute_perf_metrics"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.perf_data.KFoldClassificationPerfData.compute_perf_metrics" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the ROC AUC metrics for each task based on the accumulated values, averaged over
+training folds, along with standard deviations of the scores. If per_task is False, the scores 
+are averaged over tasks and the overall standard deviation is reported instead.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>per_task (bool): True if calculating per-task metrics, False otherwise.</dd>
+<dt>Returns:</dt>
+<dd><p class="first">A tuple (roc_auc_mean, roc_auc_std):</p>
+<blockquote class="last">
+<div><p>roc_auc_mean: A numpy array of mean ROC AUC scores for each task, averaged over folds, if per_task is
+True.</p>
+<blockquote>
+<div>Otherwise, a float giving the ROC AUC score averaged over both folds and tasks.</div></blockquote>
+<dl class="docutils">
+<dt>roc_auc_std:  A numpy array of standard deviations over folds of ROC AUC values, if per_task is True.</dt>
+<dd>Otherwise, a float giving the overall standard deviation.</dd>
+</dl>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pipeline.perf_data.KFoldClassificationPerfData.get_pred_values">
+<code class="descname">get_pred_values</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/perf_data.html#KFoldClassificationPerfData.get_pred_values"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.perf_data.KFoldClassificationPerfData.get_pred_values" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the predicted values accumulated over training, with any transformations undone.  If self.subset 
+is ‘train’ or ‘test’, the function will return mean class probabilities over the training folds for each
+compound, and return the most probable class. Otherwise, returns a single set of predicted probabilites for each 
+validation set compound.</p>
+<dl class="docutils">
+<dt>Returns:</dt>
+<dd><p class="first">ids (list): list of compound IDs.</p>
+<p>pred_classes (np.array): an (ncmpds, ntasks) array of predicted classes.</p>
+<p>class_probs (np.array): a (ncmpds, ntasks, nclasses) array of predicted probabilities for the classes, and</p>
+<p class="last">prob_stds (np.array): a (ncmpds, ntasks, nclasses) array of standard errors over folds for the class
+probability estimates (only available for the ‘train’ and ‘test’ subsets; None otherwise).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pipeline.perf_data.KFoldClassificationPerfData.get_real_values">
+<code class="descname">get_real_values</code><span class="sig-paren">(</span><em>ids=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/perf_data.html#KFoldClassificationPerfData.get_real_values"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.perf_data.KFoldClassificationPerfData.get_real_values" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the real dataset response values as an (ncmpds, ntasks, nclasses) array of indicator bits
+(if nclasses &gt; 2) or an (ncmpds, ntasks) array of binary classes (if nclasses == 2),
+with compound IDs in the same order as in the return from get_pred_values() (unless ids is specified).</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>ids (list of str): Optional list of compound IDs to return values for.</dd>
+<dt>Returns:</dt>
+<dd>np.array of shape (ncmpds, tasks, nclasses): of either indicator bits or a 2D array of binary classes</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pipeline.perf_data.KFoldRegressionPerfData">
+<em class="property">class </em><code class="descclassname">pipeline.perf_data.</code><code class="descname">KFoldRegressionPerfData</code><span class="sig-paren">(</span><em>model_dataset</em>, <em>transformers</em>, <em>subset</em>, <em>transformed=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/perf_data.html#KFoldRegressionPerfData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.perf_data.KFoldRegressionPerfData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pipeline.perf_data.RegressionPerfData" title="pipeline.perf_data.RegressionPerfData"><code class="xref py py-class docutils literal notranslate"><span class="pre">pipeline.perf_data.RegressionPerfData</span></code></a></p>
+<p>Class with methods for accumulating regression model prediction data over multiple
+cross-validation folds and computing performance metrics after all folds have been run.</p>
+<dl class="docutils">
+<dt>Arguments:</dt>
+<dd><dl class="first last docutils">
+<dt>Set in __init__:</dt>
+<dd><p class="first">subset (str): Label of the type of subset of dataset for tracking predictions</p>
+<p>num_cmps (int): The number of compounds in the dataset</p>
+<p>num_tasks (int): The number of tasks in the dataset</p>
+<p>pred-vals (dict): The dictionary of prediction results</p>
+<p>folds (int): Initialized at zero, flag for determining which k-fold is being assessed</p>
+<p>transformers (list of Transformer objects): from input arguments</p>
+<p class="last">real_vals (dict): The dictionary containing the origin response column values</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="method">
+<dt id="pipeline.perf_data.KFoldRegressionPerfData.accumulate_preds">
+<code class="descname">accumulate_preds</code><span class="sig-paren">(</span><em>predicted_vals</em>, <em>ids</em>, <em>pred_stds=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/perf_data.html#KFoldRegressionPerfData.accumulate_preds"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.perf_data.KFoldRegressionPerfData.accumulate_preds" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add training, validation or test set predictions from the current fold to the data structure
+where we keep track of them.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><p class="first">predicted_vals (np.array): Array of the predicted values for the current dataset</p>
+<p>ids (np.array): An np.array of compound ids for the current dataset</p>
+<p class="last">pred_stds (np.array): An array of the standard deviation in the predictions, not used in this method</p>
+</dd>
+<dt>Returns:</dt>
+<dd>None</dd>
+<dt>Raises:</dt>
+<dd>ValueError: If Predicted value dimensions don’t match num_tasks for RegressionPerfData</dd>
+<dt>Side effects:</dt>
+<dd><p class="first">Overwrites the attribute pred_vals</p>
+<p class="last">Increments folds by 1</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pipeline.perf_data.KFoldRegressionPerfData.compute_perf_metrics">
+<code class="descname">compute_perf_metrics</code><span class="sig-paren">(</span><em>per_task=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/perf_data.html#KFoldRegressionPerfData.compute_perf_metrics"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.perf_data.KFoldRegressionPerfData.compute_perf_metrics" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the R-squared metrics for each task based on the accumulated values, averaged over
+training folds, along with standard deviations of the scores. If per_task is False, the scores 
+are averaged over tasks and the overall standard deviation is reported instead.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>per_task (bool): True if calculating per-task metrics, False otherwise.</dd>
+<dt>Returns:</dt>
+<dd><p class="first">A tuple (r2_mean, r2_std):</p>
+<blockquote class="last">
+<div><dl class="docutils">
+<dt>r2_mean: A numpy array of mean R^2 scores for each task, averaged over folds, if per_task is True.</dt>
+<dd>Otherwise, a float giving the R^2 score averaged over both folds and tasks.</dd>
+<dt>r2_std:  A numpy array of standard deviations over folds of R^2 values, if per_task is True.</dt>
+<dd>Otherwise, a float giving the overall standard deviation.</dd>
+</dl>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pipeline.perf_data.KFoldRegressionPerfData.get_pred_values">
+<code class="descname">get_pred_values</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/perf_data.html#KFoldRegressionPerfData.get_pred_values"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.perf_data.KFoldRegressionPerfData.get_pred_values" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the predicted values accumulated over training, with any transformations undone.
+If self.subset is ‘train’ or ‘test’, the function will return averages over the training folds for each compound
+along with standard deviations when there are predictions from multiple folds. Otherwise, returns a
+single predicted value for each compound.</p>
+<dl class="docutils">
+<dt>Returns:</dt>
+<dd><p class="first">ids (np.array): list of compound IDs</p>
+<p>vals (np.array): (ncmpds, ntasks) array of mean predicted values</p>
+<p class="last">fold_stds (np.array): (ncmpds, ntasks) array of standard deviations over folds if applicable, and None
+otherwise.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pipeline.perf_data.KFoldRegressionPerfData.get_real_values">
+<code class="descname">get_real_values</code><span class="sig-paren">(</span><em>ids=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/perf_data.html#KFoldRegressionPerfData.get_real_values"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.perf_data.KFoldRegressionPerfData.get_real_values" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the real dataset response values, with any transformations undone, as an (ncmpds, ntasks) array
+in the same ID order as get_pred_values() (unless ids is specified).</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>ids (list of str): Optional list of compound IDs to return values for.</dd>
+<dt>Returns:</dt>
+<dd>Np.array (ncmpds, ntasks) of the real dataset response values, with any transformations undone, in the same
+ID order as get_pred_values().</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pipeline.perf_data.PerfData">
+<em class="property">class </em><code class="descclassname">pipeline.perf_data.</code><code class="descname">PerfData</code><span class="sig-paren">(</span><em>model_dataset</em>, <em>subset</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/perf_data.html#PerfData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.perf_data.PerfData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Class with methods for accumulating prediction data over multiple cross-validation folds
+and computing performance metrics after all folds have been run. Abstract class with
+concrete subclasses for classification and regression models.</p>
+<dl class="method">
+<dt id="pipeline.perf_data.PerfData.accumulate_preds">
+<code class="descname">accumulate_preds</code><span class="sig-paren">(</span><em>predicted_vals</em>, <em>ids</em>, <em>pred_stds=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/perf_data.html#PerfData.accumulate_preds"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.perf_data.PerfData.accumulate_preds" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>Raises:</dt>
+<dd>NotImplementedError: The method is implemented by subclasses</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pipeline.perf_data.PerfData.compute_perf_metrics">
+<code class="descname">compute_perf_metrics</code><span class="sig-paren">(</span><em>per_task=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/perf_data.html#PerfData.compute_perf_metrics"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.perf_data.PerfData.compute_perf_metrics" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>Raises:</dt>
+<dd>NotImplementedError: The method is implemented by subclasses</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pipeline.perf_data.PerfData.get_pred_values">
+<code class="descname">get_pred_values</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/perf_data.html#PerfData.get_pred_values"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.perf_data.PerfData.get_pred_values" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>Raises:</dt>
+<dd>NotImplementedError: The method is implemented by subclasses</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pipeline.perf_data.PerfData.get_prediction_results">
+<code class="descname">get_prediction_results</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/perf_data.html#PerfData.get_prediction_results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.perf_data.PerfData.get_prediction_results" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>Raises:</dt>
+<dd>NotImplementedError: The method is implemented by subclasses</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pipeline.perf_data.PerfData.get_real_values">
+<code class="descname">get_real_values</code><span class="sig-paren">(</span><em>ids=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/perf_data.html#PerfData.get_real_values"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.perf_data.PerfData.get_real_values" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>Raises:</dt>
+<dd>NotImplementedError: The method is implemented by subclasses</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pipeline.perf_data.RegressionPerfData">
+<em class="property">class </em><code class="descclassname">pipeline.perf_data.</code><code class="descname">RegressionPerfData</code><span class="sig-paren">(</span><em>model_dataset</em>, <em>subset</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/perf_data.html#RegressionPerfData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.perf_data.RegressionPerfData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pipeline.perf_data.PerfData" title="pipeline.perf_data.PerfData"><code class="xref py py-class docutils literal notranslate"><span class="pre">pipeline.perf_data.PerfData</span></code></a></p>
+<p>Class with methods for accumulating regression model prediction data over multiple
+cross-validation folds and computing performance metrics after all folds have been run.
+Abstract class with concrete subclasses for different split strategies.</p>
+<dl class="docutils">
+<dt>Attributes:</dt>
+<dd><dl class="first last docutils">
+<dt>set in __init__</dt>
+<dd><p class="first">num_tasks (int): Set to None, the number of tasks</p>
+<p class="last">num_cmpds (int): Set to None, the number of compounds</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="method">
+<dt id="pipeline.perf_data.RegressionPerfData.accumulate_preds">
+<code class="descname">accumulate_preds</code><span class="sig-paren">(</span><em>predicted_vals</em>, <em>ids</em>, <em>pred_stds=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/perf_data.html#RegressionPerfData.accumulate_preds"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.perf_data.RegressionPerfData.accumulate_preds" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>Raises:</dt>
+<dd>NotImplementedError: The method is implemented by subclasses</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pipeline.perf_data.RegressionPerfData.compute_perf_metrics">
+<code class="descname">compute_perf_metrics</code><span class="sig-paren">(</span><em>per_task=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/perf_data.html#RegressionPerfData.compute_perf_metrics"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.perf_data.RegressionPerfData.compute_perf_metrics" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>Raises:</dt>
+<dd>NotImplementedError: The method is implemented by subclasses</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pipeline.perf_data.RegressionPerfData.get_pred_values">
+<code class="descname">get_pred_values</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/perf_data.html#RegressionPerfData.get_pred_values"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.perf_data.RegressionPerfData.get_pred_values" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>Raises:</dt>
+<dd>NotImplementedError: The method is implemented by subclasses</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pipeline.perf_data.RegressionPerfData.get_prediction_results">
+<code class="descname">get_prediction_results</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/perf_data.html#RegressionPerfData.get_prediction_results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.perf_data.RegressionPerfData.get_prediction_results" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a dictionary of performance metrics for a regression model.
+The dictionary values should contain only primitive Python types, so that it can
+be easily JSONified.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>per_task (bool): True if calculating per-task metrics, False otherwise.</dd>
+<dt>Returns:</dt>
+<dd>pred_results (dict): dictionary of performance metrics for a regression model.</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pipeline.perf_data.RegressionPerfData.model_choice_score">
+<code class="descname">model_choice_score</code><span class="sig-paren">(</span><em>score_type='r2'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/perf_data.html#RegressionPerfData.model_choice_score"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.perf_data.RegressionPerfData.model_choice_score" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes a score function based on the accumulated predicted values, to be used for selecting
+the best training epoch and other hyperparameters.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><dl class="first last docutils">
+<dt>score_type (str): The name of the scoring metric to be used, e.g. ‘r2’,</dt>
+<dd>‘neg_mean_squared_error’, ‘neg_mean_absolute_error’, etc.; see
+<a class="reference external" href="https://scikit-learn.org/stable/modules/model_evaluation.html#scoring-parameter">https://scikit-learn.org/stable/modules/model_evaluation.html#scoring-parameter</a>
+and sklearn.metrics.SCORERS.keys() for a complete list of options.
+Larger values of the score function indicate better models.</dd>
+</dl>
+</dd>
+<dt>Returns:</dt>
+<dd><dl class="first last docutils">
+<dt>score (float): A score function value. For multitask models, this will be averaged</dt>
+<dd>over tasks.</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pipeline.perf_data.SimpleClassificationPerfData">
+<em class="property">class </em><code class="descclassname">pipeline.perf_data.</code><code class="descname">SimpleClassificationPerfData</code><span class="sig-paren">(</span><em>model_dataset</em>, <em>transformers</em>, <em>subset</em>, <em>predict_probs=True</em>, <em>transformed=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/perf_data.html#SimpleClassificationPerfData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.perf_data.SimpleClassificationPerfData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pipeline.perf_data.ClassificationPerfData" title="pipeline.perf_data.ClassificationPerfData"><code class="xref py py-class docutils literal notranslate"><span class="pre">pipeline.perf_data.ClassificationPerfData</span></code></a></p>
+<p>Class with methods for collecting classification model prediction and performance data from single-fold
+training and prediction runs.</p>
+<dl class="docutils">
+<dt>Attributes:</dt>
+<dd><dl class="first last docutils">
+<dt>Set in __init__:</dt>
+<dd><p class="first">subset (str): Label of the type of subset of dataset for tracking predictions</p>
+<p>num_cmps (int): The number of compounds in the dataset</p>
+<p>num_tasks (int): The number of tasks in the dataset</p>
+<p>pred-vals (dict): The dictionary of prediction results</p>
+<p>folds (int): Initialized at zero, flag for determining which k-fold is being assessed</p>
+<p>transformers (list of Transformer objects): from input arguments</p>
+<p>real_vals (dict): The dictionary containing the origin response column values</p>
+<p>class_names (np.array): Assumes the classes are of deepchem index type (e.g. 0,1,2,…)</p>
+<p class="last">num_classes (int): The number of classes to predict on</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="method">
+<dt id="pipeline.perf_data.SimpleClassificationPerfData.accumulate_preds">
+<code class="descname">accumulate_preds</code><span class="sig-paren">(</span><em>predicted_vals</em>, <em>ids</em>, <em>pred_stds=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/perf_data.html#SimpleClassificationPerfData.accumulate_preds"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.perf_data.SimpleClassificationPerfData.accumulate_preds" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add training, validation or test set predictions from the current dataset to the data structure
+where we keep track of them.</p>
+<dl class="docutils">
+<dt>Arguments:</dt>
+<dd><p class="first">predicted_vals (np.array): Array of predicted values</p>
+<p>ids (list): List of the compound ids of the dataset</p>
+<p class="last">pred_stds (np.array): Optional np.array of the prediction standard deviations</p>
+</dd>
+<dt>Side effects:</dt>
+<dd>Reshapes the predicted values and the standard deviations (if they are given)</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pipeline.perf_data.SimpleClassificationPerfData.compute_perf_metrics">
+<code class="descname">compute_perf_metrics</code><span class="sig-paren">(</span><em>per_task=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/perf_data.html#SimpleClassificationPerfData.compute_perf_metrics"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.perf_data.SimpleClassificationPerfData.compute_perf_metrics" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the ROC_AUC metrics for each task based on the accumulated predictions. If
+per_task is False, returns the average ROC AUC over tasks.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>per_task (bool): Whether to return individual ROC AUC scores for each task</dd>
+<dt>Returns:</dt>
+<dd><dl class="first last docutils">
+<dt>A tuple (roc_auc, std):</dt>
+<dd><dl class="first docutils">
+<dt>roc_auc: A numpy array of ROC AUC scores, if per_task is True. Otherwise,</dt>
+<dd>a float giving the mean ROC AUC score over tasks.</dd>
+</dl>
+<p class="last">std:     Placeholder for an array of standard deviations. Always None for this class.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pipeline.perf_data.SimpleClassificationPerfData.get_pred_values">
+<code class="descname">get_pred_values</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/perf_data.html#SimpleClassificationPerfData.get_pred_values"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.perf_data.SimpleClassificationPerfData.get_pred_values" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the predicted values accumulated over training, with any transformations undone.
+If self.subset is ‘train’, the function will average class probabilities over the k-1 folds in which each
+compound was part of the training set, and return the most probable class. Otherwise, there should be a
+single set of predicted probabilites for each validation or test set compound. Returns a tuple (ids,
+pred_classes, class_probs, prob_stds), where ids is the list of compound IDs, pred_classes is an
+(ncmpds, ntasks) array of predicted classes, class_probs is a (ncmpds, ntasks, nclasses) array of predicted
+probabilities for the classes, and prob_stds is a (ncmpds, ntasks, nclasses) array of standard errors for the
+class probability estimates.</p>
+<dl class="docutils">
+<dt>Returns:</dt>
+<dd><dl class="first last docutils">
+<dt>Tuple (ids, pred_classes, class_probs, prob_stds)</dt>
+<dd><p class="first">ids (list): Contains the dataset compound ids</p>
+<p>pred_classes (np.array): Contains (ncmpds, ntasks) array of prediction classes</p>
+<p>class_probs (np.array): Contains (ncmpds, ntasks, nclasses) array of predict class probabilities</p>
+<p class="last">prob_stds (np.array): Contains (ncmpds, ntasks, nclasses) array of standard errors for the class
+probability estimates</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pipeline.perf_data.SimpleClassificationPerfData.get_real_values">
+<code class="descname">get_real_values</code><span class="sig-paren">(</span><em>ids=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/perf_data.html#SimpleClassificationPerfData.get_real_values"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.perf_data.SimpleClassificationPerfData.get_real_values" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the real dataset response values as an (ncmpds, ntasks, nclasses) array of indicator bits.
+If nclasses == 2, the returned array has dimension (ncmpds, ntasks).</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>ids: Ignored for this class</dd>
+<dt>Returns:</dt>
+<dd>np.array of the response values of the real dataset as indicator bits</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pipeline.perf_data.SimpleRegressionPerfData">
+<em class="property">class </em><code class="descclassname">pipeline.perf_data.</code><code class="descname">SimpleRegressionPerfData</code><span class="sig-paren">(</span><em>model_dataset</em>, <em>transformers</em>, <em>subset</em>, <em>transformed=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/perf_data.html#SimpleRegressionPerfData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.perf_data.SimpleRegressionPerfData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pipeline.perf_data.RegressionPerfData" title="pipeline.perf_data.RegressionPerfData"><code class="xref py py-class docutils literal notranslate"><span class="pre">pipeline.perf_data.RegressionPerfData</span></code></a></p>
+<p>Class with methods for accumulating regression model prediction data from training,
+validation or test sets and computing performance metrics.</p>
+<dl class="docutils">
+<dt>Attributes:</dt>
+<dd><dl class="first last docutils">
+<dt>Set in __init__:</dt>
+<dd><p class="first">subset (str): Label of the type of subset of dataset for tracking predictions</p>
+<p>num_cmps (int): The number of compounds in the dataset</p>
+<p>num_tasks (int): The number of tasks in the dataset</p>
+<p>pred-vals (dict): The dictionary of prediction results</p>
+<p>folds (int): Initialized at zero, flag for determining which k-fold is being assessed</p>
+<p>transformers (list of Transformer objects): from input arguments</p>
+<p class="last">real_vals (dict): The dictionary containing the origin response column values</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="method">
+<dt id="pipeline.perf_data.SimpleRegressionPerfData.accumulate_preds">
+<code class="descname">accumulate_preds</code><span class="sig-paren">(</span><em>predicted_vals</em>, <em>ids</em>, <em>pred_stds=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/perf_data.html#SimpleRegressionPerfData.accumulate_preds"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.perf_data.SimpleRegressionPerfData.accumulate_preds" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add training, validation or test set predictions to the data structure
+where we keep track of them.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><p class="first">predicted_vals (np.array): Array of predicted values</p>
+<p>ids (list): List of the compound ids of the dataset</p>
+<p class="last">pred_stds (np.array): Optional np.array of the prediction standard deviations</p>
+</dd>
+<dt>Side effects:</dt>
+<dd>Reshapes the predicted values and the standard deviations (if they are given)</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pipeline.perf_data.SimpleRegressionPerfData.compute_perf_metrics">
+<code class="descname">compute_perf_metrics</code><span class="sig-paren">(</span><em>per_task=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/perf_data.html#SimpleRegressionPerfData.compute_perf_metrics"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.perf_data.SimpleRegressionPerfData.compute_perf_metrics" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the R-squared metrics for each task or averaged over tasks based on the accumulated values</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>per_task (bool): True if calculating per-task metrics, False otherwise.</dd>
+<dt>Returns:</dt>
+<dd><dl class="first last docutils">
+<dt>A tuple (r2_score, std): </dt>
+<dd><p class="first">r2_score (np.array): An array of scores for each task, if per_task is True.
+Otherwise, it is a float containing the average R^2 score over tasks.</p>
+<p class="last">std: Always None for this class.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pipeline.perf_data.SimpleRegressionPerfData.get_pred_values">
+<code class="descname">get_pred_values</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/perf_data.html#SimpleRegressionPerfData.get_pred_values"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.perf_data.SimpleRegressionPerfData.get_pred_values" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the predicted values accumulated over training, with any transformations undone.  Returns
+a tuple (ids, values, stds), where ids is the list of compound IDs, values is a (ncmpds, ntasks) array
+of predictions, and stds is always None for this class.</p>
+<dl class="docutils">
+<dt>Returns:</dt>
+<dd><dl class="first last docutils">
+<dt>Tuple (ids, vals, stds)</dt>
+<dd><p class="first">ids (list): Contains the dataset compound ids</p>
+<p>vals (np.array): Contains (ncmpds, ntasks) array of prediction</p>
+<p class="last">stds (np.array): Contains (ncmpds, ntasks) array of prediction standard deviations</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pipeline.perf_data.SimpleRegressionPerfData.get_real_values">
+<code class="descname">get_real_values</code><span class="sig-paren">(</span><em>ids=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/perf_data.html#SimpleRegressionPerfData.get_real_values"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.perf_data.SimpleRegressionPerfData.get_real_values" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the real dataset response values, with any transformations undone, as an (ncmpds, ntasks) array
+with compounds in the same ID order as in the return from get_pred_values().</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>ids: Ignored for this class</dd>
+<dt>Returns:</dt>
+<dd>np.array: Containing the real dataset response values with transformations undone.</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="pipeline.perf_data.create_perf_data">
+<code class="descclassname">pipeline.perf_data.</code><code class="descname">create_perf_data</code><span class="sig-paren">(</span><em>prediction_type</em>, <em>model_dataset</em>, <em>transformers</em>, <em>subset</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/perf_data.html#create_perf_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.perf_data.create_perf_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Factory function that creates the right kind of PerfData object for the given subset,
+prediction_type (classification or regression) and split strategy (k-fold or train/valid/test).</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><p class="first">prediction_type (str): classification or regression.</p>
+<p>model_dataset (ModelDataset): Object representing the full dataset.</p>
+<p>transformers (list): A list of transformer objects.</p>
+<p>subset (str): Label in [‘train’, ‘valid’, ‘test’, ‘full’], indicating the type of subset of dataset for tracking predictions</p>
+<p class="last"><a href="#id3"><span class="problematic" id="id4">**</span></a>kwargs: Additional PerfData subclass arguments</p>
+</dd>
+<dt>Returns:</dt>
+<dd>PerfData object</dd>
+<dt>Raises:</dt>
+<dd>ValueError: if split_strategy not in [‘train_valid_test’,’k_fold_cv’]
+ValueError: prediction_type not in [‘regression’,’classification’]</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="pipeline.perf_data.negative_predictive_value">
+<code class="descclassname">pipeline.perf_data.</code><code class="descname">negative_predictive_value</code><span class="sig-paren">(</span><em>y_real</em>, <em>y_pred</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/perf_data.html#negative_predictive_value"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.perf_data.negative_predictive_value" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes negative predictive value of a binary classification model: NPV = TN/(TN+FN).</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>y_real (np.array): Array of ground truth values
+y_pred (np.array): Array of predicted values</dd>
+<dt>Returns:</dt>
+<dd>(float): The negative predictive value</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="pipeline.perf_data.rms_error">
+<code class="descclassname">pipeline.perf_data.</code><code class="descname">rms_error</code><span class="sig-paren">(</span><em>y_real</em>, <em>y_pred</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/perf_data.html#rms_error"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.perf_data.rms_error" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the root mean squared error. Score function used for model selection.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>y_real (np.array): Array of ground truth values
+y_pred (np.array): Array of predicted values</dd>
+<dt>Returns:</dt>
+<dd>(np.array): root mean squared error of the input</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pipeline.perf_plots">
+<span id="pipeline-perf-plots-module"></span><h2>pipeline.perf_plots module<a class="headerlink" href="#module-pipeline.perf_plots" title="Permalink to this headline">¶</a></h2>
+<p>Plotting routines for visualizing performance of regression and classification models</p>
+<dl class="function">
+<dt id="pipeline.perf_plots.get_perf_curve_data">
+<code class="descclassname">pipeline.perf_plots.</code><code class="descname">get_perf_curve_data</code><span class="sig-paren">(</span><em>MP</em>, <em>epoch_label</em>, <em>curve_type='ROC'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/perf_plots.html#get_perf_curve_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.perf_plots.get_perf_curve_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Common code for ROC and precision-recall curves. Returns true classes and active class probabilities
+for each training/test data subset.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pipeline.perf_plots.plot_ROC_curve">
+<code class="descclassname">pipeline.perf_plots.</code><code class="descname">plot_ROC_curve</code><span class="sig-paren">(</span><em>MP</em>, <em>epoch_label='best'</em>, <em>pdf_dir=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/perf_plots.html#plot_ROC_curve"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.perf_plots.plot_ROC_curve" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot ROC curves for a classification model.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pipeline.perf_plots.plot_perf_vs_epoch">
+<code class="descclassname">pipeline.perf_plots.</code><code class="descname">plot_perf_vs_epoch</code><span class="sig-paren">(</span><em>MP</em>, <em>pdf_dir=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/perf_plots.html#plot_perf_vs_epoch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.perf_plots.plot_perf_vs_epoch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot the current NN model’s standard performance metric (r2_score or roc_auc_score) vs epoch number for the training and 
+validation subsets. If the model was trained with k-fold CV, plot error bars or shading out to += 1 SD from the mean
+score metric values. Also plot the validation set score used for ranking training epochs and other hyperparameters 
+against epoch number.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pipeline.perf_plots.plot_prec_recall_curve">
+<code class="descclassname">pipeline.perf_plots.</code><code class="descname">plot_prec_recall_curve</code><span class="sig-paren">(</span><em>MP</em>, <em>epoch_label='best'</em>, <em>pdf_dir=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/perf_plots.html#plot_prec_recall_curve"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.perf_plots.plot_prec_recall_curve" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot precision-recall curves for a classification model.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pipeline.perf_plots.plot_pred_vs_actual">
+<code class="descclassname">pipeline.perf_plots.</code><code class="descname">plot_pred_vs_actual</code><span class="sig-paren">(</span><em>MP</em>, <em>epoch_label='best'</em>, <em>threshold=None</em>, <em>error_bars=False</em>, <em>pdf_dir=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/perf_plots.html#plot_pred_vs_actual"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.perf_plots.plot_pred_vs_actual" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot predicted vs actual values from regression model for the specified dataset subset (train, 
+valid, test or full) for the dataset in ModelPipeline MP.  If threshold is given, draw dashed lines
+in both directions (e.g. to indicate an activity threshold). If pdf_dir is given, output the
+plots to PDF files in the given directory; otherwise they are drawn on the current output device. If 
+uncertainty estimates are included in the model predictions and error_bars is True, error bars will be 
+drawn at +- 1 SD from predicted y values.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pipeline.perf_plots.plot_umap_feature_projections">
+<code class="descclassname">pipeline.perf_plots.</code><code class="descname">plot_umap_feature_projections</code><span class="sig-paren">(</span><em>MP</em>, <em>ndim=2</em>, <em>num_neighbors=20</em>, <em>min_dist=0.1</em>, <em>fit_to_train=True</em>, <em>dist_metric='euclidean'</em>, <em>dist_metric_kwds={}</em>, <em>target_weight=0</em>, <em>random_seed=17</em>, <em>pdf_dir=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/perf_plots.html#plot_umap_feature_projections"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.perf_plots.plot_umap_feature_projections" title="Permalink to this definition">¶</a></dt>
+<dd><p>Take numeric features (descriptors, fingerprints, etc.) input to a model, project them to
+2 or 3 dimensions, and draw a scatterplot of the projected coordinates, with markers shape-coded
+to indicate whether the associated compound was in the training, validation or test set. For classification
+models, also use the marker shape to indicate whether the compound’s class was correctly predicted, and use
+color to indicate whether the true class was active or inactive. For regression models, use the marker color
+to indicate the discrepancy between the predicted and actual values.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pipeline.perf_plots.plot_umap_train_set_neighbors">
+<code class="descclassname">pipeline.perf_plots.</code><code class="descname">plot_umap_train_set_neighbors</code><span class="sig-paren">(</span><em>MP</em>, <em>num_neighbors=20</em>, <em>min_dist=0.1</em>, <em>dist_metric='euclidean'</em>, <em>dist_metric_kwds={}</em>, <em>random_seed=17</em>, <em>pdf_dir=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/perf_plots.html#plot_umap_train_set_neighbors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.perf_plots.plot_umap_train_set_neighbors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Project features of whole dataset to 2 dimensions, without regard to response values. Plot training &amp; validation set
+or training and test set compounds, color- and symbol-coded according to actual classification and split set.
+The plot does not take predicted values into account at all. Does not work with regression data.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="pipeline-splitting-module">
+<h2>pipeline.splitting module<a class="headerlink" href="#pipeline-splitting-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-pipeline.transformations">
+<span id="pipeline-transformations-module"></span><h2>pipeline.transformations module<a class="headerlink" href="#module-pipeline.transformations" title="Permalink to this headline">¶</a></h2>
+<p>Classes providing different methods of transforming response data and/or features in datasets, beyond those
+provided by DeepChem.</p>
+<dl class="class">
+<dt id="pipeline.transformations.UMAPTransformer">
+<em class="property">class </em><code class="descclassname">pipeline.transformations.</code><code class="descname">UMAPTransformer</code><span class="sig-paren">(</span><em>params</em>, <em>dataset</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/transformations.html#UMAPTransformer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.transformations.UMAPTransformer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">transformers.Transformer</span></code></p>
+<p>Dimension reduction transformations using the UMAP algorithm.</p>
+<dl class="docutils">
+<dt>Attributes:</dt>
+<dd>mapper (UMAP) : UMAP transformer
+scaler (RobustScaler): Centering/scaling transformer</dd>
+</dl>
+<dl class="method">
+<dt id="pipeline.transformations.UMAPTransformer.transform">
+<code class="descname">transform</code><span class="sig-paren">(</span><em>dataset</em>, <em>parallel=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/transformations.html#UMAPTransformer.transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.transformations.UMAPTransformer.transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transforms all internally stored data.
+Adds X-transform, y-transform columns to metadata.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pipeline.transformations.UMAPTransformer.transform_array">
+<code class="descname">transform_array</code><span class="sig-paren">(</span><em>X</em>, <em>y</em>, <em>w</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/transformations.html#UMAPTransformer.transform_array"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.transformations.UMAPTransformer.transform_array" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transform the data in a set of (X, y, w) arrays.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pipeline.transformations.UMAPTransformer.untransform">
+<code class="descname">untransform</code><span class="sig-paren">(</span><em>z</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/transformations.html#UMAPTransformer.untransform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.transformations.UMAPTransformer.untransform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reverses stored transformation on provided data.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="pipeline.transformations.create_feature_transformers">
+<code class="descclassname">pipeline.transformations.</code><code class="descname">create_feature_transformers</code><span class="sig-paren">(</span><em>params</em>, <em>model_dataset</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/transformations.html#create_feature_transformers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.transformations.create_feature_transformers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fit a scaling and centering transformation to the feature matrix of the given dataset, and return a
+DeepChem transformer object holding its parameters.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>params (argparse.namespace: Object containing the parameter list
+model_dataset (ModelDataset): Contains the dataset to be transformed.</dd>
+<dt>Returns:</dt>
+<dd>(list of DeepChem transformer objects): list of transformers for the feature matrix</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="pipeline.transformations.get_transformer_specific_metadata">
+<code class="descclassname">pipeline.transformations.</code><code class="descname">get_transformer_specific_metadata</code><span class="sig-paren">(</span><em>params</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/transformations.html#get_transformer_specific_metadata"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline.transformations.get_transformer_specific_metadata" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a dictionary of parameters related to the currently selected transformer(s).</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>params (argparse.namespace: Object containing the parameter list</dd>
+<dt>Returns:</dt>
+<dd>meta_dict (dict): Nested dictionary of parameters and values for each currently active
+transformer.</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pipeline">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-pipeline" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, ATOM DDM Team.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'1.0',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  <script type="text/javascript" src="_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

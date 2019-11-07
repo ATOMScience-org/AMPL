@@ -1,0 +1,726 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pipeline.splitting &mdash; ATOM Data-Driven Modeling Pipeline 1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> ATOM Data-Driven Modeling Pipeline
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">ATOM Data-Driven Modeling Pipeline</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>pipeline.splitting</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for pipeline.splitting</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Encapsulates everything that depends on how datasets are split: the splitting itself, training, validation,</span>
+<span class="sd">testing, generation of predicted values and performance metrics.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">pdb</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">deepchem</span> <span class="k">as</span> <span class="nn">dc</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">deepchem.data</span> <span class="k">import</span> <span class="n">DiskDataset</span>
+<span class="kn">from</span> <span class="nn">atomsci.ddm.pipeline.ave_splitter</span> <span class="k">import</span> <span class="n">AVEMinSplitter</span>
+<span class="kn">import</span> <span class="nn">collections</span>
+
+<span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="nb">format</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%(asctime)-15s</span><span class="s1"> </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;ATOM&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="create_splitting"><a class="viewcode-back" href="../../pipeline.html#pipeline.splitting.create_splitting">[docs]</a><span class="k">def</span> <span class="nf">create_splitting</span><span class="p">(</span><span class="n">params</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Factory function to create appropriate type of Splitting object, based on dataset parameters</span>
+<span class="sd">    </span>
+<span class="sd">    Args:</span>
+<span class="sd">        params (Namespace object): contains all parameter information.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns:</span>
+<span class="sd">        (Splitting object): Splitting subtype (TrainValidTestSplitting or KFoldSplitting)</span>
+<span class="sd">        determined by params.split_strategy</span>
+<span class="sd">        </span>
+<span class="sd">    Raises:</span>
+<span class="sd">        Exception: If params.split_strategy not in [&#39;train_valid_test&#39;,&#39;k_fold_cv&#39;]. Unsupported split strategy</span>
+<span class="sd">        </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">split_strategy</span> <span class="o">==</span> <span class="s1">&#39;train_valid_test&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">TrainValidTestSplitting</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">params</span><span class="o">.</span><span class="n">split_strategy</span> <span class="o">==</span> <span class="s1">&#39;k_fold_cv&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">KFoldSplitting</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Unknown split strategy </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">params</span><span class="o">.</span><span class="n">split_strategy</span><span class="p">)</span></div>
+
+<span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="select_dset_by_attr_ids"><a class="viewcode-back" href="../../pipeline.html#pipeline.splitting.select_dset_by_attr_ids">[docs]</a><span class="k">def</span> <span class="nf">select_dset_by_attr_ids</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">attr_df</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns a subset of the given dc.data.Dataset object selected by matching compound IDs in the index of attr_df</span>
+<span class="sd">    against the ids in the dataset.</span>
+<span class="sd">    </span>
+<span class="sd">    Args:</span>
+<span class="sd">        dataset (DiskDataset): The deepchem dataset, should have matching ids with ids in attr_df</span>
+<span class="sd">        </span>
+<span class="sd">        attr_df (DataFrame): Contains the compound ids to subset the dataset. Ids should match with dataset</span>
+<span class="sd">        </span>
+<span class="sd">    Returns:</span>
+<span class="sd">        subset (DiskDataset): A subset of the deepchem dataset as determined by the ids in attr_df</span>
+<span class="sd">        </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">id_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&#39;indices&#39;</span> <span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">ids</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)},</span> <span class="n">index</span><span class="o">=</span><span class="n">dataset</span><span class="o">.</span><span class="n">ids</span><span class="p">)</span>
+    <span class="n">match_df</span> <span class="o">=</span> <span class="n">id_df</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">attr_df</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;inner&#39;</span><span class="p">)</span>
+    <span class="n">subset</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">match_df</span><span class="o">.</span><span class="n">indices</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">subset</span></div>
+
+<span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="select_dset_by_id_list"><a class="viewcode-back" href="../../pipeline.html#pipeline.splitting.select_dset_by_id_list">[docs]</a><span class="k">def</span> <span class="nf">select_dset_by_id_list</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">id_list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns a subset of the given dc.data.Dataset object selected by matching compound IDs in the given list</span>
+<span class="sd">    against the ids in the dataset.</span>
+<span class="sd">    </span>
+<span class="sd">    Args:</span>
+<span class="sd">        dataset (DiskDataset): The deepchem dataset, should have matching ids with ids in id_list</span>
+
+<span class="sd">        id_list (list): Contains a list of compound ids to subset the dataset. Ids should match with dataset</span>
+<span class="sd">        </span>
+<span class="sd">    Returns:</span>
+<span class="sd">        subset (DiskDataset): A subset of the deepchem dataset as determined by the ids in id_list</span>
+<span class="sd">        </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1">#TODO: Need to test</span>
+    <span class="n">id_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&#39;indices&#39;</span> <span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">ids</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)},</span> <span class="n">index</span><span class="o">=</span><span class="n">dataset</span><span class="o">.</span><span class="n">ids</span><span class="p">)</span>
+    <span class="n">sel_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="n">id_list</span><span class="p">)</span>
+    <span class="n">match_df</span> <span class="o">=</span> <span class="n">id_df</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sel_df</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;inner&#39;</span><span class="p">)</span>
+    <span class="n">subset</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">match_df</span><span class="o">.</span><span class="n">indices</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">subset</span></div>
+
+<span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="select_attrs_by_dset_ids"><a class="viewcode-back" href="../../pipeline.html#pipeline.splitting.select_attrs_by_dset_ids">[docs]</a><span class="k">def</span> <span class="nf">select_attrs_by_dset_ids</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">attr_df</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns a subset of the data frame attr_df selected by matching compound IDs in the index of attr_df</span>
+<span class="sd">    against the ids in the dc.data.Dataset object dataset.</span>
+<span class="sd">    </span>
+<span class="sd">    Args:</span>
+<span class="sd">        dataset (DiskDataset): The deepchem dataset, should have matching ids with ids in attr_df</span>
+
+<span class="sd">        attr_df (DataFrame): Contains the compound ids. Ids should match with dataset</span>
+<span class="sd">        </span>
+<span class="sd">    Returns:</span>
+<span class="sd">        subattr_df (DataFrame): A subset of attr_df as determined by the ids in dataset</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1">#TODO: Need to test</span>
+    <span class="n">id_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="n">dataset</span><span class="o">.</span><span class="n">ids</span><span class="p">)</span>
+    <span class="n">subattr_df</span> <span class="o">=</span> <span class="n">id_df</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">attr_df</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;inner&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">subattr_df</span></div>
+
+<span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="select_attrs_by_dset_smiles"><a class="viewcode-back" href="../../pipeline.html#pipeline.splitting.select_attrs_by_dset_smiles">[docs]</a><span class="k">def</span> <span class="nf">select_attrs_by_dset_smiles</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">attr_df</span><span class="p">,</span> <span class="n">smiles_col</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns a subset of the data frame attr_df selected by matching SMILES strings in attr_df</span>
+<span class="sd">    against the ids in the dc.data.Dataset object dataset.</span>
+<span class="sd">    </span>
+<span class="sd">    Args:</span>
+<span class="sd">        dataset (DiskDataset): The deepchem dataset, should have matching ids with ids in attr_df</span>
+
+<span class="sd">        attr_df (DataFrame): Contains the compound ids. Ids should match with dataset. Should contain a column</span>
+<span class="sd">        of SMILES strings under the smiles_col</span>
+
+<span class="sd">        smiles_col (str): Name of the column containing smiles strings</span>
+<span class="sd">        </span>
+<span class="sd">    Returns:</span>
+<span class="sd">        subattr_df (DataFrame): A subset of attr_df as determined by the ids in dataset. Selected by matching SMILES</span>
+<span class="sd">        strings in attr_df to the ids in the dataset</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">id_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="n">dataset</span><span class="o">.</span><span class="n">ids</span><span class="p">)</span>
+    <span class="n">subattr_df</span> <span class="o">=</span> <span class="n">id_df</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">attr_df</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;inner&#39;</span><span class="p">,</span> <span class="n">left_index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">right_on</span><span class="o">=</span><span class="n">smiles_col</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">subattr_df</span></div>
+
+<span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="check_if_dupe_smiles_dataset"><a class="viewcode-back" href="../../pipeline.html#pipeline.splitting.check_if_dupe_smiles_dataset">[docs]</a><span class="k">def</span> <span class="nf">check_if_dupe_smiles_dataset</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span><span class="n">attr_df</span><span class="p">,</span> <span class="n">smiles_col</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Returns a boolean. True if there are duplication within the deepchem Dataset dataset.ids or if there are</span>
+<span class="sd">    duplicates in the smiles_col of the attr_df</span>
+<span class="sd">    </span>
+<span class="sd">    Args:</span>
+<span class="sd">        dataset (deepchem Dataset): full featurized dataset</span>
+
+<span class="sd">        attr_df (Pandas DataFrame): dataframe containing SMILES strings indexed by compound IDs,</span>
+
+<span class="sd">        smiles_col (string): name of SMILES column (hack for now until deepchem fixes scaffold and butina splitters)</span>
+<span class="sd">        </span>
+<span class="sd">    Returns:</span>
+<span class="sd">        (bool): True if there duplicates in the ids of the dataset or if there are duplicates in the smiles_col</span>
+<span class="sd">        of the attr_df. False if there are no duplicates</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">dupes</span> <span class="o">=</span> <span class="p">[(</span><span class="n">item</span><span class="p">,</span> <span class="n">count</span><span class="p">)</span> <span class="k">for</span> <span class="n">item</span><span class="p">,</span> <span class="n">count</span> <span class="ow">in</span> <span class="n">collections</span><span class="o">.</span><span class="n">Counter</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">ids</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">count</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="n">dupe_attr</span> <span class="o">=</span> <span class="p">[(</span><span class="n">item</span><span class="p">,</span> <span class="n">count</span><span class="p">)</span> <span class="k">for</span> <span class="n">item</span><span class="p">,</span> <span class="n">count</span> <span class="ow">in</span> <span class="n">collections</span><span class="o">.</span><span class="n">Counter</span><span class="p">(</span><span class="n">attr_df</span><span class="p">[</span><span class="n">smiles_col</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">count</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="n">dupes</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="n">dupe_attr</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
+<span class="c1"># ****************************************************************************************</span>
+
+<div class="viewcode-block" id="Splitting"><a class="viewcode-back" href="../../pipeline.html#pipeline.splitting.Splitting">[docs]</a><span class="k">class</span> <span class="nc">Splitting</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Base class for train/validation/test and k-fold dataset splitting. Wrapper for DeepChem Splitter</span>
+<span class="sd">    classes that handle the specific splitting methods (e.g. random, scaffold, etc.).</span>
+<span class="sd">    </span>
+<span class="sd">    Attributes:</span>
+<span class="sd">        Set in __init__:</span>
+<span class="sd">            params (Namespace object): contains all parameter information</span>
+
+<span class="sd">            split (str): Type of splitter in [&#39;index&#39;,&#39;random&#39;,&#39;scaffold&#39;,&#39;butina&#39;,&#39;ave_min&#39;,&#39;stratified&#39;]</span>
+
+<span class="sd">            splitter (Deepchem split object): A splitting object of the subtype specified by split</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Constructor, also serves as a factory method for creating the associated DeepChem splitter object</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            params (Namespace object): contains all parameter information.</span>
+<span class="sd">        </span>
+<span class="sd">        Raises:</span>
+<span class="sd">            Exception: if splitter is not in [&#39;index&#39;,&#39;random&#39;,&#39;scaffold&#39;,&#39;butina&#39;,&#39;ave_min&#39;,&#39;stratified&#39;],</span>
+<span class="sd">            it is not supported by this class</span>
+<span class="sd">            </span>
+<span class="sd">        Side effects:</span>
+
+<span class="sd">            Sets the following Splitting object attributes</span>
+
+<span class="sd">                params (Namespace object): contains all parameter information</span>
+
+<span class="sd">                split (str): Type of splitter in [&#39;index&#39;,&#39;random&#39;,&#39;scaffold&#39;,&#39;butina&#39;,&#39;ave_min&#39;,&#39;stratified&#39;]</span>
+
+<span class="sd">                splitter (Deepchem split object): A splitting object of the subtype specified by split</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">params</span> <span class="o">=</span> <span class="n">params</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">split</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">splitter</span>
+        <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">splitter</span> <span class="o">==</span> <span class="s1">&#39;index&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">splitter</span> <span class="o">=</span> <span class="n">dc</span><span class="o">.</span><span class="n">splits</span><span class="o">.</span><span class="n">IndexSplitter</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="n">params</span><span class="o">.</span><span class="n">splitter</span> <span class="o">==</span> <span class="s1">&#39;random&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">splitter</span> <span class="o">=</span> <span class="n">dc</span><span class="o">.</span><span class="n">splits</span><span class="o">.</span><span class="n">RandomSplitter</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="n">params</span><span class="o">.</span><span class="n">splitter</span> <span class="o">==</span> <span class="s1">&#39;scaffold&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">splitter</span> <span class="o">=</span> <span class="n">dc</span><span class="o">.</span><span class="n">splits</span><span class="o">.</span><span class="n">ScaffoldSplitter</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="n">params</span><span class="o">.</span><span class="n">splitter</span> <span class="o">==</span> <span class="s1">&#39;stratified&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">splitter</span> <span class="o">=</span> <span class="n">dc</span><span class="o">.</span><span class="n">splits</span><span class="o">.</span><span class="n">RandomStratifiedSplitter</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="n">params</span><span class="o">.</span><span class="n">splitter</span> <span class="o">==</span> <span class="s1">&#39;butina&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">splitter</span> <span class="o">=</span> <span class="n">dc</span><span class="o">.</span><span class="n">splits</span><span class="o">.</span><span class="n">ButinaSplitter</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="n">params</span><span class="o">.</span><span class="n">splitter</span> <span class="o">==</span> <span class="s1">&#39;ave_min&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">featurizer</span> <span class="o">==</span> <span class="s1">&#39;ecfp&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">splitter</span> <span class="o">=</span> <span class="n">AVEMinSplitter</span><span class="p">(</span><span class="n">metric</span><span class="o">=</span><span class="s1">&#39;jaccard&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">splitter</span> <span class="o">=</span> <span class="n">AVEMinSplitter</span><span class="p">(</span><span class="n">metric</span><span class="o">=</span><span class="s1">&#39;euclidean&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Unknown splitting method </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">params</span><span class="o">.</span><span class="n">splitter</span><span class="p">)</span>
+
+    <span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="Splitting.get_split_prefix"><a class="viewcode-back" href="../../pipeline.html#pipeline.splitting.Splitting.get_split_prefix">[docs]</a>    <span class="k">def</span> <span class="nf">get_split_prefix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Must be implemented by subclasses</span>
+<span class="sd">        </span>
+<span class="sd">        Raises:</span>
+<span class="sd">            NotImplementedError: The method is implemented by subclasses</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+    <span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="Splitting.split_dataset"><a class="viewcode-back" href="../../pipeline.html#pipeline.splitting.Splitting.split_dataset">[docs]</a>    <span class="k">def</span> <span class="nf">split_dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="p">,</span> <span class="n">attr_df</span><span class="p">,</span> <span class="n">smiles_col</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Must be implemented by subclasses</span>
+<span class="sd">        </span>
+<span class="sd">        Raises:</span>
+<span class="sd">            NotImplementedError: The method is implemented by subclasses</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+    <span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="Splitting.needs_smiles"><a class="viewcode-back" href="../../pipeline.html#pipeline.splitting.Splitting.needs_smiles">[docs]</a>    <span class="k">def</span> <span class="nf">needs_smiles</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns True if underlying DeepChem splitter requires compound IDs to be SMILES strings</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            (bool): True if Deepchem splitter requires SMILES strings as compound IDs, currently only true if</span>
+<span class="sd">            using scaffold or butina splits</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1">#TODO: Will need to add butina</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">split</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;scaffold&#39;</span><span class="p">,</span> <span class="s1">&#39;butina&#39;</span><span class="p">])</span></div></div>
+
+
+<span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="KFoldSplitting"><a class="viewcode-back" href="../../pipeline.html#pipeline.splitting.KFoldSplitting">[docs]</a><span class="k">class</span> <span class="nc">KFoldSplitting</span><span class="p">(</span><span class="n">Splitting</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Subclass to deal with everything related to k-fold cross-validation splits</span>
+<span class="sd">    </span>
+<span class="sd">    Attributes:</span>
+<span class="sd">        Set in __init__:</span>
+<span class="sd">            params (Namespace object): contains all parameter information</span>
+
+<span class="sd">            split (str): Type of splitter in [&#39;index&#39;,&#39;random&#39;,&#39;scaffold&#39;,&#39;butina&#39;,&#39;ave_min&#39;,&#39;stratified&#39;]</span>
+
+<span class="sd">            splitter (Deepchem split object): A splitting object of the subtype specified by split</span>
+
+<span class="sd">            num_folds (int): The number of k-fold splits to perform</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Initialization method for KFoldSplitting.</span>
+
+<span class="sd">        Sets the following attributes for KFoldSplitting:</span>
+<span class="sd">            params (Namespace object): contains all parameter information</span>
+
+<span class="sd">            split (str): Type of splitter in [&#39;index&#39;,&#39;random&#39;,&#39;scaffold&#39;,&#39;butina&#39;,&#39;ave_min&#39;,&#39;stratified&#39;]</span>
+
+<span class="sd">            splitter (Deepchem split object): A splitting object of the subtype specified by split</span>
+
+<span class="sd">            num_folds (int): The number of k-fold splits to perform</span>
+<span class="sd">            </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_folds</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">num_folds</span>
+
+    <span class="c1"># ****************************************************************************************</span>
+
+<div class="viewcode-block" id="KFoldSplitting.get_split_prefix"><a class="viewcode-back" href="../../pipeline.html#pipeline.splitting.KFoldSplitting.get_split_prefix">[docs]</a>    <span class="k">def</span> <span class="nf">get_split_prefix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns a string identifying the split strategy (TVT or k-fold) and the splitting method (index, scaffold,</span>
+<span class="sd">        etc.) for use in filenames, dataset keys, etc.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            parent (str): Default to empty string. Sets the parent directory for the output string</span>
+<span class="sd">            </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            (str): A string that identifies the split strategy and the splitting method. Appends a parent directory in</span>
+<span class="sd">            front of the fold description</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">parent</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+            <span class="n">parent</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">/&quot;</span> <span class="o">%</span> <span class="n">parent</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%s%d</span><span class="s2">_fold_cv_</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_folds</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">split</span><span class="p">)</span></div>
+
+    <span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="KFoldSplitting.split_dataset"><a class="viewcode-back" href="../../pipeline.html#pipeline.splitting.KFoldSplitting.split_dataset">[docs]</a>    <span class="k">def</span> <span class="nf">split_dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="p">,</span> <span class="n">attr_df</span><span class="p">,</span> <span class="n">smiles_col</span><span class="p">):</span>
+        <span class="c1">#smiles_col is a hack for now until deepchem fixes their scaffold and butina splitters</span>
+        <span class="sd">&quot;&quot;&quot;Splits dataset into training, testing and validation sets.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            dataset (deepchem Dataset): full featurized dataset</span>
+
+<span class="sd">            attr_df (Pandas DataFrame): dataframe containing SMILES strings indexed by compound IDs,</span>
+
+<span class="sd">            smiles_col (string): name of SMILES column (hack for now until deepchem fixes scaffold and butina splitters)</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            [(train, valid)], test, [(train_attr, valid_attr)], test_attr:</span>
+
+<span class="sd">            train (deepchem Dataset): training dataset.</span>
+
+<span class="sd">            valid (deepchem Dataset): validation dataset.</span>
+
+<span class="sd">            test (deepchem Dataset): testing dataset.</span>
+
+<span class="sd">            train_attr (Pandas DataFrame): dataframe of SMILES strings indexed by compound IDs for training set.</span>
+
+<span class="sd">            valid_attr (Pandas DataFrame): dataframe of SMILES strings indexed by compound IDs for validation set.</span>
+
+<span class="sd">            test_attr (Pandas DataFrame): dataframe of SMILES strings indexed by compound IDs for test set.</span>
+<span class="sd">            </span>
+<span class="sd">        Raises:</span>
+<span class="sd">            Exception if there are duplicate ids or smiles strings in the dataset or the attr_df</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">check_if_dupe_smiles_dataset</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">attr_df</span><span class="p">,</span> <span class="n">smiles_col</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Duplicate ids or smiles in the dataset&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">needs_smiles</span><span class="p">():</span>
+            <span class="c1"># Some DeepChem splitters require compound IDs in dataset to be SMILES strings. Swap in the</span>
+            <span class="c1"># SMILES strings now; we&#39;ll reverse this later.</span>
+            <span class="n">dataset</span> <span class="o">=</span> <span class="n">DiskDataset</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="n">dataset</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">ids</span><span class="o">=</span><span class="n">attr_df</span><span class="p">[</span><span class="n">smiles_col</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="c1"># Under k-fold CV, the training/validation splits are determined by num_folds; only the test set fraction</span>
+        <span class="c1"># is directly specified through command line parameters. If we use Butina splitting, we can&#39;t control</span>
+        <span class="c1"># the test set size either.</span>
+        <span class="n">train_frac</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">split_test_frac</span>
+
+        <span class="c1"># Use DeepChem train_test_split() to select held-out test set; then use k_fold_split on the</span>
+        <span class="c1"># training set to split it into training/validation folds.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">split</span> <span class="o">==</span> <span class="s1">&#39;butina&#39;</span><span class="p">:</span>
+            <span class="c1"># TODO: Splitter.train_test_split() doesn&#39;t provide a way to pass the cutoff parameter</span>
+            <span class="c1"># through to the ButinaSplitter.split() function. Simple fix would be to reimplement</span>
+            <span class="c1"># train_test_split() here (it&#39;s not a complicated function). For now, allow cutoff to default.</span>
+            <span class="c1">#train_cv, test = self.splitter.train_test_split(dataset, cutoff=self.params.cutoff)</span>
+            <span class="n">train_cv</span><span class="p">,</span> <span class="n">test</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">splitter</span><span class="o">.</span><span class="n">train_valid_test_split</span><span class="p">(</span><span class="n">dataset</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">splitter</span> <span class="o">=</span> <span class="n">dc</span><span class="o">.</span><span class="n">splits</span><span class="o">.</span><span class="n">ScaffoldSplitter</span><span class="p">()</span>
+            <span class="n">train_cv_pairs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">splitter</span><span class="o">.</span><span class="n">k_fold_split</span><span class="p">(</span><span class="n">train_cv</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_folds</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># TODO: Add special handling for AVE splitter</span>
+            <span class="n">train_cv</span><span class="p">,</span> <span class="n">test</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">splitter</span><span class="o">.</span><span class="n">train_test_split</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">123</span><span class="p">),</span> <span class="n">frac_train</span><span class="o">=</span><span class="n">train_frac</span><span class="p">)</span>
+            <span class="n">train_cv_pairs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">splitter</span><span class="o">.</span><span class="n">k_fold_split</span><span class="p">(</span><span class="n">train_cv</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_folds</span><span class="p">)</span>
+    
+        <span class="n">train_valid_dsets</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">train_valid_attr</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">needs_smiles</span><span class="p">():</span>
+            <span class="c1"># Now that DeepChem splitters have done their work, replace the SMILES strings in the split </span>
+            <span class="c1"># dataset objects with actual compound IDs.</span>
+            <span class="k">for</span> <span class="n">train</span><span class="p">,</span> <span class="n">valid</span> <span class="ow">in</span> <span class="n">train_cv_pairs</span><span class="p">:</span>
+                <span class="n">train_attr</span> <span class="o">=</span> <span class="n">select_attrs_by_dset_smiles</span><span class="p">(</span><span class="n">train</span><span class="p">,</span> <span class="n">attr_df</span><span class="p">,</span> <span class="n">smiles_col</span><span class="p">)</span>
+                <span class="n">train</span> <span class="o">=</span> <span class="n">DiskDataset</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">train</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="n">train</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">ids</span><span class="o">=</span><span class="n">train_attr</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+                <span class="n">valid_attr</span> <span class="o">=</span> <span class="n">select_attrs_by_dset_smiles</span><span class="p">(</span><span class="n">valid</span><span class="p">,</span> <span class="n">attr_df</span><span class="p">,</span> <span class="n">smiles_col</span><span class="p">)</span>
+                <span class="n">valid</span> <span class="o">=</span> <span class="n">DiskDataset</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">valid</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="n">valid</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">ids</span><span class="o">=</span><span class="n">valid_attr</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+                <span class="n">train_valid_dsets</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">train</span><span class="p">,</span> <span class="n">valid</span><span class="p">))</span>
+                <span class="n">train_valid_attr</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">train_attr</span><span class="p">,</span> <span class="n">valid_attr</span><span class="p">))</span>
+
+            <span class="n">test_attr</span> <span class="o">=</span> <span class="n">select_attrs_by_dset_smiles</span><span class="p">(</span><span class="n">test</span><span class="p">,</span> <span class="n">attr_df</span><span class="p">,</span> <span class="n">smiles_col</span><span class="p">)</span>
+            <span class="n">test</span> <span class="o">=</span> <span class="n">DiskDataset</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">test</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="n">test</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">ids</span><span class="o">=</span><span class="n">test_attr</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Otherwise just subset the ID-to-SMILES maps.</span>
+            <span class="k">for</span> <span class="n">train</span><span class="p">,</span> <span class="n">valid</span> <span class="ow">in</span> <span class="n">train_cv_pairs</span><span class="p">:</span>
+                <span class="n">train_attr</span> <span class="o">=</span> <span class="n">select_attrs_by_dset_ids</span><span class="p">(</span><span class="n">train</span><span class="p">,</span> <span class="n">attr_df</span><span class="p">)</span>
+                <span class="n">valid_attr</span> <span class="o">=</span> <span class="n">select_attrs_by_dset_ids</span><span class="p">(</span><span class="n">valid</span><span class="p">,</span> <span class="n">attr_df</span><span class="p">)</span>
+                <span class="n">train_valid_attr</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">train_attr</span><span class="p">,</span> <span class="n">valid_attr</span><span class="p">))</span>
+            <span class="n">train_valid_dsets</span> <span class="o">=</span> <span class="n">train_cv_pairs</span>
+            <span class="n">test_attr</span> <span class="o">=</span> <span class="n">select_attrs_by_dset_ids</span><span class="p">(</span><span class="n">test</span><span class="p">,</span> <span class="n">attr_df</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">train_valid_dsets</span><span class="p">,</span> <span class="n">test</span><span class="p">,</span> <span class="n">train_valid_attr</span><span class="p">,</span> <span class="n">test_attr</span></div></div>
+
+<span class="c1"># ****************************************************************************************</span>
+
+<div class="viewcode-block" id="TrainValidTestSplitting"><a class="viewcode-back" href="../../pipeline.html#pipeline.splitting.TrainValidTestSplitting">[docs]</a><span class="k">class</span> <span class="nc">TrainValidTestSplitting</span><span class="p">(</span><span class="n">Splitting</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Subclass to deal with everything related to standard train/validation/test splits</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        Set in __init__:</span>
+<span class="sd">            params (Namespace object): contains all parameter information</span>
+
+<span class="sd">            split (str): Type of splitter in [&#39;index&#39;,&#39;random&#39;,&#39;scaffold&#39;,&#39;butina&#39;,&#39;ave_min&#39;,&#39;stratified&#39;]</span>
+
+<span class="sd">            splitter (Deepchem split object): A splitting object of the subtype specified by split</span>
+
+<span class="sd">            num_folds (int): The number of k-fold splits to perform</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Initialization method for TrainValidTestSplitting.</span>
+
+<span class="sd">        Sets the following attributes for TrainValidTestSplitting:</span>
+<span class="sd">            params (Namespace object): contains all parameter information</span>
+
+<span class="sd">            split (str): Type of splitter in [&#39;index&#39;,&#39;random&#39;,&#39;scaffold&#39;,&#39;butina&#39;,&#39;ave_min&#39;,&#39;stratified&#39;]</span>
+
+<span class="sd">            splitter (Deepchem split object): A splitting object of the subtype specified by split</span>
+
+<span class="sd">            num_folds (int): The number of k-fold splits to perform. In this case, it is always set to 1</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_folds</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="TrainValidTestSplitting.get_split_prefix"><a class="viewcode-back" href="../../pipeline.html#pipeline.splitting.TrainValidTestSplitting.get_split_prefix">[docs]</a>    <span class="k">def</span> <span class="nf">get_split_prefix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns a string identifying the split strategy (TVT or k-fold) and the splitting method</span>
+<span class="sd">        (index, scaffold, etc.) for use in filenames, dataset keys, etc.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            parent (str): Default to empty string. Sets the parent directory for the output string</span>
+<span class="sd">            </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            (str): A string that identifies the split strategy and the splitting method.</span>
+<span class="sd">            Appends a parent directory in front of the fold description</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">parent</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+            <span class="n">parent</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">/&quot;</span> <span class="o">%</span> <span class="n">parent</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">train_valid_test_</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">split</span><span class="p">)</span></div>
+
+    <span class="c1"># ****************************************************************************************</span>
+
+<div class="viewcode-block" id="TrainValidTestSplitting.split_dataset"><a class="viewcode-back" href="../../pipeline.html#pipeline.splitting.TrainValidTestSplitting.split_dataset">[docs]</a>    <span class="k">def</span> <span class="nf">split_dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="p">,</span> <span class="n">attr_df</span><span class="p">,</span> <span class="n">smiles_col</span><span class="p">):</span>
+        <span class="c1">#smiles_col is a hack for now until deepchem fixes their scaffold and butina splitters</span>
+        <span class="sd">&quot;&quot;&quot;Splits dataset into training, testing and validation sets.</span>
+<span class="sd">        </span>
+<span class="sd">        For ave_min, random, scaffold, index splits</span>
+<span class="sd">            self.params.split_valid_frac &amp; self.params.split_test_frac should be defined and </span>
+<span class="sd">            train_frac = 1.0 - self.params.split_valid_frac - self.params.split_test_frac</span>
+<span class="sd">        </span>
+<span class="sd">        For butina split, test size is not user defined, and depends on available clusters that qualify for placement in the test set</span>
+<span class="sd">            train_frac = 1.0 - self.params.split_valid_frac</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            dataset (deepchem Dataset): full featurized dataset</span>
+
+<span class="sd">            attr_df (Pandas DataFrame): dataframe containing SMILES strings indexed by compound IDs,</span>
+
+<span class="sd">            smiles_col (string): name of SMILES column (hack for now until deepchem fixes scaffold and butina splitters)</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            [(train, valid)], test, [(train_attr, valid_attr)], test_attr:</span>
+<span class="sd">            train (deepchem Dataset): training dataset.</span>
+
+<span class="sd">            valid (deepchem Dataset): validation dataset.</span>
+
+<span class="sd">            test (deepchem Dataset): testing dataset.</span>
+
+<span class="sd">            train_attr (Pandas DataFrame): dataframe of SMILES strings indexed by compound IDs for training set.</span>
+
+<span class="sd">            valid_attr (Pandas DataFrame): dataframe of SMILES strings indexed by compound IDs for validation set.</span>
+
+<span class="sd">            test_attr (Pandas DataFrame): dataframe of SMILES strings indexed by compound IDs for test set.</span>
+<span class="sd">            </span>
+<span class="sd">        Raises:</span>
+<span class="sd">            Exception if there are duplicate ids or smiles strings in the dataset or the attr_df</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">check_if_dupe_smiles_dataset</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">attr_df</span><span class="p">,</span> <span class="n">smiles_col</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Duplicate ids or smiles in the dataset&quot;</span><span class="p">)</span>
+            
+        <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Splitting data by </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">splitter</span><span class="p">)</span>
+
+
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">needs_smiles</span><span class="p">():</span>
+            <span class="c1"># Some DeepChem splitters require compound IDs in dataset to be SMILES strings. Swap in the</span>
+            <span class="c1"># SMILES strings now; we&#39;ll reverse this later.</span>
+            <span class="n">dataset</span> <span class="o">=</span> <span class="n">DiskDataset</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="n">dataset</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">ids</span><span class="o">=</span><span class="n">attr_df</span><span class="p">[</span><span class="n">smiles_col</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">split</span> <span class="o">==</span> <span class="s1">&#39;butina&#39;</span><span class="p">:</span>
+            <span class="c1">#train_valid, test = self.splitter.train_test_split(dataset, cutoff=self.params.cutoff)</span>
+            <span class="c1"># Can&#39;t use train_test_split with Butina because Butina splits into train and valid sets only.</span>
+            <span class="n">train_valid</span><span class="p">,</span> <span class="n">test</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">splitter</span><span class="o">.</span><span class="n">train_valid_test_split</span><span class="p">(</span><span class="n">dataset</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">splitter</span> <span class="o">=</span> <span class="n">dc</span><span class="o">.</span><span class="n">splits</span><span class="o">.</span><span class="n">ScaffoldSplitter</span><span class="p">()</span>
+            <span class="c1"># With Butina splitting, we don&#39;t have control over the size of the test set</span>
+            <span class="n">train_frac</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">split_valid_frac</span>
+            <span class="n">train</span><span class="p">,</span> <span class="n">valid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">splitter</span><span class="o">.</span><span class="n">train_test_split</span><span class="p">(</span><span class="n">train_valid</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">123</span><span class="p">),</span> <span class="n">frac_train</span><span class="o">=</span><span class="n">train_frac</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">split</span> <span class="o">==</span> <span class="s1">&#39;ave_min&#39;</span><span class="p">:</span>
+            <span class="c1"># AVEMinSplitter also only does train-valid splits, but at least nested splits seem to work.</span>
+            <span class="c1"># TODO: Change this if we modify AVE splitter to do 3-way splits internally.</span>
+            <span class="n">train_valid_frac</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">split_test_frac</span>
+            <span class="n">train_frac</span> <span class="o">=</span> <span class="n">train_valid_frac</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">split_valid_frac</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Performing split for test set&quot;</span><span class="p">)</span>
+            <span class="n">train_valid</span><span class="p">,</span> <span class="n">test</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">splitter</span><span class="o">.</span><span class="n">train_valid_test_split</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">frac_train</span><span class="o">=</span><span class="n">train_valid_frac</span><span class="p">,</span> 
+                                                                        <span class="n">frac_valid</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">split_test_frac</span><span class="p">,</span>
+                                                                        <span class="n">frac_test</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Performing split of training and validation sets&quot;</span><span class="p">)</span>
+            <span class="n">train</span><span class="p">,</span> <span class="n">valid</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">splitter</span><span class="o">.</span><span class="n">train_valid_test_split</span><span class="p">(</span><span class="n">train_valid</span><span class="p">,</span> <span class="n">frac_train</span><span class="o">=</span><span class="n">train_frac</span><span class="o">/</span><span class="n">train_valid_frac</span><span class="p">,</span> 
+                                                                   <span class="n">frac_valid</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">split_valid_frac</span><span class="o">/</span><span class="n">train_valid_frac</span><span class="p">,</span>
+                                                                   <span class="n">frac_test</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Results of 3-way split: </span><span class="si">%d</span><span class="s2"> training, </span><span class="si">%d</span><span class="s2"> validation, </span><span class="si">%d</span><span class="s2"> test compounds&quot;</span> <span class="o">%</span> <span class="p">(</span>
+                     <span class="n">train</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">valid</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">test</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">train_frac</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">split_valid_frac</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">split_test_frac</span>
+            <span class="n">train</span><span class="p">,</span> <span class="n">valid</span><span class="p">,</span> <span class="n">test</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">splitter</span><span class="o">.</span><span class="n">train_valid_test_split</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> 
+                <span class="n">frac_train</span><span class="o">=</span><span class="n">train_frac</span><span class="p">,</span> <span class="n">frac_valid</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">split_valid_frac</span><span class="p">,</span> <span class="n">frac_test</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">split_test_frac</span><span class="p">,</span>
+                <span class="n">seed</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">123</span><span class="p">))</span>
+
+        <span class="c1"># Extract the ID-to_SMILES maps from attr_df for each subset.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">needs_smiles</span><span class="p">():</span>
+            <span class="c1"># Now that DeepChem splitters have done their work, replace the SMILES strings in the split </span>
+            <span class="c1"># dataset objects with actual compound IDs.</span>
+            <span class="n">train_attr</span> <span class="o">=</span> <span class="n">select_attrs_by_dset_smiles</span><span class="p">(</span><span class="n">train</span><span class="p">,</span> <span class="n">attr_df</span><span class="p">,</span> <span class="n">smiles_col</span><span class="p">)</span>
+            <span class="n">train</span> <span class="o">=</span> <span class="n">DiskDataset</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">train</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="n">train</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">ids</span><span class="o">=</span><span class="n">train_attr</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+            <span class="n">valid_attr</span> <span class="o">=</span> <span class="n">select_attrs_by_dset_smiles</span><span class="p">(</span><span class="n">valid</span><span class="p">,</span> <span class="n">attr_df</span><span class="p">,</span> <span class="n">smiles_col</span><span class="p">)</span>
+            <span class="n">valid</span> <span class="o">=</span> <span class="n">DiskDataset</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">valid</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="n">valid</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">ids</span><span class="o">=</span><span class="n">valid_attr</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+            <span class="n">test_attr</span> <span class="o">=</span> <span class="n">select_attrs_by_dset_smiles</span><span class="p">(</span><span class="n">test</span><span class="p">,</span> <span class="n">attr_df</span><span class="p">,</span> <span class="n">smiles_col</span><span class="p">)</span>
+            <span class="n">test</span> <span class="o">=</span> <span class="n">DiskDataset</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">test</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="n">test</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">ids</span><span class="o">=</span><span class="n">test_attr</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Otherwise just subset the ID-to-SMILES maps.</span>
+            <span class="n">train_attr</span> <span class="o">=</span> <span class="n">select_attrs_by_dset_ids</span><span class="p">(</span><span class="n">train</span><span class="p">,</span> <span class="n">attr_df</span><span class="p">)</span>
+            <span class="n">valid_attr</span> <span class="o">=</span> <span class="n">select_attrs_by_dset_ids</span><span class="p">(</span><span class="n">valid</span><span class="p">,</span> <span class="n">attr_df</span><span class="p">)</span>
+            <span class="n">test_attr</span> <span class="o">=</span> <span class="n">select_attrs_by_dset_ids</span><span class="p">(</span><span class="n">test</span><span class="p">,</span> <span class="n">attr_df</span><span class="p">)</span>
+
+        <span class="c1"># Note grouping of train/valid return values as tuple lists, to match format of </span>
+        <span class="c1"># KFoldSplitting.split_dataset().</span>
+        <span class="k">return</span> <span class="p">[(</span><span class="n">train</span><span class="p">,</span> <span class="n">valid</span><span class="p">)],</span> <span class="n">test</span><span class="p">,</span> <span class="p">[(</span><span class="n">train_attr</span><span class="p">,</span> <span class="n">valid_attr</span><span class="p">)],</span> <span class="n">test_attr</span></div></div>
+
+
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, ATOM DDM Team.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.0',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
