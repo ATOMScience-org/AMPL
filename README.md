@@ -155,7 +155,7 @@ AMPL enables tasks for modeling and prediction from data ingestion to data analy
 - Hyperparameter optimization  
 &nbsp;  
 
-#### 4. Supported models
+### 4. Supported models
 - scikit-learn random forest models
 - XGBoost models
 - Fully connected neural networks
