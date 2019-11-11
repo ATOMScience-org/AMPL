@@ -14,6 +14,8 @@ import pandas as pd
 from deepchem.data.data_loader import featurize_smiles_df
 import deepchem.data.data_loader as dl
 
+from atomsci.ddm.utils import datastore_functions as dsf
+
 from rdkit import Chem
 from rdkit.Chem import AllChem
 
