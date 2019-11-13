@@ -5,11 +5,6 @@
     "smiles_col": "smiles",
     "response_cols": "measured log solubility in mols per litre",
 
-    "comment": "Descriptors",
-    "comment": "----------------------------------------",
-    "descriptor_spec_bucket": "",
-    "descriptor_spec_key": "../../../data/descriptor_sets_sources_by_descr_type.csv",
-
     "comment": "Model",
     "comment": "----------------------------------------",
     "comment": "Note: result_dir is set in test script",

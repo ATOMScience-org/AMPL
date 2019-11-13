@@ -871,8 +871,14 @@ class DescriptorFeaturization(PersistentFeaturization):
         # assume that the ds_key is a full path pointer to a file on the file system
         if ds_client == None or desc_spec_bucket == '':  
             desc_spec_df = pd.read_csv(desc_spec_key, index_col=False)
-        else : 
-            desc_spec_df = dsf.retrieve_dataset_by_datasetkey(desc_spec_key, desc_spec_bucket, ds_client)
+        else :
+            # Try the descriptor_spec_key parameter first, then fall back to package file
+            try:
+                desc_spec_df = dsf.retrieve_dataset_by_datasetkey(desc_spec_key, desc_spec_bucket, ds_client)
+            except:
+                script_dir = os.path.dirname(os.path.realpath(__file__))
+                desc_spec_key_fallback = script_dir+'/../data/descriptor_sets_sources_by_descr_type.csv'
+                desc_spec_df = dsf.retrieve_dataset_by_datasetkey(desc_spec_key_fallback, desc_spec_bucket, ds_client)
 
         for desc_type, source, scaled, descriptors in zip(desc_spec_df.descr_type.values,
                                                           desc_spec_df.source.values,
@@ -916,7 +922,14 @@ class DescriptorFeaturization(PersistentFeaturization):
         cls = self.__class__
         # JEA: load mapping between descriptor types and lists of descriptors
         if len(cls.supported_descriptor_types) == 0:
-            cls.load_descriptor_spec(params.descriptor_spec_bucket,params.descriptor_spec_key)
+
+            # Try the descriptor_spec_key parameter first, then fall back to package file
+            try:
+                cls.load_descriptor_spec(params.descriptor_spec_bucket, params.descriptor_spec_key)
+            except:
+                script_dir = os.path.dirname(os.path.realpath(__file__))
+                desc_spec_key_fallback = script_dir+'/../data/descriptor_sets_sources_by_descr_type.csv'
+                cls.load_descriptor_spec(params.descriptor_spec_bucket, desc_spec_key_fallback)
         
         if not params.descriptor_type in cls.supported_descriptor_types:
             raise ValueError("Unsupported descriptor type %s" % params.descriptor_type)

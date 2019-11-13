@@ -1,2 +1,3 @@
 include VERSION
 include atomsci/*/*.yaml
+include atomsci/ddm/data/descriptor_sets_sources_by_descr_type.csv

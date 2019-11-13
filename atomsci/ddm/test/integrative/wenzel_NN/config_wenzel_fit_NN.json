@@ -20,8 +20,6 @@
 
     "comment": "Descriptors",
     "comment": "----------------------------------------",
-    "descriptor_spec_bucket": "",
-    "descriptor_spec_key": "../../../data/descriptor_sets_sources_by_descr_type.csv",
     "descriptor_type": "mordred_filtered",
 
     "comment": "Model",
