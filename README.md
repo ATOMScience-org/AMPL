@@ -21,8 +21,8 @@ A pre-print of a manuscript describing this project will be available through [A
 - [Getting started](#Getting-started)
   - [Prerequisites](#Prerequisites)
   - [Install](#Install)
-- [Examples and tests](#Examples-and-tests)
-- [Features](#Features)
+- [Tests](#Tests)
+- [AMPL Features](#AMPL-Features)
 - [Running AMPL](#Running-AMPL)
 - [Advanced AMPL usage](#Advanced-AMPL-usage)
 - [Advanced installation](#Advanced-installation)
@@ -92,11 +92,11 @@ cd ..
 
 
 ---
-<a name="Examples-and-tests"></a>
-## Examples and tests
-AMPL includes a suite of examples and tests for demonstration and testing. One test fits a random forest model using Mordred descriptors on a set of compounds from Delaney, *et al* with solubility data. A molecular scaffold-based split is used to create the training and test sets. In addition, an external holdout set is used to demonstrate how to make predictions on new compounds.
+<a name="Tests"></a>
+## Tests
+AMPL includes a suite of software tests. This section explains how to run a very simple test that is fast to run. The Python test fits a random forest model using Mordred descriptors on a set of compounds from Delaney, *et al* with solubility data. A molecular scaffold-based split is used to create the training and test sets. In addition, an external holdout set is used to demonstrate how to make predictions on new compounds.
 
-To run an example Python script that curates a dataset, fits a model, and makes predictions, run the following commands:
+To run the Delaney Python script that curates a dataset, fits a model, and makes predictions, run the following commands:
 ```
 conda activate atomsci
 
@@ -104,17 +104,15 @@ cd atomsci/ddm/test/integrative/delaney_RF
 
 pytest
 ```
+- *Note: This test generally takes a few minutes on a modern system*  
 &nbsp;  
 &nbsp;  
-- *Note: This test generally takes a few minutes on a modern system*
 
-The important files for running this test are listed below:
+The important files for this test are listed below:
 
 - `test_delany_RF.py`: This script loads and curates the dataset, generates a model pipeline object, and fits a model. The model is reloaded from the filesystem and then used to predict solubilities for a new dataset.
 - `config_delaney_fit_RF.json`: Basic parameter file for fitting
 - `config_delaney_predict_RF.json`: Basic parameter file for predicting
-
-- *Note: Further pipeline examples can be found in the [`atomsci/ddm/test/integrative`](atomsci/ddm/test/integrative) directory.*  
 &nbsp;  
 
 ### More example and test information
@@ -124,8 +122,8 @@ The important files for running this test are listed below:
 
 
 ---
-<a name="Features"></a>
-## Features
+<a name="AMPL-Features"></a>
+## AMPL Features
 AMPL enables tasks for modeling and prediction from data ingestion to data analysis and can be broken down into the following stages:
 
 1. Data ingestion and curation
@@ -165,6 +163,9 @@ AMPL enables tasks for modeling and prediction from data ingestion to data analy
 ### 5. Visualization and analysis
 - Visualization and analysis tools  
 &nbsp;  
+
+Details of running specific features are within the [parameter (options) documentation](#Pipeline-parameters). More detailed documentation is in the [library documentation](#Library-documentation).  
+&nbsp;  
 &nbsp;  
 
 
@@ -175,22 +176,32 @@ AMPL can be run from the command line or by importing into Python scripts and Ju
 &nbsp;  
 
 ### Python scripts and Jupyter notebooks
-AMPL can be used to fit and predict molecular activities and properties by importing the appropriate modules. See the examples for more descriptions on how to fit and make predictions using AMPL.  
+AMPL can be used to fit and predict molecular activities and properties by importing the appropriate modules. See the [examples](#Example-AMPL-usage) for more descriptions on how to fit and make predictions using AMPL.  
 &nbsp;  
 
+<a name="Pipeline-parameters"></a>
 ### Pipeline parameters (options)
 AMPL includes many parameters to run various model fitting and prediction tasks.
 - Pipeline options (parameters) can be set within JSON files containing a parameter list.
-- The parameter list with detailed explanations of each option can be found at `atomsci/ddm/docs/PARAMETERS.md`.
+- The parameter list with detailed explanations of each option can be found at [atomsci/ddm/docs/PARAMETERS.md](atomsci/ddm/docs/PARAMETERS.md).
 - Example pipeline JSON files can be found in the tests directory and the example directory.  
 &nbsp;  
 
+<a name="Library-documentation"></a>
 ### Library documentation
-AMPL includes detailed docstrings and comments to explain the modules. Full HTML documentation of the Python library is available with the package at `atomsci/ddm/docs/build/html/index.html`.  
+AMPL includes detailed docstrings and comments to explain the modules. Full HTML documentation of the Python library is available with the package at [atomsci/ddm/docs/build/html/index.html](atomsci/ddm/docs/build/html/index.html).  
 &nbsp;  
 
 ### More information on AMPL usage
 - More information on AMPL usage can be found in [Advanced AMPL usage](#Advanced-AMPL-usage)  
+&nbsp;  
+&nbsp;  
+
+
+---
+<a name="Example-AMPL-usage"></a>
+## Example AMPL usage
+- Jupyter Notebooks with AMPL examples will be shared on the GitHub page. Check back soon.
 &nbsp;  
 &nbsp;  
 
@@ -325,12 +336,15 @@ Versions are managed through GitHub tags on this repository.
 
 - Amanda J. Minnich (1)
 - Kevin McLoughlin (1)
-- Jonathan E. Allen (1)
 - Margaret Tse (2)
 - Jason Deng (2)
 - Andrew Weber (2)
 - Neha Murad (2)
 - Benjamin D. Madej (3)
+- Tom Rush (2)
+- Stacie Calad-Thomson (2)
+- Jim Brase (1)
+- Jonathan E. Allen (1)
 &nbsp;  
 
 1. Lawrence Livermore National Laboratory
