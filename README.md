@@ -342,6 +342,7 @@ Versions are managed through GitHub tags on this repository.
 - Andrew Weber (2)
 - Neha Murad (2)
 - Benjamin D. Madej (3)
+- Bharath Ramsundar (4)
 - Tom Rush (2)
 - Stacie Calad-Thomson (2)
 - Jim Brase (1)
@@ -350,7 +351,8 @@ Versions are managed through GitHub tags on this repository.
 
 1. Lawrence Livermore National Laboratory
 2. GlaxoSmithKline Inc.
-3. Frederick National Laboratory for Cancer Research  
+3. Frederick National Laboratory for Cancer Research
+4. Computable  
 &nbsp;  
 
 ### Support
