@@ -9,7 +9,7 @@ import sys
 import pandas as pd
 
 from atomsci.ddm.utils import datastore_functions as dsf
-from atomsci.ddm.pipeline import mlmt_client_wrapper as mlmt_client_wrapper
+from atomsci.clients import MLMTClient
 
 class UnableToTarException(Exception):
     pass
@@ -76,47 +76,16 @@ def save_model(pipeline, collection_name='model_tracker', log=True):
     # Get the dataset_oid for actual metadata file stored in datastore.
     model_dataset_oid = uploaded_results['dataset_oid']
     # By adding dataset_oid to the dict, we can immediately find the datastore file asssociated with a model.
-    metadata_dict['ModelMetadata']['ModelParameters']['model_dataset_oid'] = model_dataset_oid
+    metadata_dict['model_parameters']['model_dataset_oid'] = model_dataset_oid
 
 
     #### Part 2: Save the model metadata ####
-    client_wrapper = mlmt_client_wrapper.MLMTClientWrapper()
-    client_wrapper.instantiate_mlmt_client()
-    if client_wrapper.mlmt_client is None:
-        raise MLMTClientInstantiationException(
-            'mlmt_client failed to instantitate.')
-    # Temporarily add collection_name key. The model tracker will use this key internally and pop it from the dict.
-    metadata_dict['collection_name'] = collection_name
-    client_wrapper.save_metadata(model_metadata_dict=metadata_dict)
+    mlmt_client = MLMTClient()
+    mlmt_client.save_model_metadata(collection_name=collection_name,
+                                    model_uuid=metadata_dict['model_uuid'],
+                                    model_metadata=metadata_dict)
     if log:
         print('Successfully inserted into the database with model_uuid %s.' % model_uuid)
-
-# *********************************************************************************************************************************
-def get_models(filter_dict, client_wrapper=None, collection_name='model_tracker', log=False):
-    """Retrieve relevant models.
-
-    Retrieve models matching given criteria.
-
-    Args:
-        filter_dict (dict): dictionary to filter on
-
-    Returns:
-        A list of matching model dictionaries (matching metadata with matching
-        metrics). Raises MongoQueryException if the query fails.
-    """
-    if filter_dict is None:
-        raise Exception('filter_dict cannot be None.')
-    if client_wrapper is None:
-        client_wrapper = mlmt_client_wrapper.MLMTClientWrapper(ds_client=dsf.config_client())
-        client_wrapper.instantiate_mlmt_client()
-
-    # Temporarily add collection_name key. The model tracker will use this key
-    # internally and pop it from the dict.
-    filter_dict['collection_name'] = collection_name
-    gen = client_wrapper.get_models_generator(filter_dict=filter_dict, log=log)
-    if log:
-        print('Successfully constructed models generator.')
-    return gen
 
 # *********************************************************************************************************************************
 def get_full_metadata(filter_dict, client_wrapper=None, collection_name='model_tracker', log=False):
@@ -177,7 +146,7 @@ def get_metadata(filter_dict, client_wrapper=None, collection_name='model_tracke
 
 # *********************************************************************************************************************************
 
-def get_metadata_by_uuid(uuid, client_wrapper=None, collection_name=None, log=False):
+def get_metadata_by_uuid(uuid, collection_name=None, log=False):
     """Retrieve relevant model metadata by uuid.
 
     Retrieve metadata matching given uuid
@@ -188,46 +157,38 @@ def get_metadata_by_uuid(uuid, client_wrapper=None, collection_name=None, log=Fa
     Returns:
         Matching metadata dictionary. Raises MongoQueryException if the query fails.
     """
-    
-    if client_wrapper is None:
-        client_wrapper = mlmt_client_wrapper.MLMTClientWrapper(ds_client=dsf.config_client())
-        client_wrapper.instantiate_mlmt_client()
-        
-    if not client_wrapper.mlmt_client:
-        raise Exception('mlmt_client failed to instantitate')
-    
+
+    mlmt_client = MLMTClient()
+
     if collection_name is None:
-        collection_name = get_model_collection_by_uuid(uuid, client_wrapper=client_wrapper)
+        collection_name = get_model_collection_by_uuid(uuid, mlmt_client=mlmt_client)
         
-    model_meta = list(get_full_metadata({"model_uuid" : uuid}, client_wrapper=client_wrapper, collection_name=collection_name))
+    model_meta = list(get_full_metadata({"model_uuid" : uuid}, mlmt_client=mlmt_client, collection_name=collection_name))
 
     return model_meta[0]
 
 # *********************************************************************************************************************************
-def get_model_collection_by_uuid(uuid, client_wrapper=None):
+def get_model_collection_by_uuid(uuid, mlmt_client=None):
     """Retrieve model collection given a uuid.
 
     Retrieve model collection given a uuid.
 
     Args:
         uuid (str): model uuid
+
+        mlmt_client: Ignored
     Returns:
         Matching collection name
     """
-    
-    if client_wrapper is None:
-        client_wrapper = mlmt_client_wrapper.MLMTClientWrapper(ds_client=dsf.config_client())
-        client_wrapper.instantiate_mlmt_client()
-        
-    collection = 'Collection not found for uuid: ' + uuid
-    colls = client_wrapper.get_collection_names({})   
-    for col in colls['matching_collection_names']:
-        model_meta = list(get_full_metadata({"model_uuid" : uuid}, client_wrapper=client_wrapper,collection_name=col))
-        if model_meta != []:
-            collection = col
-            break
-    
-    return collection
+
+    mlmt_client = MLMTClient()
+
+    collections = mlmt_client.collections.get_collection_names().result()
+    for col in collections:
+        if mlmt_client.count_models(collection_name=col, model_uuid=uuid) > 0:
+            return col
+
+    raise ValueError('Collection not found for uuid: ' + uuid)
 
 # *********************************************************************************************************************************
 def get_model_training_data_by_uuid(uuid):
@@ -258,53 +219,4 @@ def get_model_training_data_by_uuid(uuid):
     return train_data, valid_data, test_data
 
 
-# *********************************************************************************************************************************
-def save_metrics(pipeline, model_metrics, collection_name='model_tracker', log=False):
-    """Wrapper for mlmt_client save_model_metrics() function. Stores the performance metrics from a training
-    or prediction run in the model tracker database.
-
-    Args:
-        pipeline (ModelPipeline): The ModelPipeline object managing the training or prediction run.
-
-        model_metrics (dict): A dictionary containing the performance metrics data to be stored. It should have one of the following forms:
-            {'model_uuid' : <model_UUID>, 'ModelMetrics' : {'TrainingRun' : {'label' : label, 'subset' : subset, 'PredictionResults' : results}}
-            {'model_uuid' : <model_UUID>, 'ModelMetrics' : {'PredictionRuns' : {'time_run' : time_run, 'dataset_oid' : dataset_oid, <etc.>,
-                                                                           'PredictionResults' : results}}
-        The dict will be appended to the appropriate model's list of metrics dicts in the model tracker DB.
-
-    Returns:
-        None if insertion was successful, raises MLMTClientInstantiationException or MongoInsertionException otherwise.
-    """
-
-    client_wrapper = pipeline.client_wrapper
-    model_metrics['collection_name'] = collection_name
-    client_wrapper.save_metrics(model_metrics_dict=model_metrics, log=log)
-    pipeline.log.warning('Successfully saved model metrics into the model tracker database.')
-
-# *********************************************************************************************************************************
-def get_metrics(pipeline, filter_dict=None, collection_name='model_tracker', log=False):
-    """Wrapper for mlmt_client.get_model_metrics(). Retrieves a list of performance metrics dictionaries
-    matching a query filter, or by default all performance results for the current model UUID, from all training
-    and/or prediction runs.
-
-    Args:
-        pipeline (ModelPipeline): The ModelPipeline object managing the training or prediction run.
-
-        filter_dict (dict): An optional dictionary of query criteria. If not specified, the function
-        returns all performance results for the current model UUID, from all training and/or prediction runs.
-
-    Returns:
-        A list of dicts containing training and prediction performance metrics. Raises MongoQueryException if the query fails.
-    """
-
-    if filter_dict is None:
-        # Specify model_uuid at least.
-        filter_dict = dict(model_uuid = pipeline.params.model_uuid)
-    # Temporarily add collection_name key. The model tracker will use this key internally and pop it from the dict.
-    filter_dict['collection_name'] = collection_name
-    client_wrapper = pipeline.client_wrapper
-    # call next(gen) to get the next item.
-    gen = client_wrapper.get_metrics_generator(filter_dict=filter_dict, log=log)
-    pipeline.log.warning('Successfully created metrics generator.')
-    return gen
 

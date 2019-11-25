@@ -13,11 +13,10 @@ import json
 
 from collections import OrderedDict
 from atomsci.ddm.utils import datastore_functions as dsf
-from atomsci.ddm.pipeline import mlmt_client_wrapper as mlmt_client_wrapper
 from atomsci.ddm.pipeline import model_tracker as trkr
 import atomsci.ddm.pipeline.model_pipeline as mp
+from atomsci.clients import MLMTClient
 
-#matplotlib.style.use('ggplot')
 matplotlib.rc('xtick', labelsize=12)
 matplotlib.rc('ytick', labelsize=12)
 matplotlib.rc('axes', labelsize=12)
@@ -26,33 +25,17 @@ logging.basicConfig(format='%(asctime)-15s %(message)s')
 
 nan = np.float32('nan')
 
-client_wrapper = mlmt_client_wrapper.MLMTClientWrapper(ds_client=dsf.config_client())
-client_wrapper.instantiate_mlmt_client()
-if not client_wrapper.mlmt_client:
-    raise Exception('mlmt_client failed to instantitate')
-    
 #------------------------------------------------------------------------------------------------------------------
 def get_collection_datasets(collection_name):
     """
-    Returns a list of training (dataset_key, bucket) tuples for models in the given collection.
+    Returns a list of unique training (dataset_key, bucket) tuples used for all models in the given collection.
     """
-    model_filter = {}
-    #models = list(trkr.get_full_metadata(model_filter, client_wrapper,
-    #                              collection_name=collection_name))
-    #if models == []:
-    #    print("No matching models returned")
-    #    return
-    #else:
-    #    print("Found %d matching models" % len(models))
     dataset_set = set()
-    models = trkr.get_metadata(model_filter, client_wrapper,
-                                  collection_name=collection_name)
-    for i, metadata_dict in enumerate(models):
-        if i % 10 == 0:
-            print("Looking at model %d" % i)
-        dataset_key = metadata_dict['ModelMetadata']['TrainingDataset']['dataset_key']
-        bucket = metadata_dict['ModelMetadata']['TrainingDataset']['bucket']
-        dataset_set.add((dataset_key, bucket))
+    mlmt_client = MLMTClient()
+    dset_dicts = mlmt_client.query_datasets(collection_name=collection_name, metrics_type='training').result()
+    # Convert to a list of (dataset_key, bucket) tuples
+    for dset_dict in dset_dicts:
+        dataset_set.add((dset_dict['dataset_key'], dset_dict['bucket']))
     return sorted(dataset_set)
 
 #------------------------------------------------------------------------------------------------------------------
@@ -77,18 +60,30 @@ def get_training_perf_table(dataset_key, bucket, collection_name, pred_type='reg
     that vary between models, and generate plots of performance vs particular combinations of
     parameters.
     """
-    model_filter = {"ModelMetadata.TrainingDataset.dataset_key" : dataset_key,
-                   "ModelMetadata.TrainingDataset.bucket" : bucket,
-                   "ModelMetrics.TrainingRun.label" : "best",}
-    model_filter.update(other_filters)
     print("Finding models trained on %s dataset %s" % (bucket, dataset_key))
-    models = list(trkr.get_full_metadata(model_filter, client_wrapper,
-                                  collection_name=collection_name))
-    if models == []:
+    mlmt_client = MLMTClient()
+    query_params = {
+        "match_metadata": {
+            "training_dataset.bucket": bucket,
+            "training_dataset.dataset_key": dataset_key,
+        },
+
+        "match_metrics": {
+            "metrics_type": "training",  # match only training metrics
+            "label": "best",
+        },
+    }
+    query_params['match_metadata'].update(other_filters)
+
+    metadata_list = mlmt_client.model.query_model_metadata(
+        collection_name=collection_name,
+        query_params=query_params,
+    ).result()
+    if metadata_list == []:
         print("No matching models returned")
         return
     else:
-        print("Found %d matching models" % len(models))
+        print("Found %d matching models" % len(metadata_list))
 
     model_uuid_list = []
     model_type_list = []
@@ -115,36 +110,32 @@ def get_training_perf_table(dataset_key, bucket, collection_name, pred_type='reg
     else:
         metric_type = 'roc_auc_score'
 
-    for metadata_dict in models:
+    for metadata_dict in metadata_list:
         model_uuid = metadata_dict['model_uuid']
         #print("Got metadata for model UUID %s" % model_uuid)
 
         # Get model metrics for this model
-        metrics_dicts = metadata_dict['ModelMetrics']['TrainingRun']
+        metrics_dicts = metadata_dict['training_metrics']
         #print("Got %d metrics dicts for model %s" % (len(metrics_dicts), model_uuid))
         if len(metrics_dicts) < 3:
             print("Got no or incomplete metrics for model %s, skipping..." % model_uuid)
             continue
-        # TODO: get_full_metadata() seems to ignore label='best' constraint; below is workaround
-        #if len(metrics_dicts) > 3:
-        #    raise Exception('Got more than one set of best epoch metrics for model %s' % model_uuid)
         subset_metrics = {}
         for metrics_dict in metrics_dicts:
-            if metrics_dict['label'] == 'best':
-                subset = metrics_dict['subset']
-                subset_metrics[subset] = metrics_dict['PredictionResults']
+            subset = metrics_dict['subset']
+            subset_metrics[subset] = metrics_dict['prediction_results']
 
         model_uuid_list.append(model_uuid)
-        model_params = metadata_dict['ModelMetadata']['ModelParameters']
+        model_params = metadata_dict['model_parameters']
         model_type = model_params['model_type']
         model_type_list.append(model_type)
         featurizer = model_params['featurizer']
         featurizer_list.append(featurizer)
-        split_params = metadata_dict['ModelMetadata']['SplittingParameters']['Splitting']
+        split_params = metadata_dict['splitting_parameters']['Splitting']
         splitter_list.append(split_params['splitter'])
-        dataset_key = metadata_dict['ModelMetadata']['TrainingDataset']['dataset_key']
+        dataset_key = metadata_dict['training_dataset']['dataset_key']
         if model_type == 'NN':
-            nn_params = metadata_dict['ModelMetadata']['NNSpecific']
+            nn_params = metadata_dict['nn_specific']
             max_epochs_list.append(nn_params['max_epochs'])
             best_epoch_list.append(nn_params['best_epoch'])
             learning_rate_list.append(nn_params['learning_rate'])
@@ -156,7 +147,7 @@ def get_training_perf_table(dataset_key, bucket, collection_name, pred_type='reg
             xgb_learning_rate_list.append(nan)
             xgb_gamma_list.append(nan)
         if model_type == 'RF':
-            rf_params = metadata_dict['ModelMetadata']['RFSpecific']
+            rf_params = metadata_dict['rf_specific']
             rf_estimators_list.append(rf_params['rf_estimators'])
             rf_max_features_list.append(rf_params['rf_max_features'])
             rf_max_depth_list.append(rf_params['rf_max_depth'])
@@ -168,7 +159,7 @@ def get_training_perf_table(dataset_key, bucket, collection_name, pred_type='reg
             xgb_learning_rate_list.append(nan)
             xgb_gamma_list.append(nan)
         if model_type == 'xgboost':
-            xgb_params = metadata_dict['ModelMetadata']['xgbSpecific']
+            xgb_params = metadata_dict['xgbSpecific']
             rf_estimators_list.append(nan)
             rf_max_features_list.append(nan)
             rf_max_depth_list.append(nan)
@@ -215,13 +206,13 @@ def get_best_perf_table(col_name, metric_type, model_uuid=None, metadata_dict=No
     that vary between models, and generate plots of performance vs particular combinations of
     parameters.
     """
+    mlmt_client = MLMTClient()
     if metadata_dict is None:
         if model_uuid is None:
-            print("Have to specify either metadatadict or model_uuid")
+            print("Have to specify either metadata_dict or model_uuid")
             return
         # Right now this subsetting of metrics does not work, so need to do manually below.
         model_filter = {"model_uuid": model_uuid,
-                        # "ModelMetrics.TrainingRun.label" : "best"
                         }
         models = list(trkr.get_full_metadata(model_filter, client_wrapper, collection_name=col_name))
         if models == []:
@@ -238,7 +229,7 @@ def get_best_perf_table(col_name, metric_type, model_uuid=None, metadata_dict=No
     #print("Got metadata for model UUID %s" % model_info['model_uuid'])
     
     # Get model metrics for this model
-    metrics_dicts = metadata_dict['ModelMetrics']['TrainingRun']
+    metrics_dicts = metadata_dict['training_metrics']
     # workaround for now
     # metrics_dicts = [m for m in metrics_dicts if m['label'] == 'best']
     # print("Got %d metrics dicts for model %s" % (len(metrics_dicts), model_uuid))
@@ -249,36 +240,36 @@ def get_best_perf_table(col_name, metric_type, model_uuid=None, metadata_dict=No
         metrics_dicts = [m for m in metrics_dicts if m['label'] == 'best']
         # raise Exception('Got more than one set of best epoch metrics for model %s' % model_uuid)
     
-    model_params = metadata_dict['ModelMetadata']['ModelParameters']
+    model_params = metadata_dict['model_parameters']
     model_info['model_type'] = model_params['model_type']
     model_info['featurizer'] = model_params['featurizer']
-    split_params = metadata_dict['ModelMetadata']['SplittingParameters']['Splitting']
+    split_params = metadata_dict['splitting_parameters']['Splitting']
     model_info['splitter'] = split_params['splitter']
     if 'split_uuid' in split_params:
         model_info['split_uuid'] = split_params['split_uuid']
-    model_info['dataset_key'] = metadata_dict['ModelMetadata']['TrainingDataset']['dataset_key']
-    model_info['bucket'] = metadata_dict['ModelMetadata']['TrainingDataset']['bucket']
+    model_info['dataset_key'] = metadata_dict['training_dataset']['dataset_key']
+    model_info['bucket'] = metadata_dict['training_dataset']['bucket']
     if PK_pipe:
         model_info['collection_name']=col_name
-        model_info['assay_name'] = metadata_dict['ModelMetadata']['TrainingDataset']['DatasetMetadata'][
+        model_info['assay_name'] = metadata_dict['training_dataset']['dataset_metadata'][
             'assay_category']
-        model_info['response_col'] = metadata_dict['ModelMetadata']['TrainingDataset']['DatasetMetadata'][
+        model_info['response_col'] = metadata_dict['training_dataset']['dataset_metadata'][
             'response_col']
         if model_info['featurizer'] == 'descriptors':
-            model_info['descriptor_type'] = metadata_dict['ModelMetadata']['DescriptorSpecific']['descriptor_type']
+            model_info['descriptor_type'] = metadata_dict['descriptor_specific']['descriptor_type']
         else:
             model_info['descriptor_type'] = 'N/A'
     try:
-        model_info['descriptor_type'] = metadata_dict['ModelMetadata']['DescriptorSpecific']['descriptor_type']
+        model_info['descriptor_type'] = metadata_dict['descriptor_specific']['descriptor_type']
     except:
         model_info['descriptor_type'] = None
     try:
-        model_info['num_samples'] = metadata_dict['ModelMetadata']['TrainingDataset']['DatasetMetadata']['num_row']
+        model_info['num_samples'] = metadata_dict['training_dataset']['dataset_metadata']['num_row']
     except:
         tmp_df = dsf.retrieve_dataset_by_datasetkey(model_info['dataset_key'], model_info['bucket'])
         model_info['num_samples'] = tmp_df.shape[0]
     if model_info['model_type'] == 'NN':
-        nn_params = metadata_dict['ModelMetadata']['NNSpecific']
+        nn_params = metadata_dict['nn_specific']
         model_info['max_epochs'] = nn_params['max_epochs']
         model_info['best_epoch'] = nn_params['best_epoch']
         model_info['learning_rate'] = nn_params['learning_rate']
@@ -288,7 +279,7 @@ def get_best_perf_table(col_name, metric_type, model_uuid=None, metadata_dict=No
         model_info['rf_max_features'] = nan
         model_info['rf_max_depth'] = nan
     if model_info['model_type'] == 'RF':
-        rf_params = metadata_dict['ModelMetadata']['RFSpecific']
+        rf_params = metadata_dict['rf_specific']
         model_info['rf_estimators'] = rf_params['rf_estimators']
         model_info['rf_max_features'] = rf_params['rf_max_features']
         model_info['rf_max_depth'] = rf_params['rf_max_depth']
@@ -301,9 +292,9 @@ def get_best_perf_table(col_name, metric_type, model_uuid=None, metadata_dict=No
     for metrics_dict in metrics_dicts:
         subset = metrics_dict['subset']
         metric_col = '%s_%s' % (metric_type, subset)
-        model_info[metric_col] = metrics_dict['PredictionResults'][metric_type]
+        model_info[metric_col] = metrics_dict['prediction_results'][metric_type]
         metric_col = 'rms_score_%s' % subset
-        model_info[metric_col] = metrics_dict['PredictionResults']['rms_score']
+        model_info[metric_col] = metrics_dict['prediction_results']['rms_score']
     
     return model_info
 
@@ -315,6 +306,7 @@ def get_best_models_info(col_names, bucket, pred_type, PK_pipeline=False, output
     """
     Get results for models in the given collection.
     """
+    mlmt_client = MLMTClient()
     top_models_info = []
     if metric_type is None:
         if pred_type == 'regression':
@@ -350,9 +342,9 @@ def get_best_models_info(col_names, bucket, pred_type, PK_pipeline=False, output
             dset_key = dset_key.strip()
             try:
                 # TODO: get dataset bucket
-                model_filter = {"ModelMetadata.TrainingDataset.dataset_key": dset_key,
-                                "ModelMetadata.TrainingDataset.bucket": bucket,
-                                "ModelMetrics.TrainingRun.label": "best",
+                model_filter = {"training_dataset.dataset_key": dset_key,
+                                "training_dataset.bucket": bucket,
+                                "training_metrics.label": "best",
                                 'ModelMetrics.TrainingRun.subset': subset,
                                 'ModelMetrics.TrainingRun.PredictionResults.%s' % metric_type: [selection_type, None]
                                 }
@@ -446,20 +438,32 @@ def get_umap_nn_model_perf_table(dataset_key, bucket, collection_name, pred_type
     the model tracker DB under a given collection that were trained against a particular dataset. Show 
     parameter settings for UMAP transformer for models where they are available.
     """
-    model_filter = {"ModelMetadata.TrainingDataset.dataset_key" : dataset_key,
-                   "ModelMetadata.TrainingDataset.bucket" : bucket,
-                   "ModelMetrics.TrainingRun.label" : "best",
-                   "ModelMetadata.ModelParameters.model_type" : "NN",
-                   "ModelMetadata.ModelParameters.prediction_type" : pred_type
-                   }
+    query_params = {
+        "match_metadata": {
+            "training_dataset.bucket": bucket,
+            "training_dataset.dataset_key": dataset_key,
+            "model_parameters.model_type" : "NN",
+            "model_parameters.prediction_type" : pred_type
+        },
+
+        "match_metrics": {
+            "metrics_type": "training",  # match only training metrics
+            "label": "best",
+        },
+    }
+    query_params['match_metadata'].update(other_filters)
+
     print("Finding models trained on %s dataset %s" % (bucket, dataset_key))
-    models = list(trkr.get_full_metadata(model_filter, client_wrapper,
-                                  collection_name=collection_name))
-    if models == []:
+    mlmt_client = MLMTClient()
+    metadata_list = mlmt_client.model.query_model_metadata(
+        collection_name=collection_name,
+        query_params=query_params,
+    ).result()
+    if metadata_list == []:
         print("No matching models returned")
         return
     else:
-        print("Found %d matching models" % len(models))
+        print("Found %d matching models" % len(metadata_list))
 
     model_uuid_list = []
     learning_rate_list = []
@@ -489,12 +493,12 @@ def get_umap_nn_model_perf_table(dataset_key, bucket, collection_name, pred_type
         for metric in metrics:
             score_dict[subset][metric] = []
 
-    for metadata_dict in models:
+    for metadata_dict in metadata_list:
         model_uuid = metadata_dict['model_uuid']
         #print("Got metadata for model UUID %s" % model_uuid)
 
         # Get model metrics for this model
-        metrics_dicts = metadata_dict['ModelMetrics']['TrainingRun']
+        metrics_dicts = metadata_dict['training_metrics']
         #print("Got %d metrics dicts for model %s" % (len(metrics_dicts), model_uuid))
         if len(metrics_dicts) < 3:
             print("Got no or incomplete metrics for model %s, skipping..." % model_uuid)
@@ -504,18 +508,18 @@ def get_umap_nn_model_perf_table(dataset_key, bucket, collection_name, pred_type
         subset_metrics = {}
         for metrics_dict in metrics_dicts:
             subset = metrics_dict['subset']
-            subset_metrics[subset] = metrics_dict['PredictionResults']
+            subset_metrics[subset] = metrics_dict['prediction_results']
 
         model_uuid_list.append(model_uuid)
-        model_params = metadata_dict['ModelMetadata']['ModelParameters']
+        model_params = metadata_dict['model_parameters']
         model_type = model_params['model_type']
         if model_type != 'NN':
             continue
         featurizer = model_params['featurizer']
         featurizer_list.append(featurizer)
-        feature_transform_type = metadata_dict['ModelMetadata']['TrainingDataset']['feature_transform_type']
+        feature_transform_type = metadata_dict['training_dataset']['feature_transform_type']
         feature_transform_type_list.append(feature_transform_type)
-        nn_params = metadata_dict['ModelMetadata']['NNSpecific']
+        nn_params = metadata_dict['nn_specific']
         max_epochs_list.append(nn_params['max_epochs'])
         best_epoch_list.append(nn_params['best_epoch'])
         learning_rate_list.append(nn_params['learning_rate'])
@@ -524,8 +528,8 @@ def get_umap_nn_model_perf_table(dataset_key, bucket, collection_name, pred_type
         for subset in subsets:
             for metric in metrics:
                 score_dict[subset][metric].append(subset_metrics[subset][metric])
-        if 'UmapSpecific' in metadata_dict['ModelMetadata']:
-            umap_params = metadata_dict['ModelMetadata']['UmapSpecific']
+        if 'umap_specific' in metadata_dict:
+            umap_params = metadata_dict['umap_specific']
             umap_dim_list.append(umap_params['umap_dim'])
             umap_targ_wt_list.append(umap_params['umap_targ_wt'])
             umap_neighbors_list.append(umap_params['umap_neighbors'])
@@ -640,7 +644,7 @@ def get_filesystem_perf_results(result_dir, hyper_id=None, dataset_name='GSK_Amg
         #print("Got metadata for model UUID %s" % model_uuid)
 
         # Get list of prediction run metrics for this model
-        pred_dicts = metrics_dict['ModelMetrics']['TrainingRun']
+        pred_dicts = metrics_dict['training_metrics']
         #print("Got %d metrics dicts for model %s" % (len(pred_dicts), model_uuid))
         if len(pred_dicts) < 3:
             print("Got no or incomplete metrics for model %s, skipping..." % model_uuid)
@@ -649,22 +653,22 @@ def get_filesystem_perf_results(result_dir, hyper_id=None, dataset_name='GSK_Amg
         for metrics_dict in pred_dicts:
             if metrics_dict['label'] == 'best':
                 subset = metrics_dict['subset']
-                subset_metrics[subset] = metrics_dict['PredictionResults']
+                subset_metrics[subset] = metrics_dict['prediction_results']
 
         model_uuid_list.append(model_uuid)
-        model_params = metadata_dict['ModelMetadata']['ModelParameters']
+        model_params = metadata_dict['model_parameters']
         model_type = model_params['model_type']
         model_type_list.append(model_type)
         model_score_type = model_params['model_choice_score_type']
         model_score_type_list.append(model_score_type)
         featurizer = model_params['featurizer']
         featurizer_list.append(featurizer)
-        split_params = metadata_dict['ModelMetadata']['SplittingParameters']['Splitting']
+        split_params = metadata_dict['splitting_parameters']['Splitting']
         splitter_list.append(split_params['splitter'])
-        feature_transform_type = metadata_dict['ModelMetadata']['TrainingDataset']['feature_transform_type']
+        feature_transform_type = metadata_dict['training_dataset']['feature_transform_type']
         feature_transform_type_list.append(feature_transform_type)
         if model_type == 'NN':
-            nn_params = metadata_dict['ModelMetadata']['NNSpecific']
+            nn_params = metadata_dict['nn_specific']
             max_epochs_list.append(nn_params['max_epochs'])
             best_epoch_list.append(nn_params['best_epoch'])
             learning_rate_list.append(nn_params['learning_rate'])
@@ -674,7 +678,7 @@ def get_filesystem_perf_results(result_dir, hyper_id=None, dataset_name='GSK_Amg
             rf_max_features_list.append(nan)
             rf_max_depth_list.append(nan)
         if model_type == 'RF':
-            rf_params = metadata_dict['ModelMetadata']['RFSpecific']
+            rf_params = metadata_dict['rf_specific']
             rf_estimators_list.append(rf_params['rf_estimators'])
             rf_max_features_list.append(rf_params['rf_max_features'])
             rf_max_depth_list.append(rf_params['rf_max_depth'])
@@ -687,8 +691,8 @@ def get_filesystem_perf_results(result_dir, hyper_id=None, dataset_name='GSK_Amg
             for metric in metrics:
                 score_dict[subset][metric].append(subset_metrics[subset][metric])
         score_dict['valid']['model_choice_score'].append(subset_metrics['valid']['model_choice_score'])
-        if 'UmapSpecific' in metadata_dict['ModelMetadata']:
-            umap_params = metadata_dict['ModelMetadata']['UmapSpecific']
+        if 'umap_specific' in metadata_dict:
+            umap_params = metadata_dict['umap_specific']
             umap_dim_list.append(umap_params['umap_dim'])
             umap_targ_wt_list.append(umap_params['umap_targ_wt'])
             umap_neighbors_list.append(umap_params['umap_neighbors'])
@@ -732,7 +736,7 @@ def get_filesystem_perf_results(result_dir, hyper_id=None, dataset_name='GSK_Amg
 def get_summary_perf_tables(collection_names, filter_dict={}, prediction_type='regression'):
     """
     Load model parameters and performance metrics from model tracker for all models saved in the model tracker DB under
-    the given collection names. Generate a pair of tables, one for regression models and one for classification, listing:
+    the given collection names with the given prediction type. Tabulate the parameters and metrics including:
         dataset (assay name, target, parameter, key, bucket)
         dataset size (train/valid/test/total)
         number of training folds
@@ -788,50 +792,62 @@ def get_summary_perf_tables(collection_names, filter_dict={}, prediction_type='r
         ncmpd_dict[subset] = []
 
 
-    filter_dict['ModelMetadata.ModelParameters.prediction_type'] = prediction_type
+    mlmt_client = MLMTClient()
+    filter_dict['model_parameters.prediction_type'] = prediction_type
     for collection_name in collection_names:
         print("Finding models in collection %s" % collection_name)
-        models = trkr.get_full_metadata(filter_dict, client_wrapper, collection_name=collection_name)
-        for i, metadata_dict in enumerate(models):
+        query_params = {
+            "match_metadata": filter_dict,
+
+            "match_metrics": {
+                "metrics_type": "training",  # match only training metrics
+                "label": "best",
+            },
+        }
+
+        metadata_list = mlmt_client.model.query_model_metadata(
+            collection_name=collection_name,
+            query_params=query_params,
+        ).result()
+        for i, metadata_dict in enumerate(metadata_list):
             if i % 10 == 0:
                 print('Processing collection %s model %d' % (collection_name, i))
             # Check that model has metrics before we go on
-            if not 'ModelMetrics' in metadata_dict:
+            if not 'training_metrics' in metadata_dict:
                 continue
             collection_list.append(collection_name)
             model_uuid = metadata_dict['model_uuid']
             model_uuid_list.append(model_uuid)
             time_built = metadata_dict['time_built']
             time_built_list.append(time_built)
-            #print("Got metadata for model UUID %s" % model_uuid)
-    
-            model_params = metadata_dict['ModelMetadata']['ModelParameters']
+
+            model_params = metadata_dict['model_parameters']
             model_type = model_params['model_type']
             model_type_list.append(model_type)
             featurizer = model_params['featurizer']
             featurizer_list.append(featurizer)
-            if 'DescriptorSpecific' in metadata_dict['ModelMetadata']:
-                desc_type = metadata_dict['ModelMetadata']['DescriptorSpecific']['descriptor_type']
+            if 'descriptor_specific' in metadata_dict:
+                desc_type = metadata_dict['descriptor_specific']['descriptor_type']
             else:
                 desc_type = ''
             desc_type_list.append(desc_type)
-            dataset_key = metadata_dict['ModelMetadata']['TrainingDataset']['dataset_key']
-            bucket = metadata_dict['ModelMetadata']['TrainingDataset']['bucket']
+            dataset_key = metadata_dict['training_dataset']['dataset_key']
+            bucket = metadata_dict['training_dataset']['bucket']
             dataset_key_list.append(dataset_key)
             bucket_list.append(bucket)
-            dset_metadata = metadata_dict['ModelMetadata']['TrainingDataset']['DatasetMetadata']
-            param = metadata_dict['ModelMetadata']['TrainingDataset']['response_cols'][0]
+            dset_metadata = metadata_dict['training_dataset']['dataset_metadata']
+            param = metadata_dict['training_dataset']['response_cols'][0]
             param_list.append(param)
-            transform_type = metadata_dict['ModelMetadata']['TrainingDataset']['feature_transform_type']
+            transform_type = metadata_dict['training_dataset']['feature_transform_type']
             transform_list.append(transform_type)
-            split_params = metadata_dict['ModelMetadata']['SplittingParameters']['Splitting']
+            split_params = metadata_dict['splitting_parameters']['Splitting']
             splitter_list.append(split_params['splitter'])
             split_uuid_list.append(split_params['split_uuid'])
             split_strategy = split_params['split_strategy']
             split_strategy_list.append(split_strategy)
             
-            if 'UmapSpecific' in metadata_dict['ModelMetadata']:
-                umap_params = metadata_dict['ModelMetadata']['UmapSpecific']
+            if 'umap_specific' in metadata_dict:
+                umap_params = metadata_dict['umap_specific']
                 umap_dim_list.append(umap_params['umap_dim'])
                 umap_targ_wt_list.append(umap_params['umap_targ_wt'])
                 umap_neighbors_list.append(umap_params['umap_neighbors'])
@@ -843,7 +859,7 @@ def get_summary_perf_tables(collection_names, filter_dict={}, prediction_type='r
                 umap_min_dist_list.append(nan)
 
             if model_type == 'NN':
-                nn_params = metadata_dict['ModelMetadata']['NNSpecific']
+                nn_params = metadata_dict['nn_specific']
                 max_epochs_list.append(nn_params['max_epochs'])
                 best_epoch_list.append(nn_params['best_epoch'])
                 learning_rate_list.append(nn_params['learning_rate'])
@@ -853,7 +869,7 @@ def get_summary_perf_tables(collection_names, filter_dict={}, prediction_type='r
                 rf_max_features_list.append(nan)
                 rf_max_depth_list.append(nan)
             elif model_type == 'RF':
-                rf_params = metadata_dict['ModelMetadata']['RFSpecific']
+                rf_params = metadata_dict['rf_specific']
                 rf_estimators_list.append(rf_params['rf_estimators'])
                 rf_max_features_list.append(rf_params['rf_max_features'])
                 rf_max_depth_list.append(rf_params['rf_max_depth'])
@@ -876,13 +892,13 @@ def get_summary_perf_tables(collection_names, filter_dict={}, prediction_type='r
                 raise Exception('Unexpected model type %s' % model_type)
 
             # Get model metrics for this model
-            metrics_dicts = metadata_dict['ModelMetrics']['TrainingRun']
+            metrics_dicts = metadata_dict['training_metrics']
             #print("Got %d metrics dicts for model %s" % (len(metrics_dicts), model_uuid))
             subset_metrics = {}
             for metrics_dict in metrics_dicts:
                 if metrics_dict['label'] == 'best':
                     subset = metrics_dict['subset']
-                    subset_metrics[subset] = metrics_dict['PredictionResults']
+                    subset_metrics[subset] = metrics_dict['prediction_results']
             if split_strategy == 'k_fold_cv':
                 dset_size = subset_metrics['train']['num_compounds'] + subset_metrics['test']['num_compounds']
             else:
@@ -947,57 +963,58 @@ def get_summary_metadata_table(uuids, collections=None):
         collections = [collections] * len(uuids)
 
     mlist = []
+    mlmt_client = MLMTClient()
     for idx,uuid in enumerate(uuids):
         if collections is not None:
             collection_name = collections[idx]
         else:
-            collection_name = trkr.get_model_collection_by_uuid(uuid,client_wrapper)
+            collection_name = trkr.get_model_collection_by_uuid(uuid)
             
-        model_meta = trkr.get_metadata_by_uuid(uuid,client_wrapper=client_wrapper,collection_name=collection_name)
+        model_meta = trkr.get_metadata_by_uuid(uuid, collection_name=collection_name)
         
-        mdl_params  = model_meta['ModelMetadata']['ModelParameters']
-        data_params = model_meta['ModelMetadata']['TrainingDataset']
+        mdl_params  = model_meta['model_parameters']
+        data_params = model_meta['training_dataset']
         # Get model metrics for this model       
-        metrics = pd.DataFrame(model_meta['ModelMetrics']['TrainingRun'])
+        metrics = pd.DataFrame(model_meta['training_metrics']
         metrics = metrics[metrics['label']=='best']
-        train_metrics = metrics[metrics['subset']=='train']['PredictionResults'].values[0]
-        valid_metrics = metrics[metrics['subset']=='valid']['PredictionResults'].values[0]
-        test_metrics  = metrics[metrics['subset']=='test']['PredictionResults'].values[0]
+        train_metrics = metrics[metrics['subset']=='train']['prediction_results'].values[0]
+        valid_metrics = metrics[metrics['subset']=='valid']['prediction_results'].values[0]
+        test_metrics  = metrics[metrics['subset']=='test']['prediction_results'].values[0]
                 
         # Try to name the model something intelligible in the table
         name  = 'NA'
-        if 'target' in data_params['DatasetMetadata']:
-            name = data_params['DatasetMetadata']['target']
+        if 'target' in data_params['dataset_metadata']:
+            name = data_params['dataset_metadata']['target']
                     
-        if (name == 'NA') & ('assay_endpoint' in data_params['DatasetMetadata']):
-            name = data_params['DatasetMetadata']['assay_endpoint']
+        if (name == 'NA') & ('assay_endpoint' in data_params['dataset_metadata']):
+            name = data_params['dataset_metadata']['assay_endpoint']
                 
-        if (name == 'NA') & ('response_col' in data_params['DatasetMetadata']):
-            name = data_params['DatasetMetadata']['response_col']
+        if (name == 'NA') & ('response_col' in data_params['dataset_metadata']):
+            name = data_params['dataset_metadata']['response_col']
                     
         if name  != 'NA':
-            if 'param' in data_params['DatasetMetadata'].keys():
-                name = name + ' ' + data_params['DatasetMetadata']['param']
+            if 'param' in data_params['dataset_metadata'].keys():
+                name = name + ' ' + data_params['dataset_metadata']['param']
         else:
             name = 'unknown'
 
 
         transform = 'None'
-        if 'transformation' in data_params['DatasetMetadata'].keys():
-            transform = data_params['DatasetMetadata']['transformation']
+        if 'transformation' in data_params['dataset_metadata'].keys():
+            transform = data_params['dataset_metadata']['transformation']
 
         if mdl_params['featurizer'] == 'computed_descriptors':
-            featurizer = model_meta['ModelMetadata']['DescriptorSpecific']['descriptor_type']
+            featurizer = model_meta['descriptor_specific']['descriptor_type']
         else:
             featurizer = mdl_params['featurizer']
 
         try:
-            split_uuid = model_meta['ModelMetadata']['SplittingParameters']['Splitting']['split_uuid']
+            split_uuid = model_meta['splitting_parameters']['Splitting']['split_uuid']
         except:
             split_uuid = 'Not Avaliable'
         
         if mdl_params['model_type'] == 'NN':
-            nn_params = model_meta['ModelMetadata']['NNSpecific']
+            nn_params = model_meta['nn_specific']
             minfo = {'Name': name,
                      'Transformation': transform,
                      'Model Type (Featurizer)':    '%s (%s)' % (mdl_params['model_type'],featurizer),
@@ -1005,7 +1022,7 @@ def get_summary_metadata_table(uuids, collections=None):
                      'MAE (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['mae_score'], valid_metrics['mae_score'], test_metrics['mae_score']),
                      'RMSE(Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['rms_score'], valid_metrics['rms_score'], test_metrics['rms_score']),
                      'Data Size (Train/Valid/Test)': '%i/%i/%i' % (train_metrics["num_compounds"],valid_metrics["num_compounds"],test_metrics["num_compounds"]),
-                     'Splitter':      model_meta['ModelMetadata']['SplittingParameters']['Splitting']['splitter'],
+                     'Splitter':      model_meta['splitting_parameters']['Splitting']['splitter'],
                      'Layer Sizes':   nn_params['layer_sizes'],
                      'Optimizer':     nn_params['optimizer_type'],
                      'Learning Rate': nn_params['learning_rate'],
@@ -1016,7 +1033,7 @@ def get_summary_metadata_table(uuids, collections=None):
                      'Split UUID':    split_uuid,
                      'Dataset Key':   data_params['dataset_key']}
         elif mdl_params['model_type'] == 'RF':
-            rf_params = model_meta['ModelMetadata']['RFSpecific']
+            rf_params = model_meta['rf_specific']
             minfo = {'Name': name,
                      'Transformation': transform,
                      'Model Type (Featurizer)':    '%s (%s)' % (mdl_params['model_type'],featurizer),
@@ -1027,7 +1044,7 @@ def get_summary_metadata_table(uuids, collections=None):
                      'MAE (Train/Valid/Test)':       '%0.2f/%0.2f/%0.2f' % (train_metrics['mae_score'], valid_metrics['mae_score'], test_metrics['mae_score']),
                      'RMSE(Train/Valid/Test)':       '%0.2f/%0.2f/%0.2f' % (train_metrics['rms_score'], valid_metrics['rms_score'], test_metrics['rms_score']),
                      'Data Size (Train/Valid/Test)': '%i/%i/%i' % (train_metrics["num_compounds"],valid_metrics["num_compounds"],test_metrics["num_compounds"]),
-                     'Splitter':      model_meta['ModelMetadata']['SplittingParameters']['Splitting']['splitter'],
+                     'Splitter':      model_meta['splitting_parameters']['Splitting']['splitter'],
                      'Collection':    collection_name,
                      'UUID':          model_meta['model_uuid'],
                      'Split UUID':    split_uuid,
@@ -1048,20 +1065,30 @@ def get_model_datasets(collection_names, filter_dict={}):
     result_dict = {}
 
 
+    mlmt_client = MLMTClient()
     for collection_name in collection_names:
+        # ksm: Is this necessary anymore?
         if collection_name.endswith('_metrics'):
             continue
-        models = trkr.get_full_metadata(filter_dict, client_wrapper, collection_name=collection_name)
-        for i, metadata_dict in enumerate(models):
+        query_params = {
+            "match_metadata": filter_dict,
+        }
+
+        metadata_list = mlmt_client.model.query_model_metadata(
+            collection_name=collection_name,
+            query_params=query_params,
+            include_fields=['model_uuid', 'training_metrics', 'training_dataset']
+        ).result()
+        for i, metadata_dict in enumerate(metadata_list):
             if i % 10 == 0:
                 print('Processing collection %s model %d' % (collection_name, i))
             # Check that model has metrics before we go on
-            if not 'ModelMetrics' in metadata_dict:
+            if not 'training_metrics' in metadata_dict:
                 continue
             try:
                 model_uuid = metadata_dict['model_uuid']
-                dataset_key = metadata_dict['ModelMetadata']['TrainingDataset']['dataset_key']
-                bucket = metadata_dict['ModelMetadata']['TrainingDataset']['bucket']
+                dataset_key = metadata_dict['training_dataset']['dataset_key']
+                bucket = metadata_dict['training_dataset']['bucket']
                 result_dict.setdefault((dataset_key,bucket), []).append(model_uuid)
             except KeyError:
                 continue
@@ -1071,19 +1098,20 @@ def get_model_datasets(collection_names, filter_dict={}):
 #-------------------------------------------------------------------------------------------------------------------
 def aggregate_predictions(datasets, bucket, col_names, client_wrapper, result_dir):
     results = []
+    mlmt_client = MLMTClient()
     for dset_key, bucket in datasets:
         for model_type in ['NN', 'RF']:
             for split_type in ['scaffold', 'random']:
                 for descriptor_type in ['mordred_filtered', 'moe']:
-                    model_filter = {"ModelMetadata.TrainingDataset.dataset_key" : dset_key,
-                                    "ModelMetadata.TrainingDataset.bucket" : bucket,
+                    model_filter = {"training_dataset.dataset_key" : dset_key,
+                                    "training_dataset.bucket" : bucket,
                                     "ModelMetrics.TrainingRun.label" : "best",
                                     'ModelMetrics.TrainingRun.subset': 'valid',
                                     'ModelMetrics.TrainingRun.PredictionResults.r2_score': ['max', None],
-                                    'ModelMetadata.ModelParameters.model_type': model_type,
-                                    'ModelMetadata.ModelParameters.featurizer': 'descriptors',
-                                    'ModelMetadata.DescriptorSpecific.descriptor_type': descriptor_type,
-                                    'ModelMetadata.SplittingParameters.Splitting.splitter': split_type
+                                    'model_parameters.model_type': model_type,
+                                    'model_parameters.featurizer': 'descriptors',
+                                    'descriptor_specific.descriptor_type': descriptor_type,
+                                    'splitting_parameters.Splitting.splitter': split_type
                                    }
                     for col_name in col_names:
                         model = list(trkr.get_full_metadata(model_filter, client_wrapper, collection_name=col_name))
@@ -1100,14 +1128,14 @@ def aggregate_predictions(datasets, bucket, col_names, client_wrapper, result_di
                     results_df = pd.concat(results).reset_index(drop=True)
                     results_df.to_csv(os.path.join(result_dir, 'predictions_%s_%s_%s_%s.csv' % (dset_key, model_type, split_type, descriptor_type)), index=False)
                 for featurizer in ['graphconv', 'ecfp']:
-                    model_filter = {"ModelMetadata.TrainingDataset.dataset_key" : dset_key,
-                                    "ModelMetadata.TrainingDataset.bucket" : bucket,
+                    model_filter = {"training_dataset.dataset_key" : dset_key,
+                                    "training_dataset.bucket" : bucket,
                                     "ModelMetrics.TrainingRun.label" : "best",
                                     'ModelMetrics.TrainingRun.subset': 'valid',
                                     'ModelMetrics.TrainingRun.PredictionResults.r2_score': ['max', None],
-                                    'ModelMetadata.ModelParameters.model_type': model_type,
-                                    'ModelMetadata.ModelParameters.featurizer': featurizer,
-                                    'ModelMetadata.SplittingParameters.Splitting.splitter': split_type
+                                    'model_parameters.model_type': model_type,
+                                    'model_parameters.featurizer': featurizer,
+                                    'splitting_parameters.Splitting.splitter': split_type
                                    }
                     for col_name in col_names:
                         model = list(trkr.get_full_metadata(model_filter, client_wrapper, collection_name=col_name))

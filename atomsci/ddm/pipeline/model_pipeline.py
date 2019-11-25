@@ -27,6 +27,7 @@ from atomsci.ddm.pipeline import parameter_parser as parse
 from atomsci.ddm.pipeline import mlmt_client_wrapper as mlmt_client_wrapper
 from atomsci.ddm.pipeline import model_tracker as trkr
 from atomsci.ddm.pipeline import transformations as trans
+from atomsci.clients import MLMTClient
 
 logging.basicConfig(format='%(asctime)-15s %(message)s')
 
@@ -54,7 +55,7 @@ class ModelPipeline:
 
             output_dir (str): The parent path of the model directory
 
-            client_wrapper: The mlmt service
+            mlmt_client: The mlmt service client
 
             metric_type (str): Defines the type of metric (e.g. roc_auc_score, r2_score)
 
@@ -73,15 +74,15 @@ class ModelPipeline:
             data (ModelDataset object): A data object that featurizes and splits the dataset
     """
 
-    def __init__(self, params, ds_client=None, client_wrapper=None):
-        """Initializes RunModel object.
+    def __init__(self, params, ds_client=None, mlmt_client=None):
+        """Initializes ModelPipeline object.
 
         Args:
             params (Namespace object): contains all parameter information.
 
             ds_client: datastore client.
 
-            client_wrapper: model tracker client.
+            mlmt_client: model tracker client.
 
         Side effects:
             Sets the following ModelPipeline attributes:
@@ -99,7 +100,7 @@ class ModelPipeline:
 
                 output_dir (str): The parent path of the model directory.
 
-                client_wrapper: The mlmt service
+                mlmt_client: The mlmt service
 
                 metric_type (str): Defines the type of metric (e.g. roc_auc_score, r2_score)
         """
@@ -127,12 +128,7 @@ class ModelPipeline:
             self.params.model_uuid = str(uuid.uuid4())
 
         if self.params.save_results:
-            self.client_wrapper = client_wrapper
-            if self.client_wrapper is None:
-                self.client_wrapper = mlmt_client_wrapper.MLMTClientWrapper()
-                self.client_wrapper.instantiate_mlmt_client()
-            if not self.client_wrapper.mlmt_client:
-                raise Exception('mlmt_client failed to instantitate')
+            self.mlmt_client = MLMTClient()
 
         self.perf_dict = {}
         if self.params.prediction_type == 'regression':
@@ -344,10 +340,14 @@ class ModelPipeline:
         """
         if self.params.save_results:
             return list(trkr.get_metrics(self, collection_name=self.params.collection_name))
+            metrics = self.mlmt_client.get_model_metrics(collection_name=self.params.collection_name,
+                                                         model_uuid=self.params.model_uuid).result()
+            return metrics
         else:
             # TODO: Eventually, may want to allow reading metrics from the JSON files saved by
             # save_metrics(), in order to support installations without the model tracker.
             self.log.warning("ModelPipeline.get_metrics() requires params.save_results = True")
+            return None
 
     # ****************************************************************************************
 
@@ -371,7 +371,11 @@ class ModelPipeline:
             while retry:
                 if i < 5:
                     try:
-                        trkr.save_metrics(self, model_metrics, collection_name=self.params.collection_name)
+                        # TODO (ksm): Jeff's example code and the Swagger API documentation are conflicting
+                        # about this method.
+                        self.mlmt_client.save_model_metrics(collection_name=self.params.collection_name,
+                                                      model_uuid=model_metrics['model_uuid']
+                                                      model_metrics=model_metrics)
                         retry = False
                     except:
                         self.log.warning("Need to sleep and retry saving model")
@@ -713,18 +717,22 @@ def run_models(params, shared_featurization=None, generator=False):
 
         generator (bool): True if run as a generator
     """
-    client_wrapper = mlmt_client_wrapper.MLMTClientWrapper()
-    client_wrapper.instantiate_mlmt_client()
+    mlmt_client = MLMTClient()
     ds_client = dsf.config_client()
 
-    if not client_wrapper.mlmt_client:
-        raise Exception('mlmt_client failed to instantitate')
-    models = list(trkr.get_models(params.model_filter, client_wrapper,
-                                  collection_name=params.collection_name))
-    if models == []:
+    metadata_iter = mlmt_client.get_models(
+        collection_name=params.collection_name,
+        query_params=params.model_filter,
+        count=True
+    )
+
+    model_count = next(metadata_iter)
+
+    if not model_count:
         print("No matching models returned")
         return
-    for metadata_dict in models:
+
+    for metadata_dict in metadata_iter:
         model_uuid = metadata_dict['model_uuid']
 
         print("Got metadata for model UUID %s" % model_uuid)
@@ -812,12 +820,9 @@ def regenerate_results(result_dir, params=None, metadata_dict=None, shared_featu
         result_dict (dict): Results from predictions
     """
 
-    client_wrapper = mlmt_client_wrapper.MLMTClientWrapper()
-    client_wrapper.instantiate_mlmt_client()
+    mlmt_client = MLMTClient()
     ds_client = dsf.config_client()
 
-    if not client_wrapper.mlmt_client:
-        raise Exception('mlmt_client failed to instantitate')
     if metadata_dict is None:
         if params is None:
             print("Must either provide params or metadata_dict")
@@ -852,7 +857,7 @@ def regenerate_results(result_dir, params=None, metadata_dict=None, shared_featu
     model_params.system = system
 
     # Create a ModelPipeline object
-    pipeline = ModelPipeline(model_params, ds_client, client_wrapper)
+    pipeline = ModelPipeline(model_params, ds_client, mlmt_client)
 
     # If there is no shared featurization object, create one for this model
     if shared_featurization is None:
@@ -913,27 +918,17 @@ def create_prediction_pipeline(params, model_uuid, collection_name, featurizatio
     Returns:
         pipeline (ModelPipeline) : A pipeline object to be used for making predictions.
     """
-    client_wrapper = mlmt_client_wrapper.MLMTClientWrapper()
-    client_wrapper.instantiate_mlmt_client()
+    mlmt_client = MLMTClient()
     ds_client = dsf.config_client()
 
-    if not client_wrapper.mlmt_client:
-        raise Exception('mlmt_client failed to instantitate')
-    model_filter = dict(model_uuid=model_uuid)
-    models = list(trkr.get_models(model_filter, client_wrapper,
-                                  collection_name=collection_name))
-    if len(models) == 0:
+    metadata_dict = mlmt_client.get_model(collection_name, model_uuid)
+    if not metadata_dict:
         raise Exception("No model found with UUID %s in collection %s" % (model_uuid, collection_name))
-    elif len(models) > 1:
-        # This can't happen, but check anyway
-        raise Exception("Multiple models with UUID %s in collection %s" % (model_uuid, collection_name))
-    metadata_dict = models[0]
 
     print("Got metadata for model UUID %s" % model_uuid)
 
     # Parse the saved model metadata to obtain the parameters used to train the model
-    model_params = parse.wrapper(metadata_dict['ModelMetadata'])
-    print("Featurizer = %s" % model_params.featurizer)
+    model_params = parse.wrapper(metadata_dict['model_parameters'])
 
     # Override selected model training data parameters with parameters for current dataset
 
@@ -964,9 +959,8 @@ def create_prediction_pipeline(params, model_uuid, collection_name, featurizatio
     if featurization is None:
         featurization = feat.create_featurization(model_params)
 
-    print("Featurization = %s" % str(featurization))
     # Create a ModelPipeline object
-    pipeline = ModelPipeline(model_params, ds_client, client_wrapper)
+    pipeline = ModelPipeline(model_params, ds_client, mlmt_client)
 
     # Create the ModelWrapper object.
     pipeline.model_wrapper = model_wrapper.create_model_wrapper(pipeline.params, featurization,
@@ -978,7 +972,7 @@ def create_prediction_pipeline(params, model_uuid, collection_name, featurizatio
         pipeline.log.setLevel(logging.CRITICAL)
 
     # Get the tarball containing the saved model from the datastore, and extract it into model_dir.
-    model_dataset_oid = metadata_dict['ModelMetadata']['ModelParameters']['model_dataset_oid']
+    model_dataset_oid = metadata_dict['model_parameters']['model_dataset_oid']
     # TODO: Should we catch exceptions from retrieve_dataset_by_dataset_oid, or let them propagate?
     model_dir = dsf.retrieve_dataset_by_dataset_oid(model_dataset_oid, client=ds_client, return_metadata=False,
                                                     nrows=None, print_metadata=False, sep=False,
@@ -1079,8 +1073,7 @@ def load_from_tracker(model_uuid, collection_name=None, client=None, verbose=Fal
 
         collection_name (str) : The collection where the model is stored in the model tracker DB.
 
-        client (MLMTClientWrapper): Optional to pass an MLMT client to prevent the need for multiple client
-        instantiations on repeat load of models.
+        client : Ignored, for backward compatibility only
 
         verbose (bool): A switch for disabling informational messages
 
@@ -1098,20 +1091,20 @@ def load_from_tracker(model_uuid, collection_name=None, client=None, verbose=Fal
         import warnings
         warnings.simplefilter("ignore")
 
-    if client is None:
-        client = mlmt_client_wrapper.MLMTClientWrapper()
-        client.instantiate_mlmt_client()
+    # Get the singleton MLMTClient instance
+    mlmt_client = MLMTClient()
 
     if collection_name is None:
-        collection_name = trkr.get_model_collection_by_uuid(model_uuid, client_wrapper=client)
+        collection_name = trkr.get_model_collection_by_uuid(model_uuid)
 
-    params = list(trkr.get_models({'model_uuid': model_uuid}, client, collection_name=collection_name))
+    metadata_dict = mlmt_client.get_model(collection_name, model_uuid)
+    if not metadata_dict:
+        raise Exception("No model found with UUID %s in collection %s" % (model_uuid, collection_name))
 
-    if len(params) == 0:
-        raise Exception('Unable to find model with uuid %s in collection %s' % (model_uuid, collection_name))
+    print("Got metadata for model UUID %s" % model_uuid)
 
-    params = params[0]
-    pparams = parse.wrapper(params)
+    # Parse the saved model metadata to obtain the parameters used to train the model
+    pparams = parse.wrapper(metadata_dict['model_parameters'])
     # pparams.uncertainty   = False
     pparams.verbose = verbose
     pparams.result_dir = tempfile.mkdtemp()  # Redirect the untaring of the model to a temporary directory
@@ -1149,7 +1142,7 @@ def ensemble_predict(model_uuids, collections, dset_df, labels=None, dset_params
         If not provided, id_col and smiles_col are assumed to be same as in the pretrained model and
         the same for all models.
 
-        mt_client (MLMTClientWrapper): Optional MLMT client handle.
+        mt_client: Ignored, for backward compatibility only.
 
         aggregate (str): Method to be used to combine predictions.
 
@@ -1158,9 +1151,9 @@ def ensemble_predict(model_uuids, collections, dset_df, labels=None, dset_params
 
     """
 
-    if mt_client is None:
-        mt_client = mlmt_client_wrapper.MLMTClientWrapper()
-        mt_client.instantiate_mlmt_client()
+    # Get the singleton MLMTClient instance
+    mlmt_client = MLMTClient()
+
     pred_df = None
 
     if type(collections) == str:
@@ -1172,13 +1165,16 @@ def ensemble_predict(model_uuids, collections, dset_df, labels=None, dset_params
     ok_labels = []
     for i, (model_uuid, collection_name, label) in enumerate(zip(model_uuids, collections, labels)):
         print("Loading model %s from collection %s" % (model_uuid, collection_name))
-        model_params = list(trkr.get_models({'model_uuid': model_uuid}, mt_client, collection_name=collection_name))
+        metadata_dict = mlmt_client.get_model(collection_name, model_uuid)
+        if not metadata_dict:
+            raise Exception("No model found with UUID %s in collection %s" % (model_uuid, collection_name))
 
-        if len(model_params) == 0:
-            raise Exception('Unable to find model with uuid %s in collection %s' % (model_uuid, collection_name))
+        print("Got metadata for model UUID %s" % model_uuid)
 
-        model_params = model_params[0]
-        model_pparams = parse.wrapper(model_params)
+        # Parse the saved model metadata to obtain the parameters used to train the model
+        model_pparams = parse.wrapper(metadata_dict['model_parameters'])
+
+        # Override selected parameters
         model_pparams.result_dir = tempfile.mkdtemp()
 
         if splitters is not None:
@@ -1281,26 +1277,25 @@ def retrain_model(model_uuid, collection_name=None, mt_client=None, verbose=True
 
         collection_name (str) : The collection where the model is stored in the model tracker DB.
 
-        mt_client (MLMTClientWrapper): Optional to pass an MLMT client to prevent the need for multiple client
-        instantiations on repeat load of models.
+        mt_client : Ignored
 
         verbose (bool): A switch for disabling informational messages
 
     Returns:
         pipeline (ModelPipeline) : A pipeline object containing data from the model training.
     """
-    if mt_client is None:
-        mt_client = mlmt_client_wrapper.MLMTClientWrapper()
-        mt_client.instantiate_mlmt_client()
+    mlmt_client = MLMTClient()
 
     print("Loading model %s from collection %s" % (model_uuid, collection_name))
-    model_params = list(trkr.get_models({'model_uuid': model_uuid}, mt_client, collection_name=collection_name))
+    metadata_dict = mlmt_client.get_model(collection_name, model_uuid)
+    if not metadata_dict:
+        raise Exception("No model found with UUID %s in collection %s" % (model_uuid, collection_name))
 
-    if len(model_params) == 0:
-        raise Exception('Unable to find model with uuid %s in collection %s' % (model_uuid, collection_name))
+    print("Got metadata for model UUID %s" % model_uuid)
 
-    model_params = model_params[0]
-    model_pparams = parse.wrapper(model_params)
+    # Parse the saved model metadata to obtain the parameters used to train the model
+    model_pparams = parse.wrapper(metadata_dict['model_parameters'])
+
     model_pparams.result_dir = tempfile.mkdtemp()
     # TODO: This is a hack; possibly the datastore parameter isn't being stored in the metadata?
     model_pparams.datastore = True
