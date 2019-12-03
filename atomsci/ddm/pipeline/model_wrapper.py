@@ -939,7 +939,7 @@ class DCNNModelWrapper(ModelWrapper):
 
         Returns:
             model_spec_metdata (dict): A dictionary of the parameter sets for the DCNNModelWrapper object.
-                Parameters are saved under the key 'NNSpecific' as a subdictionary.
+                Parameters are saved under the key 'nn_specific' as a subdictionary.
         """
         nn_metadata = dict(
                     best_epoch = self.best_epoch,
@@ -955,7 +955,7 @@ class DCNNModelWrapper(ModelWrapper):
                     weight_decay_penalty=self.params.weight_decay_penalty,
                     weight_decay_penalty_type=self.params.weight_decay_penalty_type
         )
-        model_spec_metadata = dict(NNSpecific = nn_metadata)
+        model_spec_metadata = dict(nn_specific = nn_metadata)
         return model_spec_metadata
 
     # ****************************************************************************************
@@ -1135,7 +1135,7 @@ class DCRFModelWrapper(ModelWrapper):
 
         Returns:
             A dictionary of parameter, value pairs, in the format expected by the
-            PredictionResults element of the ModelMetrics data.
+            prediction_results element of the ModelMetrics data.
 
         Raises:
             ValueError: if subset not in ['train','valid','test','full']
@@ -1231,7 +1231,7 @@ class DCRFModelWrapper(ModelWrapper):
         to random forest models.
 
         Returns:
-            model_spec_metadata (dict): Returns random forest specific metadata as a subdict under the key 'RFSpecific'
+            model_spec_metadata (dict): Returns random forest specific metadata as a subdict under the key 'rf_specific'
 
         """
         rf_metadata = {
@@ -1239,7 +1239,7 @@ class DCRFModelWrapper(ModelWrapper):
             'rf_max_features': self.params.rf_max_features,
             'rf_max_depth': self.params.rf_max_depth
         }
-        model_spec_metadata = dict(RFSpecific = rf_metadata)
+        model_spec_metadata = dict(rf_specific = rf_metadata)
         return model_spec_metadata
     
     # ****************************************************************************************
@@ -1503,7 +1503,7 @@ class DCxgboostModelWrapper(ModelWrapper):
 
         Returns:
             A dictionary of parameter, value pairs, in the format expected by the
-            PredictionResults element of the ModelMetrics data.
+            prediction_results element of the ModelMetrics data.
 
         Raises:
             ValueError: if subset not in ['train','valid','test','full']
@@ -1577,7 +1577,7 @@ class DCxgboostModelWrapper(ModelWrapper):
         to xgboost models.
 
         Returns:
-            model_spec_metadata (dict): Returns xgboost specific metadata as a subdict under the key 'xgbSpecific'
+            model_spec_metadata (dict): Returns xgboost specific metadata as a subdict under the key 'xgb_specific'
 
         """
         xgb_metadata = {"xgb_max_depth" : self.params.xgb_max_depth,
@@ -1588,7 +1588,7 @@ class DCxgboostModelWrapper(ModelWrapper):
                        "xgb_subsample" : self.params.xgb_subsample,
                        "xgb_colsample_bytree"  :self.params.xgb_colsample_bytree
                         }
-        model_spec_metadata = dict(xgbSpecific=xgb_metadata)
+        model_spec_metadata = dict(xgb_specific=xgb_metadata)
         return model_spec_metadata
 
     # ****************************************************************************************

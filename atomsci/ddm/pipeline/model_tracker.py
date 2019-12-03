@@ -88,72 +88,42 @@ def save_model(pipeline, collection_name='model_tracker', log=True):
         print('Successfully inserted into the database with model_uuid %s.' % model_uuid)
 
 # *********************************************************************************************************************************
-def get_full_metadata(filter_dict, client_wrapper=None, collection_name='model_tracker', log=False):
-    """Retrieve relevant full metadata (including TrainingRun metrics).
-
-    Retrieve full metadata of models matching given criteria.
+def get_full_metadata(filter_dict, collection_name=None):
+    """Retrieve relevant full metadata (including training run metrics) of models matching given criteria.
 
     Args:
         filter_dict (dict): dictionary to filter on
 
-    Returns:
-        A list of matching full model metadata (including TrainingRun metrics) dictionaries. Raises MongoQueryException if the query fails.
-    """
-    if filter_dict is None:
-        raise Exception('filter_dict cannot be None.')
-    if client_wrapper is None:
-        client_wrapper = mlmt_client_wrapper.MLMTClientWrapper(ds_client=dsf.config_client())
-        client_wrapper.instantiate_mlmt_client()
-
-    # Temporarily add collection_name key. The model tracker will use this key
-    # internally and pop it from the dict.
-    filter_dict['collection_name'] = collection_name
-    gen = client_wrapper.get_full_metadata_generator(filter_dict=filter_dict, log=log)
-    if log:
-        print('Successfully constructed models generator.')
-    return gen
-
-
-# *********************************************************************************************************************************
-
-def get_metadata(filter_dict, client_wrapper=None, collection_name='model_tracker',
-               log=False):
-    """Retrieve relevant metadata.
-
-    Retrieve metadata matching given criteria.
-
-    Args:
-        filter_dict (dict): dictionary to filter on
+        collection_name (str): Name of collection to search
 
     Returns:
-        A list of matching metadata dictionaries. Raises MongoQueryException if
-        the query fails.
+        A list of matching full model metadata (including training run metrics) dictionaries. Raises MongoQueryException if the query fails.
     """
-
     if filter_dict is None:
-        raise Exception('filter_dict cannot be None.')
-    if client_wrapper is None:
-        client_wrapper = mlmt_client_wrapper.MLMTClientWrapper(ds_client=dsf.config_client())
-        client_wrapper.instantiate_mlmt_client()
+        raise ValueError('Parameter filter_dict cannot be None.')
+    if collection_name is None:
+        raise ValueError('Parameter collection_name cannot be None.')
+    mlmt_client = MLMTClient()
 
-    # Temporarily add collection_name key. The model tracker will use this key
-    # internally and pop it from the dict.
-    filter_dict['collection_name'] = collection_name
-    gen = client_wrapper.get_metadata_generator(filter_dict=filter_dict, log=log)
-    if log:
-        print('Successfully constructed metadata generator.')
-    return gen
+    query_params = {
+        "match_metadata": filter_dict,
+    }
+
+    metadata_list = mlmt_client.model.query_model_metadata(
+        collection_name=collection_name,
+        query_params=query_params
+    ).result()
+    return list(metadata_list)
 
 # *********************************************************************************************************************************
-
-def get_metadata_by_uuid(uuid, collection_name=None, log=False):
-    """Retrieve relevant model metadata by uuid.
-
-    Retrieve metadata matching given uuid
+def get_metadata_by_uuid(model_uuid, collection_name=None):
+    """Retrieve model parameter metadata by model_uuid. The resulting metadata dictionary can
+    be passed to parameter_parser.wrapper(); it does not contain performance metrics or
+    training dataset metadata.
 
     Args:
-        uuid (str): model uuid
-        collection(str): collection to search (optional, searches all collections if not specified)
+        model_uuid (str): model unique identifier
+        collection_name(str): collection to search (optional, searches all collections if not specified)
     Returns:
         Matching metadata dictionary. Raises MongoQueryException if the query fails.
     """
@@ -161,34 +131,58 @@ def get_metadata_by_uuid(uuid, collection_name=None, log=False):
     mlmt_client = MLMTClient()
 
     if collection_name is None:
-        collection_name = get_model_collection_by_uuid(uuid, mlmt_client=mlmt_client)
-        
-    model_meta = list(get_full_metadata({"model_uuid" : uuid}, mlmt_client=mlmt_client, collection_name=collection_name))
+        collection_name = get_model_collection_by_uuid(model_uuid, mlmt_client=mlmt_client)
 
-    return model_meta[0]
+    exclude_fields = [
+        "training_metrics",
+        "time_built",
+        "training_dataset.dataset_metadata"
+    ]
+    return mlmt_client.get_model(collection_name=collection_name, model_uuid=model_uuid,
+                                 exclude_fields=exclude_fields)
 
 # *********************************************************************************************************************************
-def get_model_collection_by_uuid(uuid, mlmt_client=None):
-    """Retrieve model collection given a uuid.
-
-    Retrieve model collection given a uuid.
+def get_full_metadata_by_uuid(model_uuid, collection_name=None):
+    """Retrieve model parameter metadata for the given model_uuid and collection.
+    The returned metadata dictionary will include training run performance metrics and
+    training dataset metadata.
 
     Args:
-        uuid (str): model uuid
+        model_uuid (str): model unique identifier
+        collection_name(str): collection to search (optional, searches all collections if not specified)
+    Returns:
+        Matching metadata dictionary. Raises MongoQueryException if the query fails.
+    """
+
+    mlmt_client = MLMTClient()
+
+    if collection_name is None:
+        collection_name = get_model_collection_by_uuid(model_uuid, mlmt_client=mlmt_client)
+
+    return mlmt_client.get_model(collection_name=collection_name, model_uuid=model_uuid)
+
+# *********************************************************************************************************************************
+def get_model_collection_by_uuid(model_uuid, mlmt_client=None):
+    """Retrieve model collection given a uuid.
+
+    Args:
+        model_uuid (str): model uuid
 
         mlmt_client: Ignored
     Returns:
         Matching collection name
+    Raises:
+        ValueError if there is no collection containing a model with the given uuid.
     """
 
     mlmt_client = MLMTClient()
 
     collections = mlmt_client.collections.get_collection_names().result()
     for col in collections:
-        if mlmt_client.count_models(collection_name=col, model_uuid=uuid) > 0:
+        if mlmt_client.count_models(collection_name=col, model_uuid=model_uuid) > 0:
             return col
 
-    raise ValueError('Collection not found for uuid: ' + uuid)
+    raise ValueError('Collection not found for uuid: ' + model_uuid)
 
 # *********************************************************************************************************************************
 def get_model_training_data_by_uuid(uuid):
@@ -200,12 +194,12 @@ def get_model_training_data_by_uuid(uuid):
         a tuple of datafraes containint training data, validation data, and test data including the compound ID, RDKIT SMILES, and response value
     """
     model_meta = get_metadata_by_uuid(uuid)
-    response_col = model_meta['ModelMetadata']['TrainingDataset']['response_cols']
-    smiles_col = model_meta['ModelMetadata']['TrainingDataset']['smiles_col']
-    full_data  = dsf.retrieve_dataset_by_dataset_oid(model_meta['ModelMetadata']['TrainingDataset']['dataset_oid'], verbose=False)
+    response_col = model_meta['training_dataset']['response_cols']
+    smiles_col = model_meta['training_dataset']['smiles_col']
+    full_data  = dsf.retrieve_dataset_by_dataset_oid(model_meta['training_dataset']['dataset_oid'], verbose=False)
 
     # Pull split data and merge into initial dataset
-    split_meta = dsf.search_datasets_by_key_value('split_dataset_uuid', model_meta['ModelMetadata']['SplittingParameters']['Splitting']['split_uuid'])
+    split_meta = dsf.search_datasets_by_key_value('split_dataset_uuid', model_meta['splitting_parameters']['Splitting']['split_uuid'])
     split_oid  = split_meta['dataset_oid'].values[0]
     split_data = dsf.retrieve_dataset_by_dataset_oid(split_oid, verbose=False)
     split_data['compound_id'] = split_data['cmpd_id']

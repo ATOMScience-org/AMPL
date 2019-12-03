@@ -39,7 +39,6 @@ def create_model_dataset(params, featurization, ds_client=None):
     else:
         return FileDataset(params, featurization)
 
-
 # ****************************************************************************************
 def create_minimal_dataset(params, featurization, contains_responses=False):
     """Create a MinimalDataset object for non-persistent data (e.g., a list of compounds or SMILES

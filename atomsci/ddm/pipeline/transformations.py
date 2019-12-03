@@ -97,7 +97,7 @@ def get_transformer_specific_metadata(params):
                         umap_targ_wt = params.umap_targ_wt,
                         umap_neighbors = params.umap_neighbors,
                         umap_min_dist = params.umap_min_dist )
-        meta_dict['UmapSpecific'] = umap_dict
+        meta_dict['umap_specific'] = umap_dict
     return meta_dict
 
 # ****************************************************************************************

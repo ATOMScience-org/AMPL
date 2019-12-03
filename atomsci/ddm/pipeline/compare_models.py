@@ -159,7 +159,7 @@ def get_training_perf_table(dataset_key, bucket, collection_name, pred_type='reg
             xgb_learning_rate_list.append(nan)
             xgb_gamma_list.append(nan)
         if model_type == 'xgboost':
-            xgb_params = metadata_dict['xgbSpecific']
+            xgb_params = metadata_dict['xgb_specific']
             rf_estimators_list.append(nan)
             rf_max_features_list.append(nan)
             rf_max_depth_list.append(nan)
@@ -211,35 +211,36 @@ def get_best_perf_table(col_name, metric_type, model_uuid=None, metadata_dict=No
         if model_uuid is None:
             print("Have to specify either metadata_dict or model_uuid")
             return
-        # Right now this subsetting of metrics does not work, so need to do manually below.
-        model_filter = {"model_uuid": model_uuid,
-                        }
-        models = list(trkr.get_full_metadata(model_filter, client_wrapper, collection_name=col_name))
-        if models == []:
+        query_params = {
+            "match_metadata": {
+                "model_uuid": model_uuid,
+            },
+
+            "match_metrics": {
+                "metrics_type": "training",  # match only training metrics
+                "label": "best",
+            },
+        }
+
+        metadata_list = list(mlmt_client.model.query_model_metadata(
+            collection_name=col_name,
+            query_params=query_params
+        ).result())
+        if len(metadata_list) == 0:
             print("No matching models returned")
             return
-        elif len(models) > 1:
-            print("Found %d matching models, which is too many" % len(models))
-            return
-        metadata_dict = models[0]
-    
+        metadata_dict = metadata_list[0]
+
     model_info = {}
     
     model_info['model_uuid'] = metadata_dict['model_uuid']
-    #print("Got metadata for model UUID %s" % model_info['model_uuid'])
-    
+
     # Get model metrics for this model
     metrics_dicts = metadata_dict['training_metrics']
-    # workaround for now
-    # metrics_dicts = [m for m in metrics_dicts if m['label'] == 'best']
-    # print("Got %d metrics dicts for model %s" % (len(metrics_dicts), model_uuid))
-    if len(metrics_dicts) < 3:
+    if len(metrics_dicts) != 3:
         print("Got no or incomplete metrics for model %s, skipping..." % model_uuid)
         return
-    if len(metrics_dicts) > 3:
-        metrics_dicts = [m for m in metrics_dicts if m['label'] == 'best']
-        # raise Exception('Got more than one set of best epoch metrics for model %s' % model_uuid)
-    
+
     model_params = metadata_dict['model_parameters']
     model_info['model_type'] = model_params['model_type']
     model_info['featurizer'] = model_params['featurizer']
@@ -308,6 +309,7 @@ def get_best_models_info(col_names, bucket, pred_type, PK_pipeline=False, output
     """
     mlmt_client = MLMTClient()
     top_models_info = []
+    sort_order = {'max': -1, 'min': 1}
     if metric_type is None:
         if pred_type == 'regression':
             metric_type = 'r2_score'
@@ -341,30 +343,38 @@ def get_best_models_info(col_names, bucket, pred_type, PK_pipeline=False, output
         for dset_key in dset_keys:
             dset_key = dset_key.strip()
             try:
-                # TODO: get dataset bucket
-                model_filter = {"training_dataset.dataset_key": dset_key,
-                                "training_dataset.bucket": bucket,
-                                "training_metrics.label": "best",
-                                'ModelMetrics.TrainingRun.subset': subset,
-                                'ModelMetrics.TrainingRun.PredictionResults.%s' % metric_type: [selection_type, None]
-                                }
-                model_filter.update(other_filters)
+                query_params = {
+                    "match_metadata": {
+                        "training_dataset.dataset_key": dset_key,
+                        "training_dataset.bucket": bucket,
+                    },
+
+                    "match_metrics": {
+                        "metrics_type": "training",  # match only training metrics
+                        "label": "best",
+                        "subset": subset,
+                        "$sort": [{"prediction_results.%s" % metric_type : sort_order[selection_type]}]
+                    },
+                }
+                query_params['match_metadata'].update(other_filters)
+
                 try:
-                    models = list(trkr.get_full_metadata(model_filter, client_wrapper, collection_name=col_name))
+                    metadata_list = list(mlmt_client.model.query_model_metadata(
+                        collection_name=col_name,
+                        query_params=query_params,
+                        limit=1
+                    ).result())
                 except Exception as e:
                     print("Error returned when querying the best model for dataset %s" % dset_key)
                     print(e)
                     continue
-                if models == []:
-                    #print("No matching models returned for dset_key {0} and bucket {1}".format(dset_key, bucket))
+                if len(metadata_list) == 0:
+                    print("No models returned for dataset %s" % dset_key)
                     continue
-                
-                elif len(models) > 1:
-                    print("Found %d models with the same %s value, saving all." % (len(models), metric_type))
-                for model in models:
-                    res_df = pd.DataFrame.from_records(
-                        [get_best_perf_table(col_name, metric_type, metadata_dict=model, PK_pipe=PK_pipeline)])
-                    top_models_info.append(res_df)
+                model = metadata_list[0]
+                res_df = pd.DataFrame.from_records(
+                    [get_best_perf_table(col_name, metric_type, metadata_dict=model, PK_pipe=PK_pipeline)])
+                top_models_info.append(res_df)
             except Exception as e:
                 print(e)
                 continue
@@ -372,11 +382,6 @@ def get_best_models_info(col_names, bucket, pred_type, PK_pipeline=False, output
         print("No metadata found")
         return
     top_models_df = pd.concat(top_models_info, ignore_index=True)
-    selection_col = '%s_%s' % (metric_type, subset)
-    if selection_type == 'max':
-        top_models_df = top_models_df.loc[top_models_df.groupby('dataset_key')[selection_col].idxmax()]
-    else:
-        top_models_df = top_models_df.loc[top_models_df.groupby('dataset_key')[selection_col].idxmin()]
     #TODO: Update res_dirs
     if save_results:
         if shortlist_key is not None:
@@ -970,7 +975,7 @@ def get_summary_metadata_table(uuids, collections=None):
         else:
             collection_name = trkr.get_model_collection_by_uuid(uuid)
             
-        model_meta = trkr.get_metadata_by_uuid(uuid, collection_name=collection_name)
+        model_meta = trkr.get_full_metadata_by_uuid(uuid, collection_name=collection_name)
         
         mdl_params  = model_meta['model_parameters']
         data_params = model_meta['training_dataset']
@@ -1096,7 +1101,8 @@ def get_model_datasets(collection_names, filter_dict={}):
     return result_dict
 
 #-------------------------------------------------------------------------------------------------------------------
-def aggregate_predictions(datasets, bucket, col_names, client_wrapper, result_dir):
+# TODO: Update this function
+def aggregate_predictions(datasets, bucket, col_names, result_dir):
     results = []
     mlmt_client = MLMTClient()
     for dset_key, bucket in datasets:
@@ -1114,7 +1120,7 @@ def aggregate_predictions(datasets, bucket, col_names, client_wrapper, result_di
                                     'splitting_parameters.Splitting.splitter': split_type
                                    }
                     for col_name in col_names:
-                        model = list(trkr.get_full_metadata(model_filter, client_wrapper, collection_name=col_name))
+                        model = list(trkr.get_full_metadata(model_filter, collection_name=col_name))
                         if model:
                             model = model[0]
                             result_dir = '/usr/local/data/%s/%s' % (col_name, dset_key.rstrip('.csv'))
@@ -1138,7 +1144,7 @@ def aggregate_predictions(datasets, bucket, col_names, client_wrapper, result_di
                                     'splitting_parameters.Splitting.splitter': split_type
                                    }
                     for col_name in col_names:
-                        model = list(trkr.get_full_metadata(model_filter, client_wrapper, collection_name=col_name))
+                        model = list(trkr.get_full_metadata(model_filter, collection_name=col_name))
                         if model:
                             model = model[0]
                             result_dir = '/usr/local/data/%s/%s' % (col_name, dset_key.rstrip('.csv'))

@@ -702,21 +702,21 @@ class DynamicFeaturization(Featurization):
 
         Returns
             dict: Dictionary containing featurizer specific metadata as a subdict under the keys
-            ['ECFPSpecific','AutoencoderSpecific']
+            ['ecfp_specific','autoencoder_specific']
         """
         feat_metadata = {}
         # MJT: I changed params.featurizer in this instance to self.feat_type to be syntactically consistent
         if self.feat_type == 'ecfp':
             ecfp_params = dict(ecfp_radius = params.ecfp_radius,
                                ecfp_size = params.ecfp_size)
-            feat_metadata['ECFPSpecific'] = ecfp_params
+            feat_metadata['ecfp_specific'] = ecfp_params
         elif self.feat_type == 'graphconv':
             # No graph conv specific params at present
             pass
         elif self.feat_type == 'molvae':
             # TODO: If the parameter name for the model file changes to 'autoencoder_model_key', change it below.
             mol_vae_params = {'autoencoder_model_key': params.mol_vae_model_file}
-            feat_metadata['AutoencoderSpecific'] = mol_vae_params
+            feat_metadata['autoencoder_specific'] = mol_vae_params
         return feat_metadata
 
 # ****************************************************************************************
@@ -1224,7 +1224,7 @@ class DescriptorFeaturization(PersistentFeaturization):
         desc_params = dict(descriptor_type = self.descriptor_type,
                            descriptor_key = self.descriptor_key,
                            descriptor_bucket = params.descriptor_bucket)
-        feat_metadata['DescriptorSpecific'] = desc_params
+        feat_metadata['descriptor_specific'] = desc_params
         return feat_metadata
 
 # ****************************************************************************************

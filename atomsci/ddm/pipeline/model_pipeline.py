@@ -24,7 +24,6 @@ from atomsci.ddm.pipeline import model_datasets as model_datasets
 from atomsci.ddm.pipeline import model_wrapper as model_wrapper
 from atomsci.ddm.pipeline import featurization as feat
 from atomsci.ddm.pipeline import parameter_parser as parse
-from atomsci.ddm.pipeline import mlmt_client_wrapper as mlmt_client_wrapper
 from atomsci.ddm.pipeline import model_tracker as trkr
 from atomsci.ddm.pipeline import transformations as trans
 from atomsci.clients import MLMTClient
@@ -196,7 +195,7 @@ class ModelPipeline:
 
         Side effect:
             Sets self.model_metadata (dictionary): A dictionary of the model metadata required to recreate the model.
-            Also contains metadata about the generating dataset and the ids on which the dataset was split
+            Also contains metadata about the generating dataset.
         """
 
         if self.params.datastore:
@@ -212,9 +211,9 @@ class ModelPipeline:
             response_cols=self.params.response_cols,
             feature_transform_type=self.params.feature_transform_type,
             response_transform_type=self.params.response_transform_type,
-            ExternalExportParameters=dict(
+            external_export_parameters=dict(
                 result_dir=self.params.result_dir),
-            DatasetMetadata=dataset_metadata
+            dataset_metadata=dataset_metadata
         )
 
         model_params = dict(
@@ -236,9 +235,11 @@ class ModelPipeline:
 
         splitting_metadata = self.data.get_split_metadata()
         model_metadata = dict(
-            ModelParameters=model_params,
-            TrainingDataset=train_dset_data,
-            SplittingParameters=splitting_metadata
+            model_uuid=self.params.model_uuid,
+            time_built=time.time(),
+            model_parameters=model_params,
+            training_dataset=train_dset_data,
+            splitting_parameters=splitting_metadata
         )
 
         model_spec_metadata = self.model_wrapper.get_model_specific_metadata()
@@ -250,12 +251,7 @@ class ModelPipeline:
         for key, data in trans.get_transformer_specific_metadata(self.params).items():
             model_metadata[key] = data
 
-        top_level_dict = dict(
-            time_built=time.time(),
-            model_uuid=self.params.model_uuid,
-            ModelMetadata=model_metadata)
-
-        self.model_metadata = top_level_dict
+        self.model_metadata = model_metadata
 
         # ****************************************************************************************
 
@@ -308,8 +304,8 @@ class ModelPipeline:
 
     def create_prediction_metadata(self, prediction_results):
         """Initializes a data structure to hold performance metrics from a model run on a new dataset,
-        to be stored in the ModelMetrics section of the model tracker DB. Note that this isn't used
-        for the training run metadata; the TrainingRun section is created by the train_model() function.
+        to be stored in the model tracker DB. Note that this isn't used
+        for the training run metadata; the training_metrics section is created by the train_model() function.
 
         Returns:
             prediction_metadata (dict): A dictionary of the metadata for a model run on a new dataset.
@@ -327,8 +323,8 @@ class ModelPipeline:
             id_col=self.params.id_col,
             smiles_col=self.params.smiles_col,
             response_cols=self.params.response_cols,
-            PredictionResults=prediction_results,
-            DatasetMetadata=dataset_metadata
+            prediction_results=prediction_results,
+            dataset_metadata=dataset_metadata
         )
         return prediction_metadata
 
@@ -454,12 +450,15 @@ class ModelPipeline:
         self.save_model_metadata()
         # Save the performance metrics for each training data subset, for the best and baseline epochs
         model_metrics = dict(model_uuid=self.params.model_uuid)
-        model_metrics['ModelMetrics'] = {'TrainingRun': []}
+        model_metrics['training_metrics'] = []
         for label in ['best', 'baseline']:
             for subset in ['train', 'valid', 'test']:
-                training_dict = dict(label=label, subset=subset)
-                training_dict['PredictionResults'] = self.model_wrapper.get_pred_results(subset, label)
-                model_metrics['ModelMetrics']['TrainingRun'].append(training_dict)
+                training_dict = dict(
+                    metrics_type='training',
+                    label=label,
+                    subset=subset)
+                training_dict['prediction_results'] = self.model_wrapper.get_pred_results(subset, label)
+                model_metrics['training_metrics'].append(training_dict)
         self.save_metrics(model_metrics, 'training')
 
     # ****************************************************************************************
@@ -498,8 +497,11 @@ class ModelPipeline:
 
         # Get the metrics from previous prediction runs, if any, and append the new results to them
         # in the model tracker DB
-        model_metrics = dict(model_uuid=self.params.model_uuid)
-        model_metrics['ModelMetrics'] = dict(PredictionRuns=prediction_metadata)
+        model_metrics = dict(
+            model_uuid=self.params.model_uuid,
+            metrics_type='prediction'
+        )
+        model_metrics.update(prediction_metadata)
         self.save_metrics(model_metrics, 'prediction_%s' % self.params.dataset_name)
 
     # ****************************************************************************************
@@ -720,9 +722,20 @@ def run_models(params, shared_featurization=None, generator=False):
     mlmt_client = MLMTClient()
     ds_client = dsf.config_client()
 
+    exclude_fields = [
+        "training_metrics",
+        "time_built",
+        "training_dataset.dataset_metadata"
+    ]
+
+    query_params = {
+        'match_metadata': params.model_filter
+    }
+
     metadata_iter = mlmt_client.get_models(
         collection_name=params.collection_name,
-        query_params=params.model_filter,
+        query_params=query_params,
+        exclude_fields=exclude_fields,
         count=True
     )
 
@@ -738,8 +751,7 @@ def run_models(params, shared_featurization=None, generator=False):
         print("Got metadata for model UUID %s" % model_uuid)
 
         # Parse the saved model metadata to obtain the parameters used to train the model
-        model_params = parse.wrapper(metadata_dict['ModelMetadata'])
-        print("Featurizer = %s" % model_params.featurizer)
+        model_params = parse.wrapper(metadata_dict)
 
         # Override selected model training data parameters with parameters for current dataset
 
@@ -772,16 +784,16 @@ def run_models(params, shared_featurization=None, generator=False):
         else:
             featurization = shared_featurization
 
-        print("Featurization = %s" % str(featurization))
+
         # Create a ModelPipeline object
-        pipeline = ModelPipeline(model_params, ds_client, client_wrapper)
+        pipeline = ModelPipeline(model_params, ds_client, mlmt_client)
 
         # Create the ModelWrapper object.
         pipeline.model_wrapper = model_wrapper.create_model_wrapper(pipeline.params, featurization,
                                                                     pipeline.ds_client)
 
         # Get the tarball containing the saved model from the datastore, and extract it into model_dir.
-        model_dataset_oid = metadata_dict['ModelMetadata']['ModelParameters']['model_dataset_oid']
+        model_dataset_oid = metadata_dict['model_parameters']['model_dataset_oid']
         # TODO: Should we catch exceptions from retrieve_dataset_by_dataset_oid, or let them propagate?
         model_dir = dsf.retrieve_dataset_by_dataset_oid(model_dataset_oid, client=ds_client, return_metadata=False,
                                                         nrows=None, print_metadata=False, sep=False,
@@ -827,14 +839,14 @@ def regenerate_results(result_dir, params=None, metadata_dict=None, shared_featu
         if params is None:
             print("Must either provide params or metadata_dict")
             return
-        metadata_dict = trkr.get_metadata_by_uuid(params.model_uuid, client_wrapper,
-                                               collection_name=params.collection_name)
+        metadata_dict = trkr.get_metadata_by_uuid(params.model_uuid,
+                                                  collection_name=params.collection_name)
         if metadata_dict is None:
             print("No matching models returned")
             return
 
     # Parse the saved model metadata to obtain the parameters used to train the model
-    model_params = parse.wrapper(metadata_dict['ModelMetadata'])
+    model_params = parse.wrapper(metadata_dict)
     model_params.model_uuid = metadata_dict['model_uuid']
     model_params.datastore = True
 
@@ -871,7 +883,7 @@ def regenerate_results(result_dir, params=None, metadata_dict=None, shared_featu
     pipeline.model_wrapper = model_wrapper.create_model_wrapper(pipeline.params, featurization,
                                                                 pipeline.ds_client)
     # Get the tarball containing the saved model from the datastore, and extract it into model_dir.
-    model_dataset_oid = metadata_dict['ModelMetadata']['ModelParameters']['model_dataset_oid']
+    model_dataset_oid = metadata_dict['model_parameters']['model_dataset_oid']
     # TODO: Should we catch exceptions from retrieve_dataset_by_dataset_oid, or let them propagate?
     model_dir = dsf.retrieve_dataset_by_dataset_oid(model_dataset_oid, client=ds_client, return_metadata=False,
                                                     nrows=None, print_metadata=False, sep=False,
@@ -921,14 +933,14 @@ def create_prediction_pipeline(params, model_uuid, collection_name, featurizatio
     mlmt_client = MLMTClient()
     ds_client = dsf.config_client()
 
-    metadata_dict = mlmt_client.get_model(collection_name, model_uuid)
+    metadata_dict = trkr.get_metadata_by_uuid(model_uuid, collection_name=collection_name)
     if not metadata_dict:
         raise Exception("No model found with UUID %s in collection %s" % (model_uuid, collection_name))
 
     print("Got metadata for model UUID %s" % model_uuid)
 
     # Parse the saved model metadata to obtain the parameters used to train the model
-    model_params = parse.wrapper(metadata_dict['model_parameters'])
+    model_params = parse.wrapper(metadata_dict)
 
     # Override selected model training data parameters with parameters for current dataset
 
@@ -1097,14 +1109,14 @@ def load_from_tracker(model_uuid, collection_name=None, client=None, verbose=Fal
     if collection_name is None:
         collection_name = trkr.get_model_collection_by_uuid(model_uuid)
 
-    metadata_dict = mlmt_client.get_model(collection_name, model_uuid)
+    metadata_dict = trkr.get_metadata_by_uuid(model_uuid, collection_name=collection_name)
     if not metadata_dict:
         raise Exception("No model found with UUID %s in collection %s" % (model_uuid, collection_name))
 
     print("Got metadata for model UUID %s" % model_uuid)
 
     # Parse the saved model metadata to obtain the parameters used to train the model
-    pparams = parse.wrapper(metadata_dict['model_parameters'])
+    pparams = parse.wrapper(metadata_dict)
     # pparams.uncertainty   = False
     pparams.verbose = verbose
     pparams.result_dir = tempfile.mkdtemp()  # Redirect the untaring of the model to a temporary directory
@@ -1165,14 +1177,14 @@ def ensemble_predict(model_uuids, collections, dset_df, labels=None, dset_params
     ok_labels = []
     for i, (model_uuid, collection_name, label) in enumerate(zip(model_uuids, collections, labels)):
         print("Loading model %s from collection %s" % (model_uuid, collection_name))
-        metadata_dict = mlmt_client.get_model(collection_name, model_uuid)
+        metadata_dict = trkr.get_metadata_by_uuid(model_uuid, collection_name=collection_name)
         if not metadata_dict:
             raise Exception("No model found with UUID %s in collection %s" % (model_uuid, collection_name))
 
         print("Got metadata for model UUID %s" % model_uuid)
 
         # Parse the saved model metadata to obtain the parameters used to train the model
-        model_pparams = parse.wrapper(metadata_dict['model_parameters'])
+        model_pparams = parse.wrapper(metadata_dict)
 
         # Override selected parameters
         model_pparams.result_dir = tempfile.mkdtemp()
@@ -1287,14 +1299,14 @@ def retrain_model(model_uuid, collection_name=None, mt_client=None, verbose=True
     mlmt_client = MLMTClient()
 
     print("Loading model %s from collection %s" % (model_uuid, collection_name))
-    metadata_dict = mlmt_client.get_model(collection_name, model_uuid)
+    metadata_dict = trkr.get_metadata_by_uuid(model_uuid, collection_name=collection_name)
     if not metadata_dict:
         raise Exception("No model found with UUID %s in collection %s" % (model_uuid, collection_name))
 
     print("Got metadata for model UUID %s" % model_uuid)
 
     # Parse the saved model metadata to obtain the parameters used to train the model
-    model_pparams = parse.wrapper(metadata_dict['model_parameters'])
+    model_pparams = parse.wrapper(metadata_dict)
 
     model_pparams.result_dir = tempfile.mkdtemp()
     # TODO: This is a hack; possibly the datastore parameter isn't being stored in the metadata?
