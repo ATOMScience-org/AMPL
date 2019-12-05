@@ -95,7 +95,7 @@ cd ..
 ---
 <a name="Example-AMPL-usage"></a>
 ## Example AMPL usage
-- An example Jupyter notebook is available to get you started.
+An example Jupyter notebook is available to get you started: `atomsci/ddm/Delaney_Example.ipynb`
 &nbsp;  
 &nbsp;  
 
