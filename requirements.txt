@@ -1,4 +1,5 @@
 deepchem
+rdkit
 feather-format
 joblib
 matplotlib
