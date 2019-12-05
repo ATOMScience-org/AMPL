@@ -1,0 +1,15 @@
+deepchem
+feather-format
+joblib
+matplotlib
+molvs
+numpy
+pandas
+pytest
+scipy
+seaborn
+setuptools 
+sklearn
+sphinx
+tensorflow
+umap
