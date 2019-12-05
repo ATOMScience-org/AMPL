@@ -13,4 +13,3 @@ sklearn
 sphinx
 tensorflow
 umap
-yaml
