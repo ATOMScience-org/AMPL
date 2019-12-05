@@ -301,6 +301,7 @@ class ModelPipeline:
                 out.write("\n")
             self.log.warning('Wrote model metadata to file %s' % out_file)
         self.model_wrapper._clean_up_excess_files(self.model_wrapper.model_dir)
+        '''
         for root, dirs, files in os.walk(self.params.result_dir):
             for d in dirs:
                 model_datasets.set_group_permissions(self.params.system, os.path.join(root, d), self.params.data_owner,
@@ -308,6 +309,7 @@ class ModelPipeline:
             for f in files:
                 model_datasets.set_group_permissions(self.params.system, os.path.join(root, f), self.params.data_owner,
                                                      self.params.data_owner_group)
+        '''
         # ****************************************************************************************
 
     def create_prediction_metadata(self, prediction_results):
@@ -396,6 +398,7 @@ class ModelPipeline:
                 json.dump(model_metrics, out, sort_keys=True, indent=4, separators=(',', ': '))
                 out.write("\n")
             self.log.warning('Wrote model metrics to file %s' % out_file)
+            '''
             for root, dirs, files in os.walk(self.params.result_dir):
                 for d in dirs:
                     model_datasets.set_group_permissions(self.params.system, os.path.join(root, d),
@@ -403,7 +406,7 @@ class ModelPipeline:
                 for f in files:
                     model_datasets.set_group_permissions(self.params.system, os.path.join(root, f),
                                                          self.params.data_owner, self.params.data_owner_group)
-
+            '''
     # ****************************************************************************************
 
     def train_model(self, featurization=None):

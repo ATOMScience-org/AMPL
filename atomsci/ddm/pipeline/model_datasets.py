@@ -1205,10 +1205,10 @@ class FileDataset(ModelDataset):
         else:
             if not os.path.exists(data_dir):
                 os.makedirs(data_dir, exist_ok=True)
-                set_group_permissions(self.params.system, data_dir, self.params.data_owner, self.params.data_owner_group)
+                #set_group_permissions(self.params.system, data_dir, self.params.data_owner, self.params.data_owner_group)
 
             featurized_dset_df.to_csv(featurized_dset_path, index=False)
-            set_group_permissions(self.params.system, featurized_dset_path, self.params.data_owner, self.params.data_owner_group)
+            #set_group_permissions(self.params.system, featurized_dset_path, self.params.data_owner, self.params.data_owner_group)
 
     # ****************************************************************************************
     def load_featurized_data(self):
