@@ -1,8 +1,7 @@
 deepchem
-feather
+feather-format
 joblib
 matplotlib
-mol_vae_features 
 molvs
 numpy
 pandas
