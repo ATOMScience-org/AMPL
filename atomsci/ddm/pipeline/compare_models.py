@@ -28,8 +28,6 @@ nan = np.float32('nan')
 
 client_wrapper = mlmt_client_wrapper.MLMTClientWrapper(ds_client=dsf.config_client())
 client_wrapper.instantiate_mlmt_client()
-if not client_wrapper.mlmt_client:
-    raise Exception('mlmt_client failed to instantitate')
     
 #------------------------------------------------------------------------------------------------------------------
 def get_collection_datasets(collection_name):
