@@ -6,7 +6,6 @@ molvs
 numpy
 pandas
 pytest
-rdkit
 scipy
 seaborn
 setuptools 
