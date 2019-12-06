@@ -980,7 +980,7 @@ def get_summary_metadata_table(uuids, collections=None):
         mdl_params  = model_meta['model_parameters']
         data_params = model_meta['training_dataset']
         # Get model metrics for this model       
-        metrics = pd.DataFrame(model_meta['training_metrics']
+        metrics = pd.DataFrame(model_meta['training_metrics'])
         metrics = metrics[metrics['label']=='best']
         train_metrics = metrics[metrics['subset']=='train']['prediction_results'].values[0]
         valid_metrics = metrics[metrics['subset']=='valid']['prediction_results'].values[0]
