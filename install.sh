@@ -12,7 +12,7 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 echo "DIR: $DIR"
 cd $DIR
 
-TOPDIR=`readlink -f .`
+TOPDIR=`readlink -f .`/
 
 DIST_DIR=${TOPDIR}.dist
 
