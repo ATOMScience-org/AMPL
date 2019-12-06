@@ -367,14 +367,13 @@ class ModelPipeline:
             while retry:
                 if i < 5:
                     try:
-                        # TODO (ksm): Jeff's example code and the Swagger API documentation are conflicting
-                        # about this method.
-                        self.mlmt_client.save_model_metrics(collection_name=self.params.collection_name,
-                                                      model_uuid=model_metrics['model_uuid']
+                        self.mlmt_client.save_metrics(collection_name=self.params.collection_name,
+                                                      model_uuid=model_metrics['model_uuid'],
                                                       model_metrics=model_metrics)
+                        #self.mlmt_client.model_metrics.save_model_metrics(model_metrics_dict=model_metrics)
                         retry = False
                     except:
-                        self.log.warning("Need to sleep and retry saving model")
+                        self.log.warning("Need to sleep and retry saving metrics")
                         time.sleep(60)
                         i += 1
                 else:

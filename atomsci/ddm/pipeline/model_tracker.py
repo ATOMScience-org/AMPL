@@ -81,7 +81,7 @@ def save_model(pipeline, collection_name='model_tracker', log=True):
 
     #### Part 2: Save the model metadata ####
     mlmt_client = MLMTClient()
-    mlmt_client.save_model_metadata(collection_name=collection_name,
+    mlmt_client.save_metadata(collection_name=collection_name,
                                     model_uuid=metadata_dict['model_uuid'],
                                     model_metadata=metadata_dict)
     if log:
