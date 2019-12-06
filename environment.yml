@@ -310,5 +310,4 @@ dependencies:
     - swagger-spec-validator==2.4.1
     - umap-learn==0.3.7
     - webcolors==1.8.1
-prefix: /home/mt424895/anaconda3/envs/atomsci
-
+prefix: /srv/conda/envs/notebook/envs/atomsci
