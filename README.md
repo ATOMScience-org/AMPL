@@ -2,7 +2,7 @@
 
 *Created by the [Accelerating Therapeutics for Opportunites in Medicine (ATOM) Consortium](https://atomscience.org)*
 
-<img src="atomsci/ddm/docs/ATOM_cymatics_black_wordmark.jpg" width="370" height="100" class="center"></img>
+<img src="atomsci/ddm/docs/ATOM_wordmark_black_transparent.png" width="370" height="100" class="center"></img>
 
 
 AMPL is an open-source, modular, extensible software pipeline for building and sharing models to advance in silico drug discovery.
