@@ -23,7 +23,7 @@ smiles_splits = ['scaffold', 'butina', 'fingerprint']
 
 # List of model parameters related to splitting. Make sure to update this list if we add more parameters.
 split_params = ['splitter', 'split_strategy', 'split_valid_frac', 'split_test_frac', 'butina_cutoff',
-                'num_folds', 'base_splitter', 'cutoff_date', 'date_col']
+                'num_folds', 'base_splitter', 'cutoff_date', 'date_col', 'previously_split']
 
 def create_splitting(params):
     """Factory function to create appropriate type of Splitting object, based on dataset parameters

@@ -203,6 +203,7 @@ class ModelPipeline:
         else:
             dataset_metadata = {}
         train_dset_data = dict(
+            datastore=self.params.datastore,
             dataset_key=self.params.dataset_key,
             bucket=self.params.bucket,
             dataset_oid=self.data.dataset_oid,
@@ -230,6 +231,7 @@ class ModelPipeline:
             transformer_oid=self.params.transformer_oid,
             uncertainty=self.params.uncertainty,
             time_generated=time.time(),
+            save_results=self.params.save_results,
             hyperparam_uuid=self.params.hyperparam_uuid
         )
 

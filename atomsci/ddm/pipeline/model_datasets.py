@@ -452,7 +452,7 @@ class ModelDataset(object):
         split_data = dict(split_uuid = self.split_uuid)
         for param in split.split_params:
             split_data[param] = self.params.__dict__.get(param, None)
-        return dict(Splitting=split_data)
+        return split_data
 
     # ****************************************************************************************
     def create_dataset_split_table(self):
