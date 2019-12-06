@@ -4,6 +4,9 @@
 
 <img src="atomsci/ddm/docs/ATOM_wordmark_black_transparent.png" width="370" height="100" class="center"></img>
 
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/truatpasteurdotfr/AMPL/master)
+
+
 
 AMPL is an open-source, modular, extensible software pipeline for building and sharing models to advance in silico drug discovery.
 
