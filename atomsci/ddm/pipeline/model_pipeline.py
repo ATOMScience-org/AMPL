@@ -257,28 +257,32 @@ class ModelPipeline:
 
         # ****************************************************************************************
 
-    def save_model_metadata(self):
-        """A wrapper for the model tracker method save_metadata. Inserts the model metadata into the model zoo.
-        Saves the model metadata to a .json file otherwise and sets the permissions.
+    def save_model_metadata(self, retries=5, sleep_sec=60):
+        """Inserts the model metadata into the model tracker DB, if self.params.save_results is True.
+        Otherwise, saves the model metadata to a .json file and sets the permissions.
+
+        Args:
+            retries (int): Number of times to retry saving to model tracker DB.
+
+            sleep_sec (int): Number of seconds to sleep between retries, if saving to model tracker DB.
 
         Side effects:
             Inserts the model metadata into the model zoo or writes out a metadata.json file
         """
-        self.create_model_metadata()
         if self.params.save_results:
             # Model tracker saves the model state in the datastore as well as saving the metadata
             # in the model zoo.
             retry = True
             i = 0
             while retry:
-                if i < 5:
+                if i < retries:
                     try:
                         trkr.save_model(self, collection_name=self.params.collection_name)
                         # Best model needs to be reloaded for predictions, so does not work to remove best_model_dir
                         retry = False
                     except:
                         self.log.warning("Need to sleep and retry saving model")
-                        time.sleep(60)
+                        time.sleep(sleep_sec)
                         i += 1
                 else:
                     out_file = os.path.join(self.output_dir, 'model_metadata.json')
@@ -317,8 +321,9 @@ class ModelPipeline:
         else:
             dataset_metadata = {}
         prediction_metadata = dict(
-            time_run=time.time(),
+            metrics_type='prediction',
             model_uuid=self.params.model_uuid,
+            time_run=time.time(),
             dataset_key=self.params.dataset_key,
             bucket=self.params.bucket,
             dataset_oid=self.data.dataset_oid,
@@ -349,35 +354,47 @@ class ModelPipeline:
 
     # ****************************************************************************************
 
-    def save_metrics(self, model_metrics, prefix=None):
-        """Saves the given model_metrics dictionary either to the Machine Learning Model Tracker database, or
+    def save_metrics(self, model_metrics, prefix=None, retries=5, sleep_sec=60):
+        """Saves the given model_metrics dictionary either to the model tracker database, or
         to a JSON file on disk.
 
         If writing to disk, outputs to a JSON file <prefix>_model_metrics.json in the current output directory.
 
         Args:
-            model_metrics: A dictionary containing the model predictions and performance metrics.
+            model_metrics (dict or list): Either a dictionary containing the model performance metrics, or a 
+            list of dictionaries with metrics for each training label and subset.
 
-            prefix: An optional prefix to include in the JSON filename, only used if writing to disk.
+            prefix: An optional prefix to include in the JSON filename, only used if writing to disk (i.e., if
+            self.params.save_results is False).
+            
+            retries (int): Number of retries to save to model tracker DB, if save_results is True.
+            
+            sleep_sec (int): Number of seconds to sleep between retries.
 
         Side effects:
             Saves the model_metrics dictionary to the model tracker database, or writes out a .json file
         """
         if self.params.save_results:
+            if type(model_metrics) == list:
+                for metrics in model_metrics:
+                    self.save_metrics(metrics, retries=retries, sleep_sec=sleep_sec)
+                return
+
             retry = True
             i = 0
             while retry:
-                if i < 5:
+                if i < retries:
                     try:
                         self.mlmt_client.save_metrics(collection_name=self.params.collection_name,
                                                       model_uuid=model_metrics['model_uuid'],
                                                       model_metrics=model_metrics)
-                        #self.mlmt_client.model_metrics.save_model_metrics(model_metrics_dict=model_metrics)
                         retry = False
                     except:
-                        self.log.warning("Need to sleep and retry saving metrics")
-                        time.sleep(60)
-                        i += 1
+                        raise
+                        # TODO: uncomment when debugged
+                        #self.log.warning("Need to sleep and retry saving metrics")
+                        #time.sleep(sleep_sec)
+                        #i += 1
                 else:
                     if prefix is None:
                         out_file = os.path.join(self.output_dir, 'model_metrics.json')
@@ -448,10 +465,9 @@ class ModelPipeline:
         self.model_wrapper.train(self)
 
         # Save the metadata for the trained model
-        self.save_model_metadata()
+        self.create_model_metadata()
         # Save the performance metrics for each training data subset, for the best and baseline epochs
-        model_metrics = dict(model_uuid=self.params.model_uuid)
-        model_metrics['training_metrics'] = []
+        training_metrics = []
         for label in ['best', 'baseline']:
             for subset in ['train', 'valid', 'test']:
                 training_dict = dict(
@@ -459,8 +475,17 @@ class ModelPipeline:
                     label=label,
                     subset=subset)
                 training_dict['prediction_results'] = self.model_wrapper.get_pred_results(subset, label)
-                model_metrics['training_metrics'].append(training_dict)
-        self.save_metrics(model_metrics, 'training')
+                training_metrics.append(training_dict)
+        self.model_metadata['training_metrics'] = training_metrics
+        self.save_model_metadata()
+
+        # Save the model metrics separately
+        for training_dict in training_metrics:
+            training_dict['model_uuid'] = self.params.model_uuid
+            training_dict['time_run'] = time.time()
+            training_dict['input_dataset'] = self.model_metadata['training_dataset']
+        self.save_metrics(training_metrics)
+
 
     # ****************************************************************************************
     def run_predictions(self, featurization=None):
