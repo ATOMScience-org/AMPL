@@ -1,4 +1,5 @@
 # ATOM Modeling PipeLine (AMPL) for Drug Discovery
+[![License](http://img.shields.io/:license-mit-blue.svg)](https://github.com/ATOMconsortium/AMPL/blob/master/LICENSE)
 
 *Created by the [Accelerating Therapeutics for Opportunites in Medicine (ATOM) Consortium](https://atomscience.org)*
 
@@ -362,8 +363,8 @@ Please contact the AMPL repository owners for bug reports, questions, and commen
 ### Contributing
 Thank you for contributing to AMPL!
 
-- Contributions must be submitted through pull requests. Please let the repository owners know about new pull requests.
-- All new contributions must be made under the MIT license.  
+- Contributions must be submitted through pull requests.
+- All new contributions must adhere to the MIT license.  
 &nbsp;  
 
 ### Release
