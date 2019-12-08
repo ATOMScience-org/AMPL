@@ -32,7 +32,7 @@ def get_collection_datasets(collection_name):
     """
     dataset_set = set()
     mlmt_client = MLMTClient()
-    dset_dicts = mlmt_client.query_datasets(collection_name=collection_name, metrics_type='training').result()
+    dset_dicts = mlmt_client.model.query_datasets(collection_name=collection_name, metrics_type='training').result()
     # Convert to a list of (dataset_key, bucket) tuples
     for dset_dict in dset_dicts:
         dataset_set.add((dset_dict['dataset_key'], dset_dict['bucket']))
@@ -131,7 +131,7 @@ def get_training_perf_table(dataset_key, bucket, collection_name, pred_type='reg
         model_type_list.append(model_type)
         featurizer = model_params['featurizer']
         featurizer_list.append(featurizer)
-        split_params = metadata_dict['splitting_parameters']['Splitting']
+        split_params = metadata_dict['splitting_parameters']
         splitter_list.append(split_params['splitter'])
         dataset_key = metadata_dict['training_dataset']['dataset_key']
         if model_type == 'NN':
@@ -201,10 +201,25 @@ def get_training_perf_table(dataset_key, bucket, collection_name, pred_type='reg
 # ------------------------------------------------------------------------------------------------------------------
 def get_best_perf_table(col_name, metric_type, model_uuid=None, metadata_dict=None, PK_pipe=False):
     """
-    Load performance metrics from model tracker for all models saved in the model tracker DB under
-    a given collection that were trained against a particular dataset. Identify training parameters
-    that vary between models, and generate plots of performance vs particular combinations of
-    parameters.
+    Extract parameters and training run performance metrics for a single model. The model may be 
+    specified either by a metadata dictionary or a model_uuid; in the latter case, the function
+    queries the model tracker DB for the model metadata.
+
+    Args:
+        col_name (str): Collection name containing model, if model is specified by model_uuid.
+
+        metric_type (str): Performance metric to include in result dictionary.
+
+        model_uuid (str): UUID of model to query, if metadata_dict is not provided.
+
+        metadata_dict (dict): Full metadata dictionary for a model, including training metrics and
+        dataset metadata.
+
+        PK_pipe (bool): If True, include some additional parameters in the result dictionary.
+
+    Returns:
+        model_info (dict): Dictionary of parameter or metric name - value pairs.
+
     """
     mlmt_client = MLMTClient()
     if metadata_dict is None:
@@ -228,42 +243,38 @@ def get_best_perf_table(col_name, metric_type, model_uuid=None, metadata_dict=No
         ).result())
         if len(metadata_list) == 0:
             print("No matching models returned")
-            return
+            return None
         metadata_dict = metadata_list[0]
 
     model_info = {}
     
     model_info['model_uuid'] = metadata_dict['model_uuid']
+    model_info['collection_name'] = col_name
 
     # Get model metrics for this model
-    metrics_dicts = metadata_dict['training_metrics']
+    metrics_dicts = [d for d in metadata_dict['training_metrics'] if d['label'] == 'best']
     if len(metrics_dicts) != 3:
         print("Got no or incomplete metrics for model %s, skipping..." % model_uuid)
-        return
+        return None
 
     model_params = metadata_dict['model_parameters']
     model_info['model_type'] = model_params['model_type']
     model_info['featurizer'] = model_params['featurizer']
-    split_params = metadata_dict['splitting_parameters']['Splitting']
+    split_params = metadata_dict['splitting_parameters']
     model_info['splitter'] = split_params['splitter']
     if 'split_uuid' in split_params:
         model_info['split_uuid'] = split_params['split_uuid']
     model_info['dataset_key'] = metadata_dict['training_dataset']['dataset_key']
     model_info['bucket'] = metadata_dict['training_dataset']['bucket']
     if PK_pipe:
-        model_info['collection_name']=col_name
         model_info['assay_name'] = metadata_dict['training_dataset']['dataset_metadata'][
             'assay_category']
         model_info['response_col'] = metadata_dict['training_dataset']['dataset_metadata'][
-            'response_col']
-        if model_info['featurizer'] == 'descriptors':
-            model_info['descriptor_type'] = metadata_dict['descriptor_specific']['descriptor_type']
-        else:
-            model_info['descriptor_type'] = 'N/A'
+            'response_cols']
     try:
         model_info['descriptor_type'] = metadata_dict['descriptor_specific']['descriptor_type']
     except:
-        model_info['descriptor_type'] = None
+        model_info['descriptor_type'] = 'NA'
     try:
         model_info['num_samples'] = metadata_dict['training_dataset']['dataset_metadata']['num_row']
     except:
@@ -294,8 +305,9 @@ def get_best_perf_table(col_name, metric_type, model_uuid=None, metadata_dict=No
         subset = metrics_dict['subset']
         metric_col = '%s_%s' % (metric_type, subset)
         model_info[metric_col] = metrics_dict['prediction_results'][metric_type]
-        metric_col = 'rms_score_%s' % subset
-        model_info[metric_col] = metrics_dict['prediction_results']['rms_score']
+        if (model_params['prediction_type'] == 'regression') and (metric_type != 'rms_score'):
+            metric_col = 'rms_score_%s' % subset
+            model_info[metric_col] = metrics_dict['prediction_results']['rms_score']
     
     return model_info
 
@@ -305,11 +317,43 @@ def get_best_models_info(col_names, bucket, pred_type, PK_pipeline=False, output
                          shortlist_key=None, input_dset_keys=None, save_results=False, subset='valid',
                          metric_type=None, selection_type='max', other_filters={}):
     """
-    Get results for models in the given collection.
+    Tabulate parameters and performance metrics for the best models, according to a given metric, for 
+    each specified dataset.
+
+    Args:
+        col_names (list of str): List of model tracker collections to search.
+
+        bucket (str): Datastore bucket for datasets.
+
+        pred_type (str): Type of models (regression or classification).
+
+        PK_pipeline (bool): Are we being called from PK pipeline?
+
+        output_dir (str): Directory to write output table to.
+
+        shortlist_key (str): Datastore key for table of datasets to query models for.
+
+        input_dset_keys (str or list of str): List of datastore keys for datasets to query models for. Either shortlist_key 
+        or input_dset_keys must be specified, but not both.
+
+        save_results (bool): If True, write the table of results to a CSV file.
+
+        subset (str): Input dataset subset for which metrics are used to select best models.
+
+        metric_type (str): Type of performance metric (r2_score, roc_auc_score, etc.) to use to select best models.
+
+        selection_type (str): Score criterion ('max' or 'min') to use to select best models.
+
+        other_filters (dict): Additional selection criteria to include in model query.
+
+    Returns:
+        top_models_df (DataFrame): Table of parameters and metrics for best models for each dataset.
     """
+
     mlmt_client = MLMTClient()
     top_models_info = []
     sort_order = {'max': -1, 'min': 1}
+    sort_ascending = {'max': False, 'min': True}
     if metric_type is None:
         if pred_type == 'regression':
             metric_type = 'r2_score'
@@ -319,29 +363,30 @@ def get_best_models_info(col_names, bucket, pred_type, PK_pipeline=False, output
         other_filters = {}
     if type(col_names) == str:
         col_names = [col_names]
-    for col_name in col_names:
-        res_dir = os.path.join(output_dir, '%s_perf' % col_name)
-        plt_dir = '%s/Plots' % res_dir
-        os.makedirs(plt_dir, exist_ok=True)
-        res_files = os.listdir(res_dir)
-        suffix = '_%s_model_perf_metrics.csv' % col_name
-        if input_dset_keys is None:
-            dset_keys = dsf.retrieve_dataset_by_datasetkey(shortlist_key, bucket)
-            # Need to figure out how to handle an unknown column name for dataset_keys
-            if 'dataset_key' in dset_keys.columns:
-                dset_keys = dset_keys['dataset_key']
-            elif 'task_name' in dset_keys.columns:
-                dset_keys = dset_keys['task_name']
-            else:
-                dset_keys = dset_keys.values
+    if input_dset_keys is None:
+        if shortlist_key is None:
+            raise ValueError('Must specify either input_dset_keys or shortlist_key')
+        dset_keys = dsf.retrieve_dataset_by_datasetkey(shortlist_key, bucket)
+        # Need to figure out how to handle an unknown column name for dataset_keys
+        if 'dataset_key' in dset_keys.columns:
+            dset_keys = dset_keys['dataset_key']
+        elif 'task_name' in dset_keys.columns:
+            dset_keys = dset_keys['task_name']
         else:
-            if type(input_dset_keys) == str:
-                dset_keys = [input_dset_keys]
-            else:
-                dset_keys = input_dset_keys
-       
-        for dset_key in dset_keys:
-            dset_key = dset_key.strip()
+            dset_keys = dset_keys.values
+    else:
+        if shortlist_key is not None:
+            raise ValueError("You can specify either shortlist_key or input_dset_keys but not both.")
+        if type(input_dset_keys) == str:
+            dset_keys = [input_dset_keys]
+        else:
+            dset_keys = input_dset_keys
+   
+    # Get the best model over all collections for each dataset
+    for dset_key in dset_keys:
+        dset_key = dset_key.strip()
+        dset_model_info = []
+        for col_name in col_names:
             try:
                 query_params = {
                     "match_metadata": {
@@ -359,39 +404,52 @@ def get_best_models_info(col_names, bucket, pred_type, PK_pipeline=False, output
                 query_params['match_metadata'].update(other_filters)
 
                 try:
+                    print('Querying collection %s for models trained on dataset %s, %s' % (col_name, bucket, dset_key))
                     metadata_list = list(mlmt_client.model.query_model_metadata(
                         collection_name=col_name,
                         query_params=query_params,
                         limit=1
                     ).result())
                 except Exception as e:
-                    print("Error returned when querying the best model for dataset %s" % dset_key)
+                    print("Error returned when querying the best model for dataset %s in collection %s" % (dset_key, col_name))
                     print(e)
                     continue
                 if len(metadata_list) == 0:
-                    print("No models returned for dataset %s" % dset_key)
+                    print("No models returned for dataset %s in collection %s" % (dset_key, col_name))
                     continue
+                print('Query returned %d models' % len(metadata_list))
                 model = metadata_list[0]
-                res_df = pd.DataFrame.from_records(
-                    [get_best_perf_table(col_name, metric_type, metadata_dict=model, PK_pipe=PK_pipeline)])
-                top_models_info.append(res_df)
+                model_info = get_best_perf_table(col_name, metric_type, metadata_dict=model, PK_pipe=PK_pipeline)
+                if model_info is not None:
+                    res_df = pd.DataFrame.from_records([model_info])
+                    dset_model_info.append(res_df)
             except Exception as e:
                 print(e)
                 continue
-    if top_models_info == []:
+        metric_col = '%s_%s' % (metric_type, subset)
+        if len(dset_model_info) > 0:
+            dset_model_df = pd.concat(dset_model_info, ignore_index=True).sort_values(
+                               by=metric_col, ascending=sort_ascending[selection_type])
+            top_models_info.append(dset_model_df.head(1))
+            print('Adding data for bucket %s, dset_key %s' % (dset_model_df.bucket.values[0], dset_model_df.dataset_key.values[0]))
+    if len(top_models_info) == 0:
         print("No metadata found")
-        return
+        return None
     top_models_df = pd.concat(top_models_info, ignore_index=True)
-    #TODO: Update res_dirs
     if save_results:
+        os.makedirs(output_dir, exist_ok=True)
         if shortlist_key is not None:
             # Not including shortlist key right now because some are weirdly formed and have .csv in the middle
-            top_models_df.to_csv(os.path.join(res_dir, 'best_models_metadata.csv'), index=False)
+            top_models_df.to_csv(os.path.join(output_dir, 'best_models_metadata.csv'), index=False)
         else:
             for dset_key in input_dset_keys:
+                # TODO: This doesn't make sense; why output multiple copies of the same table?
                 shortened_key = dset_key.rstrip('.csv')
-                top_models_df.to_csv(os.path.join(res_dir, 'best_models_metadata_%s.csv' % shortened_key), index=False)
+                top_models_df.to_csv(os.path.join(output_dir, 'best_models_metadata_%s.csv' % shortened_key), index=False)
     return top_models_df
+
+
+# TODO: This function looks like work in progress, should we delete it?
 '''
 #---------------------------------------------------------------------------------------------------------
 def get_best_grouped_models_info(collection='pilot_fixed', pred_type='regression', top_n=1, subset='test'):
@@ -668,7 +726,7 @@ def get_filesystem_perf_results(result_dir, hyper_id=None, dataset_name='GSK_Amg
         model_score_type_list.append(model_score_type)
         featurizer = model_params['featurizer']
         featurizer_list.append(featurizer)
-        split_params = metadata_dict['splitting_parameters']['Splitting']
+        split_params = metadata_dict['splitting_parameters']
         splitter_list.append(split_params['splitter'])
         feature_transform_type = metadata_dict['training_dataset']['feature_transform_type']
         feature_transform_type_list.append(feature_transform_type)
@@ -845,7 +903,7 @@ def get_summary_perf_tables(collection_names, filter_dict={}, prediction_type='r
             param_list.append(param)
             transform_type = metadata_dict['training_dataset']['feature_transform_type']
             transform_list.append(transform_type)
-            split_params = metadata_dict['splitting_parameters']['Splitting']
+            split_params = metadata_dict['splitting_parameters']
             splitter_list.append(split_params['splitter'])
             split_uuid_list.append(split_params['split_uuid'])
             split_strategy = split_params['split_strategy']
@@ -1014,7 +1072,7 @@ def get_summary_metadata_table(uuids, collections=None):
             featurizer = mdl_params['featurizer']
 
         try:
-            split_uuid = model_meta['splitting_parameters']['Splitting']['split_uuid']
+            split_uuid = model_meta['splitting_parameters']['split_uuid']
         except:
             split_uuid = 'Not Avaliable'
         
@@ -1027,7 +1085,7 @@ def get_summary_metadata_table(uuids, collections=None):
                      'MAE (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['mae_score'], valid_metrics['mae_score'], test_metrics['mae_score']),
                      'RMSE(Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['rms_score'], valid_metrics['rms_score'], test_metrics['rms_score']),
                      'Data Size (Train/Valid/Test)': '%i/%i/%i' % (train_metrics["num_compounds"],valid_metrics["num_compounds"],test_metrics["num_compounds"]),
-                     'Splitter':      model_meta['splitting_parameters']['Splitting']['splitter'],
+                     'Splitter':      model_meta['splitting_parameters']['splitter'],
                      'Layer Sizes':   nn_params['layer_sizes'],
                      'Optimizer':     nn_params['optimizer_type'],
                      'Learning Rate': nn_params['learning_rate'],
@@ -1049,7 +1107,7 @@ def get_summary_metadata_table(uuids, collections=None):
                      'MAE (Train/Valid/Test)':       '%0.2f/%0.2f/%0.2f' % (train_metrics['mae_score'], valid_metrics['mae_score'], test_metrics['mae_score']),
                      'RMSE(Train/Valid/Test)':       '%0.2f/%0.2f/%0.2f' % (train_metrics['rms_score'], valid_metrics['rms_score'], test_metrics['rms_score']),
                      'Data Size (Train/Valid/Test)': '%i/%i/%i' % (train_metrics["num_compounds"],valid_metrics["num_compounds"],test_metrics["num_compounds"]),
-                     'Splitter':      model_meta['splitting_parameters']['Splitting']['splitter'],
+                     'Splitter':      model_meta['splitting_parameters']['splitter'],
                      'Collection':    collection_name,
                      'UUID':          model_meta['model_uuid'],
                      'Split UUID':    split_uuid,
@@ -1061,42 +1119,56 @@ def get_summary_metadata_table(uuids, collections=None):
     return pd.DataFrame(mlist).set_index('Name').transpose()
 
 #------------------------------------------------------------------------------------------------------------------
-def get_model_datasets(collection_names, filter_dict={}):
+def get_training_datasets(collection_names):
+    """
+    Query the model tracker DB for all the unique dataset keys and buckets used to train models in the given
+    collections.
+    """
+    result_dict = {}
+
+    mlmt_client = MLMTClient()
+    for collection_name in collection_names:
+        dset_list = mlmt_client.model.get_training_datasets(collection_name=collection_name).result()
+        result_dict[collection_name] = dset_list
+
+    return result_dict
+
+#------------------------------------------------------------------------------------------------------------------
+def get_dataset_models(collection_names, filter_dict={}):
     """
     Query the model tracker for all models saved in the model tracker DB under the given collection names. Returns a dictionary
-    mapping (dataset_key,bucket) pairs to the list of model_uuids trained on the corresponding datasets.
+    mapping (dataset_key,bucket) pairs to the list of (collection,model_uuid) pairs trained on the corresponding datasets.
     """
 
     result_dict = {}
 
 
+    coll_dset_dict = get_training_dict(collection_names)
+
     mlmt_client = MLMTClient()
     for collection_name in collection_names:
-        # ksm: Is this necessary anymore?
-        if collection_name.endswith('_metrics'):
-            continue
-        query_params = {
-            "match_metadata": filter_dict,
-        }
-
-        metadata_list = mlmt_client.model.query_model_metadata(
-            collection_name=collection_name,
-            query_params=query_params,
-            include_fields=['model_uuid', 'training_metrics', 'training_dataset']
-        ).result()
-        for i, metadata_dict in enumerate(metadata_list):
-            if i % 10 == 0:
-                print('Processing collection %s model %d' % (collection_name, i))
-            # Check that model has metrics before we go on
-            if not 'training_metrics' in metadata_dict:
-                continue
-            try:
+        dset_list = coll_dset_dict[collection_name]
+        for dset_dict in dset_list:
+            query_filter = {
+                'training_dataset.bucket': dset_dict['bucket'],
+                'training_dataset.dataset_key': dset_dict['dataset_key']
+            }
+            query_filter.update(filter_dict)
+            query_params = {
+                "match_metadata": query_filter
+            }
+    
+            print('Querying models in collection %s for dataset %s, %s' % (collection_name, bucket, dset_key))
+            metadata_list = mlmt_client.model.query_model_metadata(
+                collection_name=collection_name,
+                query_params=query_params,
+                include_fields=['model_uuid']
+            ).result()
+            for i, metadata_dict in enumerate(metadata_list):
+                if i % 50 == 0:
+                    print('Processing collection %s model %d' % (collection_name, i))
                 model_uuid = metadata_dict['model_uuid']
-                dataset_key = metadata_dict['training_dataset']['dataset_key']
-                bucket = metadata_dict['training_dataset']['bucket']
-                result_dict.setdefault((dataset_key,bucket), []).append(model_uuid)
-            except KeyError:
-                continue
+                result_dict.setdefault((dset_key,bucket), []).append((collection_name, model_uuid))
 
     return result_dict
 
@@ -1117,7 +1189,7 @@ def aggregate_predictions(datasets, bucket, col_names, result_dir):
                                     'model_parameters.model_type': model_type,
                                     'model_parameters.featurizer': 'descriptors',
                                     'descriptor_specific.descriptor_type': descriptor_type,
-                                    'splitting_parameters.Splitting.splitter': split_type
+                                    'splitting_parameters.splitter': split_type
                                    }
                     for col_name in col_names:
                         model = list(trkr.get_full_metadata(model_filter, collection_name=col_name))
@@ -1141,7 +1213,7 @@ def aggregate_predictions(datasets, bucket, col_names, result_dir):
                                     'ModelMetrics.TrainingRun.PredictionResults.r2_score': ['max', None],
                                     'model_parameters.model_type': model_type,
                                     'model_parameters.featurizer': featurizer,
-                                    'splitting_parameters.Splitting.splitter': split_type
+                                    'splitting_parameters.splitter': split_type
                                    }
                     for col_name in col_names:
                         model = list(trkr.get_full_metadata(model_filter, collection_name=col_name))
