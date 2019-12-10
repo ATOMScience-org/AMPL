@@ -370,7 +370,7 @@ Thank you for contributing to AMPL!
 ### Release
 AMPL is distributed under the terms of the MIT license. All new contributions must be made under this license.
 
-See [MIT license](mit.txt) and [NOTICE](NOTICE) for more details.
+See [MIT license](LICENSE) and [NOTICE](NOTICE) for more details.
 
 - LLNL-CODE-795635
 - CRADA TC02264
