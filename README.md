@@ -376,8 +376,3 @@ See [MIT license](mit.txt) and [NOTICE](NOTICE) for more details.
 - CRADA TC02264
 &nbsp;  
 &nbsp;  
-
-### Readme date
-November 7, 2019  
-&nbsp;  
-&nbsp;  
