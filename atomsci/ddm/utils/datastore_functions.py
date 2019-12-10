@@ -1930,3 +1930,34 @@ def get_key_val(metadata, key=None):
                 ret_val=elem['value']
                 break
         return ret_val
+
+#---------------------------------------------------------------------
+def copy_datasets_to_bucket(dataset_keys, from_bucket, to_bucket, ds_client=None):
+    """
+    Copy each named dataset from one bucket to another.
+
+    Args:
+        dataset_keys (str or list of str): List of dataset_keys for datasets to move.
+
+        from_bucket (str): Bucket where datasets are now.
+
+        to_bucket (str): Bucket to move datasets to.
+
+    """
+    if ds_client is None:
+        ds_client = config_client()
+
+    if type(dataset_keys) == str:
+        dataset_keys = [dataset_keys]
+
+    # Copy each dataset
+    for dataset_key in dataset_keys:
+        try:
+            ds_meta = ds_client.ds_datasets.copy_dataset(bucket_name=from_bucket, dataset_key=dataset_key, to_bucket_name=to_bucket).result()
+        except Exception as e:
+            print('Error copying dataset %s\nfrom bucket %s to %s' % (dataset_key, from_bucket, to_bucket))
+            print(e)
+            continue
+        print('Copied dataset %s to %s' % (dataset_key, to_bucket))
+
+
