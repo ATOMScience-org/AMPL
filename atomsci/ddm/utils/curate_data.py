@@ -240,6 +240,41 @@ def aggregate_assay_data(assay_df, value_col='VALUE_NUM', output_value_col=None,
 
     return agg_df
 
+# ******************************************************************************************************************************************
+def freq_table(dset_df, column, min_freq=1):
+    """
+    Generate a data frame tabulating the repeat frequencies of each unique value in 'vals'.
+    Restrict it to values occurring at least min_freq times.
+    """
+    vals = dset_df[column].values
+    uniq_vals, counts = np.unique(vals, return_counts=True)
+    uniq_df = pd.DataFrame({column: uniq_vals, 'Count': counts}).sort_values(by='Count', ascending=False)
+    uniq_df = uniq_df[uniq_df.Count >= min_freq]
+    return uniq_df
+
+# ******************************************************************************************************************************************
+def labeled_freq_table(dset_df, columns, min_freq=1):
+    """
+    Generate a frequency table in which additional columns are included. The first column in 'columns'
+    is assumed to be a unique ID; there should be a many-to-1 mapping from the ID to each of the additional
+    columns.
+    """
+    id_col = columns[0]
+    freq_df = freq_table(dset_df, id_col, min_freq=min_freq)
+    uniq_ids = freq_df[id_col].values
+    addl_cols = columns[1:]
+    addl_vals = {colname: [] for colname in addl_cols}
+    uniq_df = dset_df.drop_duplicates(subset=columns)
+    for uniq_id in uniq_ids:
+        subset_df = uniq_df[uniq_df[id_col] == uniq_id]
+        if subset_df.shape[0] > 1:
+            raise Exception("Additional columns should be unique for ID %s" % uniq_id)
+        for colname in addl_cols:
+            addl_vals[colname].append(subset_df[colname].values[0])
+    for colname in addl_cols:
+        freq_df[colname] = addl_vals[colname]
+    return freq_df
+
 
 # ******************************************************************************************************************************************
 # The functions below are from Claire Weber's data_utils module.
