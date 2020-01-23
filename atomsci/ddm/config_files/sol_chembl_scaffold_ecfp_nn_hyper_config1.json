@@ -12,7 +12,7 @@
     "previously_split": "True",
     "split_uuid": "20791624-a69a-47db-9f47-da381fbca079",
     "prediction_type": "regression",
-    "response_cols" : "pIC50",
+    "response_cols" : "logSolubility",
     "id_col": "compound_id",
     "smiles_col" : "base_rdkit_smiles",
     "datastore": "True",
