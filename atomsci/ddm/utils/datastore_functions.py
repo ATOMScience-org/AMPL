@@ -17,7 +17,6 @@ import csv
 import bz2
 import pprint
 urllib3.disable_warnings()
-import matplotlib.pyplot as plt
 import pickle
 import tarfile
 import tempfile
@@ -912,6 +911,7 @@ def summarize_datasets(dataset_keys, bucket, client=None, column=None, save_as=N
         (DataFrame): returns table summarizing the stats for the file(s) specified
 
     """
+    import matplotlib.pyplot as plt
 
     if client is None:
         client = config_client()
