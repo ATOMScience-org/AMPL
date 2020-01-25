@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 
+# noinspection SpellCheckingInspection
 """
-Script to compare performance of DeepChem regression models using different featurizers,
-splitters and other parameters on GSK single task pXC50 dataset.
+Script to generate hyperparameter combinations based on input params and send off jobs to a slurm system.
+Author: Amanda Minnich
 """
 
 # from __future__ import unicode_literals
@@ -33,19 +34,57 @@ import socket
 import traceback
 import copy
 
+
 def run_command(shell_script, python_path, script_dir, params):
+    """
+    Function to submit jobs on a slurm system
+    Args:
+        shell_script: Name of shell script to run
+        python_path: Path to python version
+        script_dir: Directory where script lives
+        params: parameters in dictionary format
+    Returns:
+        None
+
+    """
     params_str = parse.to_str(params)
     slurm_command = 'sbatch {0} {1} {2} "{3}"'.format(shell_script, python_path, script_dir, params_str)
     print(slurm_command)
     os.system(slurm_command)
 
+
 def run_cmd(cmd):
+    """
+    Function to submit a job using subprocess
+    
+    Args:
+        
+        cmd: Command to run
+
+    Returns:
+        
+        output: Output of command
+    """
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
     (output, err) = p.communicate()
     p.wait()
     return output
 
+
 def reformat_filter_dict(filter_dict):
+    """
+    Function to reformat a filter dictionary to match the Model Tracker metadata structure. May be obsolete for updated
+    model tracker.
+    
+    Args:
+        
+        filter_dict: Dictionary containing metadata for model of interest
+
+    Returns:
+        
+        new_filter_dict: Filter dict reformatted
+
+    """
     rename_dict = {'ModelMetadata.ModelParameters':
                        {'featurizer', 'model_choice_score_type', 'model_dataset_oid', 'model_type',
                         'num_model_tasks', 'prediction_type', 'transformer_bucket', 'transformer_key',
@@ -61,7 +100,6 @@ def reformat_filter_dict(filter_dict):
         rename_dict['ModelMetadata.NNSpecific'] = {
                 'batch_size', 'bias_init_consts', 'dropouts', 'layer_sizes', 'learning_rate', 'max_epochs', 'optimizer_type', 'weight_init_stddevs'}
         # Need to omit baseline_epoch because we hadn't been saving it in the model metadata
-        #, 'baseline_epoch'}
     elif filter_dict['model_type'] == 'RF':
         rename_dict['ModelMetadata.RFSpecific'] = {'rf_estimators', 'rf_max_features'}
     elif filter_dict['model_type'] == 'xgboost':
@@ -91,6 +129,7 @@ def reformat_filter_dict(filter_dict):
                 new_filter_dict['%s.%s' % (key, value)] = filter_dict[value]
     return new_filter_dict
 
+
 def permutate_NNlayer_combo_params(layer_nums, node_nums, dropout_list, max_final_layer_size):
     """
     to generate combos of layer_sizes(str) and dropouts(str) params from the layer_nums (list), node_nums (list), dropout_list (list).
@@ -104,11 +143,18 @@ def permutate_NNlayer_combo_params(layer_nums, node_nums, dropout_list, max_fina
     Example:
     permutate_NNlayer_combo_params([2], [4,8,8], [0], 16)
     returns [[8, 8], [8, 4]] [[0,0],[0,0]]
-
-    layer_nums: specify numbers of layers.
-    node_nums: specify numbers of nodes per layer.
-    dropout_list: specify the dropouts.
-    max_last_layer_size: sets the max size of the last layer. It will be set to the smallest node_num if needed.
+    
+    Args:
+        layer_nums: specify numbers of layers.
+        
+        node_nums: specify numbers of nodes per layer.
+        
+        dropout_list: specify the dropouts.
+        
+        max_last_layer_size: sets the max size of the last layer. It will be set to the smallest node_num if needed.
+        
+    Returns:
+        layer_sizes, dropouts: the layer sizes and dropouts generated based on the input parameters
     """
     import itertools
     import numpy as np
@@ -131,7 +177,19 @@ def permutate_NNlayer_combo_params(layer_nums, node_nums, dropout_list, max_fina
                     dropouts.append([(dropout) for i in layer])
     return layer_sizes, dropouts
 
+
 def get_num_params(combo):
+    """
+    Calculates the number of parameters in a fully-connected neural networ
+    Args:
+        
+        combo: Model parameters
+
+    Returns:
+        
+        tmp_sum: Calculated number of parameters
+
+    """
     layers = combo['layer_sizes']
     # All layers multiplied by adjacent layers, summed, plus the final layer times the number of samples. Extra addition is for bias terms
     tmp_sum = layers[0] + sum(layers[i] * layers[i + 1] + layers[i+1] for i in range(len(layers) - 1))
@@ -147,14 +205,28 @@ def get_num_params(combo):
     else:
         return tmp_sum
 
+
+# Global variable with keys that should not be used to generate hyperparameters
 excluded_keys = {'shortlist_key', 'use_shortlist', 'dataset_key', 'object_oid', 'script_dir',
                   'python_path', 'config_file', 'hyperparam', 'search_type', 'split_only', 'layer_nums',
                   'node_nums', 'dropout_list', 'max_final_layer_size', 'splitter', 'nn_size_scale_factor',
                   'rerun', 'max_jobs'}
 
-class HyperparameterSearch(object):
 
+class HyperparameterSearch(object):
+    """
+    The class for generating and running all hyperparameter combinations based on the input params given
+    """
     def __init__(self, params, hyperparam_uuid=None):
+        """
+        
+        Args:
+            
+            params: The input hyperparameter parameters
+            
+            hyperparam_uuid: Optional, UUID for hyperparameter run if you want to group this run with a previous run.
+            We ended up mainly doing this via collections, so not really used
+        """
         self.hyperparam_layers = {'layer_sizes', 'dropouts', 'weight_init_stddevs', 'bias_init_consts'}
         self.hyperparam_keys = {'model_type', 'featurizer', 'splitter', 'learning_rate', 'weight_decay_penalty',
                                 'rf_estimators', 'rf_max_features', 'rf_max_depth',
@@ -220,9 +292,16 @@ class HyperparameterSearch(object):
                     'runtime=$((end-start))\necho "runtime: " $runtime')
 
     def generate_param_combos(self):
-        """ Performs additional parsing of parameters and generates the list of assays"""
+        """
+        Performs additional parsing of parameters and generates all combinations
+
+        Returns:
+
+            None
+
+        """
         for key, value in vars(self.params).items():
-            if not value or key in self.excluded_keys:
+            if (value is None) or (key in self.excluded_keys):
                 continue
             elif key == 'result_dir' or key == 'output_dir':
                 self.new_params[key] = os.path.join(value, self.hyperparam_uuid)
@@ -281,6 +360,14 @@ class HyperparameterSearch(object):
                     self.param_combos.extend(self.generate_combos(subcombo))
 
     def generate_combos(self, params_dict):
+        """
+        Calls sub-function generate_combo and then uses itertools.product to generate all desired combinations
+        Args:
+            params_dict:
+
+        Returns:
+
+        """
         new_dict = self.generate_combo(params_dict)
         hyperparam_combos = []
         hyperparams = new_dict.keys()
@@ -293,9 +380,12 @@ class HyperparameterSearch(object):
         return hyperparam_combos
 
     def assemble_layers(self):
-        # layers_zipped: list of dictionaries
-        # dictionary with str as key and value is list of lists
-        # want to get a list of dictionaries
+        """
+        Reformats layer parameters
+        
+        Returns:
+            None
+        """
         tmp_list = []
         for i in range(min([len(x) for x in list(self.layers.values())])):
             tmp_dict = {}
@@ -311,6 +401,11 @@ class HyperparameterSearch(object):
         self.hyperparam_keys.add('layers')
 
     def generate_assay_list(self):
+        """
+        Generates the list of datasets to build models for, with their key, bucket, split, and split uuid
+        Returns:
+
+        """
         # Creates the assay list with additional options for use_shortlist
         if not self.params.use_shortlist:
             if type(self.params.splitter) == str:
@@ -335,6 +430,16 @@ class HyperparameterSearch(object):
         self.assays = [(t[0].strip(), t[1].strip(), t[2].strip(), t[3].strip()) for t in self.assays]
 
     def get_dataset_metadata(self, assay_params):
+        """
+        Gather the required metadata for a dataset
+        
+        Args:
+            assay_params: dataset metadata
+
+        Returns:
+            None
+
+        """
         print(assay_params['dataset_key'])
         retry = True
         i = 0
@@ -374,10 +479,20 @@ class HyperparameterSearch(object):
         assay_params['hyperparam_uuid'] = self.hyperparam_uuid
 
     def split_and_save_dataset(self, assay_params):
+        """
+        Splits a given dataset, saves it, and sets the split_uuid in the metadata
+        
+        Args:
+            assay_params: Dataset metadata
+
+        Returns:
+            None
+
+        """
         self.get_dataset_metadata(assay_params)
-        #TODO: check usage with defaults
+        # TODO: check usage with defaults
         namespace_params = parse.wrapper(assay_params)
-        #TODO: Don't want to recreate each time
+        # TODO: Don't want to recreate each time
         featurization = feat.create_featurization(namespace_params)
         data = model_datasets.create_model_dataset(namespace_params, featurization)
         data.get_featurized_data()
@@ -387,6 +502,17 @@ class HyperparameterSearch(object):
         assay_params['split_uuid'] = data.split_uuid
 
     def return_split_uuid(self, dataset_key, bucket=None, splitter=None, split_combo=None):
+        """
+        Loads a dataset, splits it, saves it, and returns the split_uuid
+        Args:
+            dataset_key: key for dataset to split
+            bucket: datastore-specific user group bucket
+            splitter: Type of splitter to use to split the dataset
+            split_combo: tuple of form (split_valid_frac, split_test_frac)
+
+        Returns:
+
+        """
         if bucket is None:
             bucket = self.params.bucket
         if splitter is None:
@@ -412,7 +538,8 @@ class HyperparameterSearch(object):
                 else:
                     print("Could not get metadata from datastore for dataset %s because of exception %s, exiting" % (dataset_key, e))
                     return None
-        assay_params = {'dataset_key': dataset_key, 'bucket': bucket, 'splitter': splitter, 'split_valid_frac': split_valid_frac, 'split_test_frac': split_test_frac}
+        assay_params = {'dataset_key': dataset_key, 'bucket': bucket, 'splitter': splitter,
+                        'split_valid_frac': split_valid_frac, 'split_test_frac': split_test_frac}
         #Need a featurizer type to split dataset, but since we only care about getting the split_uuid, does not matter which featurizer you use
         if type(self.params.featurizer) == list:
             assay_params['featurizer'] = self.params.featurizer[0]
@@ -464,19 +591,29 @@ class HyperparameterSearch(object):
                     return None
 
     def generate_split_shortlist(self):
+        """
+        Processes a shortlist, generates splits for each dataset on the list, and uploads a new shortlist file with the
+        split_uuids included. Generates splits for the split_combos [[0.1,0.1], [0.1,0.2],[0.2,0.2]], [random, scaffold]
+        
+        Returns:
+            None
+        """
         retry = True
         i = 0
         while retry:
             try:
-                shortlist_metadata = dsf.retrieve_dataset_by_datasetkey(bucket=self.params.bucket, dataset_key=self.params.shortlist_key, return_metadata=True)
+                shortlist_metadata = dsf.retrieve_dataset_by_datasetkey(
+                    bucket=self.params.bucket, dataset_key=self.params.shortlist_key, return_metadata=True)
                 retry = False
             except Exception as e:
                 if i < 5:
-                    print("Could not retrieve shortlist %s from datastore because of exception %s, sleeping..." % (self.params.shortlist_key, e))
+                    print("Could not retrieve shortlist %s from datastore because of exception %s, sleeping..." %
+                          (self.params.shortlist_key, e))
                     time.sleep(60)
                     i += 1
                 else:
-                    print("Could not retrieve shortlist %s from datastore because of exception %s, exiting" % (self.params.shortlist_key, e))
+                    print("Could not retrieve shortlist %s from datastore because of exception %s, exiting" %
+                          (self.params.shortlist_key, e))
                     return None
 
         datasets = self.get_shortlist_df()
@@ -523,6 +660,14 @@ class HyperparameterSearch(object):
                     retry = False
 
     def get_shortlist_df(self, split_uuids=False):
+        """
+        
+        Args:
+            split_uuids: Boolean value saying if you want just datasets returned or the split_uuids as well
+
+        Returns:
+            The list of dataset_keys, along with their accompanying bucket, split type, and split_uuid if split_uuids is True
+        """
         if self.params.datastore:
             retry = True
             i = 0
@@ -585,6 +730,12 @@ class HyperparameterSearch(object):
         return assays
 
     def submit_jobs(self):
+        """
+        Reformats parameters as necessary and then calls run_command in a loop to submit a job for each param combo
+        
+        Returns:
+            None
+        """
         for assay, bucket, splitter, split_uuid in self.assays:
             # Writes the series of command line arguments for scripts without a hyperparameter combo
             assay_params = copy.deepcopy(self.new_params)
@@ -640,6 +791,14 @@ class HyperparameterSearch(object):
                     run_command(self.shell_script, self.params.python_path, self.params.script_dir, assay_params)
 
     def already_run(self, assay_params):
+        """
+        Checks to see if a model with a given metadata combination has already been built
+        Args:
+            assay_params: model metadata information
+
+        Returns:
+            Boolean specifying if model has been previously built
+        """
         filter_dict = copy.deepcopy(assay_params)
         for key in ['result_dir', 'previously_featurized', 'collection_name', 'time_generated', 'hyperparam_uuid', 'model_uuid']:
             if key in filter_dict:
@@ -658,20 +817,33 @@ class HyperparameterSearch(object):
                 else:
                     print("Could not check Model Tracker for existing model at this time because of exception %s" % e)
                     return False
-        if models != []:
+        if models:
             print("Already created model for this param combo")
             return True
         return False
 
     def generate_combo(self, params_dict):
+        """
+        This is implemented in the specific sub-classes
+
+        """
         raise NotImplementedError
 
     def run_search(self):
+        """
+        The driver code for generating hyperparameter combinations and submitting jobs
+        Returns:
+
+        """
         self.generate_param_combos()
         self.generate_assay_list()
         self.submit_jobs()
 
+
 class GridSearch(HyperparameterSearch):
+    """
+    Generates fixed steps on a grid for a given hyperparameter range
+    """
 
     def __init__(self, params):
         super().__init__(params)
@@ -691,9 +863,13 @@ class GridSearch(HyperparameterSearch):
     def generate_combo(self, params_dict):
         """
         Method to generate all combinations from a given set of key-value pairs
-        :param params_dict: Set of key-value pairs with the key being the param name and the value being the list of values
-        you want to try for that param
-        :return: The list of all combinations of parameters
+        
+        Args:
+            params_dict: Set of key-value pairs with the key being the param name and the value being the list of values
+            you want to try for that param
+        
+        Returns:
+            new_dict: The list of all combinations of parameters
         """
         if not params_dict:
             return None
@@ -713,7 +889,11 @@ class GridSearch(HyperparameterSearch):
                 new_dict[key] = value
         return new_dict
 
+
 class RandomSearch(HyperparameterSearch):
+    """
+    Generates the specified number of random parameter values for within the specified range
+    """
 
     def __init__(self, params):
         super().__init__(params)
@@ -733,13 +913,16 @@ class RandomSearch(HyperparameterSearch):
     def generate_combo(self, params_dict):
         """
         Method to generate all combinations from a given set of key-value pairs
-        :param params_dict: Set of key-value pairs with the key being the param name and the value being the list of values
-        you want to try for that param
-        :return: The list of all combinations of parameters
+
+        Args:
+            params_dict: Set of key-value pairs with the key being the param name and the value being the list of values
+            you want to try for that param
+
+        Returns:
+            new_dict: The list of all combinations of parameters
         """
         if not params_dict:
             return None
-
         new_dict = {}
         for key, value in params_dict.items():
             assert isinstance(value, collections.Iterable)
@@ -755,8 +938,12 @@ class RandomSearch(HyperparameterSearch):
                 new_dict[key] = value
         return new_dict
 
-class GeometricSearch(HyperparameterSearch):
 
+class GeometricSearch(HyperparameterSearch):
+    """
+    Generates parameter values in logistic steps, rather than linear like GridSearch does
+    """
+    
     def __init__(self, params):
         super().__init__(params)
 
@@ -775,9 +962,13 @@ class GeometricSearch(HyperparameterSearch):
     def generate_combo(self, params_dict):
         """
         Method to generate all combinations from a given set of key-value pairs
-        :param params_dict: Set of key-value pairs with the key being the param name and the value being the list of values
-        you want to try for that param
-        :return: The list of all combinations of parameters
+        
+        Args:
+            params_dict: Set of key-value pairs with the key being the param name and the value being the list of values
+            you want to try for that param
+        
+        Returns:
+            new_dict: The list of all combinations of parameters
         """
         if not params_dict:
             return None
@@ -798,7 +989,10 @@ class GeometricSearch(HyperparameterSearch):
         return new_dict
 
 class UserSpecifiedSearch(HyperparameterSearch):
-
+    """
+    Generates combinations using the user-specified steps
+    """
+    
     def __init__(self, params):
         super().__init__(params)
 
@@ -817,10 +1011,15 @@ class UserSpecifiedSearch(HyperparameterSearch):
     def generate_combo(self, params_dict):
         """
         Method to generate all combinations from a given set of key-value pairs
-        :param params_dict: Set of key-value pairs with the key being the param name and the value being the list of values
-        you want to try for that param
-        :return: The list of all combinations of parameters
+        
+        Args:
+            params_dict: Set of key-value pairs with the key being the param name and the value being the list of values
+            you want to try for that param
+        
+        Returns:
+            new_dict: The list of all combinations of parameters
         """
+        
         if not params_dict:
             return None
         new_dict = {}
@@ -838,7 +1037,7 @@ class UserSpecifiedSearch(HyperparameterSearch):
 
 
 def main():
-    """Entry point when script is run from a shell"""
+    """Entry point when script is run"""
     print(sys.argv[1:])
     params = parse.wrapper(sys.argv[1:])
     keep_params = {'model_type',
@@ -873,5 +1072,3 @@ def main():
 if __name__ == '__main__' and len(sys.argv) > 1:
     main()
     sys.exit(0)
-
-

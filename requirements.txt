@@ -1,1 +1,0 @@
-atomsci-data-science>=1.0.0.dev1

@@ -53,9 +53,6 @@ MIN_AT = 30
 MIN_IT = 30
 TARGET_BIAS = 0.01
 
-import matplotlib
-import matplotlib.pyplot as plt
-import seaborn as sns
 
 #*******************************************************************************************************************************************
 def Cdist(params):
@@ -285,6 +282,9 @@ def plot_nn_dist_distr(params):
     """
     Plot distributions of nearest neighbor distances
     """
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+
     split_set, aa_dist, ii_dist, ai_dist, ia_dist, thresholds = params[:]
     vaI, viI, taI, tiI = split_set
     
@@ -315,6 +315,8 @@ def plot_bias(params, niter):
     """
     Plot nearest neighbor functions used to compute AVE bias. Used in place of calc_bias for debugging splitter code.
     """
+    import matplotlib.pyplot as plt
+
     split_set, aa_dist, ii_dist, ai_dist, ia_dist, thresholds = params[:]
     vaI, viI, taI, tiI = split_set
     
@@ -406,6 +408,10 @@ class AVEMinSplitter(Splitter):
         to do a 3-way split, call this function twice.
         TODO: This would mean calculating the distance matrices twice, though. Change to do both splits in the same call.
         """
+        if self.debug_mode:
+            import matplotlib.pyplot as plt
+            import seaborn as sns
+
         feat = dataset.X
         # Compute overall nearest neighbor distances for each compound
         if self.metric == 'jaccard':

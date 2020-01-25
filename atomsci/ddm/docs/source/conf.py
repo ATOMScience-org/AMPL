@@ -179,3 +179,4 @@ epub_exclude_files = ['search.html']
 
 
 # -- Extension configuration -------------------------------------------------
+autodoc_mock_imports = ["rdkit", "tensorflow.contrib", "atomsci", "yaml", "sklearn.preprocessing.Imputer"]

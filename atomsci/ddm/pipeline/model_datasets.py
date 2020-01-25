@@ -93,11 +93,15 @@ def set_group_permissions(system, path, data_owner='gsk', data_owner_group='gskc
     else:
         group = owner_group_map[data_owner][system]
 
-    path_metadata = Path(path)
-    # TODO: MJT I have this if statement to deal with the permission errors on /ds/projdata. May not be necessary.
-    if path_metadata.group() != group:
-        shutil.chown(path, group=group)
-        os.chmod(path, 0o770)
+    try:
+        path_metadata = Path(path)
+        # TODO: MJT I have this if statement to deal with the permission errors on /ds/projdata. May not be necessary.
+        if path_metadata.group() != group:
+            shutil.chown(path, group=group)
+            os.chmod(path, 0o770)
+    except FileNotFoundError:
+        # On LC, it seems that os.walk() can return files that are pending removal
+        pass
 
 # ****************************************************************************************
 def key_value_list_to_dict(kvp_list):
@@ -1204,10 +1208,10 @@ class FileDataset(ModelDataset):
         else:
             if not os.path.exists(data_dir):
                 os.makedirs(data_dir, exist_ok=True)
-                set_group_permissions(self.params.system, data_dir, self.params.data_owner, self.params.data_owner_group)
+                #set_group_permissions(self.params.system, data_dir, self.params.data_owner, self.params.data_owner_group)
 
             featurized_dset_df.to_csv(featurized_dset_path, index=False)
-            set_group_permissions(self.params.system, featurized_dset_path, self.params.data_owner, self.params.data_owner_group)
+            #set_group_permissions(self.params.system, featurized_dset_path, self.params.data_owner, self.params.data_owner_group)
 
     # ****************************************************************************************
     def load_featurized_data(self):
