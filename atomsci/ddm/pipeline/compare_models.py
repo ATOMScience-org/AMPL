@@ -905,7 +905,7 @@ def get_summary_perf_tables(collection_names, filter_dict={}, prediction_type='r
             transform_list.append(transform_type)
             split_params = metadata_dict['splitting_parameters']
             splitter_list.append(split_params['splitter'])
-            split_uuid_list.append(split_params['split_uuid'])
+            split_uuid_list.append(split_params.get('split_uuid', ''))
             split_strategy = split_params['split_strategy']
             split_strategy_list.append(split_strategy)
             
