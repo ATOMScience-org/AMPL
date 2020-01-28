@@ -301,7 +301,7 @@ class HyperparameterSearch(object):
 
         """
         for key, value in vars(self.params).items():
-            if not value or key in self.excluded_keys:
+            if (value is None) or (key in self.excluded_keys):
                 continue
             elif key == 'result_dir' or key == 'output_dir':
                 self.new_params[key] = os.path.join(value, self.hyperparam_uuid)

@@ -68,7 +68,7 @@ def plot_dataset_dist_distr(dataset, feat_type, dist_metric, task_name, **metric
 
 #------------------------------------------------------------------------------------------------------------------
 def diversity_plots(dset_key, datastore=True, bucket='gsk_ml', title_prefix=None, ecfp_radius=4, out_dir=None, 
-                    id_col='compound_id', smiles_col='rdkit_smiles', max_for_mcs=300):
+                    id_col='compound_id', smiles_col='rdkit_smiles', is_base_smiles=False, response_col=None, max_for_mcs=300):
     """
     Plot visualizations of diversity for an arbitrary table of compounds. At minimum, the file should contain
     columns for a compound ID and a SMILES string.
@@ -78,21 +78,41 @@ def diversity_plots(dset_key, datastore=True, bucket='gsk_ml', title_prefix=None
         cmpd_df = dsf.retrieve_dataset_by_datasetkey(dset_key, bucket)
     else:
         cmpd_df = pd.read_csv(dset_key, index_col=False)
+    cmpd_df = cmpd_df.drop_duplicates(subset=smiles_col)
     file_prefix = os.path.splitext(os.path.basename(dset_key))[0]
     if title_prefix is None:
         title_prefix = file_prefix.replace('_', ' ')
     compound_ids = cmpd_df[id_col].values
     smiles_strs = cmpd_df[smiles_col].values
     ncmpds = len(smiles_strs)
-    print(ncmpds)
     # Strip salts, canonicalize SMILES strings and create RDKit Mol objects
-    print("Canonicalizing molecules...")
-    base_mols = [struct_utils.base_mol_from_smiles(smiles) for smiles in smiles_strs]
-    for i, mol in enumerate(base_mols):
-        if mol is None:
-            print('Unable to get base molecule for compound %d = %s' % (i, compound_ids[i]))
-    base_smiles = [Chem.MolToSmiles(mol) for mol in base_mols]
-    print("Done")
+    if is_base_smiles:
+        base_mols = np.array([Chem.MolFromSmiles(s) for s in smiles_strs])
+    else:
+        print("Canonicalizing %d molecules..." % ncmpds)
+        base_mols = np.array([struct_utils.base_mol_from_smiles(smiles) for smiles in smiles_strs])
+        for i, mol in enumerate(base_mols):
+            if mol is None:
+                print('Unable to get base molecule for compound %d = %s' % (i, compound_ids[i]))
+        print("Done")
+
+    has_good_smiles = np.array([mol is not None for mol in base_mols])
+    base_mols = base_mols[has_good_smiles]
+
+    cmpd_df = cmpd_df[has_good_smiles]
+    ncmpds = cmpd_df.shape[0]
+    compound_ids = cmpd_df[id_col].values
+    responses = None
+    if response_col is not None:
+        responses = cmpd_df[response_col].values
+        if set(responses) == set([0,1]):
+            response_type = 'binary'
+            colorpal =  {0 : 'forestgreen', 1 : 'red'}
+        else:
+            response_type = 'continuous'
+            colorpal = sns.blend_palette(['red', 'green', 'blue'], 12, as_cmap=True)
+
+
 
     # Generate ECFP fingerprints
     print("Computing fingerprints...")
@@ -141,7 +161,7 @@ def diversity_plots(dset_key, datastore=True, bucket='gsk_ml', title_prefix=None
             pdf.close()
     
         # Draw a UMAP projection based on MCS distance
-        mapper = umap.UMAP(n_neighbors=10, n_components=2, metric='precomputed', random_state=17)
+        mapper = umap.UMAP(n_neighbors=20, min_dist=0.1, n_components=2, metric='precomputed', random_state=17)
         reps = mapper.fit_transform(mcs_dist)
         rep_df = pd.DataFrame.from_records(reps, columns=['x', 'y'])
         rep_df['compound_id'] = compound_ids
@@ -149,7 +169,12 @@ def diversity_plots(dset_key, datastore=True, bucket='gsk_ml', title_prefix=None
             pdf_path = '%s/%s_mcs_umap_proj.pdf' % (out_dir, file_prefix)
             pdf = PdfPages(pdf_path)
         fig, ax = plt.subplots(figsize=(12,12))
-        sns.scatterplot(x='x', y='y', data=rep_df, ax=ax)
+        if responses is None:
+            sns.scatterplot(x='x', y='y', data=rep_df, ax=ax)
+        else:
+            rep_df['response'] = responses
+            sns.scatterplot(x='x', y='y', hue='response', palette=colorpal,
+                            data=rep_df, ax=ax)
         ax.set_title("%s, 2D projection based on MCS distance" % title_prefix)
         if out_dir is not None:
             pdf.savefig(fig)
@@ -161,7 +186,7 @@ def diversity_plots(dset_key, datastore=True, bucket='gsk_ml', title_prefix=None
     tani_dist = dm.tanimoto(fps)
     print("Done")
     # Draw a UMAP projection based on Tanimoto distance
-    mapper = umap.UMAP(n_neighbors=10, n_components=2, metric='precomputed', random_state=17)
+    mapper = umap.UMAP(n_neighbors=20, min_dist=0.1, n_components=2, metric='precomputed', random_state=17)
     reps = mapper.fit_transform(tani_dist)
     rep_df = pd.DataFrame.from_records(reps, columns=['x', 'y'])
     rep_df['compound_id'] = compound_ids
@@ -169,7 +194,12 @@ def diversity_plots(dset_key, datastore=True, bucket='gsk_ml', title_prefix=None
         pdf_path = '%s/%s_tani_umap_proj.pdf' % (out_dir, file_prefix)
         pdf = PdfPages(pdf_path)
     fig, ax = plt.subplots(figsize=(12,12))
-    sns.scatterplot(x='x', y='y', data=rep_df, ax=ax)
+    if responses is None:
+        sns.scatterplot(x='x', y='y', data=rep_df, ax=ax)
+    else:
+        rep_df['response'] = responses
+        sns.scatterplot(x='x', y='y', hue='response', palette=colorpal,
+                        data=rep_df, ax=ax)
     ax.set_title("%s, 2D projection based on Tanimoto distance" % title_prefix)
     if out_dir is not None:
         pdf.savefig(fig)
