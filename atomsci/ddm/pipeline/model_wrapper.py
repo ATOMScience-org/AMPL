@@ -928,8 +928,12 @@ class DCNNModelWrapper(ModelWrapper):
                 pred = dc.trans.undo_transforms(pred, self.transformers)
         elif self.params.transformers and self.transformers is not None:
             pred = self.model.predict(dataset, self.transformers)
+            if self.params.prediction_type == 'regression':
+                pred = pred.reshape((pred.shape[0], pred.shape[1], 1))
         else:
             pred = self.model.predict(dataset, [])
+            if self.params.prediction_type == 'regression':
+                pred = pred.reshape((pred.shape[0], pred.shape[1], 1))
         return pred, std
 
     # ****************************************************************************************
