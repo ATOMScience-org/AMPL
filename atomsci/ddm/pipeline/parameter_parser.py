@@ -189,7 +189,7 @@ def flatten_dict(inp_dict,newdict = {}):
     """
 
     for key, val in inp_dict.items():
-        if isinstance(val,dict):
+        if isinstance(val,dict) and not (key in ['DatasetMetadata', 'dataset_metadata']):
             flatten_dict(val,newdict)
         else:
             if key in newdict and newdict[key] != val:
@@ -380,7 +380,7 @@ def get_parser():
     # **********************************************************************************************************
     # training_dataset_parameters
     parser.add_argument(
-        '--bucket', dest='bucket', default='gsk_ml', required=False,
+        '--bucket', dest='bucket', default='public', required=False,
         help='Name of datastore bucket. Specific to LLNL datastore system.')
     parser.add_argument(
         '--dataset_key', '-dk', dest='dataset_key', required=False, default = None,
@@ -419,7 +419,7 @@ def get_parser():
     # model_building_parameters: autoencoders
     parser.add_argument(
         '--autoencoder_bucket', dest='autoencoder_bucket',
-        default='gsk_ml',
+        default=None,
         help='datastore bucket for the autoencoder file. Specific to LLNL datastore system. TODO: Not yet implemented')
     parser.add_argument(
         '--autoencoder_key', dest='autoencoder_key', default=None,
@@ -444,7 +444,7 @@ def get_parser():
     # model_building_parameters: descriptors
     parser.add_argument(
         '--descriptor_bucket', dest='descriptor_bucket',
-        default='gskdata',
+        default='public',
         help='Datastore bucket for the descriptor file. Specific to LLNL datastore system.')
     parser.add_argument(
         '--descriptor_key', dest='descriptor_key', default=None,
@@ -678,7 +678,7 @@ def get_parser():
         '--response_transform_type', dest='response_transform_type', default='normalization',
         help='type of normalization for the response column TODO: Not currently implemented')
     parser.add_argument(
-        '--transformer_bucket', dest='transformer_bucket', default='gsk_ml',
+        '--transformer_bucket', dest='transformer_bucket', default=None,
         help='Datastore bucket where the transformer is stored. Specific to LLNL datastore system.')
     parser.add_argument(
         '--transformer_key', dest='transformer_key', type=str, default=None,
@@ -761,7 +761,7 @@ def get_parser():
         help='When data_owner is set to data_owner_group, this is the option for custom group name of created files. ' 
              'Specific to LLNL model_tracker system.')
     parser.add_argument(
-        '--model_bucket', dest='model_bucket', type=str, default='gsk_ml',
+        '--model_bucket', dest='model_bucket', type=str, default=None,
         help='Bucket in the datastore for the model. Specific to LLNL model tracker system.')
     # TODO: Model_dataset_oid is used as metadata and used in model_datasets.py
     # TODO: Model_dataset_oid is probably over-written or unused.
@@ -932,6 +932,13 @@ def postprocess_args(parsed_args):
         with open(parsed_args.model_filter) as f:
             config = json.loads(f.read())
         parsed_args.model_filter = flatten_dict(config, {})
+
+    # Default the model_bucket and transformer_bucket params to be the same as the training dataset bucket
+    if parsed_args.model_bucket is None:
+        parsed_args.model_bucket = parsed_args.bucket
+    if parsed_args.transformer_bucket is None:
+        parsed_args.transformer_bucket = parsed_args.bucket
+
 
     # Check that split_valid_frac+split_test_frac leaves room for a training set
     if parsed_args.split_strategy == 'train_valid_test':
