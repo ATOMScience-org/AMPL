@@ -808,7 +808,9 @@ def get_summary_perf_tables(collection_names, filter_dict={}, prediction_type='r
             model_type_list.append(model_type)
             featurizer = model_params['featurizer']
             featurizer_list.append(featurizer)
-            if 'DescriptorSpecific' in metadata_dict['ModelMetadata']:
+            if featurizer in ['graphconv', 'ecfp']:
+                desc_type = featurizer
+            elif 'DescriptorSpecific' in metadata_dict['ModelMetadata']:
                 desc_type = metadata_dict['ModelMetadata']['DescriptorSpecific']['descriptor_type']
             else:
                 desc_type = ''
@@ -902,7 +904,7 @@ def get_summary_perf_tables(collection_names, filter_dict={}, prediction_type='r
                     time_built=time_built_list,
                     model_type=model_type_list,
                     featurizer=featurizer_list,
-                    descr_type=desc_type_list,
+                    features=desc_type_list,
                     transformer=transform_list,
                     splitter=splitter_list,
                     split_strategy=split_strategy_list,

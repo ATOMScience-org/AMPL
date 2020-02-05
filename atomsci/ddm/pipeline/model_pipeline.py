@@ -1108,7 +1108,7 @@ def load_from_tracker(model_uuid, collection_name=None, client=None, verbose=Fal
     if collection_name is None:
         collection_name = trkr.get_model_collection_by_uuid(model_uuid, client_wrapper=client)
 
-    params = list(trkr.get_models({'model_uuid': model_uuid}, client, collection_name=collection_name))
+    params = list(trkr.get_metadata({'model_uuid': model_uuid}, client, collection_name=collection_name))
 
     if len(params) == 0:
         raise Exception('Unable to find model with uuid %s in collection %s' % (model_uuid, collection_name))

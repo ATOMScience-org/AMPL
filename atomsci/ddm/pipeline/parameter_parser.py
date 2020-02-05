@@ -189,7 +189,7 @@ def flatten_dict(inp_dict,newdict = {}):
     """
 
     for key, val in inp_dict.items():
-        if isinstance(val,dict):
+        if isinstance(val,dict) and not (key in ['DatasetMetadata', 'dataset_metadata']):
             flatten_dict(val,newdict)
         else:
             if key in newdict and newdict[key] != val:
