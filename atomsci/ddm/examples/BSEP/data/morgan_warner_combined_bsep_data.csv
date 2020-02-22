@@ -1,0 +1,661 @@
+compound_name,source,base_rdkit_smiles,relation,pIC50,active
+fenoximone,Morgan,CSc1ccc(C(=O)c2[nH]c(=O)[nH]c2C)cc1,<,3.8761483590329133,0
+OXEDRINE,Warner,CNCC(O)c1ccc(O)cc1,<,3.0,0
+ccl4,Morgan,ClC(Cl)(Cl)Cl,<,3.8761483590329133,0
+glipizide,Morgan,Cc1cnc(C(=O)NCCc2ccc(S(=O)(=O)NC(=O)NC3CCCCC3)cc2)cn1,<,3.8761483590329133,0
+fluphenazine hydrochloride,Morgan,OCCN1CCN(CCCN2c3ccccc3Sc3ccc(C(F)(F)F)cc32)CC1,,4.058985756294431,1
+agomelatine,Morgan,COc1ccc2cccc(CCNC(C)=O)c2c1,<,3.8761483590329133,0
+CYCLANDELATE,Warner,CC1CC(OC(=O)C(O)c2ccccc2)CC(C)(C)C1,,4.823041019413092,1
+mevastatin,Morgan,CC[C@H](C)C(=O)O[C@H]1CCC=C2C=C[C@H](C)[C@H](CC[C@@H]3C[C@@H](O)CC(=O)O3)[C@H]21,,4.568636235841012,1
+lypressin (aka vasopressin),Morgan,NCCCC[C@H](NC(=O)[C@@H]1CCCN1C(=O)[C@@H]1CSSC[C@H](N)C(=O)N[C@@H](Cc2ccc(O)cc2)C(=O)N[C@@H](Cc2ccccc2)C(=O)N[C@@H](CCC(N)=O)C(=O)N[C@@H](CC(N)=O)C(=O)N1)C(=O)NCC(N)=O,<,3.8761483590329133,0
+METYRAPONE,Warner,CC(C)(C(=O)c1cccnc1)c1cccnc1,,3.639595945270061,0
+AZ155,Warner,N[C@H]1CCN(c2ccc3c(C(=O)NCC4CCCCC4)c(Cl)ccc3n2)C1,,3.9710222947912217,0
+travoprost,Morgan,CC(C)OC(=O)CCC/C=C\C[C@H]1[C@@H](O)C[C@@H](O)[C@@H]1/C=C/[C@@H](O)COc1cccc(C(F)(F)F)c1,,4.357535479757878,1
+sulfamethoxazole,Morgan,Cc1cc(NS(=O)(=O)c2ccc(N)cc2)no1,<,3.8761483590329133,0
+AZ6,Warner,O=C(O)c1cc2cc(O)ccc2n1Cc1ccc(Cl)c(Cl)c1,,4.302421966348886,1
+tilorone,Morgan,CCN(CC)CCOc1ccc2c(c1)C(=O)c1cc(OCCN(CC)CC)ccc1-2,<,3.8761483590329133,0
+astemizole,Morgan,COc1ccc(CCN2CCC(Nc3nc4ccccc4n3Cc3ccc(F)cc3)CC2)cc1,,4.230622673923861,1
+DITIOCARB,Warner,CCN(CC)C(=S)S,,4.159517512786558,0
+Dexamethasone,Warner,C[C@@H]1C[C@H]2[C@@H]3CCC4=CC(=O)C=C[C@]4(C)[C@@]3(F)[C@@H](O)C[C@]2(C)[C@@]1(O)C(=O)CO,,3.9926790470772553,0
+citalopram,Morgan,CN(C)CCCC1(c2ccc(F)cc2)OCc2cc(C#N)ccc21,<,3.8761483590329133,0
+ISOXSUPRINE,Warner,CC(COc1ccccc1)NC(C)C(O)c1ccc(O)cc1,,3.2422245089880746,0
+cefpodoxime proxetil,Morgan,COCC1=C(C(=O)OC(C)OC(=O)OC(C)C)N2C(=O)[C@@H](NC(=O)/C(=N\OC)c3csc(N)n3)[C@H]2SC1,,4.087777943467584,1
+THIORIDAZINE,Warner,CSc1ccc2c(c1)N(CCC1CCCCN1C)c1ccccc1S2,,4.613857891069181,1
+A-967079,Warner,CCC(=N\O)/C(C)=C/c1ccc(F)cc1,,4.57170318601712,1
+LONAPALENE,Warner,COc1c(OC)c(OC(C)=O)c2cc(Cl)ccc2c1OC(C)=O,,4.841939206063395,1
+idazoxan,Morgan,c1ccc2c(c1)OCC(C1=NCCN1)O2,<,3.8761483590329133,0
+AZ198,Warner,COc1cc(Nc2ncc(F)c(Nc3ccc4c(n3)NC(=O)C(C)(C)O4)n2)cc(OC)c1OC,,3.7064164865038833,0
+loteprednol etabonate,Morgan,CCOC(=O)O[C@]1(C(=O)OCCl)CC[C@H]2[C@@H]3CCC4=CC(=O)C=C[C@]4(C)[C@H]3[C@@H](O)C[C@@]21C,,4.393618634889395,1
+praziquantel,Morgan,O=C(C1CCCCC1)N1CC(=O)N2CCc3ccccc3C2C1,,4.173277479831008,1
+6-propyl-2-thiouracil,Morgan,CCCc1cc(=O)[nH]c(=S)[nH]1,<,3.8761483590329133,0
+octreotide acetate,Morgan,C[C@@H](O)[C@@H]1NC(=O)[C@H](CCCCN)NC(=O)[C@@H](Cc2c[nH]c3ccccc23)NC(=O)[C@H](Cc2ccccc2)NC(=O)[C@@H](NC(=O)[C@H](N)Cc2ccccc2)CSSC[C@@H](C(=O)N[C@H](CO)[C@@H](C)O)NC1=O,,5.029653123769907,1
+PERHEXILINE,Warner,C1CCC(C(CC2CCCCN2)C2CCCCC2)CC1,,4.842845560093719,1
+donepezil,Morgan,COc1cc2c(cc1OC)C(=O)C(CC1CCN(Cc3ccccc3)CC1)C2,,4.107905397309518,1
+fluorescein,Morgan,O=C(O)c1ccccc1-c1c2ccc(=O)cc-2oc2cc(O)ccc12,<,3.8761483590329133,0
+AZ122,Warner,O=C(NC1Cc2ccccc2N(C[C@@H](O)CO)C1=O)c1cc2cc(Cl)ccc2[nH]1,,4.719194071606333,1
+pramipexole,Morgan,CCCN[C@H]1CCc2nc(N)sc2C1,<,3.8761483590329133,0
+Erlotinib,Warner,C#Cc1cccc(Nc2ncnc3cc(OCCOC)c(OCCOC)cc23)c1,>,5.0,1
+AZ85,Warner,COc1ccnc(-c2cccc(C)c2[S+]([O-])c2nc3ccccc3[nH]2)c1,>,5.0,1
+AZ182,Warner,CC1=C(C(=O)O)N2C(=O)[C@@H](NC(=O)C(N)C3=CCC=CC3)C2SC1,<,3.0,0
+caffeine,Morgan,Cn1c(=O)c2c(ncn2C)n(C)c1=O,<,3.8761483590329133,0
+FOLIC ACID,Warner,Nc1nc(=O)c2nc(CNc3ccc(C(=O)N[C@@H](CCC(=O)O)C(=O)O)cc3)cnc2[nH]1,<,3.0,0
+indomethacin,Morgan,COc1ccc2c(c1)c(CC(=O)O)c(C)n2C(=O)c1ccc(Cl)cc1,,4.376750709602098,1
+AZ128,Warner,Cc1ccc2c(c1)c(-c1ccnc3c(Cl)cccc13)c(C)n2CC(=O)O,>,5.0,1
+CINCHOCAINE,Warner,CCCCOc1cc(C(=O)NCCN(CC)CC)c2ccccc2n1,,4.380384994257193,1
+AZ148,Warner,C[C@@H]1O[C@@H](O[C@H]2C[C@@H](O)[C@]3(CO)[C@H]4[C@H](O)C[C@]5(C)[C@@H](C6=CC(=O)OC6)CC[C@]5(O)[C@@H]4CC[C@]3(O)C2)[C@H](O)[C@H](O)[C@H]1O,<,3.0,0
+AZ45,Warner,COc1ccc2cc(C(C)CO)ccc2c1,,4.010639186223752,0
+SERTRALINE,Warner,CN[C@H]1CC[C@@H](c2ccc(Cl)c(Cl)c2)c2ccccc21,,4.532539890492736,1
+tetraethylthiuram disulfide,Morgan,CCN(CC)C(=S)SSC(=S)N(CC)CC,<,3.8761483590329133,0
+OXETHAZAINE,Warner,CN(C(=O)CN(CCO)CC(=O)N(C)C(C)(C)Cc1ccccc1)C(C)(C)Cc1ccccc1,>,5.0,1
+zaleplon,Morgan,CCN(C(C)=O)c1cccc(-c2ccnc3c(C#N)cnn23)c1,<,3.8761483590329133,0
+CYCLOBENZAPRINE,Warner,CN(C)CCC=C1c2ccccc2C=Cc2ccccc21,,3.9689957186364633,0
+AZ22,Warner,O=CN(O)C(CCCc1ncccn1)CS(=O)(=O)N1CCN(c2ccc(F)cc2)CC1,>,4.784626847216578,1
+triamcinolone acetonide,Morgan,CC1(C)O[C@@H]2C[C@H]3[C@@H]4CCC5=CC(=O)C=C[C@]5(C)[C@@]4(F)[C@@H](O)C[C@]3(C)[C@]2(C(=O)CO)O1,<,3.8761483590329133,0
+DOCOSANOL,Warner,CCCCCCCCCCCCCCCCCCCCCCO,<,3.0,0
+ergocalcifrol,Morgan,C=C1CC[C@H](O)C/C1=C/C=C1\CCC[C@@]2(C)[C@H]1CC[C@@H]2[C@H](C)/C=C/[C@H](C)C(C)C,,4.120330794367947,1
+MITOTANE,Warner,Clc1ccc(C(c2ccccc2Cl)C(Cl)Cl)cc1,>,5.0,1
+amoxicillin,Morgan,CC1(C)S[C@@H]2[C@H](NC(=O)[C@H](N)c3ccc(O)cc3)C(=O)N2[C@H]1C(=O)O,<,3.8761483590329133,0
+CLAVULANATE POTASSIUM,Warner,O=C(O)[C@H]1/C(=C/CO)O[C@@H]2CC(=O)N21,<,3.0,0
+AZ1,Warner,Nc1ccccc1C(=O)NCC(=O)O,<,3.0,0
+AZ180,Warner,Cc1ccc(OC(C)(C)[C@H]2OC[C@@H](C/C=C\CCC(=O)O)[C@@H](c3cccnc3)O2)c([N+](=O)[O-])c1,>,5.0,1
+MIANSERIN,Warner,CN1CCN2c3ccccc3Cc3ccccc3C2C1,,4.3295685906393935,1
+DIMETHISOQUIN,Warner,CCCCc1cc2ccccc2c(OCCN(C)C)n1,,4.163169713511121,0
+AZ134,Warner,Nc1ccc(CN2C(=O)C(Nc3ccc(N4CCOCC4)cc3)=C(c3ccccc3)C2=O)cn1,>,5.0,1
+AZ44,Warner,CN1CCc2cccc3c2C1Cc1ccc(O)c(O)c1-3,,3.407934329567753,0
+mibefradil hcl,Morgan,COCC(=O)O[C@]1(CCN(C)CCCc2nc3ccccc3[nH]2)CCc2cc(F)ccc2[C@@H]1C(C)C,,4.358525889495899,1
+risperidone,Morgan,Cc1nc2n(c(=O)c1CCN1CCC(c3noc4cc(F)ccc34)CC1)CCCC2,<,3.8761483590329133,0
+NAFRONYL,Warner,CCN(CC)CCOC(=O)C(Cc1cccc2ccccc12)CC1CCCO1,>,4.95703092660682,1
+enalapril maleate,Morgan,CCOC(=O)[C@H](CCc1ccccc1)N[C@@H](C)C(=O)N1CCC[C@H]1C(=O)O,<,3.8761483590329133,0
+TRIOXSALEN,Warner,Cc1cc2cc3c(C)cc(=O)oc3c(C)c2o1,<,3.2797579817129434,0
+quinapril,Morgan,CCOC(=O)[C@H](CCc1ccccc1)N[C@@H](C)C(=O)N1Cc2ccccc2C[C@H]1C(=O)O,,4.026872146400302,1
+drotaverine,Morgan,CCOc1ccc(/C=C2\NCCc3cc(OCC)c(OCC)cc32)cc1OCC,,4.431798275933005,1
+megestrol acetate,Morgan,CC(=O)O[C@]1(C(C)=O)CC[C@H]2[C@@H]3C=C(C)C4=CC(=O)CC[C@]4(C)[C@H]3CC[C@@]21C,,4.7495799976911055,1
+PIRENZEPINE,Warner,CN1CCN(CC(=O)N2c3ccccc3C(=O)Nc3cccnc32)CC1,<,3.0,0
+AZD-4407,Warner,C[C@H]1C[C@@](O)(c2csc(Sc3ccc4c(c3)CC(=O)N4C)c2)CCO1,>,4.961379838050297,1
+paroxetine hydrochloride,Morgan,Fc1ccc([C@@H]2CCNC[C@H]2COc2ccc3c(c2)OCO3)cc1,<,3.8761483590329133,0
+AZ135,Warner,CC(C)(CO)[C@@H](O)C(=O)NCCCO,<,3.0,0
+atomoxetine hydrochloride,Morgan,CNCC[C@@H](Oc1ccccc1C)c1ccccc1,<,3.8761483590329133,0
+escitalopram oxalate,Morgan,CN(C)CCC[C@@]1(c2ccc(F)cc2)OCc2cc(C#N)ccc21,<,3.8761483590329133,0
+dirithromycin,Morgan,CC[C@H]1OC(=O)[C@H](C)[C@@H](O[C@H]2C[C@@](C)(OC)[C@@H](O)[C@H](C)O2)[C@H](C)[C@@H](O[C@@H]2O[C@H](C)C[C@H](N(C)C)[C@H]2O)[C@](C)(O)C[C@@H](C)[C@@H]2N[C@@H](COCCOC)O[C@H]([C@H]2C)[C@]1(C)O,<,3.8761483590329133,0
+rifaximin,Morgan,CO[C@H]1/C=C/O[C@@]2(C)Oc3c(C)c(O)c4c(O)c(c5c(nc6cc(C)ccn65)c4c3C2=O)NC(=O)/C(C)=C\C=C\[C@H](C)[C@H](O)[C@@H](C)[C@@H](O)[C@@H](C)[C@H](OC(C)=O)[C@@H]1C,,4.376750709602098,1
+undecylenic acid,Morgan,C=CCCCCCCCCC(=O)O,<,3.8761483590329133,0
+BENZOYLPAS,Warner,O=C(Nc1ccc(C(=O)O)c(O)c1)c1ccccc1,<,3.0,0
+AZ59,Warner,Cc1cc(Nc2nc(NCc3cc(-c4ccccn4)no3)ncc2Cl)[nH]n1,>,5.0,1
+AZ12,Warner,Cc1ccc(NC(=O)c2cccc3c2oc2ccccc23)cc1NC(=O)c1cccc(CN2CCN(C)CC2)c1,>,5.0,1
+rotenone,Morgan,C=C(C)[C@H]1Cc2c(ccc3c2O[C@@H]2COc4cc(OC)c(OC)cc4[C@@H]2C3=O)O1,,5.096910013008057,1
+tolnaftate,Morgan,Cc1cccc(N(C)C(=S)Oc2ccc3ccccc3c2)c1,<,3.8761483590329133,0
+midazolam,Morgan,Cc1ncc2n1-c1ccc(Cl)cc1C(c1ccccc1F)=NC2,,4.3794475552705645,1
+AZ52,Warner,Cc1cc2c(cc(C(=O)O)n2Cc2ccc(Cl)c(Cl)c2)o1,,4.7988761027926214,1
+CYCLOSERINE,Warner,N[C@@H]1CONC1=O,<,3.0,0
+ritonavir,Morgan,CC(C)c1nc(CN(C)C(=O)N[C@H](C(=O)N[C@@H](Cc2ccccc2)C[C@H](O)[C@H](Cc2ccccc2)NC(=O)OCc2cncs2)C(C)C)cs1,,5.7594507517174005,1
+AZ111,Warner,Cc1cc(-c2ccc(N3C[C@H](Cn4ccnn4)OC3=O)cc2F)on1,<,3.0,0
+AZ7,Warner,C[C@@](O)(C(=O)Nc1ccc(S(=O)(=O)c2ccc(NCCO)cc2)cc1Cl)C(F)(F)F,,4.5630426693305495,1
+pergolide mesylate,Morgan,CCCN1C[C@H](CSC)C[C@@H]2c3cccc4[nH]cc(c34)C[C@H]21,<,3.8761483590329133,0
+MELPHALAN,Warner,NC(Cc1ccc(N(CCCl)CCCl)cc1)C(=O)O,,4.028028723600244,0
+cefixime,Morgan,C=CC1=C(C(=O)O)N2C(=O)[C@@H](NC(=O)/C(=N\OCC(=O)O)c3csc(N)n3)[C@H]2SC1,<,3.8761483590329133,0
+BENZYLPENICILLIN (PENICILLIN G),Warner,CC1(C)S[C@@H]2[C@H](NC(=O)Cc3ccccc3)C(=O)N2[C@H]1C(=O)O,>,5.0,1
+GABAPENTIN,Warner,NCC1(CC(=O)O)CCCCC1,<,3.0,0
+17a ethinylestradiol,Morgan,C#C[C@]1(O)CC[C@H]2[C@@H]3CCc4cc(O)ccc4[C@H]3CC[C@@]21C,,4.853871964321762,1
+doxorubicin,Morgan,COc1cccc2c1C(=O)c1c(O)c3c(c(O)c1C2=O)C[C@@](O)(C(=O)CO)C[C@@H]3O[C@H]1C[C@H](N)[C@H](O)[C@H](C)O1,<,3.8761483590329133,0
+telmisartan,Morgan,CCCc1nc2c(C)cc(-c3nc4ccccc4n3C)cc2n1Cc1ccc(-c2ccccc2C(=O)O)cc1,,4.790484985457369,1
+THIOTHIXENE,Warner,CN1CCN(CC/C=C2/c3ccccc3Sc3ccc(S(=O)(=O)N(C)C)cc32)CC1,,4.517126416391246,1
+eprosartan,Morgan,CCCCc1ncc(/C=C(\Cc2cccs2)C(=O)O)n1Cc1ccc(C(=O)O)cc1,<,3.8761483590329133,0
+gemfibrozil,Morgan,Cc1ccc(C)c(OCCCC(C)(C)C(=O)O)c1,<,3.8761483590329133,0
+ZD-9583,Warner,Cc1ccc(OC(C)(C)[C@H]2OC[C@@H](C/C=C\CCC(=O)O)[C@@H](c3cccnc3)O2)c(C#N)c1,>,5.0,1
+ofloxacin,Morgan,CC1COc2c(N3CCN(C)CC3)c(F)cc3c(=O)c(C(=O)O)cn1c23,<,3.8761483590329133,0
+clopidogrel bisulfate,Morgan,COC(=O)[C@H](c1ccccc1Cl)N1CCc2sccc2C1,,4.142667503568732,1
+PROPANTHELINE BROMIDE,Warner,CC(C)[N+](C)(CCOC(=O)C1c2ccccc2Oc2ccccc21)C(C)C,,3.5356595153723327,0
+PTK-787,Warner,Clc1ccc(Nc2nnc(Cc3ccncc3)c3ccccc23)cc1,>,5.0,1
+AZ103,Warner,CCCC(=O)OCOC(=O)C1=C(C)NC(C)=C(C(=O)OC)C1c1cccc(Cl)c1Cl,,4.439495584804943,1
+sotalol,Morgan,CC(C)NCC(O)c1ccc(NS(C)(=O)=O)cc1,<,3.8761483590329133,0
+nefopam,Morgan,CN1CCOC(c2ccccc2)c2ccccc2C1,<,3.8761483590329133,0
+omeprazole,Morgan,COc1ccc2[nH]c([S+]([O-])Cc3ncc(C)c(OC)c3C)nc2c1,,4.00436480540245,1
+imatinib,Morgan,Cc1ccc(NC(=O)c2ccc(CN3CCN(C)CC3)cc2)cc1Nc1nccc(-c2cccnc2)n1,,4.600326278518962,1
+brinzolamide,Morgan,CCN[C@H]1CN(CCCOC)S(=O)(=O)c2sc(S(N)(=O)=O)cc21,<,3.8761483590329133,0
+d(-)-norgestrel,Morgan,C#CC1(O)CC[C@H]2[C@@H]3CCC4=CC(=O)CC[C@@H]4[C@H]3CC[C@@]21CC,<,3.8761483590329133,0
+AZ51,Warner,CC(=O)NC[C@H]1CN(c2cc(F)c(C3=CCN(C(=O)CO)CC3)c(F)c2)C(=O)O1,<,3.0,0
+oxytocin acetate,Morgan,CC[C@H](C)[C@@H]1NC(=O)[C@H](Cc2ccc(O)cc2)NC(=O)[C@@H](N)CSSC[C@@H](C(=O)N2CCC[C@H]2C(=O)N[C@@H](CC(C)C)C(=O)NCC(N)=O)NC(=O)[C@H](CC(N)=O)NC(=O)[C@H](CCC(N)=O)NC1=O,<,3.8761483590329133,0
+PANTOLACTONE,Warner,CC1(C)COC(=O)C1O,<,3.0,0
+AZ131,Warner,O=C1CN(/N=C/c2ccc(-c3ccc([N+](=O)[O-])cc3)o2)C(=O)N1,,3.837137006678074,0
+eplerenone,Morgan,COC(=O)[C@@H]1CC2=CC(=O)CC[C@]2(C)[C@@]23O[C@@H]2C[C@@]2(C)[C@@H](CC[C@@]24CCC(=O)O4)[C@H]13,<,3.8761483590329133,0
+LECOZOTAN,Warner,C[C@H](CN(C(=O)c1ccc(C#N)cc1)c1ccccn1)N1CCN(c2cccc3c2OCCO3)CC1,>,5.0,1
+thiamphenicol,Morgan,CS(=O)(=O)c1ccc([C@@H](O)[C@@H](CO)NC(=O)C(Cl)Cl)cc1,<,3.8761483590329133,0
+aliskiren hemifurate,Morgan,COCCCOc1cc(C[C@@H](C[C@H](N)[C@@H](O)C[C@H](C(=O)NCC(C)(C)C(N)=O)C(C)C)C(C)C)ccc1OC,<,3.8761483590329133,0
+ciclesonide,Morgan,CC(C)C(=O)OCC(=O)[C@@]12O[C@H](C3CCCCC3)O[C@@H]1C[C@H]1[C@@H]3CCC4=CC(=O)C=C[C@]4(C)[C@H]3[C@@H](O)C[C@@]12C,<,3.8761483590329133,0
+AZ40,Warner,COc1cc2c(Oc3ccc4[nH]c(C)cc4c3F)ncnc2cc1OCCCN1CCCCC1,,4.643400564275028,1
+lofepramine,Morgan,CN(CCCN1c2ccccc2CCc2ccccc21)CC(=O)c1ccc(Cl)cc1,<,3.8761483590329133,0
+ketanserin,Morgan,O=C(c1ccc(F)cc1)C1CCN(CCn2c(=O)[nH]c3ccccc3c2=O)CC1,<,3.8761483590329133,0
+tinidazole,Morgan,CCS(=O)(=O)CCn1c([N+](=O)[O-])cnc1C,<,3.8761483590329133,0
+tamoxifen,Morgan,CC/C(=C(\c1ccccc1)c1ccc(OCCN(C)C)cc1)c1ccccc1,<,3.8761483590329133,0
+olmesartan medoxomil,Morgan,CCCc1nc(C(C)(C)O)c(C(=O)OCc2oc(=O)oc2C)n1Cc1ccc(-c2ccccc2-c2nnn[nH]2)cc1,,5.325138859262188,1
+midecamycin,Morgan,CCOC(=O)[C@@H]1CC(=O)O[C@H](C)C/C=C/C=C/[C@H](O)[C@H](C)C[C@H](CC=O)[C@H](O[C@@H]2O[C@H](C)[C@@H](O[C@H]3C[C@@](C)(O)[C@@H](OC(=O)CC)[C@H](C)O3)[C@H](N(C)C)[C@H]2O)[C@H]1OC,,4.844663962534939,1
+tubocurarine,Morgan,COc1cc2c3cc1Oc1cc(ccc1O)C[C@@H]1c4c(cc(OC)c(O)c4Oc4ccc(cc4)C[C@@H]3N(C)CC2)CC[N+]1(C)C,<,3.8761483590329133,0
+fludarabine phosphate,Morgan,Nc1nc(F)nc2c1ncn2[C@@H]1O[C@H](COP(=O)(O)O)[C@@H](O)[C@@H]1O,<,3.8761483590329133,0
+atracurium besylate,Morgan,COc1ccc(CC2c3cc(OC)c(OC)cc3CC[N+]2(C)CCC(=O)OCCCCCOC(=O)CC[N+]2(C)CCc3cc(OC)c(OC)cc3C2Cc2ccc(OC)c(OC)c2)cc1OC,<,3.8761483590329133,0
+AZ18,Warner,Cc1ccc(NC(=O)c2cccc3c2oc2ccccc23)cc1NC(=O)c1cccc(OC2CCN(C(C)C)CC2)c1,>,5.0,1
+carbidopa,Morgan,C[C@@](Cc1ccc(O)c(O)c1)(NN)C(=O)O,<,3.8761483590329133,0
+cisapride monohydrate,Morgan,COc1cc(N)c(Cl)cc1C(=O)NC1CCN(CCCOc2ccc(F)cc2)CC1OC,,4.657577319177793,1
+AZ57,Warner,COc1c(C(=O)O)n(Cc2ccc(Cl)c(Cl)c2)c2ccc(O)cc12,,4.402633949733972,1
+lisinopril,Morgan,NCCCC[C@H](N[C@@H](CCc1ccccc1)C(=O)O)C(=O)N1CCC[C@H]1C(=O)O,<,3.8761483590329133,0
+drospirenone,Morgan,C[C@]12CC[C@H]3[C@H]([C@@H]1[C@@H]1C[C@@H]1[C@@]21CCC(=O)O1)[C@H]1C[C@H]1C1=CC(=O)CC[C@@]13C,,4.785156151952302,1
+AZ71,Warner,CCCCCCCCC=CCCCCCCCC(=O)OCC(COP(=O)(O)OCC[N+](C)(C)C)OC(=O)CCCCCCCC=CCCCCCCCC,>,4.794795636051855,1
+METHAPYRILENE,Warner,CN(C)CCN(Cc1cccs1)c1ccccn1,<,3.0,0
+AZ104,Warner,CN1[C@H]2C[C@H](OC(=O)[C@H](CO)c3ccccc3)C[C@@H]1[C@H]1O[C@@H]21,<,3.0,0
+UTIBAPRIL,Warner,CCOC(=O)[C@H](CCc1ccccc1)N[C@@H](C)C(=O)N1N=C(C(C)(C)C)S[C@H]1C(=O)O,>,4.869344650977968,1
+AZ32,Warner,CC(CCC(=O)O)C1CCC2C3C(=O)CC4CC(=O)CCC4(C)C3CC(=O)C12C,,3.6942188487450176,0
+AZ3,Warner,Cc1cc(N2CCN(C(=O)N3CCN(S(=O)(=O)c4ccc(Br)cc4)CC3)CC2)ncn1,>,5.0,1
+MECLOFENAMIC ACID,Warner,Cc1ccc(Cl)c(Nc2ccccc2C(=O)O)c1Cl,,4.564792896759252,1
+FENOTEROL,Warner,CC(Cc1ccc(O)cc1)NCC(O)c1cc(O)cc(O)c1,<,3.0,0
+cefotaxime sodium,Morgan,CO/N=C(\C(=O)N[C@@H]1C(=O)N2C(C(=O)[O-])=C(COC(C)=O)CS[C@H]12)c1csc(N)n1,<,3.8761483590329133,0
+PIRETANIDE,Warner,NS(=O)(=O)c1cc(C(=O)O)cc(N2CCCC2)c1Oc1ccccc1,<,3.1020431899930485,0
+METAPROTERENOL,Warner,CC(C)NCC(O)c1cc(O)cc(O)c1,<,3.0,0
+PIPERONYL BUTOXIDE,Warner,CCCCOCCOCCOCc1cc2c(cc1CCC)OCO2,>,5.0,1
+carbamazepine,Morgan,NC(=O)N1c2ccccc2C=Cc2ccccc21,<,3.8761483590329133,0
+SPIPERONE,Warner,O=C(CCCN1CCC2(CC1)C(=O)NCN2c1ccccc1)c1ccc(F)cc1,>,5.0,1
+saxagliptin hcl,Morgan,N#C[C@@H]1C[C@@H]2C[C@@H]2N1C(=O)[C@@H](N)C12CC3CC(CC(O)(C3)C1)C2,<,3.8761483590329133,0
+erythromycin estolate,Morgan,CCC(=O)O[C@H]1[C@H](O[C@@H]2[C@@H](C)[C@H](O[C@H]3C[C@@](C)(OC)[C@@H](O)[C@H](C)O3)[C@@H](C)C(=O)O[C@H](CC)[C@@](C)(O)[C@H](O)[C@@H](C)C(=O)[C@H](C)C[C@@]2(C)O)O[C@H](C)C[C@@H]1N(C)C,,4.886056647693163,1
+entecavir,Morgan,C=C1[C@@H](n2cnc3c(=O)[nH]c(N)nc32)C[C@H](O)[C@H]1CO,<,3.8761483590329133,0
+alendronate sodium,Morgan,NCCCC(O)(P(=O)([O-])O)P(=O)(O)O,<,3.8761483590329133,0
+Folinic acid,Warner,Nc1nc2c(c(=O)[nH]1)N(C=O)C(CNc1ccc(C(=O)N[C@@H](CCC(=O)O)C(=O)O)cc1)CN2,<,3.0,0
+gefitinib,Morgan,COc1cc2ncnc(Nc3ccc(F)c(Cl)c3)c2cc1OCCCN1CCOCC1,,4.962573502059376,1
+rabeprazole sodium,Morgan,COCCCOc1ccnc(C[S+]([O-])c2nc3ccccc3[n-]2)c1C,,4.4698003017969175,1
+BENDROFLUMETHIAZIDE,Warner,NS(=O)(=O)c1cc2c(cc1C(F)(F)F)NC(Cc1ccccc1)NS2(=O)=O,,4.1577028656719355,0
+AZ5,Warner,O=CN(O)C(CCc1ccccn1)CS(=O)(=O)N1CCN(c2ccc(Cl)cn2)CC1,>,5.0,1
+trilostane,Morgan,C[C@]12CC[C@H]3[C@@H](CC[C@@]45O[C@@H]4C(O)=C(C#N)C[C@]35C)[C@@H]1CC[C@@H]2O,<,3.8761483590329133,0
+ciprofloxacin,Morgan,O=C(O)c1cn(C2CC2)c2cc(N3CCNCC3)c(F)cc2c1=O,<,3.8761483590329133,0
+BEZAFIBRATE,Warner,CC(C)(Oc1ccc(CCNC(=O)c2ccc(Cl)cc2)cc1)C(=O)O,,3.742801573860656,0
+amisulpride,Morgan,CCN1CCCC1CNC(=O)c1cc(S(=O)(=O)CC)c(N)cc1OC,<,3.8761483590329133,0
+ZD-6169,Warner,C[C@](O)(C(=O)Nc1ccc(C(=O)c2ccccc2)cc1)C(F)(F)F,,4.669789215428471,1
+ribavirin,Morgan,NC(=O)c1ncn([C@@H]2O[C@H](CO)[C@@H](O)[C@H]2O)n1,<,3.8761483590329133,0
+pimecrolimus,Morgan,CC[C@@H]1/C=C(\C)C[C@H](C)C[C@H](OC)[C@H]2O[C@@](O)(C(=O)C(=O)N3CCCC[C@H]3C(=O)O[C@H](/C(C)=C/[C@@H]3CC[C@H](Cl)[C@H](OC)C3)[C@H](C)[C@@H](O)CC1=O)[C@H](C)C[C@@H]2OC,,5.0,1
+HALCINONIDE,Warner,CC1(C)O[C@@H]2C[C@H]3[C@@H]4CCC5=CC(=O)CC[C@]5(C)[C@@]4(F)[C@@H](O)C[C@]3(C)[C@]2(C(=O)CCl)O1,>,5.0,1
+AZ181,Warner,CCCCCC(C)(O)/C=C/[C@H]1[C@H](O)C[C@H](O)[C@@H]1C/C=C\CCCC(=O)O,,3.483200295918376,0
+lornoxicam,Morgan,CN1C(C(=O)Nc2ccccn2)=C(O)c2sc(Cl)cc2S1(=O)=O,,5.121478204498794,1
+AZ16,Warner,Cc1ccc(NC(=O)c2cccc(-c3ccco3)c2)cc1-n1cnc2ccc(N3CCN(C)CC3)cc2c1=O,>,5.0,1
+busulphan,Morgan,CS(=O)(=O)OCCCCOS(C)(=O)=O,<,3.8761483590329133,0
+telithromycin,Morgan,CC[C@H]1OC(=O)[C@H](C)C(=O)[C@H](C)[C@@H](O[C@@H]2O[C@H](C)C[C@H](N(C)C)[C@H]2O)[C@](C)(OC)C[C@@H](C)C(=O)[C@H](C)[C@H]2N(CCCCn3cnc(-c4cccnc4)c3)C(=O)O[C@]12C,,5.301029995663981,1
+pentoxifylline,Morgan,CC(=O)CCCCn1c(=O)c2c(ncn2C)n(C)c1=O,<,3.8761483590329133,0
+PHENETHICILLIN,Warner,CC(Oc1ccccc1)C(=O)N[C@@H]1C(=O)N2[C@@H](C(=O)O)C(C)(C)S[C@H]12,>,5.0,1
+TRAPIDIL,Warner,CCN(CC)c1cc(C)nc2ncnn12,,3.202178688635976,0
+FPL-55712,Warner,CCCc1c(OCC(O)COc2ccc3c(=O)cc(C(=O)O)oc3c2CCC)ccc(C(C)=O)c1O,>,5.0,1
+BUTACAINE,Warner,CCCCN(CCCC)CCCOC(=O)c1ccc(N)cc1,,3.3120253799654438,0
+AZ28,Warner,O=CN(O)C(CCCc1ncccn1)CS(=O)(=O)N1CCC(Oc2ccc(Cl)cn2)CC1,>,5.0,1
+DICYCLOMINE,Warner,CCN(CC)CCOC(=O)C1(C2CCCCC2)CCCCC1,,4.397505931192719,1
+spiramycin,Morgan,CO[C@@H]1[C@@H](O[C@@H]2O[C@H](C)[C@@H](O[C@@H]3C[C@](C)(O)[C@H](O)[C@@H](C)O3)[C@H](N(C)C)[C@H]2O)[C@@H](CC=O)C[C@@H](C)[C@@H](O[C@H]2CC[C@H](N(C)C)[C@H](C)O2)/C=C/C=C/C[C@H](C)OC(=O)C[C@H]1O,<,3.8761483590329133,0
+IPSAPIRONE,Warner,O=C1c2ccccc2S(=O)(=O)N1CCCCN1CCN(c2ncccn2)CC1,,4.50626319772316,1
+dolasetron mesylate,Morgan,O=C(O[C@@H]1C[C@@H]2C[C@H]3C[C@H](C1)N2CC3=O)c1c[nH]c2ccccc12,<,3.8761483590329133,0
+AZ127,Warner,O=C(NC1Cc2ccccc2N(C[C@@H](O)CO)C1=O)c1cc2cc(Cl)sc2[nH]1,>,4.960585880823863,1
+foscarnet sodium,Morgan,O=C(O)P(=O)(O)O,<,3.8761483590329133,0
+thiotepa,Morgan,S=P(N1CC1)(N1CC1)N1CC1,<,3.8761483590329133,0
+butorphanol,Morgan,Oc1ccc2c(c1)[C@@]13CCCC[C@@]1(O)[C@@H](C2)N(CC1CCC1)CC3,<,3.8761483590329133,0
+tretinoin,Morgan,CC1=C(/C=C/C(C)=C/C=C/C(C)=C/C(=O)O)C(C)(C)CCC1,<,3.8761483590329133,0
+roxithromycin,Morgan,CC[C@H]1OC(=O)[C@H](C)[C@@H](O[C@H]2C[C@@](C)(OC)[C@@H](O)[C@H](C)O2)[C@H](C)[C@@H](O[C@@H]2O[C@H](C)C[C@H](N(C)C)[C@H]2O)[C@](C)(O)C[C@@H](C)/C(=N\OCOCCOC)[C@H](C)[C@@H](O)[C@]1(C)O,<,3.8761483590329133,0
+AZ43,Warner,O=CN(O)C(CCc1ccccc1)CS(=O)(=O)N1CCN(c2ccc(Cl)cn2)CC1,>,5.0,1
+metocurine,Morgan,COc1ccc2cc1Oc1cc3c(cc1OC)CC[N+](C)(C)[C@H]3Cc1ccc(cc1)Oc1c(OC)c(OC)cc3c1[C@@H](C2)[N+](C)(C)CC3,<,3.8761483590329133,0
+ARM 390,Warner,CCN(CC)C(=O)c1ccc(C(=C2CCNCC2)c2ccccc2)cc1,,3.975514332300833,0
+somatostatin,Morgan,C[C@H](N)C(=O)NCC(=O)N[C@H]1CSSC[C@@H](C(=O)O)NC(=O)[C@H](CO)NC(=O)[C@H]([C@@H](C)O)NC(=O)[C@H](Cc2ccccc2)NC(=O)[C@H]([C@@H](C)O)NC(=O)[C@H](CCCCN)NC(=O)[C@H](Cc2c[nH]c3ccccc23)NC(=O)[C@H](Cc2ccccc2)NC(=O)[C@H](Cc2ccccc2)NC(=O)[C@H](CC(N)=O)NC(=O)[C@H](CCCCN)NC1=O,<,3.8761483590329133,0
+AZ156,Warner,O=C(NCCc1ccccc1Cl)c1cc(-n2ncc(=O)[nH]c2=O)ccc1Cl,,4.463189134008458,1
+VX 745,Warner,O=c1ncn2nc(Sc3ccc(F)cc3F)ccc2c1-c1c(Cl)cccc1Cl,>,5.0,1
+AZ191,Warner,C[C@H](Oc1ccc(C(F)(F)F)cc1-c1ccc(S(C)(=O)=O)c(C(F)(F)F)c1)C(=O)O,,4.445631999009914,1
+antimycin,Morgan,CCCCCC[C@H]1C(=O)O[C@H](C)[C@H](NC(=O)c2cccc(NC=O)c2O)C(=O)O[C@@H](C)[C@@H]1OC(=O)CC(C)C,,4.224753740259764,1
+oxaprozin,Morgan,O=C(O)CCc1nc(-c2ccccc2)c(-c2ccccc2)o1,<,3.8761483590329133,0
+acetazolamide,Morgan,CC(=O)Nc1nnc(S(N)(=O)=O)s1,<,3.8761483590329133,0
+ROPIVACAINE,Warner,CCCN1CCCC[C@H]1C(=O)Nc1c(C)cccc1C,,3.1894986522334703,0
+PIPERACILLIN,Warner,CCN1CCN(C(=O)NC(C(=O)N[C@@H]2C(=O)N3[C@@H](C(=O)O)C(C)(C)S[C@H]23)c2ccccc2)C(=O)C1=O,,3.704652851666382,0
+BETAXOLOL,Warner,CC(C)NCC(O)COc1ccc(CCOCC2CC2)cc1,<,3.0,0
+ceftriaxone sodium,Morgan,CO/N=C(\C(=O)N[C@@H]1C(=O)N2C(C(=O)[O-])=C(CSc3nc(=O)c(O)nn3C)CS[C@H]12)c1csc(N)n1,<,3.8761483590329133,0
+loxapine succinate,Morgan,CN1CCN(C2=Nc3ccccc3Oc3ccc(Cl)cc32)CC1,,4.113509274827518,1
+EBSELEN,Warner,O=c1c2ccccc2[se]n1-c1ccccc1,>,5.0,1
+AZ120,Warner,Cc1ccc(C(=O)N2CC3CNCC(C2)O3)cc1NC(=O)CC12CC3CC(CC(C3)C1)C2,,4.225410049735205,0
+ADIPHENINE,Warner,CCN(CC)CCOC(=O)C(c1ccccc1)c1ccccc1,,3.800244822746525,0
+irbesartan,Morgan,CCCCC1=NC2(CCCC2)C(=O)N1Cc1ccc(-c2ccccc2-c2nn[nH]n2)cc1,,5.13608262304214,1
+AZ11,Warner,CN(C)C(=O)c1ccc(S(=O)(=O)c2ccc(NC(=O)[C@@](C)(O)C(F)(F)F)c(Cl)c2)cc1,>,4.891096872332687,1
+cefdinir,Morgan,C=CC1=C(C(=O)O)N2C(=O)[C@@H](NC(=O)/C(=N\O)c3csc(N)n3)[C@H]2SC1,<,3.8761483590329133,0
+XALIPRODEN,Warner,FC(F)(F)c1cccc(C2=CCN(CCc3ccc4ccccc4c3)CC2)c1,,3.931443104927637,0
+nitrendipine,Morgan,CCOC(=O)C1=C(C)NC(C)=C(C(=O)OC)C1c1cccc([N+](=O)[O-])c1,,4.647817481888637,1
+salmeterol xinafoate,Morgan,OCc1cc(C(O)CNCCCCCCOCCCCc2ccccc2)ccc1O,<,3.8761483590329133,0
+CYCLOSPORIN A,Warner,C/C=C/CC(C)C(O)C1C(=O)NC(CC)C(=O)N(C)CC(=O)N(C)C(CC(C)C)C(=O)NC(C(C)C)C(=O)N(C)C(CC(C)C)C(=O)NC(C)C(=O)NC(C)C(=O)N(C)C(CC(C)C)C(=O)N(C)C(CC(C)C)C(=O)N(C)C(C(C)C)C(=O)N1C,>,5.0,1
+TRIFLUPERIDOL,Warner,O=C(CCCN1CCC(O)(c2cccc(C(F)(F)F)c2)CC1)c1ccc(F)cc1,,4.705533773838408,1
+BETHANECHOL,Warner,CC(C[N+](C)(C)C)OC(N)=O,<,3.0,0
+PIMOZIDE,Warner,O=c1[nH]c2ccccc2n1C1CCN(CCCC(c2ccc(F)cc2)c2ccc(F)cc2)CC1,>,5.0,1
+PHENIRAMINE MALEATE,Warner,CN(C)CCC(c1ccccc1)c1ccccn1,<,3.0,0
+ipratropium bromide,Morgan,CC(C)[N+]1(C)[C@H]2CC[C@@H]1C[C@H](OC(=O)C(CO)c1ccccc1)C2,<,3.8761483590329133,0
+CLOXYQUIN,Warner,Oc1ccc(Cl)c2cccnc12,,3.4476968906616468,0
+baclofen,Morgan,NCC(CC(=O)O)c1ccc(Cl)cc1,<,3.8761483590329133,0
+oxcarbazepine,Morgan,NC(=O)N1c2ccccc2CC(=O)c2ccccc21,<,3.8761483590329133,0
+perphenazine,Morgan,OCCN1CCN(CCCN2c3ccccc3Sc3ccc(Cl)cc32)CC1,<,3.8761483590329133,0
+pioglitazone,Morgan,CCc1ccc(CCOc2ccc(CC3SC(=O)NC3=O)cc2)nc1,,6.3979400086720375,1
+AZ60,Warner,CCN(CC)C(=O)c1ccc(C(=C2CCNCC2)c2cccc(F)c2)cc1,,4.06514819703434,0
+nimesulide,Morgan,CS(=O)(=O)Nc1ccc([N+](=O)[O-])cc1Oc1ccccc1,<,3.8761483590329133,0
+AZ37,Warner,CC(=O)OCC(=O)C1(O)C(C)CC2C3CC(F)C4=CC(=O)C=CC4(C)C3C(O)CC21C,,4.4741780478433375,1
+AZ10,Warner,Cc1ccc(NC(=O)c2ccnc(N3CCOCC3)c2)cc1-n1cnc2ccc(N3CCN(C)CC3)cc2c1=O,>,5.0,1
+MEPINDOLOL,Warner,Cc1cc2c(OCC(O)CNC(C)C)cccc2[nH]1,,4.445268623324035,1
+bosentan,Morgan,COc1ccccc1Oc1c(NS(=O)(=O)c2ccc(C(C)(C)C)cc2)nc(-c2ncccn2)nc1OCCO,,4.638272163982408,1
+probenecid,Morgan,CCCN(CCC)S(=O)(=O)c1ccc(C(=O)O)cc1,<,3.8761483590329133,0
+sitaxsentan,Morgan,Cc1cc2c(cc1CC(=O)c1sccc1S(=O)(=O)Nc1onc(C)c1Cl)OCO2,,4.899629454882437,1
+lapatinib tosylate,Morgan,CS(=O)(=O)CCNCc1ccc(-c2ccc3ncnc(Nc4ccc(OCc5cccc(F)c5)c(Cl)c4)c3c2)o1,,5.187755303199631,1
+AZ136,Warner,CCCSc1nc(N)c2ncn([C@@H]3O[C@H](COP(=O)(O)OP(=O)(O)C(Cl)(Cl)P(=O)(O)O)[C@@H](O)[C@H]3O)c2n1,<,3.0,0
+AZ108,Warner,CCC(=O)OC(OP(=O)(CCCCc1ccccc1)CC(=O)N1CC(C2CCCCC2)CC1C(=O)O)C(C)C,>,4.874844170419469,1
+mycophenolate mofetil,Morgan,COc1c(C)c2c(c(O)c1C/C=C(\C)CCC(=O)OCCN1CCOCC1)C(=O)OC2,,4.1191864077192095,1
+HEXOPRENALINE,Warner,Oc1ccc(C(O)CNCCCCCCNCC(O)c2ccc(O)c(O)c2)cc1O,<,3.0,0
+everolimus,Morgan,CO[C@H]1C[C@@H]2CC[C@@H](C)[C@@](O)(O2)C(=O)C(=O)N2CCCC[C@H]2C(=O)O[C@H]([C@H](C)C[C@@H]2CC[C@@H](OCCO)[C@H](OC)C2)CC(=O)[C@H](C)/C=C(\C)[C@@H](O)[C@@H](OC)C(=O)[C@H](C)C[C@H](C)/C=C/C=C/C=C/1C,,5.698970004336019,1
+diacerein,Morgan,CC(=O)Oc1cccc2c1C(=O)c1c(OC(C)=O)cc(C(=O)O)cc1C2=O,<,3.8761483590329133,0
+tegaserod maleate,Morgan,CCCCCNC(=N)N/N=C/c1c[nH]c2ccc(OC)cc12,<,3.8761483590329133,0
+ezetimibe,Morgan,O=C1[C@H](CC[C@H](O)c2ccc(F)cc2)[C@@H](c2ccc(O)cc2)N1c1ccc(F)cc1,,4.251811972993798,1
+cefaclor,Morgan,N[C@@H](C(=O)N[C@@H]1C(=O)N2C(C(=O)O)=C(Cl)CS[C@H]12)c1ccccc1,<,3.8761483590329133,0
+SALSALATE,Warner,O=C(Oc1ccccc1C(=O)O)c1ccccc1O,<,3.0,0
+norethindrone,Morgan,C#C[C@]1(O)CC[C@H]2[C@@H]3CCC4=CC(=O)CC[C@@H]4[C@H]3CC[C@@]21C,,4.259637310505756,1
+AZ199,Warner,CCCCCCCCCCCCc1ccc(S(=O)(=O)Nc2nncs2)cc1,,4.676954264518299,1
+BRETYLIUM,Warner,CC[N+](C)(C)Cc1ccccc1Br,<,3.0,0
+HYDROXYZINE,Warner,OCCOCCN1CCN(C(c2ccccc2)c2ccc(Cl)cc2)CC1,,4.137212901764657,0
+PENTYLENETETRAZOLE,Warner,C1CCc2nnnn2CC1,<,3.0,0
+primaquine,Morgan,COc1cc(NC(C)CCCN)c2ncccc2c1,,4.485452247339714,1
+miconazole nitrate,Morgan,Clc1ccc(COC(Cn2ccnc2)c2ccc(Cl)cc2Cl)c(Cl)c1,<,3.9430951486635273,0
+AZ54,Warner,CC(=O)NC[C@H]1CN(c2ccc(-n3cnc(Br)c3)c(F)c2)C(=O)O1,,3.4569257649664684,0
+DIMETHADIONE,Warner,CC1(C)OC(=O)NC1=O,<,3.0,0
+danazol,Morgan,C#C[C@]1(O)CC[C@H]2[C@@H]3CCC4=Cc5oncc5C[C@]4(C)[C@H]3CC[C@@]21C,,4.7281583934635005,1
+LEVAMISOLE,Warner,c1ccc([C@H]2CN3CCSC3=N2)cc1,<,3.0,0
+fesoterodine fumarate,Morgan,CC(C)C(=O)Oc1ccc(CO)cc1[C@H](CCN(C(C)C)C(C)C)c1ccccc1,<,3.8761483590329133,0
+rubitecan,Morgan,CC[C@@]1(O)C(=O)OCc2c1cc1n(c2=O)Cc2cc3c([N+](=O)[O-])cccc3nc2-1,<,3.8761483590329133,0
+PROTOKYLOL HYDROCHLORIDE,Warner,CC(Cc1ccc2c(c1)OCO2)NCC(O)c1ccc(O)c(O)c1,<,3.0077558559532287,0
+PHENACEMIDE,Warner,NC(=O)NC(=O)Cc1ccccc1,<,3.0,0
+BUPHENINE,Warner,CC(CCc1ccccc1)NC(C)C(O)c1ccc(O)cc1,,3.552376902239714,0
+adefovir dipivoxil,Morgan,CC(C)(C)C(=O)OCOP(=O)(COCCn1cnc2c(N)ncnc21)OCOC(=O)C(C)(C)C,,4.337242168318426,1
+flupirtine,Morgan,CCOC(=O)Nc1ccc(NCc2ccc(F)cc2)nc1N,,4.449771646944906,1
+alprenolol,Morgan,C=CCc1ccccc1OCC(O)CNC(C)C,<,3.8761483590329133,0
+leucovorin ca,Morgan,Nc1nc(O)c2c(n1)NCC(CNc1ccc(C(=O)N[C@@H](CCC(=O)[O-])C(=O)[O-])cc1)N2C=O,<,3.8761483590329133,0
+ketoconazole,Morgan,CC(=O)N1CCN(c2ccc(OC[C@@H]3CO[C@@](Cn4ccnc4)(c4ccc(Cl)cc4Cl)O3)cc2)CC1,,5.468521082957745,1
+artemether,Morgan,CO[C@H]1O[C@@H]2O[C@@]3(C)CC[C@H]4[C@H](C)CC[C@@H]([C@H]1C)[C@]42OO3,<,3.8761483590329133,0
+"chlorophenylpiperazine, m-",Morgan,Clc1cccc(N2CCNCC2)c1,<,3.8761483590329133,0
+DICUMAROL,Warner,O=c1oc2ccccc2c(O)c1Cc1c(O)c2ccccc2oc1=O,,4.398700689805662,1
+topiramate,Morgan,CC1(C)O[C@@H]2CO[C@@]3(COS(N)(=O)=O)OC(C)(C)O[C@H]3[C@@H]2O1,<,3.8761483590329133,0
+medroxyprogesterone acetate,Morgan,CC(=O)O[C@]1(C(C)=O)CC[C@H]2[C@@H]3C[C@H](C)C4=CC(=O)CC[C@]4(C)[C@H]3CC[C@@]21C,,4.804100347590767,1
+BENOXINATE,Warner,CCCCOc1cc(C(=O)OCCN(CC)CC)ccc1N,,3.5099009949366953,0
+bimatoprost,Morgan,CCNC(=O)CCC/C=C\C[C@H]1[C@@H](O)C[C@@H](O)[C@@H]1/C=C/[C@@H](O)CCc1ccccc1,,4.393618634889395,1
+carvedilol,Morgan,COc1ccccc1OCCNCC(O)COc1cccc2[nH]c3ccccc3c12,<,3.8761483590329133,0
+AZ97,Warner,CCCC(=O)c1cnc2c(OCC[S+](C)[O-])cccc2c1Nc1ccc(F)cc1C,>,5.0,1
+AZ163,Warner,CN1CCN(c2ccccc2C=C2SCCN(c3ccc(Cl)c(Cl)c3)C2=O)CC1,>,5.0,1
+amrinone,Morgan,Nc1cc(-c2ccncc2)c[nH]c1=O,<,3.8761483590329133,0
+ECONAZOLE,Warner,Clc1ccc(COC(Cn2ccnc2)c2ccc(Cl)cc2Cl)cc1,>,5.0,1
+cyclophosphamide,Morgan,O=P1(N(CCCl)CCCl)NCCCO1,<,3.8761483590329133,0
+sildenafil citrate,Morgan,CCCc1nn(C)c2c(=O)[nH]c(-c3cc(S(=O)(=O)N4CCN(C)CC4)ccc3OCC)nc12,<,3.87942606879415,0
+AZ13,Warner,O=C(O)c1cc2sccc2n1Cc1ccc(Cl)c(Cl)c1,,4.862645888629267,1
+ACETYLCHOLINE,Warner,CC(=O)OCC[N+](C)(C)C,<,3.0,0
+iloperidone,Morgan,COc1cc(C(C)=O)ccc1OCCCN1CCC(c2noc3cc(F)ccc23)CC1,,4.6307841425898575,1
+AZ39,Warner,CCCc1ncc(C[n+]2ccccc2C)c(N)n1,<,3.0,0
+sertindole,Morgan,O=C1NCCN1CCN1CCC(c2cn(-c3ccc(F)cc3)c3ccc(Cl)cc23)CC1,,4.082494490447454,1
+ciglitazone,Morgan,CC1(COc2ccc(CC3SC(=O)NC3=O)cc2)CCCCC1,,4.422508200162776,1
+BEPRIDIL,Warner,CC(C)COCC(CN(Cc1ccccc1)c1ccccc1)N1CCCC1,>,4.783570169123749,1
+clofazimine,Morgan,CC(C)/N=c1\cc2n(-c3ccc(Cl)cc3)c3ccccc3nc-2cc1Nc1ccc(Cl)cc1,,4.88941028970075,1
+camptothecin,Morgan,CC[C@@]1(O)C(=O)OCc2c1cc1n(c2=O)Cc2cc3ccccc3nc2-1,<,3.8761483590329133,0
+atosiban,Morgan,CCOc1ccc(C[C@H]2NC(=O)CCSSC[C@@H](C(=O)N3CCC[C@H]3C(=O)N[C@@H](CCCN)C(=O)NCC(N)=O)NC(=O)[C@H](CC(N)=O)NC(=O)[C@H]([C@@H](C)O)NC(=O)[C@H]([C@@H](C)CC)NC2=O)cc1,<,3.8761483590329133,0
+pregabalin,Morgan,CC(C)C[C@H](CN)CC(=O)O,<,3.8761483590329133,0
+phenacetin,Morgan,CCOc1ccc(NC(C)=O)cc1,<,3.8761483590329133,0
+cefalozin sodium,Morgan,Cc1nnc(SCC2=C(C(=O)O)N3C(=O)[C@@H](NC(=O)Cn4cnnn4)[C@H]3SC2)s1,<,3.8761483590329133,0
+isradipine,Morgan,COC(=O)C1=C(C)NC(C)=C(C(=O)OC(C)C)C1c1cccc2nonc12,,4.5528419686577815,1
+chloroquine,Morgan,CCN(CC)CCCC(C)Nc1ccnc2cc(Cl)ccc12,<,3.8761483590329133,0
+gliquidone,Morgan,COc1ccc2c(c1)C(=O)N(CCc1ccc(S(=O)(=O)NC(=O)NC3CCCCC3)cc1)C(=O)C2(C)C,,4.935542010773082,1
+SULPIRIDE,Warner,CCN1CCCC1CNC(=O)c1cc(S(N)(=O)=O)ccc1OC,,3.558776325757388,0
+chlorpromazine,Morgan,CN(C)CCCN1c2ccccc2Sc2ccc(Cl)cc21,<,3.8761483590329133,0
+neratinib,Morgan,CCOc1cc2ncc(C#N)c(Nc3ccc(OCc4ccccn4)c(Cl)c3)c2cc1NC(=O)/C=C/CN(C)C,,4.6020599913279625,1
+valinomycin,Morgan,CC(C)[C@@H]1NC(=O)[C@H](C)OC(=O)[C@@H](C(C)C)NC(=O)[C@@H](C(C)C)OC(=O)[C@H](C(C)C)NC(=O)[C@H](C)OC(=O)[C@@H](C(C)C)NC(=O)[C@@H](C(C)C)OC(=O)[C@H](C(C)C)NC(=O)[C@H](C)OC(=O)[C@@H](C(C)C)NC(=O)[C@@H](C(C)C)OC1=O,,5.806875401645538,1
+quetiapine hemifumarate,Morgan,OCCOCCN1CCN(C2=Nc3ccccc3Sc3ccccc32)CC1,<,3.8761483590329133,0
+AZ67,Warner,CC(NC(=NC#N)Nc1ccncc1)C(C)(C)C,,3.7923656326110384,0
+PROXICROMIL,Warner,CCCc1c2c(c(O)c3c(=O)cc(C(=O)O)oc13)CCCC2,,4.515985037332436,1
+temsirolimus,Morgan,CO[C@H]1C[C@@H]2CC[C@@H](C)[C@@](O)(O2)C(=O)C(=O)N2CCCC[C@H]2C(=O)O[C@H]([C@H](C)C[C@@H]2CC[C@@H](OC(=O)C(C)(CO)CO)[C@H](OC)C2)CC(=O)[C@H](C)/C=C(\C)[C@@H](O)[C@@H](OC)C(=O)[C@H](C)C[C@H](C)/C=C/C=C/C=C/1C,,5.570247719997592,1
+gliclazide,Morgan,Cc1ccc(S(=O)(=O)NC(=O)NN2CC3CCCC3C2)cc1,<,3.8761483590329133,0
+AZ99,Warner,Cc1nc2c3c(ccn2c1CO)CCC(c1ccccc1)O3,>,5.0,1
+BECLOMETHASONE,Warner,C[C@H]1C[C@H]2[C@@H]3CCC4=CC(=O)C=C[C@]4(C)[C@@]3(Cl)[C@@H](O)C[C@]2(C)[C@@]1(O)C(=O)CO,,4.625801742070918,1
+AMILORIDE,Warner,N=C(N)NC(=O)c1nc(Cl)c(N)nc1N,<,3.0,0
+stavudine,Morgan,Cc1cn([C@H]2C=C[C@@H](CO)O2)c(=O)[nH]c1=O,<,3.8761483590329133,0
+lanoconazole,Morgan,N#C/C(=C1/SCC(c2ccccc2Cl)S1)n1ccnc1,,5.0154726866562065,1
+raltitrexed,Morgan,Cc1nc(=O)c2cc(CN(C)c3ccc(C(=O)N[C@@H](CCC(=O)O)C(=O)O)s3)ccc2[nH]1,<,3.8761483590329133,0
+warfarin sodium,Morgan,CC(=O)CC(c1ccccc1)c1c([O-])c2ccccc2oc1=O,<,3.8761483590329133,0
+NILVADIPINE,Warner,COC(=O)C1=C(C#N)NC(C)=C(C(=O)OC(C)C)C1c1cccc([N+](=O)[O-])c1,>,5.0,1
+testosterone,Morgan,CCC(=O)O[C@H]1CC[C@H]2[C@@H]3CCC4=CC(=O)CC[C@]4(C)[C@H]3CC[C@]12C,<,3.9788107009300617,0
+gatifloxacin,Morgan,COc1c(N2CCNC(C)C2)c(F)cc2c(=O)c(C(=O)O)cn(C3CC3)c12,<,3.8761483590329133,0
+ALMOKALANT,Warner,CCC[S+]([O-])CCCN(CC)CC(O)COc1ccc(C#N)cc1,,4.253755128279802,0
+NAFTOPIDIL,Warner,COc1ccccc1N1CCN(CC(O)COc2cccc3ccccc23)CC1,>,5.0,1
+quercetin,Morgan,O=c1c(O)c(-c2ccc(O)c(O)c2)oc2cc(O)cc(O)c12,<,3.8761483590329133,0
+amlodipine,Morgan,CCOC(=O)C1=C(COCCN)NC(C)=C(C(=O)OC)C1c1ccccc1Cl,<,3.8761483590329133,0
+FLURBIPROFEN,Warner,CC(C(=O)O)c1ccc(-c2ccccc2)c(F)c1,,3.1398417386817217,0
+mk-571,Morgan,CN(C)C(=O)CCSC(SCCC(=O)O)c1cccc(/C=C/c2ccc3ccc(Cl)cc3n2)c1,,5.452225294612178,1
+PS-291822,Warner,CC[C@@H](Nc1c(Nc2cccc(C(=O)N(C)C)c2O)c(=O)c1=O)c1ccc(C)o1,>,5.0,1
+AZ114,Warner,CCOCCNS(=O)(=O)c1ccc(Nc2nccc(-c3cnc(C)n3C(C)C)n2)cc1,>,5.0,1
+lidocaine,Morgan,CCN(CC)CC(=O)Nc1c(C)cccc1C,<,3.8761483590329133,0
+maxipost,Morgan,COc1ccc(Cl)cc1[C@]1(F)C(=O)Nc2cc(C(F)(F)F)ccc21,<,3.8761483590329133,0
+repaglinide,Morgan,CCOc1cc(CC(=O)N[C@@H](CC(C)C)c2ccccc2N2CCCCC2)ccc1C(=O)O,,4.657577319177793,1
+AZ33,Warner,CC(C)(C)c1cc(C(C)(C)C)c2oc(C(=O)O)cc(=O)c2c1,>,5.0,1
+AZ188,Warner,C[C@]12C[C@H](O)[C@H]3[C@@H](CCC4=CC(=O)CC[C@@]43C)[C@@H]1CC[C@]2(O)C(=O)CO,,3.5991167844516374,0
+digitoxin,Morgan,C[C@H]1O[C@@H](O[C@H]2[C@@H](O)C[C@H](O[C@H]3[C@@H](O)C[C@H](O[C@H]4CC[C@]5(C)[C@H]6CC[C@]7(C)[C@@H](C8=CC(=O)OC8)CC[C@]7(O)[C@@H]6CC[C@@H]5C4)O[C@@H]3C)O[C@@H]2C)C[C@H](O)[C@@H]1O,,4.508638306165727,1
+oxymetholone,Morgan,C[C@]12C/C(=C/O)C(=O)C[C@@H]1CC[C@@H]1[C@@H]2CC[C@@]2(C)[C@H]1CC[C@]2(C)O,,4.3124710387853655,1
+gdc-0941 bimesylate,Morgan,CS(=O)(=O)N1CCN(Cc2cc3nc(-c4cccc5[nH]ncc45)nc(N4CCOCC4)c3s2)CC1,,4.8181564120552265,1
+tranilast,Morgan,COc1ccc(/C=C/C(=O)Nc2ccccc2C(=O)O)cc1OC,,4.381951903287908,1
+reserpine,Morgan,COC(=O)[C@H]1[C@H]2C[C@@H]3c4[nH]c5cc(OC)ccc5c4CCN3C[C@H]2C[C@@H](OC(=O)c2cc(OC)c(OC)c(OC)c2)[C@@H]1OC,,5.078313524516398,1
+valrubicin,Morgan,CCCCC(=O)OCC(=O)[C@]1(O)Cc2c(O)c3c(c(O)c2[C@@H](O[C@H]2C[C@H](NC(=O)C(F)(F)F)[C@H](O)[C@H](C)O2)C1)C(=O)c1c(OC)cccc1C3=O,,4.617982957425132,1
+clomipramine,Morgan,CN(C)CCCN1c2ccccc2CCc2ccc(Cl)cc21,<,3.8761483590329133,0
+bisoprolol fumarate,Morgan,CC(C)NCC(O)COc1ccc(COCCOC(C)C)cc1,<,3.8761483590329133,0
+fusidic acid,Morgan,CC(=O)O[C@H]1C[C@@]2(C)[C@@H](C[C@@H](O)[C@H]3[C@@]4(C)CC[C@@H](O)[C@@H](C)[C@@H]4CC[C@@]32C)/C1=C(\CCC=C(C)C)C(=O)O,,4.995678626217356,1
+METERGOLINE,Warner,CN1C[C@H](CNC(=O)OCc2ccccc2)C[C@@H]2c3cccc4c3c(cn4C)C[C@H]21,>,5.0,1
+voglibose,Morgan,OCC(CO)N[C@H]1C[C@](O)(CO)[C@@H](O)[C@H](O)[C@H]1O,<,3.8761483590329133,0
+MEPYRAMINE,Warner,COc1ccc(CN(CCN(C)C)c2ccccn2)cc1,<,3.0,0
+amiodarone,Morgan,CCCCc1oc2ccccc2c1C(=O)c1cc(I)c(OCCN(CC)CC)c(I)c1,,4.366531544420414,1
+DEBRISOQUIN,Warner,N=C(N)N1CCc2ccccc2C1,<,3.021454299537261,0
+XANTRYL,Warner,O=C1OC2(c3cc(I)c(O)c(I)c3Oc3c2cc(I)c(O)c3I)c2c(Cl)c(Cl)c(Cl)c(Cl)c21,>,5.0,1
+glimepiride,Morgan,CCC1=C(C)CN(C(=O)NCCc2ccc(S(=O)(=O)NC(=O)N[C@H]3CC[C@H](C)CC3)cc2)C1=O,,4.804100347590767,1
+PHYTOMENADIONE,Warner,CC1=C(C/C=C(\C)CCCC(C)CCCC(C)CCCC(C)C)C(=O)c2ccccc2C1=O,<,3.0,0
+nelfinavir,Morgan,Cc1c(O)cccc1C(=O)N[C@@H](CSc1ccccc1)[C@H](O)CN1C[C@H]2CCCC[C@H]2C[C@H]1C(=O)NC(C)(C)C,,4.928117992693874,1
+AZ145,Warner,C#C[C@]1(O)CC[C@H]2[C@@H]3CCc4cc(OC)ccc4[C@H]3CC[C@@]21C,>,5.0,1
+BETA CAROTENE,Warner,CC1=C(/C=C/C(C)=C/C=C/C(C)=C/C=C/C=C(C)/C=C/C=C(C)/C=C/C2=C(C)CCCC2(C)C)C(C)(C)CCC1,>,5.0,1
+AZ172,Warner,CC[C@@H](CO)NC(=O)[C@@H]1C=C2c3cccc4c3c(cn4C)C[C@H]2N(C)C1,,4.480565805086297,1
+RO 1130830,Warner,O=C(NO)C1(CS(=O)(=O)c2ccc(Oc3ccc(Cl)cc3)cc2)CCOCC1,,4.631527161559638,1
+DOPEXAMINE,Warner,Oc1ccc(CCNCCCCCCNCCc2ccccc2)cc1O,<,3.0,0
+ZD-2574,Warner,COc1nc(C)cnc1NS(=O)(=O)c1cccnc1-c1ccc(CC(C)C)cc1,,4.711080394338273,1
+amlexanox,Morgan,CC(C)c1ccc2oc3nc(N)c(C(=O)O)cc3c(=O)c2c1,<,3.98296666070122,0
+AZ25,Warner,O=CN(O)C(CCc1ncccn1)CS(=O)(=O)N1CCN(c2ccc(Cl)cn2)CC1,>,5.0,1
+saquinavir,Morgan,CC(C)(C)NC(=O)[C@@H]1C[C@@H]2CCCC[C@@H]2CN1C[C@@H](O)[C@H](Cc1ccccc1)NC(=O)[C@H](CC(N)=O)NC(=O)c1ccc2ccccc2n1,,5.309803919971486,1
+mupirocin,Morgan,C/C(=C\C(=O)OCCCCCCCCC(=O)O)C[C@@H]1OC[C@H](C[C@@H]2O[C@H]2[C@@H](C)[C@H](C)O)[C@@H](O)[C@H]1O,<,3.8761483590329133,0
+ETHIONAMIDE,Warner,CCc1cc(C(N)=S)ccn1,<,3.0,0
+IODIPAMIDE MEGLUMINE,Warner,O=C(CCCCC(=O)Nc1c(I)cc(I)c(C(=O)O)c1I)Nc1c(I)cc(I)c(C(=O)O)c1I,<,3.013273040668781,0
+TRIFLUPROMAZINE,Warner,CN(C)CCCN1c2ccccc2Sc2ccc(C(F)(F)F)cc21,,4.408824049688208,1
+ORPHENADRINE,Warner,Cc1ccccc1C(OCCN(C)C)c1ccccc1,<,3.0,0
+dacarbazine,Morgan,CN(C)N=Nc1[nH]cnc1C(N)=O,<,3.8761483590329133,0
+CLOXACILLIN,Warner,Cc1onc(-c2ccccc2Cl)c1C(=O)N[C@@H]1C(=O)N2[C@@H](C(=O)O)C(C)(C)S[C@H]12,,4.381219975493785,1
+chlorzoxazone,Morgan,O=c1[nH]c2cc(Cl)ccc2o1,<,3.8761483590329133,0
+racecadotril,Morgan,CC(=O)SCC(Cc1ccccc1)C(=O)NCC(=O)OCc1ccccc1,,4.692503962086787,1
+bifonazole,Morgan,c1ccc(-c2ccc(C(c3ccccc3)n3ccnc3)cc2)cc1,,4.567030709125595,1
+METHOXAMINE,Warner,COc1ccc(OC)c(C(O)C(C)N)c1,<,3.0,0
+SIBENADET,Warner,O=c1[nH]c2c(O)ccc(CCNCCS(=O)(=O)CCCOCCc3ccccc3)c2s1,>,5.0,1
+AZ34,Warner,O=C(NO)C(CCc1ccccc1)CS(=O)(=O)N1CCN(c2ccc(F)cc2)CC1,>,5.0,1
+minocycline hydrochloride,Morgan,CN(C)c1ccc(O)c2c1C[C@H]1C[C@H]3[C@H](N(C)C)C(O)=C(C(N)=O)C(=O)[C@@]3(O)C(O)=C1C2=O,<,3.8761483590329133,0
+ZD-2486,Warner,C[C@@H](COc1ccc(N2CCN(c3ccncc3)CC2)cc1)CC(=O)O,<,3.0,0
+ticlopidine hcl,Morgan,Clc1ccccc1CN1CCc2sccc2C1,<,3.8761483590329133,0
+tigecycline,Morgan,CN(C)c1cc(NC(=O)CNC(C)(C)C)c(O)c2c1C[C@H]1C[C@H]3[C@H](N(C)C)C(O)=C(C(N)=O)C(=O)[C@@]3(O)C(O)=C1C2=O,<,3.8761483590329133,0
+mebendazole,Morgan,COC(=O)Nc1nc2ccc(C(=O)c3ccccc3)cc2[nH]1,<,3.8761483590329133,0
+naloxone,Morgan,C=CCN1CC[C@]23c4c5ccc(O)c4O[C@H]2C(=O)CC[C@@]3(O)[C@H]1C5,<,3.8761483590329133,0
+AZ8,Warner,O=C(c1ccc(-c2ccncc2)cc1)N1CCN(S(=O)(=O)c2cc3cc(Cl)ccc3[nH]2)CC1,>,5.0,1
+DEVAZEPIDE,Warner,CN1C(=O)C(NC(=O)c2cc3ccccc3[nH]2)N=C(c2ccccc2)c2ccccc21,>,5.0,1
+cp-690550,Morgan,C[C@@H]1CCN(C(=O)CC#N)C[C@@H]1N(C)c1ncnc2[nH]ccc12,<,3.8761483590329133,0
+ARH047108,Warner,CCc1cccc(C)c1CNc1cc(C(N)=O)cn2c(C)c(C)nc12,>,5.0,1
+norethindrone acetate,Morgan,C#C[C@]1(OC(C)=O)CC[C@H]2[C@@H]3CCC4=CC(=O)CC[C@@H]4[C@H]3CC[C@@]21C,,4.443697499232711,1
+QUILOSTIGMINE,Warner,CN1CC[C@@]2(C)c3cc(OC(=O)N4CCc5ccccc5C4)ccc3N(C)[C@@H]12,>,5.0,1
+IMILOXAN,Warner,CCn1ccnc1CC1COc2ccccc2O1,,4.2100669190682485,0
+AZ35,Warner,NC(=O)c1cc([N+](=O)[O-])cc([N+](=O)[O-])c1,,3.7340036295049215,0
+nvp-bez235,Morgan,Cn1c(=O)n(-c2ccc(C(C)(C)C#N)cc2)c2c3cc(-c4cnc5ccccc5c4)ccc3ncc21,,5.102372908709559,1
+staurosporine,Morgan,CN[C@@H]1CC2O[C@@](C)([C@@H]1OC)n1c3ccccc3c3c4c(c5c6ccccc6n2c5c31)C(=O)NC4,,4.7281583934635005,1
+docetaxel,Morgan,CC(=O)O[C@@]12CO[C@@H]1C[C@H](O)[C@@]1(C)C(=O)[C@H](O)C3=C(C)[C@@H](OC(=O)[C@H](O)[C@@H](NC(=O)OC(C)(C)C)c4ccccc4)C[C@@](O)([C@@H](OC(=O)c4ccccc4)[C@@H]12)C3(C)C,,4.3872161432802645,1
+IVERMECTIN,Warner,CC[C@H](C)[C@H]1O[C@]2(CC[C@@H]1C)C[C@@H]1C[C@@H](C/C=C(\C)[C@@H](O[C@H]3C[C@H](OC)[C@@H](O[C@H]4C[C@H](OC)[C@@H](O)[C@H](C)O4)[C@H](C)O3)[C@@H](C)/C=C/C=C3\CO[C@@H]4[C@H](O)C(C)=C[C@@H](C(=O)O1)[C@]34O)O2,>,5.0,1
+AZ142,Warner,CS(=O)(=O)Oc1ccc(OCCc2ccc(C[C@H](SCCc3ccc(O)cc3)C(=O)O)cc2)cc1,>,4.874193541860473,1
+Cangrelor,Warner,CSCCNc1nc(SCCC(F)(F)F)nc2c1ncn2[C@@H]1O[C@H](COP(=O)(O)OP(=O)(O)C(Cl)(Cl)P(=O)(O)O)[C@@H](O)[C@H]1O,<,3.0,0
+ranitidine,Morgan,CNC(=C[N+](=O)[O-])NCCSCc1ccc(CN(C)C)o1,<,3.8761483590329133,0
+amsacrine,Morgan,COc1cc(NS(C)(=O)=O)ccc1Nc1c2ccccc2nc2ccccc12,<,3.8761483590329133,0
+calcitriol,Morgan,C=C1/C(=C\C=C2/CCC[C@@]3(C)[C@H]2CC[C@@H]3[C@H](C)CCCC(C)(C)O)C[C@@H](O)C[C@@H]1O,,4.401209493236885,1
+nifedipine,Morgan,COC(=O)C1=C(C)NC(C)=C(C(=O)OC)C1c1ccccc1[N+](=O)[O-],,4.1938200260161125,1
+AZ63,Warner,COC1C(OC(=O)C=CC=CC=CC=CC(=O)O)CCC2(CO2)C1C1(C)OC1CC=C(C)C,,4.5919297141128155,1
+AZ41,Warner,COc1ccc2c(c1OC)C(=O)OC2C1c2cc3c(cc2CCN1C)OCO3,,4.182831427618945,0
+zafirlukast,Morgan,COc1cc(C(=O)NS(=O)(=O)c2ccccc2C)ccc1Cc1cn(C)c2ccc(NC(=O)OC3CCCC3)cc12,,4.9546770212133415,1
+loratadine,Morgan,CCOC(=O)N1CCC(=C2c3ccc(Cl)cc3CCc3cccnc32)CC1,,4.920818753952375,1
+paclitaxel (aka taxol),Morgan,CC(=O)O[C@H]1C(=O)[C@]2(C)[C@@H](O)C[C@H]3OC[C@@]3(OC(C)=O)[C@H]2[C@H](OC(=O)c2ccccc2)[C@]2(O)C[C@H](OC(=O)[C@H](O)[C@@H](NC(=O)c3ccccc3)c3ccccc3)C(C)=C1C2(C)C,,4.6126101736612695,1
+oseltamivir phosphate,Morgan,CCOC(=O)C1=C[C@@H](OC(CC)CC)[C@H](NC(C)=O)[C@@H](N)C1,<,3.8761483590329133,0
+pranlukast,Morgan,O=C(Nc1cccc2c(=O)cc(-c3nn[nH]n3)oc12)c1ccc(OCCCCc2ccccc2)cc1,,5.527243550682788,1
+deferasirox,Morgan,O=C(O)c1ccc(-n2nc(-c3ccccc3O)nc2-c2ccccc2O)cc1,,4.2335871528876,1
+TETROQUINONE,Warner,O=C1C(O)=C(O)C(=O)C(O)=C1O,<,3.0,0
+TIPREDANE,Warner,CCS[C@]1(SC)CC[C@H]2[C@@H]3CCC4=CC(=O)C=C[C@]4(C)[C@@]3(F)[C@@H](O)C[C@@]21C,>,5.0,1
+gestodene,Morgan,C#C[C@]1(O)C=C[C@H]2[C@@H]3CCC4=CC(=O)CC[C@@H]4[C@H]3CC[C@@]21CC,<,3.8761483590329133,0
+ethambutol dihydrochloride,Morgan,CC[C@@H](CO)NCCN[C@@H](CC)CO,<,3.8761483590329133,0
+triamcinolone diacetate,Morgan,CC(=O)OCC(=O)[C@@]1(O)[C@H](OC(C)=O)C[C@H]2[C@@H]3CCC4=CC(=O)C=C[C@]4(C)[C@@]3(F)[C@@H](O)C[C@@]21C,<,3.8761483590329133,0
+orlistat,Morgan,CCCCCCCCCCC[C@@H](C[C@@H]1OC(=O)[C@H]1CCCCCC)OC(=O)[C@H](CC(C)C)NC=O,<,3.8761483590329133,0
+albendazole,Morgan,CCCSc1ccc2nc(NC(=O)OC)[nH]c2c1,<,3.8761483590329133,0
+AZ81,Warner,CCCc1c2oc(C(=O)O)cc(=O)c2cc2c(=O)cc(C(=O)O)oc12,<,3.0,0
+DERACOXIB,Warner,COc1ccc(-c2cc(C(F)F)nn2-c2ccc(S(N)(=O)=O)cc2)cc1F,,4.695078838099108,1
+TELENZEPINE,Warner,Cc1scc2c1N(C(=O)CN1CCN(C)CC1)c1ccccc1NC2=O,,3.5012760292520952,0
+AZ91,Warner,N[C@H]1C[C@@H]1c1ccccc1,,3.9884295564027217,0
+chlorambucil,Morgan,O=C(O)CCCc1ccc(N(CCCl)CCCl)cc1,<,3.8761483590329133,0
+colchicine,Morgan,COc1cc2c(c(OC)c1OC)-c1ccc(OC)c(=O)cc1[C@@H](NC(C)=O)CC2,<,3.8761483590329133,0
+DIGITOXIN,Warner,CC1OC(OC2C(O)CC(OC3C(O)CC(OC4CCC5(C)C(CCC6C5CCC5(C)C(C7=CC(=O)OC7)CCC65O)C4)OC3C)OC2C)CC(O)C1O,>,5.0,1
+BROMHEXINE,Warner,CN(Cc1cc(Br)cc(Br)c1N)C1CCCCC1,,4.693146251306993,1
+tizanidine,Morgan,Clc1ccc2nsnc2c1NC1=NCCN1,<,3.8761483590329133,0
+ENPROFYLLINE,Warner,CCCn1c(=O)[nH]c(=O)c2[nH]cnc21,<,3.0,0
+indapamide,Morgan,CC1Cc2ccccc2N1NC(=O)c1ccc(Cl)c(S(N)(=O)=O)c1,<,3.8761483590329133,0
+ALPIDEM,Warner,CCCN(CCC)C(=O)Cc1c(-c2ccc(Cl)cc2)nc2ccc(Cl)cn12,,5.038341651362285,1
+AZ149,Warner,CCCCC[C@H](O)/C=C/[C@H]1[C@H](O)CC(=O)[C@@H]1C/C=C\CCCC(=O)O,<,3.0,0
+AZ21,Warner,O=CN(O)C(CCc1ccccc1)CS(=O)(=O)N1CCN(c2ccc(F)cc2)CC1,>,5.0,1
+carmustine,Morgan,O=NN(CCCl)C(=O)NCCCl,<,3.8761483590329133,0
+AZ126,Warner,Cc1ccc2c(c1)c(-c1ccnc3c(C(F)(F)F)cccc13)c(C)n2CC(=O)O,>,5.0,1
+PHENTOLAMINE,Warner,Cc1ccc(N(CC2=NCCN2)c2cccc(O)c2)cc1,<,3.0,0
+misoprostol,Morgan,CCCCC(C)(O)C/C=C/[C@H]1[C@H](O)CC(=O)[C@@H]1CCCCCCC(=O)OC,,4.557520230935552,1
+pravastatin sodium,Morgan,CC[C@H](C)C(=O)O[C@H]1C[C@H](O)C=C2C=C[C@H](C)[C@H](CC[C@@H](O)C[C@@H](O)CC(=O)[O-])[C@H]21,<,3.8761483590329133,0
+CAPSAICIN,Warner,COc1cc(CNC(=O)CCCC/C=C/C(C)C)ccc1O,>,5.0,1
+rifapentine,Morgan,CO[C@H]1/C=C/O[C@@]2(C)Oc3c(C)c(O)c4c(O)c(c(/C=N/N5CCN(C6CCCC6)CC5)c(O)c4c3C2=O)NC(=O)/C(C)=C\C=C\[C@H](C)[C@H](O)[C@@H](C)[C@@H](O)[C@@H](C)[C@H](OC(C)=O)[C@@H]1C,,5.003926345514723,1
+clofibrate,Morgan,CCOC(=O)C(C)(C)Oc1ccc(Cl)cc1,,4.1487416512809245,1
+FLUNARIZINE,Warner,Fc1ccc(C(c2ccc(F)cc2)N2CCN(C/C=C/c3ccccc3)CC2)cc1,>,5.0,1
+imipramine,Morgan,CN(C)CCCN1c2ccccc2CCc2ccccc21,<,3.8761483590329133,0
+lovastatin,Morgan,CC[C@H](C)C(=O)O[C@H]1C[C@@H](C)C=C2C=C[C@H](C)[C@H](CC[C@@H]3C[C@@H](O)CC(=O)O3)[C@H]21,,4.714442690992227,1
+METARAMINOL,Warner,C[C@H](N)[C@H](O)c1cccc(O)c1,<,3.0,0
+AZ137,Warner,C[C@H](CO)NCCCc1ccc(Cl)c(C(=O)NCC23CC4CC(CC(C4)C2)C3)c1,,4.183361055101538,0
+alprostadil,Morgan,CCCCC[C@H](O)/C=C/[C@H]1[C@H](O)CC(=O)[C@@H]1CCCCCCC(=O)O,<,3.8761483590329133,0
+FENOBAM,Warner,CN1CC(=O)N=C1NC(=O)Nc1cccc(Cl)c1,<,3.0,0
+PHENELZINE,Warner,NNCCc1ccccc1,<,3.0471107350890696,0
+latanoprost,Morgan,CC(C)OC(=O)CCC/C=C\C[C@H]1[C@@H](O)C[C@@H](O)[C@@H]1CC[C@@H](O)CCc1ccccc1,,4.88941028970075,1
+hydrochlorothiazide,Morgan,NS(=O)(=O)c1cc2c(cc1Cl)NCNS2(=O)=O,<,3.8761483590329133,0
+leflunomide,Morgan,Cc1oncc1C(=O)Nc1ccc(C(F)(F)F)cc1,<,3.8761483590329133,0
+PROTRIPTYLINE,Warner,CNCCCC1c2ccccc2C=Cc2ccccc21,,3.890759031411797,0
+MESALAZINE,Warner,Nc1ccc(O)c(C(=O)O)c1,,3.4186193112900134,0
+estradiol,Morgan,CC(=O)Oc1ccc2c(c1)CC[C@@H]1[C@@H]2CC[C@]2(C)[C@@H](O)CC[C@@H]12,<,3.8761483590329133,0
+albuterol,Morgan,CC(C)(C)NCC(O)c1ccc(O)c(CO)c1,<,3.8761483590329133,0
+AZ9,Warner,O=C(O)c1cc2c(F)c(O)ccc2n1Cc1ccc(Cl)c(Cl)c1,,4.714442690992227,1
+fenoldopam mesylate,Morgan,Oc1ccc(C2CNCCc3c2cc(O)c(O)c3Cl)cc1,<,3.8761483590329133,0
+AZ176,Warner,C[C@H](CCC(=O)O)[C@H]1CC[C@H]2[C@@H]3[C@@H](O)C[C@@H]4C[C@H](O)CC[C@]4(C)[C@H]3CC[C@@]21C,>,5.0,1
+AZ121,Warner,Cc1ccc2c(c1)c(-c1ccnc3c(C)cccc13)c(C)n2CC(=O)O,>,5.0,1
+losartan potassium,Morgan,CCCCc1nc(Cl)c(CO)n1Cc1ccc(-c2ccccc2-c2nn[n-]n2)cc1,,5.069050968832476,1
+CARBIMAZOLE,Warner,CCOC(=O)n1ccn(C)c1=S,<,3.0,0
+OXIBENDAZOLE,Warner,CCCOc1ccc2[nH]c(NC(=O)OC)nc2c1,<,3.0,0
+dicloxacillin,Morgan,Cc1onc(-c2c(Cl)cccc2Cl)c1C(=O)N[C@@H]1C(=O)N2[C@@H](C(=O)O)C(C)(C)S[C@H]12,,4.248720896016658,1
+AZ23,Warner,CNC(=N)NC(=O)Nc1c(C)cccc1C,<,3.0,0
+lopinavir,Morgan,Cc1cccc(C)c1OCC(=O)N[C@@H](Cc1ccccc1)[C@@H](O)C[C@H](Cc1ccccc1)NC(=O)[C@H](C(C)C)N1CCCNC1=O,,4.761953896871205,1
+6-mercaptopurine,Morgan,Sc1ncnc2nc[nH]c12,<,3.8761483590329133,0
+cetrorelix acetate,Morgan,CC(=O)N[C@H](Cc1ccc2ccccc2c1)C(=O)N[C@H](Cc1ccc(Cl)cc1)C(=O)N[C@H](Cc1cccnc1)C(=O)N[C@@H](CO)C(=O)N[C@@H](Cc1ccc(O)cc1)C(=O)N[C@H](CCCNC(N)=O)C(=O)N[C@@H](CC(C)C)C(=O)N[C@@H](CCCNC(=N)N)C(=O)N1CCC[C@H]1C(=O)N[C@H](C)C(N)=O,,5.832682665251824,1
+TETRACAINE,Warner,CCCCNc1ccc(C(=O)OCCN(C)C)cc1,,3.2899673009342463,0
+METHYLTHIOURACIL,Warner,Cc1cc(=O)[nH]c(=S)[nH]1,<,3.0,0
+exemestane,Morgan,C=C1C[C@@H]2[C@H](CC[C@]3(C)C(=O)CC[C@@H]23)[C@@]2(C)C=CC(=O)C=C12,,4.045757490560675,1
+AZ95,Warner,CC(C)C(=O)N[C@@H](CS)C(=O)O,<,3.0,0
+SPIRAPRIL HYDROCHLORIDE,Warner,CCOC(=O)[C@H](CCc1ccccc1)N[C@@H](C)C(=O)N1CC2(C[C@H]1C(=O)O)SCCS2,,4.326886895761766,1
+rasagiline mesylate,Morgan,C#CCN[C@@H]1CCc2ccccc21,<,3.8761483590329133,0
+cyclosporine a,Morgan,C/C=C/C[C@@H](C)[C@@H](O)[C@H]1C(=O)N[C@@H](CC)C(=O)N(C)CC(=O)N(C)[C@@H](CC(C)C)C(=O)N[C@@H](C(C)C)C(=O)N(C)[C@@H](CC(C)C)C(=O)N[C@@H](C)C(=O)N[C@H](C)C(=O)N(C)[C@@H](CC(C)C)C(=O)N(C)[C@@H](CC(C)C)C(=O)N(C)[C@@H](C(C)C)C(=O)N1C,,6.301029995663981,1
+DEXTROTHYROXINE SODIUM,Warner,N[C@@H](Cc1cc(I)c(Oc2cc(I)c(O)c(I)c2)c(I)c1)C(=O)O,>,5.0,1
+tazarotene,Morgan,CCOC(=O)c1ccc(C#Cc2ccc3c(c2)C(C)(C)CCS3)nc1,<,3.8761483590329133,0
+indinavir,Morgan,CC(C)(C)NC(=O)[C@@H]1CN(Cc2cccnc2)CCN1C[C@@H](O)C[C@@H](Cc1ccccc1)C(=O)N[C@H]1c2ccccc2C[C@H]1O,,4.673664139071248,1
+galanthamine,Morgan,COc1ccc2c3c1O[C@H]1C[C@@H](O)C=C[C@@]31CCN(C)C2,<,3.8761483590329133,0
+finasteride,Morgan,CC(C)(C)NC(=O)[C@H]1CC[C@H]2[C@@H]3CC[C@H]4NC(=O)C=C[C@]4(C)[C@H]3CC[C@]12C,,4.549750891680639,1
+AZ83,Warner,COC(=O)C1=C(C)NC(C)=C(C(=O)OC(C)C)[C@@H]1c1cccc2nonc12,>,5.0,1
+letrozole,Morgan,N#Cc1ccc(C(c2ccc(C#N)cc2)n2cncn2)cc1,<,3.8761483590329133,0
+rifabutin,Morgan,CO[C@H]1/C=C/O[C@@]2(C)Oc3c(C)c(O)c4c(c3C2=O)C2=NC3(CCN(CC(C)C)CC3)NC2=C(NC(=O)/C(C)=C\C=C\[C@H](C)[C@H](O)[C@@H](C)[C@@H](O)[C@@H](C)[C@H](OC(C)=O)[C@@H]1C)C4=O,,4.573488738635425,1
+didanosine,Morgan,O=c1[nH]cnc2c1ncn2[C@H]1CC[C@@H](CO)O1,<,3.8761483590329133,0
+vinblastine,Morgan,CC[C@]1(O)C[C@@H]2CN(CCc3c([nH]c4ccccc34)[C@@](C(=O)OC)(c3cc4c(cc3OC)N(C)[C@H]3[C@@](O)(C(=O)OC)[C@H](OC(C)=O)[C@]5(CC)C=CCN6CC[C@]43[C@@H]65)C2)C1,<,3.8761483590329133,0
+fenofibrate,Morgan,CC(C)OC(=O)C(C)(C)Oc1ccc(C(=O)c2ccc(Cl)cc2)cc1,,4.815308569182402,1
+dexchlorpheniramine maleate,Morgan,CN(C)CC[C@@H](c1ccc(Cl)cc1)c1ccccn1,<,3.8761483590329133,0
+tacrolimus,Morgan,C=CC[C@@H]1/C=C(\C)C[C@H](C)C[C@H](OC)[C@H]2O[C@@](O)(C(=O)C(=O)N3CCCC[C@H]3C(=O)O[C@H](/C(C)=C/[C@@H]3CC[C@@H](O)[C@H](OC)C3)[C@H](C)[C@@H](O)CC1=O)[C@H](C)C[C@@H]2OC,,5.1438755557577,1
+AZ107,Warner,CCCSc1nc(N)c2ncn([C@@H]3O[C@H](CO)[C@@H](O)[C@H]3O)c2n1,<,3.0,0
+timolol,Morgan,CC(C)(C)NC[C@H](O)COc1nsnc1N1CCOCC1,<,3.8761483590329133,0
+mifepristone,Morgan,CC#C[C@]1(O)CC[C@H]2[C@@H]3CCC4=CC(=O)CCC4=C3[C@@H](c3ccc(N(C)C)cc3)C[C@@]21C,,5.6946486305533774,1
+BENZONATATE,Warner,CCCCNc1ccc(C(=O)OCCOCCOCCOCCOCCOCCOCCOCCOCCOC)cc1,>,5.0,1
+domperidone,Morgan,O=c1[nH]c2ccccc2n1CCCN1CCC(n2c(=O)[nH]c3cc(Cl)ccc32)CC1,<,3.8761483590329133,0
+pazopanib,Morgan,Cc1ccc(Nc2nccc(N(C)c3ccc4c(C)n(C)nc4c3)n2)cc1S(N)(=O)=O,,4.987162775294828,1
+AZ15,Warner,CCCC(C(=O)OCCN(CC)CC)(c1ccccc1)c1ccccc1,>,4.879755204453635,1
+voriconazole,Morgan,C[C@@H](c1ncncc1F)[C@](O)(Cn1cncn1)c1ccc(F)cc1F,<,3.8761483590329133,0
+venlafaxine,Morgan,COc1ccc(C(CN(C)C)C2(O)CCCCC2)cc1,<,3.8761483590329133,0
+DROPERIDOL,Warner,O=C(CCCN1CC=C(n2c(=O)[nH]c3ccccc32)CC1)c1ccc(F)cc1,>,5.0,1
+AZ82,Warner,CCCc1c2nc(C(=O)O)cc(C(F)(F)F)c2cc2c(=O)cc(C(=O)O)oc12,,3.438064236686219,0
+metformin,Morgan,CN(C)C(=N)NC(=N)N,<,3.8761483590329133,0
+AZ38,Warner,O=C(O)c1cc2c(OCCCO)cccc2n1Cc1ccc(Cl)c(Cl)c1,>,4.8535618647142265,1
+anthralin,Morgan,O=C1c2c(O)cccc2Cc2cccc(O)c21,<,3.8761483590329133,0
+linezolid,Morgan,CC(=O)NC[C@H]1CN(c2ccc(N3CCOCC3)c(F)c2)C(=O)O1,<,3.8761483590329133,0
+ANTAZOLINE,Warner,c1ccc(CN(CC2=NCCN2)c2ccccc2)cc1,<,3.0,0
+vincristine sulfate,Morgan,CC[C@]1(O)C[C@H]2CN(CCc3c([nH]c4ccccc34)[C@@](C(=O)OC)(c3cc4c(cc3OC)N(C=O)[C@H]3[C@@](O)(C(=O)OC)[C@H](OC(C)=O)[C@]5(CC)C=CCN6CC[C@]43[C@@H]65)C2)C1,<,3.8761483590329133,0
+AZ49,Warner,O=CN(O)C(CCc1cccnc1)CS(=O)(=O)N1CCN(c2ccc(Cl)cn2)CC1,>,5.0,1
+AZ94,Warner,O=C([O-])c1ccccc1[O-],<,3.0,0
+TRIMETOZINE,Warner,COc1cc(C(=O)N2CCOCC2)cc(OC)c1OC,<,3.0,0
+PANTOTHENIC ACID,Warner,CC(C)(CO)[C@@H](O)C(=O)NCCC(=O)O,<,3.0,0
+troglitazone,Morgan,Cc1c(C)c2c(c(C)c1O)CCC(C)(COc1ccc(CC3SC(=O)NC3=O)cc1)O2,,5.522878745280337,1
+bicalutamide,Morgan,CC(O)(CS(=O)(=O)c1ccc(F)cc1)C(=O)Nc1ccc(C#N)c(C(F)(F)F)c1,,4.099086932262331,1
+vioxx,Morgan,CS(=O)(=O)c1ccc(C2=C(c3ccccc3)C(=O)OC2)cc1,<,3.8761483590329133,0
+nitrofurantoin,Morgan,O=C1CN(/N=C/c2ccc([N+](=O)[O-])o2)C(=O)N1,<,3.8761483590329133,0
+isotretinoin,Morgan,CC1=C(/C=C/C(C)=C/C=C/C(C)=C\C(=O)O)C(C)(C)CCC1,,4.430626090384954,1
+AZ84,Warner,COc1ccc(Nc2ccn(-c3ccccc3)n2)cc1,,4.637706062035768,1
+rimonabant,Morgan,Cc1c(C(=O)NN2CCCCC2)nn(-c2ccc(Cl)cc2Cl)c1-c1ccc(Cl)cc1,,4.6020599913279625,1
+DAZOXIBEN,Warner,O=C(O)c1ccc(OCCn2ccnc2)cc1,<,3.0,0
+itraconazole,Morgan,CCC(C)n1ncn(-c2ccc(N3CCN(c4ccc(OC[C@H]5CO[C@](Cn6cncn6)(c6ccc(Cl)cc6Cl)O5)cc4)CC3)cc2)c1=O,,4.7447274948966935,1
+mizoribine,Morgan,NC(=O)c1ncn([C@@H]2O[C@H](CO)[C@@H](O)[C@H]2O)c1O,<,3.8761483590329133,0
+ETIDRONATE,Warner,CC(O)(P(=O)(O)O)P(=O)(O)O,<,3.0,0
+etoricoxib,Morgan,Cc1ccc(-c2ncc(Cl)cc2-c2ccc(S(C)(=O)=O)cc2)cn1,,4.274088367704952,1
+AZ102,Warner,C[C@@H]1C[C@H]2[C@@H]3CCC4=CC(=O)C=C[C@]4(C)[C@@]3(F)[C@@H](O)C[C@]2(C)[C@H]1C(=O)CO,,4.784626847216578,1
+SUCCINYLSULFATHIAZOLE,Warner,O=C(O)CCC(=O)Nc1ccc(S(=O)(=O)Nc2nccs2)cc1,<,3.0,0
+cilostazol,Morgan,O=C1CCc2cc(OCCCCc3nnnn3C3CCCCC3)ccc2N1,<,3.8761483590329133,0
+neomycin,Morgan,NC[C@@H]1O[C@H](O[C@@H]2[C@@H](CO)O[C@@H](O[C@@H]3[C@@H](O)[C@H](N)C[C@H](N)[C@H]3O[C@H]3O[C@H](CN)[C@@H](O)[C@H](O)[C@H]3N)[C@@H]2O)[C@H](N)[C@@H](O)[C@@H]1O,<,3.8761483590329133,0
+AZ19,Warner,CNC(=O)Oc1ccc2c(c1)C1(C)CCN(C)C1N2C,<,3.0,0
+stepronin,Morgan,CC(SC(=O)c1cccs1)C(=O)NCC(=O)O,<,3.8761483590329133,0
+PROGESTERONE,Warner,CC(=O)[C@H]1CC[C@H]2[C@@H]3CCC4=CC(=O)CC[C@]4(C)[C@H]3CC[C@]12C,>,5.0,1
+cefotetan,Morgan,CO[C@@]1(NC(=O)C2SC(=C(C(N)=O)C(=O)O)S2)C(=O)N2C(C(=O)O)=C(CSc3nnnn3C)CS[C@@H]21,<,3.8761483590329133,0
+KETOCONAZOLE,Warner,CC(=O)N1CCN(c2ccc(OC[C@H]3CO[C@](Cn4ccnc4)(c4ccc(Cl)cc4Cl)O3)cc2)CC1,,5.3872161432802645,1
+nitrazepam,Morgan,O=C1CN=C(c2ccccc2)c2cc([N+](=O)[O-])ccc2N1,<,3.8761483590329133,0
+AZ90,Warner,N=C(N)NN=Cc1c(Cl)cccc1Cl,,3.463820467862775,0
+SURAMIN,Warner,Cc1ccc(C(=O)Nc2ccc(S(=O)(=O)O)c3cc(S(=O)(=O)O)cc(S(=O)(=O)O)c23)cc1NC(=O)c1cccc(NC(=O)Nc2cccc(C(=O)Nc3cc(C(=O)Nc4ccc(S(=O)(=O)O)c5cc(S(=O)(=O)O)cc(S(=O)(=O)O)c45)ccc3C)c2)c1,,3.9706162223147903,0
+zopiclone,Morgan,CN1CCN(C(=O)OC2c3nccnc3C(=O)N2c2ccc(Cl)cn2)CC1,<,3.8761483590329133,0
+ethosuximide,Morgan,CCC1(C)CC(=O)NC1=O,<,3.8761483590329133,0
+METADOXINE,Warner,Cc1ncc(CO)c(CO)c1O,<,3.0,0
+hydroflumethazide,Morgan,NS(=O)(=O)c1cc2c(cc1C(F)(F)F)NCNS2(=O)=O,<,3.8761483590329133,0
+tolvaptan,Morgan,Cc1ccccc1C(=O)Nc1ccc(C(=O)N2CCCC(O)c3cc(Cl)ccc32)c(C)c1,,5.000434511774016,1
+methotrexate,Morgan,CN(Cc1cnc2nc(N)nc(N)c2n1)c1ccc(C(=O)N[C@@H](CCC(=O)O)C(=O)O)cc1,<,3.8761483590329133,0
+AZ113,Warner,O=C(O)CCCCCCCNC(=O)c1ccccc1O,<,3.1244178956721145,0
+bromopride,Morgan,CCN(CC)CCNC(=O)c1cc(Br)c(N)cc1OC,<,3.8761483590329133,0
+tolcapone,Morgan,Cc1ccc(C(=O)c2cc(O)c(O)c([N+](=O)[O-])c2)cc1,,4.436518914605589,1
+ETHACRIDINE,Warner,CCOc1ccc2nc3cc(N)ccc3c(N)c2c1,,4.361710464585743,1
+acipimox,Morgan,Cc1cnc(C(=O)O)c[n+]1[O-],<,3.8761483590329133,0
+AZ86,Warner,CC(=O)Oc1c(C)cc(Nc2ccn(-c3ccccc3)n2)cc1C,>,5.0,1
+daptomycin,Morgan,CCCCCCCCCC(=O)N[C@@H](Cc1c[nH]c2ccccc12)C(=O)N[C@@H](CC(N)=O)C(=O)N[C@@H](CC(=O)O)C(=O)N[C@@H]1C(=O)NCC(=O)N[C@@H](CCCN)C(=O)N[C@@H](CC(=O)O)C(=O)N[C@H](C)C(=O)N[C@@H](CC(=O)O)C(=O)NCC(=O)N[C@H](CO)C(=O)N[C@@H]([C@H](C)CC(=O)O)C(=O)N[C@@H](CC(=O)c2ccccc2N)C(=O)O[C@@H]1C,<,3.8761483590329133,0
+rifampicin,Morgan,CO[C@H]1/C=C/O[C@@]2(C)Oc3c(C)c(O)c4c(O)c(c(/C=N/N5CCN(C)CC5)c(O)c4c3C2=O)NC(=O)/C(C)=C\C=C\[C@H](C)[C@H](O)[C@@H](C)[C@@H](O)[C@@H](C)[C@H](OC(C)=O)[C@@H]1C,,4.596879478824182,1
+atorvastatin calcium,Morgan,CC(C)c1c(C(=O)Nc2ccccc2)c(-c2ccccc2)c(-c2ccc(F)cc2)n1CC[C@@H](O)C[C@@H](O)CC(=O)O,,4.886056647693163,1
+AZ141,Warner,CC[C@H]1OC(=O)[C@H](C)[C@H](O[C@H]2C[C@@](C)(OC)[C@@H](O)[C@H](C)O2)[C@H](C)[C@@H](O[C@@H]2O[C@H](C)C[C@H](N(C)C)[C@H]2O)[C@@](C)(OC)C[C@@H](C)C(=O)[C@H](C)[C@@H](O)[C@]1(C)O,>,4.890084136976206,1
+nisoldipine,Morgan,COC(=O)C1=C(C)NC(C)=C(C(=O)OCC(C)C)C1c1ccccc1[N+](=O)[O-],,4.481486060122112,1
+TRIFLUOPERAZINE,Warner,CN1CCN(CCCN2c3ccccc3Sc3ccc(C(F)(F)F)cc32)CC1,>,5.0,1
+AZ200,Warner,Cc1cc(CCC(=O)O)cc(C)c1-c1nc2ccc(-c3nnc(Nc4cccc(Cl)c4)o3)cc2[nH]1,>,5.0,1
+lorcainide,Morgan,CC(C)N1CCC(N(C(=O)Cc2ccccc2)c2ccc(Cl)cc2)CC1,<,3.8761483590329133,0
+AZ14,Warner,O=C(O)c1cc2cc(O)ccc2n1Cc1ccc(Cl)c(C(F)(F)F)c1,,4.733063088840828,1
+cinnarizine,Morgan,C(=C/c1ccccc1)\CN1CCN(C(c2ccccc2)c2ccccc2)CC1,,4.804100347590767,1
+simvastatin,Morgan,CCC(C)(C)C(=O)O[C@H]1C[C@@H](C)C=C2C=C[C@H](C)[C@H](CC[C@@H]3C[C@@H](O)CC(=O)O3)[C@H]21,,4.607303046740334,1
+clofarabine,Morgan,Nc1nc(Cl)nc2c1ncn2[C@@H]1O[C@H](CO)[C@@H](O)[C@@H]1F,<,3.8761483590329133,0
+AZ138,Warner,CC(C)(C)NC[C@@H](O)c1ccc(O)c(CO)c1,<,3.0,0
+nalmefene,Morgan,C=C1CC[C@@]2(O)[C@H]3Cc4ccc(O)c5c4[C@@]2(CCN3CC2CC2)[C@H]1O5,<,3.8761483590329133,0
+AZ30,Warner,c1ccc2[nH]c(-c3nc4ccccc4[nH]3)nc2c1,,4.504039605118295,1
+HISTAMINE,Warner,NCCc1c[nH]cn1,<,3.0,0
+xamoterol,Morgan,O=C(NCCNCC(O)COc1ccc(O)cc1)N1CCOCC1,<,3.8761483590329133,0
+AZ53,Warner,CC(=O)NC[C@H]1CN(c2ccc(C(=O)c3cnc4ccc(Cl)cn34)cc2)C(=O)O1,,4.559878396812197,1
+valdecoxib,Morgan,Cc1onc(-c2ccccc2)c1-c1ccc(S(N)(=O)=O)cc1,<,3.8761483590329133,0
+dronedarone hydrochloride,Morgan,CCCCc1oc2ccc(NS(C)(=O)=O)cc2c1C(=O)c1ccc(OCCCN(CCCC)CCCC)cc1,,4.131355561605174,1
+AZ147,Warner,C[C@H]1C[C@H]2[C@@H]3CC[C@](O)(C(=O)CO)[C@@]3(C)C[C@H](O)[C@@H]2[C@@]2(C)C=CC(=O)C=C12,,4.481091426308586,1
+levosulpiride,Morgan,CCN1CCC[C@H]1CNC(=O)c1cc(S(N)(=O)=O)ccc1OC,<,3.8761483590329133,0
+rosiglitazone,Morgan,CN(CCOc1ccc(CC2SC(=O)NC2=O)cc1)c1ccccn1,,5.552841968657781,1
+clarithromycin,Morgan,CC[C@H]1OC(=O)[C@H](C)[C@@H](O[C@H]2C[C@@](C)(OC)[C@@H](O)[C@H](C)O2)[C@H](C)[C@@H](O[C@@H]2O[C@H](C)C[C@H](N(C)C)[C@H]2O)[C@](C)(OC)C[C@@H](C)C(=O)[C@H](C)[C@@H](O)[C@]1(C)O,<,3.8761483590329133,0
+mesna,Morgan,O=S(=O)([O-])CCS,<,3.8761483590329133,0
+formoterol fumarate,Morgan,COc1ccc(CC(C)NCC(O)c2ccc(O)c(NC=O)c2)cc1,<,3.8761483590329133,0
+SIROLIMUS,Warner,CO[C@H]1C[C@@H]2CC[C@@H](C)[C@@](O)(O2)C(=O)C(=O)N2CCCC[C@H]2C(=O)O[C@H]([C@H](C)C[C@@H]2CC[C@@H](O)[C@H](OC)C2)CC(=O)[C@H](C)/C=C(\C)[C@@H](O)[C@@H](OC)C(=O)[C@H](C)C[C@H](C)/C=C/C=C/C=C/1C,>,5.0,1
+SALICIN,Warner,OCc1ccccc1O[C@@H]1O[C@H](CO)[C@@H](O)[C@H](O)[C@H]1O,<,3.0,0
+enoxacin,Morgan,CCn1cc(C(=O)O)c(=O)c2cc(F)c(N3CCNCC3)nc21,<,3.8761483590329133,0
+allopurinol,Morgan,O=c1[nH]cnc2[nH]ncc12,<,3.8761483590329133,0
+vorinostat,Morgan,O=C(CCCCCCC(=O)Nc1ccccc1)NO,<,3.8761483590329133,0
+glyburide,Morgan,COc1ccc(Cl)cc1C(=O)NCCc1ccc(S(=O)(=O)NC(=O)NC2CCCCC2)cc1,,5.301029995663981,1
+sunitinib malate,Morgan,CCN(CC)CCNC(=O)c1c(C)[nH]c(/C=C2\C(=O)Nc3ccc(F)cc32)c1C,,4.337242168318426,1
+AZ117,Warner,CON(C)C(=O)c1c(Cn2c(C)nc(Cl)c2Cl)sc2c1c(=O)n(C)c(=O)n2CC(C)C,,4.788879458741951,1
+fluconazole,Morgan,[H]OC(Cn1cncn1)(Cn1cncn1)c1ccc(F)cc1F,<,3.8761483590329133,0
+ETHOTOIN,Warner,CCN1C(=O)NC(c2ccccc2)C1=O,<,3.1013296570344706,0
+cidofovir,Morgan,Nc1ccn(C[C@@H](CO)OCP(=O)(O)O)c(=O)n1,<,3.8761483590329133,0
+oxiconazole nitrate,Morgan,Clc1ccc(CO/N=C(\Cn2ccnc2)c2ccc(Cl)cc2Cl)c(Cl)c1,,4.30715308072277,1
+AZ139,Warner,CC(=O)Nc1ccccc1OC[C@@](C)(O)CNC1CCN(Cc2ccc(Cl)cc2)CC1,,4.145451064187049,0
+PARBENDAZOLE,Warner,CCCCc1ccc2[nH]c(NC(=O)OC)nc2c1,<,3.0,0
+AZ190,Warner,C[C@]12CC[C@H]3[C@@H](CCC4=CC(=O)CC[C@@]43C)[C@@H]1CC[C@@H]2C(=O)CO,,4.768020973168496,1
+feprazone,Morgan,CC(C)=CCC1C(=O)N(c2ccccc2)N(c2ccccc2)C1=O,,4.131355561605174,1
+disopyramide,Morgan,CC(C)N(CCC(C(N)=O)(c1ccccc1)c1ccccn1)C(C)C,<,3.8761483590329133,0
+AZ27,Warner,COc1ccc2c(c1OC)C(=O)OC2C1c2c(cc3c(c2OC)OCO3)CCN1C,,4.621420423884225,1
+AZ70,Warner,C[n+]1ccccc1C=NO,<,3.0,0
+plerixafor,Morgan,c1cc(CN2CCCNCCNCCCNCC2)ccc1CN1CCCNCCNCCCNCC1,<,3.8761483590329133,0
+TROPICAMIDE,Warner,CCN(Cc1ccncc1)C(=O)C(CO)c1ccccc1,,3.82131076022441,0
+piracetam,Morgan,NC(=O)CN1CCCC1=O,<,3.8761483590329133,0
+HEXAMETHYLENE BISACETAMIDE,Warner,CC(=O)NCCCCCCNC(C)=O,<,3.0,0
+AZ110,Warner,Cc1n[nH]c(C)c1Cc1sc2c(c1C(=O)N1C[C@H](O)CO1)c(=O)n(C)c(=O)n2C(C)C,,3.153044674980176,0
+bupivacaine hydrochloride,Morgan,CCCCN1CCCCC1C(=O)Nc1c(C)cccc1C,<,3.8761483590329133,0
+nicardipine,Morgan,COC(=O)C1=C(C)NC(C)=C(C(=O)OCCN(C)Cc2ccccc2)C1c1cccc([N+](=O)[O-])c1,,5.104025267640934,1
+AZ124,Warner,CCCc1ncc(-c2ccnc(Nc3ccc(S(=O)(=O)NCCOC)cc3)n2)n1CC,>,5.0,1
+pemoline,Morgan,NC1=NC(=O)C(c2ccccc2)O1,<,3.8761483590329133,0
+ESTRIOL,Warner,C[C@]12CC[C@@H]3c4ccc(O)cc4CC[C@H]3[C@@H]1C[C@@H](O)[C@@H]2O,<,3.0,0
+pefloxacin,Morgan,CCn1cc(C(=O)O)c(=O)c2cc(F)c(N3CCN(C)CC3)cc21,<,3.8761483590329133,0
+AZ4,Warner,Nc1nc(NCCN2CCOCC2)nc2nc(-c3ccco3)nn12,<,3.0,0
+entacapone,Morgan,CCN(CC)C(=O)/C(C#N)=C/c1cc(O)c(O)c([N+](=O)[O-])c1,,4.254925208417943,1
+thiacetazone,Morgan,CC(=O)Nc1ccc(/C=N/NC(N)=S)cc1,<,3.8761483590329133,0
+dutasteride,Morgan,C[C@]12CC[C@H]3[C@@H](CC[C@H]4NC(=O)C=C[C@]34C)[C@@H]1CC[C@@H]2C(=O)Nc1cc(C(F)(F)F)ccc1C(F)(F)F,,4.525783735923745,1
+AZ55,Warner,O=CN(O)C(CCc1cccnc1)CS(=O)(=O)N1CCC(Oc2ccc(Cl)cn2)CC1,>,5.0,1
+amprenavir,Morgan,CC(C)CN(C[C@@H](O)[C@H](Cc1ccccc1)NC(=O)O[C@H]1CCOC1)S(=O)(=O)c1ccc(N)cc1,,4.348721986001856,1
+posaconazole,Morgan,CC[C@@H]([C@H](C)O)n1ncn(-c2ccc(N3CCN(c4ccc(OC[C@@H]5CO[C@@](Cn6cncn6)(c6ccc(F)cc6F)C5)cc4)CC3)cc2)c1=O,,5.091514981121351,1
+flunisolide,Morgan,CC1(C)O[C@@H]2C[C@H]3[C@@H]4C[C@H](F)C5=CC(=O)C=C[C@]5(C)[C@H]4[C@@H](O)C[C@]3(C)[C@]2(C(=O)CO)O1,<,3.8761483590329133,0
+trimethoprim,Morgan,COc1cc(Cc2cnc(N)nc2N)cc(OC)c1OC,<,3.8761483590329133,0
+moclobemide,Morgan,O=C(NCCN1CCOCC1)c1ccc(Cl)cc1,<,3.8761483590329133,0
+AZ73,Warner,CCCc1c(OCCCOc2ccc3c(=O)cc(CCC(=O)O)oc3c2CCC)ccc(C(C)=O)c1O,>,5.0,1
+AZ178,Warner,C[C@](O)(CS(=O)(=O)c1ccc(F)cc1)C(=O)Nc1ccc(C#N)c(C(F)(F)F)c1,>,5.0,1
+CHLORPROTHIXENE,Warner,CN(C)CC/C=C1\c2ccccc2Sc2ccc(Cl)cc21,,4.5611413405794385,1
+ARC 68475AA,Warner,O=c1[nH]c2c(O)ccc(CCNCCNS(=O)(=O)CCOCCc3ccccc3)c2s1,,4.447453452044338,1
+MEPENZOLATE BROMIDE,Warner,C[N+]1(C)CCCC(OC(=O)C(O)(c2ccccc2)c2ccccc2)C1,<,3.0,0
+epalrestat,Morgan,CC(/C=C1\SC(=S)N(CC(=O)O)C1=O)=C\c1ccccc1,,4.434152181326482,1
+"(-)-3-(3,4-dihydroxyphenyl)-2-methyl-l-alanine sesquihydrate",Morgan,C[C@](N)(Cc1ccc(O)c(O)c1)C(=O)O,<,3.8761483590329133,0
+CINCHOPHEN,Warner,O=C(O)c1cc(-c2ccccc2)nc2ccccc12,<,3.0896424427271225,0
+meloxicam,Morgan,Cc1cnc(NC(=O)C2=C(O)c3ccccc3S(=O)(=O)N2C)s1,,4.110698297493689,1
+nalidixic acid,Morgan,CCn1cc(C(=O)O)c(=O)c2ccc(C)nc21,<,3.8761483590329133,0
+bumetanide,Morgan,CCCCNc1cc(C(=O)O)cc(S(N)(=O)=O)c1Oc1ccccc1,<,3.8761483590329133,0
+BETAINE,Warner,C[N+](C)(C)CC(=O)O,<,3.0,0
+chlorthalidone,Morgan,NS(=O)(=O)c1cc(C2(O)NC(=O)c3ccccc32)ccc1Cl,<,3.8761483590329133,0
+methylprednisolone,Morgan,C[C@H]1C[C@H]2[C@@H]3CC[C@](O)(C(=O)COC(=O)CCC(=O)[O-])[C@@]3(C)C[C@H](O)[C@@H]2[C@@]2(C)C=CC(=O)C=C12,<,3.8761483590329133,0
+AZ116,Warner,O=c1[nH]c2c(O)ccc(CCNCCCS(=O)(=O)CCCOCCc3ccccc3)c2s1,,4.490125714995281,1
+AZ169,Warner,CN[C@]1(C)[C@H]2CC[C@H](C2)C1(C)C,<,3.0,0
+chlordiazepoxide,Morgan,CNC1=Nc2ccc(Cl)cc2C(c2ccccc2)=[N+]([O-])C1,,4.355561410532161,1
+PHENSUXIMIDE,Warner,CN1C(=O)CC(c2ccccc2)C1=O,<,3.0,0
+AZD0865,Warner,Cc1cccc(C)c1CNc1cc(C(=O)NCCO)cn2c(C)c(C)nc12,>,5.0,1
+oxybutynin,Morgan,CCN(CC)CC#CCOC(=O)C(O)(c1ccccc1)C1CCCCC1,,4.562249437179613,1
+ACEPROMAZINE,Warner,CC(=O)c1ccc2c(c1)N(CCCN(C)C)c1ccccc1S2,,3.9523358053984396,0
+febuxostat,Morgan,Cc1nc(-c2ccc(OCC(C)C)c(C#N)c2)sc1C(=O)O,,4.367542707815276,1
+fluvastatin,Morgan,CC(C)n1c(/C=C/C(O)CC(O)CC(=O)O)c(-c2ccc(F)cc2)c2ccccc21,,4.442492798094341,1
+ziprasidone mesylate,Morgan,O=C1Cc2cc(CCN3CCN(c4nsc5ccccc45)CC3)c(Cl)cc2N1,<,3.8761483590329133,0
+AZ42,Warner,CNCC(O)c1cccc(O)c1,<,3.0,0
+TRIMEBUTINE,Warner,CCC(COC(=O)c1cc(OC)c(OC)c(OC)c1)(c1ccccc1)N(C)C,>,5.0,1
+fleroxacin,Morgan,CN1CCN(c2c(F)cc3c(=O)c(C(=O)O)cn(CCF)c3c2F)CC1,<,3.8761483590329133,0
+felodipine,Morgan,CCOC(=O)C1=C(C)NC(C)=C(C(=O)OC)C1c1cccc(Cl)c1Cl,,4.15676722190199,1
+AZ153,Warner,C[C@H](CC(=O)Nc1c(Cl)ccc2nc(N3CC[C@H](N)C3)ccc12)c1ccccc1,>,4.568153954301276,1
+ciprofibrate,Morgan,CC(C)(Oc1ccc(C2CC2(Cl)Cl)cc1)C(=O)O,<,3.8761483590329133,0
+acitretin,Morgan,COc1cc(C)c(/C=C/C(C)=C/C=C/C(C)=C/C(=O)O)c(C)c1C,,4.417936637088292,1
+tegafur,Morgan,O=c1[nH]c(=O)n(C2CCCO2)cc1F,<,3.8761483590329133,0
+ADENINE,Warner,Nc1ncnc2nc[nH]c12,<,3.0,0
+LY 171883,Warner,CCCc1c(OCCCCc2nnn[nH]2)ccc(C(C)=O)c1O,>,4.968995718636464,1
+"fluorouracil, 5-",Morgan,O=c1[nH]cc(F)c(=O)[nH]1,<,3.8761483590329133,0
+wortmannin,Morgan,COC[C@H]1OC(=O)c2coc3c2[C@@]1(C)C1=C(C3=O)[C@@H]2CCC(=O)[C@@]2(C)C[C@H]1OC(C)=O,,4.866461091629782,1
+cladribine,Morgan,Nc1nc(Cl)nc2c1ncn2[C@H]1C[C@H](O)[C@@H](CO)O1,<,3.8761483590329133,0
+AZ143,Warner,O=CN(O)[C@@H](CCCc1ncccn1)CS(=O)(=O)N1CCN(c2ccc(Cl)cn2)CC1,>,5.0,1
+SERATRODAST,Warner,CC1=C(C)C(=O)C(C(CCCCCC(=O)O)c2ccccc2)=C(C)C1=O,>,4.844360366240224,1
+nefazodone,Morgan,CCc1nn(CCCN2CCN(c3cccc(Cl)c3)CC2)c(=O)n1CCOc1ccccc1,,5.213958789757446,1
+doxazosin mesylate,Morgan,COc1cc2nc(N3CCN(C(=O)C4COc5ccccc5O4)CC3)nc(N)c2cc1OC,,4.346787486224656,1
+terfenadine,Morgan,CC(C)(C)c1ccc(C(O)CCCN2CCC(C(O)(c3ccccc3)c3ccccc3)CC2)cc1,<,3.8761483590329133,0
+(-)-tramadol,Morgan,COc1cccc(C2(O)CCCCC2CN(C)C)c1,<,3.8761483590329133,0
+dipyridamole,Morgan,OCCN(CCO)c1nc(N2CCCCC2)c2nc(N(CCO)CCO)nc(N3CCCCC3)c2n1,,5.3979400086720375,1
+GUANETHIDINE,Warner,N=C(N)NCCN1CCCCCCC1,<,3.0,0
+etidronate disodium,Morgan,CC(O)(P(=O)([O-])O)P(=O)([O-])O,<,3.8761483590329133,0
+AZ77,Warner,CCCc1c2nc(C(=O)O)cc(Cl)c2cc2c(=O)cc(C(=O)O)oc12,<,3.049537781094402,0
+benzbromarone,Morgan,CCc1oc2ccccc2c1C(=O)c1cc(Br)c(O)c(Br)c1,,4.7569619513137065,1
+LIOTHYRONINE SODIUM,Warner,N[C@@H](Cc1cc(I)c(Oc2ccc(O)c(I)c2)c(I)c1)C(=O)O,>,4.948076083953894,1
+procarbazine hydrochloride,Morgan,CNNCc1ccc(C(=O)NC(C)C)cc1,<,3.8761483590329133,0
+dasatinib,Morgan,Cc1nc(Nc2ncc(C(=O)Nc3c(C)cccc3Cl)s2)cc(N2CCN(CCO)CC2)n1,,4.8827287043442364,1
+"wy-14,643",Morgan,Cc1cccc(Nc2cc(Cl)nc(SCC(=O)O)n2)c1C,,4.00436480540245,1
+lumiracoxib,Morgan,Cc1ccc(Nc2c(F)cccc2Cl)c(CC(=O)O)c1,<,3.8761483590329133,0
+anit,Morgan,S=C=Nc1cccc2ccccc12,,4.1611509092627434,1
+PARGYLINE,Warner,C#CCN(C)Cc1ccccc1,<,3.0,0
+methimazole,Morgan,Cn1cc[nH]c1=S,<,3.8761483590329133,0
+AZ56,Warner,O=C(O)c1cc2scnc2n1Cc1ccc(Cl)c(Cl)c1,,4.649945906420969,1
+AZ125,Warner,CCc1ncc(-c2ccnc(Nc3ccc(S(=O)(=O)NCCOC)cc3)n2)n1C(C)C,>,5.0,1
+antipyrine,Morgan,Cc1cc(=O)n(-c2ccccc2)n1C,<,3.8761483590329133,0
+pindolol,Morgan,CC(C)NCC(O)COc1cccc2[nH]ccc12,<,3.8761483590329133,0
+budesonide,Morgan,CCCC1O[C@@H]2C[C@H]3[C@@H]4CCC5=CC(=O)C=C[C@]5(C)[C@H]4[C@@H](O)C[C@]3(C)[C@]2(C(=O)CO)O1,,4.337242168318426,1
