@@ -7,6 +7,8 @@ import subprocess
 import tempfile
 import sys
 import pandas as pd
+import json
+import tarfile
 
 from atomsci.ddm.utils import datastore_functions as dsf
 from atomsci.clients import MLMTClient
@@ -214,3 +216,128 @@ def get_model_training_data_by_uuid(uuid):
 
 
 
+# *********************************************************************************************************************************
+def export_model(model_uuid, collection, model_dir):
+    """
+    Export the metadata (parameters) and other files needed to recreate a model
+    from the model tracker database to a gzipped tar archive.
+
+    Args:
+        model_uuid (str): Model unique identifier
+
+        collection (str): Name of the collection holding the model in the database.
+
+        model_dir (str): Path to directory where the model metadata and parameter files will be written. The directory will
+        be created if it doesn't already exist. Subsequently, the directory contents will be packed into a gzipped tar archive
+        named model_dir.tar.gz.
+
+    Returns:
+        none
+    """
+    ds_client = dsf.config_client()
+    metadata_dict = get_metadata_by_uuid(model_uuid, collection_name=collection)
+
+    # Get the tarball containing the saved model from the datastore, and extract it into model_dir.
+    if 'ModelMetadata' in metadata_dict:
+        # Convert old style metadata
+        metadata_dict = convert_metadata(metadata_dict)
+
+    if 'model_parameters' in metadata_dict:
+        model_parameters = metadata_dict['model_parameters']
+        model_dataset_oid = model_parameters['model_dataset_oid']
+    else:
+        raise Exception("Bad metadata for model UUID %s" % model_uuid)
+
+    os.makedirs(model_dir, exist_ok=True)
+
+    # Unpack the model state tarball into a subdirectory of the new archive
+    extract_dir = dsf.retrieve_dataset_by_dataset_oid(model_dataset_oid, client=ds_client, return_metadata=False,
+                                                    nrows=None, print_metadata=False, sep=False,
+                                                    tarpath='%s/best_model' % model_dir)
+
+    # Download the transformers pickle file if there is one
+    try:
+        transformer_oid = model_parameters["transformer_oid"]
+        trans_fp = ds_client.open_dataset(transformer_oid, mode='b')
+        trans_data = trans_fp.read()
+        trans_fp.close()
+        trans_path = "%s/transformers.pkl" % model_dir
+        trans_out = open(trans_path, mode='wb')
+        trans_out.write(trans_data)
+        trans_out.close()
+        del model_parameters['transformer_oid']
+        model_parameters['transformer_key'] = 'transformers.pkl'
+
+    except KeyError:
+        # OK if there are no transformers
+        pass
+
+    # Save the metadata params
+    meta_path = "%s/model_metadata.json" % model_dir
+    with open(meta_path, 'w') as meta_out:
+        json.dump(metadata_dict, meta_out, indent=4)
+
+    # Create a new tarball containing both the metadata and the parameters from the retrieved model tarball
+    new_tarpath = "%s.tar.gz" % model_dir
+    tarball = tarfile.open(new_tarpath, mode='w:gz')
+    tarball.add(model_dir, arcname='.')
+    tarball.close()
+    print("Wrote model files to %s" % new_tarpath)
+
+
+# *********************************************************************************************************************************
+def convert_metadata(old_metadata):
+    """
+    Convert model metadata from old format (with camel-case parameter group names) to new format.
+
+    Args:
+        old_metadata (dict): Model metadata in old format
+
+    Returns:
+        new_metadata (dict): Model metadata in new format
+    """
+
+    model_metadata = old_metadata['ModelMetadata']
+    model_parameters = model_metadata['ModelParameters']
+    training_dataset = model_metadata['TrainingDataset'].copy()
+    new_metadata = {
+        "model_uuid": old_metadata['model_uuid'],
+        "time_built": old_metadata['time_built'],
+        "training_dataset": training_dataset,
+        "training_metrics": []
+    }
+
+    map_keys = [
+        ("external_export_parameters", "ExternalExportParameters"),
+        ("dataset_metadata", "DatasetMetadata"),
+    ]
+
+    for (nkey, okey) in map_keys:
+        value = training_dataset.pop(okey, None)
+        if value is not None:
+            training_dataset[nkey] = value
+
+    map_keys = [
+        ("model_parameters", 'ModelParameters'),
+        ("ecfp_specific", 'ECFPSpecific'),
+        ("rf_specific", 'RFSpecific'),
+        ("autoencoder_specific", 'AutoencoderSpecific'),
+        ("descriptor_specific", 'DescriptorSpecific'),
+        ("nn_specific", "NNSpecific"),
+        ("xgb_specific", "xgbSpecific"),
+        ("umap_specific", "UmapSpecific"),
+
+    ]
+    for (nkey, okey) in map_keys:
+        value = model_metadata.get(okey)
+        if value is not None:
+            new_metadata[nkey] = value
+
+    # Get rid of useless extra level in split params
+    split_params = model_metadata.get('SplittingParameters')
+    if split_params is not None:
+        splitting = split_params.get('Splitting')
+        if splitting is not None:
+            new_metadata['splitting_parameters'] = splitting
+
+    return new_metadata
