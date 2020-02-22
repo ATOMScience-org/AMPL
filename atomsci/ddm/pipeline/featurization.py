@@ -860,8 +860,6 @@ class DescriptorFeaturization(PersistentFeaturization):
         try:
             ds_client = dsf.config_client()
         except Exception as e:
-            print('Exception when trying to connect to the datastore:')
-            print(e)
             ds_client = None
         cls.desc_type_cols = {}
         cls.desc_type_scaled = {}
@@ -878,7 +876,7 @@ class DescriptorFeaturization(PersistentFeaturization):
             except:
                 script_dir = os.path.dirname(os.path.realpath(__file__))
                 desc_spec_key_fallback = script_dir+'/../data/descriptor_sets_sources_by_descr_type.csv'
-                desc_spec_df = dsf.retrieve_dataset_by_datasetkey(desc_spec_key_fallback, desc_spec_bucket, ds_client)
+                desc_spec_df = pd.read_csv(desc_spec_key_fallback, index_col=False)
 
         for desc_type, source, scaled, descriptors in zip(desc_spec_df.descr_type.values,
                                                           desc_spec_df.source.values,
@@ -920,16 +918,9 @@ class DescriptorFeaturization(PersistentFeaturization):
         """
         super().__init__(params)
         cls = self.__class__
-        # JEA: load mapping between descriptor types and lists of descriptors
+        # Load mapping between descriptor types and lists of descriptors
         if len(cls.supported_descriptor_types) == 0:
-
-            # Try the descriptor_spec_key parameter first, then fall back to package file
-            try:
-                cls.load_descriptor_spec(params.descriptor_spec_bucket, params.descriptor_spec_key)
-            except:
-                script_dir = os.path.dirname(os.path.realpath(__file__))
-                desc_spec_key_fallback = script_dir+'/../data/descriptor_sets_sources_by_descr_type.csv'
-                cls.load_descriptor_spec(params.descriptor_spec_bucket, desc_spec_key_fallback)
+            cls.load_descriptor_spec(params.descriptor_spec_bucket, params.descriptor_spec_key)
         
         if not params.descriptor_type in cls.supported_descriptor_types:
             raise ValueError("Unsupported descriptor type %s" % params.descriptor_type)
