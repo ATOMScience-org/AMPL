@@ -13,6 +13,7 @@ import sys
 import time
 import uuid
 import tempfile
+import tarfile
 import deepchem as dc
 import numpy as np
 from datetime import datetime
@@ -899,8 +900,7 @@ def regenerate_results(result_dir, params=None, metadata_dict=None, shared_featu
 # ****************************************************************************************
 def create_prediction_pipeline(params, model_uuid, collection_name, featurization=None):
     """Create a ModelPipeline object to be used for running blind predictions on datasets
-    where the ground truth is not known. The parsed parameters in 'model_params' must include
-    the model_uuid of a trained model, which will be used to run predictions.
+    where the ground truth is not known, given a pretrained model in the model tracker database.
 
     Args:
         params (Namespace) : A parsed parameters namespace, containing parameters describing how input
@@ -995,17 +995,25 @@ def create_prediction_pipeline(params, model_uuid, collection_name, featurizatio
 
 
 # ****************************************************************************************
-def create_prediction_pipeline_from_file(params, reload_dir, model_type='best_model', featurization=None):
+def create_prediction_pipeline_from_file(params, reload_dir, model_path=None, model_type='best_model', featurization=None):
     """
-    Create a ModelPipeline object to be used for running blind predictions on datasets
-    where the ground truth is not known.
+    Create a ModelPipeline object to be used for running blind predictions on datasets, given a pretrained model stored
+    in the filesystem. The model may be stored either as a gzipped tar archive or as a directory.
 
     Args:
         params (Namespace) : A parsed parameters namespace, containing parameters describing how input
         datasets should be processed.
 
         reload_dir (str) : The path to the parent directory containing the various model subdirectories 
-          (e.g.: '/home/cdsw/model/delaney-processed/delaney-processed/pxc50_NN_graphconv_scaffold_regression/')
+          (e.g.: '/home/cdsw/model/delaney-processed/delaney-processed/pxc50_NN_graphconv_scaffold_regression/').
+        If reload_dir is None, then model_path must be specified. If both are specified, then the tar archive given
+        by model_path will be unpacked into reload_dir, possibly overwriting existing files in that directory.
+
+        model_path (str): Path to a gzipped tar archive containing the saved model metadata and parameters. If specified,
+        the tar archive is unpacked into reload_dir if that directory is given, or to a temporary directory otherwise.
+
+        model_type (str): Name of the subdirectory in reload_dir or in the tar archive where the trained model state parameters
+        should be loaded from.
 
         featurization (Featurization): An optional featurization object to be used for featurizing the input data.
         If none is provided, one will be created based on the stored model parameters.
@@ -1014,14 +1022,34 @@ def create_prediction_pipeline_from_file(params, reload_dir, model_type='best_mo
         pipeline (ModelPipeline) : A pipeline object to be used for making predictions.
     """
 
+    # Unpack the model tar archive if one is specified
+    if model_path is not None:
+        if reload_dir is None:
+            # Create a temporary directory
+            reload_dir = tempfile.mkdtemp()
+        else:
+            os.makedirs(reload_dir, exist_ok=True)
+        model_fp = tarfile.open(model_path, mode='r:gz')
+        model_fp.extractall(path=reload_dir)
+        model_fp.close()
+    elif reload_dir is None:
+        raise ValueError("Either reload_dir or model_path must be specified.")
+
     # Opens the model_metadata.json file containing the reloaded model parameters
     config_file_path = os.path.join(reload_dir, 'model_metadata.json')
     with open(config_file_path) as f:
-      config = json.loads(f.read())
+        config = json.loads(f.read())
+    # Set the transformer_key parameter to point to the transformer pickle file we just extracted
+    try:
+        has_transformers = config['model_parameters']['transformers']
+        if has_transformers:
+            config['model_parameters']['transformer_key'] = "%s/transformers.pkl" % reload_dir
+    except KeyError:
+        pass
 
     # Parse the saved model metadata to obtain the parameters used to train the model
     model_params = parse.wrapper(config)
-    print("Featurizer = %s" % model_params.featurizer)
+    #print("Featurizer = %s" % model_params.featurizer)
 
     # Override selected model training data parameters with parameters for current dataset
 
@@ -1031,10 +1059,7 @@ def create_prediction_pipeline_from_file(params, reload_dir, model_type='best_mo
     model_params.smiles_col = params.smiles_col
     model_params.result_dir = params.result_dir
     model_params.system = params.system
-
-    # Create a separate output_dir under model_params.result_dir for each model. For lack of a better idea, use the model UUID
-    # to name the output dir, to ensure uniqueness.
-    model_params.output_dir = os.path.join(params.result_dir)
+    model_params.output_dir = reload_dir
 
     # Allow using computed_descriptors featurizer for a model trained with the descriptors featurizer, and vice versa
     if (model_params.featurizer == 'descriptors' and params.featurizer == 'computed_descriptors') or (
