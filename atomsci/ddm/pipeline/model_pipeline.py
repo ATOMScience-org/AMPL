@@ -1144,9 +1144,10 @@ def load_from_tracker(model_uuid, collection_name=None, client=None, verbose=Fal
         verbose (bool): A switch for disabling informational messages
 
     Returns:
-        pipeline (ModelPipeline) : A pipeline object to be used for making predictions.
+        tuple of:
+            pipeline (ModelPipeline) : A pipeline object to be used for making predictions.
 
-        params (list): List of matching model dictionaries from queried models.
+            pparams (Namespace): Parsed parameter namespace from the requested model.
     """
 
     if not verbose:
@@ -1181,7 +1182,7 @@ def load_from_tracker(model_uuid, collection_name=None, client=None, verbose=Fal
     if not verbose:
         sys.stdout = sys.__stdout__
 
-    return (model, params)
+    return (model, pparams)
 
 
 # ****************************************************************************************
