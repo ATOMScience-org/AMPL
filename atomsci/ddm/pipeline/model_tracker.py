@@ -82,7 +82,7 @@ def save_model(pipeline, collection_name='model_tracker', log=True):
 
 
     #### Part 2: Save the model metadata ####
-    mlmt_client = MLMTClient()
+    mlmt_client = dsf.initialize_model_tracker()
     mlmt_client.save_metadata(collection_name=collection_name,
                                     model_uuid=metadata_dict['model_uuid'],
                                     model_metadata=metadata_dict)
@@ -105,7 +105,7 @@ def get_full_metadata(filter_dict, collection_name=None):
         raise ValueError('Parameter filter_dict cannot be None.')
     if collection_name is None:
         raise ValueError('Parameter collection_name cannot be None.')
-    mlmt_client = MLMTClient()
+    mlmt_client = dsf.initialize_model_tracker()
 
     query_params = {
         "match_metadata": filter_dict,
@@ -130,7 +130,7 @@ def get_metadata_by_uuid(model_uuid, collection_name=None):
         Matching metadata dictionary. Raises MongoQueryException if the query fails.
     """
 
-    mlmt_client = MLMTClient()
+    mlmt_client = dsf.initialize_model_tracker()
 
     if collection_name is None:
         collection_name = get_model_collection_by_uuid(model_uuid, mlmt_client=mlmt_client)
@@ -156,7 +156,7 @@ def get_full_metadata_by_uuid(model_uuid, collection_name=None):
         Matching metadata dictionary. Raises MongoQueryException if the query fails.
     """
 
-    mlmt_client = MLMTClient()
+    mlmt_client = dsf.initialize_model_tracker()
 
     if collection_name is None:
         collection_name = get_model_collection_by_uuid(model_uuid, mlmt_client=mlmt_client)
@@ -177,7 +177,7 @@ def get_model_collection_by_uuid(model_uuid, mlmt_client=None):
         ValueError if there is no collection containing a model with the given uuid.
     """
 
-    mlmt_client = MLMTClient()
+    mlmt_client = dsf.initialize_model_tracker()
 
     collections = mlmt_client.collections.get_collection_names().result()
     for col in collections:

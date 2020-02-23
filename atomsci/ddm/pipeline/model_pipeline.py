@@ -128,7 +128,7 @@ class ModelPipeline:
             self.params.model_uuid = str(uuid.uuid4())
 
         if self.params.save_results:
-            self.mlmt_client = MLMTClient()
+            self.mlmt_client = dsf.initialize_model_tracker()
 
         self.perf_dict = {}
         if self.params.prediction_type == 'regression':
@@ -749,7 +749,7 @@ def run_models(params, shared_featurization=None, generator=False):
 
         generator (bool): True if run as a generator
     """
-    mlmt_client = MLMTClient()
+    mlmt_client = dsf.initialize_model_tracker()
     ds_client = dsf.config_client()
 
     exclude_fields = [
@@ -862,7 +862,7 @@ def regenerate_results(result_dir, params=None, metadata_dict=None, shared_featu
         result_dict (dict): Results from predictions
     """
 
-    mlmt_client = MLMTClient()
+    mlmt_client = dsf.initialize_model_tracker()
     ds_client = dsf.config_client()
 
     if metadata_dict is None:
@@ -959,7 +959,7 @@ def create_prediction_pipeline(params, model_uuid, collection_name, featurizatio
     Returns:
         pipeline (ModelPipeline) : A pipeline object to be used for making predictions.
     """
-    mlmt_client = MLMTClient()
+    mlmt_client = dsf.initialize_model_tracker()
     ds_client = dsf.config_client()
 
     metadata_dict = trkr.get_metadata_by_uuid(model_uuid, collection_name=collection_name)
@@ -1158,7 +1158,7 @@ def load_from_tracker(model_uuid, collection_name=None, client=None, verbose=Fal
         warnings.simplefilter("ignore")
 
     # Get the singleton MLMTClient instance
-    mlmt_client = MLMTClient()
+    mlmt_client = dsf.initialize_model_tracker()
 
     if collection_name is None:
         collection_name = trkr.get_model_collection_by_uuid(model_uuid)
@@ -1218,7 +1218,7 @@ def ensemble_predict(model_uuids, collections, dset_df, labels=None, dset_params
     """
 
     # Get the singleton MLMTClient instance
-    mlmt_client = MLMTClient()
+    mlmt_client = dsf.initialize_model_tracker()
 
     pred_df = None
 
@@ -1350,7 +1350,7 @@ def retrain_model(model_uuid, collection_name=None, mt_client=None, verbose=True
     Returns:
         pipeline (ModelPipeline) : A pipeline object containing data from the model training.
     """
-    mlmt_client = MLMTClient()
+    mlmt_client = dsf.initialize_model_tracker()
 
     print("Loading model %s from collection %s" % (model_uuid, collection_name))
     metadata_dict = trkr.get_metadata_by_uuid(model_uuid, collection_name=collection_name)

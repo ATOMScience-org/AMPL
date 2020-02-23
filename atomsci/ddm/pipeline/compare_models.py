@@ -31,7 +31,7 @@ def get_collection_datasets(collection_name):
     Returns a list of unique training (dataset_key, bucket) tuples used for all models in the given collection.
     """
     dataset_set = set()
-    mlmt_client = MLMTClient()
+    mlmt_client = dsf.initialize_model_tracker()
     dset_dicts = mlmt_client.model.query_datasets(collection_name=collection_name, metrics_type='training').result()
     # Convert to a list of (dataset_key, bucket) tuples
     for dset_dict in dset_dicts:
@@ -61,7 +61,7 @@ def get_training_perf_table(dataset_key, bucket, collection_name, pred_type='reg
     parameters.
     """
     print("Finding models trained on %s dataset %s" % (bucket, dataset_key))
-    mlmt_client = MLMTClient()
+    mlmt_client = dsf.initialize_model_tracker()
     query_params = {
         "match_metadata": {
             "training_dataset.bucket": bucket,
@@ -221,7 +221,7 @@ def get_best_perf_table(col_name, metric_type, model_uuid=None, metadata_dict=No
         model_info (dict): Dictionary of parameter or metric name - value pairs.
 
     """
-    mlmt_client = MLMTClient()
+    mlmt_client = dsf.initialize_model_tracker()
     if metadata_dict is None:
         if model_uuid is None:
             print("Have to specify either metadata_dict or model_uuid")
@@ -350,7 +350,7 @@ def get_best_models_info(col_names, bucket, pred_type, PK_pipeline=False, output
         top_models_df (DataFrame): Table of parameters and metrics for best models for each dataset.
     """
 
-    mlmt_client = MLMTClient()
+    mlmt_client = dsf.initialize_model_tracker()
     top_models_info = []
     sort_order = {'max': -1, 'min': 1}
     sort_ascending = {'max': False, 'min': True}
@@ -517,7 +517,7 @@ def get_umap_nn_model_perf_table(dataset_key, bucket, collection_name, pred_type
     query_params['match_metadata'].update(other_filters)
 
     print("Finding models trained on %s dataset %s" % (bucket, dataset_key))
-    mlmt_client = MLMTClient()
+    mlmt_client = dsf.initialize_model_tracker()
     metadata_list = mlmt_client.model.query_model_metadata(
         collection_name=collection_name,
         query_params=query_params,
@@ -855,7 +855,7 @@ def get_summary_perf_tables(collection_names, filter_dict={}, prediction_type='r
         ncmpd_dict[subset] = []
 
 
-    mlmt_client = MLMTClient()
+    mlmt_client = dsf.initialize_model_tracker()
     filter_dict['model_parameters.prediction_type'] = prediction_type
     for collection_name in collection_names:
         print("Finding models in collection %s" % collection_name)
@@ -1029,7 +1029,7 @@ def get_summary_metadata_table(uuids, collections=None):
         collections = [collections] * len(uuids)
 
     mlist = []
-    mlmt_client = MLMTClient()
+    mlmt_client = dsf.initialize_model_tracker()
     for idx,uuid in enumerate(uuids):
         if collections is not None:
             collection_name = collections[idx]
@@ -1129,7 +1129,7 @@ def get_training_datasets(collection_names):
     """
     result_dict = {}
 
-    mlmt_client = MLMTClient()
+    mlmt_client = dsf.initialize_model_tracker()
     for collection_name in collection_names:
         dset_list = mlmt_client.model.get_training_datasets(collection_name=collection_name).result()
         result_dict[collection_name] = dset_list
@@ -1148,7 +1148,7 @@ def get_dataset_models(collection_names, filter_dict={}):
 
     coll_dset_dict = get_training_dict(collection_names)
 
-    mlmt_client = MLMTClient()
+    mlmt_client = dsf.initialize_model_tracker()
     for collection_name in collection_names:
         dset_list = coll_dset_dict[collection_name]
         for dset_dict in dset_list:
@@ -1179,7 +1179,7 @@ def get_dataset_models(collection_names, filter_dict={}):
 # TODO: Update this function
 def aggregate_predictions(datasets, bucket, col_names, result_dir):
     results = []
-    mlmt_client = MLMTClient()
+    mlmt_client = dsf.initialize_model_tracker()
     for dset_key, bucket in datasets:
         for model_type in ['NN', 'RF']:
             for split_type in ['scaffold', 'random']:

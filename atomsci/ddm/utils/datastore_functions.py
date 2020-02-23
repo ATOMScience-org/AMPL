@@ -22,6 +22,8 @@ import tarfile
 import tempfile
 import getpass
 
+from atomsci.ddm.utils.llnl_utils import is_lc_system
+
 feather_supported = True
 try:
     import feather
@@ -45,18 +47,31 @@ except (ModuleNotFoundError, ImportError):
 #===function definition section==========================================================================
 
 def config_client(
-        token='/usr/local/data/ds_token.txt',
+        token=None,
         url='https://twintron-blue.llnl.gov/atom/datastore/api/v1.0/swagger.json',
         new_instance=False):
-    """Configures client to access Datastore
+    """
+    Configures client to access datastore service.
 
     Args:
-        token (str): location of soft token for accessing datastore
-        url (str): url for datastore
+        token (str): Path to file containing token for accessing datastore. Defaults to 
+        /usr/local/data/ds_token.txt on non-LC systems, or to $HOME/data/ds_token.txt on LC systems.
+
+        url (str): URL for datastore REST service.
+
+        new_instance (bool): True to force creation of a new client object. By default, a shared
+        singleton object is returned.
 
     Returns:
-        returns configured client"""
+        returns configured client
+    """
 
+    if token is None:
+        # Default token path depends on whether you're on LC or another LLNL system
+        if is_lc_system():
+            token = os.path.join(os.environ['HOME'], 'data', 'ds_token.txt')
+        else:
+            token = '/usr/local/data/ds_token.txt'
     token_str = None
     if 'DATASTORE_API_TOKEN' in os.environ:
         token_str = os.environ['DATASTORE_API_TOKEN']
@@ -64,6 +79,7 @@ def config_client(
         if os.path.exists(token):
             with open(token,'r') as f:
                 token_str = f.readline().strip()
+            os.environ['DATASTORE_API_TOKEN'] = token_str
 
     if new_instance:
         client = DatastoreClient(default_url=url,
@@ -84,43 +100,22 @@ def config_client(
 
 #--------------------------------------------------------------------------------------------------------
 
-def initialize_model_tracker(use_production_server,ds_client) : 
-	"""Instantiate the mlmt_client.
+def initialize_model_tracker(): 
+    """
+    Create or obtain a client object for the model tracker service..
 
-        Args:
-            use_production_server (bool): True if production server should be
-            used. False if local server should be used. Default True. Local
-            server should only be used for testing.
+    Returns:
+        mlmt_client (MLMTClient): The client object for the model tracker service.
+    """
+    if not 'MLMT_REST_API_URL' in os.environ:
+        os.environ['MLMT_REST_API_URL'] = 'https://twintron-blue.llnl.gov/atom/mlmt/api/v1.0/swagger.json'
 
-        """
-	# =====================================================
-	# Set up machine learning model tracker (mlmt) client.
-	# =====================================================
-	# Toggle True/False to use production server or the forsyth2 personal
-	# server.
-	# The former should almost always be used, unless testing with code only
-	# running on the latter.
-	if use_production_server:
-           if ds_client is None:
-              ds_client = DatastoreClient()
+    # MLMT service uses same API token as datastore. Make sure it gets set in the environment.
+    ds_client = config_client()
 
-           # 'DATASTORE_API_TOKEN' should be defined by this point.
-           # Swagger UI Link:            # https://twintron-blue.llnl.gov/ml-services/swaggerui/
-           # (paste the link below into the "Explore" field to use).
-           os.environ['MLMT_REST_API_URL'] = 'https://twintron-blue.llnl.gov/ml-services/mlmt/api/v1.0/swagger.json'
-           mlmt_client = MLMTClient()
+    mlmt_client = MLMTClient()
 
-	else:
-    	   # Link to the forsyth2 instance of the ML services API.
-    	   # From ml_services JupyterLab's
-    	   # `/usr/local/ml_services/src/ml_services`
-    	   # run `./build.sh &&./install.sh && supervisorctl restart
-    	   # mlmt-rest-service` to update the API.
-    	   mlmt_client = ac.MLMTClient(
-		url='https://twintron-blue.llnl.gov/forsyth2/ml_services/mlmt/api/v1.0/swagger.json',
-		api_token=''
-    	   )
-	return ds_client, mlmt_client
+    return mlmt_client
 
 #--------------------------------------------------------------------------------------------------------
 
