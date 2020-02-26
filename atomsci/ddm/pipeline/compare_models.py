@@ -266,20 +266,21 @@ def get_best_perf_table(col_name, metric_type, model_uuid=None, metadata_dict=No
         model_info['split_uuid'] = split_params['split_uuid']
     model_info['dataset_key'] = metadata_dict['training_dataset']['dataset_key']
     model_info['bucket'] = metadata_dict['training_dataset']['bucket']
+    dset_meta = metadata_dict['training_dataset']['dataset_metadata']
     if PK_pipe:
-        model_info['assay_name'] = metadata_dict['training_dataset']['dataset_metadata'][
-            'assay_category']
-        model_info['response_col'] = metadata_dict['training_dataset']['dataset_metadata'][
-            'response_cols']
+        model_info['assay_name'] = dset_meta.get('assay_category', 'NA')
+        model_info['response_col'] = dset_meta.get('response_cols', dset_meta.get('response_col', 'NA'))
     try:
         model_info['descriptor_type'] = metadata_dict['descriptor_specific']['descriptor_type']
-    except:
+    except KeyError:
         model_info['descriptor_type'] = 'NA'
     try:
-        model_info['num_samples'] = metadata_dict['training_dataset']['dataset_metadata']['num_row']
+        model_info['num_samples'] = dset_meta['num_row']
     except:
-        tmp_df = dsf.retrieve_dataset_by_datasetkey(model_info['dataset_key'], model_info['bucket'])
-        model_info['num_samples'] = tmp_df.shape[0]
+        # KSM: Commented out because original dataset may no longer be accessible.
+        #tmp_df = dsf.retrieve_dataset_by_datasetkey(model_info['dataset_key'], model_info['bucket'])
+        #model_info['num_samples'] = tmp_df.shape[0]
+        model_info['num_samples'] = nan
     if model_info['model_type'] == 'NN':
         nn_params = metadata_dict['nn_specific']
         model_info['max_epochs'] = nn_params['max_epochs']
