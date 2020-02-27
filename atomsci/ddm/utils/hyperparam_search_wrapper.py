@@ -25,7 +25,6 @@ from atomsci.ddm.pipeline import featurization as feat
 from atomsci.ddm.pipeline import parameter_parser as parse
 from atomsci.ddm.pipeline import model_datasets as model_datasets
 from atomsci.ddm.utils import datastore_functions as dsf
-from atomsci.ddm.pipeline import mlmt_client_wrapper as mlmt_client_wrapper
 from atomsci.ddm.pipeline import model_tracker as trkr
 logging.basicConfig(format='%(asctime)-15s %(message)s')
 
@@ -276,8 +275,7 @@ class HyperparameterSearch(object):
         self.log.addHandler(c_handler)
         self.log.addHandler(f_handler)
 
-        self.client_wrapper = mlmt_client_wrapper.MLMTClientWrapper()
-        self.client_wrapper.instantiate_mlmt_client()
+        self.mlmt_client = dsf.initialize_model_tracker()
 
         slurm_path = os.path.join(self.params.result_dir, 'slurm_files')
         if not os.path.exists(slurm_path):
@@ -429,7 +427,7 @@ class HyperparameterSearch(object):
             self.assays = self.get_shortlist_df(split_uuids=True)
         self.assays = [(t[0].strip(), t[1].strip(), t[2].strip(), t[3].strip()) for t in self.assays]
 
-    def get_dataset_metadata(self, assay_params):
+    def get_dataset_metadata(self, assay_params, retry_time=60):
         """
         Gather the required metadata for a dataset
         
@@ -452,7 +450,7 @@ class HyperparameterSearch(object):
                 if i < 5:
                     print("Could not get metadata from datastore for dataset %s because of exception %s, sleeping..."
                             % (assay_params['dataset_key'], e))
-                    time.sleep(60)
+                    time.sleep(retry_time)
                     i += 1
                 else:
                     print("Could not get metadata from datastore for dataset %s because of exception %s, exiting"
@@ -501,7 +499,7 @@ class HyperparameterSearch(object):
         assay_params['previously_split'] = True
         assay_params['split_uuid'] = data.split_uuid
 
-    def return_split_uuid(self, dataset_key, bucket=None, splitter=None, split_combo=None):
+    def return_split_uuid(self, dataset_key, bucket=None, splitter=None, split_combo=None, retry_time=60):
         """
         Loads a dataset, splits it, saves it, and returns the split_uuid
         Args:
@@ -533,7 +531,7 @@ class HyperparameterSearch(object):
             except Exception as e:
                 if i < 5:
                     print("Could not get metadata from datastore for dataset %s because of exception %s, sleeping..." % (dataset_key, e))
-                    time.sleep(60)
+                    time.sleep(retry_time)
                     i += 1
                 else:
                     print("Could not get metadata from datastore for dataset %s because of exception %s, exiting" % (dataset_key, e))
@@ -584,13 +582,13 @@ class HyperparameterSearch(object):
             except Exception as e:
                 if i < 5:
                     print("Could not get metadata from datastore for dataset %s because of exception %s, sleeping" % (dataset_key, e))
-                    time.sleep(60)
+                    time.sleep(retry_time)
                     i += 1
                 else:
                     print("Could not save split dataset for dataset %s because of exception %s" % (dataset_key, e))
                     return None
 
-    def generate_split_shortlist(self):
+    def generate_split_shortlist(self, retry_time=60):
         """
         Processes a shortlist, generates splits for each dataset on the list, and uploads a new shortlist file with the
         split_uuids included. Generates splits for the split_combos [[0.1,0.1], [0.1,0.2],[0.2,0.2]], [random, scaffold]
@@ -609,7 +607,7 @@ class HyperparameterSearch(object):
                 if i < 5:
                     print("Could not retrieve shortlist %s from datastore because of exception %s, sleeping..." %
                           (self.params.shortlist_key, e))
-                    time.sleep(60)
+                    time.sleep(retry_time)
                     i += 1
                 else:
                     print("Could not retrieve shortlist %s from datastore because of exception %s, exiting" %
@@ -652,14 +650,14 @@ class HyperparameterSearch(object):
             except Exception as e:
                 if i < 5:
                     print("Could not save new shortlist because of exception %s, sleeping..." % e)
-                    time.sleep(60)
+                    time.sleep(retry_time)
                     i += 1
                 else:
                     #TODO: Add save to disk.
                     print("Could not save new shortlist because of exception %s, exiting" % e)
                     retry = False
 
-    def get_shortlist_df(self, split_uuids=False):
+    def get_shortlist_df(self, split_uuids=False, retry_time=60):
         """
         
         Args:
@@ -678,7 +676,7 @@ class HyperparameterSearch(object):
                 except Exception as e:
                     if i < 5:
                         print("Could not retrieve shortlist %s because of exception %s, sleeping..." % (self.params.shortlist_key, e))
-                        time.sleep(60)
+                        time.sleep(retry_time)
                         i += 1
                     else:
                         print("Could not retrieve shortlist %s because of exception %s, exiting" % (self.params.shortlist_key, e))
@@ -729,7 +727,7 @@ class HyperparameterSearch(object):
                         continue
         return assays
 
-    def submit_jobs(self):
+    def submit_jobs(self, retry_time=60):
         """
         Reformats parameters as necessary and then calls run_command in a loop to submit a job for each param combo
         
@@ -783,14 +781,14 @@ class HyperparameterSearch(object):
                     i = int(run_cmd('squeue | grep $(whoami) | wc -l').decode("utf-8"))
                     while i >= self.params.max_jobs:
                         print("%d jobs in queue, sleeping" % i)
-                        time.sleep(60)
+                        time.sleep(retry_time)
                         i = int(run_cmd('squeue | grep $(whoami) | wc -l').decode("utf-8"))
                     assay_params['result_dir'] = os.path.join(base_result_dir, str(uuid.uuid4()))
                     self.log.info(assay_params)
                     self.out_file.write(str(assay_params))
                     run_command(self.shell_script, self.params.python_path, self.params.script_dir, assay_params)
 
-    def already_run(self, assay_params):
+    def already_run(self, assay_params, retry_time=10):
         """
         Checks to see if a model with a given metadata combination has already been built
         Args:
@@ -808,11 +806,11 @@ class HyperparameterSearch(object):
         i = 0
         while retry:
             try:
-                models = list(trkr.get_metadata(filter_dict, self.client_wrapper, collection_name=assay_params['collection_name']))
+                models = list(trkr.get_full_metadata(filter_dict, collection_name=assay_params['collection_name']))
                 retry = False
             except Exception as e:
                 if i < 5:
-                    time.sleep(60)
+                    time.sleep(retry_time)
                     i += 1
                 else:
                     print("Could not check Model Tracker for existing model at this time because of exception %s" % e)
