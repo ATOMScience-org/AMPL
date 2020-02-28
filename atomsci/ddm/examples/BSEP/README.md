@@ -13,8 +13,8 @@ To run the models:
 in [the README file for AMPL](https://github.com/ATOMconsortium/AMPL/blob/master/README.md).
 - Prepare your input data file. It should be in CSV format with a row of column headers at the top, and should (at minimum)
 contain a column of SMILES strings for the compounds you want to run predictions on. You may optionally include the following columns:
- - A column of unique compound IDs; if none is provided, one will be generated for you. 
- - A column of binary activity values, if you have measured IC50s for the input compounds: 0 if the IC50 < 100 uM, 1 if IC50 >= 100 uM.
+  - A column of unique compound IDs; if none is provided, one will be generated for you. 
+  - A column of binary activity values, if you have measured IC50s for the input compounds: 0 if the IC50 < 100 uM, 1 if IC50 >= 100 uM.
 - From the Unix command line, cd to this directory (`...AMPL/atomsci/ddm/examples/BSEP`) and run the command:
 `./predict_bsep_inhibition.py --help`
 to see the full set of command line options. You need to specify the `--input_file` and `--output_file` options at minimum. The other options
@@ -33,7 +33,7 @@ The output of the `predict_bsep_inhibition.py` command is a CSV file with the fo
 - Compound ID
 - SMILES strings as input
 - Standardized SMILES strings (unless the `--dont_standardize` option is specified)
-- The input activity values, if the `--activity_col` option is specified
+- The input activity values, if the `--activity_col` option is specified, in column `<activity_col>_actual`
 - The predicted probabilities of each compound to be a BSEP inhibitor, in column `active_prob` or `(activity_col)_prob`
 - The predicted activity value for each compound (1 if a BSEP inhibitor, 0 if not), in column `active_pred` or `(activity_col)_pred`
 
