@@ -806,6 +806,7 @@ class HyperparameterSearch(object):
         i = 0
         while retry:
             try:
+                print("Checking model tracker DB for existing model with parameter combo.")
                 models = list(trkr.get_full_metadata(filter_dict, collection_name=assay_params['collection_name']))
                 retry = False
             except Exception as e:
@@ -818,6 +819,7 @@ class HyperparameterSearch(object):
         if models:
             print("Already created model for this param combo")
             return True
+        print("No existing model found")
         return False
 
     def generate_combo(self, params_dict):
