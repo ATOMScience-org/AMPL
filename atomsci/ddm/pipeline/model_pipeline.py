@@ -941,7 +941,7 @@ def regenerate_results(result_dir, params=None, metadata_dict=None, shared_featu
 
 
 # ****************************************************************************************
-def create_prediction_pipeline(params, model_uuid, collection_name, featurization=None):
+def create_prediction_pipeline(params, model_uuid, collection_name, featurization=None, alt_bucket='CRADA'):
     """Create a ModelPipeline object to be used for running blind predictions on datasets
     where the ground truth is not known, given a pretrained model in the model tracker database.
 
@@ -955,6 +955,9 @@ def create_prediction_pipeline(params, model_uuid, collection_name, featurizatio
 
         featurization (Featurization): An optional featurization object to be used for featurizing the input data.
         If none is provided, one will be created based on the stored model parameters.
+
+        alt_bucket (str): Alternative bucket to search for model tarball and transformer files, if
+        original bucket no longer exists.
 
     Returns:
         pipeline (ModelPipeline) : A pipeline object to be used for making predictions.
@@ -980,6 +983,18 @@ def create_prediction_pipeline(params, model_uuid, collection_name, featurizatio
     model_params.smiles_col = params.smiles_col
     model_params.result_dir = params.result_dir
     model_params.system = params.system
+
+    # Check that buckets where model tarball and transformers were saved still exist. If not, try alt_bucket.
+    trans_bucket_differs = (model_params.transformer_bucket != model_params.model_bucket)
+    model_bucket_meta = ds_client.ds_buckets.get_buckets(buckets=[model_params.model_bucket]).result()
+    if len(model_bucket_meta) == 0:
+        model_params.model_bucket = alt_bucket
+    if trans_bucket_differs:
+        trans_bucket_meta = ds_client.ds_buckets.get_buckets(buckets=[model_params.transformer_bucket]).result()
+        if len(trans_bucket_meta) == 0:
+            model_params.transformer_bucket = alt_bucket
+    else:
+        model_params.transformer_bucket = alt_bucket
 
     # Create a separate output_dir under model_params.result_dir for each model. For lack of a better idea, use the model UUID
     # to name the output dir, to ensure uniqueness.
@@ -1013,11 +1028,11 @@ def create_prediction_pipeline(params, model_uuid, collection_name, featurizatio
         pipeline.log.setLevel(logging.CRITICAL)
 
     # Get the tarball containing the saved model from the datastore, and extract it into model_dir.
-    model_dataset_oid = metadata_dict['model_parameters']['model_dataset_oid']
-    # TODO: Should we catch exceptions from retrieve_dataset_by_dataset_oid, or let them propagate?
-    model_dir = dsf.retrieve_dataset_by_dataset_oid(model_dataset_oid, client=ds_client, return_metadata=False,
-                                                    nrows=None, print_metadata=False, sep=False,
-                                                    tarpath=pipeline.model_wrapper.model_dir)
+    model_dataset_key = 'model_%s_tarball' % model_uuid
+    model_dir = dsf.retrieve_dataset_by_datasetkey(model_dataset_key, bucket=model_params.model_bucket,
+                                                   client=ds_client, return_metadata=False,
+                                                   nrows=None, print_metadata=False, sep=False,
+                                                   tarpath=pipeline.model_wrapper.model_dir)
     pipeline.log.info("Extracted model tarball to %s" % model_dir)
 
     # If that worked, reload the saved model training state
@@ -1131,7 +1146,7 @@ def create_prediction_pipeline_from_file(params, reload_dir, model_path=None, mo
 
 # ****************************************************************************************
 
-def load_from_tracker(model_uuid, collection_name=None, client=None, verbose=False):
+def load_from_tracker(model_uuid, collection_name=None, client=None, verbose=False, alt_bucket='CRADA'):
     """Create a ModelPipeline object using the metadata in the  model tracker.
 
     Args:
@@ -1142,6 +1157,9 @@ def load_from_tracker(model_uuid, collection_name=None, client=None, verbose=Fal
         client : Ignored, for backward compatibility only
 
         verbose (bool): A switch for disabling informational messages
+
+        alt_bucket (str): Alternative bucket to search for model tarball and transformer files, if
+        original bucket no longer exists.
 
     Returns:
         tuple of:
@@ -1176,7 +1194,7 @@ def load_from_tracker(model_uuid, collection_name=None, client=None, verbose=Fal
     pparams.verbose = verbose
     pparams.result_dir = tempfile.mkdtemp()  # Redirect the untaring of the model to a temporary directory
 
-    model = create_prediction_pipeline(pparams, model_uuid, collection_name)
+    model = create_prediction_pipeline(pparams, model_uuid, collection_name, alt_bucket=alt_bucket)
     # model.params.uncertainty = False
 
     if not verbose:
