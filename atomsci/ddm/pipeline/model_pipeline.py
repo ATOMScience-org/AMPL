@@ -941,13 +941,14 @@ def regenerate_results(result_dir, params=None, metadata_dict=None, shared_featu
 
 
 # ****************************************************************************************
-def create_prediction_pipeline(params, model_uuid, collection_name, featurization=None, alt_bucket='CRADA'):
+def create_prediction_pipeline(params, model_uuid, collection_name=None, featurization=None, alt_bucket='CRADA'):
     """Create a ModelPipeline object to be used for running blind predictions on datasets
     where the ground truth is not known, given a pretrained model in the model tracker database.
 
     Args:
-        params (Namespace) : A parsed parameters namespace, containing parameters describing how input
-        datasets should be processed.
+        params (Namespace or dict) : A parsed parameters namespace, containing parameters describing how input
+        datasets should be processed. If a dictionary is passed, it will be parsed to fill in default values
+        and convert it to a Namespace object.
 
         model_uuid (str) : The UUID of a trained model.
 
@@ -964,6 +965,12 @@ def create_prediction_pipeline(params, model_uuid, collection_name, featurizatio
     """
     mlmt_client = dsf.initialize_model_tracker()
     ds_client = dsf.config_client()
+
+    if collection_name is None:
+        collection_name = trkr.get_model_collection_by_uuid(model_uuid, mlmt_client)
+
+    if type(params) == dict:
+        params = parse.wrapper(params)
 
     metadata_dict = trkr.get_metadata_by_uuid(model_uuid, collection_name=collection_name)
     if not metadata_dict:
