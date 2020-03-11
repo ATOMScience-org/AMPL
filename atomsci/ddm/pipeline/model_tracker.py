@@ -181,8 +181,9 @@ def get_model_collection_by_uuid(model_uuid, mlmt_client=None):
 
     collections = mlmt_client.collections.get_collection_names().result()
     for col in collections:
-        if mlmt_client.count_models(collection_name=col, model_uuid=model_uuid) > 0:
-            return col
+        if not col.startswith('old_'):
+            if mlmt_client.count_models(collection_name=col, model_uuid=model_uuid) > 0:
+                return col
 
     raise ValueError('Collection not found for uuid: ' + model_uuid)
 
