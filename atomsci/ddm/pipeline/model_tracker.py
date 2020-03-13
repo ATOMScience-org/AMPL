@@ -9,6 +9,9 @@ import sys
 import pandas as pd
 import json
 import tarfile
+import logging
+
+logger = logging.getLogger('ATOM')
 
 from atomsci.ddm.utils import datastore_functions as dsf
 

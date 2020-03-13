@@ -15,7 +15,14 @@ from collections import OrderedDict
 from atomsci.ddm.utils import datastore_functions as dsf
 from atomsci.ddm.pipeline import model_tracker as trkr
 import atomsci.ddm.pipeline.model_pipeline as mp
-from atomsci.clients import MLMTClient
+
+logger = logging.getLogger('ATOM')
+mlmt_supported = True
+try:
+    from atomsci.clients import MLMTClient
+except (ModuleNotFoundError, ImportError):
+    logger.debug("Model tracker client not supported in your environment; can look at models in filesystem only.")
+    mlmt_supported = False
 
 matplotlib.rc('xtick', labelsize=12)
 matplotlib.rc('ytick', labelsize=12)
@@ -30,6 +37,10 @@ def get_collection_datasets(collection_name):
     """
     Returns a list of unique training (dataset_key, bucket) tuples used for all models in the given collection.
     """
+    if not mlmt_supported:
+        print("Model tracker not supported in your environment; can examine models saved in filesystem only.")
+        return None
+
     dataset_set = set()
     mlmt_client = dsf.initialize_model_tracker()
     dset_dicts = mlmt_client.model.query_datasets(collection_name=collection_name, metrics_type='training').result()
@@ -44,6 +55,10 @@ def extract_collection_perf_metrics(collection_name, output_dir, pred_type='regr
     Obtain list of training datasets with models in the given collection. Get performance metrics for
     models on each dataset and save them as CSV files in the given output directory.
     """
+    if not mlmt_supported:
+        print("Model tracker not supported in your environment; can examine models saved in filesystem only.")
+        return
+
     datasets = get_collection_datasets(collection_name)
     os.makedirs(output_dir, exist_ok=True)
     for dset_key, bucket in datasets:
@@ -60,6 +75,10 @@ def get_training_perf_table(dataset_key, bucket, collection_name, pred_type='reg
     that vary between models, and generate plots of performance vs particular combinations of
     parameters.
     """
+    if not mlmt_supported:
+        print("Model tracker not supported in your environment; can examine models saved in filesystem only.")
+        return None
+
     print("Finding models trained on %s dataset %s" % (bucket, dataset_key))
     mlmt_client = dsf.initialize_model_tracker()
     query_params = {
@@ -221,6 +240,10 @@ def get_best_perf_table(col_name, metric_type, model_uuid=None, metadata_dict=No
         model_info (dict): Dictionary of parameter or metric name - value pairs.
 
     """
+    if not mlmt_supported:
+        print("Model tracker not supported in your environment; can examine models saved in filesystem only.")
+        return None
+
     mlmt_client = dsf.initialize_model_tracker()
     if metadata_dict is None:
         if model_uuid is None:
@@ -351,6 +374,10 @@ def get_best_models_info(col_names, bucket, pred_type, PK_pipeline=False, output
         top_models_df (DataFrame): Table of parameters and metrics for best models for each dataset.
     """
 
+    if not mlmt_supported:
+        print("Model tracker not supported in your environment; can examine models saved in filesystem only.")
+        return None
+
     mlmt_client = dsf.initialize_model_tracker()
     top_models_info = []
     sort_order = {'max': -1, 'min': 1}
@@ -458,6 +485,10 @@ def get_best_grouped_models_info(collection='pilot_fixed', pred_type='regression
     Get results for models in the given collection. 
     """
     
+    if not mlmt_supported:
+        print("Model tracker not supported in your environment; can examine models saved in filesystem only.")
+        return
+
     res_dir = '/usr/local/data/%s_perf' % collection
     plt_dir = '%s/Plots' % res_dir
     os.makedirs(plt_dir, exist_ok=True)
@@ -502,6 +533,10 @@ def get_umap_nn_model_perf_table(dataset_key, bucket, collection_name, pred_type
     the model tracker DB under a given collection that were trained against a particular dataset. Show 
     parameter settings for UMAP transformer for models where they are available.
     """
+    if not mlmt_supported:
+        print("Model tracker not supported in your environment; can examine models saved in filesystem only.")
+        return None
+
     query_params = {
         "match_metadata": {
             "training_dataset.bucket": bucket,
@@ -810,6 +845,10 @@ def get_summary_perf_tables(collection_names, filter_dict={}, prediction_type='r
         metrics: r2_score, mae_score and rms_score for regression, or ROC AUC for classification
     """
 
+    if not mlmt_supported:
+        print("Model tracker not supported in your environment; can examine models saved in filesystem only.")
+        return None
+
 
     collection_list = []
     model_uuid_list = []
@@ -1023,6 +1062,10 @@ def get_summary_perf_tables(collection_names, filter_dict={}, prediction_type='r
 #------------------------------------------------------------------------------------------------------------------
 def get_summary_metadata_table(uuids, collections=None):
 
+    if not mlmt_supported:
+        print("Model tracker not supported in your environment; can examine models saved in filesystem only.")
+        return None
+
     if isinstance(uuids,str):
         uuids = [uuids]
 
@@ -1128,6 +1171,10 @@ def get_training_datasets(collection_names):
     Query the model tracker DB for all the unique dataset keys and buckets used to train models in the given
     collections.
     """
+    if not mlmt_supported:
+        print("Model tracker not supported in your environment; can examine models saved in filesystem only.")
+        return None
+
     result_dict = {}
 
     mlmt_client = dsf.initialize_model_tracker()
@@ -1143,6 +1190,10 @@ def get_dataset_models(collection_names, filter_dict={}):
     Query the model tracker for all models saved in the model tracker DB under the given collection names. Returns a dictionary
     mapping (dataset_key,bucket) pairs to the list of (collection,model_uuid) pairs trained on the corresponding datasets.
     """
+    if not mlmt_supported:
+        print("Model tracker not supported in your environment; can examine models saved in filesystem only.")
+        return None
+
 
     result_dict = {}
 
@@ -1179,6 +1230,10 @@ def get_dataset_models(collection_names, filter_dict={}):
 #-------------------------------------------------------------------------------------------------------------------
 # TODO: Update this function
 def aggregate_predictions(datasets, bucket, col_names, result_dir):
+    if not mlmt_supported:
+        print("Model tracker not supported in your environment; can examine models saved in filesystem only.")
+        return
+
     results = []
     mlmt_client = dsf.initialize_model_tracker()
     for dset_key, bucket in datasets:
