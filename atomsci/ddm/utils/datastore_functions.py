@@ -30,14 +30,15 @@ try:
 except (ImportError, AttributeError, ModuleNotFoundError):
     feather_supported = False
 
-datastore_supported = True
+clients_supported = True
 try:
     from atomsci.clients import DatastoreClient
     from atomsci.clients import DatastoreClientSingleton
     from atomsci.clients import MLMTClient
 except (ModuleNotFoundError, ImportError):
-    logger.info("DatastoreClient not installed in your environment. Try 'pip install clients --user' to install. When available.")
-    datastore_supported = False
+    logger.info("atomsci.clients package missing, is currently unsupported for non-ATOM users.\n" +
+                "ATOM users should run 'pip install clients --user' to install.")
+    clients_supported = False
 
 ## You must load your token to get access to the appropriate bucket where data is to be placed (or retrieved)
 # refer to documentation on Confluence for how to create your token
@@ -66,6 +67,9 @@ def config_client(
         returns configured client
     """
 
+    if not clients_supported:
+        raise Exception("Datastore client not supported in current environment.")
+        
     if token is None:
         # Default token path depends on whether you're on LC or another LLNL system
         if is_lc_system():
@@ -107,6 +111,9 @@ def initialize_model_tracker():
     Returns:
         mlmt_client (MLMTClient): The client object for the model tracker service.
     """
+    if not clients_supported:
+        raise Exception("Model tracker client not supported in current environment.")
+
     if not 'MLMT_REST_API_URL' in os.environ:
         os.environ['MLMT_REST_API_URL'] = 'https://twintron-blue.llnl.gov/atom/mlmt/api/v1.0/swagger.json'
 

@@ -9,9 +9,18 @@ import sys
 import pandas as pd
 import json
 import tarfile
+import logging
+
+logger = logging.getLogger('ATOM')
 
 from atomsci.ddm.utils import datastore_functions as dsf
-from atomsci.clients import MLMTClient
+
+mlmt_supported = True
+try:
+    from atomsci.clients import MLMTClient
+except (ModuleNotFoundError, ImportError):
+    logger.debug("Model tracker client not supported in your environment; will save models in filesystem only.")
+    mlmt_supported = False
 
 class UnableToTarException(Exception):
     pass
@@ -40,6 +49,10 @@ def save_model(pipeline, collection_name='model_tracker', log=True):
     
     if pipeline is None:
         raise Exception('pipeline cannot be None.')
+
+    if not mlmt_supported:
+        print("Model tracker not supported in your environment; can save models in filesystem only.")
+        return
 
     # ModelPipeline.create_model_metadata() should be called before the call to save_model.
     # Get the metadata dictionary from the model pipeline.
@@ -101,6 +114,10 @@ def get_full_metadata(filter_dict, collection_name=None):
     Returns:
         A list of matching full model metadata (including training run metrics) dictionaries. Raises MongoQueryException if the query fails.
     """
+    if not mlmt_supported:
+        print("Model tracker not supported in your environment; can load models from filesystem only.")
+        return None
+
     if filter_dict is None:
         raise ValueError('Parameter filter_dict cannot be None.')
     if collection_name is None:
@@ -130,6 +147,10 @@ def get_metadata_by_uuid(model_uuid, collection_name=None):
         Matching metadata dictionary. Raises MongoQueryException if the query fails.
     """
 
+    if not mlmt_supported:
+        print("Model tracker not supported in your environment; can load models from filesystem only.")
+        return None
+
     mlmt_client = dsf.initialize_model_tracker()
 
     if collection_name is None:
@@ -156,6 +177,10 @@ def get_full_metadata_by_uuid(model_uuid, collection_name=None):
         Matching metadata dictionary. Raises MongoQueryException if the query fails.
     """
 
+    if not mlmt_supported:
+        print("Model tracker not supported in your environment; can load models from filesystem only.")
+        return None
+
     mlmt_client = dsf.initialize_model_tracker()
 
     if collection_name is None:
@@ -177,6 +202,10 @@ def get_model_collection_by_uuid(model_uuid, mlmt_client=None):
         ValueError if there is no collection containing a model with the given uuid.
     """
 
+    if not mlmt_supported:
+        print("Model tracker not supported in your environment; can load models from filesystem only.")
+        return None
+
     mlmt_client = dsf.initialize_model_tracker()
 
     collections = mlmt_client.collections.get_collection_names().result()
@@ -196,6 +225,10 @@ def get_model_training_data_by_uuid(uuid):
     Returns:
         a tuple of datafraes containint training data, validation data, and test data including the compound ID, RDKIT SMILES, and response value
     """
+    if not mlmt_supported:
+        print("Model tracker not supported in your environment; can load models from filesystem only.")
+        return None
+
     model_meta = get_metadata_by_uuid(uuid)
     response_col = model_meta['training_dataset']['response_cols']
     smiles_col = model_meta['training_dataset']['smiles_col']
@@ -235,6 +268,10 @@ def export_model(model_uuid, collection, model_dir):
     Returns:
         none
     """
+    if not mlmt_supported:
+        print("Model tracker not supported in your environment; can load models from filesystem only.")
+        return
+
     ds_client = dsf.config_client()
     metadata_dict = get_metadata_by_uuid(model_uuid, collection_name=collection)
 

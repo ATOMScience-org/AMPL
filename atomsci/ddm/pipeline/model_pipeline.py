@@ -27,7 +27,6 @@ from atomsci.ddm.pipeline import featurization as feat
 from atomsci.ddm.pipeline import parameter_parser as parse
 from atomsci.ddm.pipeline import model_tracker as trkr
 from atomsci.ddm.pipeline import transformations as trans
-from atomsci.clients import MLMTClient
 
 logging.basicConfig(format='%(asctime)-15s %(message)s')
 

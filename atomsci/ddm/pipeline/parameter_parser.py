@@ -1,6 +1,7 @@
 import argparse
 import json
 import sys
+import os
 import re
 import logging
 import datetime
@@ -458,13 +459,12 @@ def get_parser():
     parser.add_argument(
         '--descriptor_spec_bucket', dest='descriptor_spec_bucket',
         default='public',
-        help='Bucket where descriptor specification is located for a descriptor type. Specific to LLNL datastore'
+        help='Datastore bucket for file mapping descriptor types to descriptor specifications. Specific to LLNL datastore'
              'system.')
     parser.add_argument(
         '--descriptor_spec_key', dest='descriptor_spec_key',
-        default='descriptor_sets_sources_by_descr_type.csv',
-        help='Bucket where descriptor specification is located for a descriptor type. Specific to LLNL datastore'
-             'system.')
+        default=os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data', 'descriptor_sets_sources_by_descr_type.csv'),
+        help='Datastore key or path to file mapping descriptor types to descriptor specifications.')
     parser.add_argument(
         '--descriptor_type', dest='descriptor_type', default='moe',
         help='Type of descriptors being used as features, e.g. moe, dragon7, used when featurizer = "descriptors". '

@@ -866,16 +866,21 @@ class DescriptorFeaturization(PersistentFeaturization):
         cls.desc_type_source = {}
 
         # If a datastore client is not detected or a datastore bucket is not specified
-        # assume that the ds_key is a full path pointer to a file on the file system
-        if ds_client == None or desc_spec_bucket == '':  
-            desc_spec_df = pd.read_csv(desc_spec_key, index_col=False)
+        # assume that the ds_key is a full path pointer to a file on the file system. If that
+        # file doesn't exist, use the fallback file installed with the AMPL package.
+        desc_spec_key_fallback = os.path.join(os.path.dirname(os.path.dirname(__file__)), 
+                                              'data', 'descriptor_sets_sources_by_descr_type.csv')
+
+        if ds_client is None or desc_spec_bucket == '':  
+            if os.path.exists(desc_spec_key):
+                desc_spec_df = pd.read_csv(desc_spec_key, index_col=False)
+            else:
+                desc_spec_df = pd.read_csv(desc_spec_key_fallback, index_col=False)
         else :
             # Try the descriptor_spec_key parameter first, then fall back to package file
             try:
                 desc_spec_df = dsf.retrieve_dataset_by_datasetkey(desc_spec_key, desc_spec_bucket, ds_client)
             except:
-                script_dir = os.path.dirname(os.path.realpath(__file__))
-                desc_spec_key_fallback = script_dir+'/../data/descriptor_sets_sources_by_descr_type.csv'
                 desc_spec_df = pd.read_csv(desc_spec_key_fallback, index_col=False)
 
         for desc_type, source, scaled, descriptors in zip(desc_spec_df.descr_type.values,
