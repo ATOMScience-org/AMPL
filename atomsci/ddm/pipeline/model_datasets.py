@@ -17,6 +17,12 @@ from pathlib import Path
 import getpass
 import traceback
 
+feather_supported = True
+try:
+    import feather
+except (ImportError, AttributeError, ModuleNotFoundError):
+    feather_supported = False
+
 logging.basicConfig(format='%(asctime)-15s %(message)s')
 
 
@@ -1142,7 +1148,7 @@ class FileDataset(ModelDataset):
         """Loads the dataset from the file system.
 
         Returns:
-            dset_df: Dataset as a DataFrame loaded in from a CSV
+            dset_df: Dataset as a DataFrame loaded in from a CSV or feather file
         
         Raises:
             exception: if dataset is empty or failed to load
@@ -1150,7 +1156,14 @@ class FileDataset(ModelDataset):
         dataset_path = self.params.dataset_key
         if not os.path.exists(dataset_path):
             raise Exception("Dataset file %s does not exist" % dataset_path)
-        dset_df = pd.read_csv(dataset_path)
+        if dataset_path.endswith('.feather'):
+            if not feather_supported:
+                raise Exception("feather package not installed in current environment")
+            dset_df = feather.read_dataframe(dataset_path)
+        elif dataset_path.endswith('.csv'):
+            dset_df = pd.read_csv(dataset_path, index_col=False)
+        else:
+            raise Exception('Dataset %s is not a recognized format (csv or feather)' % dataset_path)
 
         if dset_df is None:
             raise Exception("Failed to load dataset %s" % dataset_path)
@@ -1222,7 +1235,7 @@ class FileDataset(ModelDataset):
             featurized_dset_df (pd.DataFrame): dataframe of the prefeaturized data, needs futher processing
         """
         # First check to set if dataset already has the feature columns we need
-        dset_df = pd.read_csv(self.params.dataset_key, index_col=False)
+        dset_df = self.load_full_dataset()
         if self.has_all_feature_columns(dset_df):
             self.dataset_key = self.params.dataset_key
             return dset_df
