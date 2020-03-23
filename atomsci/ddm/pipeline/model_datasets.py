@@ -661,6 +661,19 @@ class ModelDataset(object):
         return self.subset_response_dict[subset], self.subset_weight_dict[subset]
         
     # *************************************************************************************
+    def _get_split_prefix(self):
+        """
+        Returns a string identifying the split strategy (TVT or k-fold) and the splitting method 
+        (index, scaffold, etc.) for use in filenames, dataset keys, etc.
+        """
+        if self.params.split_strategy == 'k_fold_cv':
+            return "%d_fold_cv_%s" % (self.params.num_folds, self.params.splitter)
+        elif self.params.split_strategy == 'train_valid_test':
+            return "train_valid_test_%s" % (self.params.splitter)
+        else:
+            raise ValueError("Unknown split_strategy '%s'" % self.params.split_strategy)
+
+    # *************************************************************************************
 
     def _get_split_key(self):
         """
@@ -670,7 +683,7 @@ class ModelDataset(object):
             (str): String containing the dataset name, split type, and split_UUID. Used as key in datastore or filename
             on disk.
         """
-        return '{0}_{1}_{2}.csv'.format(self.dataset_name, self.splitting.get_split_prefix(), self.split_uuid)
+        return '{0}_{1}_{2}.csv'.format(self.dataset_name, self._get_split_prefix(), self.split_uuid)
 
 # ****************************************************************************************
 
@@ -1042,7 +1055,7 @@ class DatastoreDataset(ModelDataset):
                            filename=split_table_key,
                            title="Split table %s" % split_table_key.replace('_', ' '),
                            description='Dataset %s %s split compound assignment table' % (
-                                        self.dataset_name, self.splitting.get_split_prefix()),
+                                        self.dataset_name, self._get_split_prefix()),
                            tags=tag_list,
                            key_values=keyval_dict,
                            client=self.ds_client,
