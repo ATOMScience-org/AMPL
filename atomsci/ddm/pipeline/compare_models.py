@@ -690,9 +690,9 @@ def get_filesystem_perf_results(result_dir, hyper_id=None, dataset_name='GSK_Amg
     subsets = ['train', 'valid', 'test']
 
     if pred_type == 'regression':
-        metrics = ['r2_score', 'r2_std', 'rms_score', 'mae_score']
+        metrics = ['r2_score', 'rms_score', 'mae_score']
     else:
-        metrics = ['roc_auc_score', 'roc_auc_std', 'prc_auc_score', 'precision', 'recall_score',
+        metrics = ['roc_auc_score', 'prc_auc_score', 'precision', 'recall_score',
                    'accuracy_score', 'npv', 'matthews_cc', 'kappa', 'cross_entropy', 'confusion_matrix']
     score_dict = {}
     for subset in subsets:
@@ -726,30 +726,34 @@ def get_filesystem_perf_results(result_dir, hyper_id=None, dataset_name='GSK_Amg
                 model_dirs = [dir for dir in os.listdir(new_path) if not dir.startswith('.')]
                 model_uuid = model_dirs[0]
                 meta_path = os.path.join(new_path, model_uuid, 'model_metadata.json')
-                metrics_path = os.path.join(new_path, model_uuid, 'training_model_metrics.json')
-                if not (os.path.exists(meta_path) and os.path.exists(metrics_path)):
+                metrics_path = os.path.join(new_path, model_uuid, 'model_metrics.json')
+                #if not (os.path.exists(meta_path) and os.path.exists(metrics_path)):
+                if not os.path.exists(meta_path):
+                    print("Missing metadata %s" % meta_path)
+                    continue
+                if not os.path.exists(metrics_path):
+                    print("Missing metrics %s" % metrics_path)
                     continue
                 with open(meta_path, 'r') as meta_fp:
                     meta_dict = json.load(meta_fp)
                 model_list.append(meta_dict)
                 with open(metrics_path, 'r') as metrics_fp:
-                    metrics_dict = json.load(metrics_fp)
-                metrics_list.append(metrics_dict)
+                    metrics_dicts = json.load(metrics_fp)
+                metrics_list.append(metrics_dicts)
     
     print("Found data for %d models under %s" % (len(model_list), result_dir))
 
-    for metadata_dict, metrics_dict in zip(model_list, metrics_list):
+    for metadata_dict, metrics_dicts in zip(model_list, metrics_list):
         model_uuid = metadata_dict['model_uuid']
         #print("Got metadata for model UUID %s" % model_uuid)
 
-        # Get list of prediction run metrics for this model
-        pred_dicts = metrics_dict['training_metrics']
-        #print("Got %d metrics dicts for model %s" % (len(pred_dicts), model_uuid))
-        if len(pred_dicts) < 3:
+        # Get list of training run metrics for this model
+        #print("Got %d metrics dicts for model %s" % (len(metrics_dicts), model_uuid))
+        if len(metrics_dicts) < 3:
             print("Got no or incomplete metrics for model %s, skipping..." % model_uuid)
             continue
         subset_metrics = {}
-        for metrics_dict in pred_dicts:
+        for metrics_dict in metrics_dicts:
             if metrics_dict['label'] == 'best':
                 subset = metrics_dict['subset']
                 subset_metrics[subset] = metrics_dict['prediction_results']
@@ -825,7 +829,7 @@ def get_filesystem_perf_results(result_dir, hyper_id=None, dataset_name='GSK_Amg
     perf_df['model_choice_score'] = score_dict['valid']['model_choice_score']
     for subset in subsets:
         for metric in metrics:
-            metric_col = '%s_%s' % (metric, subset)
+            metric_col = '%s_%s' % (subset, metric)
             perf_df[metric_col] = score_dict[subset][metric]
     sort_by = 'model_choice_score'
     perf_df = perf_df.sort_values(sort_by, ascending=False)
