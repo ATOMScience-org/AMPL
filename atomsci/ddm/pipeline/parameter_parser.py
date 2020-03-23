@@ -783,6 +783,9 @@ def get_parser():
     parser.add_argument(
         '--result_dir', '-r', dest='result_dir', default='/usr/local/data', required=False,
         help='Parent of directory where result files will be written')
+    parser.add_argument(
+        '--model_tarball_path', dest='model_tarball_path', default=None, 
+        help='Filesystem path where model tarball will be written')
 
     # **********************************************************************************************************
     # model_metadata

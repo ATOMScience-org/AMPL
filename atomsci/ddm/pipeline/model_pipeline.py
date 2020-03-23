@@ -150,6 +150,9 @@ class ModelPipeline:
         if not os.path.isdir(self.params.output_dir):
             os.makedirs(self.params.output_dir, exist_ok=True)
         self.output_dir = self.params.output_dir
+        if self.params.model_tarball_path is None:
+            self.params.model_tarball_path = os.path.join(self.params.result_dir, 
+                                                          '%s_model_%s.tar.gz' % (self.params.dataset_name, self.params.model_uuid))
 
         # ****************************************************************************************
 
@@ -299,6 +302,8 @@ class ModelPipeline:
                 out.write("\n")
             self.log.warning('Wrote model metadata to file %s' % out_file)
         self.model_wrapper._clean_up_excess_files(self.model_wrapper.model_dir)
+        if not self.params.save_results:
+            trkr.save_model_tarball(self.output_dir, self.params.model_tarball_path)
         '''
         for root, dirs, files in os.walk(self.params.result_dir):
             for d in dirs:
