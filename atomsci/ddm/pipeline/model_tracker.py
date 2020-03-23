@@ -249,6 +249,17 @@ def get_model_training_data_by_uuid(uuid):
     return train_data, valid_data, test_data
 
 
+# *********************************************************************************************************************************
+def save_model_tarball(output_dir, model_tarball_path):
+    """
+    Save the model parameters, metadata and transformers as a portable gzipped tar archive.
+    """
+    tarball = tarfile.open(model_tarball_path, mode='w:gz')
+    for filename in ['best_model', 'model_metadata.json', 'transformers.pkl']:
+        tarball.add('%s/%s' % (output_dir, filename), arcname='./%s' % filename)
+    tarball.close()
+    print('Wrote model tarball to %s' % model_tarball_path)
+
 
 # *********************************************************************************************************************************
 def export_model(model_uuid, collection, model_dir):
