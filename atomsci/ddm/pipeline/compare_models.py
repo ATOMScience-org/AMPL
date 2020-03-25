@@ -10,6 +10,7 @@ import numpy as np
 import matplotlib
 import logging
 import json
+import shutil
 
 from collections import OrderedDict
 from atomsci.ddm.utils import datastore_functions as dsf
@@ -663,8 +664,7 @@ def get_umap_nn_model_perf_table(dataset_key, bucket, collection_name, pred_type
     return perf_df
 
 #------------------------------------------------------------------------------------------------------------------
-def get_filesystem_perf_results(result_dir, hyper_id=None, dataset_name='GSK_Amgen_Combined_BSEP_PIC50',
-                                pred_type='classification'):
+def get_filesystem_perf_results(result_dir, pred_type='classification'):
     """
     Retrieve model metadata and performance metrics stored in the filesystem from a hyperparameter search run.
     """
@@ -675,6 +675,7 @@ def get_filesystem_perf_results(result_dir, hyper_id=None, dataset_name='GSK_Amg
     dropouts_list = []
     layer_sizes_list = []
     featurizer_list = []
+    dataset_key_list = []
     splitter_list = []
     rf_estimators_list = []
     rf_max_features_list = []
@@ -682,10 +683,6 @@ def get_filesystem_perf_results(result_dir, hyper_id=None, dataset_name='GSK_Amg
     best_epoch_list = []
     model_score_type_list = []
     feature_transform_type_list = []
-    umap_dim_list = []
-    umap_targ_wt_list = []
-    umap_neighbors_list = []
-    umap_min_dist_list = []
 
     subsets = ['train', 'valid', 'test']
 
@@ -705,42 +702,17 @@ def get_filesystem_perf_results(result_dir, hyper_id=None, dataset_name='GSK_Amg
     # Navigate the results directory tree
     model_list = []
     metrics_list = []
-    if hyper_id is None:
-        # hyper_id not specified, so let's do all that exist under the given result_dir
-        subdirs = os.listdir(result_dir)
-        hyper_ids = list(set(subdirs) - {'logs', 'slurm_files'})
-    else:
-        hyper_ids = [hyper_id]
-    for hyper_id in hyper_ids:
-        topdir = os.path.join(result_dir, hyper_id, dataset_name)
-        if not os.path.isdir(topdir):
-            continue
-        # Next component of path is a random UUID added by hyperparam script for each run. Iterate over runs.
-        run_uuids = [fname for fname in os.listdir(topdir) if not fname.startswith('.')]
-        for run_uuid in run_uuids:
-            run_path = os.path.join(topdir, run_uuid, dataset_name)
-            # Next path component is a combination of various model parameters
-            param_dirs = os.listdir(run_path)
-            for param_str in param_dirs:
-                new_path = os.path.join(topdir, run_uuid, dataset_name, param_str)
-                model_dirs = [dir for dir in os.listdir(new_path) if not dir.startswith('.')]
-                model_uuid = model_dirs[0]
-                meta_path = os.path.join(new_path, model_uuid, 'model_metadata.json')
-                metrics_path = os.path.join(new_path, model_uuid, 'model_metrics.json')
-                #if not (os.path.exists(meta_path) and os.path.exists(metrics_path)):
-                if not os.path.exists(meta_path):
-                    print("Missing metadata %s" % meta_path)
-                    continue
-                if not os.path.exists(metrics_path):
-                    print("Missing metrics %s" % metrics_path)
-                    continue
-                with open(meta_path, 'r') as meta_fp:
-                    meta_dict = json.load(meta_fp)
-                model_list.append(meta_dict)
-                with open(metrics_path, 'r') as metrics_fp:
-                    metrics_dicts = json.load(metrics_fp)
-                metrics_list.append(metrics_dicts)
-    
+    for dirpath, dirnames, filenames in os.walk(result_dir):
+        if ('model_metadata.json' in filenames) and ('model_metrics.json' in filenames):
+            meta_path = os.path.join(dirpath, 'model_metadata.json')
+            with open(meta_path, 'r') as meta_fp:
+                meta_dict = json.load(meta_fp)
+            model_list.append(meta_dict)
+            metrics_path = os.path.join(dirpath, 'model_metrics.json')
+            with open(metrics_path, 'r') as metrics_fp:
+                metrics_dicts = json.load(metrics_fp)
+            metrics_list.append(metrics_dicts)
+
     print("Found data for %d models under %s" % (len(model_list), result_dir))
 
     for metadata_dict, metrics_dicts in zip(model_list, metrics_list):
@@ -768,6 +740,7 @@ def get_filesystem_perf_results(result_dir, hyper_id=None, dataset_name='GSK_Amg
         featurizer_list.append(featurizer)
         split_params = metadata_dict['splitting_parameters']
         splitter_list.append(split_params['splitter'])
+        dataset_key_list.append(metadata_dict['training_dataset']['dataset_key'])
         feature_transform_type = metadata_dict['training_dataset']['feature_transform_type']
         feature_transform_type_list.append(feature_transform_type)
         if model_type == 'NN':
@@ -794,30 +767,16 @@ def get_filesystem_perf_results(result_dir, hyper_id=None, dataset_name='GSK_Amg
             for metric in metrics:
                 score_dict[subset][metric].append(subset_metrics[subset][metric])
         score_dict['valid']['model_choice_score'].append(subset_metrics['valid']['model_choice_score'])
-        if 'umap_specific' in metadata_dict:
-            umap_params = metadata_dict['umap_specific']
-            umap_dim_list.append(umap_params['umap_dim'])
-            umap_targ_wt_list.append(umap_params['umap_targ_wt'])
-            umap_neighbors_list.append(umap_params['umap_neighbors'])
-            umap_min_dist_list.append(umap_params['umap_min_dist'])
-        else:
-            umap_dim_list.append(nan)
-            umap_targ_wt_list.append(nan)
-            umap_neighbors_list.append(nan)
-            umap_min_dist_list.append(nan)
 
 
     perf_df = pd.DataFrame(dict(
                     model_uuid=model_uuid_list,
                     model_type=model_type_list,
+                    dataset_key=dataset_key_list,
                     featurizer=featurizer_list,
                     splitter=splitter_list,
                     model_score_type=model_score_type_list,
                     feature_transform_type=feature_transform_type_list,
-                    umap_dim=umap_dim_list,
-                    umap_targ_wt=umap_targ_wt_list,
-                    umap_neighbors=umap_neighbors_list,
-                    umap_min_dist=umap_min_dist_list,
                     learning_rate=learning_rate_list,
                     dropouts=dropouts_list,
                     layer_sizes=layer_sizes_list,
@@ -834,6 +793,29 @@ def get_filesystem_perf_results(result_dir, hyper_id=None, dataset_name='GSK_Amg
     sort_by = 'model_choice_score'
     perf_df = perf_df.sort_values(sort_by, ascending=False)
     return perf_df
+
+#------------------------------------------------------------------------------------------------------------------
+def copy_best_filesystem_models(result_dir, dest_dir, pred_type, force_update=False):
+
+    """
+    Identify the best models for each dataset within a result directory tree, and copy
+    their tarballs to dest_dir.
+    """
+    perf_df = get_filesystem_perf_results(result_dir, pred_type)
+    if pred_type == 'regression':
+        metric = 'valid_r2_score'
+    else:
+        metric = 'valid_roc_auc_score'
+    best_df = perf_df.sort_values(by=metric, ascending=False).drop_duplicates(subset='dataset_key').copy()
+    dataset_names = [os.path.splitext(os.path.basename(f))[0] for f in best_df.dataset_key.values]
+    model_uuids = best_df.model_uuid.values
+    tarball_names = ['%s_model_%s.tar.gz' % (dset_name, model_uuid) for dset_name, model_uuid in zip(dataset_names, model_uuids)]
+    for dirpath, dirnames, filenames in os.walk(result_dir):
+        for fn in filenames:
+            if (fn in tarball_names) and (force_update or not os.path.exists(os.path.join(dest_dir, fn))):
+                shutil.copy2(os.path.join(dirpath, fn), dest_dir)
+                print('Copied %s' % fn)
+    return best_df
 
 #------------------------------------------------------------------------------------------------------------------
 def get_summary_perf_tables(collection_names, filter_dict={}, prediction_type='regression'):
