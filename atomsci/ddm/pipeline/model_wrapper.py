@@ -13,7 +13,10 @@ import pdb
 import deepchem as dc
 import numpy as np
 import tensorflow as tf
-from deepchem.models.tensorgraph import fcnet
+if dc.__version__.startswith('2.1'):
+    from deepchem.models.tensorgraph.fcnet import MultitaskRegressor, MultitaskClassifier
+else:
+    from deepchem.models import MultitaskRegressor, MultitaskClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import RandomForestRegressor
 
@@ -391,7 +394,7 @@ class DCNNModelWrapper(ModelWrapper):
             baseline_model_dir (str): The subdirectory under output_dir that contains the baseline epoch model.
             g: The tensorflow graph object
             sess: The tensor flow graph session
-            model: The dc.models.GraphConvModel, fcnet.MultitaskRegressor, or fcnet.MultitaskClassifier object, as specified by the params attribute
+            model: The dc.models.GraphConvModel, MultitaskRegressor, or MultitaskClassifier object, as specified by the params attribute
 
         Created in train:
             data (ModelDataset): contains the dataset, set in pipeline
@@ -423,7 +426,7 @@ class DCNNModelWrapper(ModelWrapper):
             transformers_x (list): Initialized as an empty list, stores the transformers on the featurizers
             g: The tensorflow graph object
             sess: The tensor flow graph session
-            model: The dc.models.GraphConvModel, fcnet.MultitaskRegressor, or fcnet.MultitaskClassifier object, as specified by the params attribute
+            model: The dc.models.GraphConvModel, MultitaskRegressor, or MultitaskClassifier object, as specified by the params attribute
 
 
         """
@@ -489,7 +492,7 @@ class DCNNModelWrapper(ModelWrapper):
             if self.params.prediction_type == 'regression':
 
                 # TODO: Need to check that MultitaskRegressor params are actually being used
-                self.model = fcnet.MultitaskRegressor(
+                self.model = MultitaskRegressor(
                     self.params.num_model_tasks,
                     n_features,
                     layer_sizes=self.params.layer_sizes,
@@ -499,7 +502,6 @@ class DCNNModelWrapper(ModelWrapper):
                     learning_rate=self.params.learning_rate,
                     weight_decay_penalty=self.params.weight_decay_penalty,
                     weight_decay_penalty_type=self.params.weight_decay_penalty_type,
-                    optimizer=self.params.optimizer_type,
                     batch_size=self.params.batch_size,
                     seed=123,
                     verbosity='low',
@@ -512,7 +514,7 @@ class DCNNModelWrapper(ModelWrapper):
                     uncertainty=self.params.uncertainty)
 
                 # print("JEA debug",self.params.num_model_tasks,n_features,self.params.layer_sizes,self.params.weight_init_stddevs,self.params.bias_init_consts,self.params.dropouts,self.params.weight_decay_penalty,self.params.weight_decay_penalty_type,self.params.batch_size,self.params.learning_rate)
-                # self.model = fcnet.MultitaskRegressor(
+                # self.model = MultitaskRegressor(
                 #     self.params.num_model_tasks,
                 #     n_features,
                 #     layer_sizes=self.params.layer_sizes,
@@ -527,7 +529,7 @@ class DCNNModelWrapper(ModelWrapper):
 
             else:
                 # TODO: Need to check that MultitaskClassifier params are actually being used
-                self.model = fcnet.MultitaskClassifier(
+                self.model = MultitaskClassifier(
                     self.params.num_model_tasks,
                     n_features,
                     layer_sizes=self.params.layer_sizes,
@@ -537,7 +539,6 @@ class DCNNModelWrapper(ModelWrapper):
                     learning_rate=self.params.learning_rate,
                     weight_decay_penalty=self.params.weight_decay_penalty,
                     weight_decay_penalty_type=self.params.weight_decay_penalty_type,
-                    optimizer=self.params.optimizer_type,
                     batch_size=self.params.batch_size,
                     seed=123,
                     verbosity='low',
@@ -576,7 +577,7 @@ class DCNNModelWrapper(ModelWrapper):
         else:
             n_features = self.get_num_features()
             if self.params.prediction_type == 'regression':
-                self.model = fcnet.MultitaskRegressor(
+                self.model = MultitaskRegressor(
                     self.params.num_model_tasks,
                     n_features,
                     layer_sizes=self.params.layer_sizes,
@@ -586,7 +587,6 @@ class DCNNModelWrapper(ModelWrapper):
                     learning_rate=self.params.learning_rate,
                     weight_decay_penalty=self.params.weight_decay_penalty,
                     weight_decay_penalty_type=self.params.weight_decay_penalty_type,
-                    optimizer=self.params.optimizer_type,
                     batch_size=self.params.batch_size,
                     seed=123,
                     verbosity='low',
@@ -598,7 +598,7 @@ class DCNNModelWrapper(ModelWrapper):
                     tensorboard=False,
                     uncertainty=self.params.uncertainty)
             else:
-                self.model = fcnet.MultitaskClassifier(
+                self.model = MultitaskClassifier(
                     self.params.num_model_tasks,
                     n_features,
                     layer_sizes=self.params.layer_sizes,
@@ -608,7 +608,6 @@ class DCNNModelWrapper(ModelWrapper):
                     learning_rate=self.params.learning_rate,
                     weight_decay_penalty=self.params.weight_decay_penalty,
                     weight_decay_penalty_type=self.params.weight_decay_penalty_type,
-                    optimizer=self.params.optimizer_type,
                     batch_size=self.params.batch_size,
                     seed=123,
                     verbosity='low',
@@ -768,9 +767,9 @@ class DCNNModelWrapper(ModelWrapper):
         if self.params.featurizer == 'graphconv':
             self.model = dc.models.GraphConvModel.load_from_dir(reload_dir)
         elif self.params.prediction_type == 'regression':
-            self.model = fcnet.MultitaskRegressor.load_from_dir(reload_dir)
+            self.model = MultitaskRegressor.load_from_dir(reload_dir)
         else:
-            self.model = fcnet.MultitaskClassifier.load_from_dir(reload_dir)
+            self.model = MultitaskClassifier.load_from_dir(reload_dir)
 
         if self.params.transformers and (self.params.transformer_key is not None):
             self.log.info("Reloading transformers from file %s" % self.params.transformer_key)
