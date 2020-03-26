@@ -66,7 +66,7 @@ def create_minimal_dataset(params, featurization, contains_responses=False):
     return MinimalDataset(params, featurization, contains_responses)
 
 # ****************************************************************************************
-def set_group_permissions(system, path, data_owner='gsk', data_owner_group='gskcraa'):
+def set_group_permissions(system, path, data_owner='public', data_owner_group='public'):
     """Set file group and permissions to standard values for a dataset containing proprietary
     or public data, as indicated by 'data_owner'.
 
@@ -89,8 +89,7 @@ def set_group_permissions(system, path, data_owner='gsk', data_owner_group='gskc
     if system != 'LC':
         system = 'AD'
 
-    owner_group_map = dict(gsk={'LC': 'gskcraa', 'AD': 'gskusers-ad'},
-                           public={'LC': 'atom', 'AD': 'atom'})
+    owner_group_map = dict(public={'LC': 'atom', 'AD': 'atom'})
 
     if data_owner == 'username':
         group = getpass.getuser()
@@ -172,6 +171,7 @@ def create_split_dataset_from_metadata(model_metadata, ds_client, save_file=Fals
 # TODO: This function isn't used anywhere; consider removing it.
 def save_joined_dataset(joined_dataset, split_metadata):
     """
+    DEPRECATED: Refers to absolute file paths that no longer exist.
     
     Args:
         joined_dataset (DataFrame): DataFrame containing split information with the response column
