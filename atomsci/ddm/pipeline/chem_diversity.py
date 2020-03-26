@@ -228,8 +228,9 @@ def calc_summary(dist_arr, calc_type, num_nearest=1, within_dset=False):
         print("calc_type %s is not valid" % calc_type)
         sys.exit(1)
         
+# TODO: This function is guaranteed not to work, since it refers to datasets that no longer exist.
 def get_descriptors(smiles_arr):
-    ds_client = dsf.config_client(token='/usr/local/data/ds_token.txt')
+    ds_client = dsf.config_client()
 
     full_feature_matrix_key = '/ds/projdata/gsk_data/GSK_datasets/eXP_Panel_Min_100_Cmpds/scaled_descriptors/' \
                               'subset_all_GSK_Compound_2D_3D_MOE_Descriptors_Scaled_With_Smiles_And_Inchi_HTR2A_5_' \
