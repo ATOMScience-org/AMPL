@@ -316,7 +316,7 @@ def compute_all_moe_descriptors(smiles_df, params):
     """
 
     # TODO: Get MOE_PATH from params
-    moe_path = os.environ.get('MOE_PATH', '/usr/workspace/wsb/gskcraa/tools/moe2018/bin')
+    moe_path = os.environ.get('MOE_PATH', '/usr/workspace/aha/moe2018/bin')
     moe_root = os.path.abspath('%s/..' % moe_path)
     # Make sure we have an environment variable that points to the license server
     if os.environ.get('LM_LICENSE_FILE', None) is None:
@@ -857,10 +857,13 @@ class DescriptorFeaturization(PersistentFeaturization):
             cls.supported_descriptor_types  -> the list of available descriptor types
         """
 
-        try:
-            ds_client = dsf.config_client()
-        except Exception as e:
+        if desc_spec_bucket == '':
             ds_client = None
+        else:
+            try:
+                ds_client = dsf.config_client()
+            except Exception as e:
+                ds_client = None
         cls.desc_type_cols = {}
         cls.desc_type_scaled = {}
         cls.desc_type_source = {}
@@ -873,8 +876,10 @@ class DescriptorFeaturization(PersistentFeaturization):
 
         if ds_client is None or desc_spec_bucket == '':  
             if os.path.exists(desc_spec_key):
+                print("Reading descriptor spec table from %s" % desc_spec_key)
                 desc_spec_df = pd.read_csv(desc_spec_key, index_col=False)
             else:
+                print("Reading descriptor spec table from %s" % desc_spec_key_fallback)
                 desc_spec_df = pd.read_csv(desc_spec_key_fallback, index_col=False)
         else :
             # Try the descriptor_spec_key parameter first, then fall back to package file
@@ -924,6 +929,8 @@ class DescriptorFeaturization(PersistentFeaturization):
         super().__init__(params)
         cls = self.__class__
         # Load mapping between descriptor types and lists of descriptors
+        if not params.datastore:
+            params.descriptor_spec_bucket = ''
         if len(cls.supported_descriptor_types) == 0:
             cls.load_descriptor_spec(params.descriptor_spec_bucket, params.descriptor_spec_key)
         
@@ -1007,11 +1014,14 @@ class DescriptorFeaturization(PersistentFeaturization):
         """
 
         # Check if we have a datastore client to work with
-        try:
-            ds_client = dsf.config_client()
-        except Exception as e:
-            print('Exception when trying to connect to the datastore:')
-            print(e)
+        if params.datastore:
+            try:
+                ds_client = dsf.config_client()
+            except Exception as e:
+                print('Exception when trying to connect to the datastore:')
+                print(e)
+                ds_client = None
+        else:
             ds_client = None
         file_type = ''
         local_path = self.descriptor_key
