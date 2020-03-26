@@ -275,7 +275,6 @@ class HyperparameterSearch(object):
         self.log.addHandler(c_handler)
         self.log.addHandler(f_handler)
 
-        self.mlmt_client = dsf.initialize_model_tracker()
 
         slurm_path = os.path.join(self.params.result_dir, 'slurm_files')
         if not os.path.exists(slurm_path):
@@ -438,6 +437,8 @@ class HyperparameterSearch(object):
             None
 
         """
+        if not self.params.datastore:
+            return
         print(assay_params['dataset_key'])
         retry = True
         i = 0
@@ -797,6 +798,8 @@ class HyperparameterSearch(object):
         Returns:
             Boolean specifying if model has been previously built
         """
+        if not self.params.save_results:
+            return False
         filter_dict = copy.deepcopy(assay_params)
         for key in ['result_dir', 'previously_featurized', 'collection_name', 'time_generated', 'hyperparam_uuid', 'model_uuid']:
             if key in filter_dict:
@@ -835,8 +838,11 @@ class HyperparameterSearch(object):
         Returns:
 
         """
+        print("Generating param combos")
         self.generate_param_combos()
+        print("Generating assay list")
         self.generate_assay_list()
+        print("Submitting jobs")
         self.submit_jobs()
 
 
@@ -1044,6 +1050,7 @@ def main():
                    'featurizer',
                    'splitter',
                    'datastore',
+                   'save_results',
                    'previously_featurized',
                    'descriptor_key',
                    'descriptor_type',
