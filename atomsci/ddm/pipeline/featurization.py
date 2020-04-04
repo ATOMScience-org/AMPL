@@ -316,7 +316,7 @@ def compute_all_moe_descriptors(smiles_df, params):
     """
 
     # TODO: Get MOE_PATH from params
-    moe_path = os.environ.get('MOE_PATH', '/usr/workspace/aha/moe2018/bin')
+    moe_path = os.environ.get('MOE_PATH', '/usr/workspace/atom/moe2018/bin')
     moe_root = os.path.abspath('%s/..' % moe_path)
     # Make sure we have an environment variable that points to the license server
     if os.environ.get('LM_LICENSE_FILE', None) is None:
