@@ -320,7 +320,7 @@ def compute_all_moe_descriptors(smiles_df, params):
     moe_root = os.path.abspath('%s/..' % moe_path)
     # Make sure we have an environment variable that points to the license server
     if os.environ.get('LM_LICENSE_FILE', None) is None:
-        os.environ['LM_LICENSE_FILE'] = '7788@nephi.llnl.gov'
+        os.environ['LM_LICENSE_FILE'] = '7002@bribe.llnl.gov'
 
     moe_args = []
     moe_args.append("{moePath}/moebatch".format(moePath=moe_path))
