@@ -70,6 +70,54 @@ def base_mol_from_smiles(orig_smiles, useIsomericSmiles=True, removeCharges=Fals
   return std_mol
 
 
+def base_smiles_from_inchi(inchi_str, useIsomericSmiles=True, removeCharges=False, workers=1):
+  """
+  Generate a standardized SMILES string for the largest fragment of the molecule specified by
+  InChi string inchi_str. Replace any rare isotopes with the most common ones for each element.
+  If removeCharges is True, add hydrogens as needed to eliminate charges. If useIsomericSmiles
+  is True (the default), retain stereochemistry info in the generated SMILES string.
+  Note that inchi_str may be a list, in which case a list of SMILES strings is generated.
+  If workers > 1 and inchi_str is a list, the calculations are parallelized over the given number
+  of worker threads.
+  """
+  
+  if isinstance(inchi_str,list):
+    from functools import partial
+    func = partial(base_smiles_from_inchi, useIsomericSmiles=useIsomericSmiles, removeCharges=removeCharges)
+    if workers > 1:
+      from multiprocessing import pool
+      batchsize = 200
+      batches = [inchi_str[i:i+batchsize] for i in range(0, len(inchi_str), batchsize)]
+      with pool.Pool(workers) as p:
+        base_smiles = p.map(func,batches)
+        base_smiles = [y for x in base_smiles for y in x] #Flatten results
+    else:
+      base_smiles = [func(inchi) for inchi in inchi_str]
+  else:
+    # Actual standardization code, everything above here is for multiprocessing and list parsing
+    std_mol = base_mol_from_inchi(inchi_str, useIsomericSmiles, removeCharges)
+    if std_mol is None:
+      base_smiles = ""
+    else:
+      base_smiles = Chem.MolToSmiles(std_mol, isomericSmiles=useIsomericSmiles)
+  return base_smiles
+
+def base_mol_from_inchi(inchi_str, useIsomericSmiles=True, removeCharges=False):
+  """
+  Generate a standardized RDKit Mol object for the largest fragment of the molecule specified by
+  InChi string inchi_str. Replace any rare isotopes with the most common ones for each element.
+  If removeCharges is True, add hydrogens as needed to eliminate charges. 
+  """
+  if len(inchi_str) == 0:
+    return None
+  cmpd_mol = Chem.inchi.MolFromInchi(inchi_str)
+  if cmpd_mol is None:
+    return None
+  std_mol = stdizer.isotope_parent(stdizer.fragment_parent(cmpd_mol), skip_standardize=True)
+  if removeCharges:
+    std_mol = uncharger(std_mol)
+  return std_mol
+
 def draw_structure(smiles_str, image_path, image_size=500):
   """
   Draw structure for the compound with the given SMILES string, in a PNG file
