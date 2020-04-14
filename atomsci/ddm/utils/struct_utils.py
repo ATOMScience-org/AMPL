@@ -3,6 +3,7 @@
 import os
 import re
 import pdb
+import numpy as np
 import molvs
 
 from rdkit import Chem
@@ -59,6 +60,8 @@ def base_mol_from_smiles(orig_smiles, useIsomericSmiles=True, removeCharges=Fals
   orig_smiles. Replace any rare isotopes with the most common ones for each element.
   If removeCharges is True, add hydrogens as needed to eliminate charges.
   """
+  if type(orig_smiles) != str:
+    return None
   if len(orig_smiles) == 0:
     return None
   cmpd_mol = Chem.MolFromSmiles(orig_smiles)
@@ -108,6 +111,8 @@ def base_mol_from_inchi(inchi_str, useIsomericSmiles=True, removeCharges=False):
   InChi string inchi_str. Replace any rare isotopes with the most common ones for each element.
   If removeCharges is True, add hydrogens as needed to eliminate charges. 
   """
+  if type(inchi_str) != str:
+    return None
   if len(inchi_str) == 0:
     return None
   cmpd_mol = Chem.inchi.MolFromInchi(inchi_str)
