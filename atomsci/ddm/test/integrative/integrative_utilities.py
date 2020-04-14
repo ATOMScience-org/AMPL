@@ -75,15 +75,14 @@ def training_statistics_file(model_dir, subset, minimum_r2):
     assert (os.path.exists(model_dir)), 'Error: Result directory does not exist'
 
     # Open training model metrics file
-    training_model_metrics_file = model_dir+'/training_model_metrics.json'
+    training_model_metrics_file = model_dir+'/model_metrics.json'
     assert (os.path.exists(training_model_metrics_file)), 'Error: Model metadata file does not exist'
     with open(training_model_metrics_file) as f:
         training_model_metrics = json.loads(f.read())
 
     # Get best statistics
-    training_run = training_model_metrics['ModelMetrics']['TrainingRun']
-    for t in training_run:
-        if (t['subset'] == subset) and (t['label'] == 'best'):
+    for m in training_model_metrics:
+        if (m['subset'] == subset) and (m['label'] == 'best'):
             break
 
-    assert (t['PredictionResults']['r2_score'] >= minimum_r2), 'Error: Model test R^2 < minimum R^2'
+    assert (m['prediction_results']['r2_score'] >= minimum_r2), 'Error: Model test R^2 < minimum R^2'

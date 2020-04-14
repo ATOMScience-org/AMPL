@@ -14,6 +14,7 @@ import logging
 logger = logging.getLogger('ATOM')
 
 from atomsci.ddm.utils import datastore_functions as dsf
+from atomsci.ddm.pipeline import parameter_parser as parse
 
 mlmt_supported = True
 try:
@@ -262,7 +263,7 @@ def save_model_tarball(output_dir, model_tarball_path):
 
 
 # *********************************************************************************************************************************
-def export_model(model_uuid, collection, model_dir):
+def export_model(model_uuid, collection, model_dir, alt_bucket='CRADA'):
     """
     Export the metadata (parameters) and other files needed to recreate a model
     from the model tracker database to a gzipped tar archive.
@@ -275,6 +276,8 @@ def export_model(model_uuid, collection, model_dir):
         model_dir (str): Path to directory where the model metadata and parameter files will be written. The directory will
         be created if it doesn't already exist. Subsequently, the directory contents will be packed into a gzipped tar archive
         named model_dir.tar.gz.
+
+        alt_bucket (str): Alternate datastore bucket to search for model tarball and transformer objects.
 
     Returns:
         none
@@ -293,21 +296,39 @@ def export_model(model_uuid, collection, model_dir):
 
     if 'model_parameters' in metadata_dict:
         model_parameters = metadata_dict['model_parameters']
-        model_dataset_oid = model_parameters['model_dataset_oid']
     else:
         raise Exception("Bad metadata for model UUID %s" % model_uuid)
 
     os.makedirs(model_dir, exist_ok=True)
 
+    model_params = parse.wrapper(metadata_dict)
+
+    # Override selected model training parameters
+    model_params.save_results = False
+
+    # Check that buckets where model tarball and transformers were saved still exist. If not, try alt_bucket.
+    trans_bucket_differs = (model_params.transformer_bucket != model_params.model_bucket)
+    model_bucket_meta = ds_client.ds_buckets.get_buckets(buckets=[model_params.model_bucket]).result()
+    if len(model_bucket_meta) == 0:
+        model_params.model_bucket = alt_bucket
+    if trans_bucket_differs:
+        trans_bucket_meta = ds_client.ds_buckets.get_buckets(buckets=[model_params.transformer_bucket]).result()
+        if len(trans_bucket_meta) == 0:
+            model_params.transformer_bucket = alt_bucket
+    else:
+        model_params.transformer_bucket = alt_bucket
+
     # Unpack the model state tarball into a subdirectory of the new archive
-    extract_dir = dsf.retrieve_dataset_by_dataset_oid(model_dataset_oid, client=ds_client, return_metadata=False,
+    model_dataset_key = 'model_%s_tarball' % model_uuid
+    extract_dir = dsf.retrieve_dataset_by_datasetkey(model_dataset_key, model_params.model_bucket,
+                                                    client=ds_client, return_metadata=False,
                                                     nrows=None, print_metadata=False, sep=False,
                                                     tarpath='%s/best_model' % model_dir)
 
     # Download the transformers pickle file if there is one
     try:
-        transformer_oid = model_parameters["transformer_oid"]
-        trans_fp = ds_client.open_dataset(transformer_oid, mode='b')
+        transformer_key = 'transformers_%s.pkl' % model_uuid
+        trans_fp = ds_client.open_bucket_dataset(model_params.transformer_bucket, transformer_key, mode='b')
         trans_data = trans_fp.read()
         trans_fp.close()
         trans_path = "%s/transformers.pkl" % model_dir
@@ -317,7 +338,7 @@ def export_model(model_uuid, collection, model_dir):
         del model_parameters['transformer_oid']
         model_parameters['transformer_key'] = 'transformers.pkl'
 
-    except KeyError:
+    except:
         # OK if there are no transformers
         pass
 
