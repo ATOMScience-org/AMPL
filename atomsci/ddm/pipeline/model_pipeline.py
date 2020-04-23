@@ -432,6 +432,30 @@ class ModelPipeline:
             '''
     # ****************************************************************************************
 
+    def split_dataset(self, featurization=None):
+        """
+        Load, featurize and split the dataset according to the current model parameter settings,
+        but don't actually train a model. Returns the split_uuid for the dataset split.
+
+        Args:
+            featurization (Featurization object): An optional featurization object.
+
+        Return:
+            split_uuid (str): The unique identifier for the dataset split.
+        """
+
+        self.run_mode = 'training'
+        self.params.split_only = True
+        self.params.previously_split = False
+        if featurization is None:
+            featurization = feat.create_featurization(self.params)
+        self.featurization = featurization
+        self.load_featurize_data()
+        return self.data.split_uuid
+
+
+    # ****************************************************************************************
+
     def train_model(self, featurization=None):
         """Build model described by self.params on the training dataset described by self.params.
 
@@ -1404,14 +1428,21 @@ def retrain_model(model_uuid, collection_name=None, mt_client=None, verbose=True
 def main():
     """Entry point when script is run from a shell"""
 
-    print("Running model pipeline")
     params = parse.wrapper(sys.argv[1:])
     # print(params)
     # model_filter parameter determines whether you are loading pretrained models and running
     # predictions on them, or training a new model
     if 'model_filter' in params.__dict__ and params.model_filter is not None:
+        # DEPRECATED: This feature isn't used by anyone as far as I know; it will be removed in
+        # the near future.
         run_models(params)
+    elif params.split_only:
+        params.verbose = False
+        mp = ModelPipeline(params)
+        split_uuid = mp.split_dataset()
+        print(split_uuid)
     else:
+        print("Running model pipeline")
         logging.basicConfig(format='%(asctime)-15s %(message)s')
         logger = logging.getLogger('ATOM')
         if params.verbose:
