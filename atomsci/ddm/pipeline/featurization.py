@@ -118,7 +118,6 @@ def get_dataset_attributes(dset_df, params):
     if params.date_col is not None:
         #attr_df[params.date_col] = pd.to_datetime(dset_df[params.date_col])
         attr_df[params.date_col] = [np.datetime64(d) for d in dset_df[params.date_col].values]
-    #pdb.set_trace()
     return attr_df
 
 # ****************************************************************************************
@@ -317,6 +316,8 @@ def compute_all_moe_descriptors(smiles_df, params):
 
     # TODO: Get MOE_PATH from params
     moe_path = os.environ.get('MOE_PATH', '/usr/workspace/atom/moe2018/bin')
+    if not os.path.exists(moe_path):
+        raise Exception("MOE is not available, or MOE_PATH environment variable needs to be set.")
     moe_root = os.path.abspath('%s/..' % moe_path)
     # Make sure we have an environment variable that points to the license server
     if os.environ.get('LM_LICENSE_FILE', None) is None:
@@ -325,7 +326,7 @@ def compute_all_moe_descriptors(smiles_df, params):
     moe_args = []
     moe_args.append("{moePath}/moebatch".format(moePath=moe_path))
     moe_args.append("-mpu")
-    moe_args.append("3")
+    moe_args.append("16")
     moe_args.append("-exec")
 
     moe_template = """db_Close db_Open['{fileMDB}','create']; db_ImportASCII[ascii_file: '{smilesFile}',
@@ -1493,8 +1494,6 @@ class ComputedDescriptorFeaturization(DescriptorFeaturization):
             #desc_df, is_valid = self.compute_rdkit_descriptors(smiles_df[params.smiles_col].values)
 
         elif descr_source == 'moe':
-            if params.system != 'LC':
-                raise Exception("MOE descriptors currently can only be computed on LC systems.")
             desc_df, is_valid = self.compute_moe_descriptors(smiles_df, params)
             # Add scaling by a_count if descr_scaled is True
             if descr_scaled:
