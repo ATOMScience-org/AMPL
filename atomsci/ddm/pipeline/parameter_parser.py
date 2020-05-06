@@ -458,7 +458,7 @@ def get_parser():
         help='dataset_oid for the descriptor file in the datastore')
     parser.add_argument(
         '--descriptor_spec_bucket', dest='descriptor_spec_bucket',
-        default='public',
+        default='',
         help='Datastore bucket for file mapping descriptor types to descriptor specifications. Specific to LLNL datastore'
              'system.')
     parser.add_argument(
@@ -781,7 +781,7 @@ def get_parser():
         help='File location where the model output will be saved. Defauts to <result_dir>/. ' 
              'TODO: redundant, should be removed in a later build.')
     parser.add_argument(
-        '--result_dir', '-r', dest='result_dir', default='/usr/local/data', required=False,
+        '--result_dir', '-r', dest='result_dir', default=None, required=False,
         help='Parent of directory where result files will be written')
     parser.add_argument(
         '--model_tarball_path', dest='model_tarball_path', default=None, 
@@ -875,7 +875,10 @@ def get_parser():
     parser.set_defaults(use_shortlist=False)
     parser.add_argument(
         '--slurm_partition', dest='slurm_partition', required=False, default='pbatch',
-        help='SLURM partition to urn hyperparameter batch runs on')
+        help='SLURM partition to run hyperparameter batch jobs on')
+    parser.add_argument(
+        '--slurm_time_limit', dest='slurm_time_limit', required=False, default=1440,
+        help='Time limit in minutes for hyperparameter search batch jobs')
 
 
 

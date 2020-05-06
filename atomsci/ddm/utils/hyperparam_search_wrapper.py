@@ -282,9 +282,9 @@ class HyperparameterSearch(object):
         self.shell_script = os.path.join(self.params.script_dir, 'utils', 'run.sh')
         with open(self.shell_script, 'w') as f:
             hostname = ''.join(list(filter(lambda x: x.isalpha(), socket.gethostname())))
-            f.write("#!/bin/bash\n#SBATCH -A {2}\n#SBATCH -N 1\n#SBATCH -p partition={0}\n#SBATCH -t 24:00:00"
+            f.write("#!/bin/bash\n#SBATCH -A {2}\n#SBATCH -N 1\n#SBATCH -p partition={0}\n#SBATCH -t {4}"
                     "\n#SBATCH -p {3}\n#SBATCH --export=ALL\n#SBATCH -D {1}\n".format(hostname, slurm_path,
-                    self.params.lc_account,self.params.slurm_partition))
+                    self.params.lc_account, self.params.slurm_partition, self.params.slurm_time_limit))
             f.write('start=`date +%s`\necho $3\n$1 $2/pipeline/model_pipeline.py $3\nend=`date +%s`\n'
                     'runtime=$((end-start))\necho "runtime: " $runtime')
 
@@ -1058,6 +1058,7 @@ def main():
                    'split_test_frac',
                    'bucket',
                    'lc_account',
+                   'slurm_time_limit',
                    'slurm_partition'} | excluded_keys
     params.__dict__ = parse.prune_defaults(params, keep_params=keep_params)
     if params.search_type == 'grid':
