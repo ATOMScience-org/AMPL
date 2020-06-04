@@ -233,19 +233,21 @@ def get_model_training_data_by_uuid(uuid):
     model_meta = get_metadata_by_uuid(uuid)
     response_col = model_meta['training_dataset']['response_cols']
     smiles_col = model_meta['training_dataset']['smiles_col']
-    full_data  = dsf.retrieve_dataset_by_dataset_oid(model_meta['training_dataset']['dataset_oid'], verbose=False)
+    id_col = model_meta['training_dataset']['id_col']
+    full_data  = dsf.retrieve_dataset_by_dataset_oid(model_meta['training_dataset']['dataset_oid'])
 
     # Pull split data and merge into initial dataset
-    split_meta = dsf.search_datasets_by_key_value('split_dataset_uuid', model_meta['splitting_parameters']['Splitting']['split_uuid'])
+    split_meta = dsf.search_datasets_by_key_value('split_dataset_uuid', model_meta['splitting_parameters']['split_uuid'])
     split_oid  = split_meta['dataset_oid'].values[0]
-    split_data = dsf.retrieve_dataset_by_dataset_oid(split_oid, verbose=False)
+    split_data = dsf.retrieve_dataset_by_dataset_oid(split_oid)
     split_data['compound_id'] = split_data['cmpd_id']
     split_data = split_data.drop(columns=['cmpd_id'])
-    full_data = pd.merge(full_data, split_data, how='inner', on=['compound_id'])
+    full_data = pd.merge(full_data, split_data, how='inner',
+            left_on=[id_col], right_on=['compound_id'])
 
-    train_data = full_data[full_data['subset'] == 'train'][['compound_id',smiles_col,*response_col]].reset_index(drop=True)
-    valid_data = full_data[full_data['subset'] == 'valid'][['compound_id',smiles_col,*response_col]].reset_index(drop=True)
-    test_data  = full_data[full_data['subset'] == 'test'][['compound_id',smiles_col,*response_col]].reset_index(drop=True)
+    train_data = full_data[full_data['subset'] == 'train'][['compound_id',smiles_col,id_col,*response_col]].reset_index(drop=True)
+    valid_data = full_data[full_data['subset'] == 'valid'][['compound_id',smiles_col,id_col,*response_col]].reset_index(drop=True)
+    test_data  = full_data[full_data['subset'] == 'test'][['compound_id',smiles_col,id_col,*response_col]].reset_index(drop=True)
 
     return train_data, valid_data, test_data
 
