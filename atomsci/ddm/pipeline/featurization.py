@@ -195,8 +195,12 @@ def compute_2d_mordred_descrs(mols):
     """
     calc = get_mordred_calculator(ignore_3D=True)
     res_df = calc.pandas(mols)
-    res_df = res_df.fill_missing().applymap(float)
-    return res_df
+    try:
+        res_df = res_df.fill_missing().applymap(float)
+        return res_df
+    except ValueError:
+        log.error('Mordred descriptor calculation failed in MordredDataFrame.fill_missing')
+        return None
 
 def compute_all_mordred_descrs(mols, max_cpus=None, quiet=True):
     """
@@ -217,8 +221,12 @@ def compute_all_mordred_descrs(mols, max_cpus=None, quiet=True):
     log.debug("Computing Mordred descriptors")
     res_df = calc.pandas(mols, quiet=quiet, nproc=max_cpus)
     log.debug("Done computing Mordred descriptors")
-    res_df = res_df.fill_missing().applymap(float)
-    return res_df
+    try:
+        res_df = res_df.fill_missing().applymap(float)
+        return res_df
+    except ValueError:
+        log.error('Mordred descriptor calculation failed in MordredDataFrame.fill_missing')
+        return None
 
 def compute_mordred_descriptors_from_smiles(smiles_strs, max_cpus=None, quiet=True, smiles_col='rdkit_smiles'):
     """
@@ -244,7 +252,12 @@ def compute_mordred_descriptors_from_smiles(smiles_strs, max_cpus=None, quiet=Tr
     mols3d, is_valid = get_3d_mols(smiles_strs)
     desc_df = compute_all_mordred_descrs(mols3d, max_cpus, quiet=quiet)
     valid_smiles = np.array(smiles_strs)[is_valid]
-    desc_df[smiles_col] = valid_smiles
+    if desc_df is not None:
+        desc_df[smiles_col] = valid_smiles
+    else:
+        log.debug('Descriptor calculation failed for one of the following SMILES strings:')
+        for smi in valid_smiles:
+            log.debug(smi)
     return desc_df, is_valid
 
 
@@ -326,7 +339,8 @@ def compute_all_moe_descriptors(smiles_df, params):
     moe_args = []
     moe_args.append("{moePath}/moebatch".format(moePath=moe_path))
     moe_args.append("-mpu")
-    moe_args.append("16")
+    # Use all available cores but one, times 2 for hyperthreading
+    moe_args.append('%d' % (2*len(os.sched_getaffinity(0))-2))
     moe_args.append("-exec")
 
     moe_template = """db_Close db_Open['{fileMDB}','create']; db_ImportASCII[ascii_file: '{smilesFile}',
@@ -1309,7 +1323,7 @@ class ComputedDescriptorFeaturization(DescriptorFeaturization):
             vals (np.array): array of response values
 
         Raises:
-            Exception: if features is None, feautirzation failed for the dataset
+            Exception: if features is None, featurization failed for the dataset
 
         Side effects:
             Loads a precomputed descriptor table and sets self.precomp_descr_table to point to it, if one is
