@@ -985,7 +985,7 @@ class GeometricSearch(HyperparameterSearch):
             if key == 'layers':
                 new_dict[key] = value
             elif type(value[0]) != str:
-                tmp_list = list(np.geomspace(value[0], value[1], value[2]))
+                tmp_list = list(np.geomspace(value[0], value[1], int(value[2])))
                 if key in self.convert_to_int:
                     new_dict[key] = [int(x) for x in tmp_list]
                 else:
