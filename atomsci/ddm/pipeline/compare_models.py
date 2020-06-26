@@ -1214,6 +1214,120 @@ def get_dataset_models(collection_names, filter_dict={}):
     return result_dict
 
 #-------------------------------------------------------------------------------------------------------------------
+def get_multitask_perf_from_files(result_dir, pred_type='regression'):
+    """
+    Retrieve model metadata and performance metrics stored in the filesystem from a multitask hyperparameter search.
+    Format the per-task performance metrics in a table with a row for each task and columns for each model/subset
+    combination.
+    """
+
+    model_uuid_list = []
+    learning_rate_list = []
+    dropouts_list = []
+    layer_sizes_list = []
+    best_epoch_list = []
+    max_epochs_list = []
+
+    subsets = ['train', 'valid', 'test']
+
+    if pred_type == 'regression':
+        metrics = ['num_compounds', 'r2_score', 'task_r2_scores']
+    else:
+        metrics = ['num_compounds', 'roc_auc_score', 'task_roc_auc_scores']
+    score_dict = {}
+    for subset in subsets:
+        score_dict[subset] = {}
+        for metric in metrics:
+            score_dict[subset][metric] = []
+
+    
+    # Navigate the results directory tree
+    model_list = []
+    metrics_list = []
+    for dirpath, dirnames, filenames in os.walk(result_dir):
+        if ('model_metadata.json' in filenames) and ('model_metrics.json' in filenames):
+            meta_path = os.path.join(dirpath, 'model_metadata.json')
+            with open(meta_path, 'r') as meta_fp:
+                meta_dict = json.load(meta_fp)
+            model_list.append(meta_dict)
+            metrics_path = os.path.join(dirpath, 'model_metrics.json')
+            with open(metrics_path, 'r') as metrics_fp:
+                metrics_dicts = json.load(metrics_fp)
+            metrics_list.append(metrics_dicts)
+
+    print("Found data for %d models under %s" % (len(model_list), result_dir))
+
+    for metadata_dict, metrics_dicts in zip(model_list, metrics_list):
+        model_uuid = metadata_dict['model_uuid']
+        #print("Got metadata for model UUID %s" % model_uuid)
+
+        # Get list of training run metrics for this model
+        #print("Got %d metrics dicts for model %s" % (len(metrics_dicts), model_uuid))
+        if len(metrics_dicts) < 3:
+            raise Exception("Got no or incomplete metrics for model %s, skipping..." % model_uuid)
+            #print("Got no or incomplete metrics for model %s, skipping..." % model_uuid)
+            #continue
+        subset_metrics = {}
+        for metrics_dict in metrics_dicts:
+            if metrics_dict['label'] == 'best':
+                subset = metrics_dict['subset']
+                subset_metrics[subset] = metrics_dict['prediction_results']
+
+        model_uuid_list.append(model_uuid)
+        model_params = metadata_dict['model_parameters']
+        dset_params = metadata_dict['training_dataset']
+        response_cols = dset_params['response_cols']
+        nn_params = metadata_dict['nn_specific']
+        max_epochs_list.append(nn_params['max_epochs'])
+        best_epoch_list.append(nn_params['best_epoch'])
+        learning_rate_list.append(nn_params['learning_rate'])
+        layer_sizes_list.append(','.join(['%d' % s for s in nn_params['layer_sizes']]))
+        dropouts_list.append(','.join(['%.2f' % d for d in nn_params['dropouts']]))
+        for subset in subsets:
+            for metric in metrics:
+                score_dict[subset][metric].append(subset_metrics[subset][metric])
+
+
+    # Format the data as a table with groups of 3 columns for each model
+    num_models = len(model_uuid_list)
+    if pred_type == 'regression':
+        model_params = ['model_uuid', 'learning_rate', 'layer_sizes', 'dropouts', 'max_epochs', 'best_epoch',
+                        'subset', 'num_compounds', 'mean_r2_score']
+    else:
+        model_params = ['model_uuid', 'learning_rate', 'layer_sizes', 'dropouts', 'max_epochs', 'best_epoch',
+                        'subset', 'num_compounds', 'mean_roc_auc_score']
+    param_list = model_params + response_cols
+    perf_df = pd.DataFrame(dict(col_0=param_list))
+    colnum = 0
+    for i in range(num_models):
+        for subset in subsets:
+            vals = []
+            if subset == 'train':
+                vals.append(model_uuid_list[i])
+                vals.append(learning_rate_list[i])
+                vals.append(layer_sizes_list[i])
+                vals.append(dropouts_list[i])
+                vals.append('%d' % max_epochs_list[i])
+                vals.append('%d' % best_epoch_list[i])
+            else:
+                vals = vals + ['']*6
+            vals.append(subset)
+            vals.append('%d' % score_dict[subset]['num_compounds'][i])
+            if pred_type == 'regression':
+                vals.append('%.3f' % score_dict[subset]['r2_score'][i])
+                vals = vals + ['%.3f' % v for v in score_dict[subset]['task_r2_scores'][i]]
+            else:
+                vals.append('%.3f' % score_dict[subset]['roc_auc_score'][i])
+                vals = vals + ['%.3f' % v for v in score_dict[subset]['task_roc_auc_scores'][i]]
+            colnum += 1
+            colname = 'col_%d' % colnum
+            perf_df[colname] = vals
+
+    return perf_df
+
+
+
+#-------------------------------------------------------------------------------------------------------------------
 # TODO: Update this function
 def aggregate_predictions(datasets, bucket, col_names, result_dir):
     if not mlmt_supported:
