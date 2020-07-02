@@ -1012,7 +1012,7 @@ def create_prediction_pipeline(params, model_uuid, collection_name=None, featuri
     # Override selected model training data parameters with parameters for current dataset
 
     model_params.model_uuid = model_uuid
-    #model_params.datastore = True
+    model_params.datastore = True
     model_params.save_results = False
     model_params.id_col = params.id_col
     model_params.smiles_col = params.smiles_col

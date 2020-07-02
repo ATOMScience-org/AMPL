@@ -33,7 +33,7 @@ def get_statistics_missing_ydata(dataset):
        for it in range(len(y)) :
             ## set weights to 0 for missing data
             if np.isnan(y[it]) :
-                assert(w[i]==0)
+                assert(w[it]==0)
             if w[it]!=0 and not np.isnan(y[it]) :
                #print("huh",w[it],y[it]) 
                n[it]+=1
