@@ -17,3 +17,6 @@ Note that this dataset includes most of the data from the Morgan (2013) and Warn
 - `ChEMBL25_BSEP_test_data.csv`: Subset of `ChEMBL25_BSEP_curated_data.csv` that excludes compounds appearing in the Morgan/Warner combined dataset.
 
 - `small_test_data.csv`: A small subset of `ChEMBL25_BSEP_test_data.csv` to be used for running quick tests of the prediction code.
+
+Data from ChEMBL are provided under a Creative Commons Attribution-ShareAlike 3.0 Unported license. See the file LICENSE.pdf in the
+parent of this directory for the terms of the license.
