@@ -356,7 +356,10 @@ class ModelDataset(object):
                                                            featurized_dset_df, self)
                 self.n_features = self.featurization.get_feature_count()
                 self.log.debug("Creating deepchem dataset")
-                self.dataset = DiskDataset.from_numpy(features, self.vals, ids=ids, verbose=False)
+
+                w = feat.make_weights(self.vals)
+
+                self.dataset = DiskDataset.from_numpy(features, self.vals, ids=ids, w=w, verbose=False)
                 self.log.info("Using prefeaturized data; number of features = " + str(self.n_features))
                 return
             except Exception as e:
@@ -799,6 +802,7 @@ class MinimalDataset(ModelDataset):
         # same singletask dataset. Or it may not, since we aren't comparing predictions against real
         # values for MinimalDataset objects.
         #self.dataset = NumpyDataset(features, self.vals, ids=ids)
+
         if self.params.splitter == 'scaffold':
             self.dataset = DiskDataset.from_numpy(features, self.vals, 
                                                   ids=dset_df[params.smiles_col].values, verbose=False)
