@@ -59,11 +59,16 @@ def make_weights(vals):
         vals: numpy array containing nans where there are not labels
 
     Returns:
+        vals: numpy array same as input vals, but nans are replaced with 0
         w: numpy array same shape as vals, where w[i,j] = 1 if vals[i,j] is nan else w[i,j] = 0
     """
     w = np.ones_like(vals)
-    w[np.argwhere(np.isnan(vals))] = 0
-    return w
+    nan_indexes = np.argwhere(np.isnan(vals))
+    w[nan_indexes] = 0
+    out_vals = np.copy(vals)
+    out_vals[nan_indexes] = 0
+
+    return out_vals, w
 
 
 # ****************************************************************************************

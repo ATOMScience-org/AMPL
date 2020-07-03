@@ -357,7 +357,7 @@ class ModelDataset(object):
                 self.n_features = self.featurization.get_feature_count()
                 self.log.debug("Creating deepchem dataset")
 
-                w = feat.make_weights(self.vals)
+                self.vals, w = feat.make_weights(self.vals)
 
                 self.dataset = DiskDataset.from_numpy(features, self.vals, ids=ids, w=w, verbose=False)
                 self.log.info("Using prefeaturized data; number of features = " + str(self.n_features))
