@@ -818,7 +818,7 @@ def copy_best_filesystem_models(result_dir, dest_dir, pred_type, force_update=Fa
     return best_df
 
 #------------------------------------------------------------------------------------------------------------------
-def get_summary_perf_tables(collection_names, filter_dict={}, prediction_type='regression'):
+def get_summary_perf_tables(collection_names, filter_dict={}, prediction_type='regression', verbose=False):
     """
     Load model parameters and performance metrics from model tracker for all models saved in the model tracker DB under
     the given collection names with the given prediction type. Tabulate the parameters and metrics including:
@@ -899,7 +899,7 @@ def get_summary_perf_tables(collection_names, filter_dict={}, prediction_type='r
             query_params=query_params,
         ).result()
         for i, metadata_dict in enumerate(metadata_list):
-            if i % 10 == 0:
+            if (i % 10 == 0) and verbose:
                 print('Processing collection %s model %d' % (collection_name, i))
             # Check that model has metrics before we go on
             if not 'training_metrics' in metadata_dict:
