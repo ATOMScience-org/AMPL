@@ -1029,7 +1029,8 @@ def create_prediction_pipeline(params, model_uuid, collection_name=None, featuri
         if len(trans_bucket_meta) == 0:
             model_params.transformer_bucket = alt_bucket
     else:
-        model_params.transformer_bucket = alt_bucket
+        if len(model_bucket_meta) == 0:
+            model_params.transformer_bucket = alt_bucket
 
     # Create a separate output_dir under model_params.result_dir for each model. For lack of a better idea, use the model UUID
     # to name the output dir, to ensure uniqueness.
