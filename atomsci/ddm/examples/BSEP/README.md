@@ -46,3 +46,7 @@ to process. Most other warning messages may be ignored.
 ### Expected run time
 Run times are mainly driven by the time it takes to compute Mordred descriptors for each compound, which scales with the number of 
 compounds. On our development Linux system, the average run time is 9 + 0.586N seconds where N is the number of compounds.
+
+### License
+Models and data under this directory are provided under a Creative Commons Attribution-ShareAlike 3.0 Unported license. See the file
+LICENSE.pdf in this directory for the terms of the license.
