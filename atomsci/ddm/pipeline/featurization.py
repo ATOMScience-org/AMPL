@@ -49,6 +49,28 @@ logging.basicConfig(format='%(asctime)-15s %(message)s')
 log = logging.getLogger('ATOM')
 
 
+
+# ****************************************************************************************
+def make_weights(vals):
+    """In the case of multitask learning, we must create weights for each sample labeling
+    it with 0 if there is not value or 1 if there is.
+
+    Args:
+        vals: numpy array containing nans where there are not labels
+
+    Returns:
+        vals: numpy array same as input vals, but nans are replaced with 0
+        w: numpy array same shape as vals, where w[i,j] = 1 if vals[i,j] is nan else w[i,j] = 0
+    """
+    w = np.ones_like(vals)
+    nan_indexes = np.argwhere(np.isnan(vals))
+    w[nan_indexes] = 0
+    out_vals = np.copy(vals)
+    out_vals[nan_indexes] = 0
+
+    return out_vals, w
+
+
 # ****************************************************************************************
 def create_featurization(params):
     """Factory method to create the appropriate type of Featurization object for params.featurizer
@@ -1004,6 +1026,7 @@ class DescriptorFeaturization(PersistentFeaturization):
         ids = merged_dset_df[model_dataset.params.id_col]
         vals = merged_dset_df[model_dataset.params.response_cols].values
         attr = get_dataset_attributes(merged_dset_df, model_dataset.params)
+
         return features, ids, vals, attr
 
     # ****************************************************************************************
@@ -1145,7 +1168,7 @@ class DescriptorFeaturization(PersistentFeaturization):
             dset_cols += params.response_cols
         merged_dset_df = dset_df[dset_cols].merge(
                 self.precomp_descr_table, how='inner', left_on=params.id_col, right_on=self.desc_id_col)
-        
+
         model_dataset.save_featurized_data(merged_dset_df)
 
         user_specified_features = self.get_feature_columns()
@@ -1166,6 +1189,7 @@ class DescriptorFeaturization(PersistentFeaturization):
             vals = np.zeros((nrows,ncols))
 
         attr = attr.loc[ids]
+
         return features, ids, vals, attr, None
 
     # ****************************************************************************************
@@ -1452,7 +1476,7 @@ class ComputedDescriptorFeaturization(DescriptorFeaturization):
         attr = get_dataset_attributes(merged_dset_df, params)
 
         return features, ids, vals, attr, None
-        
+
     # ****************************************************************************************
     def get_featurized_dset_name(self, dataset_name):
         """Returns a name for the featurized dataset, for use in filenames or dataset keys.
