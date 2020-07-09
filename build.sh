@@ -5,7 +5,7 @@ APP=ampl
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd $DIR
 
-TOPDIR=`readlink -f .`
+TOPDIR=`readlink -f .`/
 
 BUILD_DIR=${TOPDIR}.build/$APP
 DIST_DIR=${TOPDIR}.dist
