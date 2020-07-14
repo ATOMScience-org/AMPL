@@ -782,7 +782,8 @@ class DCNNModelWrapper(ModelWrapper):
         else:
             self.model = MultitaskClassifier.load_from_dir(reload_dir)
 
-        if self.params.transformers and (self.params.transformer_key is not None):
+        # Load transformers if they would have been saved with the model
+        if trans.transformers_needed(self.params) and (self.params.transformer_key is not None):
             self.log.info("Reloading transformers from file %s" % self.params.transformer_key)
             if self.params.save_results:
                 self.transformers, self.transformers_x = dsf.retrieve_dataset_by_datasetkey(
@@ -1125,9 +1126,8 @@ class DCRFModelWrapper(ModelWrapper):
                                               max_depth=self.params.rf_max_depth,
                                               n_jobs=-1)
 
-        # We load transformers for both regression and classification models, since classifiers
-        # can still have transformers on features.
-        if self.params.transformers:
+        # Load transformers if they would have been saved with the model
+        if trans.transformers_needed(self.params) and (self.params.transformer_key is not None):
             self.log.info("Reloading transformers from file %s" % self.params.transformer_key)
             if self.params.save_results:
                 self.transformers, self.transformers_x = dsf.retrieve_dataset_by_datasetkey(dataset_key = self.params.transformer_key,
@@ -1492,7 +1492,8 @@ class DCxgboostModelWrapper(ModelWrapper):
 #                                           tree_method = 'gpu_hist',
                                          )
 
-        if self.params.transformers:
+        # Load transformers if they would have been saved with the model
+        if trans.transformers_needed(self.params) and (self.params.transformer_key is not None):
             self.log.warning("Reloading transformers from file %s" % self.params.transformer_key)
             if self.params.save_results:
                 self.transformers, self.transformers_x = dsf.retrieve_dataset_by_datasetkey(
