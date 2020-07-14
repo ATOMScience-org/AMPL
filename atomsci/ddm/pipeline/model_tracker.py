@@ -258,8 +258,10 @@ def save_model_tarball(output_dir, model_tarball_path):
     Save the model parameters, metadata and transformers as a portable gzipped tar archive.
     """
     tarball = tarfile.open(model_tarball_path, mode='w:gz')
-    for filename in ['best_model', 'model_metadata.json', 'transformers.pkl']:
+    for filename in ['best_model', 'model_metadata.json']:
         tarball.add('%s/%s' % (output_dir, filename), arcname='./%s' % filename)
+    if os.path.exists("%s/transformers.pkl" % output_dir):
+        tarball.add('%s/transformers.pkl' % output_dir, arcname='./transformers.pkl')
     tarball.close()
     print('Wrote model tarball to %s' % model_tarball_path)
 
