@@ -15,6 +15,7 @@ logger = logging.getLogger('ATOM')
 
 from atomsci.ddm.utils import datastore_functions as dsf
 from atomsci.ddm.pipeline import parameter_parser as parse
+from atomsci.ddm.pipeline import transformations as trans
 
 mlmt_supported = True
 try:
@@ -306,7 +307,6 @@ def export_model(model_uuid, collection, model_dir, alt_bucket='CRADA'):
     model_params = parse.wrapper(metadata_dict)
 
     # Override selected model training parameters
-    model_params.save_results = False
 
     # Check that buckets where model tarball and transformers were saved still exist. If not, try alt_bucket.
     trans_bucket_differs = (model_params.transformer_bucket != model_params.model_bucket)
@@ -318,7 +318,8 @@ def export_model(model_uuid, collection, model_dir, alt_bucket='CRADA'):
         if len(trans_bucket_meta) == 0:
             model_params.transformer_bucket = alt_bucket
     else:
-        model_params.transformer_bucket = alt_bucket
+        if len(model_bucket_meta) == 0:
+            model_params.transformer_bucket = alt_bucket
 
     # Unpack the model state tarball into a subdirectory of the new archive
     model_dataset_key = 'model_%s_tarball' % model_uuid
@@ -328,23 +329,29 @@ def export_model(model_uuid, collection, model_dir, alt_bucket='CRADA'):
                                                     tarpath='%s/best_model' % model_dir)
 
     # Download the transformers pickle file if there is one
-    try:
-        transformer_key = 'transformers_%s.pkl' % model_uuid
-        trans_fp = ds_client.open_bucket_dataset(model_params.transformer_bucket, transformer_key, mode='b')
-        trans_data = trans_fp.read()
-        trans_fp.close()
-        trans_path = "%s/transformers.pkl" % model_dir
-        trans_out = open(trans_path, mode='wb')
-        trans_out.write(trans_data)
-        trans_out.close()
-        del model_parameters['transformer_oid']
-        model_parameters['transformer_key'] = 'transformers.pkl'
-
-    except:
-        # OK if there are no transformers
-        pass
+    if trans.transformers_needed(model_params):
+        try:
+            if model_params.transformer_key is None:
+                transformer_key = 'transformers_%s.pkl' % model_uuid
+            else:
+                transformer_key = model_params.transformer_key
+            trans_fp = ds_client.open_bucket_dataset(model_params.transformer_bucket, transformer_key, mode='b')
+            trans_data = trans_fp.read()
+            trans_fp.close()
+            trans_path = "%s/transformers.pkl" % model_dir
+            trans_out = open(trans_path, mode='wb')
+            trans_out.write(trans_data)
+            trans_out.close()
+            del model_parameters['transformer_oid']
+            model_parameters['transformer_key'] = 'transformers.pkl'
+    
+        except:
+            print("Transformers expected but not found in datastore in bucket %s with key\n%s" % (model_params.transformer_bucket,
+                    transformer_key))
+            raise
 
     # Save the metadata params
+    model_parameters['save_results'] = False
     meta_path = "%s/model_metadata.json" % model_dir
     with open(meta_path, 'w') as meta_out:
         json.dump(metadata_dict, meta_out, indent=4)
