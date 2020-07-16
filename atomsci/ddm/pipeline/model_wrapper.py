@@ -665,6 +665,9 @@ class DCNNModelWrapper(ModelWrapper):
 
         test_dset = pipeline.data.test_dset
 
+        time_limit = int(self.params.slurm_time_limit)
+        training_start = time.time()
+
         num_folds = len(pipeline.data.train_valid_dsets)
         for k in range(num_folds):
             restore_hold = False
@@ -681,10 +684,20 @@ class DCNNModelWrapper(ModelWrapper):
 
                     now = time.time() 
                     elapsed_time = now - pipeline.start_time
-                    time_remaining = self.params.slurm_time_limit * 60 - elapsed_time
-                    epochs_remaining = (ei+1) * num_folds - ei
-                    if epochs_remaining * elapsed_time / ei > 0.9 * time_remaining:
-                        self.log.warn("Projected time to finish training exceeds time left in job; cutting training to %d epochs" %
+                    training_time = now - training_start
+                    time_remaining = time_limit * 60 - elapsed_time
+                    # epochs_remaining is how many epochs we have to run if we do one more in fold 0, then run an equal number of 
+                    # epochs for each of the remaining folds, then do the same number of epochs on the combined training & validation set.
+                    epochs_remaining = (ei+1) * (num_folds+1) - ei
+                    time_per_epoch = training_time/ei
+                    time_needed = epochs_remaining * time_per_epoch
+
+                    # debug
+                    self.log.info("Epoch %d: %.1f seconds elapsed, %.1f in training, %.1f/epoch, %.1f remaining, %.1f needed to finish %d epochs over %d fold(s)" % (
+                            ei, elapsed_time, training_time, time_per_epoch, time_remaining, time_needed, ei+1, num_folds))
+
+                    if time_needed > 0.9 * time_remaining:
+                        self.log.warn("Projected time to finish one more epoch exceeds time left in job; cutting training to %d epochs" %
                                         ei)
                         self.params.max_epochs = ei
                         break
@@ -729,6 +742,7 @@ class DCNNModelWrapper(ModelWrapper):
             fit_dataset = pipeline.data.combined_training_data()
         else:
             fit_dataset = pipeline.data.train_valid_dsets[0][0]
+        retrain_start = time.time()
         self.recreate_model()
         self.model.fit(fit_dataset, nb_epoch=min_epoch, restore=False)
         self.model.save()
@@ -739,6 +753,9 @@ class DCNNModelWrapper(ModelWrapper):
             self.model.fit(fit_dataset, nb_epoch=max_epoch-min_epoch, restore=True)
             self.model.save()
         self._copy_model(max_epoch_dir)
+        retrain_time = time.time() - retrain_start
+        self.log.info("Time to retrain model for %d epochs: %.1f seconds, %.1f sec/epoch" % (max_epoch, retrain_time, retrain_time/max_epoch))
+
 
     # ****************************************************************************************
     def _copy_model(self, dest_dir):
@@ -781,6 +798,8 @@ class DCNNModelWrapper(ModelWrapper):
             self.model = MultitaskRegressor.load_from_dir(reload_dir)
         else:
             self.model = MultitaskClassifier.load_from_dir(reload_dir)
+        # Hack to run models trained in DeepChem 2.1 with DeepChem 2.2
+        self.model.default_outputs = self.model.outputs
 
         # Load transformers if they would have been saved with the model
         if trans.transformers_needed(self.params) and (self.params.transformer_key is not None):
