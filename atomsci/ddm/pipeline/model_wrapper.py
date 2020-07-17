@@ -692,10 +692,6 @@ class DCNNModelWrapper(ModelWrapper):
                     time_per_epoch = training_time/ei
                     time_needed = epochs_remaining * time_per_epoch
 
-                    # debug
-                    self.log.info("Epoch %d: %.1f seconds elapsed, %.1f in training, %.1f/epoch, %.1f remaining, %.1f needed to finish %d epochs over %d fold(s)" % (
-                            ei, elapsed_time, training_time, time_per_epoch, time_remaining, time_needed, ei+1, num_folds))
-
                     if time_needed > 0.9 * time_remaining:
                         self.log.warn("Projected time to finish one more epoch exceeds time left in job; cutting training to %d epochs" %
                                         ei)
