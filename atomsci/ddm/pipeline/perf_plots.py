@@ -105,14 +105,14 @@ def plot_perf_vs_epoch(MP, pdf_dir=None):
     wrapper = MP.model_wrapper
     if 'train_epoch_perfs' not in wrapper.__dict__:
         raise ValueError("plot_perf_vs_epoch() can only be called for NN models")
-    subset_perf = dict(training = wrapper.train_epoch_perfs, validation = wrapper.valid_epoch_perfs, 
-                       test = wrapper.test_epoch_perfs)
-    subset_std = dict(training = wrapper.train_epoch_perf_stds, validation = wrapper.valid_epoch_perf_stds, 
-                       test = wrapper.test_epoch_perf_stds)
-    num_folds = len(MP.data.train_valid_dsets)
-    model_scores = wrapper.model_choice_scores
-    model_score_type = MP.params.model_choice_score_type
     num_epochs = MP.params.max_epochs
+    subset_perf = dict(training = wrapper.train_epoch_perfs[:num_epochs], validation = wrapper.valid_epoch_perfs[:num_epochs], 
+                       test = wrapper.test_epoch_perfs[:num_epochs])
+    subset_std = dict(training = wrapper.train_epoch_perf_stds[:num_epochs], validation = wrapper.valid_epoch_perf_stds[:num_epochs],
+                       test = wrapper.test_epoch_perf_stds[:num_epochs])
+    num_folds = len(MP.data.train_valid_dsets)
+    model_scores = wrapper.model_choice_scores[:num_epochs]
+    model_score_type = MP.params.model_choice_score_type
     best_epoch = wrapper.best_epoch
     baseline_epoch = MP.params.baseline_epoch
 

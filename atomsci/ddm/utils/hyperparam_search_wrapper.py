@@ -279,7 +279,7 @@ class HyperparameterSearch(object):
         slurm_path = os.path.join(self.params.result_dir, 'slurm_files')
         if not os.path.exists(slurm_path):
             os.makedirs(slurm_path)
-        self.shell_script = os.path.join(self.params.script_dir, 'utils', 'run.sh')
+        self.shell_script = os.path.join(self.params.result_dir, 'run.sh')
         with open(self.shell_script, 'w') as f:
             hostname = ''.join(list(filter(lambda x: x.isalpha(), socket.gethostname())))
             f.write("#!/bin/bash\n#SBATCH -A {2}\n#SBATCH -N 1\n#SBATCH -p partition={0}\n#SBATCH -t {4}"

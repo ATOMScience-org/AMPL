@@ -138,6 +138,8 @@ def analyze_split(params, id_col='compound_id', smiles_col='rdkit_smiles', activ
     inactive_id_ind = dict(zip(inactive_ids, range(len(inactive_ids))))
     if params.featurizer == 'ecfp':
         metric = 'jaccard'
+    elif params.featurizer == 'graphconv':
+        raise ValueError("ave_min splitter dopesn't support graphconv features")
     else:
         metric = 'euclidean'
 

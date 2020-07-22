@@ -16,7 +16,7 @@ import tempfile
 import tarfile
 import deepchem as dc
 import numpy as np
-from datetime import datetime
+import time
 import pandas as pd
 import pdb
 
@@ -106,7 +106,7 @@ class ModelPipeline:
         self.params = params
         self.log = logging.getLogger('ATOM')
         self.run_mode = 'training'  # default, can be overridden later
-        self.start_time = datetime.now()
+        self.start_time = time.time()
         # Default dataset_name parameter from dataset_key
         if params.dataset_name is None:
             self.params.dataset_name = os.path.splitext(os.path.basename(self.params.dataset_key))[0]
@@ -1012,8 +1012,7 @@ def create_prediction_pipeline(params, model_uuid, collection_name=None, featuri
     # Override selected model training data parameters with parameters for current dataset
 
     model_params.model_uuid = model_uuid
-    model_params.datastore = True
-    model_params.save_results = False
+    model_params.save_results = True
     model_params.id_col = params.id_col
     model_params.smiles_col = params.smiles_col
     model_params.result_dir = params.result_dir
@@ -1029,7 +1028,8 @@ def create_prediction_pipeline(params, model_uuid, collection_name=None, featuri
         if len(trans_bucket_meta) == 0:
             model_params.transformer_bucket = alt_bucket
     else:
-        model_params.transformer_bucket = alt_bucket
+        if len(model_bucket_meta) == 0:
+            model_params.transformer_bucket = alt_bucket
 
     # Create a separate output_dir under model_params.result_dir for each model. For lack of a better idea, use the model UUID
     # to name the output dir, to ensure uniqueness.
@@ -1135,10 +1135,9 @@ def create_prediction_pipeline_from_file(params, reload_dir, model_path=None, mo
 
     # Override selected model training data parameters with parameters for current dataset
 
-    #model_params.datastore = False
-    model_params.save_results = False
     model_params.id_col = params.id_col
     model_params.smiles_col = params.smiles_col
+    model_params.save_results = False
     model_params.result_dir = params.result_dir
     model_params.system = params.system
     model_params.output_dir = reload_dir
@@ -1210,9 +1209,6 @@ def load_from_tracker(model_uuid, collection_name=None, client=None, verbose=Fal
         sys.stdout = io.StringIO()
         import warnings
         warnings.simplefilter("ignore")
-
-    # Get the singleton MLMTClient instance
-    mlmt_client = dsf.initialize_model_tracker()
 
     if collection_name is None:
         collection_name = trkr.get_model_collection_by_uuid(model_uuid)
