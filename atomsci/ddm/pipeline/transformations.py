@@ -18,6 +18,24 @@ from sklearn.preprocessing import RobustScaler, Imputer
 logging.basicConfig(format='%(asctime)-15s %(message)s')
 log = logging.getLogger('ATOM')
 
+transformed_featurizers = ['descriptors', 'computed_descriptors']
+
+
+# ****************************************************************************************
+def transformers_needed(params):
+    """
+    Returns a boolean indicating whether response and/or feature transformers would be
+    created for a model with the given parameters.
+
+    Args:
+        params (argparse.namespace: Object containing the parameter list
+    Returns:
+        boolean: True if transformers are required given the model parameters.
+    """
+    return ((params.featurizer in transformed_featurizers) or
+           ((params.prediction_type == 'regression') and params.transformers))
+
+# ****************************************************************************************
 def get_statistics_missing_ydata(dataset):
     """Compute and return statistics of this dataset.
 

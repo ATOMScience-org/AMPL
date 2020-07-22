@@ -30,8 +30,10 @@ import pickle
 import yaml
 import glob
 from datetime import datetime
+import time
 
 from atomsci.ddm.utils import datastore_functions as dsf
+from atomsci.ddm.utils import llnl_utils
 from atomsci.ddm.pipeline import transformations as trans
 from atomsci.ddm.pipeline import perf_data as perf
 
@@ -177,7 +179,7 @@ class ModelWrapper(object):
         Side effects
             Overwrites the attributes:
                 transformers: A list of deepchem transformation objects on response_col, only if conditions are met
-                transformers_x: A list of deepchem trasformation objects on featurizers, only if conditions are met.
+                transformers_x: A list of deepchem transformation objects on featurizers, only if conditions are met.
                 params.transformer_key: A string pointing to the dataset key containing the transformer in the datastore, or the path to the transformer
 
         """
@@ -194,7 +196,7 @@ class ModelWrapper(object):
 
         if len(self.transformers) > 0 or len(self.transformers_x) > 0:
 
-            if self.params.datastore:
+            if self.params.save_results:
                 # Save tuple of response and feature transformer lists in datastore
                 self.params.transformer_key = 'transformers_' + self.params.model_uuid + '.pkl'
                 try:
@@ -229,7 +231,7 @@ class ModelWrapper(object):
             dataset: The DeepChem DiskDataset that contains a dataset
 
         Returns:
-            transformed_dataset: The trasformed DeepChem DiskDataset
+            transformed_dataset: The transformed DeepChem DiskDataset
 
         """
         transformed_dataset = dataset
@@ -663,6 +665,9 @@ class DCNNModelWrapper(ModelWrapper):
 
         test_dset = pipeline.data.test_dset
 
+        time_limit = int(self.params.slurm_time_limit)
+        training_start = time.time()
+
         num_folds = len(pipeline.data.train_valid_dsets)
         for k in range(num_folds):
             restore_hold = False
@@ -672,12 +677,27 @@ class DCNNModelWrapper(ModelWrapper):
                 self.recreate_model()
             train_dset, valid_dset = pipeline.data.train_valid_dsets[k]
             for ei in range(self.params.max_epochs):
-                # Check if we are on the LC machines and have been running for more than 18 hours.
-                # If so, set over_time to True and break out of epoch iteration loop.
-                if self.params.system == 'LC' and (datetime.now() - pipeline.start_time).total_seconds() > 64800:
-                    self.log.warn("This code has run for 18 hours, exiting training loop")
-                    self.params.max_epochs = ei
-                    break
+                if llnl_utils.is_lc_system() and (k == 0) and (ei > 0):
+                    # If we're running on an LC system, check that we have enough time to complete ei+1 epochs
+                    # across all folds, plus rerun the training, before the current job finishes, by 
+                    # extrapolating from the time elapsed so far.
+
+                    now = time.time() 
+                    elapsed_time = now - pipeline.start_time
+                    training_time = now - training_start
+                    time_remaining = time_limit * 60 - elapsed_time
+                    # epochs_remaining is how many epochs we have to run if we do one more in fold 0, then run an equal number of 
+                    # epochs for each of the remaining folds, then do the same number of epochs on the combined training & validation set.
+                    epochs_remaining = (ei+1) * (num_folds+1) - ei
+                    time_per_epoch = training_time/ei
+                    time_needed = epochs_remaining * time_per_epoch
+
+                    if time_needed > 0.9 * time_remaining:
+                        self.log.warn("Projected time to finish one more epoch exceeds time left in job; cutting training to %d epochs" %
+                                        ei)
+                        self.params.max_epochs = ei
+                        break
+
                 self.model.fit(train_dset, nb_epoch=1, restore=restore_hold)
                 train_pred = self.model.predict(train_dset, [])
                 valid_pred = self.model.predict(valid_dset, [])
@@ -718,6 +738,7 @@ class DCNNModelWrapper(ModelWrapper):
             fit_dataset = pipeline.data.combined_training_data()
         else:
             fit_dataset = pipeline.data.train_valid_dsets[0][0]
+        retrain_start = time.time()
         self.recreate_model()
         self.model.fit(fit_dataset, nb_epoch=min_epoch, restore=False)
         self.model.save()
@@ -728,6 +749,9 @@ class DCNNModelWrapper(ModelWrapper):
             self.model.fit(fit_dataset, nb_epoch=max_epoch-min_epoch, restore=True)
             self.model.save()
         self._copy_model(max_epoch_dir)
+        retrain_time = time.time() - retrain_start
+        self.log.info("Time to retrain model for %d epochs: %.1f seconds, %.1f sec/epoch" % (max_epoch, retrain_time, retrain_time/max_epoch))
+
 
     # ****************************************************************************************
     def _copy_model(self, dest_dir):
@@ -770,10 +794,13 @@ class DCNNModelWrapper(ModelWrapper):
             self.model = MultitaskRegressor.load_from_dir(reload_dir)
         else:
             self.model = MultitaskClassifier.load_from_dir(reload_dir)
+        # Hack to run models trained in DeepChem 2.1 with DeepChem 2.2
+        self.model.default_outputs = self.model.outputs
 
-        if self.params.transformers and (self.params.transformer_key is not None):
+        # Load transformers if they would have been saved with the model
+        if trans.transformers_needed(self.params) and (self.params.transformer_key is not None):
             self.log.info("Reloading transformers from file %s" % self.params.transformer_key)
-            if self.params.datastore:
+            if self.params.save_results:
                 self.transformers, self.transformers_x = dsf.retrieve_dataset_by_datasetkey(
                     dataset_key = self.params.transformer_key,
                     bucket = self.params.transformer_bucket,
@@ -1108,22 +1135,21 @@ class DCRFModelWrapper(ModelWrapper):
                                              max_features=self.params.rf_max_features,
                                              max_depth=self.params.rf_max_depth,
                                              n_jobs=-1)
-            if self.params.transformers:
-                self.log.info("Reloading transformers from file %s" % self.params.transformer_key)
-                if self.params.datastore:
-                    self.transformers, self.transformers_x = dsf.retrieve_dataset_by_datasetkey(dataset_key = self.params.transformer_key,
-                                   bucket = self.params.transformer_bucket,
-                                   client= self.ds_client )
-                else:
-                    self.transformers, self.transformers_x = pickle.load(open( self.params.transformer_key, 'rb' ))
-                # TODO: We shouldn't be reloading the transformers here - that should only happen when we load
-                # TODO: a previously trained model to run predictions on a new dataset.
         else:
             rf_model = RandomForestClassifier(n_estimators=self.params.rf_estimators,
                                               max_features=self.params.rf_max_features,
                                               max_depth=self.params.rf_max_depth,
                                               n_jobs=-1)
 
+        # Load transformers if they would have been saved with the model
+        if trans.transformers_needed(self.params) and (self.params.transformer_key is not None):
+            self.log.info("Reloading transformers from file %s" % self.params.transformer_key)
+            if self.params.save_results:
+                self.transformers, self.transformers_x = dsf.retrieve_dataset_by_datasetkey(dataset_key = self.params.transformer_key,
+                               bucket = self.params.transformer_bucket,
+                               client= self.ds_client )
+            else:
+                self.transformers, self.transformers_x = pickle.load(open( self.params.transformer_key, 'rb' ))
         self.model = dc.models.sklearn_models.SklearnModel(rf_model, model_dir=reload_dir)
         self.model.reload()
 
@@ -1454,17 +1480,6 @@ class DCxgboostModelWrapper(ModelWrapper):
                                          max_bin = 16,
 #                                          tree_method = 'gpu_hist'
                                          )
-            if self.params.transformers:
-                self.log.warning("Reloading transformers from file %s" % self.params.transformer_key)
-                if self.params.datastore:
-                    self.transformers, self.transformers_x = dsf.retrieve_dataset_by_datasetkey(
-                        dataset_key=self.params.transformer_key,
-                        bucket=self.params.transformer_bucket,
-                        client=self.ds_client)
-                else:
-                    self.transformers, self.transformers_x = pickle.load(open(self.params.transformer_key, 'rb'))
-                # TODO: We shouldn't be reloading the transformers here - that should only happen when we load
-                # TODO: a previously trained model to run predictions on a new dataset.
         else:
             xgb_model = xgb.XGBClassifier(max_depth=self.params.xgb_max_depth,
                                          learning_rate=self.params.xgb_learning_rate,
@@ -1491,6 +1506,17 @@ class DCxgboostModelWrapper(ModelWrapper):
                                           max_bin = 16,
 #                                           tree_method = 'gpu_hist',
                                          )
+
+        # Load transformers if they would have been saved with the model
+        if trans.transformers_needed(self.params) and (self.params.transformer_key is not None):
+            self.log.warning("Reloading transformers from file %s" % self.params.transformer_key)
+            if self.params.save_results:
+                self.transformers, self.transformers_x = dsf.retrieve_dataset_by_datasetkey(
+                    dataset_key=self.params.transformer_key,
+                    bucket=self.params.transformer_bucket,
+                    client=self.ds_client)
+            else:
+                self.transformers, self.transformers_x = pickle.load(open(self.params.transformer_key, 'rb'))
 
         self.model = dc.models.xgboost_models.XGBoostModel(xgb_model, model_dir=self.best_model_dir)
         self.model.reload()

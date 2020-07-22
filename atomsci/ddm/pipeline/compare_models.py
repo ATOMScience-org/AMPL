@@ -916,10 +916,9 @@ def get_summary_perf_tables(collection_names, filter_dict={}, prediction_type='r
             featurizer = model_params['featurizer']
             featurizer_list.append(featurizer)
             if 'descriptor_specific' in metadata_dict:
-                if featurizer in ['graphconv', 'ecfp']:
-                    desc_type = featurizer
-                else:
-                    desc_type = metadata_dict['descriptor_specific']['descriptor_type']
+                desc_type = metadata_dict['descriptor_specific']['descriptor_type']
+            elif featurizer in ['graphconv', 'ecfp']:
+                desc_type = featurizer
             else:
                 desc_type = ''
             desc_type_list.append(desc_type)

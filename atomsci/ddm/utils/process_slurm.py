@@ -52,8 +52,8 @@ def move_failed_slurm(output_dirs):
                     print(filename)
 
 
-def rerun_failed(script_dir, python_path, output_dirs):
-    shell_script = os.path.join(script_dir, 'utils', 'run.sh')
+def rerun_failed(script_dir, python_path, output_dirs, result_dir):
+    shell_script = os.path.join(result_dir, 'run.sh')
     hostname = ''.join(list(filter(lambda x: x.isalpha(), socket.gethostname())))
     for output_dir in output_dirs:
         with open(shell_script, 'w') as f:
@@ -107,7 +107,7 @@ def main():
     elif sys.argv[1] == 'move_failed_slurm':
         move_failed_slurm(sys.argv[2:])
     else:
-        rerun_failed(sys.argv[2], sys.argv[3], sys.argv[4:])
+        rerun_failed(sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5:])
 
 if __name__=='__main__':
     if len(sys.argv) == 1:

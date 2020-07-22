@@ -485,14 +485,11 @@ class TrainValidTestSplitting(Splitting):
             Exception if there are duplicate ids or smiles strings in the dataset or the attr_df
 
         """
-        if check_if_dupe_smiles_dataset(dataset, attr_df, smiles_col):
-            raise Exception("Duplicate ids or smiles in the dataset")
-            
         log.warning("Splitting data by %s" % self.params.splitter)
 
-
-
         if self.needs_smiles():
+            if check_if_dupe_smiles_dataset(dataset, attr_df, smiles_col):
+                raise Exception("Duplicate ids or smiles in the dataset")
             # Some DeepChem splitters require compound IDs in dataset to be SMILES strings. Swap in the
             # SMILES strings now; we'll reverse this later.
             dataset = DiskDataset.from_numpy(dataset.X, dataset.y, ids=attr_df[smiles_col].values, verbose=False)
