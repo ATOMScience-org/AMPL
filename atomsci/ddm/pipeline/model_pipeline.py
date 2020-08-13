@@ -658,7 +658,7 @@ class ModelPipeline:
         if not verbose:
             os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1'
             logger = logging.getLogger('ATOM')
-            logger.setLevel(50)
+            logger.setLevel(logging.CRITICAL)
             sys.stdout = io.StringIO()
             import warnings
             warnings.simplefilter("ignore")
@@ -1077,7 +1077,8 @@ def create_prediction_pipeline(params, model_uuid, collection_name=None, featuri
 
 
 # ****************************************************************************************
-def create_prediction_pipeline_from_file(params, reload_dir, model_path=None, model_type='best_model', featurization=None):
+def create_prediction_pipeline_from_file(params, reload_dir, model_path=None, model_type='best_model', featurization=None,
+                                         verbose=True):
     """
     Create a ModelPipeline object to be used for running blind predictions on datasets, given a pretrained model stored
     in the filesystem. The model may be stored either as a gzipped tar archive or as a directory.
@@ -1135,23 +1136,25 @@ def create_prediction_pipeline_from_file(params, reload_dir, model_path=None, mo
 
     # Override selected model training data parameters with parameters for current dataset
 
-    model_params.id_col = params.id_col
-    model_params.smiles_col = params.smiles_col
     model_params.save_results = False
-    model_params.result_dir = params.result_dir
-    model_params.system = params.system
     model_params.output_dir = reload_dir
-
-    # Allow using computed_descriptors featurizer for a model trained with the descriptors featurizer, and vice versa
-    if (model_params.featurizer == 'descriptors' and params.featurizer == 'computed_descriptors') or (
-            model_params.featurizer == 'computed_descriptors' and params.featurizer == 'descriptors'):
-        model_params.featurizer = params.featurizer
-
-    # Allow descriptor featurizer to use a different descriptor table than was used for the training data.
-    # This could be needed e.g. when a model was trained with GSK compounds and tested with ChEMBL data.
-    model_params.descriptor_key = params.descriptor_key
-    model_params.descriptor_bucket = params.descriptor_bucket
-    model_params.descriptor_oid = params.descriptor_oid
+    if params is not None:
+        model_params.id_col = params.id_col
+        model_params.smiles_col = params.smiles_col
+        model_params.result_dir = params.result_dir
+        model_params.system = params.system
+        verbose = params.verbose
+    
+        # Allow using computed_descriptors featurizer for a model trained with the descriptors featurizer, and vice versa
+        if (model_params.featurizer == 'descriptors' and params.featurizer == 'computed_descriptors') or (
+                model_params.featurizer == 'computed_descriptors' and params.featurizer == 'descriptors'):
+            model_params.featurizer = params.featurizer
+    
+        # Allow descriptor featurizer to use a different descriptor table than was used for the training data.
+        # This could be needed e.g. when a model was trained with GSK compounds and tested with ChEMBL data.
+        model_params.descriptor_key = params.descriptor_key
+        model_params.descriptor_bucket = params.descriptor_bucket
+        model_params.descriptor_oid = params.descriptor_oid
 
     # If the caller didn't provide a featurization object, create one for this model
     if featurization is None:
@@ -1164,7 +1167,7 @@ def create_prediction_pipeline_from_file(params, reload_dir, model_path=None, mo
     # Create the ModelWrapper object.
     pipeline.model_wrapper = model_wrapper.create_model_wrapper(pipeline.params, featurization)
 
-    if params.verbose:
+    if verbose:
         pipeline.log.setLevel(logging.DEBUG)
     else:
         pipeline.log.setLevel(logging.CRITICAL)
@@ -1205,7 +1208,7 @@ def load_from_tracker(model_uuid, collection_name=None, client=None, verbose=Fal
     if not verbose:
         os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1'
         logger = logging.getLogger('ATOM')
-        logger.setLevel(50)
+        logger.setLevel(logging.CRITICAL)
         sys.stdout = io.StringIO()
         import warnings
         warnings.simplefilter("ignore")
