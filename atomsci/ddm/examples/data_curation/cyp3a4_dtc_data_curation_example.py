@@ -22,15 +22,11 @@ import atomsci.ddm.utils.curate_data as curate_data
 
 import pandas as pd
 import numpy as np
-file='/usr/workspace/atom/dtc/cyp3a4.csv'
+file='cyp3a4.csv'
 
 orig_df=pd.read_csv(file,sep=",",engine="python",error_bad_lines=False)
 print(orig_df.shape)
 print(orig_df.columns)
-
-# ACTION: specify file location
-# Save file to LC 
-orig_df.to_csv('/usr/workspace/atom/public_dsets/DTC/raw/cyp3a4.csv',index=False)
 
 # Check values
 for v in orig_df['standard_units'].unique() :  
