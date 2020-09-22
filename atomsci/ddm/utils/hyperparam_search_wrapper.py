@@ -72,8 +72,9 @@ def run_cmd(cmd):
 
 def reformat_filter_dict(filter_dict):
     """
-    Function to reformat a filter dictionary to match the Model Tracker metadata structure. May be obsolete for updated
-    model tracker.
+    Function to reformat a filter dictionary to match the Model Tracker metadata structure. Updated 9/2020 by A. Paulson
+    for new LC model tracker. Note - the filter_dict values will be exact so if you search for a string but your previous
+    model had the same value as an int, it will not return the model.
     
     Args:
         
@@ -84,32 +85,32 @@ def reformat_filter_dict(filter_dict):
         new_filter_dict: Filter dict reformatted
 
     """
-    rename_dict = {'ModelMetadata.ModelParameters':
+    rename_dict = {'model_parameters':
                        {'featurizer', 'model_choice_score_type', 'model_dataset_oid', 'model_type',
                         'num_model_tasks', 'prediction_type', 'transformer_bucket', 'transformer_key',
                         'transformer_oid', 'transformers', 'uncertainty'},
-                   'ModelMetadata.SplittingParameters.Splitting':
+                   'splitting_parameters':
                        {'num_folds', 'split_strategy', 'split_test_frac', 'split_uuid', 'split_valid_frac', 'splitter'},
-                   'ModelMetadata.TrainingDataset':
+                   'training_dataset':
                        {'dataset_key', 'dataset_bucket', 'dataset_oid', 'num_classes',
                         'feature_transform_type', 'response_transform_type', 'id_col', 'smiles_col', 'response_cols'},
-                   'ModelMetadata.UmapSpecific':
+                   'umap_specific':
                        {'umap_dim', 'umap_metric', 'umap_targ_wt', 'umap_neighbors', 'umap_min_dist'}}
     if filter_dict['model_type'] == 'NN':
-        rename_dict['ModelMetadata.NNSpecific'] = {
+        rename_dict['nn_specific'] = {
                 'batch_size', 'bias_init_consts', 'dropouts', 'layer_sizes', 'learning_rate', 'max_epochs', 'optimizer_type', 'weight_init_stddevs'}
         # Need to omit baseline_epoch because we hadn't been saving it in the model metadata
     elif filter_dict['model_type'] == 'RF':
-        rename_dict['ModelMetadata.RFSpecific'] = {'rf_estimators', 'rf_max_features'}
+        rename_dict['rf_specific'] = {'rf_estimators', 'rf_max_features'}
     elif filter_dict['model_type'] == 'xgboost':
-        rename_dict['ModelMetadata.xgboostSpecific'] = {'xgb_learning_rate',
+        rename_dict['xgboost_specific'] = {'xgb_learning_rate',
                                                         'xgb_gamma'}
     if filter_dict['featurizer'] == 'ecfp':
-        rename_dict['ModelMetadata.ECFPSpecific'] = {'ecfp_radius', 'ecfp_size'}
+        rename_dict['ecfp_specific'] = {'ecfp_radius', 'ecfp_size'}
     elif filter_dict['featurizer'] == 'descriptor':
-        rename_dict['ModelMetadata.DescriptorSpecific'] = {'descriptor_key', 'descriptor_bucket', 'descriptor_oid', 'descriptor_type'}
+        rename_dict['descriptor_specific'] = {'descriptor_key', 'descriptor_bucket', 'descriptor_oid', 'descriptor_type'}
     elif filter_dict['featurizer'] == 'molvae':
-        rename_dict['ModelMetadata.AutoencoderSpecific'] = {'autoencoder_model_key', 'autoencoder_model_bucket', 'autoencoder_model_oid', 'autoencoder_type'}
+        rename_dict['autoencoder_specific'] = {'autoencoder_model_key', 'autoencoder_model_bucket', 'autoencoder_model_oid', 'autoencoder_type'}
     new_filter_dict = {}
     for key, values in rename_dict.items():
         for value in values:
