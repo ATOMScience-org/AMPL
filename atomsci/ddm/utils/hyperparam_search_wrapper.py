@@ -73,6 +73,19 @@ def run_cmd(cmd):
 def reformat_filter_dict(filter_dict):
     """
     Function to reformat a filter dictionary to match the Model Tracker metadata structure. Updated 9/2020 by A. Paulson
+    for new LC model tracker.
+    
+    Args:
+        
+        filter_dict: Dictionary containing metadata for model of interest
+
+    Returns:
+        
+        new_filter_dict: Filter dict reformatted
+
+    """
+    """
+    Function to reformat a filter dictionary to match the Model Tracker metadata structure. Updated 9/2020 by A Paulson
     for new LC model tracker. Note - the filter_dict values will be exact so if you search for a string but your previous
     model had the same value as an int, it will not return the model.
     
@@ -86,25 +99,28 @@ def reformat_filter_dict(filter_dict):
 
     """
     rename_dict = {'model_parameters':
-                       {'featurizer', 'model_choice_score_type', 'model_dataset_oid', 'model_type',
-                        'num_model_tasks', 'prediction_type', 'transformer_bucket', 'transformer_key',
+                       {'dependencies', 'featurizer', 'git_hash_code','model_bucket', 'model_choice_score_type', 
+                        'model_dataset_oid','model_type', 'num_model_tasks', 'prediction_type', 'save_results',
+                        'system', 'task_type', 'time_generated', 'transformer_bucket', 'transformer_key', 
                         'transformer_oid', 'transformers', 'uncertainty'},
-                   'splitting_parameters':
-                       {'num_folds', 'split_strategy', 'split_test_frac', 'split_uuid', 'split_valid_frac', 'splitter'},
-                   'training_dataset':
-                       {'dataset_key', 'dataset_bucket', 'dataset_oid', 'num_classes',
-                        'feature_transform_type', 'response_transform_type', 'id_col', 'smiles_col', 'response_cols'},
-                   'umap_specific':
-                       {'umap_dim', 'umap_metric', 'umap_targ_wt', 'umap_neighbors', 'umap_min_dist'}}
+               'splitting_parameters':
+                       {'base_splitter', 'butina_cutoff', 'cutoff_date', 'date_col','num_folds', 'split_strategy', 
+                        'split_test_frac', 'split_uuid', 'split_valid_frac', 'splitter'},
+               'training_dataset':
+                       {'bucket', 'dataset_key', 'dataset_oid', 'num_classes','feature_transform_type', 
+                        'response_transform_type', 'id_col', 'smiles_col', 'response_cols'}
+               'umap_specific':
+                       {'umap_dim', 'umap_metric', 'umap_min_dist', 'umap_neighbors','umap_targ_wt'}
+              }
     if filter_dict['model_type'] == 'NN':
-        rename_dict['nn_specific'] = {
-                'batch_size', 'bias_init_consts', 'dropouts', 'layer_sizes', 'learning_rate', 'max_epochs', 'optimizer_type', 'weight_init_stddevs'}
-        # Need to omit baseline_epoch because we hadn't been saving it in the model metadata
+        rename_dict['nn_specific'] = {'baseline_epoch', 'batch_size', 'best_epoch', 'bias_init_consts','dropouts', 
+                                      'layer_sizes', 'learning_rate', 'max_epochs','optimizer_type', 'weight_decay_penalty', 
+                                      'weight_decay_penalty_type', 'weight_init_stddevs'}
     elif filter_dict['model_type'] == 'RF':
-        rename_dict['rf_specific'] = {'rf_estimators', 'rf_max_features'}
+        rename_dict['rf_specific'] = {'rf_estimators', 'rf_max_depth', 'rf_max_features'}
     elif filter_dict['model_type'] == 'xgboost':
-        rename_dict['xgboost_specific'] = {'xgb_learning_rate',
-                                                        'xgb_gamma'}
+        rename_dict['xgb_specific'] = {'xgb_colsample_bytree', 'xgb_gamma', 'xgb_learning_rate','xgb_max_depth', 
+                               'xgb_min_child_weight', 'xgb_n_estimators','xgb_subsample'}
     if filter_dict['featurizer'] == 'ecfp':
         rename_dict['ecfp_specific'] = {'ecfp_radius', 'ecfp_size'}
     elif filter_dict['featurizer'] == 'descriptor':
