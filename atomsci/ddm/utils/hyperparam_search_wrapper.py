@@ -108,7 +108,7 @@ def reformat_filter_dict(filter_dict):
                         'split_test_frac', 'split_uuid', 'split_valid_frac', 'splitter'},
                'training_dataset':
                        {'bucket', 'dataset_key', 'dataset_oid', 'num_classes','feature_transform_type', 
-                        'response_transform_type', 'id_col', 'smiles_col', 'response_cols'}
+                        'response_transform_type', 'id_col', 'smiles_col', 'response_cols'},
                'umap_specific':
                        {'umap_dim', 'umap_metric', 'umap_min_dist', 'umap_neighbors','umap_targ_wt'}
               }
