@@ -84,20 +84,6 @@ def reformat_filter_dict(filter_dict):
         new_filter_dict: Filter dict reformatted
 
     """
-    """
-    Function to reformat a filter dictionary to match the Model Tracker metadata structure. Updated 9/2020 by A Paulson
-    for new LC model tracker. Note - the filter_dict values will be exact so if you search for a string but your previous
-    model had the same value as an int, it will not return the model.
-    
-    Args:
-        
-        filter_dict: Dictionary containing metadata for model of interest
-
-    Returns:
-        
-        new_filter_dict: Filter dict reformatted
-
-    """
     rename_dict = {'model_parameters':
                        {'dependencies', 'featurizer', 'git_hash_code','model_bucket', 'model_choice_score_type', 
                         'model_dataset_oid','model_type', 'num_model_tasks', 'prediction_type', 'save_results',
