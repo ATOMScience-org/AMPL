@@ -1327,6 +1327,115 @@ def get_multitask_perf_from_files(result_dir, pred_type='regression'):
 
 
 #-------------------------------------------------------------------------------------------------------------------
+def get_multitask_perf_from_tracker(collection_name, response_cols, expand_responses=None, expand_subsets='test', exhaustive=False):
+    """
+    Retrieve full metadata from model tracker and format into table, taking into account multitask lists
+    
+    Required to have the same response_cols for whole df - as list or comma separated string.
+    
+    expand_responses is an option to select which tasks / response columns you want to expand and keep in 
+    the final dataframe. Useful if you have a lot of tasks and only want to look at the performance of a 
+    few of them. Must also be a list or comma separated string, and a subset of response_cols, or None to expand
+    all responses.
+    
+    expand_subsets is an option to expand columns for train, test and/or valid subsets of training metrics. Again, list or 
+    comma separated string, or None to expand all.
+    
+    exhaustive means return large dataframe with all model tracker metadata minus any columns not in expand_responses
+    exhaustive = False means return trimmed dataframe with most relevant columns 
+    
+    Specific for multitask NN models.
+    
+    By AKP. Works for model tracker as of 10/2020
+    """
+    # check inputs are correct
+    if isinstance(response_cols, list):
+        pass
+    elif isinstance(response_cols, str):
+        response_cols=[x.strip() for x in response_cols.split(',')]
+    else:
+        raise Exception("Please input response cols as list or comma separated string")
+    
+    if isinstance(expand_responses, list):
+        pass
+    elif expand_responses is None:
+        pass
+    elif isinstance(expand_responses, str):
+        expand_responses=[x.strip() for x in expand_responses.split(',')]
+    else:
+        raise Exception("Please input expand response col(s) as list or comma separated string")
+    
+    if isinstance(expand_subsets, list):
+        pass
+    elif expand_subsets is None:
+        pass
+    elif isinstance(expand_subsets, str):
+        expand_subsets=[x.strip() for x in expand_subsets.split(',')]
+    else:
+        raise Exception("Please input subset(s) as list or comma separated string")
+    
+    # get metadata
+    filter_dict={'training_dataset.response_cols': response_cols}
+    models = trkr.get_full_metadata(filter_dict, collection_name)
+    models = pd.DataFrame.from_records(models)
+
+    # expand model metadata
+    alldat=models[['model_uuid', 'time_built']]
+    models=models.drop(['model_uuid', 'time_built'], axis = 1)
+    for column in models.columns:
+        if column == 'training_metrics':
+            continue
+        tempdf=pd.DataFrame.from_dict(models[column].tolist())
+        alldat=pd.concat([alldat, tempdf], axis=1)
+    
+    # expand training metrics
+    metrics=pd.DataFrame.from_dict(models['training_metrics'].tolist())
+    allmet=alldat[['model_uuid']]
+    for column in metrics.columns:
+        tempdf=pd.DataFrame.from_dict(metrics[column].tolist())
+        label=tempdf[f'label'][0]
+        metrics_type=tempdf[f'metrics_type'][0]
+        subset=tempdf[f'subset'][0]
+        tempdf=pd.DataFrame.from_dict(tempdf[f'prediction_results'].tolist())
+        tempdf=tempdf.add_prefix(f'{label}_{subset}_')
+        allmet=pd.concat([allmet, tempdf], axis=1)
+    alldat=alldat.merge(allmet, on='model_uuid')
+    
+    # expand task level training metrics for subset(s) of interest
+    if expand_subsets is None:
+        expand_subsets=['train', 'valid', 'test']
+    for sub in expand_subsets:
+        listcols=alldat.columns[alldat.columns.str.contains("task")& alldat.columns.str.contains(sub)]
+        for column in listcols:
+            colnameslist=[]
+            for task in response_cols:
+                colnameslist.append(f'{column}_{task}')
+            alldat[colnameslist] = pd.DataFrame(alldat[column].tolist(), index= alldat.index)
+        alldat=alldat.drop(columns=listcols)
+
+    # prune to only include expand_responses
+    if expand_responses is not None:
+        removecols= [x for x in response_cols if x not in expand_responses]
+        for col in removecols:
+            alldat=alldat.drop(columns=alldat.columns[alldat.columns.str.contains(col)])
+
+    # return or prune further and then return
+    if exhaustive:
+        return alldat
+    else:
+        alldat=alldat.drop(columns=alldat.columns[alldat.columns.str.contains('baseline')])
+        keepcols=['model_uuid', 'descriptor_type', 'featurizer', 'prediction_type', 
+                  'transformers', 'uncertainty', 'batch_size', 'best_epoch', 'bias_init_consts', 
+                  'dropouts', 'layer_sizes', 'learning_rate', 'max_epochs', 'optimizer_type', 
+                  'weight_decay_penalty', 'weight_decay_penalty_type', 'weight_init_stddevs', 'splitter', 
+                  'split_uuid', 'split_test_frac', 'split_valid_frac', 'smiles_col', 'id_col', 
+                  'feature_transform_type', 'response_cols', 'response_transform_type', 'num_model_tasks']
+        keepcols.extend(alldat.columns[alldat.columns.str.contains('best')])
+        alldat=alldat[keepcols]
+        return alldat
+
+
+#-------------------------------------------------------------------------------------------------------------------
 # TODO: Update this function
 def aggregate_predictions(datasets, bucket, col_names, result_dir):
     if not mlmt_supported:
