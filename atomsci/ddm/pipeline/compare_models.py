@@ -1379,14 +1379,17 @@ def get_multitask_perf_from_tracker(collection_name, response_cols, expand_respo
     models = trkr.get_full_metadata(filter_dict, collection_name)
     models = pd.DataFrame.from_records(models)
 
-    # expand model metadata
+    # expand model metadata - deal with NA descriptors / NA other fields
     alldat=models[['model_uuid', 'time_built']]
     models=models.drop(['model_uuid', 'time_built'], axis = 1)
     for column in models.columns:
         if column == 'training_metrics':
             continue
-        tempdf=pd.DataFrame.from_dict(models[column].tolist())
-        alldat=pd.concat([alldat, tempdf], axis=1)
+        nai=models[models[column].isna()].index
+        nonas=models[~models[column].isna()]
+        tempdf=pd.DataFrame.from_records(nonas[column].tolist(), index=nonas.index)
+        tempdf=pd.concat([tempdf, pd.DataFrame(np.nan, index=nai, columns=tempdf.columns)])
+        alldat=alldat.join(tempdf)
     
     # expand training metrics
     metrics=pd.DataFrame.from_dict(models['training_metrics'].tolist())
