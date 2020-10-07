@@ -64,17 +64,17 @@ def create_model_wrapper(params, featurizer, ds_client=None):
             raise Exception("Unable to import xgboost. \
                              xgboost package needs to be installed to use xgboost model. \
                              Installatin: \
-                             from pip: pip3 install xgboost.\
-                             livermore compute (lc): /usr/mic/bio/anaconda3/bin/pip install xgboost --user \
-                             twintron-blue (TTB): /opt/conda/bin/pip install xgboost --user/ \ "
+                             from pip: pip3 install xgboost==0.90.\
+                             livermore compute (lc): /usr/mic/bio/anaconda3/bin/pip install xgboost==0.90 --user \
+                             twintron-blue (TTB): /opt/conda/bin/pip install xgboost==0.90 --user/ \ "
                             )
         elif float(xgb.__version__) < 0.9:
             raise Exception(f"xgboost required to be >= 0.9 for GPU support. \
                              current version = {float(xgb.__version__)} \
                              installatin: \
-                             from pip: pip3 install --upgrade xgboost \
-                             livermore compute (lc): /usr/mic/bio/anaconda3/bin/pip install --upgrade xgboost --user \
-                             twintron-blue (TTB): /opt/conda/bin/pip install --upgrade xgboost --user/ "
+                             from pip: pip3 install xgboost==0.90 \
+                             livermore compute (lc): /usr/mic/bio/anaconda3/bin/pip install xgboost==0.90 --user \
+                             twintron-blue (TTB): /opt/conda/bin/pip install xgboost==0.90 --user/ "
                             )
         else:
             return DCxgboostModelWrapper(params, featurizer, ds_client)
