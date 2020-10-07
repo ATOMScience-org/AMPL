@@ -11,13 +11,14 @@ import pdb
 import numpy as np
 import deepchem as dc
 import pandas as pd
-from deepchem.data.data_loader import featurize_smiles_df
 import deepchem.data.data_loader as dl
 
 from atomsci.ddm.utils import datastore_functions as dsf
 
 from rdkit import Chem
 from rdkit.Chem import AllChem
+from rdkit.Chem import rdmolfiles
+from rdkit.Chem import rdmolops
 
 subclassed_mordred_classes = ['EState', 'MolecularDistanceEdge']
 try:
@@ -141,6 +142,36 @@ def get_dataset_attributes(dset_df, params):
         #attr_df[params.date_col] = pd.to_datetime(dset_df[params.date_col])
         attr_df[params.date_col] = [np.datetime64(d) for d in dset_df[params.date_col].values]
     return attr_df
+
+# ****************************************************************************************
+def featurize_smiles(df, featurizer, smiles_col, log_every_N=1000):
+    """
+    Replacement for DeepChem 2.1 featurize_smiles_df function, which is buggy. Computes
+    features using featurizer for dataframe df column given by smiles_col. Returns them as
+    a numpy array, along with an array 'is_valid' indicating which rows of the input
+    dataframe yielded valid features.
+    """
+    smiles_strs = df[smiles_col].values
+
+    features = []
+    for ind, smiles in enumerate(smiles_strs):
+        mol = Chem.MolFromSmiles(smiles)
+        if mol:
+            new_order = rdmolfiles.CanonicalRankAtoms(mol)
+            mol = rdmolops.RenumberAtoms(mol, new_order)
+        if ind % log_every_N == 0:
+            log.info("Featurizing sample %d" % ind)
+        features.append(featurizer.featurize([mol]))
+    is_valid = np.array([1 if elt.size > 0 else 0 for elt in features], dtype=bool)
+    feat_array = np.array([elt for (is_valid, elt) in zip(is_valid, features) if is_valid])
+    if len(feat_array.shape) > 1:
+        feat_array = np.squeeze(feat_array, axis=1)
+    else:
+        print("featurize_smiles() produced 1-D array of size %d" % feat_array.shape[0])
+        print("Input SMILES had length %d" % len(smiles_strs))
+        print("Number of valid SMILES is %d" % sum(is_valid))
+    return feat_array, is_valid
+
 
 # ****************************************************************************************
 # Module-level functions for RDKit and Mordred descriptor calculations
@@ -361,10 +392,14 @@ def compute_all_moe_descriptors(smiles_df, params):
     moe_args = []
     moe_args.append("{moePath}/moebatch".format(moePath=moe_path))
     moe_args.append("-mpu")
-    # Use all available cores but one, times 2 for hyperthreading
-    moe_args.append('%d' % (2*len(os.sched_getaffinity(0))-2))
-    moe_args.append("-exec")
+    if params.moe_threads < 0:
+        # By default use all available cores but one, times 2 for hyperthreading
+        moe_threads = 2 * len(os.sched_getaffinity(0)) - 2
+    else:
+        moe_threads = params.moe_threads
+    moe_args.append('%d' % moe_threads)
 
+    moe_args.append("-exec")
     moe_template = """db_Close db_Open['{fileMDB}','create']; db_ImportASCII[ascii_file: '{smilesFile}',
     db_file: '{fileMDB}',delimiter: ',', quotes: 0, names: ['original_smiles','cmpd_id'],types: ['char','char']];
     run ['{moeRoot}/custom/ksm_svl/smp_WashMinimizeSMILES.svl', ['{fileMDB}', 'original_smiles']];
@@ -373,11 +408,12 @@ def compute_all_moe_descriptors(smiles_df, params):
     
     #with tempfile.TemporaryDirectory() as tmpdir:
     tmpdir = tempfile.mkdtemp()
+    curdir = os.getcwd()
     if True:
         # Write SMILES strings and compound IDs to a temp file
         smiles_file = '%s/smiles4moe.csv' % tmpdir
         file_mdb = 'smiles4moe.mdb'
-        smiles_df.to_csv(smiles_file, index=False, header=False, columns=[params.smiles_col, params.id_col])
+        smiles_df.to_csv(smiles_file, index=False, columns=[params.smiles_col, params.id_col])
         log.debug("Wrote SMILES strings to %s" % smiles_file)
         os.chdir(tmpdir)
         moe_cmds = '"' + moe_template.format(moeRoot=moe_root, smilesFile=smiles_file, fileMDB=file_mdb) + '"'
@@ -400,9 +436,11 @@ def compute_all_moe_descriptors(smiles_df, params):
             log.debug("Reading descriptors from %s" % output_file)
             result_df = pd.read_csv(output_file, index_col=False)
             result_df = result_df.rename(columns={'cmpd_id' : params.id_col, 'original_smiles' : params.smiles_col})
+            os.chdir(curdir)
             return result_df
         except Exception as e:
             log.error('Failed to invoke MOE to compute descriptors: %s' % str(e))
+            os.chdir(curdir)
             raise
 
 
@@ -628,8 +666,7 @@ class DynamicFeaturization(Featurization):
         """
         params = model_dataset.params
         attr = get_dataset_attributes(dset_df, params)
-        features, is_valid = featurize_smiles_df(dset_df, featurizer=self.featurizer_obj, field=params.smiles_col,
-                                                   verbose=False)
+        features, is_valid = featurize_smiles(dset_df, featurizer=self.featurizer_obj, smiles_col=params.smiles_col)
         if features is None:
             raise Exception("Featurization failed for dataset")
         # Some SMILES strings may not be featurizable. This filters for only valid IDs.
@@ -1606,15 +1643,11 @@ class ComputedDescriptorFeaturization(DescriptorFeaturization):
         """
         nsmiles = smiles_df.shape[0]
         desc_df = compute_all_moe_descriptors(smiles_df, params)
+
         # MOE ignores SMILES strings it can't parse, so we have to mark as invalid the corresponding
         # input compounds
         desc_ids = set(desc_df[params.id_col].values)
         is_valid = np.array([id in desc_ids for id in smiles_df[params.id_col].values])
-        nrows = desc_df.shape[0]
-
-        # Check for output rows that are all missing values
-        #descr_cols = self.get_feature_columns()
-
         num_invalid = len(is_valid) - sum(is_valid)
         if num_invalid > 0:
             log.warning("MOE did not compute descriptors for %d/%d SMILES strings" % (num_invalid, nsmiles))
