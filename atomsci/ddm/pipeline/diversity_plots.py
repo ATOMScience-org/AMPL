@@ -67,7 +67,7 @@ def plot_dataset_dist_distr(dataset, feat_type, dist_metric, task_name, **metric
     return dists
 
 #------------------------------------------------------------------------------------------------------------------
-def diversity_plots(dset_key, datastore=True, bucket='gsk_ml', title_prefix=None, ecfp_radius=4, out_dir=None, 
+def diversity_plots(dset_key, datastore=True, bucket='gsk_ml', title_prefix=None, ecfp_radius=4, umap_file=None, out_dir=None, 
                     id_col='compound_id', smiles_col='rdkit_smiles', is_base_smiles=False, response_col=None, max_for_mcs=300):
     """
     Plot visualizations of diversity for an arbitrary table of compounds. At minimum, the file should contain
@@ -105,9 +105,13 @@ def diversity_plots(dset_key, datastore=True, bucket='gsk_ml', title_prefix=None
     responses = None
     if response_col is not None:
         responses = cmpd_df[response_col].values
-        if set(responses) == set([0,1]):
+        uniq_responses = set(responses)
+        if uniq_responses == set([0,1]):
             response_type = 'binary'
             colorpal =  {0 : 'forestgreen', 1 : 'red'}
+        elif len(uniq_responses) <= 10:
+            response_type = 'categorical'
+            colorpal = sns.color_palette('husl', n_colors=len(uniq_responses))
         else:
             response_type = 'continuous'
             colorpal = sns.blend_palette(['red', 'green', 'blue'], 12, as_cmap=True)
@@ -190,6 +194,11 @@ def diversity_plots(dset_key, datastore=True, bucket='gsk_ml', title_prefix=None
     reps = mapper.fit_transform(tani_dist)
     rep_df = pd.DataFrame.from_records(reps, columns=['x', 'y'])
     rep_df['compound_id'] = compound_ids
+    if responses is not None:
+        rep_df['response'] = responses
+    if umap_file is not None:
+        rep_df.to_csv(umap_file, index=False)
+        print("Wrote UMAP mapping to %s" % umap_file)
     if out_dir is not None:
         pdf_path = '%s/%s_tani_umap_proj.pdf' % (out_dir, file_prefix)
         pdf = PdfPages(pdf_path)
@@ -197,7 +206,6 @@ def diversity_plots(dset_key, datastore=True, bucket='gsk_ml', title_prefix=None
     if responses is None:
         sns.scatterplot(x='x', y='y', data=rep_df, ax=ax)
     else:
-        rep_df['response'] = responses
         sns.scatterplot(x='x', y='y', hue='response', palette=colorpal,
                         data=rep_df, ax=ax)
     ax.set_title("%s, 2D projection based on Tanimoto distance" % title_prefix)
