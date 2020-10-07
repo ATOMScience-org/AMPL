@@ -1428,7 +1428,7 @@ def get_multitask_perf_from_tracker(collection_name, response_cols, expand_respo
     else:
         alldat=alldat.drop(columns=alldat.columns[alldat.columns.str.contains('baseline')])
         keepcols=['model_uuid', 'descriptor_type', 'featurizer', 'prediction_type', 
-                  'transformers', 'uncertainty', 'batch_size', 'best_epoch', 'bias_init_consts', 
+                  'transformers', 'uncertainty', 'batch_size', 'bias_init_consts', 
                   'dropouts', 'layer_sizes', 'learning_rate', 'max_epochs', 'optimizer_type', 
                   'weight_decay_penalty', 'weight_decay_penalty_type', 'weight_init_stddevs', 'splitter', 
                   'split_uuid', 'split_test_frac', 'split_valid_frac', 'smiles_col', 'id_col', 
