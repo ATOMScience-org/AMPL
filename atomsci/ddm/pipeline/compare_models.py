@@ -1377,6 +1377,8 @@ def get_multitask_perf_from_tracker(collection_name, response_cols, expand_respo
     # get metadata
     filter_dict={'training_dataset.response_cols': response_cols}
     models = trkr.get_full_metadata(filter_dict, collection_name)
+    if len(models)==0:
+        raise Exception("No models found with these response cols in this collection")
     models = pd.DataFrame.from_records(models)
 
     # expand model metadata - deal with NA descriptors / NA other fields
