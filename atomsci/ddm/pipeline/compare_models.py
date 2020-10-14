@@ -1327,34 +1327,45 @@ def get_multitask_perf_from_files(result_dir, pred_type='regression'):
 
 
 #-------------------------------------------------------------------------------------------------------------------
-def get_multitask_perf_from_tracker(collection_name, response_cols, expand_responses=None, expand_subsets='test', exhaustive=False):
+def get_multitask_perf_from_tracker(collection_name, response_cols=None, expand_responses=None, expand_subsets='test', exhaustive=False):
     """
     Retrieve full metadata from model tracker and format into table, taking into account multitask lists
     
-    Required to have the same response_cols for whole df - as list or comma separated string.
+    response_cols: if None, checks to see if the entire collection has the same response cols. 
+    Otherwise asks for clarification. Note: make sure response cols are listed in same order as in metadata.
+    Recommended: None first, then clarify.
     
     expand_responses is an option to select which tasks / response columns you want to expand and keep in 
     the final dataframe. Useful if you have a lot of tasks and only want to look at the performance of a 
     few of them. Must also be a list or comma separated string, and a subset of response_cols, or None to expand
     all responses.
     
-    expand_subsets is an option to expand columns for train, test and/or valid subsets of training metrics. Again, list or 
-    comma separated string, or None to expand all.
+    expand_subsets is an option to expand columns for train, test and/or valid subsets of training metrics. 
+    Again, list or comma separated string, or None to expand all.
     
     exhaustive means return large dataframe with all model tracker metadata minus any columns not in expand_responses
     exhaustive = False means return trimmed dataframe with most relevant columns 
     
-    Specific for multitask NN models.
+    Meant for multitask NN models, but works for single task models as well.
     
     By AKP. Works for model tracker as of 10/2020
     """
+    if not mlmt_supported:
+    print("Model tracker not supported in your environment; can examine models saved in filesystem only.")
+    return None
+    
     # check inputs are correct
+    if collection_name.startswith('old_'):
+        raise Exception("This function is not implemented for the old format of metadata.")
+    
     if isinstance(response_cols, list):
+        pass
+    elif response_cols is None:
         pass
     elif isinstance(response_cols, str):
         response_cols=[x.strip() for x in response_cols.split(',')]
     else:
-        raise Exception("Please input response cols as list or comma separated string")
+        raise Exception("Please input response cols as None, list or comma separated string.")
     
     if isinstance(expand_responses, list):
         pass
@@ -1363,7 +1374,7 @@ def get_multitask_perf_from_tracker(collection_name, response_cols, expand_respo
     elif isinstance(expand_responses, str):
         expand_responses=[x.strip() for x in expand_responses.split(',')]
     else:
-        raise Exception("Please input expand response col(s) as list or comma separated string")
+        raise Exception("Please input expand response col(s) as list or comma separated string.")
     
     if isinstance(expand_subsets, list):
         pass
@@ -1372,13 +1383,16 @@ def get_multitask_perf_from_tracker(collection_name, response_cols, expand_respo
     elif isinstance(expand_subsets, str):
         expand_subsets=[x.strip() for x in expand_subsets.split(',')]
     else:
-        raise Exception("Please input subset(s) as list or comma separated string")
+        raise Exception("Please input subset(s) as list or comma separated string.")
     
     # get metadata
-    filter_dict={'training_dataset.response_cols': response_cols}
+    if response_cols is not None:
+        filter_dict={'training_dataset.response_cols': response_cols}
+    else:
+        filter_dict={}
     models = trkr.get_full_metadata(filter_dict, collection_name)
     if len(models)==0:
-        raise Exception("No models found with these response cols in this collection")
+        raise Exception("No models found with these response cols in this collection. To get a list of possible response cols, pass response_cols=None.")
     models = pd.DataFrame.from_records(models)
 
     # expand model metadata - deal with NA descriptors / NA other fields
@@ -1393,20 +1407,33 @@ def get_multitask_perf_from_tracker(collection_name, response_cols, expand_respo
         tempdf=pd.concat([tempdf, pd.DataFrame(np.nan, index=nai, columns=tempdf.columns)])
         alldat=alldat.join(tempdf)
     
-    # expand training metrics
+    # assign response cols
+    if len(alldat.response_cols.astype(str).unique())==1:
+        response_cols=alldat.response_cols[0]
+        print("Response cols:", response_cols)
+    else:
+        raise Exception(f"There is more than one set of response cols in this collection. Please choose from these lists (be sure to pass response_cols as a list, not a string with a list inside): {alldat.response_cols.astype(str).unique()}")
+    
+    # expand training metrics - deal with NA's in columns
     metrics=pd.DataFrame.from_dict(models['training_metrics'].tolist())
     allmet=alldat[['model_uuid']]
-    for column in metrics.columns:
-        tempdf=pd.DataFrame.from_dict(metrics[column].tolist())
-        label=tempdf[f'label'][0]
-        metrics_type=tempdf[f'metrics_type'][0]
-        subset=tempdf[f'subset'][0]
-        tempdf=pd.DataFrame.from_dict(tempdf[f'prediction_results'].tolist())
+    for column in metrics.columns: 
+        nai=metrics[metrics[column].isna()].index
+        nonas=metrics[~metrics[column].isna()]
+        tempdf=pd.DataFrame.from_records(nonas[column].tolist(), index=nonas.index)
+        tempdf=pd.concat([tempdf, pd.DataFrame(np.nan, index=nai, columns=tempdf.columns)])
+        label=tempdf[f'label'][nonas.index[0]]
+        metrics_type=tempdf[f'metrics_type'][nonas.index[0]]
+        subset=tempdf[f'subset'][nonas.index[0]]
+        nai=tempdf[tempdf[f'prediction_results'].isna()].index
+        nonas=tempdf[~tempdf[f'prediction_results'].isna()]
+        tempdf=pd.DataFrame.from_records(nonas[f'prediction_results'].tolist(), index=nonas.index)
+        tempdf=pd.concat([tempdf, pd.DataFrame(np.nan, index=nai, columns=tempdf.columns)])
         tempdf=tempdf.add_prefix(f'{label}_{subset}_')
-        allmet=pd.concat([allmet, tempdf], axis=1)
+        allmet=allmet.join(tempdf, lsuffix='', rsuffix="_2")
     alldat=alldat.merge(allmet, on='model_uuid')
     
-    # expand task level training metrics for subset(s) of interest
+    # expand task level training metrics for subset(s) of interest - deal w/ NA values
     if expand_subsets is None:
         expand_subsets=['train', 'valid', 'test']
     for sub in expand_subsets:
@@ -1415,8 +1442,15 @@ def get_multitask_perf_from_tracker(collection_name, response_cols, expand_respo
             colnameslist=[]
             for task in response_cols:
                 colnameslist.append(f'{column}_{task}')
-            alldat[colnameslist] = pd.DataFrame(alldat[column].tolist(), index= alldat.index)
-        alldat=alldat.drop(columns=listcols)
+            nai=alldat[alldat[column].isna()].index
+            nonas=alldat[~alldat[column].isna()]
+            if isinstance(nonas.loc[nonas.index[0],column], list):
+                tempdf=pd.DataFrame.from_records(nonas[column].tolist(), index= nonas.index, columns=colnameslist)
+                tempdf=pd.concat([tempdf, pd.DataFrame(np.nan, index=nai, columns=tempdf.columns)])
+                alldat = alldat.join(tempdf)
+                alldat=alldat.drop(columns=column)
+            else:
+                print(f"Warning: task-level metadata for {column} not in metadata.")
 
     # prune to only include expand_responses
     if expand_responses is not None:
@@ -1436,7 +1470,10 @@ def get_multitask_perf_from_tracker(collection_name, response_cols, expand_respo
                   'split_uuid', 'split_test_frac', 'split_valid_frac', 'smiles_col', 'id_col', 
                   'feature_transform_type', 'response_cols', 'response_transform_type', 'num_model_tasks']
         keepcols.extend(alldat.columns[alldat.columns.str.contains('best')])
+        keepcols = list(set(alldat.columns).intersection(keepcols))
         alldat=alldat[keepcols]
+        if sum(alldat.columns.str.contains('_2'))>0:
+            print("Warning: One or more of your models has metadata for >1 best / >1 baseline epochs.")
         return alldat
 
 
