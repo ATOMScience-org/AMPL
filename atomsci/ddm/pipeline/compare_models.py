@@ -1352,7 +1352,7 @@ def get_multitask_perf_from_tracker(collection_name, response_cols=None, expand_
     """
     if not mlmt_supported:
         print("Model tracker not supported in your environment; can examine models saved in filesystem only.")
-    return None
+        return None
     
     # check inputs are correct
     if collection_name.startswith('old_'):
