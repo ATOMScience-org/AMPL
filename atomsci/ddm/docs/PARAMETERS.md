@@ -767,7 +767,7 @@ The AMPL pipeline contains many parameters and options to fit models and make pr
   
 |||
 |-|-|
-|*Description:*|SLURM account to charge hyperparameter batch runs to. If lc\_account is set to the string None ('lc\_account': 'None') then SLURM account will not be set.|
+|*Description:*|SLURM account to charge hyperparameter batch runs to. If lc\_account is set to None ('lc\_account': 'None') then SLURM account will not be set.|
   
 - **max\_final\_layer\_size**  
   
@@ -837,7 +837,7 @@ The AMPL pipeline contains many parameters and options to fit models and make pr
   
 |||
 |-|-|
-|*Description:*|SLURM partition to urn hyperparameter batch runs on. If slurm\_partition is set to the string None ('slurm\_partition': 'None') then SLURM partition will not be set.|
+|*Description:*|SLURM partition to run hyperparameter batch runs on. If slurm\_partition is set to None ('slurm\_partition': 'None') then SLURM partition will not be set.|
 |*Default:*|pbatch|
   
 - **split\_only**  

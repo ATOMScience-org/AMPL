@@ -832,7 +832,7 @@ def get_parser():
     parser.add_argument(
         '--lc_account', dest='lc_account', required=False, default='baasic',
         help='SLURM account to charge hyperparameter batch runs to.'
-             'If lc_account is set to the string None (\'lc_account\': \'None\') then SLURM account will not be set')
+             'If lc_account is set to None (\'lc_account\': \'None\') then SLURM account will not be set')
     parser.add_argument(
         '--max_final_layer_size', dest='max_final_layer_size', required=False, default=32,
         help='The max number of nodes in the last layer within layer_sizes and dropouts in hyperparameter search; '
@@ -881,7 +881,7 @@ def get_parser():
     parser.add_argument(
         '--slurm_partition', dest='slurm_partition', required=False, default='pbatch',
         help='SLURM partition to run hyperparameter batch jobs on.'
-             'If slurm_partition is set to the string None (\'slurm_partition\': \'None\') then SLURM partition will not be set')
+             'If slurm_partition is set to None (\'slurm_partition\': \'None\') then SLURM partition will not be set')
     parser.add_argument(
         '--slurm_time_limit', dest='slurm_time_limit', required=False, default=1440,
         help='Time limit in minutes for hyperparameter search batch jobs')
