@@ -54,6 +54,34 @@ def base_smiles_from_smiles(orig_smiles, useIsomericSmiles=True, removeCharges=F
       base_smiles = Chem.MolToSmiles(std_mol, isomericSmiles=useIsomericSmiles)
   return base_smiles
 
+def kekulize_smiles(orig_smiles, useIsomericSmiles=True, workers=1):
+  """
+  Generate a Kekulized SMILES string for the molecule specified by
+  orig_smiles. 
+  """
+  
+  if isinstance(orig_smiles,list):
+    from functools import partial
+    func = partial(kekulize_smiles,useIsomericSmiles=useIsomericSmiles)
+    if workers > 1:
+      from multiprocessing import pool
+      batchsize = 200
+      batches = [orig_smiles[i:i+batchsize] for i in range(0, len(orig_smiles), batchsize)]
+      with pool.Pool(workers) as p:
+        kekulized_smiles = p.map(func,batches)
+        kekulized_smiles = [y for x in kekulized_smiles for y in x] #Flatten results
+    else:
+      kekulized_smiles = [func(smi) for smi in orig_smiles]
+  else:
+    std_mol = Chem.MolFromSmiles(orig_smiles)
+    if std_mol is None:
+      kekulized_smiles = ""
+    else:
+      Chem.Kekulize(std_mol)
+      kekulized_smiles = Chem.MolToSmiles(std_mol, kekuleSmiles=True, isomericSmiles=useIsomericSmiles)
+  return kekulized_smiles
+
+
 def base_mol_from_smiles(orig_smiles, useIsomericSmiles=True, removeCharges=False):
   """
   Generate a standardized RDKit Mol object for the largest fragment of the molecule specified by
