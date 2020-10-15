@@ -288,10 +288,10 @@ class HyperparameterSearch(object):
 
             # If lc_account='' then lc_account is not included
             if self.params.lc_account:
-                f.write("#SBATCH -A {}\n", self.params.lc_account)
+                f.write("#SBATCH -A {0}\n".format(self.params.lc_account))
             # If slurm_partition='' then slurm_partition is not included
             if self.params.slurm_partition:
-                f.write("#SBATCH -p {}\n", self.params.slurm_partition)
+                f.write("#SBATCH -p {0}\n".format(self.params.slurm_partition))
 
             f.write("#SBATCH -N 1\n#SBATCH -t {0}\n#SBATCH --export=ALL\n#SBATCH -D {1}\n".format(self.params.slurm_time_limit,
                     slurm_path))
