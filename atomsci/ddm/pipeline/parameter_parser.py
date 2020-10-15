@@ -469,6 +469,10 @@ def get_parser():
         '--descriptor_type', dest='descriptor_type', default='moe',
         help='Type of descriptors being used as features, e.g. moe, dragon7, used when featurizer = "descriptors". '
              'Sets the subclass within featurizer.py')
+    parser.add_argument(
+        '--moe_threads', dest='moe_threads', type=int, default=-1,
+        help='Number of threads to use for computing MOE descriptors; default is 2*(num_cores - 1); '
+             'should not exceed number of MOE licenses you have.')
 
     # **********************************************************************************************************
     # model_building_parameters: ecfp
@@ -909,7 +913,7 @@ def postprocess_args(parsed_args):
     If there is a single item in the list (no commas), the repsonse is kept as a StringType, unless it is in
     response_cols, which is passed as a list
 
-    Setting conditional options for descriptor_key. Current only descriptor_type option is 'moe'
+    Setting conditional options for descriptor_key.
 
     Args:
         parsed_args (argparse.Namespace): Raw parsed arguments.
