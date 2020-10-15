@@ -767,7 +767,7 @@ The AMPL pipeline contains many parameters and options to fit models and make pr
   
 |||
 |-|-|
-|*Description:*|SLURM account to charge hyperparameter batch runs to. Specific to LLNL system.|
+|*Description:*|SLURM account to charge hyperparameter batch runs to. If lc_account='' then it will not be used. Specific to LLNL system.|
   
 - **max\_final\_layer\_size**  
   
@@ -837,7 +837,7 @@ The AMPL pipeline contains many parameters and options to fit models and make pr
   
 |||
 |-|-|
-|*Description:*|SLURM partition to urn hyperparameter batch runs on. Specific to LLNL model tracker system.|
+|*Description:*|SLURM partition to urn hyperparameter batch runs on. If slurm_partition='' then slurm_partition will not be used. Specific to LLNL model tracker system.|
 |*Default:*|pbatch|
   
 - **split\_only**  
