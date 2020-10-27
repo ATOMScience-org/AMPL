@@ -286,15 +286,28 @@ class HyperparameterSearch(object):
         with open(self.shell_script, 'w') as f:
             f.write("#!/bin/bash\n")
 
-            # If lc_account == None then SLURM account is not set
-            if self.params.lc_account:
+            f.write("#SBATCH -D {0}\n".format(slurm_path))
+
+            # If any of these properties == None, that property is not set
+            if self.params.slurm_account:
+                f.write("#SBATCH -A {0}\n".format(self.params.slurm_account))
+            elif self.params.lc_account:
                 f.write("#SBATCH -A {0}\n".format(self.params.lc_account))
-            # If slurm_partition == None then SLURM partition is not set
+
+            if self.params.slurm_export:
+                f.write("#SBATCH --export={0}\n".format(self.params.slurm_export))
+
+            if self.params.slurm_nodes:
+                f.write("#SBATCH -N {0}\n".format(self.params.slurm_nodes))
+
+            if self.params.slurm_options:
+                f.write('#SBATCH {0}\n'.format(self.params.slurm_options))
+
             if self.params.slurm_partition:
                 f.write("#SBATCH -p {0}\n".format(self.params.slurm_partition))
 
-            f.write("#SBATCH -N 1\n#SBATCH -t {0}\n#SBATCH --export=ALL\n#SBATCH -D {1}\n".format(self.params.slurm_time_limit,
-                    slurm_path))
+            if self.params.slurm_time_limit:
+                f.write("#SBATCH -t {0}\n".format(self.params.slurm_time_limit))
 
             f.write('start=`date +%s`\necho $3\n$1 $2/pipeline/model_pipeline.py $3\nend=`date +%s`\n'
                     'runtime=$((end-start))\necho "runtime: " $runtime')

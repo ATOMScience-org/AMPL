@@ -767,7 +767,8 @@ The AMPL pipeline contains many parameters and options to fit models and make pr
   
 |||
 |-|-|
-|*Description:*|SLURM account to charge hyperparameter batch runs to. If lc\_account is set to None ('lc\_account': 'None') then SLURM account will not be set.|
+|*Description:*|SLURM account to charge hyperparameter batch runs to. This will be replaced by the slurm\_account option. If lc\_account and slurm\_account are both set, slurm\_account will be used. If set to None then this parameter will not be used.'|
+|*Default:*|baasic|
   
 - **max\_final\_layer\_size**  
   
@@ -832,13 +833,50 @@ The AMPL pipeline contains many parameters and options to fit models and make pr
 |||
 |-|-|
 |*Description:*|CSV file of assays of interest. Specific to LLNL model tracker system.|
+
+- **slurm\_account**  
+  
+|||
+|-|-|
+|*Description:*|SLURM account to charge hyperparameter batch runs to. This will replace the lc\_account option. If lc\_account and slurm\_account are both set, slurm\_account will be used. If set to None then this parameter will not be used.|
+|*Default:*|None|
+  
+- **slurm\_export**  
+  
+|||
+|-|-|
+|*Description:*|SLURM environment variables propagated for hyperparameter search batch jobs. If set to None then this parameter will not be used.|
+|*Default:*|ALL|
+  
+- **slurm\_nodes**  
+  
+|||
+|-|-|
+|*Description:*|Number of nodes for hyperparameter search batch jobs. If set to None then this parameter will not be used.|
+|*Default:*|1|
+|*Type:*|int|
+  
+- **slurm\_options**  
+  
+|||
+|-|-|
+|*Description:*|Additional SLURM options for hyperparameter search batch jobs. Example: '--option1=value1 --option2=value2'. If set to None then this parameter will not be used.|
+|*Default:*|None|
   
 - **slurm\_partition**  
   
 |||
 |-|-|
-|*Description:*|SLURM partition to run hyperparameter batch runs on. If slurm\_partition is set to None ('slurm\_partition': 'None') then SLURM partition will not be set.|
+|*Description:*|SLURM partition to run hyperparameter batch runs on. If set to None then this parameter will not be used.|
 |*Default:*|pbatch|
+  
+- **slurm\_time\_limit**  
+  
+|||
+|-|-|
+|*Description:*|Time limit in minutes for hyperparameter search batch jobs.|
+|*Default:*|1440|
+|*Type:*|int|
   
 - **split\_only**  
   
@@ -856,10 +894,3 @@ The AMPL pipeline contains many parameters and options to fit models and make pr
 |*Default:*|FALSE|
 |*Type:*|Bool|
   
-- **slurm\_time\_limit**  
-  
-|||
-|-|-|
-|*Description:*|Time limit in minutes for hyperparameter search batch jobs.|
-|*Default:*|1440|
-|*Type:*|int|
