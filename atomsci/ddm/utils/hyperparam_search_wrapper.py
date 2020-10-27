@@ -1082,8 +1082,12 @@ def main():
                    'split_test_frac',
                    'bucket',
                    'lc_account',
-                   'slurm_time_limit',
-                   'slurm_partition'} | excluded_keys
+                   'slurm_account',
+                   'slurm_export',
+                   'slurm_nodes',
+                   'slurm_options',
+                   'slurm_partition',
+                   'slurm_time_limit'} | excluded_keys
     params.__dict__ = parse.prune_defaults(params, keep_params=keep_params)
     if params.search_type == 'grid':
         hs = GridSearch(params)
