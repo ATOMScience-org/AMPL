@@ -767,7 +767,7 @@ The AMPL pipeline contains many parameters and options to fit models and make pr
   
 |||
 |-|-|
-|*Description:*|SLURM account to charge hyperparameter batch runs to. This will be replaced by the slurm\_account option. If lc\_account and slurm\_account are both set, slurm\_account will be used. If set to None then this parameter will not be used.'|
+|*Description:*|SLURM account to charge hyperparameter batch runs to. This will be replaced by the slurm\_account option. If lc\_account and slurm\_account are both set, slurm\_account will be used. If set to None then this parameter will not be used.|
 |*Default:*|baasic|
   
 - **max\_final\_layer\_size**  
