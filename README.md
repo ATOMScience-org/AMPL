@@ -82,8 +82,10 @@ conda activate atomsci
 
 cd ..
 
-./build.sh && ./install.sh
+./build.sh && ./install.sh system
 ```
+
+- The `install.sh system` command installs AMPL directly in the conda environment. If `install.sh` alone is used, then AMPL is installed in the `$HOME/.local` directory.
 
 - After this process, you will have an `atomsci` conda environment with all dependencies installed. The name of the AMPL package is `atomsci-ampl` and is installed in the `install.sh` script to the environment with conda's `pip`.
 &nbsp;  

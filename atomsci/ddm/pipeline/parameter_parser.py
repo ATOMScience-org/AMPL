@@ -831,7 +831,9 @@ def get_parser():
              'hyperparameters only.')
     parser.add_argument(
         '--lc_account', dest='lc_account', required=False, default='baasic',
-        help='SLURM account to charge hyperparameter batch runs to')
+        help='SLURM account to charge hyperparameter batch runs to.'
+             'This will be replaced by the slurm_account option. If lc_account and slurm_account are both set, slurm_account will be used.'
+             'If set to None then this parameter will not be used.')
     parser.add_argument(
         '--max_final_layer_size', dest='max_final_layer_size', required=False, default=32,
         help='The max number of nodes in the last layer within layer_sizes and dropouts in hyperparameter search; '
@@ -877,14 +879,33 @@ def get_parser():
     parser.add_argument('--use_shortlist', dest='use_shortlist', action='store_true',
                         help='Boolean flag for use a list of assays in the hyperparam search')
     parser.set_defaults(use_shortlist=False)
+
+    parser.add_argument(
+        '--slurm_account', dest='slurm_account', required=False, default=None,
+        help='SLURM account to charge hyperparameter batch runs to.'
+             'This will replace the lc_account option. If lc_account and slurm_account are both set, slurm_account will be used.'
+             'If set to None then this parameter will not be used.')
+    parser.add_argument(
+        '--slurm_export', dest='slurm_export', required=False, default='ALL',
+        help='SLURM environment variables propagated for hyperparameter search batch jobs.'
+             'If set to None then this parameter will not be used.')
+    parser.add_argument(
+        '--slurm_nodes', dest='slurm_nodes', required=False, default=1,
+        help='Number of nodes for hyperparameter search batch jobs.'
+             'If set to None then this parameter will not be used.')
+    parser.add_argument(
+        '--slurm_options', dest='slurm_options', required=False, default=None,
+        help='Additional SLURM options for hyperparameter search batch jobs.'
+             'Example: \'--option1=value1 --option2=value2\''
+             'If set to None then this parameter will not be used.')
     parser.add_argument(
         '--slurm_partition', dest='slurm_partition', required=False, default='pbatch',
-        help='SLURM partition to run hyperparameter batch jobs on')
+        help='SLURM partition to run hyperparameter batch jobs on.'
+             'If set to None then this parameter will not be used.')
     parser.add_argument(
         '--slurm_time_limit', dest='slurm_time_limit', required=False, default=1440,
-        help='Time limit in minutes for hyperparameter search batch jobs')
-
-
+        help='Time limit in minutes for hyperparameter search batch jobs.'
+             'If set to None then this parameter will not be used.')
 
 
     return parser
