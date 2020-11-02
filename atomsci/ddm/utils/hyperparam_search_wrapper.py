@@ -109,7 +109,7 @@ def reformat_filter_dict(filter_dict):
                                'xgb_min_child_weight', 'xgb_n_estimators','xgb_subsample'}
     if filter_dict['featurizer'] == 'ecfp':
         rename_dict['ecfp_specific'] = {'ecfp_radius', 'ecfp_size'}
-    elif filter_dict['featurizer'] == 'descriptor':
+    elif (filter_dict['featurizer'] == 'descriptor') | (filter_dict['featurizer'] == 'computed_descriptors'):
         rename_dict['descriptor_specific'] = {'descriptor_key', 'descriptor_bucket', 'descriptor_oid', 'descriptor_type'}
     elif filter_dict['featurizer'] == 'molvae':
         rename_dict['autoencoder_specific'] = {'autoencoder_model_key', 'autoencoder_model_bucket', 'autoencoder_model_oid', 'autoencoder_type'}
