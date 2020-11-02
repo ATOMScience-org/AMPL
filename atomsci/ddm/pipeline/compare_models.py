@@ -1357,7 +1357,6 @@ def get_multitask_perf_from_tracker(collection_name, response_cols=None, expand_
     # check inputs are correct
     if collection_name.startswith('old_'):
         raise Exception("This function is not implemented for the old format of metadata.")
-    
     if isinstance(response_cols, list):
         pass
     elif response_cols is None:
@@ -1366,7 +1365,6 @@ def get_multitask_perf_from_tracker(collection_name, response_cols=None, expand_
         response_cols=[x.strip() for x in response_cols.split(',')]
     else:
         raise Exception("Please input response cols as None, list or comma separated string.")
-    
     if isinstance(expand_responses, list):
         pass
     elif expand_responses is None:
@@ -1375,7 +1373,6 @@ def get_multitask_perf_from_tracker(collection_name, response_cols=None, expand_
         expand_responses=[x.strip() for x in expand_responses.split(',')]
     else:
         raise Exception("Please input expand response col(s) as list or comma separated string.")
-    
     if isinstance(expand_subsets, list):
         pass
     elif expand_subsets is None:
@@ -1451,7 +1448,11 @@ def get_multitask_perf_from_tracker(collection_name, response_cols=None, expand_
                 alldat=alldat.drop(columns=column)
             else:
                 print(f"Warning: task-level metadata for {column} not in metadata.")
-
+    
+    # make features column
+    alldat['features'] = alldat['featurizer']
+    alldat.loc[alldat.featurizer == 'computed_descriptors', 'features'] = alldat.loc[alldat.featurizer == 'computed_descriptors', 'descriptor_type']
+    
     # prune to only include expand_responses
     if expand_responses is not None:
         removecols= [x for x in response_cols if x not in expand_responses]
@@ -1463,7 +1464,7 @@ def get_multitask_perf_from_tracker(collection_name, response_cols=None, expand_
         return alldat
     else:
         alldat=alldat.drop(columns=alldat.columns[alldat.columns.str.contains('baseline')])
-        keepcols=['model_uuid', 'descriptor_type', 'featurizer', 'prediction_type', 
+        keepcols=['model_uuid', 'features', 'prediction_type', 
                   'transformers', 'uncertainty', 'batch_size', 'bias_init_consts', 
                   'dropouts', 'layer_sizes', 'learning_rate', 'max_epochs', 'optimizer_type', 
                   'weight_decay_penalty', 'weight_decay_penalty_type', 'weight_init_stddevs', 'splitter', 
