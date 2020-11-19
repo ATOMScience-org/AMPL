@@ -101,7 +101,7 @@ cd ..
 - Create a workspace folder to mount with Docker environment and transfer files. 
 - Get the Docker image and run it.
   ```
-  docker pull paulsonak/atomsci-ampl
+  docker pull paulsonak/atomsci-ampl:mini
   docker run -it -p 8888:8888 -v /local_workspace_folder:/directory_in_docker atomsci-ampl
   #inside docker environment
   jupyter-notebook --ip=0.0.0.0 --allow-root --port=8888 &
