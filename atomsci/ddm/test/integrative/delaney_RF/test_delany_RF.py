@@ -74,7 +74,7 @@ def download():
     """
     if (not os.path.isfile('delaney-processed.csv')):
         integrative_utilities.download_save(
-            'http://deepchem.io.s3-website-us-west-1.amazonaws.com/datasets/delaney-processed.csv',
+            'https://deepchemdata.s3-us-west-1.amazonaws.com/datasets/delaney-processed.csv',
             'delaney-processed.csv')
 
     assert (os.path.isfile('delaney-processed.csv'))

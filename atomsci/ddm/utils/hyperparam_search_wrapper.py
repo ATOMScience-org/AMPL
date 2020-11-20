@@ -109,7 +109,7 @@ def reformat_filter_dict(filter_dict):
                                'xgb_min_child_weight', 'xgb_n_estimators','xgb_subsample'}
     if filter_dict['featurizer'] == 'ecfp':
         rename_dict['ecfp_specific'] = {'ecfp_radius', 'ecfp_size'}
-    elif filter_dict['featurizer'] == 'descriptor':
+    elif (filter_dict['featurizer'] == 'descriptor') | (filter_dict['featurizer'] == 'computed_descriptors'):
         rename_dict['descriptor_specific'] = {'descriptor_key', 'descriptor_bucket', 'descriptor_oid', 'descriptor_type'}
     elif filter_dict['featurizer'] == 'molvae':
         rename_dict['autoencoder_specific'] = {'autoencoder_model_key', 'autoencoder_model_bucket', 'autoencoder_model_oid', 'autoencoder_type'}
@@ -284,10 +284,31 @@ class HyperparameterSearch(object):
             os.makedirs(slurm_path)
         self.shell_script = os.path.join(self.params.result_dir, 'run.sh')
         with open(self.shell_script, 'w') as f:
-            hostname = ''.join(list(filter(lambda x: x.isalpha(), socket.gethostname())))
-            f.write("#!/bin/bash\n#SBATCH -A {2}\n#SBATCH -N 1\n#SBATCH -p partition={0}\n#SBATCH -t {4}"
-                    "\n#SBATCH -p {3}\n#SBATCH --export=ALL\n#SBATCH -D {1}\n".format(hostname, slurm_path,
-                    self.params.lc_account, self.params.slurm_partition, self.params.slurm_time_limit))
+            f.write("#!/bin/bash\n")
+
+            f.write("#SBATCH -D {0}\n".format(slurm_path))
+
+            # If any of these properties == None, that property is not set
+            if self.params.slurm_account:
+                f.write("#SBATCH -A {0}\n".format(self.params.slurm_account))
+            elif self.params.lc_account:
+                f.write("#SBATCH -A {0}\n".format(self.params.lc_account))
+
+            if self.params.slurm_export:
+                f.write("#SBATCH --export={0}\n".format(self.params.slurm_export))
+
+            if self.params.slurm_nodes:
+                f.write("#SBATCH -N {0}\n".format(self.params.slurm_nodes))
+
+            if self.params.slurm_options:
+                f.write('#SBATCH {0}\n'.format(self.params.slurm_options))
+
+            if self.params.slurm_partition:
+                f.write("#SBATCH -p {0}\n".format(self.params.slurm_partition))
+
+            if self.params.slurm_time_limit:
+                f.write("#SBATCH -t {0}\n".format(self.params.slurm_time_limit))
+
             f.write('start=`date +%s`\necho $3\n$1 $2/pipeline/model_pipeline.py $3\nend=`date +%s`\n'
                     'runtime=$((end-start))\necho "runtime: " $runtime')
 
@@ -1061,8 +1082,12 @@ def main():
                    'split_test_frac',
                    'bucket',
                    'lc_account',
-                   'slurm_time_limit',
-                   'slurm_partition'} | excluded_keys
+                   'slurm_account',
+                   'slurm_export',
+                   'slurm_nodes',
+                   'slurm_options',
+                   'slurm_partition',
+                   'slurm_time_limit'} | excluded_keys
     params.__dict__ = parse.prune_defaults(params, keep_params=keep_params)
     if params.search_type == 'grid':
         hs = GridSearch(params)

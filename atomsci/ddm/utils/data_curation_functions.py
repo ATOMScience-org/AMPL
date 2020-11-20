@@ -175,6 +175,7 @@ def filter_dtc_data(orig_df,geneNames):
     return dset_df
 
 def ic50topic50(x) :
+    print(x)
     return -np.log10((x/1000000000.0))
 
 
@@ -185,9 +186,7 @@ def down_select(df,kv_lst) :
 
 
 def get_smiles_dtc_data(nm_df,targ_lst,save_smiles_df):
-
         save_df={}
-
         for targ in targ_lst :
             lst1= [ ('gene_names',targ),('standard_type','IC50'),('standard_relation','=') ]
             lst1_tmp= [ ('gene_names',targ),('standard_type','IC50')]
@@ -195,10 +194,8 @@ def get_smiles_dtc_data(nm_df,targ_lst,save_smiles_df):
             jak1_df_tmp=down_select(nm_df,lst1_tmp)
             print(targ,"distinct compounds = only",jak1_df['standard_inchi_key'].nunique())
             print(targ,"distinct compounds <,>,=",jak1_df_tmp['standard_inchi_key'].nunique())
-            #to ignore censored data
-            #save_df[targ]=jak1_df
-            #to include censored data
-            save_df[targ]=jak1_df_tmp
+            ## we convert to log values so make sure there are no 0 values
+            save_df[targ]=jak1_df_tmp[jak1_df_tmp['standard_value']>0]
 
         prev_targ=targ_lst[0]
         shared_inchi_keys=save_df[prev_targ]['standard_inchi_key']
@@ -217,6 +214,7 @@ def get_smiles_dtc_data(nm_df,targ_lst,save_smiles_df):
         shared_df=pd.concat(lst)
         # Add pIC50 values
         print('Add pIC50 values.')
+        print(shared_df['standard_value'])
         shared_df['PIC50']=shared_df['standard_value'].apply(ic50topic50)
 
         # Merge in SMILES strings
