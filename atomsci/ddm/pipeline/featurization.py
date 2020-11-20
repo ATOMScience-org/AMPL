@@ -1222,12 +1222,14 @@ class DescriptorFeaturization(PersistentFeaturization):
         ncols = len(params.response_cols)
         if model_dataset.contains_responses:
             vals = merged_dset_df[params.response_cols].values
+            vals, weights = make_weights(vals)
         else:
             vals = np.zeros((nrows,ncols))
+            weights = np.ones_like(vals)
 
         attr = attr.loc[ids]
 
-        return features, ids, vals, attr, None
+        return features, ids, vals, attr, weights
 
     # ****************************************************************************************
     def get_featurized_dset_name(self, dataset_name):
@@ -1506,13 +1508,15 @@ class ComputedDescriptorFeaturization(DescriptorFeaturization):
         ncols = len(params.response_cols)
         if model_dataset.contains_responses:
             vals = merged_dset_df[params.response_cols].values
+            vals, weights = make_weights(vals)
         else:
             vals = np.zeros((nrows,ncols))
+            weights = np.ones_like(vals)
 
         # Create a table of SMILES strings and other attributes indexed by compound IDs
         attr = get_dataset_attributes(merged_dset_df, params)
 
-        return features, ids, vals, attr, None
+        return features, ids, vals, attr, weights
 
     # ****************************************************************************************
     def get_featurized_dset_name(self, dataset_name):
