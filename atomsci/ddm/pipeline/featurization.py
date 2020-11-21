@@ -407,6 +407,7 @@ def compute_all_moe_descriptors(smiles_df, params):
     moe_args.append('%d' % moe_threads)
 
     moe_args.append("-exec")
+    # TODO: Directory with svl scripts should be part of AMPL installation. The code below is specific to the LC environment.
     moe_template = """db_Close db_Open['{fileMDB}','create']; db_ImportASCII[ascii_file: '{smilesFile}',
     db_file: '{fileMDB}',delimiter: ',', quotes: 0, names: ['original_smiles','cmpd_id'],types: ['char','char']];
     run ['{moeRoot}/custom/ksm_svl/smp_WashMinimizeSMILES.svl', ['{fileMDB}', 'original_smiles']];
@@ -1568,10 +1569,6 @@ class ComputedDescriptorFeaturization(DescriptorFeaturization):
             ret_df = ret_df.join(desc_df, how='inner')
 
         elif descr_source == 'rdkit':
-            # TODO (ksm): mordred computes a subset of RDKit descriptors, but apparently they have different
-            # names from the ones generated directly by RDKit. Hold off on this until we have code in place
-            # to call RDKit directly.
-            #raise Exception("RDKit descriptor computations are not yet supported.")
             desc_df, is_valid = self.compute_rdkit_descriptors(smiles_df, smiles_col = params.smiles_col)
             desc_df = desc_df[descr_cols]
             # Add the ID and SMILES columns to the returned data frame
