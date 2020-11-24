@@ -37,7 +37,7 @@ try:
     import feather
 except (ImportError, AttributeError, ModuleNotFoundError):
     feather_supported = False
-    
+
 from rdkit import Chem
 from rdkit.Chem.Descriptors import MolWt
 
@@ -53,10 +53,10 @@ def set_group_permissions(path, system='AD', owner='GSK'):
     Args:
         path (string): File path
 
-        system (string): Computing environment from which group ownerships will be derived; currently, either 'LC' for LC 
+        system (string): Computing environment from which group ownerships will be derived; currently, either 'LC' for LC
         filesystems or 'AD' for LLNL systems where owners and groups are managed by Active Directory.
 
-        owner (string): Who the data belongs to, either 'public' or the name of a company (e.g. 'GSK') associated with a 
+        owner (string): Who the data belongs to, either 'public' or the name of a company (e.g. 'GSK') associated with a
         restricted access group.
 
     Returns:
@@ -66,7 +66,7 @@ def set_group_permissions(path, system='AD', owner='GSK'):
     # Currently, if we're not on an LC machine, we're on an AD-controlled system. This could change.
     if system != 'LC':
         system = 'AD'
-    owner_group_map = dict(GSK = {'LC' : 'gskcraa', 'AD' : 'gskusers-ad'}, 
+    owner_group_map = dict(GSK = {'LC' : 'gskcraa', 'AD' : 'gskusers-ad'},
                            public = {'LC' : 'atom', 'AD' : 'atom'} )
     group = owner_group_map[owner][system]
     shutil.chown(path, group=group)
@@ -148,7 +148,7 @@ def aggregate_assay_data(assay_df, value_col='VALUE_NUM', output_value_col=None,
                          id_col='CMPD_NUMBER', smiles_col='rdkit_smiles', relation_col='VALUE_FLAG', date_col=None):
     """
     Map RDKit SMILES strings in assay_df to base structures, then compute an MLE estimate of the mean value over replicate measurements
-    for the same SMILES strings, taking censoring into account. Generate an aggregated result table with one value for each unique base 
+    for the same SMILES strings, taking censoring into account. Generate an aggregated result table with one value for each unique base
     SMILES string, to be used in an ML-ready dataset.
 
     :param assay_df: The input data frame to be processed.
@@ -365,18 +365,19 @@ def get_rdkit_smiles_parent (data):
 
 
 # ******************************************************************************************************************************************
-def average_and_remove_duplicates (column, tolerance, list_bad_duplicates, data, max_stdev = 100000, compound_id='CMPD_NUMBER',smiles_col='rdkit_smiles_parent'):
+def average_and_remove_duplicates (column, tolerance, list_bad_duplicates, data, max_stdev = 100000, compound_id='CMPD_NUMBER', rm_duplicate_only=False, smiles_col='rdkit_smiles_parent'):
     """This while loop loops through until no'bad duplicates' are left.
     column - column with the value of interest
     tolerance - acceptable % difference between value and average
              ie.: if "[(value - mean)/mean*100]>tolerance" then remove data row
+    rm_duplicate_only - only remove bad duplicates, don't average good ones, the resulting table can be fed into aggregate assay data to further process.
     note: The mean is recalculated on each loop through to make sure it isn't skewed by the 'bad duplicate' values"""
 
     list_bad_duplicates = list_bad_duplicates
     i = 0
     bad_duplicates = 1
     removed = []
-    removed = pd.DataFrame(removed)
+    removed = pd.DataFrame(removed) 
 
     while i < 1 or bad_duplicates !=0 and not data.empty :
         #a. reset table if needed
@@ -387,7 +388,7 @@ def average_and_remove_duplicates (column, tolerance, list_bad_duplicates, data,
             del data['Remove_BadDuplicate']
 
         # 1. Calculate mean of duplicates
-        unique_smiles = data.groupby(smiles_col) 
+        unique_smiles = data.groupby(smiles_col)
         VALUE_NUM_mean = unique_smiles[column].mean()
         VALUE_NUM_std = unique_smiles[column].std()
         temporary_data = pd.concat([VALUE_NUM_mean,VALUE_NUM_std],axis=1)
@@ -428,12 +429,12 @@ def average_and_remove_duplicates (column, tolerance, list_bad_duplicates, data,
         print( removed[col])
 
     # retain only instance of each unique rdkit_smiles_parent
-    data = data.drop_duplicates(subset=smiles_col)
-
-    print("")
-    print("Dataset de-duplicated")
-    print("Dataframe size", data.shape[:])
-    print("New column created with averaged values: ", 'VALUE_NUM_mean')
+    if not rm_duplicate_only:
+        data = data.drop_duplicates(subset=smiles_col)
+        print("")
+        print("Dataset de-duplicated")
+        print("Dataframe size", data.shape[:])
+        print("New column created with averaged values: ", 'VALUE_NUM_mean')
 
     return data
 
@@ -505,7 +506,7 @@ def create_new_rows_for_extra_results ( extra_result_col, value_col, data):
 
 
 # ******************************************************************************************************************************************
-# DEPRECATED - DeepChem only supports classification responses as non-negative indices 0, 1, 2. 
+# DEPRECATED - DeepChem only supports classification responses as non-negative indices 0, 1, 2.
 # Use new function add_classification_column instead.
 def get_three_level_class(value, red_thresh, yellow_thresh):
     """
@@ -568,43 +569,43 @@ def add_binary_tertiary_classification(low_limit, high_limit, source_column, dat
         high_limit = values above this limit are considered "high"
         source_column = the column heading of the values being compared against high/med/low criteria
     '''
-    
+
     if low_limit != high_limit:  #give binary and tertiary classification
         low = 0
         medium = 1
-        high = 1        
-        print('Classification - binary')
-        print('low=', low, 'high=', high)         
-        data['class_binary'] = np.where(data[source_column] < low_limit,low,"")
-        data['class_binary'] = np.where(data[source_column] >= low_limit,medium,data['class_binary'])
-        data['class_binary'] = np.where(data[source_column] >= high_limit,high,data['class_binary'])        
-        print(data.groupby('class_binary').class_binary.count()) 
-        print("")
-        
-        low = 0
-        medium = 1
-        high = 2        
-        print('Classification - tertiary')
-        print('low=', low, ' medium=', medium, 'high=', high)
-        data['class_tertiary'] = np.where(data[source_column] < low_limit,low,"")
-        data['class_tertiary'] = np.where(data[source_column] >= low_limit,medium,data['class_tertiary'])
-        data['class_tertiary'] = np.where(data[source_column] >= high_limit,high,data['class_tertiary'])
-        print(data.groupby('class_tertiary').class_tertiary.count()) 
-        print("")
-        
-    else:  #binary only
-        low = 0
-        medium = 1
-        high = 1 
+        high = 1
         print('Classification - binary')
         print('low=', low, 'high=', high)
         data['class_binary'] = np.where(data[source_column] < low_limit,low,"")
         data['class_binary'] = np.where(data[source_column] >= low_limit,medium,data['class_binary'])
         data['class_binary'] = np.where(data[source_column] >= high_limit,high,data['class_binary'])
-        print(data.groupby('class_binary').class_binary.count()) 
+        print(data.groupby('class_binary').class_binary.count())
         print("")
-    
-    
+
+        low = 0
+        medium = 1
+        high = 2
+        print('Classification - tertiary')
+        print('low=', low, ' medium=', medium, 'high=', high)
+        data['class_tertiary'] = np.where(data[source_column] < low_limit,low,"")
+        data['class_tertiary'] = np.where(data[source_column] >= low_limit,medium,data['class_tertiary'])
+        data['class_tertiary'] = np.where(data[source_column] >= high_limit,high,data['class_tertiary'])
+        print(data.groupby('class_tertiary').class_tertiary.count())
+        print("")
+
+    else:  #binary only
+        low = 0
+        medium = 1
+        high = 1
+        print('Classification - binary')
+        print('low=', low, 'high=', high)
+        data['class_binary'] = np.where(data[source_column] < low_limit,low,"")
+        data['class_binary'] = np.where(data[source_column] >= low_limit,medium,data['class_binary'])
+        data['class_binary'] = np.where(data[source_column] >= high_limit,high,data['class_binary'])
+        print(data.groupby('class_binary').class_binary.count())
+        print("")
+
+
     return data
 
 # ******************************************************************************************************************************************
@@ -619,7 +620,7 @@ def add_classification_column(thresholds, value_column, label_column, data, righ
         thresholds (float or sequence of floats): Thresholds to use to assign class labels. Label i will
         be assigned to values such that thresholds[i-1] < value <= thresholds[i] (if right_inclusive is True)
         or thresholds[i-1] <= value < thresholds[i] (otherwise).
-        
+
         value_column (str): Name of the column from which class labels are derived.
 
         label_column (str): Name of the new column to be created for class labels.
@@ -662,5 +663,5 @@ def xc50topxc50_for_nm(x) :
      x: input XC50 value measured in nanomolars
    Returns :
        -log10 value of x
-   """	
+   """
    return -np.log10((x/1000000000.0))
