@@ -1008,7 +1008,7 @@ def postprocess_args(parsed_args):
                     else:
                         newlist.append([float(x.strip()) for x in temp_split])
                     # Once a new list of lists is generated, pass to parsed_args
-                    if len(newlist) == 1:
+                    if len(newlist) == 1 and item not in ["layer_sizes", "dropouts"]:
                         parsed_args.__dict__[item] = newlist[0]
                         #newlist is a list of lists, need to extract down to the lowest layer, as necessary
                         if len(newlist[0]) == 1 and item not in keep_as_list:
