@@ -300,14 +300,14 @@ class HyperparameterSearch(object):
             if self.params.slurm_nodes:
                 f.write("#SBATCH -N {0}\n".format(self.params.slurm_nodes))
 
-            if self.params.slurm_options:
-                f.write('#SBATCH {0}\n'.format(self.params.slurm_options))
-
             if self.params.slurm_partition:
                 f.write("#SBATCH -p {0}\n".format(self.params.slurm_partition))
 
             if self.params.slurm_time_limit:
                 f.write("#SBATCH -t {0}\n".format(self.params.slurm_time_limit))
+                
+            if self.params.slurm_options:
+                f.write('{0}\n'.format(self.params.slurm_options))
 
             f.write('start=`date +%s`\necho $3\n$1 $2/pipeline/model_pipeline.py $3\nend=`date +%s`\n'
                     'runtime=$((end-start))\necho "runtime: " $runtime')
