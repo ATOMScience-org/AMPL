@@ -1312,11 +1312,13 @@ def get_multitask_perf_from_files(result_dir, pred_type='regression'):
     layer_sizes_list = []
     best_epoch_list = []
     max_epochs_list = []
+    featurizer_list = []
 
     subsets = ['train', 'valid', 'test']
 
     if pred_type == 'regression':
-        metrics = ['num_compounds', 'r2_score', 'task_r2_scores']
+        metrics = ['num_compounds', 'r2_score', 'task_r2_scores',
+                   'task_rms_scores']
     else:
         metrics = ['num_compounds', 'roc_auc_score', 'task_roc_auc_scores']
     score_dict = {}
@@ -1368,6 +1370,7 @@ def get_multitask_perf_from_files(result_dir, pred_type='regression'):
         learning_rate_list.append(nn_params['learning_rate'])
         layer_sizes_list.append(','.join(['%d' % s for s in nn_params['layer_sizes']]))
         dropouts_list.append(','.join(['%.2f' % d for d in nn_params['dropouts']]))
+        featurizer_list.append(model_params["featurizer"])
         for subset in subsets:
             for metric in metrics:
                 score_dict[subset][metric].append(subset_metrics[subset][metric])
@@ -1375,38 +1378,33 @@ def get_multitask_perf_from_files(result_dir, pred_type='regression'):
 
     # Format the data as a table with groups of 3 columns for each model
     num_models = len(model_uuid_list)
-    if pred_type == 'regression':
-        model_params = ['model_uuid', 'learning_rate', 'layer_sizes', 'dropouts', 'max_epochs', 'best_epoch',
-                        'subset', 'num_compounds', 'mean_r2_score']
-    else:
-        model_params = ['model_uuid', 'learning_rate', 'layer_sizes', 'dropouts', 'max_epochs', 'best_epoch',
-                        'subset', 'num_compounds', 'mean_roc_auc_score']
-    param_list = model_params + response_cols
-    perf_df = pd.DataFrame(dict(col_0=param_list))
-    colnum = 0
+
+    data = {
+        "model_uuid": model_uuid_list,
+        "learning_rate": learning_rate_list,
+        "layer_sizes": layer_sizes_list,
+        "dropouts": dropouts_list,
+        "featurizer": featurizer_list
+    }
+
     for i in range(num_models):
         for subset in subsets:
-            vals = []
-            if subset == 'train':
-                vals.append(model_uuid_list[i])
-                vals.append(learning_rate_list[i])
-                vals.append(layer_sizes_list[i])
-                vals.append(dropouts_list[i])
-                vals.append('%d' % max_epochs_list[i])
-                vals.append('%d' % best_epoch_list[i])
-            else:
-                vals = vals + ['']*6
-            vals.append(subset)
-            vals.append('%d' % score_dict[subset]['num_compounds'][i])
-            if pred_type == 'regression':
-                vals.append('%.3f' % score_dict[subset]['r2_score'][i])
-                vals = vals + ['%.3f' % v for v in score_dict[subset]['task_r2_scores'][i]]
-            else:
-                vals.append('%.3f' % score_dict[subset]['roc_auc_score'][i])
-                vals = vals + ['%.3f' % v for v in score_dict[subset]['task_roc_auc_scores'][i]]
-            colnum += 1
-            colname = 'col_%d' % colnum
-            perf_df[colname] = vals
+            for ix, task in enumerate(response_cols):
+                if pred_type == "regression":
+                    colr2 = f"{subset}_{task}_r2"
+                    colrms = f"{subset}_{task}_rms"
+                    if colr2 not in data:
+                        data[colr2] = []
+                        data[colrms] = []
+                    data[colr2].append(score_dict[subset]["task_r2_scores"][i][ix])
+                    data[colrms].append(score_dict[subset]["task_rms_scores"][i][ix])
+                else:
+                    colauc = f"{subset}_{task}_roc_auc"
+                    if colauc not in data:
+                        data[colauc] = []
+                    data[colauc].append(score_dict[subset]["task_roc_auc_scores"][i][ix])
+
+    perf_df = pd.DataFrame(data)
 
     return perf_df
 
