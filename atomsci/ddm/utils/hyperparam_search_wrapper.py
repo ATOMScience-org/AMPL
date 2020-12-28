@@ -55,13 +55,13 @@ def run_command(shell_script, python_path, script_dir, params):
 def run_cmd(cmd):
     """
     Function to submit a job using subprocess
-    
+
     Args:
-        
+
         cmd: Command to run
 
     Returns:
-        
+
         output: Output of command
     """
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
@@ -74,38 +74,38 @@ def reformat_filter_dict(filter_dict):
     """
     Function to reformat a filter dictionary to match the Model Tracker metadata structure. Updated 9/2020 by A. Paulson
     for new LC model tracker.
-    
+
     Args:
-        
+
         filter_dict: Dictionary containing metadata for model of interest
 
     Returns:
-        
+
         new_filter_dict: Filter dict reformatted
 
     """
     rename_dict = {'model_parameters':
-                       {'dependencies', 'featurizer', 'git_hash_code','model_bucket', 'model_choice_score_type', 
+                       {'dependencies', 'featurizer', 'git_hash_code','model_bucket', 'model_choice_score_type',
                         'model_dataset_oid','model_type', 'num_model_tasks', 'prediction_type', 'save_results',
-                        'system', 'task_type', 'time_generated', 'transformer_bucket', 'transformer_key', 
+                        'system', 'task_type', 'time_generated', 'transformer_bucket', 'transformer_key',
                         'transformer_oid', 'transformers', 'uncertainty'},
                'splitting_parameters':
-                       {'base_splitter', 'butina_cutoff', 'cutoff_date', 'date_col','num_folds', 'split_strategy', 
+                       {'base_splitter', 'butina_cutoff', 'cutoff_date', 'date_col','num_folds', 'split_strategy',
                         'split_test_frac', 'split_uuid', 'split_valid_frac', 'splitter'},
                'training_dataset':
-                       {'bucket', 'dataset_key', 'dataset_oid', 'num_classes','feature_transform_type', 
+                       {'bucket', 'dataset_key', 'dataset_oid', 'num_classes','feature_transform_type',
                         'response_transform_type', 'id_col', 'smiles_col', 'response_cols'},
                'umap_specific':
                        {'umap_dim', 'umap_metric', 'umap_min_dist', 'umap_neighbors','umap_targ_wt'}
               }
     if filter_dict['model_type'] == 'NN':
-        rename_dict['nn_specific'] = {'baseline_epoch', 'batch_size', 'best_epoch', 'bias_init_consts','dropouts', 
-                                      'layer_sizes', 'learning_rate', 'max_epochs','optimizer_type', 'weight_decay_penalty', 
+        rename_dict['nn_specific'] = {'baseline_epoch', 'batch_size', 'best_epoch', 'bias_init_consts','dropouts',
+                                      'layer_sizes', 'learning_rate', 'max_epochs','optimizer_type', 'weight_decay_penalty',
                                       'weight_decay_penalty_type', 'weight_init_stddevs'}
     elif filter_dict['model_type'] == 'RF':
         rename_dict['rf_specific'] = {'rf_estimators', 'rf_max_depth', 'rf_max_features'}
     elif filter_dict['model_type'] == 'xgboost':
-        rename_dict['xgb_specific'] = {'xgb_colsample_bytree', 'xgb_gamma', 'xgb_learning_rate','xgb_max_depth', 
+        rename_dict['xgb_specific'] = {'xgb_colsample_bytree', 'xgb_gamma', 'xgb_learning_rate','xgb_max_depth',
                                'xgb_min_child_weight', 'xgb_n_estimators','xgb_subsample'}
     if filter_dict['featurizer'] == 'ecfp':
         rename_dict['ecfp_specific'] = {'ecfp_radius', 'ecfp_size'}
@@ -145,16 +145,16 @@ def permutate_NNlayer_combo_params(layer_nums, node_nums, dropout_list, max_fina
     Example:
     permutate_NNlayer_combo_params([2], [4,8,8], [0], 16)
     returns [[8, 8], [8, 4]] [[0,0],[0,0]]
-    
+
     Args:
         layer_nums: specify numbers of layers.
-        
+
         node_nums: specify numbers of nodes per layer.
-        
+
         dropout_list: specify the dropouts.
-        
+
         max_last_layer_size: sets the max size of the last layer. It will be set to the smallest node_num if needed.
-        
+
     Returns:
         layer_sizes, dropouts: the layer sizes and dropouts generated based on the input parameters
     """
@@ -167,7 +167,7 @@ def permutate_NNlayer_combo_params(layer_nums, node_nums, dropout_list, max_fina
     # set to the smallest node_num in the provided list, if necessary.
     if node_nums[-1] > max_final_layer_size:
         max_final_layer_size = node_nums[-1]
-        
+
     for dropout in dropout_list:
         _repeated_layers =[]
         for layer_num in layer_nums:
@@ -184,11 +184,11 @@ def get_num_params(combo):
     """
     Calculates the number of parameters in a fully-connected neural networ
     Args:
-        
+
         combo: Model parameters
 
     Returns:
-        
+
         tmp_sum: Calculated number of parameters
 
     """
@@ -221,11 +221,11 @@ class HyperparameterSearch(object):
     """
     def __init__(self, params, hyperparam_uuid=None):
         """
-        
+
         Args:
-            
+
             params: The input hyperparameter parameters
-            
+
             hyperparam_uuid: Optional, UUID for hyperparameter run if you want to group this run with a previous run.
             We ended up mainly doing this via collections, so not really used
         """
@@ -353,32 +353,62 @@ class HyperparameterSearch(object):
             if model_type == 'NN':
                 # if the model type is NN, loops through the featurizer to check for GraphConv.
                 for featurizer in self.params.featurizer:
-                    subcombo = {k: val for k, val in self.hyperparams.items() if k in
-                                self.hyperparam_keys - self.rf_specific_keys - self.xgboost_specific_keys}
-                    # could put in list
-                    subcombo['model_type'] = [model_type]
-                    subcombo['featurizer'] = [featurizer]
-                    self.param_combos.extend(self.generate_combos(subcombo))
+                    if featurizer == 'computed_descriptors':
+                        for desc in self.params.descriptor_type:
+                            subcombo = {k: val for k, val in self.hyperparams.items() if k in
+                                        self.hyperparam_keys - self.rf_specific_keys - self.xgboost_specific_keys}
+                            # could put in list
+                            subcombo['model_type'] = [model_type]
+                            subcombo['featurizer'] = [featurizer]
+                            subcombo['descriptor_type'] = [desc]
+                            self.param_combos.extend(self.generate_combos(subcombo))
+                    else:
+                        subcombo = {k: val for k, val in self.hyperparams.items() if k in
+                                    self.hyperparam_keys - self.rf_specific_keys - self.xgboost_specific_keys}
+                        # could put in list
+                        subcombo['model_type'] = [model_type]
+                        subcombo['featurizer'] = [featurizer]
+                        self.param_combos.extend(self.generate_combos(subcombo))
             elif model_type == 'RF':
                 for featurizer in self.params.featurizer:
                     if featurizer == 'graphconv':
                         continue
-                    # Adds the subcombo for RF
-                    subcombo = {k: val for k, val in self.hyperparams.items() if k in
-                                self.hyperparam_keys - self.nn_specific_keys - self.xgboost_specific_keys}
-                    subcombo['model_type'] = [model_type]
-                    subcombo['featurizer'] = [featurizer]
-                    self.param_combos.extend(self.generate_combos(subcombo))
+                    elif featurizer == 'computed_descriptors':
+                        for desc in self.params.descriptor_type:
+                            # Adds the subcombo for RF
+                            subcombo = {k: val for k, val in self.hyperparams.items() if k in
+                                        self.hyperparam_keys - self.nn_specific_keys - self.xgboost_specific_keys}
+                            subcombo['model_type'] = [model_type]
+                            subcombo['featurizer'] = [featurizer]
+                            subcombo['descriptor_type'] = [desc]
+                            self.param_combos.extend(self.generate_combos(subcombo))
+                    else:
+                        # Adds the subcombo for RF
+                        subcombo = {k: val for k, val in self.hyperparams.items() if k in
+                                    self.hyperparam_keys - self.nn_specific_keys - self.xgboost_specific_keys}
+                        subcombo['model_type'] = [model_type]
+                        subcombo['featurizer'] = [featurizer]
+                        self.param_combos.extend(self.generate_combos(subcombo))
             elif model_type == 'xgboost':
                 for featurizer in self.params.featurizer:
                     if featurizer == 'graphconv':
                         continue
-                    # Adds the subcombo for xgboost
-                    subcombo = {k: val for k, val in self.hyperparams.items() if k in
-                                self.hyperparam_keys - self.nn_specific_keys - self.rf_specific_keys}
-                    subcombo['model_type'] = [model_type]
-                    subcombo['featurizer'] = [featurizer]
-                    self.param_combos.extend(self.generate_combos(subcombo))
+                    elif featurizer == 'computed_descriptors':
+                        for desc in self.params.descriptor_type:
+                            # Adds the subcombo for xgboost
+                            subcombo = {k: val for k, val in self.hyperparams.items() if k in
+                                        self.hyperparam_keys - self.nn_specific_keys - self.rf_specific_keys}
+                            subcombo['model_type'] = [model_type]
+                            subcombo['featurizer'] = [featurizer]
+                            subcombo['descriptor_type'] = [desc]
+                            self.param_combos.extend(self.generate_combos(subcombo))
+                    else:
+                        # Adds the subcombo for xgboost
+                        subcombo = {k: val for k, val in self.hyperparams.items() if k in
+                                    self.hyperparam_keys - self.nn_specific_keys - self.rf_specific_keys}
+                        subcombo['model_type'] = [model_type]
+                        subcombo['featurizer'] = [featurizer]
+                        self.param_combos.extend(self.generate_combos(subcombo))
 
     def generate_combos(self, params_dict):
         """
@@ -403,7 +433,7 @@ class HyperparameterSearch(object):
     def assemble_layers(self):
         """
         Reformats layer parameters
-        
+
         Returns:
             None
         """
@@ -453,7 +483,7 @@ class HyperparameterSearch(object):
     def get_dataset_metadata(self, assay_params, retry_time=60):
         """
         Gather the required metadata for a dataset
-        
+
         Args:
             assay_params: dataset metadata
 
@@ -504,7 +534,7 @@ class HyperparameterSearch(object):
     def split_and_save_dataset(self, assay_params):
         """
         Splits a given dataset, saves it, and sets the split_uuid in the metadata
-        
+
         Args:
             assay_params: Dataset metadata
 
@@ -617,7 +647,7 @@ class HyperparameterSearch(object):
         """
         Processes a shortlist, generates splits for each dataset on the list, and uploads a new shortlist file with the
         split_uuids included. Generates splits for the split_combos [[0.1,0.1], [0.1,0.2],[0.2,0.2]], [random, scaffold]
-        
+
         Returns:
             None
         """
@@ -684,7 +714,7 @@ class HyperparameterSearch(object):
 
     def get_shortlist_df(self, split_uuids=False, retry_time=60):
         """
-        
+
         Args:
             split_uuids: Boolean value saying if you want just datasets returned or the split_uuids as well
 
@@ -755,7 +785,7 @@ class HyperparameterSearch(object):
     def submit_jobs(self, retry_time=60):
         """
         Reformats parameters as necessary and then calls run_command in a loop to submit a job for each param combo
-        
+
         Returns:
             None
         """
@@ -893,11 +923,11 @@ class GridSearch(HyperparameterSearch):
     def generate_combo(self, params_dict):
         """
         Method to generate all combinations from a given set of key-value pairs
-        
+
         Args:
             params_dict: Set of key-value pairs with the key being the param name and the value being the list of values
             you want to try for that param
-        
+
         Returns:
             new_dict: The list of all combinations of parameters
         """
@@ -973,7 +1003,7 @@ class GeometricSearch(HyperparameterSearch):
     """
     Generates parameter values in logistic steps, rather than linear like GridSearch does
     """
-    
+
     def __init__(self, params):
         super().__init__(params)
 
@@ -992,11 +1022,11 @@ class GeometricSearch(HyperparameterSearch):
     def generate_combo(self, params_dict):
         """
         Method to generate all combinations from a given set of key-value pairs
-        
+
         Args:
             params_dict: Set of key-value pairs with the key being the param name and the value being the list of values
             you want to try for that param
-        
+
         Returns:
             new_dict: The list of all combinations of parameters
         """
@@ -1022,7 +1052,7 @@ class UserSpecifiedSearch(HyperparameterSearch):
     """
     Generates combinations using the user-specified steps
     """
-    
+
     def __init__(self, params):
         super().__init__(params)
 
@@ -1041,15 +1071,15 @@ class UserSpecifiedSearch(HyperparameterSearch):
     def generate_combo(self, params_dict):
         """
         Method to generate all combinations from a given set of key-value pairs
-        
+
         Args:
             params_dict: Set of key-value pairs with the key being the param name and the value being the list of values
             you want to try for that param
-        
+
         Returns:
             new_dict: The list of all combinations of parameters
         """
-        
+
         if not params_dict:
             return None
         new_dict = {}
