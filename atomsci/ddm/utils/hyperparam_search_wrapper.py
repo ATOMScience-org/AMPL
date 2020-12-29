@@ -74,38 +74,36 @@ def reformat_filter_dict(filter_dict):
     """
     Function to reformat a filter dictionary to match the Model Tracker metadata structure. Updated 9/2020 by A. Paulson
     for new LC model tracker.
-
+    
     Args:
-
+        
         filter_dict: Dictionary containing metadata for model of interest
-
     Returns:
-
+        
         new_filter_dict: Filter dict reformatted
-
     """
     rename_dict = {'model_parameters':
-                       {'dependencies', 'featurizer', 'git_hash_code','model_bucket', 'model_choice_score_type',
+                       {'dependencies', 'featurizer', 'git_hash_code','model_bucket', 'model_choice_score_type', 
                         'model_dataset_oid','model_type', 'num_model_tasks', 'prediction_type', 'save_results',
-                        'system', 'task_type', 'time_generated', 'transformer_bucket', 'transformer_key',
+                        'system', 'task_type', 'time_generated', 'transformer_bucket', 'transformer_key', 
                         'transformer_oid', 'transformers', 'uncertainty'},
                'splitting_parameters':
-                       {'base_splitter', 'butina_cutoff', 'cutoff_date', 'date_col','num_folds', 'split_strategy',
+                       {'base_splitter', 'butina_cutoff', 'cutoff_date', 'date_col','num_folds', 'split_strategy', 
                         'split_test_frac', 'split_uuid', 'split_valid_frac', 'splitter'},
                'training_dataset':
-                       {'bucket', 'dataset_key', 'dataset_oid', 'num_classes','feature_transform_type',
+                       {'bucket', 'dataset_key', 'dataset_oid', 'num_classes','feature_transform_type', 
                         'response_transform_type', 'id_col', 'smiles_col', 'response_cols'},
                'umap_specific':
                        {'umap_dim', 'umap_metric', 'umap_min_dist', 'umap_neighbors','umap_targ_wt'}
               }
     if filter_dict['model_type'] == 'NN':
-        rename_dict['nn_specific'] = {'baseline_epoch', 'batch_size', 'best_epoch', 'bias_init_consts','dropouts',
-                                      'layer_sizes', 'learning_rate', 'max_epochs','optimizer_type', 'weight_decay_penalty',
+        rename_dict['nn_specific'] = {'baseline_epoch', 'batch_size', 'best_epoch', 'bias_init_consts','dropouts', 
+                                      'layer_sizes', 'learning_rate', 'max_epochs','optimizer_type', 'weight_decay_penalty', 
                                       'weight_decay_penalty_type', 'weight_init_stddevs'}
     elif filter_dict['model_type'] == 'RF':
         rename_dict['rf_specific'] = {'rf_estimators', 'rf_max_depth', 'rf_max_features'}
     elif filter_dict['model_type'] == 'xgboost':
-        rename_dict['xgb_specific'] = {'xgb_colsample_bytree', 'xgb_gamma', 'xgb_learning_rate','xgb_max_depth',
+        rename_dict['xgb_specific'] = {'xgb_colsample_bytree', 'xgb_gamma', 'xgb_learning_rate','xgb_max_depth', 
                                'xgb_min_child_weight', 'xgb_n_estimators','xgb_subsample'}
     if filter_dict['featurizer'] == 'ecfp':
         rename_dict['ecfp_specific'] = {'ecfp_radius', 'ecfp_size'}
@@ -368,6 +366,9 @@ class HyperparameterSearch(object):
                         # could put in list
                         subcombo['model_type'] = [model_type]
                         subcombo['featurizer'] = [featurizer]
+                        subcombo['descriptor_type'] = ['moe']
+                        if (featurizer == 'graphconv') & (self.params.prediction_type=='classification'):
+                            subcombo['uncertainty'] = ['False']
                         self.param_combos.extend(self.generate_combos(subcombo))
             elif model_type == 'RF':
                 for featurizer in self.params.featurizer:
@@ -388,6 +389,7 @@ class HyperparameterSearch(object):
                                     self.hyperparam_keys - self.nn_specific_keys - self.xgboost_specific_keys}
                         subcombo['model_type'] = [model_type]
                         subcombo['featurizer'] = [featurizer]
+                        subcombo['descriptor_type'] = ['moe']
                         self.param_combos.extend(self.generate_combos(subcombo))
             elif model_type == 'xgboost':
                 for featurizer in self.params.featurizer:
@@ -408,6 +410,7 @@ class HyperparameterSearch(object):
                                     self.hyperparam_keys - self.nn_specific_keys - self.rf_specific_keys}
                         subcombo['model_type'] = [model_type]
                         subcombo['featurizer'] = [featurizer]
+                        subcombo['descriptor_type'] = ['moe']
                         self.param_combos.extend(self.generate_combos(subcombo))
 
     def generate_combos(self, params_dict):
