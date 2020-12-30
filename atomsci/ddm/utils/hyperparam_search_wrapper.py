@@ -1114,7 +1114,8 @@ def main():
     """Entry point when script is run"""
     print(sys.argv[1:])
     params = parse.wrapper(sys.argv[1:])
-    keep_params = {'model_type',
+    keep_params = {'prediction_type',
+                   'model_type',
                    'featurizer',
                    'splitter',
                    'datastore',
