@@ -210,7 +210,7 @@ def get_num_params(combo):
 excluded_keys = {'shortlist_key', 'use_shortlist', 'dataset_key', 'object_oid', 'script_dir',
                   'python_path', 'config_file', 'hyperparam', 'search_type', 'split_only', 'layer_nums',
                   'node_nums', 'dropout_list', 'max_final_layer_size', 'splitter', 'nn_size_scale_factor',
-                  'rerun', 'max_jobs', 'prediction_type'}
+                  'rerun', 'max_jobs'}
 
 
 class HyperparameterSearch(object):
@@ -1114,7 +1114,8 @@ def main():
     """Entry point when script is run"""
     print(sys.argv[1:])
     params = parse.wrapper(sys.argv[1:])
-    keep_params = {'model_type',
+    keep_params = {'prediction_type',
+                   'model_type',
                    'featurizer',
                    'splitter',
                    'datastore',
