@@ -808,7 +808,7 @@ class HyperparameterSearch(object):
             assay_params['dataset_name'] = os.path.splitext(os.path.basename(assay))[0]
             assay_params['bucket'] = bucket
             assay_params['response_cols'] = response_cols
-            assay_params['collection'] = collection
+            assay_params['collection_name'] = collection
             assay_params['split_uuid'] = split_uuid
             assay_params['previously_split'] = True
             assay_params['splitter'] = splitter
