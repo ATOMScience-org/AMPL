@@ -754,19 +754,20 @@ class HyperparameterSearch(object):
                 col_name = 'dataset_key'
             assays = df[col_name].values.tolist()
         if 'bucket' in df.columns:
-            datasets = list(zip(assays, df.bucket.values.tolist()))
+            buckets = df['bucket'].values.tolist()
         elif 'bucket_name' in df.columns:
-            datasets = list(zip(assays, df.bucket_name.values.tolist()))
+            buckets = df['bucket_name'].values.tolist()
         else:
-            datasets = list(zip(assays, [self.params.bucket]))
+            buckets=[self.params.bucket]
         if 'response_cols' in df.columns:
-            datasets= list(zip(datasets, df.response_cols.values.tolist()))
+            responses= df.response_cols.values.tolist()
         else:
-            datasets=list(zip(datasets, [self.params.response_cols]))
+            responses=[self.params.response_cols]
         if 'collection' in df.columns:
-            datasets=list(zip(datasets, df.collection.values.tolist()))
+            collections=df.collection.values.tolist()
         else:
-            datasets=list(zip(datasets,[self.params.collection_name]))
+            collections=[self.params.collection_name]
+        datasets=list(zip(assays,buckets,responses,collections))
         datasets = [(d[0].strip(), d[1].strip(), d[2].strip(), d[3].strip()) for d in datasets]
         if not split_uuids:
             return datasets
