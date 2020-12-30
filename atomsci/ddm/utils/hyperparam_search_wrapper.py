@@ -368,7 +368,7 @@ class HyperparameterSearch(object):
                         subcombo['featurizer'] = [featurizer]
                         subcombo['descriptor_type'] = ['moe']
                         if (featurizer == 'graphconv') & (self.params.prediction_type=='classification'):
-                            subcombo['uncertainty'] = ['False']
+                            subcombo['uncertainty'] = [False]
                         self.param_combos.extend(self.generate_combos(subcombo))
             elif model_type == 'RF':
                 for featurizer in self.params.featurizer:
