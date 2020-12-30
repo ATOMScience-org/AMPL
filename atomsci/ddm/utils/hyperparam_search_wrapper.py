@@ -674,8 +674,8 @@ class HyperparameterSearch(object):
 
         datasets = self.get_shortlist_df()
         rows = []
-        for assay, bucket in datasets:
-            split_uuids = {'dataset_key': assay, 'bucket': bucket}
+        for assay, bucket, response_cols in datasets:
+            split_uuids = {'dataset_key': assay, 'bucket': bucket, 'response_cols':response_cols}
             for splitter in ['random', 'scaffold']:
                 for split_combo in [[0.1,0.1], [0.1,0.2],[0.2,0.2]]:
                     split_name = "%s_%d_%d" % (splitter, split_combo[0]*100, split_combo[1]*100)
