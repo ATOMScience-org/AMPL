@@ -481,7 +481,7 @@ class HyperparameterSearch(object):
                         sys.exit(1)
         else:
             self.assays = self.get_shortlist_df(split_uuids=True)
-        self.assays = [(t[0].strip(), t[1].strip(), t[2].strip(), t[3].strip()) for t in self.assays]
+        self.assays = [(t[0].strip(), t[1].strip(), t[2].strip(), t[3].strip(), t[4].strip(), t[5].strip()) for t in self.assays]
 
     def get_dataset_metadata(self, assay_params, retry_time=60):
         """
