@@ -74,36 +74,36 @@ def reformat_filter_dict(filter_dict):
     """
     Function to reformat a filter dictionary to match the Model Tracker metadata structure. Updated 9/2020 by A. Paulson
     for new LC model tracker.
-    
+
     Args:
-        
+
         filter_dict: Dictionary containing metadata for model of interest
     Returns:
-        
+
         new_filter_dict: Filter dict reformatted
     """
     rename_dict = {'model_parameters':
-                       {'dependencies', 'featurizer', 'git_hash_code','model_bucket', 'model_choice_score_type', 
+                       {'dependencies', 'featurizer', 'git_hash_code','model_bucket', 'model_choice_score_type',
                         'model_dataset_oid','model_type', 'num_model_tasks', 'prediction_type', 'save_results',
-                        'system', 'task_type', 'time_generated', 'transformer_bucket', 'transformer_key', 
+                        'system', 'task_type', 'time_generated', 'transformer_bucket', 'transformer_key',
                         'transformer_oid', 'transformers', 'uncertainty'},
                'splitting_parameters':
-                       {'base_splitter', 'butina_cutoff', 'cutoff_date', 'date_col','num_folds', 'split_strategy', 
+                       {'base_splitter', 'butina_cutoff', 'cutoff_date', 'date_col','num_folds', 'split_strategy',
                         'split_test_frac', 'split_uuid', 'split_valid_frac', 'splitter'},
                'training_dataset':
-                       {'bucket', 'dataset_key', 'dataset_oid', 'num_classes','feature_transform_type', 
+                       {'bucket', 'dataset_key', 'dataset_oid', 'num_classes','feature_transform_type',
                         'response_transform_type', 'id_col', 'smiles_col', 'response_cols'},
                'umap_specific':
                        {'umap_dim', 'umap_metric', 'umap_min_dist', 'umap_neighbors','umap_targ_wt'}
               }
     if filter_dict['model_type'] == 'NN':
-        rename_dict['nn_specific'] = {'baseline_epoch', 'batch_size', 'best_epoch', 'bias_init_consts','dropouts', 
-                                      'layer_sizes', 'learning_rate', 'max_epochs','optimizer_type', 'weight_decay_penalty', 
+        rename_dict['nn_specific'] = {'baseline_epoch', 'batch_size', 'best_epoch', 'bias_init_consts','dropouts',
+                                      'layer_sizes', 'learning_rate', 'max_epochs','optimizer_type', 'weight_decay_penalty',
                                       'weight_decay_penalty_type', 'weight_init_stddevs'}
     elif filter_dict['model_type'] == 'RF':
         rename_dict['rf_specific'] = {'rf_estimators', 'rf_max_depth', 'rf_max_features'}
     elif filter_dict['model_type'] == 'xgboost':
-        rename_dict['xgb_specific'] = {'xgb_colsample_bytree', 'xgb_gamma', 'xgb_learning_rate','xgb_max_depth', 
+        rename_dict['xgb_specific'] = {'xgb_colsample_bytree', 'xgb_gamma', 'xgb_learning_rate','xgb_max_depth',
                                'xgb_min_child_weight', 'xgb_n_estimators','xgb_subsample'}
     if filter_dict['featurizer'] == 'ecfp':
         rename_dict['ecfp_specific'] = {'ecfp_radius', 'ecfp_size'}
@@ -759,7 +759,11 @@ class HyperparameterSearch(object):
             datasets = list(zip(assays, df.bucket_name.values.tolist()))
         else:
             datasets = list(zip(assays, [self.params.bucket]))
-        datasets = [(d[0].strip(), d[1].strip()) for d in datasets]
+        if 'response_cols' in df.columns:
+            datasets= list(zip(datasets, df.response_cols.values.tolist()))
+        else:
+            datasets=list(zip(datasets, [self.params.response_cols]))
+        datasets = [(d[0].strip(), d[1].strip(), d[2].strip()) for d in datasets]
         if not split_uuids:
             return datasets
         if type(self.params.splitter) == str:
@@ -771,9 +775,9 @@ class HyperparameterSearch(object):
             split_name = '%s_%d_%d' % (splitter, self.params.split_valid_frac*100, self.params.split_test_frac*100)
             if split_name in df.columns:
                 for i, row in df.iterrows():
-                    assays.append((datasets[i][0], datasets[i][1], splitter, row[split_name]))
+                    assays.append((datasets[i][0], datasets[i][1], datasets[i][2], splitter, row[split_name]))
             else:
-                for assay, bucket in datasets:
+                for assay, bucket, response_cols in datasets:
                     try:
                     # do we want to move this into loop so we ignore ones it failed for?
                         split_uuid = self.return_split_uuid(assay, bucket)
@@ -792,12 +796,13 @@ class HyperparameterSearch(object):
         Returns:
             None
         """
-        for assay, bucket, splitter, split_uuid in self.assays:
+        for assay, bucket, response_cols, splitter, split_uuid in self.assays:
             # Writes the series of command line arguments for scripts without a hyperparameter combo
             assay_params = copy.deepcopy(self.new_params)
             assay_params['dataset_key'] = assay
             assay_params['dataset_name'] = os.path.splitext(os.path.basename(assay))[0]
             assay_params['bucket'] = bucket
+            assap_params['response_cols'] = response_cols
             assay_params['split_uuid'] = split_uuid
             assay_params['previously_split'] = True
             assay_params['splitter'] = splitter
