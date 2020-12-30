@@ -674,8 +674,8 @@ class HyperparameterSearch(object):
 
         datasets = self.get_shortlist_df()
         rows = []
-        for assay, bucket, response_cols in datasets:
-            split_uuids = {'dataset_key': assay, 'bucket': bucket, 'response_cols':response_cols}
+        for assay, bucket, response_cols, collection in datasets:
+            split_uuids = {'dataset_key': assay, 'bucket': bucket, 'response_cols':response_cols, 'collection':collection}
             for splitter in ['random', 'scaffold']:
                 for split_combo in [[0.1,0.1], [0.1,0.2],[0.2,0.2]]:
                     split_name = "%s_%d_%d" % (splitter, split_combo[0]*100, split_combo[1]*100)
@@ -763,7 +763,11 @@ class HyperparameterSearch(object):
             datasets= list(zip(datasets, df.response_cols.values.tolist()))
         else:
             datasets=list(zip(datasets, [self.params.response_cols]))
-        datasets = [(d[0].strip(), d[1].strip(), d[2].strip()) for d in datasets]
+        if 'collection' in df.columns:
+            datasets=list(zip(datasets, df.collection.values.tolist()))
+        else:
+            datasets=list(zip(datasets,[self.params.collection_name]))
+        datasets = [(d[0].strip(), d[1].strip(), d[2].strip(), d[3].strip()) for d in datasets]
         if not split_uuids:
             return datasets
         if type(self.params.splitter) == str:
@@ -775,13 +779,13 @@ class HyperparameterSearch(object):
             split_name = '%s_%d_%d' % (splitter, self.params.split_valid_frac*100, self.params.split_test_frac*100)
             if split_name in df.columns:
                 for i, row in df.iterrows():
-                    assays.append((datasets[i][0], datasets[i][1], datasets[i][2], splitter, row[split_name]))
+                    assays.append((datasets[i][0], datasets[i][1], datasets[i][2], datasets[i][3], splitter, row[split_name]))
             else:
-                for assay, bucket, response_cols in datasets:
+                for assay, bucket, response_cols, collection in datasets:
                     try:
                     # do we want to move this into loop so we ignore ones it failed for?
                         split_uuid = self.return_split_uuid(assay, bucket)
-                        assays.append((assay, bucket, splitter, split_uuid))
+                        assays.append((assay, bucket, response_cols, collection, splitter, split_uuid))
                     except Exception as e:
                         print("Splitting failed for dataset %s, skipping..." % assay)
                         print(e)
@@ -796,13 +800,14 @@ class HyperparameterSearch(object):
         Returns:
             None
         """
-        for assay, bucket, response_cols, splitter, split_uuid in self.assays:
+        for assay, bucket, response_cols, collection, splitter, split_uuid in self.assays:
             # Writes the series of command line arguments for scripts without a hyperparameter combo
             assay_params = copy.deepcopy(self.new_params)
             assay_params['dataset_key'] = assay
             assay_params['dataset_name'] = os.path.splitext(os.path.basename(assay))[0]
             assay_params['bucket'] = bucket
-            assap_params['response_cols'] = response_cols
+            assay_params['response_cols'] = response_cols
+            assay_params['collection'] = collection
             assay_params['split_uuid'] = split_uuid
             assay_params['previously_split'] = True
             assay_params['splitter'] = splitter
