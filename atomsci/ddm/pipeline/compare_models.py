@@ -467,7 +467,7 @@ def get_best_models_info(col_names=None, bucket=None, pred_type="regression", re
                         continue
                     print('Query returned %d models' % len(metadata_list))
                     model = metadata_list[0]
-                    model_info = get_best_perf_table(col_name, metric_type, metadata_dict=model, PK_pipe=PK_pipeline)
+                    model_info = get_best_perf_table(metric_type, col_name, metadata_dict=model, PK_pipe=PK_pipeline)
                     if model_info is not None:
                         res_df = pd.DataFrame.from_records([model_info])
                         dset_model_info.append(res_df)
@@ -487,7 +487,7 @@ def get_best_models_info(col_names=None, bucket=None, pred_type="regression", re
                                 by=metric_col, ascending=sort_ascending[selection_type])
             top_models_info.append(temp_perf_df.head(1))
             print(f"Adding data from '{rd}' ")
-    
+
     if len(top_models_info) == 0:
         print("No metadata found")
         return None
@@ -899,8 +899,8 @@ def get_summary_perf_tables(collection_names=None, filter_dict={}, result_dir=No
         featurizer
         transformation type
         metrics: r2_score, mae_score and rms_score for regression, or ROC AUC for classification
-    
-    result_dir: use result_dir when the model tracker is not available. Use a list format if you have multiple result direcotries. 
+
+    result_dir: use result_dir when the model tracker is not available. Use a list format if you have multiple result direcotries.
     """
 
     if not mlmt_supported and not result_dir:
