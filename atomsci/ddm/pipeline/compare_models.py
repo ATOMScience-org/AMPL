@@ -415,6 +415,8 @@ def get_best_models_info(col_names=None, bucket=None, pred_type="regression", re
             if shortlist_key is None:
                 raise ValueError('Must specify either input_dset_keys or shortlist_key')
             dset_keys = dsf.retrieve_dataset_by_datasetkey(shortlist_key, bucket)
+            if dset_keys is None:
+                dset_keys = pd.read_csv[shortlist_key]
             # Need to figure out how to handle an unknown column name for dataset_keys
             if 'dataset_key' in dset_keys.columns:
                 dset_keys = dset_keys['dataset_key']
