@@ -807,6 +807,9 @@ def get_filesystem_perf_results(result_dir, pred_type='classification'):
         model_score_type = model_params['model_choice_score_type']
         model_score_type_list.append(model_score_type)
         featurizer = model_params['featurizer']
+        #mix ecfp, graphconv, moe, mordred, rdkit for concise representation
+        if featurizer == "computed_descriptors":
+            featurizer = metadata_dict["descriptor_specific"]["descriptor_type"]
         featurizer_list.append(featurizer)
         split_params = metadata_dict['splitting_parameters']
         splitter_list.append(split_params['splitter'])
