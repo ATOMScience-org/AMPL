@@ -151,8 +151,7 @@ class ModelPipeline:
             os.makedirs(self.params.output_dir, exist_ok=True)
         self.output_dir = self.params.output_dir
         if self.params.model_tarball_path is None:
-            self.params.model_tarball_path = os.path.join(self.params.result_dir, 
-                                                          '%s_model_%s.tar.gz' % (self.params.dataset_name, self.params.model_uuid))
+            self.params.model_tarball_path = os.path.join(str(self.params.result_dir), "{}_model_{}.tar.gz".format(self.params.dataset_name, self.params.model_uuid))
 
         # ****************************************************************************************
 

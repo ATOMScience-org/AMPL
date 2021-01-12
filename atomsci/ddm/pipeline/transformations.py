@@ -13,7 +13,8 @@ import umap
 
 import deepchem as dc
 from deepchem.trans.transformers import Transformer, NormalizationTransformer
-from sklearn.preprocessing import RobustScaler, Imputer
+from sklearn.preprocessing import RobustScaler
+from sklearn.impute import SimpleImputer
 
 logging.basicConfig(format='%(asctime)-15s %(message)s')
 log = logging.getLogger('ATOM')
