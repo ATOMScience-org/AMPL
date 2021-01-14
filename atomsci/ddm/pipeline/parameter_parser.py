@@ -907,6 +907,26 @@ def get_parser():
         help='Time limit in minutes for hyperparameter search batch jobs.'
              'If set to None then this parameter will not be used.')
 
+    #HyperOptSearch specific parameters
+    parser.add_argument(
+        '--lr', dest='lr', required=False, default=None,
+        help='learing rate shown in HyperOpt domain format, e.g. --lr=uniform|0.00001,0.001')
+    parser.add_argument(
+        '--ls', dest='ls', required=False, default=None,
+        help='layer sizes shown in HyperOpt domain format, e.g. --ls=choice|2|8,16,32,64,128,256,512')
+    parser.add_argument(
+        '--dp', dest='dp', required=False, default=None,
+        help='dropouts shown in HyperOpt domain format, e.g. --dp=uniform|3|0,0.4')
+    parser.add_argument(
+        '--rfe', dest='rfe', required=False, default=None,
+        help='rf_estimators shown in HyperOpt domain format, e.g. --rfe=uniformint|64,512')
+    parser.add_argument(
+        '--rfd', dest='rfd', required=False, default=None,
+        help='rf_max_depth shown in HyperOpt domain format, e.g. --rfd=uniformint|64,512')
+    parser.add_argument(
+        '--rff', dest='rff', required=False, default=None,
+        help='rf_max_features shown in HyperOpt domain format, e.g. --rff=uniformint|64,512')
+
 
     return parser
 
@@ -1008,7 +1028,7 @@ def postprocess_args(parsed_args):
                     else:
                         newlist.append([float(x.strip()) for x in temp_split])
                     # Once a new list of lists is generated, pass to parsed_args
-                    if len(newlist) == 1 and item not in ["layer_sizes", "dropouts", "bias_init_consts", "weight_init_stddevs"]:
+                    if len(newlist) == 1 and item not in ["layer_sizes", "dropouts"]:
                         parsed_args.__dict__[item] = newlist[0]
                         #newlist is a list of lists, need to extract down to the lowest layer, as necessary
                         if len(newlist[0]) == 1 and item not in keep_as_list:
