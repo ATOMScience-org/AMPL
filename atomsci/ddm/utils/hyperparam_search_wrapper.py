@@ -1135,15 +1135,16 @@ class HyperOptSearch():
         #For NN models only
         lr: specify learning rate searching method and related parameters as the following scheme.
             method|parameter1,parameter2...
-            method: supported searching schemes in HyperOpt include: choice, uniform, loguniform, uniformint, see https://github.com/hyperopt/hyperopt/wiki/FMin for details.
+            method: supported searching schemes in HyperOpt include: choice, uniform, loguniform, and uniformint, see https://github.com/hyperopt/hyperopt/wiki/FMin for details.
             parameters:
                 choice: all values to search from, separated by comma, e.g. choice|0.0001,0.0005,0.0002,0.001
                 uniform: low and high bound of the interval to serach, e.g. uniform|0.00001,0.001
-                loguniform: low and high bound (in natural log) of the interval to serach, e.g. uniform|-13.8,-6.9
+                loguniform: low and high bound (in natural log) of the interval to serach, e.g. loguniform|-13.8,-6.9
+                uniformint: low and high bound of the interval to serach, e.g. uniformint|8,256
         ls: similar as learning_rate, specify number of layers and size of each one.
             method|num_layers|parameter1,parameter2...
             e.g. choice|2|8,16,32,64,128,256,512  #this will generate a two-layer config, each layer takes size from the list "8,16,32,64,128,256,512"
-            e.g. uniform|3|8,512  #this will generate a three-layer config, each layer takes size from the uniform interval [8,512]
+            e.g. uniformint|3|8,512  #this will generate a three-layer config, each layer takes size from the uniform interval [8,512]
         dp: similar as layer_sizes, just make sure dropouts and layer_sizes should have the same number of layers.
             e.g. uniform|3|0,0.4   #this will generate a three-layer config, each layer takes size from the uniform interval [0,0.4]
 
