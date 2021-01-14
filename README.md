@@ -255,7 +255,7 @@ Hyperparameter optimization for AMPL model fitting is available to run on SLURM 
    - "descriptor_type": "mordred_filtered,rdkit_raw" (use comma to separate multiple values)
    - "model_type": "RF|20" (the number after | is the number of evaluations of Bayesian Optimization)
    - "featurizer": "ecfp,computed_descriptors" (use comma if you want to try multiple featurizers, note the RF and graphconv are not compatible)
-   - "result_dir": "/path/to/save/the/final/results,/temp/path/to/save/models/during/optimization"
+   - "result_dir": "/path/to/save/the/final/results,/temp/path/to/save/models/during/optimization" (Two paths separated by comma)
   
    RF model specific parameters:
    - "rfe": "uniformint|8,512", (RF number of estimators)
