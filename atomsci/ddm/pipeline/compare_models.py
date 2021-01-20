@@ -1545,7 +1545,8 @@ def get_multitask_perf_from_tracker(collection_name, response_cols=None, expand_
 
     # make features column
     alldat['features'] = alldat['featurizer']
-    alldat.loc[alldat.featurizer == 'computed_descriptors', 'features'] = alldat.loc[alldat.featurizer == 'computed_descriptors', 'descriptor_type']
+    if 'descriptor_type' in alldat.columns:
+        alldat.loc[alldat.featurizer == 'computed_descriptors', 'features'] = alldat.loc[alldat.featurizer == 'computed_descriptors', 'descriptor_type']
 
     # prune to only include expand_responses
     if expand_responses is not None:
