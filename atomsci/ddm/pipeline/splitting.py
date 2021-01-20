@@ -81,8 +81,8 @@ def select_dset_by_id_list(dataset, id_list):
         
     """
     #TODO: Need to test
-    id_df = pd.DataFrame({'indices' : np.arange(len(dataset.ids), dtype=np.int32)}, index=dataset.ids)
-    sel_df = pd.DataFrame(index=id_list)
+    id_df = pd.DataFrame({'indices' : np.arange(len(dataset.ids), dtype=np.int32)}, index=[str(e) for e in dataset.ids])
+    sel_df = pd.DataFrame(index=[str(e) for e in id_list])
     match_df = id_df.join(sel_df, how='inner')
     subset = dataset.select(match_df.indices.values)
     return subset
