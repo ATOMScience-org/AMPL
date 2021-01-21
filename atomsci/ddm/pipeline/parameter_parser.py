@@ -276,9 +276,8 @@ def dict_to_list(inp_dictionary,replace_spaces=False):
     temp_list_to_command_line = []
 
     # Special case handling for arguments that are False or True by default
-    default_false = ['previously_split','use_shortlist','datastore', 'save_results','verbose', 'hyperparam', 'split_only', 'rerun'] 
-    #keep rerun in false even though default is true, because you only want flag to show up if true.
-    default_true = ['transformers','previously_featurized','uncertainty']
+    default_false = ['previously_split','use_shortlist','datastore', 'save_results','verbose', 'hyperparam', 'split_only'] 
+    default_true = ['transformers','previously_featurized','uncertainty', 'rerun']
     for key, value in inp_dictionary.items():
         if key in default_false:
             true_options = ['True','true','ture','TRUE','Ture']
@@ -857,7 +856,7 @@ def get_parser():
     parser.add_argument(
         '--python_path', dest='python_path', required=False, default='python', help='Path to desired python version')
     parser.add_argument(
-            '--rerun', dest= 'rerun', required=False, action='store_true',
+            '--rerun', dest= 'rerun', required=False, action='store_false',
             help='If False, check model tracker to see if a model with that particular param combination has '
                  'already been built')
     parser.set_defaults(rerun=True)
