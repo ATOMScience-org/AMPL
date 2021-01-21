@@ -276,8 +276,9 @@ def dict_to_list(inp_dictionary,replace_spaces=False):
     temp_list_to_command_line = []
 
     # Special case handling for arguments that are False or True by default
-    default_false = ['previously_split','use_shortlist','datastore', 'save_results','verbose', 'hyperparam', 'split_only']
-    default_true = ['transformers','previously_featurized','uncertainty','rerun']
+    default_false = ['previously_split','use_shortlist','datastore', 'save_results','verbose', 'hyperparam', 'split_only', 'rerun'] 
+    #keep rerun in false even though default is true, because you only want flag to show up if true.
+    default_true = ['transformers','previously_featurized','uncertainty']
     for key, value in inp_dictionary.items():
         if key in default_false:
             true_options = ['True','true','ture','TRUE','Ture']
