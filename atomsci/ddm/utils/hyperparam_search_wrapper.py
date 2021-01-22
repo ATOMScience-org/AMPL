@@ -20,7 +20,6 @@ import uuid
 import subprocess
 import time
 
-from atomsci.ddm.pipeline import model_pipeline as mp
 from atomsci.ddm.pipeline import featurization as feat
 from atomsci.ddm.pipeline import parameter_parser as parse
 from atomsci.ddm.pipeline import model_datasets as model_datasets
@@ -660,6 +659,7 @@ class HyperparameterSearch(object):
         Returns:
 
         """
+        
         if bucket is None:
             bucket = self.params.bucket
         if splitter is None:
@@ -671,13 +671,17 @@ class HyperparameterSearch(object):
             split_valid_frac = split_combo[0]
             split_test_frac = split_combo[1]
         
-        assay_params = copy.deepcopy(self.params.__dict__)
-        assay_params['dataset_key']=dataset_key 
-        assay_params['bucket']=bucket
-        assay_params['splitter']=splitter
-        assay_params['split_valid_frac']=split_valid_frac
-        assay_params['split_test_frac']=split_test_frac
-        assay_params['response_cols']=response_cols
+        assay_params = {'dataset_key': dataset_key, 'bucket': bucket, 'splitter': splitter,
+                        'split_valid_frac': split_valid_frac, 'split_test_frac': split_test_frac}
+        if 'id_col' in self.params.__dict__.keys():
+            assay_params['id_col']=self.params.id_col
+        if 'id_col' in self.params.__dict__.keys():
+            assay_params['smiles_col']=self.params.smiles_col
+        if isinstance(response_cols, list):
+            assay_params['response_cols']=",".join(response_cols)
+        elif isinstance(response_cols,str):
+            assay_params['response_cols']=response_cols
+            
         assay_params['dataset_name'] = assay_params['dataset_key'].split('/')[-1].replace('.csv','')
         # use ecfp b/c it's fast and doesn't save anything to file system
         assay_params['featurizer'] = 'ecfp'
@@ -685,9 +689,15 @@ class HyperparameterSearch(object):
         assay_params['datastore'] = False
         
         namespace_params = parse.wrapper(assay_params)
-        pipe = mp.ModelPipeline(namespace_params)
-        split_uuid = pipe.split_dataset()
-        return split_uuid
+        # TODO: Don't want to recreate each time
+        featurization = feat.create_featurization(namespace_params)
+        data = model_datasets.create_model_dataset(namespace_params, featurization)
+        
+        data.get_featurized_data()
+        data.split_dataset()
+        data.save_split_dataset()
+        return data.split_uuid
+            
     
     def generate_split_shortlist(self, retry_time=60):
         """
@@ -839,7 +849,7 @@ class HyperparameterSearch(object):
         else:
             collections=[self.params.collection_name]*len(df)
         datasets=list(zip(assays,buckets,responses,collections))
-        datasets = [(d[0].strip(), d[1].strip(), d[2], d[3].strip()) for d in datasets]
+        datasets = [(d[0].strip(), d[1].strip(), ",".join(d[2]), d[3].strip()) for d in datasets]
             
         if not split_uuids:
             return datasets
@@ -857,10 +867,14 @@ class HyperparameterSearch(object):
                     except:
                         print("dataset_key, bucket, response_cols, & collecion_name must be specified in shortlist or config file, not neither.")
             else:
+                print(f"Warning: {split_name} not found in shortlist. Creating default split scaffold_10_10 now.")
                 for assay, bucket, response_cols, collection in datasets:
                     try:
                     # do we want to move this into loop so we ignore ones it failed for?
-                        split_uuid = self.return_split_uuid(assay, bucket)
+                        if self.params.datastore:
+                            split_uuid = self.return_split_uuid(assay, bucket)
+                        else:
+                            split_uuid = self.return_split_uuid_file(assay, response_cols, bucket)
                         assays.append((assay, bucket, response_cols, collection, splitter, split_uuid))
                     except Exception as e:
                         print("Splitting failed for dataset %s, skipping..." % assay)
