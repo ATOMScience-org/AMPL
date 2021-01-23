@@ -675,7 +675,7 @@ class HyperparameterSearch(object):
                         'split_valid_frac': split_valid_frac, 'split_test_frac': split_test_frac}
         if 'id_col' in self.params.__dict__.keys():
             assay_params['id_col']=self.params.id_col
-        if 'id_col' in self.params.__dict__.keys():
+        if 'smiles_col' in self.params.__dict__.keys():
             assay_params['smiles_col']=self.params.smiles_col
         if isinstance(response_cols, list):
             assay_params['response_cols']=",".join(response_cols)
