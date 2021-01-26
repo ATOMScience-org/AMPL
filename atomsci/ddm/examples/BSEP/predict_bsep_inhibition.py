@@ -58,7 +58,7 @@ def predict_activity(args):
         raise ValueError("model_type %s is not a recognizied value." % args.model_type)
     
     # Test loading model from tarball and running predictions
-    models_dir = os.path.join(os.path.dirname(os.path.dirname(mp.__file__)), 'examples', 'BSEP', 'models')
+    models_dir = os.path.join(os.path.dirname(__file__), 'models')
     model_tarfile = os.path.join(models_dir, model_files[args.model_type])
     pipe = mp.create_prediction_pipeline_from_file(pred_params, reload_dir=None, model_path=model_tarfile)
     pred_df = pipe.predict_full_dataset(input_df, contains_responses=has_activity, dset_params=pred_params)
