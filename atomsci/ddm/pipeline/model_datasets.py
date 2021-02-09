@@ -351,6 +351,7 @@ class ModelDataset(object):
             try:
                 self.log.debug("Attempting to load featurized dataset")
                 featurized_dset_df = self.load_featurized_data()
+                featurized_dset_df[self.params.id_col] = featurized_dset_df[self.params.id_col].astype(str)
                 self.log.debug("Got dataset, attempting to extract data")
                 features, ids, self.vals, self.attr = self.featurization.extract_prefeaturized_data(
                                                            featurized_dset_df, self)
@@ -778,7 +779,7 @@ class MinimalDataset(ModelDataset):
             self.log.warning("Formatting already featurized data...")
             feature_cols = [dset_df[col].values.reshape(-1,1) for col in self.featurization.get_feature_columns()]
             features = np.concatenate(feature_cols, axis=1)
-            ids = dset_df[params.id_col].values
+            ids = dset_df[params.id_col].astype(str).values
             #TODO: check size is right
             nrows = len(ids)
             ncols = len(params.response_cols)
@@ -892,6 +893,7 @@ class DatastoreDataset(ModelDataset):
         """
         self.dataset_key = self.params.dataset_key
         dset_df = dsf.retrieve_dataset_by_datasetkey(self.dataset_key, self.params.bucket, self.ds_client)
+        dset_df[self.params.id_col] = dset_df[self.params.id_col].astype(str)
         dataset_metadata = dsf.retrieve_dataset_by_datasetkey(self.dataset_key, self.params.bucket, self.ds_client,
                                                           return_metadata=True)
         self.dataset_oid = dataset_metadata['dataset_oid']
@@ -1030,6 +1032,7 @@ class DatastoreDataset(ModelDataset):
         featurized_dset_metadata = dsf.retrieve_dataset_by_datasetkey(featurized_dset_key, self.params.bucket, 
                                                                       self.ds_client, return_metadata=True)
         self.dataset_oid = featurized_dset_metadata['dataset_oid']
+        featurized_dset_df[self.params.id_col] = featurized_dset_df[self.params.id_col].astype(str)
         return featurized_dset_df
 
     # ****************************************************************************************
@@ -1186,7 +1189,7 @@ class FileDataset(ModelDataset):
             raise Exception("Failed to load dataset %s" % dataset_path)
         if dset_df.empty:
             raise Exception("Dataset %s is empty" % dataset_path)
-
+        dset_df[self.params.id_col] = dset_df[self.params.id_col].astype(str)
         return dset_df
 
     # ****************************************************************************************
@@ -1264,6 +1267,7 @@ class FileDataset(ModelDataset):
         featurized_dset_path = os.path.join(data_dir, featurized_dset_name)
         featurized_dset_df = pd.read_csv(featurized_dset_path)
         self.dataset_key = featurized_dset_path
+        featurized_dset_df[self.params.id_col] = featurized_dset_df[self.params.id_col].astype(str)
         return featurized_dset_df
 
     # ****************************************************************************************

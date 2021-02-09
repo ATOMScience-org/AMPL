@@ -20,7 +20,6 @@ import uuid
 import subprocess
 import time
 
-
 from atomsci.ddm.pipeline import featurization as feat
 from atomsci.ddm.pipeline import parameter_parser as parse
 from atomsci.ddm.pipeline import model_datasets as model_datasets
@@ -55,13 +54,13 @@ def run_command(shell_script, python_path, script_dir, params):
 def run_cmd(cmd):
     """
     Function to submit a job using subprocess
-    
+
     Args:
-        
+
         cmd: Command to run
 
     Returns:
-        
+
         output: Output of command
     """
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
@@ -74,38 +73,36 @@ def reformat_filter_dict(filter_dict):
     """
     Function to reformat a filter dictionary to match the Model Tracker metadata structure. Updated 9/2020 by A. Paulson
     for new LC model tracker.
-    
+
     Args:
-        
+
         filter_dict: Dictionary containing metadata for model of interest
-
     Returns:
-        
-        new_filter_dict: Filter dict reformatted
 
+        new_filter_dict: Filter dict reformatted
     """
     rename_dict = {'model_parameters':
-                       {'dependencies', 'featurizer', 'git_hash_code','model_bucket', 'model_choice_score_type', 
+                       {'dependencies', 'featurizer', 'git_hash_code','model_bucket', 'model_choice_score_type',
                         'model_dataset_oid','model_type', 'num_model_tasks', 'prediction_type', 'save_results',
-                        'system', 'task_type', 'time_generated', 'transformer_bucket', 'transformer_key', 
+                        'system', 'task_type', 'time_generated', 'transformer_bucket', 'transformer_key',
                         'transformer_oid', 'transformers', 'uncertainty'},
                'splitting_parameters':
-                       {'base_splitter', 'butina_cutoff', 'cutoff_date', 'date_col','num_folds', 'split_strategy', 
+                       {'base_splitter', 'butina_cutoff', 'cutoff_date', 'date_col','num_folds', 'split_strategy',
                         'split_test_frac', 'split_uuid', 'split_valid_frac', 'splitter'},
                'training_dataset':
-                       {'bucket', 'dataset_key', 'dataset_oid', 'num_classes','feature_transform_type', 
+                       {'bucket', 'dataset_key', 'dataset_oid', 'num_classes','feature_transform_type',
                         'response_transform_type', 'id_col', 'smiles_col', 'response_cols'},
                'umap_specific':
                        {'umap_dim', 'umap_metric', 'umap_min_dist', 'umap_neighbors','umap_targ_wt'}
               }
     if filter_dict['model_type'] == 'NN':
-        rename_dict['nn_specific'] = {'baseline_epoch', 'batch_size', 'best_epoch', 'bias_init_consts','dropouts', 
-                                      'layer_sizes', 'learning_rate', 'max_epochs','optimizer_type', 'weight_decay_penalty', 
+        rename_dict['nn_specific'] = {'baseline_epoch', 'batch_size', 'best_epoch', 'bias_init_consts','dropouts',
+                                      'layer_sizes', 'learning_rate', 'max_epochs','optimizer_type', 'weight_decay_penalty',
                                       'weight_decay_penalty_type', 'weight_init_stddevs'}
     elif filter_dict['model_type'] == 'RF':
         rename_dict['rf_specific'] = {'rf_estimators', 'rf_max_depth', 'rf_max_features'}
     elif filter_dict['model_type'] == 'xgboost':
-        rename_dict['xgb_specific'] = {'xgb_colsample_bytree', 'xgb_gamma', 'xgb_learning_rate','xgb_max_depth', 
+        rename_dict['xgb_specific'] = {'xgb_colsample_bytree', 'xgb_gamma', 'xgb_learning_rate','xgb_max_depth',
                                'xgb_min_child_weight', 'xgb_n_estimators','xgb_subsample'}
     if filter_dict['featurizer'] == 'ecfp':
         rename_dict['ecfp_specific'] = {'ecfp_radius', 'ecfp_size'}
@@ -145,16 +142,16 @@ def permutate_NNlayer_combo_params(layer_nums, node_nums, dropout_list, max_fina
     Example:
     permutate_NNlayer_combo_params([2], [4,8,8], [0], 16)
     returns [[8, 8], [8, 4]] [[0,0],[0,0]]
-    
+
     Args:
         layer_nums: specify numbers of layers.
-        
+
         node_nums: specify numbers of nodes per layer.
-        
+
         dropout_list: specify the dropouts.
-        
+
         max_last_layer_size: sets the max size of the last layer. It will be set to the smallest node_num if needed.
-        
+
     Returns:
         layer_sizes, dropouts: the layer sizes and dropouts generated based on the input parameters
     """
@@ -167,7 +164,7 @@ def permutate_NNlayer_combo_params(layer_nums, node_nums, dropout_list, max_fina
     # set to the smallest node_num in the provided list, if necessary.
     if node_nums[-1] > max_final_layer_size:
         max_final_layer_size = node_nums[-1]
-        
+
     for dropout in dropout_list:
         _repeated_layers =[]
         for layer_num in layer_nums:
@@ -184,11 +181,11 @@ def get_num_params(combo):
     """
     Calculates the number of parameters in a fully-connected neural networ
     Args:
-        
+
         combo: Model parameters
 
     Returns:
-        
+
         tmp_sum: Calculated number of parameters
 
     """
@@ -221,11 +218,11 @@ class HyperparameterSearch(object):
     """
     def __init__(self, params, hyperparam_uuid=None):
         """
-        
+
         Args:
-            
+
             params: The input hyperparameter parameters
-            
+
             hyperparam_uuid: Optional, UUID for hyperparameter run if you want to group this run with a previous run.
             We ended up mainly doing this via collections, so not really used
         """
@@ -349,36 +346,73 @@ class HyperparameterSearch(object):
             self.params.model_type = [self.params.model_type]
         if type(self.params.featurizer) == str:
             self.params.featurizer = [self.params.featurizer]
+        if type(self.params.descriptor_type) == str:
+            self.params.descriptor_type = [self.params.descriptor_type]
         for model_type in self.params.model_type:
             if model_type == 'NN':
                 # if the model type is NN, loops through the featurizer to check for GraphConv.
                 for featurizer in self.params.featurizer:
-                    subcombo = {k: val for k, val in self.hyperparams.items() if k in
-                                self.hyperparam_keys - self.rf_specific_keys - self.xgboost_specific_keys}
-                    # could put in list
-                    subcombo['model_type'] = [model_type]
-                    subcombo['featurizer'] = [featurizer]
-                    self.param_combos.extend(self.generate_combos(subcombo))
+                    if featurizer == 'computed_descriptors':
+                        for desc in self.params.descriptor_type:
+                            subcombo = {k: val for k, val in self.hyperparams.items() if k in
+                                        self.hyperparam_keys - self.rf_specific_keys - self.xgboost_specific_keys}
+                            # could put in list
+                            subcombo['model_type'] = [model_type]
+                            subcombo['featurizer'] = [featurizer]
+                            subcombo['descriptor_type'] = [desc]
+                            self.param_combos.extend(self.generate_combos(subcombo))
+                    else:
+                        subcombo = {k: val for k, val in self.hyperparams.items() if k in
+                                    self.hyperparam_keys - self.rf_specific_keys - self.xgboost_specific_keys}
+                        # could put in list
+                        subcombo['model_type'] = [model_type]
+                        subcombo['featurizer'] = [featurizer]
+                        subcombo['descriptor_type'] = ['moe']
+                        if (featurizer == 'graphconv') & (self.params.prediction_type=='classification'):
+                            subcombo['uncertainty'] = [False]
+                        self.param_combos.extend(self.generate_combos(subcombo))
             elif model_type == 'RF':
                 for featurizer in self.params.featurizer:
                     if featurizer == 'graphconv':
                         continue
-                    # Adds the subcombo for RF
-                    subcombo = {k: val for k, val in self.hyperparams.items() if k in
-                                self.hyperparam_keys - self.nn_specific_keys - self.xgboost_specific_keys}
-                    subcombo['model_type'] = [model_type]
-                    subcombo['featurizer'] = [featurizer]
-                    self.param_combos.extend(self.generate_combos(subcombo))
+                    elif featurizer == 'computed_descriptors':
+                        for desc in self.params.descriptor_type:
+                            # Adds the subcombo for RF
+                            subcombo = {k: val for k, val in self.hyperparams.items() if k in
+                                        self.hyperparam_keys - self.nn_specific_keys - self.xgboost_specific_keys}
+                            subcombo['model_type'] = [model_type]
+                            subcombo['featurizer'] = [featurizer]
+                            subcombo['descriptor_type'] = [desc]
+                            self.param_combos.extend(self.generate_combos(subcombo))
+                    else:
+                        # Adds the subcombo for RF
+                        subcombo = {k: val for k, val in self.hyperparams.items() if k in
+                                    self.hyperparam_keys - self.nn_specific_keys - self.xgboost_specific_keys}
+                        subcombo['model_type'] = [model_type]
+                        subcombo['featurizer'] = [featurizer]
+                        subcombo['descriptor_type'] = ['moe']
+                        self.param_combos.extend(self.generate_combos(subcombo))
             elif model_type == 'xgboost':
                 for featurizer in self.params.featurizer:
                     if featurizer == 'graphconv':
                         continue
-                    # Adds the subcombo for xgboost
-                    subcombo = {k: val for k, val in self.hyperparams.items() if k in
-                                self.hyperparam_keys - self.nn_specific_keys - self.rf_specific_keys}
-                    subcombo['model_type'] = [model_type]
-                    subcombo['featurizer'] = [featurizer]
-                    self.param_combos.extend(self.generate_combos(subcombo))
+                    elif featurizer == 'computed_descriptors':
+                        for desc in self.params.descriptor_type:
+                            # Adds the subcombo for xgboost
+                            subcombo = {k: val for k, val in self.hyperparams.items() if k in
+                                        self.hyperparam_keys - self.nn_specific_keys - self.rf_specific_keys}
+                            subcombo['model_type'] = [model_type]
+                            subcombo['featurizer'] = [featurizer]
+                            subcombo['descriptor_type'] = [desc]
+                            self.param_combos.extend(self.generate_combos(subcombo))
+                    else:
+                        # Adds the subcombo for xgboost
+                        subcombo = {k: val for k, val in self.hyperparams.items() if k in
+                                    self.hyperparam_keys - self.nn_specific_keys - self.rf_specific_keys}
+                        subcombo['model_type'] = [model_type]
+                        subcombo['featurizer'] = [featurizer]
+                        subcombo['descriptor_type'] = ['moe']
+                        self.param_combos.extend(self.generate_combos(subcombo))
 
     def generate_combos(self, params_dict):
         """
@@ -403,7 +437,7 @@ class HyperparameterSearch(object):
     def assemble_layers(self):
         """
         Reformats layer parameters
-        
+
         Returns:
             None
         """
@@ -437,23 +471,23 @@ class HyperparameterSearch(object):
             for splitter in splitters:
                 if 'previously_split' in self.params.__dict__.keys() and 'split_uuid' in self.params.__dict__.keys() \
                     and self.params.previously_split and self.params.split_uuid is not None:
-                    self.assays.append((self.params.dataset_key, self.params.bucket, splitter, self.params.split_uuid))
+                    self.assays.append((self.params.dataset_key, self.params.bucket, self.params.response_cols, self.params.collection_name, self.params.splitter, self.params.split_uuid))
                 else:
                     try:
                         split_uuid = self.return_split_uuid(self.params.dataset_key, splitter=splitter)
-                        self.assays.append((self.params.dataset_key, self.params.bucket, splitter, split_uuid))
+                        self.assays.append((self.params.dataset_key, self.params.bucket, self.params.response_cols, self.params.collection_name, splitter, split_uuid))
                     except Exception as e:
                         print(e)
                         print(traceback.print_exc())
                         sys.exit(1)
         else:
             self.assays = self.get_shortlist_df(split_uuids=True)
-        self.assays = [(t[0].strip(), t[1].strip(), t[2].strip(), t[3].strip()) for t in self.assays]
+        self.assays = [(t[0].strip(), t[1].strip(), t[2], t[3].strip(), t[4].strip(), t[5].strip()) for t in self.assays]
 
     def get_dataset_metadata(self, assay_params, retry_time=60):
         """
         Gather the required metadata for a dataset
-        
+
         Args:
             assay_params: dataset metadata
 
@@ -504,7 +538,7 @@ class HyperparameterSearch(object):
     def split_and_save_dataset(self, assay_params):
         """
         Splits a given dataset, saves it, and sets the split_uuid in the metadata
-        
+
         Args:
             assay_params: Dataset metadata
 
@@ -613,11 +647,63 @@ class HyperparameterSearch(object):
                     print("Could not save split dataset for dataset %s because of exception %s" % (dataset_key, e))
                     return None
 
+    def return_split_uuid_file(self, dataset_key, response_cols, bucket=None, splitter=None, split_combo=None, retry_time=60):
+        """
+        Loads a dataset, splits it, saves it, and returns the split_uuid.
+        Args:
+            dataset_key: key for dataset to split
+            bucket: datastore-specific user group bucket
+            splitter: Type of splitter to use to split the dataset
+            split_combo: tuple of form (split_valid_frac, split_test_frac)
+
+        Returns:
+
+        """
+        
+        if bucket is None:
+            bucket = self.params.bucket
+        if splitter is None:
+            splitter=self.params.splitter
+        if split_combo is None:
+            split_valid_frac = self.params.split_valid_frac
+            split_test_frac = self.params.split_test_frac
+        else:
+            split_valid_frac = split_combo[0]
+            split_test_frac = split_combo[1]
+        
+        assay_params = {'dataset_key': dataset_key, 'bucket': bucket, 'splitter': splitter,
+                        'split_valid_frac': split_valid_frac, 'split_test_frac': split_test_frac}
+        if 'id_col' in self.params.__dict__.keys():
+            assay_params['id_col']=self.params.id_col
+        if 'smiles_col' in self.params.__dict__.keys():
+            assay_params['smiles_col']=self.params.smiles_col
+        if isinstance(response_cols, list):
+            assay_params['response_cols']=",".join(response_cols)
+        elif isinstance(response_cols,str):
+            assay_params['response_cols']=response_cols
+            
+        assay_params['dataset_name'] = assay_params['dataset_key'].split('/')[-1].replace('.csv','')
+        # use ecfp b/c it's fast and doesn't save anything to file system
+        assay_params['featurizer'] = 'ecfp'
+        assay_params['previously_featurized'] = False
+        assay_params['datastore'] = False
+        
+        namespace_params = parse.wrapper(assay_params)
+        # TODO: Don't want to recreate each time
+        featurization = feat.create_featurization(namespace_params)
+        data = model_datasets.create_model_dataset(namespace_params, featurization)
+        
+        data.get_featurized_data()
+        data.split_dataset()
+        data.save_split_dataset()
+        return data.split_uuid
+            
+    
     def generate_split_shortlist(self, retry_time=60):
         """
         Processes a shortlist, generates splits for each dataset on the list, and uploads a new shortlist file with the
         split_uuids included. Generates splits for the split_combos [[0.1,0.1], [0.1,0.2],[0.2,0.2]], [random, scaffold]
-        
+
         Returns:
             None
         """
@@ -641,10 +727,10 @@ class HyperparameterSearch(object):
 
         datasets = self.get_shortlist_df()
         rows = []
-        for assay, bucket in datasets:
-            split_uuids = {'dataset_key': assay, 'bucket': bucket}
+        for assay, bucket, response_cols, collection in datasets:
+            split_uuids = {'dataset_key': assay, 'bucket': bucket, 'response_cols':response_cols, 'collection':collection}
             for splitter in ['random', 'scaffold']:
-                for split_combo in [[0.1,0.1], [0.1,0.2],[0.2,0.2]]:
+                for split_combo in [[0.1,0.1], [0.15,0.15],[0.1,0.2],[0.2,0.2]]:
                     split_name = "%s_%d_%d" % (splitter, split_combo[0]*100, split_combo[1]*100)
                     try:
                         split_uuids[split_name] = self.return_split_uuid(assay, bucket, splitter, split_combo)
@@ -681,10 +767,38 @@ class HyperparameterSearch(object):
                     #TODO: Add save to disk.
                     print("Could not save new shortlist because of exception %s, exiting" % e)
                     retry = False
+    
+    def generate_split_shortlist_file(self):
+        """
+        Processes a shortlist, generates splits for each dataset on the list, and uploads a new shortlist file with the
+        split_uuids included. Generates splits for the split_combos [[0.1,0.1], [0.15,0.15], [0.1,0.2], [0.2,0.2]], [random, scaffold]
+
+        Returns:
+            None
+        """
+        datasets = self.get_shortlist_df()
+        rows = []
+        for assay, bucket, response_cols, collection in datasets:
+            split_uuids = {'dataset_key': assay, 'bucket': bucket, 'response_cols':response_cols, 'collection':collection}
+            for splitter in ['random', 'scaffold']:
+                for split_combo in [[0.1,0.1], [0.15,0.15],[0.1,0.2],[0.2,0.2]]:
+                    split_name = "%s_%d_%d" % (splitter, split_combo[0]*100, split_combo[1]*100)
+                    try:
+                        split_uuids[split_name] = self.return_split_uuid_file(assay, response_cols, bucket, splitter, split_combo)
+                    except Exception as e:
+                        print(e)
+                        print("Splitting failed for dataset %s" % assay)
+                        split_uuids[split_name] = None
+                        continue
+            rows.append(split_uuids)
+        df = pd.DataFrame(rows)
+        fname = self.params.shortlist_key.replace('.csv','_with_uuids.csv')
+        df.to_csv(fname, index=False)
+        
 
     def get_shortlist_df(self, split_uuids=False, retry_time=60):
         """
-        
+
         Args:
             split_uuids: Boolean value saying if you want just datasets returned or the split_uuids as well
 
@@ -721,12 +835,22 @@ class HyperparameterSearch(object):
                 col_name = 'dataset_key'
             assays = df[col_name].values.tolist()
         if 'bucket' in df.columns:
-            datasets = list(zip(assays, df.bucket.values.tolist()))
+            buckets = df['bucket'].values.tolist()
         elif 'bucket_name' in df.columns:
-            datasets = list(zip(assays, df.bucket_name.values.tolist()))
+            buckets = df['bucket_name'].values.tolist()
         else:
-            datasets = list(zip(assays, [self.params.bucket]))
-        datasets = [(d[0].strip(), d[1].strip()) for d in datasets]
+            buckets=[self.params.bucket]*len(df)
+        if 'response_cols' in df.columns:
+            responses= df.response_cols.str.split(',').tolist()
+        else:
+            responses=[self.params.response_cols]*len(df)
+        if 'collection' in df.columns:
+            collections=df.collection.values.tolist()
+        else:
+            collections=[self.params.collection_name]*len(df)
+        datasets=list(zip(assays,buckets,responses,collections))
+        datasets = [(d[0].strip(), d[1].strip(), ",".join(d[2]), d[3].strip()) for d in datasets]
+            
         if not split_uuids:
             return datasets
         if type(self.params.splitter) == str:
@@ -738,13 +862,20 @@ class HyperparameterSearch(object):
             split_name = '%s_%d_%d' % (splitter, self.params.split_valid_frac*100, self.params.split_test_frac*100)
             if split_name in df.columns:
                 for i, row in df.iterrows():
-                    assays.append((datasets[i][0], datasets[i][1], splitter, row[split_name]))
+                    try:
+                        assays.append((datasets[i][0], datasets[i][1], datasets[i][2], datasets[i][3], splitter, row[split_name]))
+                    except:
+                        print("dataset_key, bucket, response_cols, & collecion_name must be specified in shortlist or config file, not neither.")
             else:
-                for assay, bucket in datasets:
+                print(f"Warning: {split_name} not found in shortlist. Creating default split scaffold_10_10 now.")
+                for assay, bucket, response_cols, collection in datasets:
                     try:
                     # do we want to move this into loop so we ignore ones it failed for?
-                        split_uuid = self.return_split_uuid(assay, bucket)
-                        assays.append((assay, bucket, splitter, split_uuid))
+                        if self.params.datastore:
+                            split_uuid = self.return_split_uuid(assay, bucket)
+                        else:
+                            split_uuid = self.return_split_uuid_file(assay, response_cols, bucket)
+                        assays.append((assay, bucket, response_cols, collection, splitter, split_uuid))
                     except Exception as e:
                         print("Splitting failed for dataset %s, skipping..." % assay)
                         print(e)
@@ -755,16 +886,18 @@ class HyperparameterSearch(object):
     def submit_jobs(self, retry_time=60):
         """
         Reformats parameters as necessary and then calls run_command in a loop to submit a job for each param combo
-        
+
         Returns:
             None
         """
-        for assay, bucket, splitter, split_uuid in self.assays:
+        for assay, bucket, response_cols, collection, splitter, split_uuid in self.assays:
             # Writes the series of command line arguments for scripts without a hyperparameter combo
             assay_params = copy.deepcopy(self.new_params)
             assay_params['dataset_key'] = assay
             assay_params['dataset_name'] = os.path.splitext(os.path.basename(assay))[0]
             assay_params['bucket'] = bucket
+            assay_params['response_cols'] = response_cols
+            assay_params['collection_name'] = collection
             assay_params['split_uuid'] = split_uuid
             assay_params['previously_split'] = True
             assay_params['splitter'] = splitter
@@ -893,11 +1026,11 @@ class GridSearch(HyperparameterSearch):
     def generate_combo(self, params_dict):
         """
         Method to generate all combinations from a given set of key-value pairs
-        
+
         Args:
             params_dict: Set of key-value pairs with the key being the param name and the value being the list of values
             you want to try for that param
-        
+
         Returns:
             new_dict: The list of all combinations of parameters
         """
@@ -973,7 +1106,7 @@ class GeometricSearch(HyperparameterSearch):
     """
     Generates parameter values in logistic steps, rather than linear like GridSearch does
     """
-    
+
     def __init__(self, params):
         super().__init__(params)
 
@@ -992,11 +1125,11 @@ class GeometricSearch(HyperparameterSearch):
     def generate_combo(self, params_dict):
         """
         Method to generate all combinations from a given set of key-value pairs
-        
+
         Args:
             params_dict: Set of key-value pairs with the key being the param name and the value being the list of values
             you want to try for that param
-        
+
         Returns:
             new_dict: The list of all combinations of parameters
         """
@@ -1022,7 +1155,7 @@ class UserSpecifiedSearch(HyperparameterSearch):
     """
     Generates combinations using the user-specified steps
     """
-    
+
     def __init__(self, params):
         super().__init__(params)
 
@@ -1041,15 +1174,15 @@ class UserSpecifiedSearch(HyperparameterSearch):
     def generate_combo(self, params_dict):
         """
         Method to generate all combinations from a given set of key-value pairs
-        
+
         Args:
             params_dict: Set of key-value pairs with the key being the param name and the value being the list of values
             you want to try for that param
-        
+
         Returns:
             new_dict: The list of all combinations of parameters
         """
-        
+
         if not params_dict:
             return None
         new_dict = {}
@@ -1070,7 +1203,8 @@ def main():
     """Entry point when script is run"""
     print(sys.argv[1:])
     params = parse.wrapper(sys.argv[1:])
-    keep_params = {'model_type',
+    keep_params = {'prediction_type',
+                   'model_type',
                    'featurizer',
                    'splitter',
                    'datastore',
@@ -1100,8 +1234,10 @@ def main():
     else:
         print("Incorrect search type specified")
         sys.exit(1)
-    if params.split_only:
+    if params.split_only and params.datastore:
         hs.generate_split_shortlist()
+    elif params.split_only and not params.datastore:
+        hs.generate_split_shortlist_file()
     else:
         hs.run_search()
 

@@ -353,7 +353,7 @@ def get_best_perf_table(metric_type, col_name=None, result_dir=None, model_uuid=
 
 
 # ---------------------------------------------------------------------------------------------------------
-def get_best_models_info(col_names=None, bucket=None, pred_type="regression", result_dir=None, PK_pipeline=False, output_dir='/usr/local/data',
+def get_best_models_info(col_names=None, bucket='public', pred_type="regression", result_dir=None, PK_pipeline=False, output_dir='/usr/local/data',
                          shortlist_key=None, input_dset_keys=None, save_results=False, subset='valid',
                          metric_type=None, selection_type='max', other_filters={}):
     """
@@ -406,74 +406,83 @@ def get_best_models_info(col_names=None, bucket=None, pred_type="regression", re
             metric_type = 'roc_auc_score'
     if other_filters is None:
         other_filters = {}
-
-    if mlmt_supported and col_names:
+    # define dset_keys
+    if input_dset_keys is not None and shortlist_key is not None:
+        raise ValueError("You can specify either shortlist_key or input_dset_keys but not both.")
+    elif input_dset_keys is not None and shortlist_key is None:
+        if type(input_dset_keys) == str:
+            dset_keys = [input_dset_keys]
+        else:
+            dset_keys = input_dset_keys
+    elif input_dset_keys is None and shortlist_key is None:
+        raise ValueError('Must specify either input_dset_keys or shortlist_key')
+    else:
+        dset_keys = dsf.retrieve_dataset_by_datasetkey(shortlist_key, bucket)
+        if dset_keys is None:
+            # define dset_keys, col_names and buckets from shortlist file
+            shortlist = pd.read_csv(shortlist_key)
+            if 'dataset_key' in shortlist.columns:
+                dset_keys = shortlist['dataset_key'].unique()
+            elif 'task_name' in shortlist.columns:
+                dset_keys = shortlist['task_name'].unique()
+            else:
+                dset_keys = shortlist.values
+            if 'collection' in shortlist.columns:
+                col_names = shortlist['collection'].unique()
+            if 'bucket' in shortlist.columns:
+                bucket = shortlist['bucket'].unique()
+    
+    if mlmt_supported and col_names is not None:
         mlmt_client = dsf.initialize_model_tracker()
         if type(col_names) == str:
             col_names = [col_names]
-        if input_dset_keys is None:
-            if shortlist_key is None:
-                raise ValueError('Must specify either input_dset_keys or shortlist_key')
-            dset_keys = dsf.retrieve_dataset_by_datasetkey(shortlist_key, bucket)
-            # Need to figure out how to handle an unknown column name for dataset_keys
-            if 'dataset_key' in dset_keys.columns:
-                dset_keys = dset_keys['dataset_key']
-            elif 'task_name' in dset_keys.columns:
-                dset_keys = dset_keys['task_name']
-            else:
-                dset_keys = dset_keys.values
-        else:
-            if shortlist_key is not None:
-                raise ValueError("You can specify either shortlist_key or input_dset_keys but not both.")
-            if type(input_dset_keys) == str:
-                dset_keys = [input_dset_keys]
-            else:
-                dset_keys = input_dset_keys
-
+        if type(bucket) == str:
+            bucket=[bucket]
         # Get the best model over all collections for each dataset
         for dset_key in dset_keys:
             dset_key = dset_key.strip()
             dset_model_info = []
             for col_name in col_names:
-                try:
-                    query_params = {
-                        "match_metadata": {
-                            "training_dataset.dataset_key": dset_key,
-                            "training_dataset.bucket": bucket,
-                        },
-
-                        "match_metrics": {
-                            "metrics_type": "training",  # match only training metrics
-                            "label": "best",
-                            "subset": subset,
-                            "$sort": [{"prediction_results.%s" % metric_type : sort_order[selection_type]}]
-                        },
-                    }
-                    query_params['match_metadata'].update(other_filters)
-
+                for buck in bucket:
                     try:
-                        print('Querying collection %s for models trained on dataset %s, %s' % (col_name, bucket, dset_key))
-                        metadata_list = list(mlmt_client.model.query_model_metadata(
-                            collection_name=col_name,
-                            query_params=query_params,
-                            limit=1
-                        ).result())
+                        query_params = {
+                            "match_metadata": {
+                                "training_dataset.dataset_key": dset_key,
+                                "training_dataset.bucket": buck,
+                            },
+
+                            "match_metrics": {
+                                "metrics_type": "training",  # match only training metrics
+                                "label": "best",
+                                "subset": subset,
+                                "$sort": [{"prediction_results.%s" % metric_type : sort_order[selection_type]}]
+                            },
+                        }
+                        query_params['match_metadata'].update(other_filters)
+
+                        try:
+                            print('Querying collection %s for models trained on dataset %s, %s' % (col_name, buck, dset_key))
+                            metadata_list = list(mlmt_client.model.query_model_metadata(
+                                collection_name=col_name,
+                                query_params=query_params,
+                                limit=1
+                            ).result())
+                        except Exception as e:
+                            print("Error returned when querying the best model for dataset %s in collection %s" % (dset_key, col_name))
+                            print(e)
+                            continue
+                        if len(metadata_list) == 0:
+                            print("No models returned for dataset %s in collection %s" % (dset_key, col_name))
+                            continue
+                        print('Query returned %d models' % len(metadata_list))
+                        model = metadata_list[0]
+                        model_info = get_best_perf_table(metric_type, col_name, metadata_dict=model, PK_pipe=PK_pipeline)
+                        if model_info is not None:
+                            res_df = pd.DataFrame.from_records([model_info])
+                            dset_model_info.append(res_df)
                     except Exception as e:
-                        print("Error returned when querying the best model for dataset %s in collection %s" % (dset_key, col_name))
                         print(e)
                         continue
-                    if len(metadata_list) == 0:
-                        print("No models returned for dataset %s in collection %s" % (dset_key, col_name))
-                        continue
-                    print('Query returned %d models' % len(metadata_list))
-                    model = metadata_list[0]
-                    model_info = get_best_perf_table(col_name, metric_type, metadata_dict=model, PK_pipe=PK_pipeline)
-                    if model_info is not None:
-                        res_df = pd.DataFrame.from_records([model_info])
-                        dset_model_info.append(res_df)
-                except Exception as e:
-                    print(e)
-                    continue
             metric_col = '%s_%s' % (metric_type, subset)
             if len(dset_model_info) > 0:
                 dset_model_df = pd.concat(dset_model_info, ignore_index=True).sort_values(
@@ -487,7 +496,7 @@ def get_best_models_info(col_names=None, bucket=None, pred_type="regression", re
                                 by=metric_col, ascending=sort_ascending[selection_type])
             top_models_info.append(temp_perf_df.head(1))
             print(f"Adding data from '{rd}' ")
-    
+
     if len(top_models_info) == 0:
         print("No metadata found")
         return None
@@ -902,8 +911,8 @@ def get_summary_perf_tables(collection_names=None, filter_dict={}, result_dir=No
         featurizer
         transformation type
         metrics: r2_score, mae_score and rms_score for regression, or ROC AUC for classification
-    
-    result_dir: use result_dir when the model tracker is not available. Use a list format if you have multiple result direcotries. 
+
+    result_dir: use result_dir when the model tracker is not available. Use a list format if you have multiple result direcotries.
     """
 
     if not mlmt_supported and not result_dir:
@@ -1650,7 +1659,8 @@ def get_multitask_perf_from_tracker(collection_name, response_cols=None, expand_
 
     # make features column
     alldat['features'] = alldat['featurizer']
-    alldat.loc[alldat.featurizer == 'computed_descriptors', 'features'] = alldat.loc[alldat.featurizer == 'computed_descriptors', 'descriptor_type']
+    if 'descriptor_type' in alldat.columns:
+        alldat.loc[alldat.featurizer == 'computed_descriptors', 'features'] = alldat.loc[alldat.featurizer == 'computed_descriptors', 'descriptor_type']
 
     # prune to only include expand_responses
     if expand_responses is not None:
