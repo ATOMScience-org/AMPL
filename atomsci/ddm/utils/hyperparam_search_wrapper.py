@@ -1317,7 +1317,7 @@ class HyperOptSearch():
         #name of the results
         feat = "_".join(self.params.featurizer) if isinstance(self.params.featurizer, list) else self.params.featurizer
         desc = "_".join(self.params.descriptor_type) if isinstance(self.params.descriptor_type, list) else self.params.descriptor_type
-        if "_" not in feat or feat == "computed_descriptors":
+        if "_" not in feat or feat in ["computed_descriptors", "descriptors"]:
             f = feat if feat in ["graphconv", "ecfp"] else desc
         else:
             f = f"{feat}_{desc}"
