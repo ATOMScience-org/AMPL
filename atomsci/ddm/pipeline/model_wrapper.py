@@ -742,13 +742,13 @@ class DCNNModelWrapper(ModelWrapper):
         retrain_start = time.time()
         self.recreate_model()
         self.model.fit(fit_dataset, nb_epoch=min_epoch, restore=False)
-        self.model.save()
+        self.model.save_checkpoint()
 
         # Only copy the model files we need, not the entire directory
         self._copy_model(min_epoch_dir)
         if max_epoch > min_epoch:
             self.model.fit(fit_dataset, nb_epoch=max_epoch-min_epoch, restore=True)
-            self.model.save()
+            self.model.save_checkpoint()
         self._copy_model(max_epoch_dir)
         retrain_time = time.time() - retrain_start
         self.log.info("Time to retrain model for %d epochs: %.1f seconds, %.1f sec/epoch" % (max_epoch, retrain_time, retrain_time/max_epoch))
@@ -768,9 +768,9 @@ class DCNNModelWrapper(ModelWrapper):
             chkpt_dict = yaml.load(chkpt_in.read())
         chkpt_prefix = chkpt_dict['model_checkpoint_path']
         files = [chkpt_file]
-        files.append(os.path.join(self.model_dir, 'model.pickle'))
+#        files.append(os.path.join(self.model_dir, 'model.pickle'))
         files.append(os.path.join(self.model_dir, '%s.index' % chkpt_prefix))
-        files.append(os.path.join(self.model_dir, '%s.meta' % chkpt_prefix))
+#        files.append(os.path.join(self.model_dir, '%s.meta' % chkpt_prefix))
         files = files + glob.glob(os.path.join(self.model_dir, '%s.data-*' % chkpt_prefix))
         self._clean_up_excess_files(dest_dir)
         for file in files:
@@ -790,13 +790,13 @@ class DCNNModelWrapper(ModelWrapper):
             Resets the value of model, transformers, and transformers_x
         """
         if self.params.featurizer == 'graphconv':
-            self.model = dc.models.GraphConvModel(model_dir=reload_dir)
+            self.model = dc.models.GraphConvModel(model_dir=reload_dir,n_tasks=self.params.num_model_tasks)
         elif self.params.prediction_type == 'regression':
             self.model = MultitaskRegressor(n_features=self.get_num_features(),n_tasks=self.params.num_model_tasks, model_dir=reload_dir)
         else:
             self.model = MultitaskClassifier(model_dir=reload_dir)
         # Hack to run models trained in DeepChem 2.1 with DeepChem 2.2
-#        self.model.default_outputs = self.model.outputs
+       # self.model.default_outputs = self.model.outputs
         self.model.restore()
 
         # Load transformers if they would have been saved with the model
@@ -1115,7 +1115,7 @@ class DCRFModelWrapper(ModelWrapper):
             # For k-fold CV, retrain on the combined training and validation sets
             fit_dataset = self.data.combined_training_data()
             self.model.fit(fit_dataset, restore=False)
-        self.model.save()
+        self.model.save_checkpoint()
         # The best model is just the single RF training run.
         self.best_epoch = 0
 
@@ -1437,7 +1437,7 @@ class DCxgboostModelWrapper(ModelWrapper):
             # For k-fold CV, retrain on the combined training and validation sets
             fit_dataset = self.data.combined_training_data()
             self.model.fit(fit_dataset, restore=False)
-        self.model.save()
+        self.model.save_checkpoint()
         # The best model is just the single xgb training run.
         self.best_epoch = 0
 

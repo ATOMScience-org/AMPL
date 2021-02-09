@@ -7,6 +7,7 @@ import os
 import sys
 import tempfile
 import pdb
+import time
 
 import numpy as np
 import deepchem as dc
@@ -1694,34 +1695,34 @@ class ComputedDescriptorFeaturization(DescriptorFeaturization):
                 scaled_df[scaled_col] = desc_df[unscaled_col].values
         return scaled_df
 
-    # ****************************************************************************************
-    def get_user_specified_features(df, featurizer, verbose=True):
-        """
-        Temp fix for DC 2.3 issue. See
-        https://github.com/deepchem/deepchem/issues/1841
-        """
+# ****************************************************************************************
+def get_user_specified_features(df, featurizer, verbose=True):
+    """
+    Temp fix for DC 2.3 issue. See
+    https://github.com/deepchem/deepchem/issues/1841
+    """
 
-        """Extract and merge user specified features.
+    """Extract and merge user specified features.
 
-        Merge features included in dataset provided by user
-        into final features dataframe
+    Merge features included in dataset provided by user
+    into final features dataframe
 
-        Three types of featurization here:
+    Three types of featurization here:
 
-        1) Molecule featurization
-          -) Smiles string featurization
-          -) Rdkit MOL featurization
-        2) Complex featurization
-          -) PDB files for interacting molecules.
-        3) User specified featurizations.
+    1) Molecule featurization
+    -) Smiles string featurization
+    -) Rdkit MOL featurization
+    2) Complex featurization
+    -) PDB files for interacting molecules.
+    3) User specified featurizations.
 
-        """
-        time1 = time.time()
-        df[featurizer.feature_fields] = df[featurizer.feature_fields].apply(pd.to_numeric)
-        X_shard =  df[featurizer.feature_fields].to_numpy()
-        time2 = time.time()
-        log("TIMING: user specified processing took %0.3f s" % (time2 - time1), verbose)
-        return X_shard
+    """
+    time1 = time.time()
+    df[featurizer.feature_fields] = df[featurizer.feature_fields].apply(pd.to_numeric)
+    X_shard =  df[featurizer.feature_fields].to_numpy()
+    time2 = time.time()
+    log.info("TIMING: user specified processing took %0.3f s" % (time2 - time1), verbose)
+    return X_shard
 
 # **************************************************************************************************************
 # Subclasses of Mordred descriptor classes
