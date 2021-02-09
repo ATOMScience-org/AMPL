@@ -245,7 +245,49 @@ python model_pipeline.py --config_file test.json
 &nbsp;  
 
 ### Hyperparameter optimization
-Hyperparameter optimization for AMPL model fitting is available to run on SLURM clusters. Examples of running hyperparameter optimization will be added.  
+Hyperparameter optimization for AMPL model fitting is available to run on SLURM clusters or with [HyperOpt](https://hyperopt.github.io/hyperopt/) (Bayesian Optimization). To run Bayesian Optimization, the following steps can be followed.
+
+1. Install HyperOpt with `pip install hyperopt`
+2. Pre-split your dataset with computed_descriptors if you want to use Mordred/MOE/RDKit descriptors.
+3. In the config JSON file, set the following parameters.
+   
+   - "hyperparam": "True"
+   - "search_type": "hyperopt"
+   - "descriptor_type": "mordred_filtered,rdkit_raw" (use comma to separate multiple values)
+   - "model_type": "RF|20" (the number after | is the number of evaluations of Bayesian Optimization)
+   - "featurizer": "ecfp,computed_descriptors" (use comma if you want to try multiple featurizers, note the RF and graphconv are not compatible)
+   - "result_dir": "/path/to/save/the/final/results,/temp/path/to/save/models/during/optimization" (Two paths separated by a comma)
+  
+   RF model specific parameters:
+   - "rfe": "uniformint|8,512", (RF number of estimators)
+   - "rfd": "uniformint|8,512", (RF max depth of the decision tree)
+   - "rff": "uniformint|8,200", (RF max number of features)
+  
+    Use the following schemes to define the searching domains
+    
+    method|parameter1,parameter2...
+    
+    method: supported searching schemes in HyperOpt include: choice, uniform, loguniform, uniformint, see https://github.com/hyperopt/hyperopt/wiki/FMin for details.
+    
+    parameters:
+      - choice: all values to search from, separated by comma, e.g. choice|0.0001,0.0005,0.0002,0.001
+      - uniform: low and high bound of the interval to serach, e.g. uniform|0.00001,0.001
+      - loguniform: low and high bound (in natural log) of the interval to serach, e.g. uniform|-13.8,-6.9
+      - uniformint: low and high bound of the interval as integers, e.g. uniforming|8,256
+  
+    NN model specific parameters:
+     - "lr": "loguniform|-13.8,-6.9", (learning rate)
+     - "ls": "uniformint|3|8,512", (layer_sizes)
+        - The number between two bars (|) is the number of layers, namely 3 layers, each one with 8~512 nodes
+     - "dp": "uniform|3|0,0.4", (dropouts)
+        - 3 layers, each one has a dropout range from 0 to 0.4
+
+4. Run hyperparameter search in batch mode or submit a slurm job.
+
+    ```
+    python hyperparam_search_wrapper.py --config_file filename.json
+    ```
+
 &nbsp;  
 &nbsp;  
 

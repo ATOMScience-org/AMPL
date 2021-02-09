@@ -766,9 +766,9 @@ def get_filesystem_perf_results(result_dir, pred_type='classification'):
     subsets = ['train', 'valid', 'test']
 
     if pred_type == 'regression':
-        metrics = ['r2_score', 'rms_score', 'mae_score']
+        metrics = ['r2_score', 'rms_score', 'mae_score', 'num_compounds']
     else:
-        metrics = ['roc_auc_score', 'prc_auc_score', 'precision', 'recall_score',
+        metrics = ['roc_auc_score', 'prc_auc_score', 'precision', 'recall_score', 'num_compounds',
                    'accuracy_score', 'npv', 'matthews_cc', 'kappa', 'cross_entropy', 'confusion_matrix']
     score_dict = {}
     for subset in subsets:

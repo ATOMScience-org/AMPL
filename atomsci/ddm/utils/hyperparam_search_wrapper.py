@@ -14,13 +14,18 @@ import sys
 import numpy as np
 import logging
 import itertools
+from numpy.core.numeric import NaN
 import pandas as pd
 import uuid
 
 import subprocess
+import shutil
 import time
 
+from hyperopt import fmin, tpe, hp, Trials, STATUS_OK
+
 from atomsci.ddm.pipeline import featurization as feat
+from atomsci.ddm.pipeline import model_pipeline as mp
 from atomsci.ddm.pipeline import parameter_parser as parse
 from atomsci.ddm.pipeline import model_datasets as model_datasets
 from atomsci.ddm.utils import datastore_functions as dsf
@@ -302,7 +307,7 @@ class HyperparameterSearch(object):
 
             if self.params.slurm_time_limit:
                 f.write("#SBATCH -t {0}\n".format(self.params.slurm_time_limit))
-                
+
             if self.params.slurm_options:
                 f.write('{0}\n'.format(self.params.slurm_options))
 
@@ -348,6 +353,7 @@ class HyperparameterSearch(object):
             self.params.featurizer = [self.params.featurizer]
         if type(self.params.descriptor_type) == str:
             self.params.descriptor_type = [self.params.descriptor_type]
+
         for model_type in self.params.model_type:
             if model_type == 'NN':
                 # if the model type is NN, loops through the featurizer to check for GraphConv.
@@ -370,6 +376,7 @@ class HyperparameterSearch(object):
                         subcombo['descriptor_type'] = ['moe']
                         if (featurizer == 'graphconv') & (self.params.prediction_type=='classification'):
                             subcombo['uncertainty'] = [False]
+                            
                         self.param_combos.extend(self.generate_combos(subcombo))
             elif model_type == 'RF':
                 for featurizer in self.params.featurizer:
@@ -391,6 +398,7 @@ class HyperparameterSearch(object):
                         subcombo['model_type'] = [model_type]
                         subcombo['featurizer'] = [featurizer]
                         subcombo['descriptor_type'] = ['moe']
+
                         self.param_combos.extend(self.generate_combos(subcombo))
             elif model_type == 'xgboost':
                 for featurizer in self.params.featurizer:
@@ -776,6 +784,7 @@ class HyperparameterSearch(object):
         Returns:
             None
         """
+
         datasets = self.get_shortlist_df()
         rows = []
         for assay, bucket, response_cols, collection in datasets:
@@ -901,6 +910,7 @@ class HyperparameterSearch(object):
             assay_params['split_uuid'] = split_uuid
             assay_params['previously_split'] = True
             assay_params['splitter'] = splitter
+            print(f"prediction_type: {assay_params['prediction_type']}")
             try:
                 self.get_dataset_metadata(assay_params)
             except Exception as e:
@@ -1198,6 +1208,189 @@ class UserSpecifiedSearch(HyperparameterSearch):
                 new_dict[key] = value
         return new_dict
 
+def build_hyperopt_search_domain(label, method, param_list):
+    """
+    Generate HyperOpt search domain object from method and parameters, layer_nums is only for NN models.
+    """
+    if method == "choice":
+        return hp.choice(label, param_list)
+    elif method == "uniform":
+        return hp.uniform(label, param_list[0], param_list[1])
+    elif method == "loguniform":
+        return hp.loguniform(label, param_list[0], param_list[1])
+    elif method == "uniformint":
+        return hp.uniformint(label, param_list[0], param_list[1])
+    else:
+        raise Exception(f"Method {method} is not supported, choose from 'choice, uniform, loguniform, uniformint'.")
+
+class HyperOptSearch():
+    """
+    Perform hyperparameter search with Bayesian Optmization (Tree Parzen Estimator)
+    To use HyperOptSearch, modify the config json file as follows:
+        serach_type: use "hyperopt"
+        result_dir: use two directories (recommended), separated by comma, 1st one will be used to save the best model tarball, 2nd one will be used to store all models during the process.
+            e.g. "result_dir": "/path/of/the/final/dir,/path/of/the/temp/dir"
+        model_type: RF or NN, also add max number of HyperOptSearch evaluations, e.g. "model_type": "RF|100".
+            If no max number provide, the default 100 will be used.
+        #For NN models only
+        lr: specify learning rate searching method and related parameters as the following scheme.
+            method|parameter1,parameter2...
+            method: supported searching schemes in HyperOpt include: choice, uniform, loguniform, and uniformint, see https://github.com/hyperopt/hyperopt/wiki/FMin for details.
+            parameters:
+                choice: all values to search from, separated by comma, e.g. choice|0.0001,0.0005,0.0002,0.001
+                uniform: low and high bound of the interval to serach, e.g. uniform|0.00001,0.001
+                loguniform: low and high bound (in natural log) of the interval to serach, e.g. loguniform|-13.8,-6.9
+                uniformint: low and high bound of the interval to serach, e.g. uniformint|8,256
+        ls: similar as learning_rate, specify number of layers and size of each one.
+            method|num_layers|parameter1,parameter2...
+            e.g. choice|2|8,16,32,64,128,256,512  #this will generate a two-layer config, each layer takes size from the list "8,16,32,64,128,256,512"
+            e.g. uniformint|3|8,512  #this will generate a three-layer config, each layer takes size from the uniform interval [8,512]
+        dp: similar as layer_sizes, just make sure dropouts and layer_sizes should have the same number of layers.
+            e.g. uniform|3|0,0.4   #this will generate a three-layer config, each layer takes size from the uniform interval [0,0.4]
+
+        #For RF models only
+        rfe: rf_estimator, same structure as the learning rate above, e.g. uniformint|64,512  #take integer values from a uniform interval [64,512]
+        rfd: rf_max_depth, e.g. uniformint|8,256
+        rff: rf_max_feature, e.g. uniformint|8,128
+    """
+    def __init__(self, params):
+        self.params = params
+        #separate temp output dir and final output dir
+        result_dir_list = params.result_dir.split(",")
+        if len(result_dir_list) > 1:
+            self.params.result_dir = result_dir_list[1]
+            self.final_dir = result_dir_list[0]
+        else:
+            self.params.result_dir = result_dir_list[0]
+            self.final_dir = result_dir_list[0]
+
+        if len(self.params.model_type.split("|")) > 1:
+            self.max_eval = int(self.params.model_type.split("|")[1])
+            self.params.model_type = self.params.model_type.split("|")[0]
+        else:
+            self.max_eval = 100
+
+        #define the searching space
+        self.space = {}
+        if isinstance(self.params.featurizer, list):
+            self.space["featurizer"] = build_hyperopt_search_domain("featurizer", "choice", self.params.featurizer)
+        if isinstance(self.params.descriptor_type, list):
+            self.space["descriptor_type"] = build_hyperopt_search_domain("descriptor_type", "choice", self.params.descriptor_type)
+        if self.params.model_type == "RF":
+            #build searching domain for RF parameters
+            domain_list = self.params.rfe.split("|")
+            method = domain_list[0]
+            par_list = [float(e) for e in domain_list[1].split(",")]
+            self.space["rf_estimators"] = build_hyperopt_search_domain("rf_estimators", method, par_list)
+
+            domain_list = self.params.rfd.split("|")
+            method = domain_list[0]
+            par_list = [float(e) for e in domain_list[1].split(",")]
+            self.space["rf_max_depth"] = build_hyperopt_search_domain("rf_max_depth", method, par_list)
+
+            domain_list = self.params.rff.split("|")
+            method = domain_list[0]
+            par_list = [float(e) for e in domain_list[1].split(",")]
+            self.space["rf_max_features"] = build_hyperopt_search_domain("rf_max_features", method, par_list)
+        elif self.params.model_type == "NN":
+            #build searching domain for NN parameters
+            domain_list = self.params.lr.split("|")
+            method = domain_list[0]
+            par_list = [float(e) for e in domain_list[1].split(",")]
+            self.space["learning_rate"] = build_hyperopt_search_domain("learning_rate", method, par_list)
+
+            domain_list = self.params.ls.split("|")
+            method = domain_list[0]
+            num_layer = int(domain_list[1])
+            par_list = [float(e) for e in domain_list[2].split(",")]
+            for i in range(num_layer):
+                self.space[f"ls{i}"] = build_hyperopt_search_domain(f"ls{i}", method, par_list)
+
+            domain_list = self.params.dp.split("|")
+            method = domain_list[0]
+            num_layer = int(domain_list[1])
+            par_list = [float(e) for e in domain_list[2].split(",")]
+            for i in range(num_layer):
+                self.space[f"dp{i}"] = build_hyperopt_search_domain(f"dp{i}", method, par_list)
+
+    def run_search(self):
+        #name of the results
+        feat = "_".join(self.params.featurizer) if isinstance(self.params.featurizer, list) else self.params.featurizer
+        desc = "_".join(self.params.descriptor_type) if isinstance(self.params.descriptor_type, list) else self.params.descriptor_type
+        if "_" not in feat or feat in ["computed_descriptors", "descriptors"]:
+            f = feat if feat in ["graphconv", "ecfp"] else desc
+        else:
+            f = f"{feat}_{desc}"
+
+        def lossfn(p):
+            if "featurizer" in p:
+                self.params.featurizer = p["featurizer"]
+
+            if "descriptor_type" in p:
+                self.params.descriptor_type = p["descriptor_type"]
+
+            if self.params.model_type == "RF":
+                self.params.rf_estimators =  p["rf_estimators"]
+                self.params.rf_max_depth = p["rf_max_depth"]
+                self.params.rf_max_features = p["rf_max_features"]
+                print(f'rf_estimators: {p["rf_estimators"]}, rf_max_depth: {p["rf_max_depth"]}, rf_max_feature: {p["rf_max_features"]}')
+            elif self.params.model_type == "NN":
+                self.params.learning_rate = p["learning_rate"]
+                self.params.layer_sizes = ",".join([str(p[e]) for e in self.space if e[:2] == "ls"])
+                self.params.dropouts = ",".join([str(p[e]) for e in self.space if e[:2] == "dp"])
+                print(f"learning_rate: {self.params.learning_rate}, layer_sizes: {self.params.layer_sizes}, dropouts: {self.params.dropouts}")
+
+            tparam = parse.wrapper(self.params.__dict__)
+            print(f"{self.params.model_type} model with {self.params.featurizer} and {self.params.descriptor_type}")
+            if self.params.model_type == "NN":
+                tparam.layer_sizes = tparam.layer_sizes[0]
+                tparam.dropouts = tparam.dropouts[0]
+            pl = mp.ModelPipeline(tparam)
+            pl.train_model()
+            perf_data = pl.model_wrapper.get_perf_data(subset="valid", epoch_label="best")
+            pred_results = perf_data.get_prediction_results()
+            if tparam.prediction_type == "regression":
+                r2 = pred_results['r2_score']
+                rms = pred_results['rms_score']
+                return {'loss': 1-r2, 'rms': rms, 'status': STATUS_OK, 'model': tparam.model_tarball_path, 'featurizer': tparam.featurizer, 'desc': tparam.descriptor_type}
+            else:
+                roc_auc = pred_results["roc_auc_score"]
+                acc = pred_results["accuracy_score"]
+                return {"loss": 100-roc_auc, "acc": acc, 'status': STATUS_OK, 'model': tparam.model_tarball_path, 'featurizer': tparam.featurizer, 'desc': tparam.descriptor_type}
+
+        trials = Trials()
+        best = fmin(lossfn, self.space, algo=tpe.suggest, max_evals=self.max_eval, trials=trials)
+
+        print(f"Copy the best model tarball.")
+
+        if self.params.prediction_type == "regression":
+            r2_list = [1-trials.trials[i]["result"]["loss"] for i in range(len(trials.trials))]
+            rms_list = [trials.trials[i]["result"]["rms"] for i in range(len(trials.trials))]
+            best_r2 = max(r2_list)
+            best_trial = r2_list.index(best_r2)
+        else:
+            auc_list = [100-trials.trials[i]["result"]["loss"] for i in range(len(trials.trials))]
+            acc_list = [trials.trials[i]["result"]["acc"] for i in range(len(trials.trials))]
+            best_auc = max(auc_list)
+            best_trial = auc_list.index(best_auc)
+
+        best_model = trials.trials[best_trial]["result"]["model"]
+        bmodel_prefix = "_".join(os.path.basename(best_model).split("_")[:-1])
+        shutil.copy2(best_model, os.path.join(self.final_dir,
+                                              f"best_{self.params.prediction_type}_{bmodel_prefix}_{self.params.model_type}_{f}.tar.gz"))
+
+        print(f"Save the performance -- evaluation table.")
+
+        feat_list = [trials.trials[i]["result"]["featurizer"] for i in range(len(trials.trials))]
+        desc_list = [trials.trials[i]["result"]["desc"] for i in range(len(trials.trials))]
+
+        if self.params.prediction_type == "regression":
+            perf = pd.DataFrame({"eval": list(range(1, len(trials.trials)+1)), "valid_r2": r2_list, "valid_rms": rms_list, "featurizer": feat_list, "descriptor": desc_list})
+        else:
+            perf = pd.DataFrame({"eval": list(range(1, len(trials.trials)+1)), "valid_roc_auc": auc_list, "valid_accuracy": acc_list, "featurizer": feat_list, "descriptor": desc_list})
+
+        perf.to_csv(os.path.join(self.final_dir, f"performance_{self.params.prediction_type}_{bmodel_prefix}_{self.params.model_type}_{f}.csv"), index=False)
+
 
 def main():
     """Entry point when script is run"""
@@ -1210,6 +1403,7 @@ def main():
                    'datastore',
                    'save_results',
                    'previously_featurized',
+                   'prediction_type',
                    'descriptor_key',
                    'descriptor_type',
                    'split_valid_frac',
@@ -1231,6 +1425,8 @@ def main():
         hs = GeometricSearch(params)
     elif params.search_type == 'user_specified':
         hs = UserSpecifiedSearch(params)
+    elif params.search_type == 'hyperopt':
+        hs = HyperOptSearch(params)
     else:
         print("Incorrect search type specified")
         sys.exit(1)
