@@ -36,7 +36,7 @@ A pre-print of a manuscript describing this project is available through [ArXiv]
 
 ## Useful links
 - [Pipeline parameters (options)](atomsci/ddm/docs/PARAMETERS.md)
-- [Library documentation](atomsci/ddm/docs/build/html/index.html)  
+- [Library documentation](https://ampl.readthedocs.io/en/latest/index.html)  
 &nbsp;  
 &nbsp;  
 

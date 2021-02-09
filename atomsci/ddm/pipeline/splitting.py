@@ -61,7 +61,7 @@ def select_dset_by_attr_ids(dataset, attr_df):
         subset (DiskDataset): A subset of the deepchem dataset as determined by the ids in attr_df
         
     """
-    id_df = pd.DataFrame({'indices' : np.arange(len(dataset.ids), dtype=np.int32)}, index=dataset.ids)
+    id_df = pd.DataFrame({'indices' : np.arange(len(dataset.ids), dtype=np.int32)}, index=[str(e) for e in dataset.ids])
     match_df = id_df.join(attr_df, how='inner')
     subset = dataset.select(match_df.indices.values)
     return subset
@@ -102,7 +102,7 @@ def select_attrs_by_dset_ids(dataset, attr_df):
     
     """
     #TODO: Need to test
-    id_df = pd.DataFrame(index=dataset.ids)
+    id_df = pd.DataFrame(index=[str(e) for e in dataset.ids])
     subattr_df = id_df.join(attr_df, how='inner')
     return subattr_df
 
@@ -124,7 +124,7 @@ def select_attrs_by_dset_smiles(dataset, attr_df, smiles_col):
         strings in attr_df to the ids in the dataset
     
     """
-    id_df = pd.DataFrame(index=dataset.ids)
+    id_df = pd.DataFrame(index=[str(e) for e in dataset.ids])
     subattr_df = id_df.merge(attr_df, how='inner', left_index=True, right_on=smiles_col)
     return subattr_df
 
@@ -145,7 +145,7 @@ def check_if_dupe_smiles_dataset(dataset,attr_df, smiles_col):
         of the attr_df. False if there are no duplicates
 
     """
-    dupes = [(item, count) for item, count in collections.Counter(dataset.ids.tolist()).items() if count > 1]
+    dupes = [(item, count) for item, count in collections.Counter([str(e) for e in dataset.ids]).items() if count > 1]
     dupe_attr = [(item, count) for item, count in collections.Counter(attr_df[smiles_col].values.tolist()).items() if count > 1]
 
     if not len(dupes)==0 or not len(dupe_attr)==0:

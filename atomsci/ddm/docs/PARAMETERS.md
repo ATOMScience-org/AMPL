@@ -811,7 +811,7 @@ The AMPL pipeline contains many parameters and options to fit models and make pr
 |||
 |-|-|
 |*Description:*| After parameter combos have been generated, `rerun=False` will check the model tracker to see if a model with a particular param combination has already been built. If it’s been built, do not create a new model or submit a slurm job. If `rerun=True`, the check will be skipped completely and a slurm job will be submitted regardless of whether a model has previously been built with these parameters. Specific to hyperparameter search.|
-|*Default:*|FALSE|
+|*Default:*|TRUE|
 |*Type:*|Bool|
   
 - **script\_dir**  
