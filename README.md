@@ -279,8 +279,10 @@ Hyperparameter optimization for AMPL model fitting is available to run on SLURM 
      - "lr": "loguniform|-13.8,-6.9", (learning rate)
      - "ls": "uniformint|3|8,512", (layer_sizes)
         - The number between two bars (|) is the number of layers, namely 3 layers, each one with 8~512 nodes
+        - Note that the number of layers (number between two |) can not be changed during optimization, if you want to try different number of layers, just run several optimizations. 
      - "dp": "uniform|3|0,0.4", (dropouts)
         - 3 layers, each one has a dropout range from 0 to 0.4
+        - Note that the number of layers (number between two |) can not be changed during optimization, if you want to try different number of layers, just run several optimizations. 
 
 4. Run hyperparameter search in batch mode or submit a slurm job.
 
