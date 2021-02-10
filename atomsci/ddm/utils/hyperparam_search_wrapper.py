@@ -1342,37 +1342,60 @@ class HyperOptSearch():
 
             tparam = parse.wrapper(self.params.__dict__)
             print(f"{self.params.model_type} model with {self.params.featurizer} and {self.params.descriptor_type}")
+            # make sure classification model has uncertainty as False. 
+            if tparam.prediction_type != "regression":
+                tparam.uncertainty = False
             if self.params.model_type == "NN":
                 tparam.layer_sizes = tparam.layer_sizes[0]
                 tparam.dropouts = tparam.dropouts[0]
             pl = mp.ModelPipeline(tparam)
             pl.train_model()
-            perf_data = pl.model_wrapper.get_perf_data(subset="valid", epoch_label="best")
-            pred_results = perf_data.get_prediction_results()
+            subsets = ["train", "valid", "test"]
+            pred_results = dict(zip(subsets, [{} for _ in subsets]))
+            for subset in subsets:
+                perf_data = pl.model_wrapper.get_perf_data(subset=subset, epoch_label="best")
+                sub_pred_results = perf_data.get_prediction_results()
+                if tparam.prediction_type == "regression":
+                    pred_results[subset]["r2"] = sub_pred_results['r2_score']
+                    pred_results[subset]["rms"] = sub_pred_results['rms_score']
+                else:
+                    pred_results[subset]["roc_auc"] = sub_pred_results["roc_auc_score"]
+                    pred_results[subset]["acc"] = sub_pred_results["accuracy_score"]
             if tparam.prediction_type == "regression":
-                r2 = pred_results['r2_score']
-                rms = pred_results['rms_score']
-                return {'loss': 1-r2, 'rms': rms, 'status': STATUS_OK, 'model': tparam.model_tarball_path, 'featurizer': tparam.featurizer, 'desc': tparam.descriptor_type}
+                res_dict = {'loss': 1-pred_results["valid"]["r2"], 'status': STATUS_OK, 'model': tparam.model_tarball_path, 'featurizer': tparam.featurizer, 'desc': tparam.descriptor_type}
+                for subset in subsets:
+                    res_dict[f"{subset}_r2"] = pred_results[subset]["r2"]
+                    res_dict[f"{subset}_rms"] = pred_results[subset]["rms"]
             else:
-                roc_auc = pred_results["roc_auc_score"]
-                acc = pred_results["accuracy_score"]
-                return {"loss": 100-roc_auc, "acc": acc, 'status': STATUS_OK, 'model': tparam.model_tarball_path, 'featurizer': tparam.featurizer, 'desc': tparam.descriptor_type}
+                res_dict = {'loss': 100-pred_results["valid"]["roc_auc"], 'status': STATUS_OK, 'model': tparam.model_tarball_path, 'featurizer': tparam.featurizer, 'desc': tparam.descriptor_type}
+                for subset in subsets:
+                    res_dict[f"{subset}_roc_auc"] = pred_results[subset]["roc_auc"]
+                    res_dict[f"{subset}_acc"] = pred_results[subset]["acc"]
+
+            return res_dict
 
         trials = Trials()
         best = fmin(lossfn, self.space, algo=tpe.suggest, max_evals=self.max_eval, trials=trials)
 
-        print(f"Copy the best model tarball.")
+        print(f"Generating the performance -- iteration table and Copy the best model tarball.")
+
+        feat_list = [trials.trials[i]["result"]["featurizer"] for i in range(len(trials.trials))]
+        desc_list = [trials.trials[i]["result"]["desc"] for i in range(len(trials.trials))]
+        trial_data = {"trial": list(range(len(trials.trials))), "featurizer": feat_list, "descriptor": desc_list}
+        subsets = ["train", "valid", "test"]
+        for subset in subsets:
+            if self.params.prediction_type == "regression":
+                trial_data[f"{subset}_r2"] = [trials.trials[i]["result"][f"{subset}_r2"] for i in range(len(trials.trials))]
+                trial_data[f"{subset}_rms"] = [trials.trials[i]["result"][f"{subset}_rms"] for i in range(len(trials.trials))]
+            else:
+                trial_data[f"{subset}_roc_auc"] = [trials.trials[i]["result"][f"{subset}_roc_auc"] for i in range(len(trials.trials))]
+                trial_data[f"{subset}_acc"] = [trials.trials[i]["result"][f"{subset}_acc"] for i in range(len(trials.trials))]
+        perf = pd.DataFrame(trial_data)
 
         if self.params.prediction_type == "regression":
-            r2_list = [1-trials.trials[i]["result"]["loss"] for i in range(len(trials.trials))]
-            rms_list = [trials.trials[i]["result"]["rms"] for i in range(len(trials.trials))]
-            best_r2 = max(r2_list)
-            best_trial = r2_list.index(best_r2)
+            best_trial = perf.sort_values(by="valid_r2", ascending=False)["trial"].iloc[0]
         else:
-            auc_list = [100-trials.trials[i]["result"]["loss"] for i in range(len(trials.trials))]
-            acc_list = [trials.trials[i]["result"]["acc"] for i in range(len(trials.trials))]
-            best_auc = max(auc_list)
-            best_trial = auc_list.index(best_auc)
+            best_trial = perf.sort_values(by="valid_roc_auc", ascending=False)["trial"].iloc[0]
 
         best_model = trials.trials[best_trial]["result"]["model"]
         bmodel_prefix = "_".join(os.path.basename(best_model).split("_")[:-1])
@@ -1380,14 +1403,6 @@ class HyperOptSearch():
                                               f"best_{self.params.prediction_type}_{bmodel_prefix}_{self.params.model_type}_{f}.tar.gz"))
 
         print(f"Save the performance -- evaluation table.")
-
-        feat_list = [trials.trials[i]["result"]["featurizer"] for i in range(len(trials.trials))]
-        desc_list = [trials.trials[i]["result"]["desc"] for i in range(len(trials.trials))]
-
-        if self.params.prediction_type == "regression":
-            perf = pd.DataFrame({"eval": list(range(1, len(trials.trials)+1)), "valid_r2": r2_list, "valid_rms": rms_list, "featurizer": feat_list, "descriptor": desc_list})
-        else:
-            perf = pd.DataFrame({"eval": list(range(1, len(trials.trials)+1)), "valid_roc_auc": auc_list, "valid_accuracy": acc_list, "featurizer": feat_list, "descriptor": desc_list})
 
         perf.to_csv(os.path.join(self.final_dir, f"performance_{self.params.prediction_type}_{bmodel_prefix}_{self.params.model_type}_{f}.csv"), index=False)
 
