@@ -909,14 +909,14 @@ The AMPL pipeline contains many parameters and options to fit models and make pr
   
 |||
 |-|-|
-|*Description:*|Dropouts searching domain in Bayesian Optimization. The format is `scheme\|num_layers\|parameters`, e.g. `uniform\|3\|0,0.4`.
+|*Description:*|Dropouts searching domain in Bayesian Optimization. The format is `scheme\|num_layers\|parameters`, e.g. `uniform\|3\|0,0.4`, Note that the number of layers (number between two |) can not be changed during optimization, if you want to try different number of layers, just run several optimizations.
 |*Default:*|None|
 
 - **ls**  
   
 |||
 |-|-|
-|*Description:*|Layer sizes searching domain in Bayesian Optimization. The format is `scheme\|num_layers\|parameters`, e.g. `uniformint\|3\|8,512`.
+|*Description:*|Layer sizes searching domain in Bayesian Optimization. The format is `scheme\|num_layers\|parameters`, e.g. `uniformint\|3\|8,512`, Note that the number of layers (number between two |) can not be changed during optimization, if you want to try different number of layers, just run several optimizations.
 |*Default:*|None|
 
 - **rfe**  
