@@ -1372,9 +1372,13 @@ class HyperOptSearch():
                     res_dict[f"{subset}_roc_auc"] = pred_results[subset]["roc_auc"]
                     res_dict[f"{subset}_acc"] = pred_results[subset]["acc"]
 
+            # print the model metrics as logs
+            print()
+            print(f'model_performance|{res_dict["model"]}|{res_dict["train_r2"]:.3f}|{res_dict["train_rms"]:.3f}|{res_dict["valid_r2"]:.3f}|{res_dict["valid_rms"]:.3f}|{res_dict["test_r2"]:.3f}|{res_dict["test_rms"]:.3f}\n')
             return res_dict
 
         trials = Trials()
+        print(f'model_performance|model|train_r2|train_rms|valid_r2|valid_rms|test_r2|test_rms\n')
         best = fmin(lossfn, self.space, algo=tpe.suggest, max_evals=self.max_eval, trials=trials)
 
         print(f"Generating the performance -- iteration table and Copy the best model tarball.")
@@ -1405,7 +1409,7 @@ class HyperOptSearch():
         print(f"Save the performance -- evaluation table.")
 
         perf.to_csv(os.path.join(self.final_dir, f"performance_{self.params.prediction_type}_{bmodel_prefix}_{self.params.model_type}_{f}.csv"), index=False)
-
+        print(f'Best model: {best_model}, valid R2: {perf.sort_values(by="valid_r2", ascending=False)["valid_r2"].iloc[0]}')
 
 def main():
     """Entry point when script is run"""
