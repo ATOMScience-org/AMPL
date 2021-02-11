@@ -276,8 +276,8 @@ def dict_to_list(inp_dictionary,replace_spaces=False):
     temp_list_to_command_line = []
 
     # Special case handling for arguments that are False or True by default
-    default_false = ['previously_split','use_shortlist','datastore', 'save_results','verbose', 'hyperparam', 'split_only', 'rerun']
-    default_true = ['transformers','previously_featurized','uncertainty']
+    default_false = ['previously_split','use_shortlist','datastore', 'save_results','verbose', 'hyperparam', 'split_only'] 
+    default_true = ['transformers','previously_featurized','uncertainty', 'rerun']
     for key, value in inp_dictionary.items():
         if key in default_false:
             true_options = ['True','true','ture','TRUE','Ture']
@@ -508,12 +508,12 @@ def get_parser():
     parser.add_argument(
         '--previously_featurized', dest='previously_featurized', action='store_false',
         help='Boolean flag for loading in previously featurized data files. If set to True, the method'
-             'get_featurized_data within model_datasets will attempt to load the featurized dataset' 
+             'get_featurized_data within model_datasets will attempt to load the featurized dataset'
              'associated with the given dataset_oid parameter')
     parser.set_defaults(previously_featurized=True)
     parser.add_argument(
         '--uncertainty', dest='uncertainty', action='store_false',
-        help='Boolean flag for computing uncertainty estimates for regression model predictions. Will also change the' 
+        help='Boolean flag for computing uncertainty estimates for regression model predictions. Will also change the'
              'default values for dropouts if set to True.')
     parser.set_defaults(uncertainty=True)
     parser.add_argument(
@@ -545,9 +545,9 @@ def get_parser():
     temp_bias_init_consts_string = [key + ':' + value + ',' for key, value in bias_init_consts_options.items()]
     separator = " "
     bias_init_consts_help_string = \
-        ('Comma-separated list of initial bias parameters per layer for dense NN models with conditional values. ' 
-         'Defaults to [1.0]*len(layer_sizes). Must be same length as layer_sizes. Can be input as a space-separated ' 
-         'list of comma-separated lists for hyperparameters (e.g. \'1.0,1.0 0.9,0.9 0.8,0.9\'). Default behavior is' 
+        ('Comma-separated list of initial bias parameters per layer for dense NN models with conditional values. '
+         'Defaults to [1.0]*len(layer_sizes). Must be same length as layer_sizes. Can be input as a space-separated '
+         'list of comma-separated lists for hyperparameters (e.g. \'1.0,1.0 0.9,0.9 0.8,0.9\'). Default behavior is'
          ' set within __init__ method of DCNNModelWrapper.  '
          + separator.join(temp_bias_init_consts_string)).rstrip(',')
     parser.add_argument(
@@ -557,9 +557,9 @@ def get_parser():
     temp_dropout_string = [key + ':' + value + ',' for key, value in dropout_options.items()]
     separator = " "
     dropout_help_string = \
-        ('Comma-separated list of dropout rates per layer for NN models with default values conditional on featurizer.' 
-         ' Default behavior is controlled in model_wrapper.py. Must be same length as layer_sizes. Can be input as ' 
-         'a space-separated list of comma-separated lists for hyperparameters (e.g. \'0.4,0.4 0.2,0.2 0.3,0.3\'). ' 
+        ('Comma-separated list of dropout rates per layer for NN models with default values conditional on featurizer.'
+         ' Default behavior is controlled in model_wrapper.py. Must be same length as layer_sizes. Can be input as '
+         'a space-separated list of comma-separated lists for hyperparameters (e.g. \'0.4,0.4 0.2,0.2 0.3,0.3\'). '
          'Default behavior is set within __init__ method of DCNNModelWrapper. Defaults: '
          + separator.join(temp_dropout_string)).rstrip(',')
     parser.add_argument(
@@ -569,9 +569,9 @@ def get_parser():
     temp_layer_size_string = [key + ':' + value + ',' for key,value in layer_size_options.items()]
     separator = " "
     layer_size_help_string = \
-        ('Comma-separated list of layer sizes for NN models with default values conditional on featurizer. Must be' 
-         ' same length as layer_sizes. Can be input as a space-separated list of comma-separated lists for ' 
-         'hyperparameters (e.g. \'64,16 200,100 1000,500\'). Default behavior is set within __init__ method of ' 
+        ('Comma-separated list of layer sizes for NN models with default values conditional on featurizer. Must be'
+         ' same length as layer_sizes. Can be input as a space-separated list of comma-separated lists for '
+         'hyperparameters (e.g. \'64,16 200,100 1000,500\'). Default behavior is set within __init__ method of '
          'DCNNModelWrapper. Defaults: '
          + separator.join(temp_layer_size_string)).rstrip(',')
     parser.add_argument(
@@ -580,27 +580,27 @@ def get_parser():
 
     parser.add_argument(
         '--learning_rate', dest='learning_rate', required=False, default='0.0005',
-        help='Learning rate for dense NN models. Input as comma separated floats for hyperparameters ' 
+        help='Learning rate for dense NN models. Input as comma separated floats for hyperparameters '
              '(e.g. \'0.0005,0.0004,0.0003\')')
     parser.add_argument(
         '--max_epochs', dest='max_epochs', type=int, default=30,
         help='Maximum number of training epochs to run for DNN models')
     parser.add_argument(
         '--weight_decay_penalty', dest='weight_decay_penalty', required=False, default='0.0001',
-        help='weight_decay_penalty: float. The magnitude of the weight decay penalty to use. ' 
-             'Can be input as a comma separated list of strings for hyperparameter search ' 
+        help='weight_decay_penalty: float. The magnitude of the weight decay penalty to use. '
+             'Can be input as a comma separated list of strings for hyperparameter search '
              '(e.g. \'0.0001,0.0002,0.0003\')')
     parser.add_argument(
         '--weight_decay_penalty_type', dest='weight_decay_penalty_type', default='l2', type=str,
-        help='weight_decay_penalty_type: str. The type of penalty to use for weight decay, either "l1" or "l2". ' 
+        help='weight_decay_penalty_type: str. The type of penalty to use for weight decay, either "l1" or "l2". '
              'Can be input as a comma separated list for hyperparameter search (e.g. \'l1,l2\')')
 
     temp_weight_init_stddevs_string = [key + ':' + value + ',' for key, value in weight_init_stddevs_options.items()]
     separator = " "
     weight_init_stddevs_help_string = \
-        ('Comma-separated list of standard deviations per layer for initializing weights in dense NN models with ' 
-         'conditional values. Must be same length as layer_sizes. Can be input as a space-separated list of ' 
-         'comma-separated lists for hyperparameters (e.g. \'0.001,0.001 0.002,0.002 0.03,003\'). Default behavior is ' 
+        ('Comma-separated list of standard deviations per layer for initializing weights in dense NN models with '
+         'conditional values. Must be same length as layer_sizes. Can be input as a space-separated list of '
+         'comma-separated lists for hyperparameters (e.g. \'0.001,0.001 0.002,0.002 0.03,003\'). Default behavior is '
          'set within __init__ method of DCNNModelWrapper. Defaults: '
          + separator.join(temp_weight_init_stddevs_string)).rstrip(',')
     parser.add_argument(
@@ -631,11 +631,11 @@ def get_parser():
     # model_building_parameters: splitting
     parser.add_argument(
         '--base_splitter', dest='base_splitter', default='scaffold', type=str,
-        help='Type of splitter to use for train/validation split if temporal split used for test set. May be random,' 
+        help='Type of splitter to use for train/validation split if temporal split used for test set. May be random,'
              ' scaffold, or ave_min. The allowable choices are set in splitter.py')
     parser.add_argument(
         '--butina_cutoff', dest='butina_cutoff', type=float, default=0.18,
-        help='cutoff Tanimoto similarity for clustering in Butina splitter. TODO: will be implemented when DeepChem' 
+        help='cutoff Tanimoto similarity for clustering in Butina splitter. TODO: will be implemented when DeepChem'
              ' updates their butina splitter. ')
     parser.add_argument(
         '--cutoff_date', dest='cutoff_date', type=str, default=None,
@@ -653,19 +653,19 @@ def get_parser():
     parser.add_argument(
         '--split_strategy', dest='split_strategy', choices=['train_valid_test', 'k_fold_cv'],
         default='train_valid_test',
-        help='Choice of splitting type between "k_fold_cv" for k fold cross validation and "train_valid_test" for a ' 
+        help='Choice of splitting type between "k_fold_cv" for k fold cross validation and "train_valid_test" for a '
              'normal train/valid/test split. If split_test_frac or split_valid_frac are not set, "train_valid_test" '
              'sets are split according to the splitting type default.')
     parser.add_argument(
         '--split_test_frac', dest='split_test_frac', type=float, default=0.1,
-        help='Fraction of data to put in held-out test set for train_valid_test split strategy.' 
+        help='Fraction of data to put in held-out test set for train_valid_test split strategy.'
              ' TODO: Behavior of split_test_frac is dependent on split_valid_frac and DeepChem')
     parser.add_argument(
         '--split_uuid', dest='split_uuid', default=None,
         help='UUID for csv file containing train, validation, and test split information. Specific to LLNL datastore')
     parser.add_argument(
         '--split_valid_frac', dest='split_valid_frac', type=float, default=0.1,
-        help='Fraction of data to put in the validation set for train_valid_test split strategy.' 
+        help='Fraction of data to put in the validation set for train_valid_test split strategy.'
              ' TODO: Behavior of split_valid_frac is dependent on split_test_frac and DeepChem')
     parser.add_argument(
         '--splitter', '-s', dest='splitter', default='scaffold', type=str,
@@ -686,11 +686,11 @@ def get_parser():
         help='Datastore bucket where the transformer is stored. Specific to LLNL datastore system.')
     parser.add_argument(
         '--transformer_key', dest='transformer_key', type=str, default=None,
-        help='Path to a saved transformer (stored as tuple, e.g. (transform_features, transform_respose)). ' 
+        help='Path to a saved transformer (stored as tuple, e.g. (transform_features, transform_respose)). '
              'Specific to LLNL datastore system.')
     parser.add_argument(
         '--transformer_oid', dest='transformer_oid', default=None,
-        help='Dataset oid of the transformer saved in the datastore. Specific to LLNL datastore system. ' 
+        help='Dataset oid of the transformer saved in the datastore. Specific to LLNL datastore system. '
              'TODO: May be redundant with transformer_key')
     parser.add_argument(
         '--transformers', dest='transformers', action='store_false',
@@ -724,27 +724,27 @@ def get_parser():
     # model_building_parameters: XGBoost
     parser.add_argument(
         '--xgb_colsample_bytree', dest='xgb_colsample_bytree', default='1.0',
-        help='Subsample ratio of columns when constructing each tree. Can be input as a comma separated list for' 
+        help='Subsample ratio of columns when constructing each tree. Can be input as a comma separated list for'
              ' hyperparameter search (e.g. \'0.8,0.9,1.0\')')
     parser.add_argument(
         '--xgb_gamma', dest='xgb_gamma', default='0.0',
-        help='Minimum loss reduction required to make a further partition on a leaf node of the tree. Can be input' 
+        help='Minimum loss reduction required to make a further partition on a leaf node of the tree. Can be input'
              ' as a comma separated list for hyperparameter search (e.g. \'0.0,0.1,0.2\')')
     parser.add_argument(
         '--xgb_learning_rate', dest='xgb_learning_rate', default='0.1',
-        help='Boosting learning rate (xgb\'s \"eta\"). Can be input as a comma separated list for hyperparameter' 
+        help='Boosting learning rate (xgb\'s \"eta\"). Can be input as a comma separated list for hyperparameter'
              ' search (e.g. \'0.1,0.01,0.001\')')
     parser.add_argument(
         '--xgb_max_depth', dest='xgb_max_depth', default='6',
-        help='Maximum tree depth for base learners. Can be input as a comma separated list for hyperparameter' 
+        help='Maximum tree depth for base learners. Can be input as a comma separated list for hyperparameter'
              ' search (e.g. \'4,5,6\')')
     parser.add_argument(
         '--xgb_min_child_weight', dest='xgb_min_child_weight', default='1.0',
-        help='Minimum sum of instance weight(hessian) needed in a child. Can be input as a comma separated list' 
+        help='Minimum sum of instance weight(hessian) needed in a child. Can be input as a comma separated list'
              ' for hyperparameter search (e.g. \'1.0,1.1,1.2\')')
     parser.add_argument(
         '--xgb_n_estimators', dest='xgb_n_estimators', default='100',
-        help='Number of estimators to use in xgboost models. Can be input as a comma separated list for ' 
+        help='Number of estimators to use in xgboost models. Can be input as a comma separated list for '
              'hyperparameter search (e.g. \'100,200,300\')')
     parser.add_argument(
         '--xgb_subsample', dest='xgb_subsample', default='1.0',
@@ -758,11 +758,11 @@ def get_parser():
         help='MongoDB collection where models will be saved.  Specific to LLNL model tracker system.')
     parser.add_argument(
         '--data_owner', dest='data_owner', default='gsk',
-        help='Option for setting group permissions for created files. Options specific to LLNL system. Options' 
+        help='Option for setting group permissions for created files. Options specific to LLNL system. Options'
              ': [\'username\', \'data_owner_group\', \'gsk\', \'public\']')
     parser.add_argument(
         '--data_owner_group', dest='data_owner_group', default='gsk_craa',
-        help='When data_owner is set to data_owner_group, this is the option for custom group name of created files. ' 
+        help='When data_owner is set to data_owner_group, this is the option for custom group name of created files. '
              'Specific to LLNL model_tracker system.')
     parser.add_argument(
         '--model_bucket', dest='model_bucket', type=str, default=None,
@@ -774,7 +774,7 @@ def get_parser():
         help='OID of the model dataset inserted into the datastore')
     parser.add_argument(
         '--model_filter', dest='model_filter', default=None,
-        help='Path to the model filter configuration file. Is loaded and stored as a dictionary. ' 
+        help='Path to the model filter configuration file. Is loaded and stored as a dictionary. '
              'Specific to LLNL model tracker system.')
     parser.add_argument(
         '--model_uuid', dest='model_uuid', type=str, default=None,
@@ -782,13 +782,13 @@ def get_parser():
     output_dir_default = None
     parser.add_argument(
         '--output_dir', dest='output_dir', required=False, default=output_dir_default,
-        help='File location where the model output will be saved. Defauts to <result_dir>/. ' 
+        help='File location where the model output will be saved. Defauts to <result_dir>/. '
              'TODO: redundant, should be removed in a later build.')
     parser.add_argument(
         '--result_dir', '-r', dest='result_dir', default=None, required=False,
         help='Parent of directory where result files will be written')
     parser.add_argument(
-        '--model_tarball_path', dest='model_tarball_path', default=None, 
+        '--model_tarball_path', dest='model_tarball_path', default=None,
         help='Filesystem path where model tarball will be written')
 
     # **********************************************************************************************************
@@ -802,7 +802,7 @@ def get_parser():
     # miscellaneous_parameters
     parser.add_argument(
         '--config_file', dest='config_file', required=False, type=str, default=None,
-        help='Full path to the optional configuration file. The configuration file is a set of parameters' 
+        help='Full path to the optional configuration file. The configuration file is a set of parameters'
              ' in .json file format. TODO: Does not send a warning if set concurrently with other parameters.')
     parser.add_argument(
         '--num_model_tasks', dest='num_model_tasks', type=int, required=False, default=1,
@@ -812,9 +812,9 @@ def get_parser():
     # hyperparameters
     parser.add_argument(
         '--dropout_list', dest='dropout_list', required=False, default=None,
-        help='Comma-separated list of dropout rates for permutation of NN layers (e.g. \'0.0,0.4,0.6\'). Used within' 
-             'permutate_NNlayer_combo_params to return combinations from layer_nums, node_nums, dropout_list and ' 
-             'max_final_layer_size. dropout_list is used to set the allowable permutations of dropouts. For ' 
+        help='Comma-separated list of dropout rates for permutation of NN layers (e.g. \'0.0,0.4,0.6\'). Used within'
+             'permutate_NNlayer_combo_params to return combinations from layer_nums, node_nums, dropout_list and '
+             'max_final_layer_size. dropout_list is used to set the allowable permutations of dropouts. For '
              'hyperparameters only.')
     parser.add_argument(
         '--hyperparam', dest='hyperparam', required=False, action='store_true',
@@ -856,10 +856,10 @@ def get_parser():
     parser.add_argument(
         '--python_path', dest='python_path', required=False, default='python', help='Path to desired python version')
     parser.add_argument(
-            '--rerun', dest= 'rerun', required=False, action='store_true',
+            '--rerun', dest= 'rerun', required=False, action='store_false',
             help='If False, check model tracker to see if a model with that particular param combination has '
                  'already been built')
-    parser.set_defaults(rerun=False)
+    parser.set_defaults(rerun=True)
     parser.add_argument(
         '--script_dir', dest='script_dir', required=False, default='.',
         help='Path where pipeline file you want to run hyperparam search from is located')
@@ -906,6 +906,26 @@ def get_parser():
         '--slurm_time_limit', dest='slurm_time_limit', required=False, default=1440,
         help='Time limit in minutes for hyperparameter search batch jobs.'
              'If set to None then this parameter will not be used.')
+
+    #HyperOptSearch specific parameters
+    parser.add_argument(
+        '--lr', dest='lr', required=False, default=None,
+        help='learing rate shown in HyperOpt domain format, e.g. --lr=uniform|0.00001,0.001')
+    parser.add_argument(
+        '--ls', dest='ls', required=False, default=None,
+        help='layer sizes shown in HyperOpt domain format, e.g. --ls=choice|2|8,16,32,64,128,256,512')
+    parser.add_argument(
+        '--dp', dest='dp', required=False, default=None,
+        help='dropouts shown in HyperOpt domain format, e.g. --dp=uniform|3|0,0.4')
+    parser.add_argument(
+        '--rfe', dest='rfe', required=False, default=None,
+        help='rf_estimators shown in HyperOpt domain format, e.g. --rfe=uniformint|64,512')
+    parser.add_argument(
+        '--rfd', dest='rfd', required=False, default=None,
+        help='rf_max_depth shown in HyperOpt domain format, e.g. --rfd=uniformint|64,512')
+    parser.add_argument(
+        '--rff', dest='rff', required=False, default=None,
+        help='rf_max_features shown in HyperOpt domain format, e.g. --rff=uniformint|64,512')
 
 
     return parser
@@ -1008,7 +1028,7 @@ def postprocess_args(parsed_args):
                     else:
                         newlist.append([float(x.strip()) for x in temp_split])
                     # Once a new list of lists is generated, pass to parsed_args
-                    if len(newlist) == 1:
+                    if len(newlist) == 1 and item not in ["layer_sizes", "dropouts", "bias_init_consts", "weight_init_stddevs"]:
                         parsed_args.__dict__[item] = newlist[0]
                         #newlist is a list of lists, need to extract down to the lowest layer, as necessary
                         if len(newlist[0]) == 1 and item not in keep_as_list:

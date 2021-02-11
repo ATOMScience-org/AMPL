@@ -45,7 +45,8 @@ def predict_activity(args):
 
     pred_params = {
         'id_col': args.id_col,
-        'smiles_col': std_smiles_col
+        'smiles_col': std_smiles_col,
+        'result_dir': args.result_dir
     }
     has_activity = (args.activity_col is not None)
     if has_activity:
@@ -57,7 +58,7 @@ def predict_activity(args):
         raise ValueError("model_type %s is not a recognizied value." % args.model_type)
     
     # Test loading model from tarball and running predictions
-    models_dir = os.path.join(os.path.dirname(os.path.dirname(mp.__file__)), 'examples', 'BSEP', 'models')
+    models_dir = os.path.join(os.path.dirname(__file__), 'models')
     model_tarfile = os.path.join(models_dir, model_files[args.model_type])
     pipe = mp.create_prediction_pipeline_from_file(pred_params, reload_dir=None, model_path=model_tarfile)
     pred_df = pipe.predict_full_dataset(input_df, contains_responses=has_activity, dset_params=pred_params)
@@ -130,6 +131,9 @@ def parse_params():
     parser.add_argument(
         '--dont_standardize', '-s', dest='dont_standardize', action='store_true',
         help="Don't standardize input SMILES strings. By default, the program standardizes SMILES strings and removes any salt groups.")
+    parser.add_argument(
+        '--result_dir', type=str, dest='result_dir', default='./bset_result',
+        help='directory to save the results.')
 
     parsed_args = parser.parse_args()
     return parsed_args

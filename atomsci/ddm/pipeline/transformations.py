@@ -54,12 +54,12 @@ def get_statistics_missing_ydata(dataset):
             if np.isnan(y[it]) :
                 assert(w[it]==0)
             if w[it]!=0 and not np.isnan(y[it]) :
-               #print("huh",w[it],y[it]) 
+               #print("huh",w[it],y[it])
                n[it]+=1
                dy[it] = y[it] - y_means[it]
                y_means[it] += dy[it] / n[it]
                y_m2[it] += dy[it] * (y[it] - y_means[it])
-      
+
     print("n_cnt",n)
     print("y_means",y_means)
     y_stds=np.zeros(len(n))
@@ -68,7 +68,7 @@ def get_statistics_missing_ydata(dataset):
          y_stds[it] = np.sqrt(y_m2[it] / n[it])
     print("y_stds",y_stds)
     return y_means, y_stds
-    
+
 # ****************************************************************************************
 def create_feature_transformers(params, model_dataset):
     """Fit a scaling and centering transformation to the feature matrix of the given dataset, and return a
@@ -150,7 +150,7 @@ class UMAPTransformer(Transformer):
         # Use Imputer to replace missing values (NaNs) with means for each column
         self.imputer = Imputer()
         scaled_X = self.scaler.fit_transform(self.imputer.fit_transform(dataset.X))
-        self.mapper = umap.UMAP(n_neighbors=params.umap_neighbors, 
+        self.mapper = umap.UMAP(n_neighbors=params.umap_neighbors,
                                 n_components=params.umap_dim,
                                 metric=params.umap_metric,
                                 target_metric=target_metric,
@@ -175,7 +175,7 @@ class UMAPTransformer(Transformer):
         raise NotImplementedError("Can't reverse a UMAP transformation")
     # ****************************************************************************************
 
-    
+
 # ****************************************************************************************
 
 class NormalizationTransformerMissingData(NormalizationTransformer):
@@ -189,12 +189,12 @@ class NormalizationTransformerMissingData(NormalizationTransformer):
                  dataset=None,
                  transform_gradients=False,
                  move_mean=True) :
-     
-       if transform_X :
-              X_means, X_stds = dataset.get_statistics(X_stats=True, y_stats=False)
-              self.X_means = X_means
-              self.X_stds = X_stds
-       elif transform_y:
+
+        if transform_X :
+            X_means, X_stds = dataset.get_statistics(X_stats=True, y_stats=False)
+            self.X_means = X_means
+            self.X_stds = X_stds
+        elif transform_y:
             y_means, y_stds = get_statistics_missing_ydata(dataset)
             self.y_means = y_means
             # Control for pathological case with no variance.
@@ -204,15 +204,34 @@ class NormalizationTransformerMissingData(NormalizationTransformer):
             self.transform_gradients = transform_gradients
             self.move_mean = move_mean
             if self.transform_gradients:
-              true_grad, ydely_means = get_grad_statistics(dataset)
-              self.grad = np.reshape(true_grad, (true_grad.shape[0], -1, 3))
-              self.ydely_means = ydely_means
+                true_grad, ydely_means = get_grad_statistics(dataset)
+                self.grad = np.reshape(true_grad, (true_grad.shape[0], -1, 3))
+                self.ydely_means = ydely_means
 
        ## skip the NormalizationTransformer initialization and go to base class
-       super(NormalizationTransformer, self).__init__(
+        super(NormalizationTransformer, self).__init__(
                 transform_X=transform_X,
                 transform_y=transform_y,
                 transform_w=transform_w,
                 dataset=dataset)
 
+    def transform(self, dataset, parallel=False):
+        return dataset.transform(lambda X, y, w: self.transform_array(X, y, w))
+
+    def transform_array(self, X, y, w):
+        """Transform the data in a set of (X, y, w) arrays."""
+        if self.transform_X:
+            zero_std_pos = np.where(self.X_stds == 0)
+            X_weight = np.ones_like(self.X_stds)
+            X_weight[zero_std_pos] = 0
+            if not hasattr(self, 'move_mean') or self.move_mean:
+                X = np.nan_to_num((X - self.X_means) * X_weight / self.X_stds)
+            else:
+                X = np.nan_to_num(X * X_weight / self.X_stds)
+        if self.transform_y:
+            if not hasattr(self, 'move_mean') or self.move_mean:
+                y = np.nan_to_num((y - self.y_means) / self.y_stds)
+            else:
+                y = np.nan_to_num(y / self.y_stds)
+        return (X, y, w)
 

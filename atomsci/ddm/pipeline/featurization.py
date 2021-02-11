@@ -15,6 +15,7 @@ import pandas as pd
 import deepchem.data.data_loader as dl
 
 from atomsci.ddm.utils import datastore_functions as dsf
+from atomsci.ddm.pipeline import transformations as trans
 
 from rdkit import Chem
 from rdkit.Chem import AllChem
@@ -1301,7 +1302,7 @@ class DescriptorFeaturization(PersistentFeaturization):
         Returns:
             (list of DeepChem transformer objects): list of transformers for the feature matrix
         """
-        transformers_x = [dc.trans.NormalizationTransformer(transform_X=True, dataset=dataset)]
+        transformers_x = [trans.NormalizationTransformerMissingData(transform_X=True, dataset=dataset)]
         return transformers_x
 
 

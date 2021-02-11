@@ -367,14 +367,14 @@ class ModelPipeline:
         If writing to disk, outputs to a JSON file <prefix>_model_metrics.json in the current output directory.
 
         Args:
-            model_metrics (dict or list): Either a dictionary containing the model performance metrics, or a 
+            model_metrics (dict or list): Either a dictionary containing the model performance metrics, or a
             list of dictionaries with metrics for each training label and subset.
 
             prefix: An optional prefix to include in the JSON filename, only used if writing to disk (i.e., if
             self.params.save_results is False).
-            
+
             retries (int): Number of retries to save to model tracker DB, if save_results is True.
-            
+
             sleep_sec (int): Number of seconds to sleep between retries.
 
         Side effects:
@@ -702,7 +702,7 @@ class ModelPipeline:
             contains_responses (bool): True if dataframe contains response values
 
             dset_params (Namespace):  Parameters used to interpret dataset, including id_col, smiles_col,
-            and optionally, response_cols. If not provided, id_col, smiles_col and response_cols are 
+            and optionally, response_cols. If not provided, id_col, smiles_col and response_cols are
             assumed to be same as in the pretrained model.
 
         Returns:
@@ -727,7 +727,7 @@ class ModelPipeline:
                 for i, col in enumerate(dset_params.response_cols):
                     coldict[col] = self.params.response_cols[i]
             dset_df = dset_df.rename(columns=coldict)
-                        
+
         self.data = model_datasets.create_minimal_dataset(self.params, self.featurization, contains_responses)
 
         if not self.data.get_dataset_tasks(dset_df):
@@ -738,7 +738,7 @@ class ModelPipeline:
 
         # Get the predictions and standard deviations, if calculated, as numpy arrays
         preds, stds = self.model_wrapper.generate_predictions(self.data.dataset)
-        result_df = pd.DataFrame({self.params.id_col: self.data.attr.index.values, 
+        result_df = pd.DataFrame({self.params.id_col: self.data.attr.index.values,
                                   self.params.smiles_col: self.data.attr[self.params.smiles_col].values})
 
         if contains_responses:
@@ -1086,7 +1086,7 @@ def create_prediction_pipeline_from_file(params, reload_dir, model_path=None, mo
         params (Namespace) : A parsed parameters namespace, containing parameters describing how input
         datasets should be processed.
 
-        reload_dir (str) : The path to the parent directory containing the various model subdirectories 
+        reload_dir (str) : The path to the parent directory containing the various model subdirectories
           (e.g.: '/home/cdsw/model/delaney-processed/delaney-processed/pxc50_NN_graphconv_scaffold_regression/').
         If reload_dir is None, then model_path must be specified. If both are specified, then the tar archive given
         by model_path will be unpacked into reload_dir, possibly overwriting existing files in that directory.
@@ -1143,12 +1143,12 @@ def create_prediction_pipeline_from_file(params, reload_dir, model_path=None, mo
         model_params.result_dir = params.result_dir
         model_params.system = params.system
         verbose = params.verbose
-    
+
         # Allow using computed_descriptors featurizer for a model trained with the descriptors featurizer, and vice versa
         if (model_params.featurizer == 'descriptors' and params.featurizer == 'computed_descriptors') or (
                 model_params.featurizer == 'computed_descriptors' and params.featurizer == 'descriptors'):
             model_params.featurizer = params.featurizer
-    
+
         # Allow descriptor featurizer to use a different descriptor table than was used for the training data.
         # This could be needed e.g. when a model was trained with GSK compounds and tested with ChEMBL data.
         model_params.descriptor_key = params.descriptor_key
@@ -1383,7 +1383,7 @@ def ensemble_predict(model_uuids, collections, dset_df, labels=None, dset_params
 
 
 # ****************************************************************************************
-def retrain_model(model_uuid, collection_name=None, mt_client=None, verbose=True):
+def retrain_model(model_uuid, collection_name=None, result_dir=None, mt_client=None, verbose=True):
     """Obtain model parameters from the metadata in the model tracker, given the model_uuid,
     and train a new model using exactly the same parameters (except for result_dir). Returns
     the resulting ModelPipeline object. The pipeline object can then be used as input for
@@ -1395,6 +1395,8 @@ def retrain_model(model_uuid, collection_name=None, mt_client=None, verbose=True
 
         collection_name (str) : The collection where the model is stored in the model tracker DB.
 
+        result_dir (str) : The directory of model results when the model tracker is not available.
+
         mt_client : Ignored
 
         verbose (bool): A switch for disabling informational messages
@@ -1402,12 +1404,22 @@ def retrain_model(model_uuid, collection_name=None, mt_client=None, verbose=True
     Returns:
         pipeline (ModelPipeline) : A pipeline object containing data from the model training.
     """
-    mlmt_client = dsf.initialize_model_tracker()
 
-    print("Loading model %s from collection %s" % (model_uuid, collection_name))
-    metadata_dict = trkr.get_metadata_by_uuid(model_uuid, collection_name=collection_name)
-    if not metadata_dict:
-        raise Exception("No model found with UUID %s in collection %s" % (model_uuid, collection_name))
+    if not result_dir:
+        mlmt_client = dsf.initialize_model_tracker()
+
+        print("Loading model %s from collection %s" % (model_uuid, collection_name))
+        metadata_dict = trkr.get_metadata_by_uuid(model_uuid, collection_name=collection_name)
+        if not metadata_dict:
+            raise Exception("No model found with UUID %s in collection %s" % (model_uuid, collection_name))
+    else:
+        for dirpath, dirnames, filenames in os.walk(result_dir):
+            if model_uuid in dirnames:
+                model_dir = os.path.join(dirpath, model_uuid)
+                break
+
+        with open(os.path.join(model_dir, 'model_metadata.json')) as f:
+            metadata_dict = json.load(f)
 
     print("Got metadata for model UUID %s" % model_uuid)
 
@@ -1416,7 +1428,7 @@ def retrain_model(model_uuid, collection_name=None, mt_client=None, verbose=True
 
     model_pparams.result_dir = tempfile.mkdtemp()
     # TODO: This is a hack; possibly the datastore parameter isn't being stored in the metadata?
-    model_pparams.datastore = True
+    model_pparams.datastore = True if not result_dir else False
     pipe = ModelPipeline(model_pparams)
     pipe.train_model()
 

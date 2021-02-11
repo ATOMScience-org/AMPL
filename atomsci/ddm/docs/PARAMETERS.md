@@ -21,6 +21,7 @@ The AMPL pipeline contains many parameters and options to fit models and make pr
 - [Model Metadata](#Model-Metadata)
 - [Miscellaneous](#Miscellaneous)
 - [Hyperparameter Optimization](#Hyperparameter-Optimization)
+  - [Bayesian Optimization](#Bayesian-Optimization)
 
 
 <a name="Training-Dataset-Parameters"></a>
@@ -811,7 +812,7 @@ The AMPL pipeline contains many parameters and options to fit models and make pr
 |||
 |-|-|
 |*Description:*| After parameter combos have been generated, `rerun=False` will check the model tracker to see if a model with a particular param combination has already been built. If it’s been built, do not create a new model or submit a slurm job. If `rerun=True`, the check will be skipped completely and a slurm job will be submitted regardless of whether a model has previously been built with these parameters. Specific to hyperparameter search.|
-|*Default:*|FALSE|
+|*Default:*|TRUE|
 |*Type:*|Bool|
   
 - **script\_dir**  
@@ -894,3 +895,47 @@ The AMPL pipeline contains many parameters and options to fit models and make pr
 |*Default:*|FALSE|
 |*Type:*|Bool|
   
+<a name="bayesian-optimization"></a>
+## Bayesian Optimization  
+
+- **lr**  
+  
+|||
+|-|-|
+|*Description:*|Learning rate searching domain in Bayesian Optimization. The format is `scheme\|parameters`, e.g. `choice\|0.0001,0.0005,0.0002,0.001`. See https://github.com/ATOMconsortium/AMPL#hyperparameter-optimization|
+|*Default:*|None|
+
+- **dp**  
+  
+|||
+|-|-|
+|*Description:*|Dropouts searching domain in Bayesian Optimization. The format is `scheme\|num_layers\|parameters`, e.g. `uniform\|3\|0,0.4`, Note that the number of layers (number between two \|) can not be changed during optimization, if you want to try different number of layers, just run several optimizations.
+|*Default:*|None|
+
+- **ls**  
+  
+|||
+|-|-|
+|*Description:*|Layer sizes searching domain in Bayesian Optimization. The format is `scheme\|num_layers\|parameters`, e.g. `uniformint\|3\|8,512`, Note that the number of layers (number between two \|) can not be changed during optimization, if you want to try different number of layers, just run several optimizations.
+|*Default:*|None|
+
+- **rfe**  
+  
+|||
+|-|-|
+|*Description:*|Number of estimators searching domain of RF models in Bayesian Optimization. The format is `scheme\|parameters`, e.g. `uniformint\|8,512`.
+|*Default:*|None|
+
+- **rfd**  
+  
+|||
+|-|-|
+|*Description:*|Max depth of the decision tree searching domain of RF models in Bayesian Optimization. The format is `scheme\|parameters`, e.g. `uniformint\|8,512`.
+|*Default:*|None|
+
+- **rff**  
+  
+|||
+|-|-|
+|*Description:*|Max number of features searching domain of RF models in Bayesian Optimization. The format is `scheme\|parameters`, e.g. `uniformint\|8,200`.
+|*Default:*|None|
