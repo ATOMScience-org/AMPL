@@ -1374,11 +1374,19 @@ class HyperOptSearch():
 
             # print the model metrics as logs
             print()
-            print(f'model_performance|{res_dict["model"]}|{res_dict["train_r2"]:.3f}|{res_dict["train_rms"]:.3f}|{res_dict["valid_r2"]:.3f}|{res_dict["valid_rms"]:.3f}|{res_dict["test_r2"]:.3f}|{res_dict["test_rms"]:.3f}\n')
+            if tparam.prediction_type == "regression":
+                print(f'model_performance|{res_dict["model"]}|{res_dict["train_r2"]:.3f}|{res_dict["train_rms"]:.3f}|{res_dict["valid_r2"]:.3f}|{res_dict["valid_rms"]:.3f}|{res_dict["test_r2"]:.3f}|{res_dict["test_rms"]:.3f}\n')
+            else:
+                print(f'model_performance|{res_dict["model"]}|{res_dict["train_roc_auc"]:.3f}|{res_dict["train_acc"]:.3f}|{res_dict["valid_roc_auc"]:.3f}|{res_dict["valid_acc"]:.3f}|{res_dict["test_roc_auc"]:.3f}|{res_dict["test_acc"]:.3f}\n')
+
             return res_dict
 
+        if self.params.prediction_type == "regression":
+            print(f'model_performance|model|train_r2|train_rms|valid_r2|valid_rms|test_r2|test_rms\n')
+        else:
+            print(f'model_performance|model|train_roc_auc|train_acc|valid_roc_auc|valid_acc|test_roc_auc|test_acc\n')
+
         trials = Trials()
-        print(f'model_performance|model|train_r2|train_rms|valid_r2|valid_rms|test_r2|test_rms\n')
         best = fmin(lossfn, self.space, algo=tpe.suggest, max_evals=self.max_eval, trials=trials)
 
         print(f"Generating the performance -- iteration table and Copy the best model tarball.")
@@ -1398,18 +1406,19 @@ class HyperOptSearch():
 
         if self.params.prediction_type == "regression":
             best_trial = perf.sort_values(by="valid_r2", ascending=False)["trial"].iloc[0]
+            best_model = trials.trials[best_trial]["result"]["model"]
+            print(f'Best model: {best_model}, valid R2: {perf.sort_values(by="valid_r2", ascending=False)["valid_r2"].iloc[0]}')
         else:
             best_trial = perf.sort_values(by="valid_roc_auc", ascending=False)["trial"].iloc[0]
+            best_model = trials.trials[best_trial]["result"]["model"]
+            print(f'Best model: {best_model}, valid ROC_AUC: {perf.sort_values(by="valid_roc_auc", ascending=False)["valid_roc_auc"].iloc[0]}')
 
-        best_model = trials.trials[best_trial]["result"]["model"]
         bmodel_prefix = "_".join(os.path.basename(best_model).split("_")[:-1])
+        bmodel_uuid = os.path.basename(best_model).split("_")[-1]
         shutil.copy2(best_model, os.path.join(self.final_dir,
-                                              f"best_{self.params.prediction_type}_{bmodel_prefix}_{self.params.model_type}_{f}.tar.gz"))
+                                              f"best_{self.params.prediction_type}_{bmodel_prefix}_{self.params.model_type}_{f}_{bmodel_uuid}.tar.gz"))
 
-        print(f"Save the performance -- evaluation table.")
-
-        perf.to_csv(os.path.join(self.final_dir, f"performance_{self.params.prediction_type}_{bmodel_prefix}_{self.params.model_type}_{f}.csv"), index=False)
-        print(f'Best model: {best_model}, valid R2: {perf.sort_values(by="valid_r2", ascending=False)["valid_r2"].iloc[0]}')
+        perf.to_csv(os.path.join(self.final_dir, f"performance_{self.params.prediction_type}_{bmodel_prefix}_{self.params.model_type}_{f}_{bmodel_uuid}.csv"), index=False)
 
 def main():
     """Entry point when script is run"""
