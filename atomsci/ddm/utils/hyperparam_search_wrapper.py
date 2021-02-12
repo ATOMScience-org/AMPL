@@ -1414,11 +1414,14 @@ class HyperOptSearch():
             print(f'Best model: {best_model}, valid ROC_AUC: {perf.sort_values(by="valid_roc_auc", ascending=False)["valid_roc_auc"].iloc[0]}')
 
         bmodel_prefix = "_".join(os.path.basename(best_model).split("_")[:-1])
-        bmodel_uuid = os.path.basename(best_model).split("_")[-1]
-        shutil.copy2(best_model, os.path.join(self.final_dir,
-                                              f"best_{self.params.prediction_type}_{bmodel_prefix}_{self.params.model_type}_{f}_{bmodel_uuid}.tar.gz"))
+        bmodel_uuid = os.path.basename(best_model).split(".")[0].split("_")[-1]
 
         perf.to_csv(os.path.join(self.final_dir, f"performance_{self.params.prediction_type}_{bmodel_prefix}_{self.params.model_type}_{f}_{bmodel_uuid}.csv"), index=False)
+        if os.path.isfile(best_model):
+            # if the model tracker is used, the model won't be saved to the result_dir
+            shutil.copy2(best_model, os.path.join(self.final_dir,
+                                              f"best_{self.params.prediction_type}_{bmodel_prefix}_{self.params.model_type}_{f}_{bmodel_uuid}.tar.gz"))
+
 
 def main():
     """Entry point when script is run"""
