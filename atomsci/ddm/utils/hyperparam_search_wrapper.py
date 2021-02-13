@@ -1278,60 +1278,68 @@ class HyperOptSearch():
             self.space["descriptor_type"] = build_hyperopt_search_domain("descriptor_type", "choice", self.params.descriptor_type)
         if self.params.model_type == "RF":
             #build searching domain for RF parameters
-            domain_list = self.params.rfe.split("|")
-            method = domain_list[0]
-            par_list = [float(e) for e in domain_list[1].split(",")]
-            self.space["rf_estimators"] = build_hyperopt_search_domain("rf_estimators", method, par_list)
-
-            domain_list = self.params.rfd.split("|")
-            method = domain_list[0]
-            par_list = [float(e) for e in domain_list[1].split(",")]
-            self.space["rf_max_depth"] = build_hyperopt_search_domain("rf_max_depth", method, par_list)
-
-            domain_list = self.params.rff.split("|")
-            method = domain_list[0]
-            par_list = [float(e) for e in domain_list[1].split(",")]
-            self.space["rf_max_features"] = build_hyperopt_search_domain("rf_max_features", method, par_list)
-        elif self.params.model_type == "NN":
-            #build searching domain for NN parameters
-            domain_list = self.params.lr.split("|")
-            method = domain_list[0]
-            par_list = [float(e) for e in domain_list[1].split(",")]
-            self.space["learning_rate"] = build_hyperopt_search_domain("learning_rate", method, par_list)
-
-            # for layer sizes, use a different method if the ls_ratio is provided
-            domain_list = self.params.ls.split("|")
-            method = domain_list[0]
-            num_layer = int(domain_list[1])
-            par_list = [float(e) for e in domain_list[2].split(",")]
-            if not self.params.ls_ratio:
-                for i in range(num_layer):
-                    self.space[f"ls{i}"] = build_hyperopt_search_domain(f"ls{i}", method, par_list)
-            else:
-                self.space["ls"] = build_hyperopt_search_domain("ls", method, par_list)
-                domain_list = self.params.ls_ratio.split("|")
+            if self.params.rfe:
+                domain_list = self.params.rfe.split("|")
                 method = domain_list[0]
                 par_list = [float(e) for e in domain_list[1].split(",")]
-                for i in range(1,num_layer):
-                    self.space[f"ratio{i}"] = build_hyperopt_search_domain(f"ratio{i}", method, par_list)
+                self.space["rf_estimators"] = build_hyperopt_search_domain("rf_estimators", method, par_list)
 
-            domain_list = self.params.dp.split("|")
-            method = domain_list[0]
-            num_layer = int(domain_list[1])
-            par_list = [float(e) for e in domain_list[2].split(",")]
-            for i in range(num_layer):
-                self.space[f"dp{i}"] = build_hyperopt_search_domain(f"dp{i}", method, par_list)
+            if self.params.rfd:
+                domain_list = self.params.rfd.split("|")
+                method = domain_list[0]
+                par_list = [float(e) for e in domain_list[1].split(",")]
+                self.space["rf_max_depth"] = build_hyperopt_search_domain("rf_max_depth", method, par_list)
+
+            if self.params.rff:
+                domain_list = self.params.rff.split("|")
+                method = domain_list[0]
+                par_list = [float(e) for e in domain_list[1].split(",")]
+                self.space["rf_max_features"] = build_hyperopt_search_domain("rf_max_features", method, par_list)
+        elif self.params.model_type == "NN":
+            #build searching domain for NN parameters
+            if self.params.lr:
+                domain_list = self.params.lr.split("|")
+                method = domain_list[0]
+                par_list = [float(e) for e in domain_list[1].split(",")]
+                self.space["learning_rate"] = build_hyperopt_search_domain("learning_rate", method, par_list)
+
+            # for layer sizes, use a different method if the ls_ratio is provided
+            if self.params.ls:
+                domain_list = self.params.ls.split("|")
+                method = domain_list[0]
+                num_layer = int(domain_list[1])
+                par_list = [float(e) for e in domain_list[2].split(",")]
+                if not self.params.ls_ratio:
+                    for i in range(num_layer):
+                        self.space[f"ls{i}"] = build_hyperopt_search_domain(f"ls{i}", method, par_list)
+                else:
+                    self.space["ls"] = build_hyperopt_search_domain("ls", method, par_list)
+                    domain_list = self.params.ls_ratio.split("|")
+                    method = domain_list[0]
+                    par_list = [float(e) for e in domain_list[-1].split(",")]
+                    for i in range(1,num_layer):
+                        self.space[f"ratio{i}"] = build_hyperopt_search_domain(f"ratio{i}", method, par_list)
+
+            if self.params.dp:
+                domain_list = self.params.dp.split("|")
+                method = domain_list[0]
+                num_layer = int(domain_list[1])
+                par_list = [float(e) for e in domain_list[2].split(",")]
+                for i in range(num_layer):
+                    self.space[f"dp{i}"] = build_hyperopt_search_domain(f"dp{i}", method, par_list)
         elif self.params.model_type == "xgboost":
             #build searching domain for XGBoost parameters
-            domain_list = self.params.xgbg.split("|")
-            method = domain_list[0]
-            par_list = [float(e) for e in domain_list[1].split(",")]
-            self.space["xgbg"] = build_hyperopt_search_domain("xgbg", method, par_list)
+            if self.params.xgbg:
+                domain_list = self.params.xgbg.split("|")
+                method = domain_list[0]
+                par_list = [float(e) for e in domain_list[1].split(",")]
+                self.space["xgbg"] = build_hyperopt_search_domain("xgbg", method, par_list)
 
-            domain_list = self.params.xgbl.split("|")
-            method = domain_list[0]
-            par_list = [float(e) for e in domain_list[1].split(",")]
-            self.space["xgbl"] = build_hyperopt_search_domain("xgbl", method, par_list)
+            if self.params.xgbl:
+                domain_list = self.params.xgbl.split("|")
+                method = domain_list[0]
+                par_list = [float(e) for e in domain_list[1].split(",")]
+                self.space["xgbl"] = build_hyperopt_search_domain("xgbl", method, par_list)
 
 
     def run_search(self):
@@ -1351,37 +1359,57 @@ class HyperOptSearch():
                 self.params.descriptor_type = p["descriptor_type"]
 
             if self.params.model_type == "RF":
-                self.params.rf_estimators =  p["rf_estimators"]
-                self.params.rf_max_depth = p["rf_max_depth"]
-                self.params.rf_max_features = p["rf_max_features"]
-                hp_params = f'{p["rf_estimators"]}_{p["rf_max_depth"]}_{p["rf_max_features"]}'
-                print(f'rf_estimators: {p["rf_estimators"]}, rf_max_depth: {p["rf_max_depth"]}, rf_max_feature: {p["rf_max_features"]}')
+                if self.params.rfe:
+                    self.params.rf_estimators =  p["rf_estimators"]
+                if self.params.rfd:
+                    self.params.rf_max_depth = p["rf_max_depth"]
+                if self.params.rff:
+                    self.params.rf_max_features = p["rf_max_features"]
+                hp_params = f'{self.params.rf_estimators}_{self.params.rf_max_depth}_{self.params.rf_max_features}'
+                print(f'rf_estimators: {self.params.rf_estimators}, rf_max_depth: {self.params.rf_max_depth}, rf_max_feature: {self.params.rf_max_features}')
             elif self.params.model_type == "NN":
-                self.params.learning_rate = p["learning_rate"]
-                self.params.dropouts = ",".join([str(p[e]) for e in self.space if e[:2] == "dp"])
-                if not self.params.ls_ratio:
-                    self.params.layer_sizes = ",".join([str(p[e]) for e in self.space if e[:2] == "ls"])
-                else:
-                    list_layer_sizes = [p["ls"]]
-                    for i in range(1,len(self.params.dropouts.split(","))):
-                        list_layer_sizes.append(int(list_layer_sizes[-1] * p[f"ratio{i}"]))
-                    self.params.layer_sizes = ",".join([str(e) for e in list_layer_sizes])
+                if self.params.lr:
+                    self.params.learning_rate = p["learning_rate"]
+                if self.params.dp:
+                    self.params.dropouts = ",".join([str(p[e]) for e in p if e[:2] == "dp"])
+                if self.params.ls:
+                    if not self.params.ls_ratio:
+                        self.params.layer_sizes = ",".join([str(p[e]) for e in p if e[:2] == "ls"])
+                    else:
+                        list_layer_sizes = [p["ls"]]
+                        for i in range(1,len(self.params.dropouts.split(","))):
+                            list_layer_sizes.append(int(list_layer_sizes[-1] * p[f"ratio{i}"]))
+                        self.params.layer_sizes = ",".join([str(e) for e in list_layer_sizes])
                 hp_params = f'{self.params.learning_rate}_{self.params.layer_sizes}_{self.params.dropouts}'
                 print(f"learning_rate: {self.params.learning_rate}, layer_sizes: {self.params.layer_sizes}, dropouts: {self.params.dropouts}")
             elif self.params.model_type == "xgboost":
-                self.params.xgb_gamma = p["xgbg"]
-                self.params.xgb_learning_rate = p["xgbl"]
+                if self.params.xgbg:
+                    self.params.xgb_gamma = p["xgbg"]
+                if self.params.xgbl:
+                    self.params.xgb_learning_rate = p["xgbl"]
                 hp_params = f'{self.params.xgb_gamma}_{self.params.xgb_learning_rate}'
                 print(f"xgb_gamma: {self.params.xgb_gamma}, xgb_learing_rate: {self.params.xgb_learning_rate}")
+
+            # set hyperparam to False to make sure the layer_sizes and dropouts are not lists if not optimized.
+            self.params.hyperparam = False
+            if isinstance(self.params.layer_sizes, list):
+                if isinstance(self.params.layer_sizes[0], list):
+                    self.params.layer_sizes = ",".join([str(e) for e in self.params.layer_sizes[0]])
+                else:
+                    self.params.layer_sizes = ",".join([str(e) for e in self.params.layer_sizes])
+                hp_params = f'{self.params.learning_rate}_{self.params.layer_sizes}_{self.params.dropouts}'
+            if isinstance(self.params.dropouts, list):
+                if isinstance(self.params.dropouts[0], list):
+                    self.params.dropouts = ",".join([str(e) for e in self.params.dropouts[0]])
+                else:
+                    self.params.dropouts = ",".join([str(e) for e in self.params.dropouts])
+                hp_params = f'{self.params.learning_rate}_{self.params.layer_sizes}_{self.params.dropouts}'
 
             tparam = parse.wrapper(self.params.__dict__)
             print(f"{self.params.model_type} model with {self.params.featurizer} and {self.params.descriptor_type}")
             # make sure classification model has uncertainty as False. 
             if tparam.prediction_type != "regression":
                 tparam.uncertainty = False
-            if self.params.model_type == "NN":
-                tparam.layer_sizes = tparam.layer_sizes[0]
-                tparam.dropouts = tparam.dropouts[0]
             pl = mp.ModelPipeline(tparam)
 
             model_failed = False
@@ -1496,6 +1524,10 @@ def main():
                    'slurm_options',
                    'slurm_partition',
                    'slurm_time_limit'} | excluded_keys
+    if params.search_type == 'hyperopt':
+        # keep more parameters
+        keep_params = keep_params | {'lr', 'learning_rate','ls', 'layer_sizes','ls_ratio','dp', 'dropouts','rfe', 'rf_estimators','rfd', 'rf_max_depth','rff', 'rf_max_features','xgbg', 'xgb_gamma','xgbl', 'xgb_learning_rate'}
+
     params.__dict__ = parse.prune_defaults(params, keep_params=keep_params)
     if params.search_type == 'grid':
         hs = GridSearch(params)
