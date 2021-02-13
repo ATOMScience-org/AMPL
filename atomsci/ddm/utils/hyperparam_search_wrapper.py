@@ -1299,12 +1299,21 @@ class HyperOptSearch():
             par_list = [float(e) for e in domain_list[1].split(",")]
             self.space["learning_rate"] = build_hyperopt_search_domain("learning_rate", method, par_list)
 
+            # for layer sizes, use a different method if the ls_ratio is provided
             domain_list = self.params.ls.split("|")
             method = domain_list[0]
             num_layer = int(domain_list[1])
             par_list = [float(e) for e in domain_list[2].split(",")]
-            for i in range(num_layer):
-                self.space[f"ls{i}"] = build_hyperopt_search_domain(f"ls{i}", method, par_list)
+            if not self.params.ls_ratio:
+                for i in range(num_layer):
+                    self.space[f"ls{i}"] = build_hyperopt_search_domain(f"ls{i}", method, par_list)
+            else:
+                self.space["ls"] = build_hyperopt_search_domain("ls", method, par_list)
+                domain_list = self.params.ls_ratio.split("|")
+                method = domain_list[0]
+                par_list = [float(e) for e in domain_list[1].split(",")]
+                for i in range(1,num_layer):
+                    self.space[f"ratio{i}"] = build_hyperopt_search_domain(f"ratio{i}", method, par_list)
 
             domain_list = self.params.dp.split("|")
             method = domain_list[0]
@@ -1312,6 +1321,18 @@ class HyperOptSearch():
             par_list = [float(e) for e in domain_list[2].split(",")]
             for i in range(num_layer):
                 self.space[f"dp{i}"] = build_hyperopt_search_domain(f"dp{i}", method, par_list)
+        elif self.params.model_type == "xgboost":
+            #build searching domain for XGBoost parameters
+            domain_list = self.params.xgbg.split("|")
+            method = domain_list[0]
+            par_list = [float(e) for e in domain_list[1].split(",")]
+            self.space["xgbg"] = build_hyperopt_search_domain("xgbg", method, par_list)
+
+            domain_list = self.params.xgbl.split("|")
+            method = domain_list[0]
+            par_list = [float(e) for e in domain_list[1].split(",")]
+            self.space["xgbl"] = build_hyperopt_search_domain("xgbl", method, par_list)
+
 
     def run_search(self):
         #name of the results
@@ -1333,12 +1354,25 @@ class HyperOptSearch():
                 self.params.rf_estimators =  p["rf_estimators"]
                 self.params.rf_max_depth = p["rf_max_depth"]
                 self.params.rf_max_features = p["rf_max_features"]
+                hp_params = f'{p["rf_estimators"]}_{p["rf_max_depth"]}_{p["rf_max_features"]}'
                 print(f'rf_estimators: {p["rf_estimators"]}, rf_max_depth: {p["rf_max_depth"]}, rf_max_feature: {p["rf_max_features"]}')
             elif self.params.model_type == "NN":
                 self.params.learning_rate = p["learning_rate"]
-                self.params.layer_sizes = ",".join([str(p[e]) for e in self.space if e[:2] == "ls"])
                 self.params.dropouts = ",".join([str(p[e]) for e in self.space if e[:2] == "dp"])
+                if not self.params.ls_ratio:
+                    self.params.layer_sizes = ",".join([str(p[e]) for e in self.space if e[:2] == "ls"])
+                else:
+                    list_layer_sizes = [p["ls"]]
+                    for i in range(1,len(self.params.dropouts.split(","))):
+                        list_layer_sizes.append(int(list_layer_sizes[-1] * p[f"ratio{i}"]))
+                    self.params.layer_sizes = ",".join([str(e) for e in list_layer_sizes])
+                hp_params = f'{self.params.learning_rate}_{self.params.layer_sizes}_{self.params.dropouts}'
                 print(f"learning_rate: {self.params.learning_rate}, layer_sizes: {self.params.layer_sizes}, dropouts: {self.params.dropouts}")
+            elif self.params.model_type == "xgboost":
+                self.params.xgb_gamma = p["xgbg"]
+                self.params.xgb_learning_rate = p["xgbl"]
+                hp_params = f'{self.params.xgb_gamma}_{self.params.xgb_learning_rate}'
+                print(f"xgb_gamma: {self.params.xgb_gamma}, xgb_learing_rate: {self.params.xgb_learning_rate}")
 
             tparam = parse.wrapper(self.params.__dict__)
             print(f"{self.params.model_type} model with {self.params.featurizer} and {self.params.descriptor_type}")
@@ -1349,12 +1383,25 @@ class HyperOptSearch():
                 tparam.layer_sizes = tparam.layer_sizes[0]
                 tparam.dropouts = tparam.dropouts[0]
             pl = mp.ModelPipeline(tparam)
-            pl.train_model()
+
+            model_failed = False
+            try:
+                pl.train_model()
+            except:
+                model_failed = True
+
             subsets = ["train", "valid", "test"]
             pred_results = dict(zip(subsets, [{} for _ in subsets]))
             for subset in subsets:
-                perf_data = pl.model_wrapper.get_perf_data(subset=subset, epoch_label="best")
-                sub_pred_results = perf_data.get_prediction_results()
+                if not model_failed:
+                    perf_data = pl.model_wrapper.get_perf_data(subset=subset, epoch_label="best")
+                    sub_pred_results = perf_data.get_prediction_results()
+                else:
+                    if tparam.prediction_type == "regression":
+                        sub_pred_results = {"r2_score": 0, "rms_score": 100}
+                    else:
+                        sub_pred_results = {"roc_auc_score": 0, "accuracy_score": 0}
+
                 if tparam.prediction_type == "regression":
                     pred_results[subset]["r2"] = sub_pred_results['r2_score']
                     pred_results[subset]["rms"] = sub_pred_results['rms_score']
@@ -1371,20 +1418,21 @@ class HyperOptSearch():
                 for subset in subsets:
                     res_dict[f"{subset}_roc_auc"] = pred_results[subset]["roc_auc"]
                     res_dict[f"{subset}_acc"] = pred_results[subset]["acc"]
+            res_dict["hp_params"] = hp_params
 
             # print the model metrics as logs
             print()
             if tparam.prediction_type == "regression":
-                print(f'model_performance|{res_dict["model"]}|{res_dict["train_r2"]:.3f}|{res_dict["train_rms"]:.3f}|{res_dict["valid_r2"]:.3f}|{res_dict["valid_rms"]:.3f}|{res_dict["test_r2"]:.3f}|{res_dict["test_rms"]:.3f}\n')
+                print(f'model_performance|{res_dict["train_r2"]:.3f}|{res_dict["train_rms"]:.3f}|{res_dict["valid_r2"]:.3f}|{res_dict["valid_rms"]:.3f}|{res_dict["test_r2"]:.3f}|{res_dict["test_rms"]:.3f}|{res_dict["hp_params"]}|{res_dict["model"]}\n')
             else:
-                print(f'model_performance|{res_dict["model"]}|{res_dict["train_roc_auc"]:.3f}|{res_dict["train_acc"]:.3f}|{res_dict["valid_roc_auc"]:.3f}|{res_dict["valid_acc"]:.3f}|{res_dict["test_roc_auc"]:.3f}|{res_dict["test_acc"]:.3f}\n')
+                print(f'model_performance|{res_dict["train_roc_auc"]:.3f}|{res_dict["train_acc"]:.3f}|{res_dict["valid_roc_auc"]:.3f}|{res_dict["valid_acc"]:.3f}|{res_dict["test_roc_auc"]:.3f}|{res_dict["test_acc"]:.3f}|{res_dict["hp_params"]}|{res_dict["model"]}\n')
 
             return res_dict
 
         if self.params.prediction_type == "regression":
-            print(f'model_performance|model|train_r2|train_rms|valid_r2|valid_rms|test_r2|test_rms\n')
+            print(f'model_performance|train_r2|train_rms|valid_r2|valid_rms|test_r2|test_rms|model_params|model\n')
         else:
-            print(f'model_performance|model|train_roc_auc|train_acc|valid_roc_auc|valid_acc|test_roc_auc|test_acc\n')
+            print(f'model_performance|train_roc_auc|train_acc|valid_roc_auc|valid_acc|test_roc_auc|test_acc|model_params|model\n')
 
         trials = Trials()
         best = fmin(lossfn, self.space, algo=tpe.suggest, max_evals=self.max_eval, trials=trials)
@@ -1393,7 +1441,8 @@ class HyperOptSearch():
 
         feat_list = [trials.trials[i]["result"]["featurizer"] for i in range(len(trials.trials))]
         desc_list = [trials.trials[i]["result"]["desc"] for i in range(len(trials.trials))]
-        trial_data = {"trial": list(range(len(trials.trials))), "featurizer": feat_list, "descriptor": desc_list}
+        hp_params_list = [trials.trials[i]["result"]["hp_params"] for i in range(len(trials.trials))]
+        trial_data = {"trial": list(range(len(trials.trials))), "featurizer": feat_list, "descriptor": desc_list, "model_params": hp_params_list}
         subsets = ["train", "valid", "test"]
         for subset in subsets:
             if self.params.prediction_type == "regression":
