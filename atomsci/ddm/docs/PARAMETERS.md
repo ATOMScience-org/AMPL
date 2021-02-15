@@ -20,7 +20,6 @@ The AMPL pipeline contains many parameters and options to fit models and make pr
   - [UMAP](#umap)
   - [XGBoost](#xgboost)
 - [Model Saving](#model-saving)
-  - [](#)
 - [Model Metadata](#model-metadata)
 - [Miscellaneous](#miscellaneous)
 - [Hyperparameter Optimization](#hyperparameter-optimization)
@@ -639,10 +638,6 @@ The AMPL pipeline contains many parameters and options to fit models and make pr
 
 <a name="Model-Saving"></a>
 # Model Saving  
-
----
-
-##   
 
 - **collection\_name**  
   
