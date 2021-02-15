@@ -2,26 +2,29 @@
 The AMPL pipeline contains many parameters and options to fit models and make predictions. The parameters have been organized in the following sections:
 
 ## Table of contents
-- [Training Dataset Parameters](#Training-Dataset-Parameters)
-- [Model Building Parameters](#Model-Building-Parameters)
-  - [Autoencoders](#Autoencoders)
-  - [Classifiers](#Classifiers)
-  - [Descriptors](#Descriptors)
-  - [ECFP](#ECFP)
-  - [General](#General)
-  - [Graph Convolution](#Graph-Convolution)
-  - [Mordred](#Mordred)
-  - [Neural Networks](#Neural-Networks)
-  - [Random Forests](#Random-Forests)
-  - [Splitting](#Splitting)
-  - [Transformers](#Transformers)
-  - [UMAP](#UMAP)
-  - [XGBoost](#XGBoost)
-- [Model Saving](#Model-Saving)
-- [Model Metadata](#Model-Metadata)
-- [Miscellaneous](#Miscellaneous)
-- [Hyperparameter Optimization](#Hyperparameter-Optimization)
-  - [Bayesian Optimization](#Bayesian-Optimization)
+- [AMPL pipeline parameters (options)](#ampl-pipeline-parameters-options)
+  - [Table of contents](#table-of-contents)
+- [Training Dataset Parameters](#training-dataset-parameters)
+- [Model Building Parameters](#model-building-parameters)
+  - [Autoencoders](#autoencoders)
+  - [Classifiers](#classifiers)
+  - [Descriptors](#descriptors)
+  - [ECFP](#ecfp)
+  - [General](#general)
+  - [Graph Convolution](#graph-convolution)
+  - [Mordred](#mordred)
+  - [Neural Networks](#neural-networks)
+  - [Random Forests](#random-forests)
+  - [Splitting](#splitting)
+  - [Transformers](#transformers)
+  - [UMAP](#umap)
+  - [XGBoost](#xgboost)
+- [Model Saving](#model-saving)
+  - [](#)
+- [Model Metadata](#model-metadata)
+- [Miscellaneous](#miscellaneous)
+- [Hyperparameter Optimization](#hyperparameter-optimization)
+  - [Bayesian Optimization](#bayesian-optimization)
 
 
 <a name="Training-Dataset-Parameters"></a>
@@ -938,4 +941,18 @@ The AMPL pipeline contains many parameters and options to fit models and make pr
 |||
 |-|-|
 |*Description:*|Max number of features searching domain of RF models in Bayesian Optimization. The format is `scheme\|parameters`, e.g. `uniformint\|8,200`.
+|*Default:*|None|
+
+- **xgbg**  
+  
+|||
+|-|-|
+|*Description:*|xgb_gamma (Minimum loss reduction required to make a further partition on a leaf node of the tree) searching domain of XGBoost models in Bayesian Optimization. The format is `scheme\|parameters`, e.g. `uniform\|0,0.4`.
+|*Default:*|None|
+
+- **xgbl**  
+  
+|||
+|-|-|
+|*Description:*|xgb_learning_rate (Boosting learning rate) searching domain of XGBoost models in Bayesian Optimization. The format is `scheme\|parameters`, e.g. `loguniform\|-6.9,-2.3`.
 |*Default:*|None|
