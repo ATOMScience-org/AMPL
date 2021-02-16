@@ -1377,7 +1377,7 @@ class HyperOptSearch():
                         self.params.layer_sizes = ",".join([str(p[e]) for e in p if e[:2] == "ls"])
                     else:
                         list_layer_sizes = [p["ls"]]
-                        for i in range(1,len(self.params.dropouts.split(","))):
+                        for i in range(1,len([e for e in p if e[:5] == "ratio"])+1):
                             list_layer_sizes.append(int(list_layer_sizes[-1] * p[f"ratio{i}"]))
                         self.params.layer_sizes = ",".join([str(e) for e in list_layer_sizes])
                 hp_params = f'{self.params.learning_rate}_{self.params.layer_sizes}_{self.params.dropouts}'
