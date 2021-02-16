@@ -637,10 +637,6 @@ The AMPL pipeline contains many parameters and options to fit models and make pr
 <a name="Model-Saving"></a>
 # Model Saving  
 
----
-
-##   
-
 - **collection\_name**  
   
 |||
@@ -938,4 +934,18 @@ The AMPL pipeline contains many parameters and options to fit models and make pr
 |||
 |-|-|
 |*Description:*|Max number of features searching domain of RF models in Bayesian Optimization. The format is `scheme\|parameters`, e.g. `uniformint\|8,200`.
+|*Default:*|None|
+
+- **xgbg**  
+  
+|||
+|-|-|
+|*Description:*|xgb_gamma (Minimum loss reduction required to make a further partition on a leaf node of the tree) searching domain of XGBoost models in Bayesian Optimization. The format is `scheme\|parameters`, e.g. `uniform\|0,0.4`.
+|*Default:*|None|
+
+- **xgbl**  
+  
+|||
+|-|-|
+|*Description:*|xgb_learning_rate (Boosting learning rate) searching domain of XGBoost models in Bayesian Optimization. The format is `scheme\|parameters`, e.g. `loguniform\|-6.9,-2.3`.
 |*Default:*|None|

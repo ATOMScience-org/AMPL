@@ -247,7 +247,7 @@ python model_pipeline.py --config_file test.json
 ### Hyperparameter optimization
 Hyperparameter optimization for AMPL model fitting is available to run on SLURM clusters or with [HyperOpt](https://hyperopt.github.io/hyperopt/) (Bayesian Optimization). To run Bayesian Optimization, the following steps can be followed.
 
-1. Install HyperOpt with `pip install hyperopt`
+1. (Optional) Install HyperOpt with `pip install hyperopt`
 2. Pre-split your dataset with computed_descriptors if you want to use Mordred/MOE/RDKit descriptors.
 3. In the config JSON file, set the following parameters.
    
@@ -283,6 +283,10 @@ Hyperparameter optimization for AMPL model fitting is available to run on SLURM 
      - "dp": "uniform|3|0,0.4", (dropouts)
         - 3 layers, each one has a dropout range from 0 to 0.4
         - Note that the number of layers (number between two |) can not be changed during optimization, if you want to try different number of layers, just run several optimizations. 
+    
+    XGBoost model specific parameters:
+     - "xgbg": "uniform|0,0.4", (xgb_gamma, Minimum loss reduction required to make a further partition on a leaf node of the tree)
+     - "xgbl": "loguniform|-6.9,-2.3", (xgb_learning_rate, Boosting learning rate (xgboost's "eta"))
 
 4. Run hyperparameter search in batch mode or submit a slurm job.
 
