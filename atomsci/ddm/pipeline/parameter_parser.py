@@ -907,7 +907,8 @@ def get_parser():
         help='Time limit in minutes for hyperparameter search batch jobs.'
              'If set to None then this parameter will not be used.')
 
-    #HyperOptSearch specific parameters
+    # HyperOptSearch specific parameters
+    # NN model
     parser.add_argument(
         '--lr', dest='lr', required=False, default=None,
         help='learing rate shown in HyperOpt domain format, e.g. --lr=uniform|0.00001,0.001')
@@ -915,8 +916,12 @@ def get_parser():
         '--ls', dest='ls', required=False, default=None,
         help='layer sizes shown in HyperOpt domain format, e.g. --ls=choice|2|8,16,32,64,128,256,512')
     parser.add_argument(
+        '--ls_ratio', dest='ls_ratio', required=False, default=None,
+        help='layer size ratios (layer size / previous layer size) shown in HyperOpt domain format, the number of layers is not needed here, taken from ls, e.g. --ls_ratio=uniform|0.1,0.9')
+    parser.add_argument(
         '--dp', dest='dp', required=False, default=None,
         help='dropouts shown in HyperOpt domain format, e.g. --dp=uniform|3|0,0.4')
+    # RF model
     parser.add_argument(
         '--rfe', dest='rfe', required=False, default=None,
         help='rf_estimators shown in HyperOpt domain format, e.g. --rfe=uniformint|64,512')
@@ -926,6 +931,13 @@ def get_parser():
     parser.add_argument(
         '--rff', dest='rff', required=False, default=None,
         help='rf_max_features shown in HyperOpt domain format, e.g. --rff=uniformint|64,512')
+    # XGBoost model
+    parser.add_argument(
+        '--xgbg', dest='xgbg', required=False, default=None,
+        help='xgb_gamma shown in HyperOpt domain format, e.g. --xgbg=uniform|0,0.4')
+    parser.add_argument(
+        '--xgbl', dest='xgbl', required=False, default=None,
+        help='xgb_learning_rate shown in HyperOpt domain format, e.g. --xgbl=loguniform|-6.9,-2.3')
 
 
     return parser
