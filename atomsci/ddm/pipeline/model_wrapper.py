@@ -31,6 +31,7 @@ import yaml
 import glob
 from datetime import datetime
 import time
+from packaging import version
 
 from atomsci.ddm.utils import datastore_functions as dsf
 from atomsci.ddm.utils import llnl_utils
@@ -68,7 +69,7 @@ def create_model_wrapper(params, featurizer, ds_client=None):
                              livermore compute (lc): /usr/mic/bio/anaconda3/bin/pip install xgboost==0.90 --user \
                              twintron-blue (TTB): /opt/conda/bin/pip install xgboost==0.90 --user/ \ "
                             )
-        elif float(xgb.__version__) < 0.9:
+        elif version.parse(xgb.__version__) < version.parse('0.9'):
             raise Exception(f"xgboost required to be >= 0.9 for GPU support. \
                              current version = {float(xgb.__version__)} \
                              installatin: \
