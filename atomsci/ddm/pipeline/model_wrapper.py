@@ -743,17 +743,30 @@ class DCNNModelWrapper(ModelWrapper):
         retrain_start = time.time()
         self.recreate_model()
         self.model.fit(fit_dataset, nb_epoch=min_epoch, restore=False)
-        self.model.save_checkpoint()
+        self._save_model()
 
         # Only copy the model files we need, not the entire directory
         self._copy_model(min_epoch_dir)
         if max_epoch > min_epoch:
             self.model.fit(fit_dataset, nb_epoch=max_epoch-min_epoch, restore=True)
-            self.model.save_checkpoint()
+            self._save_model()
         self._copy_model(max_epoch_dir)
         retrain_time = time.time() - retrain_start
         self.log.info("Time to retrain model for %d epochs: %.1f seconds, %.1f sec/epoch" % (max_epoch, retrain_time, retrain_time/max_epoch))
 
+
+
+    # ****************************************************************************************
+    def _save_model(self):
+        """A wrapper function to save a model because the DeepChem model.save() has inconsistent implementation. SKlearnModel() class and xgboost model in DeepChem use model.save(), while the MultitaskRegressor class uses model.save_checkpoint(). Try to use model.save() first. If failed, try model.save_checkpoint()
+        """
+        try:
+            self.model.save()
+        except Exception as error:
+          try:
+            self.model.save_checkpoint()
+          except Exception as e:
+            self.log.error("Error when saving model:\n%s" % str(e))
 
     # ****************************************************************************************
     def _copy_model(self, dest_dir):
@@ -1116,7 +1129,7 @@ class DCRFModelWrapper(ModelWrapper):
             # For k-fold CV, retrain on the combined training and validation sets
             fit_dataset = self.data.combined_training_data()
             self.model.fit(fit_dataset, restore=False)
-        self.model.save_checkpoint()
+        self._save_model()
         # The best model is just the single RF training run.
         self.best_epoch = 0
 
@@ -1438,7 +1451,7 @@ class DCxgboostModelWrapper(ModelWrapper):
             # For k-fold CV, retrain on the combined training and validation sets
             fit_dataset = self.data.combined_training_data()
             self.model.fit(fit_dataset, restore=False)
-        self.model.save_checkpoint()
+        self._save_model()
         # The best model is just the single xgb training run.
         self.best_epoch = 0
 
