@@ -804,11 +804,43 @@ class DCNNModelWrapper(ModelWrapper):
             Resets the value of model, transformers, and transformers_x
         """
         if self.params.featurizer == 'graphconv':
-            self.model = dc.models.GraphConvModel(model_dir=reload_dir,n_tasks=self.params.num_model_tasks)
+            self.model = dc.models.GraphConvModel(
+                n_tasks=self.params.num_model_tasks,
+                n_features=self.get_num_features(),
+                batch_size=self.params.batch_size,
+                model_dir=reload_dir,
+                uncertainty=self.params.uncertainty,
+                graph_conv_layers=self.params.layer_sizes[:-1],
+                dense_layer_size=self.params.layer_sizes[-1],
+                dropout=self.params.dropouts,
+                learning_rate=self.params.learning_rate,
+                mode=self.params.prediction_type)
         elif self.params.prediction_type == 'regression':
-            self.model = MultitaskRegressor(model_dir=reload_dir,n_features=self.get_num_features(),n_tasks=self.params.num_model_tasks,layer_sizes=self.params.layer_sizes,learning_rate=self.params.learning_rate)
+            self.model = MultitaskRegressor(
+                self.params.num_model_tasks,
+                n_features=self.get_num_features(),
+                layer_sizes=self.params.layer_sizes,
+                dropouts=self.params.dropouts,
+                weight_init_stddevs=self.params.weight_init_stddevs,
+                bias_init_consts=self.params.bias_init_consts,
+                weight_decay_penalty=self.params.weight_decay_penalty,
+                weight_decay_penalty_type=self.params.weight_decay_penalty_type,
+                model_dir=reload_dir,
+                learning_rate=self.params.learning_rate,
+                uncertainty=self.params.uncertainty)
         else:
-            self.model = MultitaskClassifier(model_dir=reload_dir,n_features=self.get_num_features(),n_tasks=self.params.num_model_tasks)
+            self.model = MultitaskClassifier(
+                self.params.num_model_tasks,
+                n_features=self.get_num_features(),
+                layer_sizes=self.params.layer_sizes,
+                dropouts=self.params.dropouts,
+                weight_init_stddevs=self.params.weight_init_stddevs,
+                bias_init_consts=self.params.bias_init_consts,
+                weight_decay_penalty=self.params.weight_decay_penalty,
+                weight_decay_penalty_type=self.params.weight_decay_penalty_type,
+                model_dir=reload_dir,
+                learning_rate=self.params.learning_rate,
+                n_classes=self.params.class_number)
         # Hack to run models trained in DeepChem 2.1 with DeepChem 2.2
        # self.model.default_outputs = self.model.outputs
         self.model.restore()
