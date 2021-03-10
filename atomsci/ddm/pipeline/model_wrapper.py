@@ -455,21 +455,21 @@ class DCNNModelWrapper(ModelWrapper):
             self.model = dc.models.GraphConvModel(
                 self.params.num_model_tasks,
                 batch_size=self.params.batch_size,
-    #            learning_rate=self.params.learning_rate,
-    #            learning_rate_decay_time=1000,
-    #            optimizer_type=self.params.optimizer_type,
-    #            beta1=0.9,
-    #            beta2=0.999,
+                learning_rate=self.params.learning_rate,
+                # learning_rate_decay_time=1000,
+                optimizer_type=self.params.optimizer_type,
+                beta1=0.9,
+                beta2=0.999,
                 model_dir=self.model_dir,
-    #            tensorboard=False,
+                tensorboard=False,
                 uncertainty=self.params.uncertainty,
-    #            graph_conv_layers=self.params.layer_sizes[:-1],
-    #            bath_normalize=False,  # ? 2.3 default=True check with kevin
+                graph_conv_layers=self.params.layer_sizes[:-1],
+                batch_normalize=False, # ? 2.3 default=True check with kevin
                 dense_layer_size=self.params.layer_sizes[-1],
                 dropout=self.params.dropouts,
-                mode=self.params.prediction_type)
-    #            penalty=self.params.weight_decay_penalty,
-    #            penalty_type=self.params.weight_decay_penalty_type)
+                mode=self.params.prediction_type,
+                penalty=self.params.weight_decay_penalty,
+                penalty_type=self.params.weight_decay_penalty_type)
 
         else:
             # Set defaults for layer sizes and dropouts, if not specified by caller. Note that
@@ -503,18 +503,18 @@ class DCNNModelWrapper(ModelWrapper):
                     dropouts=self.params.dropouts,
                     weight_init_stddevs=self.params.weight_init_stddevs,
                     bias_init_consts=self.params.bias_init_consts,
-                   # learning_rate=self.params.learning_rate,
+                    learning_rate=self.params.learning_rate,
                     weight_decay_penalty=self.params.weight_decay_penalty,
                     weight_decay_penalty_type=self.params.weight_decay_penalty_type,
-                   # batch_size=self.params.batch_size,
-                   # seed=123,
-                   # verbosity='low',
+                    batch_size=self.params.batch_size,
+                    seed=123,
+                    verbosity='low',
                     model_dir=self.model_dir,
-                   # learning_rate_decay_time=1000,
-                   # beta1=0.9,
-                   # beta2=0.999,
-                   # mode=self.params.prediction_type,
-                   # tensorboard=False,
+                    # learning_rate_decay_time=1000,
+                    beta1=0.9,
+                    beta2=0.999,
+                    mode=self.params.prediction_type,
+                    tensorboard=False,
                     uncertainty=self.params.uncertainty)
 
                 # print("JEA debug",self.params.num_model_tasks,n_features,self.params.layer_sizes,self.params.weight_init_stddevs,self.params.bias_init_consts,self.params.dropouts,self.params.weight_decay_penalty,self.params.weight_decay_penalty_type,self.params.batch_size,self.params.learning_rate)
@@ -540,18 +540,18 @@ class DCNNModelWrapper(ModelWrapper):
                     dropouts=self.params.dropouts,
                     weight_init_stddevs=self.params.weight_init_stddevs,
                     bias_init_consts=self.params.bias_init_consts,
-                   # learning_rate=self.params.learning_rate,
+                    learning_rate=self.params.learning_rate,
                     weight_decay_penalty=self.params.weight_decay_penalty,
                     weight_decay_penalty_type=self.params.weight_decay_penalty_type,
-                   # batch_size=self.params.batch_size,
-                   # seed=123,
-                   # verbosity='low',
+                    batch_size=self.params.batch_size,
+                    seed=123,
+                    verbosity='low',
                     model_dir=self.model_dir,
-                   # learning_rate_decay_time=1000,
-                   # beta1=.9,
-                   # beta2=.999,
-                   # mode=self.params.prediction_type,
-                   # tensorboard=False,
+                    # learning_rate_decay_time=1000,
+                    beta1=.9,
+                    beta2=.999,
+                    mode=self.params.prediction_type,
+                    tensorboard=False,
                     n_classes=self.params.class_number)
 
     # ****************************************************************************************
@@ -564,7 +564,7 @@ class DCNNModelWrapper(ModelWrapper):
                 self.params.num_model_tasks,
                 batch_size=self.params.batch_size,
                 learning_rate=self.params.learning_rate,
-                learning_rate_decay_time=1000,
+                # learning_rate_decay_time=1000,
                 optimizer_type=self.params.optimizer_type,
                 beta1=0.9,
                 beta2=0.999,
@@ -595,7 +595,7 @@ class DCNNModelWrapper(ModelWrapper):
                     seed=123,
                     verbosity='low',
                     model_dir=self.model_dir,
-                    learning_rate_decay_time=1000,
+                    # learning_rate_decay_time=1000,
                     beta1=0.9,
                     beta2=0.999,
                     mode=self.params.prediction_type,
@@ -616,7 +616,7 @@ class DCNNModelWrapper(ModelWrapper):
                     seed=123,
                     verbosity='low',
                     model_dir=self.model_dir,
-                    learning_rate_decay_time=1000,
+                    # learning_rate_decay_time=1000,
                     beta1=.9,
                     beta2=.999,
                     mode=self.params.prediction_type,
@@ -806,9 +806,9 @@ class DCNNModelWrapper(ModelWrapper):
         if self.params.featurizer == 'graphconv':
             self.model = dc.models.GraphConvModel(model_dir=reload_dir,n_tasks=self.params.num_model_tasks)
         elif self.params.prediction_type == 'regression':
-            self.model = MultitaskRegressor(n_features=self.get_num_features(),n_tasks=self.params.num_model_tasks, model_dir=reload_dir)
+            self.model = MultitaskRegressor(model_dir=reload_dir,n_features=self.get_num_features(),n_tasks=self.params.num_model_tasks,layer_sizes=self.params.layer_sizes,learning_rate=self.params.learning_rate)
         else:
-            self.model = MultitaskClassifier(model_dir=reload_dir)
+            self.model = MultitaskClassifier(model_dir=reload_dir,n_features=self.get_num_features(),n_tasks=self.params.num_model_tasks)
         # Hack to run models trained in DeepChem 2.1 with DeepChem 2.2
        # self.model.default_outputs = self.model.outputs
         self.model.restore()
