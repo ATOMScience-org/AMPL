@@ -306,6 +306,10 @@ def compute_mordred_descriptors_from_smiles(smiles_strs, max_cpus=None, quiet=Tr
 
     """
     mols3d, is_valid = get_3d_mols(smiles_strs)
+    if not np.any(is_valid):
+        log.error("No valid SMILES strings input to compute_mordred_descriptors_from_smiles.")
+        log.error("First input SMILES = %s" % smiles_strs[0])
+        return None, is_valid
     desc_df = compute_all_mordred_descrs(mols3d, max_cpus, quiet=quiet)
     valid_smiles = np.array(smiles_strs)[is_valid]
     if desc_df is not None:
