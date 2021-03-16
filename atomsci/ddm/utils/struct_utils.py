@@ -26,6 +26,59 @@ def get_rdkit_smiles(orig_smiles, useIsomericSmiles=True):
     return Chem.MolToSmiles(mol, isomericSmiles=useIsomericSmiles)
 
 
+def rdkit_smiles_from_smiles(orig_smiles, useIsomericSmiles=True, workers=1):
+  """
+  Parallel version of get_rdkit_smiles. If orig_smiles is a list and workers is > 1, spawn 'workers'
+  threads to convert input SMILES strings to standardized RDKit format. If useIsomericSmiles is false, 
+  stereochemistry information will be removed in the generated string.
+  """
+  
+  if isinstance(orig_smiles,list):
+    from functools import partial
+    func = partial(rdkit_smiles_from_smiles,useIsomericSmiles=useIsomericSmiles)
+    if workers > 1:
+      from multiprocessing import pool
+      batchsize = 200
+      batches = [orig_smiles[i:i+batchsize] for i in range(0, len(orig_smiles), batchsize)]
+      with pool.Pool(workers) as p:
+        rdkit_smiles = p.map(func,batches)
+        rdkit_smiles = [y for x in rdkit_smiles for y in x] #Flatten results
+    else:
+      rdkit_smiles = [func(smi) for smi in orig_smiles]
+  else:
+    # Actual standardization code, everything above here is for multiprocessing and list parsing
+    std_mol = Chem.MolFromSmiles(orig_smiles)
+    if std_mol is None:
+      rdkit_smiles = ""
+    else:
+      rdkit_smiles = Chem.MolToSmiles(std_mol, isomericSmiles=useIsomericSmiles)
+  return rdkit_smiles
+
+
+def mols_from_smiles(orig_smiles, workers=1):
+  """
+  Parallel function to create RDKit Mol objects for a list of SMILES strings. If orig_smiles is a list 
+  and workers is > 1, spawn 'workers' threads to convert input SMILES strings to Mol objects.
+  """
+  
+  if isinstance(orig_smiles,list):
+    from functools import partial
+    func = partial(mols_from_smiles)
+    if workers > 1:
+      from multiprocessing import pool
+      batchsize = 200
+      batches = [orig_smiles[i:i+batchsize] for i in range(0, len(orig_smiles), batchsize)]
+      with pool.Pool(workers) as p:
+        mols = p.map(func, batches)
+        mols = [y for x in mols for y in x] #Flatten results
+    else:
+      mols = [func(smi) for smi in orig_smiles]
+  else:
+    # Actual standardization code, everything above here is for multiprocessing and list parsing
+    mols = Chem.MolFromSmiles(orig_smiles)
+  return mols
+
+
 def base_smiles_from_smiles(orig_smiles, useIsomericSmiles=True, removeCharges=False, workers=1):
   """
   Generate a standardized SMILES string for the largest fragment of the molecule specified by
@@ -280,4 +333,29 @@ def fix_moe_smiles(smiles):
     if scalar:
         fixed = fixed[0]
     return fixed
+
+def mol_wt_from_smiles(smiles, workers=1):
+  """
+  Calculate molecular weights for SMILES strings
+  """
+  
+  if isinstance(smiles,list):
+    from functools import partial
+    func = partial(mol_wt_from_smiles)
+    if workers > 1:
+      from multiprocessing import pool
+      batchsize = 200
+      batches = [smiles[i:i+batchsize] for i in range(0, len(smiles), batchsize)]
+      with pool.Pool(workers) as p:
+        mol_wt = p.map(func,batches)
+        mol_wt = [y for x in mol_wt for y in x] #Flatten results
+    else:
+      mol_wt = [func(smi) for smi in smiles]
+  else:
+    mol = Chem.MolFromSmiles(smiles)
+    if mol is None:
+      mol_wt = np.nan
+    else:
+      mol_wt = Descriptors.MolWt(mol)
+  return mol_wt
 
