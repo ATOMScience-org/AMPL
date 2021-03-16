@@ -59,13 +59,10 @@ def get_statistics_missing_ydata(dataset):
                y_means[it] += dy[it] / n[it]
                y_m2[it] += dy[it] * (y[it] - y_means[it])
 
-    print("n_cnt",n)
-    print("y_means",y_means)
     y_stds=np.zeros(len(n))
     for it in range(len(n)) :
        if n[it] >= 2:
          y_stds[it] = np.sqrt(y_m2[it] / n[it])
-    print("y_stds",y_stds)
     return y_means, y_stds
 
 # ****************************************************************************************
