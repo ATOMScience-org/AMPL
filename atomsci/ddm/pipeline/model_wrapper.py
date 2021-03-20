@@ -916,13 +916,21 @@ class DCNNModelWrapper(ModelWrapper):
             Resets the value of model, transformers, and transformers_x
         """
         if self.params.featurizer == 'graphconv':
-            self.model = dc.models.GraphConvModel.load_from_dir(reload_dir)
+            self.model = dc.models.GraphConvModel.load_from_dir(reload_dir, restore=False)
         elif self.params.prediction_type == 'regression':
-            self.model = MultitaskRegressor.load_from_dir(reload_dir)
+            self.model = MultitaskRegressor.load_from_dir(reload_dir, restore=False)
         else:
-            self.model = MultitaskClassifier.load_from_dir(reload_dir)
+            self.model = MultitaskClassifier.load_from_dir(reload_dir, restore=False)
         # Hack to run models trained in DeepChem 2.1 with DeepChem 2.2
         self.model.default_outputs = self.model.outputs
+        # Get latest checkpoint path transposed to current model dir
+        ckpt = tf.train.get_checkpoint_state(reload_dir)
+        if os.path.exists(f"{ckpt.model_checkpoint_path}.index"):
+            checkpoint = ckpt.model_checkpoint_path
+        else:
+            checkpoint = os.path.join(reload_dir, os.path.basename(ckpt.model_checkpoint_path))
+        self.model.restore(checkpoint=checkpoint)
+
 
         # Load transformers if they would have been saved with the model
         if trans.transformers_needed(self.params) and (self.params.transformer_key is not None):
