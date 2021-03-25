@@ -103,7 +103,6 @@ def create_perf_data(prediction_type, model_dataset, transformers, subset, **kwa
     else:
         split_strategy = model_dataset.params.split_strategy
     if prediction_type == 'regression':
-        #if subset in ['test', 'full'] or split_strategy == 'train_valid_test':
         if subset == 'full' or split_strategy == 'train_valid_test':
             # Called simple because no need to track compound IDs across multiple training folds
             return SimpleRegressionPerfData(model_dataset, transformers, subset, **kwargs)
@@ -112,7 +111,6 @@ def create_perf_data(prediction_type, model_dataset, transformers, subset, **kwa
         else:
             raise ValueError('Unknown split_strategy %s' % split_strategy)
     elif prediction_type == 'classification':
-        #if subset in ['test', 'full'] or split_strategy == 'train_valid_test':
         if subset == 'full' or split_strategy == 'train_valid_test':
             return SimpleClassificationPerfData(model_dataset, transformers, subset, **kwargs)
         elif split_strategy == 'k_fold_cv':
