@@ -802,6 +802,8 @@ class DCNNModelWrapper(ModelWrapper):
             self.valid_perf_data.append(perf.create_perf_data(self.params.prediction_type, pipeline.data, self.transformers, 'valid'))
             self.test_perf_data.append(perf.create_perf_data(self.params.prediction_type, pipeline.data, self.transformers, 'test'))
 
+        self.retrained_train_perf_data = perf.create_perf_data(self.params.prediction_type, pipeline.data, self.transformers, 'train_valid')
+        self.retrained_test_perf_data = perf.create_perf_data(self.params.prediction_type, pipeline.data, self.transformers, 'test')
         test_dset = pipeline.data.test_dset
 
         time_limit = int(self.params.slurm_time_limit)
