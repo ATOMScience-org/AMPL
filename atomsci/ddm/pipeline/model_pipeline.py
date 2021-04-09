@@ -498,9 +498,9 @@ class ModelPipeline:
 
         # Save the metadata for the trained model
         self.create_model_metadata()
-        # Save the performance metrics for each training data subset, for the best and baseline epochs
+        # Save the performance metrics for each training data subset, for the best epoch
         training_metrics = []
-        for label in ['best', 'baseline']:
+        for label in ['best']:
             for subset in ['train', 'valid', 'test']:
                 training_dict = dict(
                     metrics_type='training',

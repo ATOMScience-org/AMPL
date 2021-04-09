@@ -537,10 +537,16 @@ def get_parser():
     # model_building_parameters: neural_nets
     parser.add_argument(
         '--baseline_epoch', '-b', dest='baseline_epoch', type=int, default=30,
-        help='Baseline epoch at which to evaluate performance for DNN models')
+        help='Deprecated: Baseline epoch at which to evaluate performance for DNN models')
     parser.add_argument(
         '--batch_size', dest='batch_size', type=int, required=False, default=50,
         help='Sets the model batch size within model_wrapper')
+    parser.add_argument(
+        '--early_stopping_patience', dest='early_stopping_patience', type=int, default=30,
+        help='Number of epochs to continue training before giving up trying for better validation set score')
+    parser.add_argument(
+        '--early_stopping_min_improvement', dest='early_stopping_min_improvement', type=float, default=0.0,
+        help='Minimum amount by which validation set score must improve to set a new best epoch')
 
     temp_bias_init_consts_string = [key + ':' + value + ',' for key, value in bias_init_consts_options.items()]
     separator = " "
