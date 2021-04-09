@@ -718,7 +718,7 @@ class KFoldRegressionPerfData(RegressionPerfData):
 
         """
         self.subset = subset
-        if self.subset in ('train', 'valid'):
+        if self.subset in ('train', 'valid', 'train_valid'):
             dataset = model_dataset.combined_training_data()
         elif self.subset == 'test':
             dataset = model_dataset.test_dset
@@ -819,7 +819,7 @@ class KFoldRegressionPerfData(RegressionPerfData):
 
         """
         ids = sorted(self.pred_vals.keys())
-        if self.subset in ['train', 'test']:
+        if self.subset in ['train', 'test', 'train_valid']:
             rawvals = np.concatenate([self.pred_vals[id].mean(axis=0, keepdims=True).reshape((1,-1)) for id in ids])
             vals = dc.trans.undo_transforms(rawvals, self.transformers)
             if self.folds > 1:
@@ -965,7 +965,7 @@ class KFoldClassificationPerfData(ClassificationPerfData):
         """
 
         self.subset = subset
-        if self.subset in ('train', 'valid'):
+        if self.subset in ('train', 'valid', 'train_valid'):
             dataset = model_dataset.combined_training_data()
         elif self.subset == 'test':
             dataset = model_dataset.test_dset
@@ -1061,9 +1061,9 @@ class KFoldClassificationPerfData(ClassificationPerfData):
     # class KFoldClassificationPerfData
     def get_pred_values(self):
         """Returns the predicted values accumulated over training, with any transformations undone.  If self.subset 
-        is 'train' or 'test', the function will return the means and standard deviations of the class probabilities over 
-        the training folds for each compound, for each task.  Otherwise, returns a single set of predicted probabilites for each 
-        validation set compound. For all subsets, returns the compound IDs and the most probable classes for each task. 
+        is 'train', 'train_valid' or 'test', the function will return the means and standard deviations of the class probabilities 
+        over the training folds for each compound, for each task.  Otherwise, returns a single set of predicted probabilites for 
+        each validation set compound. For all subsets, returns the compound IDs and the most probable classes for each task. 
         
         Returns:
             ids (list): list of compound IDs.
@@ -1077,7 +1077,7 @@ class KFoldClassificationPerfData(ClassificationPerfData):
 
         """
         ids = sorted(self.pred_vals.keys())
-        if self.subset in ['train', 'test']:
+        if self.subset in ['train', 'test', 'train_valid']:
             #class_probs = np.concatenate([dc.trans.undo_transforms(self.pred_vals[id], self.transformers).mean(axis=0, keepdims=True)
             #                       for id in ids], axis=0)
             #prob_stds = np.concatenate([dc.trans.undo_transforms(self.pred_vals[id], self.transformers).std(axis=0, keepdims=True)

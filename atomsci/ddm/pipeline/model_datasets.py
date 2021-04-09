@@ -649,7 +649,7 @@ class ModelDataset(object):
                 (weight_dict): dictionary mapping compound ids to arrays of per-task weights
         """
         if subset not in self.subset_response_dict:
-            if subset in ('train', 'valid'):
+            if subset in ('train', 'valid', 'train_valid'):
                 dataset = self.combined_training_data()
             elif subset == 'test':
                 dataset = self.test_dset

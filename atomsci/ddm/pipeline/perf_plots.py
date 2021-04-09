@@ -97,25 +97,31 @@ def plot_pred_vs_actual(MP, epoch_label='best', threshold=None, error_bars=False
 #------------------------------------------------------------------------------------------------------------------------
 def plot_perf_vs_epoch(MP, pdf_dir=None):
     """
-    Plot the current NN model's standard performance metric (r2_score or roc_auc_score) vs epoch number for the training and 
-    validation subsets. If the model was trained with k-fold CV, plot error bars or shading out to += 1 SD from the mean
-    score metric values. Also plot the validation set score used for ranking training epochs and other hyperparameters 
+    Plot the current NN model's standard performance metric (r2_score or roc_auc_score) vs epoch number for the training,
+    validation and test subsets. If the model was trained with k-fold CV, plot shading for the validation set out to += 1 SD from the mean
+    score metric values, and plot the training and test set metrics from the final model retraining rather than the cross-validation
+    phase. Also plot the validation set model choice score used for ranking training epochs and other hyperparameters 
     against epoch number.
     """
     wrapper = MP.model_wrapper
     if 'train_epoch_perfs' not in wrapper.__dict__:
         raise ValueError("plot_perf_vs_epoch() can only be called for NN models")
     num_epochs = wrapper.num_epochs_trained
-    subset_perf = dict(training = wrapper.train_epoch_perfs[:num_epochs], validation = wrapper.valid_epoch_perfs[:num_epochs], 
-                       test = wrapper.test_epoch_perfs[:num_epochs])
-    subset_std = dict(training = wrapper.train_epoch_perf_stds[:num_epochs], validation = wrapper.valid_epoch_perf_stds[:num_epochs],
-                       test = wrapper.test_epoch_perf_stds[:num_epochs])
+    best_epoch = wrapper.best_epoch
     num_folds = len(MP.data.train_valid_dsets)
+    if num_folds > 1:
+        subset_perf = dict(training = wrapper.train_epoch_perfs[:best_epoch+1], validation = wrapper.valid_epoch_perfs[:num_epochs], 
+                        test = wrapper.test_epoch_perfs[:best_epoch+1])
+        subset_std = dict(training = wrapper.train_epoch_perf_stds[:best_epoch+1], validation = wrapper.valid_epoch_perf_stds[:num_epochs],
+                        test = wrapper.test_epoch_perf_stds[:best_epoch+1])
+    else:
+        subset_perf = dict(training = wrapper.train_epoch_perfs[:num_epochs], validation = wrapper.valid_epoch_perfs[:num_epochs], 
+                        test = wrapper.test_epoch_perfs[:num_epochs])
+        subset_std = dict(training = wrapper.train_epoch_perf_stds[:num_epochs], validation = wrapper.valid_epoch_perf_stds[:num_epochs],
+                        test = wrapper.test_epoch_perf_stds[:num_epochs])
     model_scores = wrapper.model_choice_scores[:num_epochs]
     model_score_type = MP.params.model_choice_score_type
-    best_epoch = wrapper.best_epoch
 
-    epoch = list(range(num_epochs))
     if MP.params.prediction_type == 'regression':
         perf_label = 'R-squared'
     else:
@@ -131,9 +137,10 @@ def plot_perf_vs_epoch(MP, pdf_dir=None):
             MP.params.dataset_name, perf_label, MP.params.model_type,  MP.params.prediction_type,
             MP.params.featurizer,  MP.params.splitter,  best_epoch)
     for subset in ['training', 'validation', 'test']:
+        epoch = list(range(len(subset_perf[subset])))
         ax.plot(epoch, subset_perf[subset], color=subset_colors[subset], label=subset)
-        # Add shading to show variance across folds
-        if num_folds > 1:
+        # Add shading to show variance across folds during cross-validation
+        if (num_folds > 1) and (subset == 'validation'):
             ax.fill_between(epoch, subset_perf[subset] + subset_std[subset], subset_perf[subset] - subset_std[subset],
                             alpha=0.3, facecolor=subset_shades[subset], linewidth=0)
     plt.axvline(best_epoch, color='forestgreen', linestyle='--')
@@ -149,6 +156,7 @@ def plot_perf_vs_epoch(MP, pdf_dir=None):
     title = '%s dataset\n%s vs epoch for %s %s model on %s features with %s split\nBest validation set performance at epoch %d' % (
             MP.params.dataset_name, model_score_type, MP.params.model_type,  MP.params.prediction_type,
             MP.params.featurizer,  MP.params.splitter,  best_epoch)
+    epoch = list(range(num_epochs))
     ax.plot(epoch, model_scores, color=subset_colors['validation'])
     plt.axvline(best_epoch, color='red', linestyle='--')
     ax.set_xlabel('Epoch')
