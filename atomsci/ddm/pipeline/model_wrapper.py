@@ -723,7 +723,7 @@ class DCNNModelWrapper(ModelWrapper):
             valid_perf = self.valid_perf_data[ei].accumulate_preds(valid_pred, valid_dset.ids)
             test_perf = self.test_perf_data[ei].accumulate_preds(test_pred, test_dset.ids)
             self.log.info("Epoch %d: training %s = %.3f, validation %s = %.3f, test %s = %.3f" % (
-                          ei + 1, pipeline.metric_type, train_perf, pipeline.metric_type, valid_perf,
+                          ei, pipeline.metric_type, train_perf, pipeline.metric_type, valid_perf,
                           pipeline.metric_type, test_perf))
 
             # Compute performance metrics for each subset, and check if we've reached a new best validation set score
@@ -811,7 +811,31 @@ class DCNNModelWrapper(ModelWrapper):
             models.append(self.recreate_model())
 
         for ei in range(self.params.max_epochs):
-            # TODO: Check if we have time for another epoch
+            
+            if llnl_utils.is_lc_system() and (ei > 0):
+                # If we're running on an LC system, check that we have enough time to complete another epoch
+                # across all folds, plus rerun the training, before the current job finishes, by 
+                # extrapolating from the time elapsed so far.
+    
+                now = time.time() 
+                elapsed_time = now - pipeline.start_time
+                training_time = now - training_start
+                time_remaining = time_limit * 60 - elapsed_time
+
+                # epochs_remaining is how many epochs we have to run if we do one more across all folds,
+                # then do self.best_epoch+1 epochs on the combined training & validation set, allowing for the
+                # possibility that the next epoch may be the best one.
+
+                epochs_remaining = ei + 2
+                time_per_epoch = training_time/ei
+                time_needed = epochs_remaining * time_per_epoch
+    
+                if time_needed > 0.9 * time_remaining:
+                    self.log.warn('Projected time to finish one more epoch exceeds time left in job; cutting training to %d epochs' % ei)
+                    self.params.max_epochs = ei
+                    break
+
+
             # Create PerfData structures that are only used within loop to compute metrics during initial training
             train_perf_data = perf.create_perf_data(self.params.prediction_type, pipeline.data, self.transformers, 'train')
             test_perf_data = perf.create_perf_data(self.params.prediction_type, pipeline.data, self.transformers, 'test')
@@ -829,7 +853,7 @@ class DCNNModelWrapper(ModelWrapper):
                 valid_perf = self.valid_perf_data[ei].accumulate_preds(valid_pred, valid_dset.ids)
                 test_perf = test_perf_data.accumulate_preds(test_pred, test_dset.ids)
                 self.log.info("Fold %d, epoch %d: training %s = %.3f, validation %s = %.3f, test %s = %.3f" % (
-                              k, ei + 1, pipeline.metric_type, train_perf, pipeline.metric_type, valid_perf,
+                              k, ei, pipeline.metric_type, train_perf, pipeline.metric_type, valid_perf,
                               pipeline.metric_type, test_perf))
 
             # Compute performance metrics for current epoch across validation sets for all folds, and update
@@ -843,16 +867,16 @@ class DCNNModelWrapper(ModelWrapper):
             if self.best_valid_score is None:
                 self.best_valid_score = valid_score
                 self.best_epoch = ei
-                self.log.info(f"Total cross-validation score for epoch {ei} is {valid_score}")
+                self.log.info(f"Total cross-validation score for epoch {ei} is {valid_score:.3}")
             elif valid_score - self.best_valid_score > self.early_stopping_min_improvement:
                 self.best_valid_score = valid_score
                 self.best_epoch = ei
-                self.log.info(f"*** Total cross-validation score for epoch {ei} is {valid_score}, is new maximum")
+                self.log.info(f"*** Total cross-validation score for epoch {ei} is {valid_score:.3}, is new maximum")
             elif ei - self.best_epoch > self.early_stopping_patience:
                 self.log.info(f"No improvement after {self.early_stopping_patience} epochs, stopping training")
                 break
             else:
-                self.log.info(f"Total cross-validation score for epoch {ei} is {valid_score}")
+                self.log.info(f"Total cross-validation score for epoch {ei} is {valid_score:.3}")
 
         # Train a new model for best_epoch epochs on the combined training/validation set. Compute the training and test
         # set metrics at each epoch.
@@ -872,8 +896,8 @@ class DCNNModelWrapper(ModelWrapper):
             test_pred = self.model.predict(test_dset, [])
             train_perf = self.train_perf_data[ei].accumulate_preds(train_pred, fit_dataset.ids)
             test_perf = self.test_perf_data[ei].accumulate_preds(test_pred, test_dset.ids)
-            self.log.info(f"Combined folds: Epoch {ei}, training {pipeline.metric_type} = {train_perf},"
-                         + f"test {pipeline.metric_type} = {test_perf}")
+            self.log.info(f"Combined folds: Epoch {ei}, training {pipeline.metric_type} = {train_perf:.3},"
+                         + f"test {pipeline.metric_type} = {test_perf:.3}")
             self.train_epoch_perfs[ei], self.train_epoch_perf_stds[ei] = self.train_perf_data[ei].compute_perf_metrics()
             self.test_epoch_perfs[ei], self.test_epoch_perf_stds[ei] = self.test_perf_data[ei].compute_perf_metrics()
         self.model.save_checkpoint()
@@ -884,31 +908,6 @@ class DCNNModelWrapper(ModelWrapper):
         retrain_time = time.time() - retrain_start
         self.log.info("Time to retrain model for %d epochs: %.1f seconds, %.1f sec/epoch" % (self.best_epoch, retrain_time, 
                        retrain_time/self.best_epoch))
-
-    # ****************************************************************************************
-    def check_time_remaining(self):
-        """
-        if llnl_utils.is_lc_system() and (k == 0) and (ei > 0):
-            # If we're running on an LC system, check that we have enough time to complete ei+1 epochs
-            # across all folds, plus rerun the training, before the current job finishes, by 
-            # extrapolating from the time elapsed so far.
-
-            now = time.time() 
-            elapsed_time = now - pipeline.start_time
-            training_time = now - training_start
-            time_remaining = time_limit * 60 - elapsed_time
-            # epochs_remaining is how many epochs we have to run if we do one more in fold 0, then run an equal number of 
-            # epochs for each of the remaining folds, then do the same number of epochs on the combined training & validation set.
-            epochs_remaining = (ei+1) * (num_folds+1) - ei
-            time_per_epoch = training_time/ei
-            time_needed = epochs_remaining * time_per_epoch
-
-            if time_needed > 0.9 * time_remaining:
-                self.log.warn('Projected time to finish one more epoch exceeds time left in job; cutting training to %d epochs' % ei)
-                self.params.max_epochs = ei
-                break
-        """
-        pass
 
     # ****************************************************************************************
     def _copy_model(self, dest_dir):
