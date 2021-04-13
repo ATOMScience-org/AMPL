@@ -633,34 +633,34 @@ class ModelPipeline:
     
     # ****************************************************************************************
     def predict_on_dataframe(self, dset_df, is_featurized=False, contains_responses=False, AD_method=None, k=5):
-        """compute predicted responses from a pretrained model on a set of compounds listed in
-        a data frame. the data frame should contain, at minimum, a column of compound ids; if
-        smiles strings are needed to compute features, they should be provided as well.
+        """Compute predicted responses from a pretrained model on a set of compounds listed in
+        a data frame. the data frame should contain, at minimum, a column of compound IDs; if
+        SMILES strings are needed to compute features, they should be provided as well.
 
-        args:
-            dset_df (dataframe) : a data frame containing compound ids (if the compounds are to be
-            featurized using descriptors) and/or smiles strings (if the compounds are to be
-            featurized using ecfp fingerprints or graph convolution) and/or precomputed features.
-            the column names for the compound id and smiles columns should match id_col and smiles_col,
+        Args:
+            dset_df (Dataframe) : A data frame containing compound IDs (if the compounds are to be
+            featurized using descriptors) and/or SMILES strings (if the compounds are to be
+            featurized using ECFP fingerprints or graph convolution) and/or precomputed features.
+            The column names for the compound ID and SMILES columns should match id_col and smiles_col,
             respectively, in the model parameters.
 
-            is_featurized (bool) : true if dset_df contains precomputed feature columns. if so,
+            is_featurized (bool) : True if dset_df contains precomputed feature columns. If so,
             dset_df must contain *all* of the feature columns defined by the featurizer that was
             used when the model was trained.
 
-            contains_responses (bool): true if dataframe contains response values
+            contains_responses (bool): True if dataframe contains response values
             
-            AD_method (str): with default, applicable domain (ad) index will not be calcualted, use 
-            z_score or local_density to choose the method to calculate ad index.
+            AD_method (str): with default, Applicable domain (AD) index will not be calcualted, use 
+            z_score or local_density to choose the method to calculate AD index.
             
-            k (int): number of the neareast neighbors to evaluate the ad index, default is 5.
+            k (int): number of the neareast neighbors to evaluate the AD index, default is 5.
             
         returns:
             result_df (dataframe) : data frame indexed by compound ids containing a column of smiles
             strings, with additional columns containing the predicted values for each response variable.
-            if the model was trained to predict uncertainties, the returned data frame will also
+            If the model was trained to predict uncertainties, the returned data frame will also
             include standard deviation columns (named <response_col>_std) for each response variable.
-            the result data frame may not include all the compounds in the input dataset, because
+            The result data frame may not include all the compounds in the input dataset, because
             the featurizer may not be able to featurize all of them.
         """
 
@@ -669,17 +669,17 @@ class ModelPipeline:
         self.data = model_datasets.create_minimal_dataset(self.params, self.featurization, contains_responses)
 
         if not self.data.get_dataset_tasks(dset_df):
-            # shouldn't happen - response_cols should already be set in saved model parameters
-            raise exception("response_cols missing from model params")
+            # Shouldn't happen - response_cols should already be set in saved model parameters
+            raise Exception("response_cols missing from model params")
         self.data.get_featurized_data(dset_df, is_featurized)
         self.data.dataset = self.model_wrapper.transform_dataset(self.data.dataset)
 
-        # get the predictions and standard deviations, if calculated, as numpy arrays
+        # Get the predictions and standard deviations, if calculated, as numpy arrays
         preds, stds = self.model_wrapper.generate_predictions(self.data.dataset)
         result_df = self.data.attr.copy()
 
-        # including the response_val name in the output makes it difficult to do looped plotting.
-        # we can talk about best way to handle this.
+        # Including the response_val name in the output makes it difficult to do looped plotting.
+        # We can talk about best way to handle this.
 
         if contains_responses:
             for i, colname in enumerate(self.params.response_cols):
@@ -701,7 +701,7 @@ class ModelPipeline:
                 self.run_mode = 'training'
                 self.load_featurize_data()
                 if len(self.data.train_valid_dsets) > 1:
-                    # combine train and valid set for k-fold cv models
+                    # combine train and valid set for k-fold CV models
                     train_data = np.concatenate((self.data.train_valid_dsets[0][0].X, self.data.train_valid_dsets[0][1].X))
                 else:
                     train_data = self.data.train_valid_dsets[0][0].X
