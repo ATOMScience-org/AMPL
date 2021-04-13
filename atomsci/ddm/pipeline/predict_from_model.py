@@ -10,7 +10,7 @@ from atomsci.ddm.utils.struct_utils import base_smiles_from_smiles
 
 # =====================================================================================================
 def predict_from_tracker_model(model_uuid, collection, input_df, id_col='compound_id', smiles_col='rdkit_smiles',
-                     response_col=None, is_featurized=False, dont_standardize=False):
+                     response_col=None, is_featurized=False, dont_standardize=False, AD_method=None, k=5):
     """
     Loads a pretrained model from the model tracker database and runs predictions on compounds in an input
     data frame.
@@ -33,6 +33,10 @@ def predict_from_tracker_model(model_uuid, collection, input_df, id_col='compoun
         dont_standardize (bool): By default, SMILES strings are salt-stripped and standardized using RDKit; 
         if you have already done this, or don't want them to be standardized, set dont_standardize to True.
 
+        AD_method (str): with default, Applicable domain (AD) index will not be calcualted, use 
+        z_score or local_density to choose the method to calculate AD index.
+        
+        k (int): number of the neareast neighbors to evaluate the AD index, default is 5.
     Return: 
         A data frame with compound IDs, SMILES strings and predicted response values. Actual response values
         will be included if response_col is provided. Standard prediction error estimates will be included
@@ -46,13 +50,13 @@ def predict_from_tracker_model(model_uuid, collection, input_df, id_col='compoun
     pred_params = parse.wrapper(pred_params)
     pipe = mp.create_prediction_pipeline(pred_params, model_uuid, collection)
     pred_df = pipe.predict_full_dataset(input_df, contains_responses=has_responses, is_featurized=is_featurized,
-                                        dset_params=pred_params)
+                                        dset_params=pred_params, AD_method=AD_method, k=k)
     pred_df = pred_df.sort_values(by=id_col)
     return pred_df
 
 # =====================================================================================================
 def predict_from_model_file(model_path, input_df, id_col='compound_id', smiles_col='rdkit_smiles',
-                     response_col=None, is_featurized=False, dont_standardize=False):
+                     response_col=None, is_featurized=False, dont_standardize=False, AD_method=None, k=5):
     """
     Loads a pretrained model from a model tarball file and runs predictions on compounds in an input
     data frame.
@@ -73,6 +77,10 @@ def predict_from_model_file(model_path, input_df, id_col='compound_id', smiles_c
         dont_standardize (bool): By default, SMILES strings are salt-stripped and standardized using RDKit; 
         if you have already done this, or don't want them to be standardized, set dont_standardize to True.
 
+        AD_method (str): with default, Applicable domain (AD) index will not be calcualted, use 
+        z_score or local_density to choose the method to calculate AD index.
+        
+        k (int): number of the neareast neighbors to evaluate the AD index, default is 5.
     Return: 
         A data frame with compound IDs, SMILES strings and predicted response values. Actual response values
         will be included if response_col is provided. Standard prediction error estimates will be included
@@ -89,67 +97,7 @@ def predict_from_model_file(model_path, input_df, id_col='compound_id', smiles_c
 
     pipe = mp.create_prediction_pipeline_from_file(pred_params, reload_dir=None, model_path=model_path)
     pred_df = pipe.predict_full_dataset(input_df, contains_responses=has_responses, is_featurized=is_featurized,
-                                        dset_params=pred_params)
-    pred_df = pred_df.sort_values(by=id_col)
-    return pred_df
-
-
-# =====================================================================================================
-def predict_cNr_from_model_file(model_path, input_df, id_col='compound_id', smiles_col='rdkit_smiles',
-                     response_col=None, is_featurized=False, dont_standardize=False):
-    """
-    Loads two pretrained models, a classification and a regression from two
-    model tarball files and runs predictions on compounds in an input data
-    frame. Each compound will first be predicted in the classfication model,
-    only active compounds will then be input into the regression model to
-    predict activity values.
-
-    Args:
-        model_path (list of str): File path of the two model tarball files, 1st
-        one is the classification model, the 2nd one is regression.
-
-        input_df (DataFrame): Input data to run predictions on; must at minimum contain SMILES strings.
-
-        id_col (str): Name of the column containing compound IDs. If none is provided, sequential IDs will be
-        generated.
-
-        smiles_col (str): Name of the column containing SMILES strings; required.
-
-        response_col (list of str): Name of two optional columns
-        (classification and regression) containing actual response values; if it is provided, 
-        the actual values will be included in the returned data frame to make it easier for you to assess performance.
-
-        dont_standardize (bool): By default, SMILES strings are salt-stripped and standardized using RDKit; 
-        if you have already done this, or don't want them to be standardized, set dont_standardize to True.
-
-    Return: 
-        A data frame with compound IDs, SMILES strings and predicted response values. Actual response values
-        will be included if response_col is provided. Standard prediction error estimates will be included
-        if the model was trained with uncertainty=True. Note that the predicted and actual response
-        columns will be labeled according to the response_col setting in the original training data,
-        not the response_col passed to this function; e.g. if the original model response_col was 'pIC50',
-        the returned data frame will contain columns 'pIC50_actual', 'pIC50_pred' and 'pIC50_std'.
-    """
-
-    if not response_col:
-        response_col = [None, None]
-
-    if not isinstance(model_path, list) or not isinstance(response_col, list):
-        raise Exception("model_path and response_col should be a list with two elements.")
-
-    class_model = model_path[0]
-    reg_model = model_path[1]
-    class_response = response_col[0]
-    reg_response = response_col[1]
-
-    class_pred = predict_from_model_file(class_model, input_df, id_col=id_col, smiles_col=smiles_col, response_col=class_response, is_featurized=is_featurized, dont_standardize=dont_standardize)
-    class_pred_col = [e for e in class_pred.columns if e != smiles_col]
-    pred_df = input_df.merge(class_pred[class_pred_col], on=id_col)
-
-    reg_pred = predict_from_model_file(reg_model, input_df, id_col=id_col, smiles_col=smiles_col, response_col=reg_response, is_featurized=is_featurized, dont_standardize=dont_standardize)
-    reg_pred_col = [e for e in reg_pred.columns if e != smiles_col]
-    pred_df = pred_df.merge(reg_pred[reg_pred_col], on=id_col)
-
+                                        dset_params=pred_params, AD_method=AD_method, k=k)
     pred_df = pred_df.sort_values(by=id_col)
     return pred_df
 

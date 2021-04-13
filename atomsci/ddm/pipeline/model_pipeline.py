@@ -624,41 +624,43 @@ class ModelPipeline:
         
         self.featurization = self.model_wrapper.featurization
         self.load_featurize_data()
-        train_data = self.data.train_valid_dsets[0][0].X
+        if len(self.data.train_valid_dsets) > 1:
+            # combine train and valid set for k-fold cv models
+            train_data = np.concatenate((self.data.train_valid_dsets[0][0].X, self.data.train_valid_dsets[0][1].X))
+        else:
+            train_data = self.data.train_valid_dsets[0][0].X
         self.train_pair_dis = pairwise_distances(X=train_data, metric="euclidean")
     
     # ****************************************************************************************
-    def predict_on_dataframe(self, dset_df, is_featurized=False, contains_responses=False, AD_method=None, k=5, train_dset_pair_distance=None):
-        """Compute predicted responses from a pretrained model on a set of compounds listed in
-        a data frame. The data frame should contain, at minimum, a column of compound IDs; if
-        SMILES strings are needed to compute features, they should be provided as well.
+    def predict_on_dataframe(self, dset_df, is_featurized=False, contains_responses=False, AD_method=None, k=5):
+        """compute predicted responses from a pretrained model on a set of compounds listed in
+        a data frame. the data frame should contain, at minimum, a column of compound ids; if
+        smiles strings are needed to compute features, they should be provided as well.
 
-        Args:
-            dset_df (DataFrame) : A data frame containing compound IDs (if the compounds are to be
-            featurized using descriptors) and/or SMILES strings (if the compounds are to be
-            featurized using ECFP fingerprints or graph convolution) and/or precomputed features.
-            The column names for the compound ID and SMILES columns should match id_col and smiles_col,
+        args:
+            dset_df (dataframe) : a data frame containing compound ids (if the compounds are to be
+            featurized using descriptors) and/or smiles strings (if the compounds are to be
+            featurized using ecfp fingerprints or graph convolution) and/or precomputed features.
+            the column names for the compound id and smiles columns should match id_col and smiles_col,
             respectively, in the model parameters.
 
-            is_featurized (bool) : True if dset_df contains precomputed feature columns. If so,
+            is_featurized (bool) : true if dset_df contains precomputed feature columns. if so,
             dset_df must contain *all* of the feature columns defined by the featurizer that was
             used when the model was trained.
 
-            contains_responses (bool): True if dataframe contains response values
+            contains_responses (bool): true if dataframe contains response values
             
-            AD_method (str): with default, Applicable domain (AD) index will not be calcualted, use 
-            z_score or local_density to choose the method to calculate AD index.
+            AD_method (str): with default, applicable domain (ad) index will not be calcualted, use 
+            z_score or local_density to choose the method to calculate ad index.
             
-            k (int): number of the neareast neighbors to evaluate the AD index, default is 5.
+            k (int): number of the neareast neighbors to evaluate the ad index, default is 5.
             
-            train_dset_pair_distance (numpy.ndarray): pairwise distance for training set compound feature vectors.
-
-        Returns:
-            result_df (DataFrame) : Data frame indexed by compound IDs containing a column of SMILES
+        returns:
+            result_df (dataframe) : data frame indexed by compound ids containing a column of smiles
             strings, with additional columns containing the predicted values for each response variable.
-            If the model was trained to predict uncertainties, the returned data frame will also
+            if the model was trained to predict uncertainties, the returned data frame will also
             include standard deviation columns (named <response_col>_std) for each response variable.
-            The result data frame may not include all the compounds in the input dataset, because
+            the result data frame may not include all the compounds in the input dataset, because
             the featurizer may not be able to featurize all of them.
         """
 
@@ -667,17 +669,17 @@ class ModelPipeline:
         self.data = model_datasets.create_minimal_dataset(self.params, self.featurization, contains_responses)
 
         if not self.data.get_dataset_tasks(dset_df):
-            # Shouldn't happen - response_cols should already be set in saved model parameters
-            raise Exception("response_cols missing from model params")
+            # shouldn't happen - response_cols should already be set in saved model parameters
+            raise exception("response_cols missing from model params")
         self.data.get_featurized_data(dset_df, is_featurized)
         self.data.dataset = self.model_wrapper.transform_dataset(self.data.dataset)
 
-        # Get the predictions and standard deviations, if calculated, as numpy arrays
+        # get the predictions and standard deviations, if calculated, as numpy arrays
         preds, stds = self.model_wrapper.generate_predictions(self.data.dataset)
         result_df = self.data.attr.copy()
 
-        # Including the response_val name in the output makes it difficult to do looped plotting.
-        # We can talk about best way to handle this.
+        # including the response_val name in the output makes it difficult to do looped plotting.
+        # we can talk about best way to handle this.
 
         if contains_responses:
             for i, colname in enumerate(self.params.response_cols):
@@ -699,11 +701,11 @@ class ModelPipeline:
                 self.run_mode = 'training'
                 self.load_featurize_data()
                 if len(self.data.train_valid_dsets) > 1:
-                    # combine train and valid set for k-fold CV models
+                    # combine train and valid set for k-fold cv models
                     train_data = np.concatenate((self.data.train_valid_dsets[0][0].X, self.data.train_valid_dsets[0][1].X))
                 else:
                     train_data = self.data.train_valid_dsets[0][0].X
-                if train_dset_pair_distance is None and not hasattr(self, "train_pair_dis"):
+                if not hasattr(self, "train_pair_dis"):
                     self.calc_train_dset_pair_dis()
 
                 if AD_method == "local_density":
@@ -731,7 +733,7 @@ class ModelPipeline:
         return result_df
 
     # ****************************************************************************************
-    def predict_on_smiles(self, smiles, verbose=False, AD_method=None, k=5, train_dset_pair_distance=None):
+    def predict_on_smiles(self, smiles, verbose=False, AD_method=None, k=5):
         """Compute predicted responses from a pretrained model on a set of compounds given as a list of SMILES strings.
 
         Args:
@@ -743,8 +745,6 @@ class ModelPipeline:
             z_score or local_density to choose the method to calculate AD index.
             
             k (int): number of the neareast neighbors to evaluate the AD index, default is 5.
-            
-            train_dset_pair_distance (numpy.ndarray): pairwise distance for training set compound feature vectors.
 
         Returns:
             res (DataFrame) : Data frame indexed by compound IDs containing a column of SMILES
@@ -771,14 +771,14 @@ class ModelPipeline:
         df = pd.DataFrame({'compound_id': np.linspace(0, len(smiles) - 1, len(smiles), dtype=int),
                         self.params.smiles_col: smiles,
                         task: np.zeros(len(smiles))})
-        res = self.predict_on_dataframe(df, AD_method=AD_method, k=k, train_dset_pair_distance=train_dset_pair_distance)
+        res = self.predict_on_dataframe(df, AD_method=AD_method, k=k)
 
         sys.stdout = sys.__stdout__
 
         return res
 
     # ****************************************************************************************
-    def predict_full_dataset(self, dset_df, is_featurized=False, contains_responses=False, dset_params=None, AD_method=None, k=5, train_dset_pair_distance=None):
+    def predict_full_dataset(self, dset_df, is_featurized=False, contains_responses=False, dset_params=None, AD_method=None, k=5):
         """
         Compute predicted responses from a pretrained model on a set of compounds listed in
         a data frame. The data frame should contain, at minimum, a column of compound IDs; if
@@ -811,8 +811,6 @@ class ModelPipeline:
             
             k (int): number of the neareast neighbors to evaluate the AD index, default is 5.
             
-            train_dset_pair_distance (numpy.ndarray): pairwise distance for training set compound feature vectors.
-
         Returns:
             result_df (DataFrame) : Data frame indexed by compound IDs containing a column of SMILES
             strings, with additional columns containing the predicted values for each response variable.
@@ -879,7 +877,7 @@ class ModelPipeline:
                     train_data = np.concatenate((self.data.train_valid_dsets[0][0].X, self.data.train_valid_dsets[0][1].X))
                 else:
                     train_data = self.data.train_valid_dsets[0][0].X
-                if train_dset_pair_distance is None and not hasattr(self, "train_pair_dis"):
+                if not hasattr(self, "train_pair_dis"):
                     self.calc_train_dset_pair_dis()
 
                 if AD_method == "local_density":
