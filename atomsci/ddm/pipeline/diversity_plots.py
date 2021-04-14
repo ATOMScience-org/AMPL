@@ -555,77 +555,77 @@ def liability_dset_diversity(bucket='gsk_ml', feat_type='descriptors', dist_metr
             continue
         plot_dataset_dist_distr(model_dataset.dataset, feat_type, dist_metric, task_name, **metric_kwargs)
 
-    # ------------------------------------------------------------------------------------------------------------------
-    def get_dset_diversity(dset_key, ds_client, bucket='gsk_ml', feat_type='descriptors', dist_metric='cosine',
-                           **metric_kwargs):
-        """
-        Load datasets from datastore, featurize them, and plot distributions of their inter-compound
-        distances.
-        """
-        log = logging.getLogger('ATOM')
-    
-        dset_df = dsf.retrieve_dataset_by_datasetkey(dset_key, bucket, ds_client)
-    
-        if feat_type == 'descriptors':
-            params = parse.wrapper(dict(
-                dataset_key=dset_key,
-                bucket=bucket,
-                descriptor_key='/ds/projdata/gsk_data/GSK_Descriptors/GSK_2D_3D_MOE_Descriptors_By_Variant_ID_With_Base_RDKit_SMILES.feather',
-                descriptor_type='moe',
-                featurizer='descriptors',
-                system='twintron-blue',
-                datastore=True,
-                transformers=True))
-        elif feat_type == 'ECFP':
-            params = parse.wrapper(dict(
-                dataset_key=dset_key,
-                bucket=bucket,
-                featurizer='ECFP',
-                system='twintron-blue',
-                datastore=True,
-                ecfp_radius=2,
-                ecfp_size=1024,
-                transformers=True))
-        else:
-            log.error("Feature type %s not supported" % feat_type)
-            return
-        metadata = dsf.get_keyval(dataset_key=dset_key, bucket=bucket)
-        if 'id_col' in metadata.keys():
-            params.id_col = metadata['id_col']
-        if 'param' in metadata.keys():
-            params.response_cols = [metadata['param']]
-        elif 'response_col' in metadata.keys():
-            params.response_cols = [metadata['response_col']]
-        elif 'response_cols' in metadata.keys():
-            params.response_cols = metadata['response_cols']
-    
-        if 'smiles_col' in metadata.keys():
-            params.smiles_col = metadata['smiles_col']
-    
-        if 'class_number' in metadata.keys():
-            params.class_number = metadata['class_number']
-        params.dataset_name = dset_key.split('/')[-1].rstrip('.csv')
-    
-        log.warning("Featurizing data with %s featurizer" % feat_type)
-        featurization = feat.create_featurization(params)
-        model_dataset = md.MinimalDataset(params, featurization)
-        model_dataset.get_featurized_data(dset_df)
-        num_cmpds = model_dataset.dataset.X.shape[0]
-        if num_cmpds > 50000:
-            log.warning("Too many compounds to compute distance matrix: %d" % num_cmpds)
-            return
-        # plot_dataset_dist_distr(model_dataset.dataset, feat_type, dist_metric, params.response_cols, **metric_kwargs)
-        dists = cd.calc_dist_diskdataset('descriptors', dist_metric, model_dataset.dataset, calc_type='all')
-        import scipy
-        dists = scipy.spatial.distance.squareform(dists)
-        res_dir = '/ds/projdata/gsk_data/model_analysis/'
-        plt_dir = '%s/Plots' % res_dir
-        file_prefix = dset_key.split('/')[-1].rstrip('.csv')
-        mcs_linkage = linkage(dists, method='complete')
-        pdf_path = '%s/%s_mcs_clustermap.pdf' % (plt_dir, file_prefix)
-        pdf = PdfPages(pdf_path)
-        g = sns.clustermap(dists, row_linkage=mcs_linkage, col_linkage=mcs_linkage, figsize=(12, 12), cmap='plasma')
-        if plt_dir is not None:
-            pdf.savefig(g.fig)
-            pdf.close()
-        return dists
+# ------------------------------------------------------------------------------------------------------------------
+def get_dset_diversity(dset_key, ds_client, bucket='gsk_ml', feat_type='descriptors', dist_metric='cosine',
+                       **metric_kwargs):
+    """
+    Load datasets from datastore, featurize them, and plot distributions of their inter-compound
+    distances.
+    """
+    log = logging.getLogger('ATOM')
+
+    dset_df = dsf.retrieve_dataset_by_datasetkey(dset_key, bucket, ds_client)
+
+    if feat_type == 'descriptors':
+        params = parse.wrapper(dict(
+            dataset_key=dset_key,
+            bucket=bucket,
+            descriptor_key='/ds/projdata/gsk_data/GSK_Descriptors/GSK_2D_3D_MOE_Descriptors_By_Variant_ID_With_Base_RDKit_SMILES.feather',
+            descriptor_type='moe',
+            featurizer='descriptors',
+            system='twintron-blue',
+            datastore=True,
+            transformers=True))
+    elif feat_type == 'ECFP':
+        params = parse.wrapper(dict(
+            dataset_key=dset_key,
+            bucket=bucket,
+            featurizer='ECFP',
+            system='twintron-blue',
+            datastore=True,
+            ecfp_radius=2,
+            ecfp_size=1024,
+            transformers=True))
+    else:
+        log.error("Feature type %s not supported" % feat_type)
+        return
+    metadata = dsf.get_keyval(dataset_key=dset_key, bucket=bucket)
+    if 'id_col' in metadata.keys():
+        params.id_col = metadata['id_col']
+    if 'param' in metadata.keys():
+        params.response_cols = [metadata['param']]
+    elif 'response_col' in metadata.keys():
+        params.response_cols = [metadata['response_col']]
+    elif 'response_cols' in metadata.keys():
+        params.response_cols = metadata['response_cols']
+
+    if 'smiles_col' in metadata.keys():
+        params.smiles_col = metadata['smiles_col']
+
+    if 'class_number' in metadata.keys():
+        params.class_number = metadata['class_number']
+    params.dataset_name = dset_key.split('/')[-1].rstrip('.csv')
+
+    log.warning("Featurizing data with %s featurizer" % feat_type)
+    featurization = feat.create_featurization(params)
+    model_dataset = md.MinimalDataset(params, featurization)
+    model_dataset.get_featurized_data(dset_df)
+    num_cmpds = model_dataset.dataset.X.shape[0]
+    if num_cmpds > 50000:
+        log.warning("Too many compounds to compute distance matrix: %d" % num_cmpds)
+        return
+    # plot_dataset_dist_distr(model_dataset.dataset, feat_type, dist_metric, params.response_cols, **metric_kwargs)
+    dists = cd.calc_dist_diskdataset('descriptors', dist_metric, model_dataset.dataset, calc_type='all')
+    import scipy
+    dists = scipy.spatial.distance.squareform(dists)
+    res_dir = '/ds/projdata/gsk_data/model_analysis/'
+    plt_dir = '%s/Plots' % res_dir
+    file_prefix = dset_key.split('/')[-1].rstrip('.csv')
+    mcs_linkage = linkage(dists, method='complete')
+    pdf_path = '%s/%s_mcs_clustermap.pdf' % (plt_dir, file_prefix)
+    pdf = PdfPages(pdf_path)
+    g = sns.clustermap(dists, row_linkage=mcs_linkage, col_linkage=mcs_linkage, figsize=(12, 12), cmap='plasma')
+    if plt_dir is not None:
+        pdf.savefig(g.fig)
+        pdf.close()
+    return dists
