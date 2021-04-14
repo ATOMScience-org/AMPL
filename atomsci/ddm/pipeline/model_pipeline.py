@@ -20,6 +20,9 @@ import time
 import pandas as pd
 import pdb
 
+# import this to get atomsci.ddm.__version__
+import atomsci.ddm.pipeline.model_datasets
+
 from atomsci.ddm.utils import datastore_functions as dsf
 from atomsci.ddm.pipeline import model_datasets as model_datasets
 from atomsci.ddm.pipeline import model_wrapper as model_wrapper
@@ -234,7 +237,8 @@ class ModelPipeline:
             uncertainty=self.params.uncertainty,
             time_generated=time.time(),
             save_results=self.params.save_results,
-            hyperparam_uuid=self.params.hyperparam_uuid
+            hyperparam_uuid=self.params.hyperparam_uuid,
+            ampl_version=atomsci.dmm.__version__
         )
 
         splitting_metadata = self.data.get_split_metadata()
