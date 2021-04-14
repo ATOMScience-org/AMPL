@@ -330,6 +330,8 @@ def get_best_perf_table(metric_type, col_name=None, result_dir=None, model_uuid=
         model_info['rf_estimators'] = nan
         model_info['rf_max_features'] = nan
         model_info['rf_max_depth'] = nan
+        model_info['xgb_gamma'] = nan
+        model_info['xgb_learning_rate'] = nan
     if model_info['model_type'] == 'RF':
         rf_params = metadata_dict['rf_specific']
         model_info['rf_estimators'] = rf_params['rf_estimators']
@@ -340,6 +342,20 @@ def get_best_perf_table(metric_type, col_name=None, result_dir=None, model_uuid=
         model_info['learning_rate'] = nan
         model_info['layer_sizes'] = nan
         model_info['dropouts'] = nan
+        model_info['xgb_gamma'] = nan
+        model_info['xgb_learning_rate'] = nan
+    if model_info['model_type'] == 'xgboost':
+        xgb_params = metadata_dict['xgb_specific']
+        model_info['max_epochs'] = nan
+        model_info['best_epoch'] = nan
+        model_info['learning_rate'] = nan
+        model_info['layer_sizes'] = nan
+        model_info['dropouts'] = nan
+        model_info['rf_estimators'] = nan
+        model_info['rf_max_features'] = nan
+        model_info['rf_max_depth'] = nan
+        model_info['xgb_gamma'] = xgb_params['xgb_gamma']
+        model_info['xgb_learning_rate'] = xgb_params['xgb_learning_rate']
 
     for metrics_dict in metrics_dicts:
         subset = metrics_dict['subset']
@@ -759,6 +775,8 @@ def get_filesystem_perf_results(result_dir, pred_type='classification'):
     rf_estimators_list = []
     rf_max_features_list = []
     rf_max_depth_list = []
+    xgb_gamma_list = []
+    xgb_learning_rate_list = []
     best_epoch_list = []
     model_score_type_list = []
     feature_transform_type_list = []
@@ -769,7 +787,7 @@ def get_filesystem_perf_results(result_dir, pred_type='classification'):
         metrics = ['r2_score', 'rms_score', 'mae_score', 'num_compounds']
     else:
         metrics = ['roc_auc_score', 'prc_auc_score', 'precision', 'recall_score', 'num_compounds',
-                   'accuracy_score', 'npv', 'matthews_cc', 'kappa', 'cross_entropy', 'confusion_matrix']
+                   'accuracy_score', 'bal_accuracy', 'npv', 'matthews_cc', 'kappa', 'cross_entropy', 'confusion_matrix']
     score_dict = {}
     for subset in subsets:
         score_dict[subset] = {}
@@ -835,6 +853,8 @@ def get_filesystem_perf_results(result_dir, pred_type='classification'):
             rf_estimators_list.append(nan)
             rf_max_features_list.append(nan)
             rf_max_depth_list.append(nan)
+            xgb_gamma_list.append(nan)
+            xgb_learning_rate_list.append(nan)
         if model_type == 'RF':
             rf_params = metadata_dict['rf_specific']
             rf_estimators_list.append(rf_params['rf_estimators'])
@@ -845,6 +865,20 @@ def get_filesystem_perf_results(result_dir, pred_type='classification'):
             learning_rate_list.append(nan)
             layer_sizes_list.append(nan)
             dropouts_list.append(nan)
+            xgb_gamma_list.append(nan)
+            xgb_learning_rate_list.append(nan)
+        if model_type == 'xgboost':
+            xgb_params = metadata_dict['xgb_specific']
+            rf_estimators_list.append(nan)
+            rf_max_features_list.append(nan)
+            rf_max_depth_list.append(nan)
+            max_epochs_list.append(nan)
+            best_epoch_list.append(nan)
+            learning_rate_list.append(nan)
+            layer_sizes_list.append(nan)
+            dropouts_list.append(nan)
+            xgb_gamma_list.append(xgb_params['xgb_gamma'])
+            xgb_learning_rate_list.append(xgb_params['xgb_learning_rate'])
         for subset in subsets:
             for metric in metrics:
                 score_dict[subset][metric].append(subset_metrics[subset][metric])
@@ -866,7 +900,10 @@ def get_filesystem_perf_results(result_dir, pred_type='classification'):
                     max_epochs=max_epochs_list,
                     rf_estimators=rf_estimators_list,
                     rf_max_features=rf_max_features_list,
-                    rf_max_depth=rf_max_depth_list))
+                    rf_max_depth=rf_max_depth_list,
+                    xgb_gamma=xgb_gamma_list,
+                    xgb_learning_rate=xgb_learning_rate_list))
+
     perf_df['model_choice_score'] = score_dict['valid']['model_choice_score']
     for subset in subsets:
         for metric in metrics:
@@ -936,6 +973,8 @@ def get_summary_perf_tables(collection_names=None, filter_dict={}, result_dir=No
     rf_estimators_list = []
     rf_max_features_list = []
     rf_max_depth_list = []
+    xgb_gamma_list = []
+    xgb_learning_rate_list = []
     best_epoch_list = []
     max_epochs_list = []
     learning_rate_list = []
@@ -952,7 +991,7 @@ def get_summary_perf_tables(collection_names=None, filter_dict={}, result_dir=No
         score_types = ['r2_score', 'mae_score', 'rms_score']
     else:
         # TODO: add more classification metrics later
-        score_types = ['roc_auc_score', 'prc_auc_score', 'accuracy_score', 'precision', 'recall_score', 'npv', 'matthews_cc']
+        score_types = ['roc_auc_score', 'prc_auc_score', 'accuracy_score', 'bal_accuracy', 'precision', 'recall_score', 'npv', 'matthews_cc', 'kappa']
 
     subsets = ['train', 'valid', 'test']
     score_dict = {}
@@ -1057,6 +1096,8 @@ def get_summary_perf_tables(collection_names=None, filter_dict={}, result_dir=No
                 rf_estimators_list.append(nan)
                 rf_max_features_list.append(nan)
                 rf_max_depth_list.append(nan)
+                xgb_gamma_list.append(nan)
+                xgb_learning_rate_list.append(nan)
             elif model_type == 'RF':
                 rf_params = metadata_dict['rf_specific']
                 rf_estimators_list.append(rf_params['rf_estimators'])
@@ -1067,8 +1108,10 @@ def get_summary_perf_tables(collection_names=None, filter_dict={}, result_dir=No
                 learning_rate_list.append(nan)
                 layer_sizes_list.append(nan)
                 dropouts_list.append(nan)
+                xgb_gamma_list.append(nan)
+                xgb_learning_rate_list.append(nan)
             elif model_type == 'xgboost':
-                # TODO: Add xgboost parameters
+                xgb_params = metadata_dict['xgb_specific']
                 max_epochs_list.append(nan)
                 best_epoch_list.append(nan)
                 learning_rate_list.append(nan)
@@ -1077,6 +1120,8 @@ def get_summary_perf_tables(collection_names=None, filter_dict={}, result_dir=No
                 rf_estimators_list.append(nan)
                 rf_max_features_list.append(nan)
                 rf_max_depth_list.append(nan)
+                xgb_gamma_list.append(xgb_params['xgb_gamma'])
+                xgb_learning_rate_list.append(xgb_params['xgb_learning_rate'])
             else:
                 raise Exception('Unexpected model type %s' % model_type)
 
@@ -1126,6 +1171,8 @@ def get_summary_perf_tables(collection_names=None, filter_dict={}, result_dir=No
                     rf_estimators=rf_estimators_list,
                     rf_max_features=rf_max_features_list,
                     rf_max_depth=rf_max_depth_list,
+                    xgb_gamma=xgb_gamma_list,
+                    xgb_learning_rate=xgb_learning_rate_list,
                     dataset_bucket=bucket_list,
                     dataset_key=dataset_key_list,
                     dataset_size=dset_size_list,
@@ -1204,46 +1251,142 @@ def get_summary_metadata_table(uuids, collections=None):
         try:
             split_uuid = model_meta['splitting_parameters']['split_uuid']
         except:
-            split_uuid = 'Not Avaliable'
+            split_uuid = 'Not Available'
 
-        if mdl_params['model_type'] == 'NN':
-            nn_params = model_meta['nn_specific']
-            minfo = {'Name': name,
-                     'Transformation': transform,
-                     'Model Type (Featurizer)':    '%s (%s)' % (mdl_params['model_type'],featurizer),
-                     'r^2 (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['r2_score'], valid_metrics['r2_score'], test_metrics['r2_score']),
-                     'MAE (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['mae_score'], valid_metrics['mae_score'], test_metrics['mae_score']),
-                     'RMSE(Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['rms_score'], valid_metrics['rms_score'], test_metrics['rms_score']),
-                     'Data Size (Train/Valid/Test)': '%i/%i/%i' % (train_metrics["num_compounds"],valid_metrics["num_compounds"],test_metrics["num_compounds"]),
-                     'Splitter':      model_meta['splitting_parameters']['splitter'],
-                     'Layer Sizes':   nn_params['layer_sizes'],
-                     'Optimizer':     nn_params['optimizer_type'],
-                     'Learning Rate': nn_params['learning_rate'],
-                     'Dropouts':      nn_params['dropouts'],
-                     'Best Epoch (Max)': '%i (%i)' % (nn_params['best_epoch'],nn_params['max_epochs']),
-                     'Collection':    collection_name,
-                     'UUID':          model_meta['model_uuid'],
-                     'Split UUID':    split_uuid,
-                     'Dataset Key':   data_params['dataset_key']}
-        elif mdl_params['model_type'] == 'RF':
-            rf_params = model_meta['rf_specific']
-            minfo = {'Name': name,
-                     'Transformation': transform,
-                     'Model Type (Featurizer)':    '%s (%s)' % (mdl_params['model_type'],featurizer),
-                     'Max Depth':    rf_params['rf_max_depth'],
-                     'Max Features': rf_params['rf_max_depth'],
-                     'RF Estimators': rf_params['rf_estimators'],
-                     'r^2 (Train/Valid/Test)':       '%0.2f/%0.2f/%0.2f' % (train_metrics['r2_score'], valid_metrics['r2_score'], test_metrics['r2_score']),
-                     'MAE (Train/Valid/Test)':       '%0.2f/%0.2f/%0.2f' % (train_metrics['mae_score'], valid_metrics['mae_score'], test_metrics['mae_score']),
-                     'RMSE(Train/Valid/Test)':       '%0.2f/%0.2f/%0.2f' % (train_metrics['rms_score'], valid_metrics['rms_score'], test_metrics['rms_score']),
-                     'Data Size (Train/Valid/Test)': '%i/%i/%i' % (train_metrics["num_compounds"],valid_metrics["num_compounds"],test_metrics["num_compounds"]),
-                     'Splitter':      model_meta['splitting_parameters']['splitter'],
-                     'Collection':    collection_name,
-                     'UUID':          model_meta['model_uuid'],
-                     'Split UUID':    split_uuid,
-                     'Dataset Key':   data_params['dataset_key']}
-        else:
-            architecture = 'unknown'
+        if mdl_params['prediction_type'] == 'regression':
+            if mdl_params['model_type'] == 'NN':
+                nn_params = model_meta['nn_specific']
+                minfo = {'Name': name,
+                         'Transformation': transform,
+                         'Model Type (Featurizer)':    '%s (%s)' % (mdl_params['model_type'],featurizer),
+                         'r^2 (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['r2_score'], valid_metrics['r2_score'], test_metrics['r2_score']),
+                         'MAE (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['mae_score'], valid_metrics['mae_score'], test_metrics['mae_score']),
+                         'RMSE(Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['rms_score'], valid_metrics['rms_score'], test_metrics['rms_score']),
+                         'Data Size (Train/Valid/Test)': '%i/%i/%i' % (train_metrics["num_compounds"],valid_metrics["num_compounds"],test_metrics["num_compounds"]),
+                         'Splitter':      model_meta['splitting_parameters']['splitter'],
+                         'Layer Sizes':   nn_params['layer_sizes'],
+                         'Optimizer':     nn_params['optimizer_type'],
+                         'Learning Rate': nn_params['learning_rate'],
+                         'Dropouts':      nn_params['dropouts'],
+                         'Best Epoch (Max)': '%i (%i)' % (nn_params['best_epoch'],nn_params['max_epochs']),
+                         'Collection':    collection_name,
+                         'UUID':          model_meta['model_uuid'],
+                         'Split UUID':    split_uuid,
+                         'Dataset Key':   data_params['dataset_key']}
+            elif mdl_params['model_type'] == 'RF':
+                rf_params = model_meta['rf_specific']
+                minfo = {'Name': name,
+                         'Transformation': transform,
+                         'Model Type (Featurizer)':    '%s (%s)' % (mdl_params['model_type'],featurizer),
+                         'Max Depth':    rf_params['rf_max_depth'],
+                         'Max Features': rf_params['rf_max_depth'],
+                         'RF Estimators': rf_params['rf_estimators'],
+                         'r^2 (Train/Valid/Test)':       '%0.2f/%0.2f/%0.2f' % (train_metrics['r2_score'], valid_metrics['r2_score'], test_metrics['r2_score']),
+                         'MAE (Train/Valid/Test)':       '%0.2f/%0.2f/%0.2f' % (train_metrics['mae_score'], valid_metrics['mae_score'], test_metrics['mae_score']),
+                         'RMSE(Train/Valid/Test)':       '%0.2f/%0.2f/%0.2f' % (train_metrics['rms_score'], valid_metrics['rms_score'], test_metrics['rms_score']),
+                         'Data Size (Train/Valid/Test)': '%i/%i/%i' % (train_metrics["num_compounds"],valid_metrics["num_compounds"],test_metrics["num_compounds"]),
+                         'Splitter':      model_meta['splitting_parameters']['splitter'],
+                         'Collection':    collection_name,
+                         'UUID':          model_meta['model_uuid'],
+                         'Split UUID':    split_uuid,
+                         'Dataset Key':   data_params['dataset_key']}
+            elif mdl_params['model_type'] == 'xgboost':
+                xgb_params = model_meta['xgb_specific']
+                minfo = {'Name': name,
+                         'Transformation': transform,
+                         'Model Type (Featurizer)':    '%s (%s)' % (mdl_params['model_type'],featurizer),
+                         'Gamma':    xgb_params['xgb_gamma'],
+                         'Learning rate': xgb_params['xgb_max_depth'],
+                         'r^2 (Train/Valid/Test)':       '%0.2f/%0.2f/%0.2f' % (train_metrics['r2_score'], valid_metrics['r2_score'], test_metrics['r2_score']),
+                         'MAE (Train/Valid/Test)':       '%0.2f/%0.2f/%0.2f' % (train_metrics['mae_score'], valid_metrics['mae_score'], test_metrics['mae_score']),
+                         'RMSE(Train/Valid/Test)':       '%0.2f/%0.2f/%0.2f' % (train_metrics['rms_score'], valid_metrics['rms_score'], test_metrics['rms_score']),
+                         'Data Size (Train/Valid/Test)': '%i/%i/%i' % (train_metrics["num_compounds"],valid_metrics["num_compounds"],test_metrics["num_compounds"]),
+                         'Splitter':      model_meta['splitting_parameters']['splitter'],
+                         'Collection':    collection_name,
+                         'UUID':          model_meta['model_uuid'],
+                         'Split UUID':    split_uuid,
+                         'Dataset Key':   data_params['dataset_key']}
+            else:
+                architecture = 'unknown'
+        elif mdl_params['prediction_type'] == 'classification':
+            if mdl_params['model_type'] == 'NN':
+                nn_params = model_meta['nn_specific']
+                minfo = {'Name': name,
+                         'Transformation': transform,
+                         'Model Type (Featurizer)':    '%s (%s)' % (mdl_params['model_type'],featurizer),
+                         'ROC AUC (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['roc_auc_score'], valid_metrics['roc_auc_score'], test_metrics['roc_auc_score']),
+                         'PRC AUC (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['prc_auc_score'], valid_metrics['prc_auc_score'], test_metrics['prc_auc_score']),
+                         'Balanced accuracy (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['bal_accuracy'], valid_metrics['bal_accuracy'], test_metrics['bal_accuracy']),
+                         'Accuracy (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['accuracy_score'], valid_metrics['accuracy_score'], test_metrics['accuracy_score']),
+                         'Precision (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['precision'], valid_metrics['precision'], test_metrics['precision']),
+                         'Recall (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['recall_score'], valid_metrics['recall_score'], test_metrics['recall_score']),
+                         'NPV (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['npv'], valid_metrics['npv'], test_metrics['npv']),
+                         'Kappa (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['kappa'], valid_metrics['kappa'], test_metrics['kappa']),
+                         'Matthews CC (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['matthews_cc'], valid_metrics['matthews_cc'], test_metrics['matthews_cc']),
+                         'Cross entropy (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['cross_entropy'], valid_metrics['cross_entropy'], test_metrics['cross_entropy']),
+                         'Confusion matrices (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['confusion_matrix'], valid_metrics['confusion_matrix'], test_metrics['confusion_matrix']),
+                         'Data Size (Train/Valid/Test)': '%i/%i/%i' % (train_metrics["num_compounds"],valid_metrics["num_compounds"],test_metrics["num_compounds"]),
+                         'Splitter':      model_meta['splitting_parameters']['splitter'],
+                         'Layer Sizes':   nn_params['layer_sizes'],
+                         'Optimizer':     nn_params['optimizer_type'],
+                         'Learning Rate': nn_params['learning_rate'],
+                         'Dropouts':      nn_params['dropouts'],
+                         'Best Epoch (Max)': '%i (%i)' % (nn_params['best_epoch'],nn_params['max_epochs']),
+                         'Collection':    collection_name,
+                         'UUID':          model_meta['model_uuid'],
+                         'Split UUID':    split_uuid,
+                         'Dataset Key':   data_params['dataset_key']}
+            elif mdl_params['model_type'] == 'RF':
+                rf_params = model_meta['rf_specific']
+                minfo = {'Name': name,
+                         'Transformation': transform,
+                         'Model Type (Featurizer)':    '%s (%s)' % (mdl_params['model_type'],featurizer),
+                         'Max Depth':    rf_params['rf_max_depth'],
+                         'Max Features': rf_params['rf_max_depth'],
+                         'RF Estimators': rf_params['rf_estimators'],
+                         'ROC AUC (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['roc_auc_score'], valid_metrics['roc_auc_score'], test_metrics['roc_auc_score']),
+                         'PRC AUC (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['prc_auc_score'], valid_metrics['prc_auc_score'], test_metrics['prc_auc_score']),
+                         'Balanced accuracy (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['bal_accuracy'], valid_metrics['bal_accuracy'], test_metrics['bal_accuracy']),
+                         'Accuracy (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['accuracy_score'], valid_metrics['accuracy_score'], test_metrics['accuracy_score']),
+                         'Precision (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['precision'], valid_metrics['precision'], test_metrics['precision']),
+                         'Recall (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['recall_score'], valid_metrics['recall_score'], test_metrics['recall_score']),
+                         'NPV (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['npv'], valid_metrics['npv'], test_metrics['npv']),
+                         'Kappa (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['kappa'], valid_metrics['kappa'], test_metrics['kappa']),
+                         'Matthews CC (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['matthews_cc'], valid_metrics['matthews_cc'], test_metrics['matthews_cc']),
+                         'Cross entropy (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['cross_entropy'], valid_metrics['cross_entropy'], test_metrics['cross_entropy']),
+                         'Confusion matrices (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['confusion_matrix'], valid_metrics['confusion_matrix'], test_metrics['confusion_matrix']),
+                         'Data Size (Train/Valid/Test)': '%i/%i/%i' % (train_metrics["num_compounds"],valid_metrics["num_compounds"],test_metrics["num_compounds"]),
+                         'Splitter':      model_meta['splitting_parameters']['splitter'],
+                         'Collection':    collection_name,
+                         'UUID':          model_meta['model_uuid'],
+                         'Split UUID':    split_uuid,
+                         'Dataset Key':   data_params['dataset_key']}
+            elif mdl_params['model_type'] == 'xgboost':
+                xgb_params = model_meta['xgb_specific']
+                minfo = {'Name': name,
+                         'Transformation': transform,
+                         'Model Type (Featurizer)':    '%s (%s)' % (mdl_params['model_type'],featurizer),
+                         'Gamma':    xgb_params['xgb_gamma'],
+                         'XGB Learning rate': xgb_params['xgb_max_depth'],
+                         'ROC AUC (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['roc_auc_score'], valid_metrics['roc_auc_score'], test_metrics['roc_auc_score']),
+                         'PRC AUC (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['prc_auc_score'], valid_metrics['prc_auc_score'], test_metrics['prc_auc_score']),
+                         'Balanced accuracy (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['bal_accuracy'], valid_metrics['bal_accuracy'], test_metrics['bal_accuracy']),
+                         'Accuracy (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['accuracy_score'], valid_metrics['accuracy_score'], test_metrics['accuracy_score']),
+                         'Precision (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['precision'], valid_metrics['precision'], test_metrics['precision']),
+                         'Recall (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['recall_score'], valid_metrics['recall_score'], test_metrics['recall_score']),
+                         'NPV (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['npv'], valid_metrics['npv'], test_metrics['npv']),
+                         'Kappa (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['kappa'], valid_metrics['kappa'], test_metrics['kappa']),
+                         'Matthews CC (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['matthews_cc'], valid_metrics['matthews_cc'], test_metrics['matthews_cc']),
+                         'Cross entropy (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['cross_entropy'], valid_metrics['cross_entropy'], test_metrics['cross_entropy']),
+                         'Confusion matrices (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['confusion_matrix'], valid_metrics['confusion_matrix'], test_metrics['confusion_matrix']),
+                         'Data Size (Train/Valid/Test)': '%i/%i/%i' % (train_metrics["num_compounds"],valid_metrics["num_compounds"],test_metrics["num_compounds"]),
+                         'Splitter':      model_meta['splitting_parameters']['splitter'],
+                         'Collection':    collection_name,
+                         'UUID':          model_meta['model_uuid'],
+                         'Split UUID':    split_uuid,
+                         'Dataset Key':   data_params['dataset_key']}
+            else:
+                architecture = 'unknown'
 
         mlist.append(OrderedDict(minfo))
     return pd.DataFrame(mlist).set_index('Name').transpose()
@@ -1617,7 +1760,7 @@ def get_multitask_perf_from_tracker(collection_name, response_cols=None, expand_
         response_cols=alldat.response_cols[0]
         print("Response cols:", response_cols)
     else:
-        raise Exception(f"There is more than one set of response cols in this collection. Please choose from these lists (be sure to pass response_cols as a list, not a string with a list inside): {alldat.response_cols.astype(str).unique()}")
+        raise Exception(f"There is more than one set of response cols in this collection. Please choose from these lists: {alldat.response_cols.unique()}")
 
     # expand training metrics - deal with NA's in columns
     metrics=pd.DataFrame.from_dict(models['training_metrics'].tolist())
@@ -1678,7 +1821,8 @@ def get_multitask_perf_from_tracker(collection_name, response_cols=None, expand_
                   'dropouts', 'layer_sizes', 'learning_rate', 'max_epochs', 'optimizer_type',
                   'weight_decay_penalty', 'weight_decay_penalty_type', 'weight_init_stddevs', 'splitter',
                   'split_uuid', 'split_test_frac', 'split_valid_frac', 'smiles_col', 'id_col',
-                  'feature_transform_type', 'response_cols', 'response_transform_type', 'num_model_tasks']
+                  'feature_transform_type', 'response_cols', 'response_transform_type', 'num_model_tasks',
+                  'rf_estimators', 'rf_max_depth', 'rf_max_features', 'xgb_gamma', 'xgb_learning_rate']
         keepcols.extend(alldat.columns[alldat.columns.str.contains('best')])
         keepcols = list(set(alldat.columns).intersection(keepcols))
         alldat=alldat[keepcols]
@@ -1691,6 +1835,10 @@ def get_multitask_perf_from_tracker(collection_name, response_cols=None, expand_
 #-------------------------------------------------------------------------------------------------------------------
 # TODO: Update this function
 def aggregate_predictions(datasets, bucket, col_names, result_dir):
+    """
+    Run predictions for best dataset/model_type/split_type/featurizer (max r2 score) and save csv's in /usr/local/data/
+    Old. needs to be updated
+    """
     if not mlmt_supported:
         print("Model tracker not supported in your environment; can examine models saved in filesystem only.")
         return
@@ -1700,14 +1848,14 @@ def aggregate_predictions(datasets, bucket, col_names, result_dir):
     for dset_key, bucket in datasets:
         for model_type in ['NN', 'RF']:
             for split_type in ['scaffold', 'random']:
-                for descriptor_type in ['mordred_filtered', 'moe']:
+                for descriptor_type in ['mordred_filtered', 'moe', 'rdkit_raw']:
                     model_filter = {"training_dataset.dataset_key" : dset_key,
                                     "training_dataset.bucket" : bucket,
                                     "ModelMetrics.TrainingRun.label" : "best",
                                     'ModelMetrics.TrainingRun.subset': 'valid',
                                     'ModelMetrics.TrainingRun.PredictionResults.r2_score': ['max', None],
                                     'model_parameters.model_type': model_type,
-                                    'model_parameters.featurizer': 'descriptors',
+                                    'model_parameters.featurizer': 'computed_descriptors',
                                     'descriptor_specific.descriptor_type': descriptor_type,
                                     'splitting_parameters.splitter': split_type
                                    }
