@@ -103,7 +103,6 @@ def create_perf_data(prediction_type, model_dataset, transformers, subset, **kwa
     else:
         split_strategy = model_dataset.params.split_strategy
     if prediction_type == 'regression':
-        #if subset in ['test', 'full'] or split_strategy == 'train_valid_test':
         if subset == 'full' or split_strategy == 'train_valid_test':
             # Called simple because no need to track compound IDs across multiple training folds
             return SimpleRegressionPerfData(model_dataset, transformers, subset, **kwargs)
@@ -112,7 +111,6 @@ def create_perf_data(prediction_type, model_dataset, transformers, subset, **kwa
         else:
             raise ValueError('Unknown split_strategy %s' % split_strategy)
     elif prediction_type == 'classification':
-        #if subset in ['test', 'full'] or split_strategy == 'train_valid_test':
         if subset == 'full' or split_strategy == 'train_valid_test':
             return SimpleClassificationPerfData(model_dataset, transformers, subset, **kwargs)
         elif split_strategy == 'k_fold_cv':
@@ -720,7 +718,7 @@ class KFoldRegressionPerfData(RegressionPerfData):
 
         """
         self.subset = subset
-        if self.subset in ('train', 'valid'):
+        if self.subset in ('train', 'valid', 'train_valid'):
             dataset = model_dataset.combined_training_data()
         elif self.subset == 'test':
             dataset = model_dataset.test_dset
@@ -821,7 +819,7 @@ class KFoldRegressionPerfData(RegressionPerfData):
 
         """
         ids = sorted(self.pred_vals.keys())
-        if self.subset in ['train', 'test']:
+        if self.subset in ['train', 'test', 'train_valid']:
             rawvals = np.concatenate([self.pred_vals[id].mean(axis=0, keepdims=True).reshape((1,-1)) for id in ids])
             vals = dc.trans.undo_transforms(rawvals, self.transformers)
             if self.folds > 1:
@@ -967,7 +965,7 @@ class KFoldClassificationPerfData(ClassificationPerfData):
         """
 
         self.subset = subset
-        if self.subset in ('train', 'valid'):
+        if self.subset in ('train', 'valid', 'train_valid'):
             dataset = model_dataset.combined_training_data()
         elif self.subset == 'test':
             dataset = model_dataset.test_dset
@@ -1063,9 +1061,9 @@ class KFoldClassificationPerfData(ClassificationPerfData):
     # class KFoldClassificationPerfData
     def get_pred_values(self):
         """Returns the predicted values accumulated over training, with any transformations undone.  If self.subset 
-        is 'train' or 'test', the function will return the means and standard deviations of the class probabilities over 
-        the training folds for each compound, for each task.  Otherwise, returns a single set of predicted probabilites for each 
-        validation set compound. For all subsets, returns the compound IDs and the most probable classes for each task. 
+        is 'train', 'train_valid' or 'test', the function will return the means and standard deviations of the class probabilities 
+        over the training folds for each compound, for each task.  Otherwise, returns a single set of predicted probabilites for 
+        each validation set compound. For all subsets, returns the compound IDs and the most probable classes for each task. 
         
         Returns:
             ids (list): list of compound IDs.
@@ -1079,7 +1077,7 @@ class KFoldClassificationPerfData(ClassificationPerfData):
 
         """
         ids = sorted(self.pred_vals.keys())
-        if self.subset in ['train', 'test']:
+        if self.subset in ['train', 'test', 'train_valid']:
             #class_probs = np.concatenate([dc.trans.undo_transforms(self.pred_vals[id], self.transformers).mean(axis=0, keepdims=True)
             #                       for id in ids], axis=0)
             #prob_stds = np.concatenate([dc.trans.undo_transforms(self.pred_vals[id], self.transformers).std(axis=0, keepdims=True)
