@@ -307,6 +307,10 @@ def compute_mordred_descriptors_from_smiles(smiles_strs, max_cpus=None, quiet=Tr
 
     """
     mols3d, is_valid = get_3d_mols(smiles_strs)
+    if not np.any(is_valid):
+        log.error("No valid SMILES strings input to compute_mordred_descriptors_from_smiles.")
+        log.error("First input SMILES = %s" % smiles_strs[0])
+        return None, is_valid
     desc_df = compute_all_mordred_descrs(mols3d, max_cpus, quiet=quiet)
     valid_smiles = np.array(smiles_strs)[is_valid]
     if desc_df is not None:
@@ -336,6 +340,39 @@ def compute_all_rdkit_descrs(mol_df, mol_col = "mol"):
         for desc, d in list(zip(all_desc, cd)):
             mol_df.at[i, desc] = d
     return mol_df
+
+def compute_rdkit_descriptors_from_smiles(smiles_strs, smiles_col='rdkit_smiles'):
+    """
+    Compute 2D and 3D RDKit descriptors for the given list of SMILES strings.
+
+    Args:
+        smiles_strs:    A list or array of SMILES strings
+
+        max_cpus:       The maximum number of cores to use for computing descriptors. The default value None means
+                        that all available cores will be used.
+        quiet (bool):   If True, suppress displaying a progress indicator while computing descriptors.
+
+        smiles_col (str): The name of the column that will contain SMILES strings in the returned data frame.
+
+    Returns: tuple
+        desc_df (DataFrame): A table of Mordred descriptors for the input SMILES strings that were valid
+                        (according to RDKit), together with those SMILES strings.
+
+        is_valid (ndarray of bool): An array of length the same as smiles_strs, indicating which SMILES strings
+                            were considered valid.
+
+    """
+    mols3d, is_valid = get_3d_mols(smiles_strs)
+    mol_df = pd.DataFrame({"mol": mols3d})
+    desc_df = compute_all_rdkit_descrs(mol_df)
+    valid_smiles = np.array(smiles_strs)[is_valid]
+    if desc_df is not None:
+        desc_df[smiles_col] = valid_smiles
+    else:
+        log.debug('Descriptor calculation failed for one of the following SMILES strings:')
+        for smi in valid_smiles:
+            log.debug(smi)
+    return desc_df, is_valid
 
 def get_mordred_calculator(exclude=subclassed_mordred_classes, ignore_3D=False):
     """
@@ -1635,7 +1672,7 @@ class ComputedDescriptorFeaturization(DescriptorFeaturization):
                 is_valid (ndarray of bool): True for each input SMILES string that was valid according to RDKit
 
         """
-        smiles_df["mol"], is_valid = get_2d_mols(smiles_df[smiles_col])
+        smiles_df["mol"], is_valid = get_3d_mols(smiles_df[smiles_col])
         desc_df = compute_all_rdkit_descrs(smiles_df, "mol")
         return desc_df, is_valid
 
