@@ -388,14 +388,7 @@ class ModelWrapper(object):
           try:
             self.model.save_checkpoint()
           except Exception as e:
-            self.log.error("Error when saving model:\n%s" % str(e))
-        
-        
-        
-        
-        
-        
-        
+            self.log.error("Error when saving model:\n%s" % str(e))    
 
 # ****************************************************************************************
 class DCNNModelWrapper(ModelWrapper):
