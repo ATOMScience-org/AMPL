@@ -763,6 +763,7 @@ def get_filesystem_perf_results(result_dir, pred_type='classification'):
     """
     Retrieve model metadata and performance metrics stored in the filesystem from a hyperparameter search run.
     """
+    ampl_version_list = []
     model_uuid_list = []
     model_type_list = []
     max_epochs_list = []
@@ -826,9 +827,11 @@ def get_filesystem_perf_results(result_dir, pred_type='classification'):
             if metrics_dict['label'] == 'best':
                 subset = metrics_dict['subset']
                 subset_metrics[subset] = metrics_dict['prediction_results']
-
+        
         model_uuid_list.append(model_uuid)
         model_params = metadata_dict['model_parameters']
+        ampl_version = model_params['ampl_version']
+        ampl_version_list.append(ampl_version)
         model_type = model_params['model_type']
         model_type_list.append(model_type)
         model_score_type = model_params['model_choice_score_type']
@@ -887,6 +890,7 @@ def get_filesystem_perf_results(result_dir, pred_type='classification'):
 
     perf_df = pd.DataFrame(dict(
                     model_uuid=model_uuid_list,
+                    ampl_version=ampl_version_list,
                     model_type=model_type_list,
                     dataset_key=dataset_key_list,
                     featurizer=featurizer_list,
@@ -957,6 +961,7 @@ def get_summary_perf_tables(collection_names=None, filter_dict={}, result_dir=No
         return None
 
     collection_list = []
+    ampl_version_list=[]
     model_uuid_list = []
     time_built_list = []
     model_type_list = []
@@ -1048,6 +1053,8 @@ def get_summary_perf_tables(collection_names=None, filter_dict={}, result_dir=No
             time_built_list.append(time_built)
 
             model_params = metadata_dict['model_parameters']
+            ampl_version = model_params.get('ampl_version', 'probably 1.0.0')
+            ampl_version_list.append(ampl_version)
             model_type = model_params['model_type']
             model_type_list.append(model_type)
             featurizer = model_params['featurizer']
@@ -1150,6 +1157,7 @@ def get_summary_perf_tables(collection_names=None, filter_dict={}, result_dir=No
 
     col_dict = dict(
                     collection=collection_list,
+                    ampl_version=ampl_version_list,
                     model_uuid=model_uuid_list,
                     time_built=time_built_list,
                     model_type=model_type_list,
@@ -1258,6 +1266,7 @@ def get_summary_metadata_table(uuids, collections=None):
                 nn_params = model_meta['nn_specific']
                 minfo = {'Name': name,
                          'Transformation': transform,
+                         'AMPL version used:': mdl_params.get('ampl_version', 'probably 1.0.0'),
                          'Model Type (Featurizer)':    '%s (%s)' % (mdl_params['model_type'],featurizer),
                          'r^2 (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['r2_score'], valid_metrics['r2_score'], test_metrics['r2_score']),
                          'MAE (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['mae_score'], valid_metrics['mae_score'], test_metrics['mae_score']),
@@ -1277,6 +1286,7 @@ def get_summary_metadata_table(uuids, collections=None):
                 rf_params = model_meta['rf_specific']
                 minfo = {'Name': name,
                          'Transformation': transform,
+                         'AMPL version used:': mdl_params.get('ampl_version', 'probably 1.0.0'),
                          'Model Type (Featurizer)':    '%s (%s)' % (mdl_params['model_type'],featurizer),
                          'Max Depth':    rf_params['rf_max_depth'],
                          'Max Features': rf_params['rf_max_depth'],
@@ -1294,6 +1304,7 @@ def get_summary_metadata_table(uuids, collections=None):
                 xgb_params = model_meta['xgb_specific']
                 minfo = {'Name': name,
                          'Transformation': transform,
+                         'AMPL version used:': mdl_params.get('ampl_version', 'probably 1.0.0'),
                          'Model Type (Featurizer)':    '%s (%s)' % (mdl_params['model_type'],featurizer),
                          'Gamma':    xgb_params['xgb_gamma'],
                          'Learning rate': xgb_params['xgb_max_depth'],
@@ -1313,6 +1324,7 @@ def get_summary_metadata_table(uuids, collections=None):
                 nn_params = model_meta['nn_specific']
                 minfo = {'Name': name,
                          'Transformation': transform,
+                         'AMPL version used:': mdl_params.get('ampl_version', 'probably 1.0.0'),
                          'Model Type (Featurizer)':    '%s (%s)' % (mdl_params['model_type'],featurizer),
                          'ROC AUC (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['roc_auc_score'], valid_metrics['roc_auc_score'], test_metrics['roc_auc_score']),
                          'PRC AUC (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['prc_auc_score'], valid_metrics['prc_auc_score'], test_metrics['prc_auc_score']),
@@ -1340,6 +1352,7 @@ def get_summary_metadata_table(uuids, collections=None):
                 rf_params = model_meta['rf_specific']
                 minfo = {'Name': name,
                          'Transformation': transform,
+                         'AMPL version used:': mdl_params.get('ampl_version', 'probably 1.0.0'),
                          'Model Type (Featurizer)':    '%s (%s)' % (mdl_params['model_type'],featurizer),
                          'Max Depth':    rf_params['rf_max_depth'],
                          'Max Features': rf_params['rf_max_depth'],
@@ -1365,6 +1378,7 @@ def get_summary_metadata_table(uuids, collections=None):
                 xgb_params = model_meta['xgb_specific']
                 minfo = {'Name': name,
                          'Transformation': transform,
+                         'AMPL version used:': mdl_params.get('ampl_version', 'probably 1.0.0'),
                          'Model Type (Featurizer)':    '%s (%s)' % (mdl_params['model_type'],featurizer),
                          'Gamma':    xgb_params['xgb_gamma'],
                          'XGB Learning rate': xgb_params['xgb_max_depth'],
@@ -1816,7 +1830,7 @@ def get_multitask_perf_from_tracker(collection_name, response_cols=None, expand_
         return alldat
     else:
         alldat=alldat.drop(columns=alldat.columns[alldat.columns.str.contains('baseline')])
-        keepcols=['model_uuid', 'features', 'prediction_type',
+        keepcols=['ampl_version','model_uuid', 'features', 'prediction_type',
                   'transformers', 'uncertainty', 'batch_size', 'bias_init_consts',
                   'dropouts', 'layer_sizes', 'learning_rate', 'max_epochs', 'optimizer_type',
                   'weight_decay_penalty', 'weight_decay_penalty_type', 'weight_init_stddevs', 'splitter',
@@ -1825,6 +1839,7 @@ def get_multitask_perf_from_tracker(collection_name, response_cols=None, expand_
                   'rf_estimators', 'rf_max_depth', 'rf_max_features', 'xgb_gamma', 'xgb_learning_rate']
         keepcols.extend(alldat.columns[alldat.columns.str.contains('best')])
         keepcols = list(set(alldat.columns).intersection(keepcols))
+        keepcols.sort()
         alldat=alldat[keepcols]
         if sum(alldat.columns.str.contains('_2'))>0:
             print("Warning: One or more of your models has metadata for >1 best / >1 baseline epochs.")
