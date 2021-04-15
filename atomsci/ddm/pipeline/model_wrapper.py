@@ -1541,7 +1541,8 @@ class DCxgboostModelWrapper(ModelWrapper):
                                          gpu_id = 0,
                                          n_gpus = -1,
                                          max_bin = 16,
-#                                          tree_method = 'gpu_hist'
+#                                          tree_method = 'gpu_hist',
+                                         seed=0
                                          )
         else:
             xgb_model = xgb.XGBClassifier(max_depth=self.params.xgb_max_depth,
@@ -1567,9 +1568,9 @@ class DCxgboostModelWrapper(ModelWrapper):
                                           n_jobs=-1,                                          
                                           n_gpus = -1,
                                           max_bin = 16,
-#                                           tree_method = 'gpu_hist'
+#                                           tree_method = 'gpu_hist',
+                                          seed=0
                                          )
-
         self.model = dc.models.xgboost_models.XGBoostModel(xgb_model, model_dir=self.best_model_dir)
 
     # ****************************************************************************************
@@ -1673,7 +1674,7 @@ class DCxgboostModelWrapper(ModelWrapper):
                                          gpu_id = 0,
                                          n_gpus = -1,
                                          max_bin = 16,
-                                         kwargs={'seed':0}
+                                         seed=0
 #                                          tree_method = 'gpu_hist'
                                          )
         else:
@@ -1700,7 +1701,7 @@ class DCxgboostModelWrapper(ModelWrapper):
                                           n_jobs=-1,                                          
                                           n_gpus = -1,
                                           max_bin = 16,
-                                          kwargs={'seed':0}
+                                          seed=0
 #                                           tree_method = 'gpu_hist',
                                          )
 
