@@ -238,7 +238,7 @@ class ModelPipeline:
             time_generated=time.time(),
             save_results=self.params.save_results,
             hyperparam_uuid=self.params.hyperparam_uuid,
-            ampl_version=atomsci.dmm.__version__
+            ampl_version=atomsci.ddm.__version__
         )
 
         splitting_metadata = self.data.get_split_metadata()
