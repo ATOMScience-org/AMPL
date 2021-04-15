@@ -70,13 +70,10 @@ def create_model_wrapper(params, featurizer, ds_client=None):
                              twintron-blue (TTB): /opt/conda/bin/pip install xgboost==0.90 --user/ \ "
                             )
         elif version.parse(xgb.__version__) < version.parse('0.9'):
-            raise Exception(f"xgboost required to be >= 0.9 for GPU support. \
-                             current version = {float(xgb.__version__)} \
-                             installatin: \
-                             from pip: pip3 install xgboost==0.90 \
-                             livermore compute (lc): /usr/mic/bio/anaconda3/bin/pip install xgboost==0.90 --user \
-                             twintron-blue (TTB): /opt/conda/bin/pip install xgboost==0.90 --user/ "
-                            )
+            raise Exception(f"xgboost required to be = 0.9 for GPU support. \
+                             current version = xgb.__version__ \
+                             installation: \
+                             from pip: pip install xgboost==0.90")
         else:
             return DCxgboostModelWrapper(params, featurizer, ds_client)
     else:
@@ -386,6 +383,7 @@ class ModelWrapper(object):
             self.model.save_checkpoint()
           except Exception as e:
             self.log.error("Error when saving model:\n%s" % str(e))
+
 
 # ****************************************************************************************
 class DCNNModelWrapper(ModelWrapper):
@@ -1540,7 +1538,8 @@ class DCxgboostModelWrapper(ModelWrapper):
                                          gpu_id = 0,
                                          n_gpus = -1,
                                          max_bin = 16,
-#                                          tree_method = 'gpu_hist'
+#                                          tree_method = 'gpu_hist',
+                                         seed=0
                                          )
         else:
             xgb_model = xgb.XGBClassifier(max_depth=self.params.xgb_max_depth,
@@ -1566,9 +1565,9 @@ class DCxgboostModelWrapper(ModelWrapper):
                                           n_jobs=-1,                                          
                                           n_gpus = -1,
                                           max_bin = 16,
-#                                           tree_method = 'gpu_hist'
+#                                           tree_method = 'gpu_hist',
+                                          seed=0
                                          )
-
         self.model = dc.models.xgboost_models.XGBoostModel(xgb_model, model_dir=self.best_model_dir)
 
     # ****************************************************************************************
@@ -1672,7 +1671,7 @@ class DCxgboostModelWrapper(ModelWrapper):
                                          gpu_id = 0,
                                          n_gpus = -1,
                                          max_bin = 16,
-                                         kwargs={'seed':0}
+                                         seed=0
 #                                          tree_method = 'gpu_hist'
                                          )
         else:
@@ -1699,7 +1698,7 @@ class DCxgboostModelWrapper(ModelWrapper):
                                           n_jobs=-1,                                          
                                           n_gpus = -1,
                                           max_bin = 16,
-                                          kwargs={'seed':0}
+                                          seed=0
 #                                           tree_method = 'gpu_hist',
                                          )
 
