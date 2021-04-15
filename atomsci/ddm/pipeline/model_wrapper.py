@@ -40,6 +40,42 @@ from atomsci.ddm.pipeline import perf_data as perf
 
 logging.basicConfig(format='%(asctime)-15s %(message)s')
 
+def dc_restore(model, checkpoint=None, model_dir=None, session=None):
+    """Reload the values of all variables from a checkpoint file.
+
+    copied from DeepChem 2.3 keras_model.py to silence warnings caused
+    when a model is loaded in inference mode.
+
+    Args:
+        model (DeepChem.KerasModel: keras model to restore
+        checkpoint (str): the path to the checkpoint file to load.  If this is None, the most recent
+            checkpoint will be chosen automatically.  Call get_checkpoints() to get a
+            list of all available checkpoints.
+        model_dir (str): default None
+            Directory to restore checkpoint from. If None, use model.model_dir.
+        session (tf.Session()) default None
+            Session to run restore ops under. If None, model.session is used.
+
+    Returns:
+        None
+    """
+    model._ensure_built()
+    if model_dir is None:
+        model_dir = model.model_dir
+    if checkpoint is None:
+        checkpoint = tf.train.latest_checkpoint(model_dir)
+    if checkpoint is None:
+        raise ValueError('No checkpoint found')
+    if tf.executing_eagerly():
+        # expect_partial() silences warnings when this model is restored for
+        # inference only.
+        model._checkpoint.restore(checkpoint).expect_partial()
+    else:
+        if session is None:
+            session = model.session
+        # expect_partial() silences warnings when this model is restored for
+        # inference only.
+        model._checkpoint.restore(checkpoint).expect_partial().run_restore_ops(session)
 
 # ****************************************************************************************
 def create_model_wrapper(params, featurizer, ds_client=None):
@@ -763,7 +799,7 @@ class DCNNModelWrapper(ModelWrapper):
                 break
 
         # Revert to last checkpoint
-        self.model.restore()
+        dc_restore(self.model)
         self.model_save()
 
         # Only copy the model files we need, not the entire directory
@@ -1005,7 +1041,7 @@ class DCNNModelWrapper(ModelWrapper):
             checkpoint = ckpt.model_checkpoint_path
         else:
             checkpoint = os.path.join(reload_dir, os.path.basename(ckpt.model_checkpoint_path))
-        self.model.restore(checkpoint=checkpoint)
+        dc_restore(self.model, checkpoint=checkpoint)
 
 
         # Load transformers if they would have been saved with the model
