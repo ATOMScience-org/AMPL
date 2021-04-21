@@ -110,6 +110,12 @@ class ModelPipeline:
         self.log = logging.getLogger('ATOM')
         self.run_mode = 'training'  # default, can be overridden later
         self.start_time = time.time()
+
+        # if model is NN, set the uncertainty to False.
+        # https://github.com/deepchem/deepchem/issues/2422
+        if self.params.model_type == 'NN':
+            self.params.uncertainty = False
+
         # Default dataset_name parameter from dataset_key
         if params.dataset_name is None:
             self.params.dataset_name = os.path.splitext(os.path.basename(self.params.dataset_key))[0]
