@@ -171,9 +171,9 @@ def featurize_smiles(df, featurizer, smiles_col, log_every_N=1000):
     if len(feat_array.shape) > 1:
         feat_array = np.squeeze(feat_array, axis=1)
     else:
-        print("featurize_smiles() produced 1-D array of size %d" % feat_array.shape[0])
-        print("Input SMILES had length %d" % len(smiles_strs))
-        print("Number of valid SMILES is %d" % sum(is_valid))
+        log.debug("featurize_smiles() produced 1-D array of size %d" % feat_array.shape[0])
+        log.debug("Input SMILES had length %d" % len(smiles_strs))
+        log.debug("Number of valid SMILES is %d" % sum(is_valid))
     return feat_array, is_valid
 
 
@@ -729,12 +729,9 @@ class DynamicFeaturization(Featurization):
             ##JEA: will set weights to 0 for missing values
             ##JEA: Featurize task results iff they exist.
             dset_df=dset_df.replace(np.nan, "", regex=True)
-            # print(dset_df.head())
             vals, w = dl.convert_df_to_numpy(dset_df, params.response_cols) #, self.id_field)
             # Filter out examples where featurization failed.
             vals, w = (vals[is_valid], w[is_valid])
-            # print(vals)
-            # print(w)
         else:
             vals = np.zeros((nrows,ncols))
             w = np.ones((nrows,ncols)) ## JEA
@@ -997,10 +994,10 @@ class DescriptorFeaturization(PersistentFeaturization):
 
         if ds_client is None or desc_spec_bucket == '':
             if os.path.exists(desc_spec_key):
-                print("Reading descriptor spec table from %s" % desc_spec_key)
+                log.info("Reading descriptor spec table from %s" % desc_spec_key)
                 desc_spec_df = pd.read_csv(desc_spec_key, index_col=False)
             else:
-                print("Reading descriptor spec table from %s" % desc_spec_key_fallback)
+                log.info("Reading descriptor spec table from %s" % desc_spec_key_fallback)
                 desc_spec_df = pd.read_csv(desc_spec_key_fallback, index_col=False)
         else :
             # Try the descriptor_spec_key parameter first, then fall back to package file
@@ -1139,8 +1136,8 @@ class DescriptorFeaturization(PersistentFeaturization):
             try:
                 ds_client = dsf.config_client()
             except Exception as e:
-                print('Exception when trying to connect to the datastore:')
-                print(e)
+                log.warning('Exception when trying to connect to the datastore:')
+                log.warning(e)
                 ds_client = None
         else:
             ds_client = None
@@ -1734,7 +1731,7 @@ class ComputedDescriptorFeaturization(DescriptorFeaturization):
         return scaled_df
 
 # ****************************************************************************************
-def get_user_specified_features(df, featurizer, verbose=True):
+def get_user_specified_features(df, featurizer, verbose=False):
     """
     Temp fix for DC 2.3 issue. See
     https://github.com/deepchem/deepchem/issues/1841
@@ -1759,7 +1756,8 @@ def get_user_specified_features(df, featurizer, verbose=True):
     df[featurizer.feature_fields] = df[featurizer.feature_fields].apply(pd.to_numeric)
     X_shard =  df[featurizer.feature_fields].to_numpy()
     time2 = time.time()
-    log.info("TIMING: user specified processing took %0.3f s" % (time2 - time1), verbose)
+    if verbose:
+        log.info("TIMING: user specified processing took %0.3f s" % (time2 - time1))
     return X_shard
 
 # **************************************************************************************************************
