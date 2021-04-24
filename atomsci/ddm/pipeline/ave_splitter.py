@@ -59,7 +59,7 @@ def _Cdist(params):
     Single-argument wrapper for scipy.spatial.distance.cdist, to be called from Pool.map()
 
     Args:
-        params (list) : Three element list containing the two feature arrays and the name of the metric to be used
+        params (list): Three element list containing the two feature arrays and the name of the metric to be used
             to compute their distances
 
     Returns:
@@ -74,16 +74,17 @@ def _calc_dist_mat(feat1, feat2, metric, pool, num_workers):
     Calculate distance matrix between rows of feat1 and rows of feat2
 
     Args:
-        feat1 (np.ndarray) : First feature array
-        feat2 (np.ndarray) : Second feature array
+        feat1 (np.ndarray): First feature array
+        feat2 (np.ndarray): Second feature array
         metric (str): Name of metric to use (e.g. 'jaccard', 'euclidean')
-        pool (multiprocessing.Pool or None) : Pool of workers to parallelize calculation
+        pool (multiprocessing.Pool or None): Pool of workers to parallelize calculation
         num_workers (int) Number of parallel workers:
 
     Returns:
+        The distance matrix.
 
     """
-    if (num_workers > 1 ) :
+    if (num_workers > 1 ):
         interval, remainder = divmod( len(feat1), min( len(feat1), num_workers-1 ) )
         interval = max( interval, 1 )
         chunks = pool.map( _Cdist, [ (feat1[r:min(r+interval, len(feat1) ) ], feat2, metric) for r in range( 0, len(feat1), interval ) ] )
@@ -97,18 +98,22 @@ def _calc_dist_mat(feat1, feat2, metric, pool, num_workers):
 def analyze_split(params, id_col='compound_id', smiles_col='rdkit_smiles', active_col='active'):
     """
     Evaluate the AVE bias for the training/validation and training/test set splits of the given dataset.
+
     Also show the active frequencies in each subset and for the dataset as a whole.
     id_col, smiles_col and active_col are defaults to be used in case they aren't found in the dataset metadata; if found
     the metadata values are used instead.
 
     Args:
-        params (argparse.Namespace) : Pipeline parameters
-        id_col (str): Dataset column containing compound IDs
-        smiles_col (str): Dataset column containing SMILES strings
-        active_col (str): Dataset column containing binary classifications
+        params (argparse.Namespace): Pipeline parameters.
+
+        id_col (str): Dataset column containing compound IDs.
+
+        smiles_col (str): Dataset column containing SMILES strings.
+
+        active_col (str): Dataset column containing binary classifications.
 
     Returns:
-        pandas.DataFrame: Table of split subsets showing sizes, numbers and fractions of active compounds
+        :obj:`pandas.DataFrame`: Table of split subsets showing sizes, numbers and fractions of active compounds
 
     """
     dset_key = params.dataset_key
@@ -255,7 +260,7 @@ def analyze_split(params, id_col='compound_id', smiles_col='rdkit_smiles', activ
 
 
 #*******************************************************************************************************************************************
-def _check_split_similarity( params ) :
+def _check_split_similarity( params ):
     """
     Compare index sets given by params[0:4] against the corresponding sets given by params[4] and return True if
     any have more than a certain fraction of molecules in common.
@@ -282,7 +287,7 @@ def _calc_bias(params):
     Compute the AVE bias objective function for the split set given by params[0], based on the distance matrices in the remaining params
 
     Args:
-        params (tuple) : Split index sets, distance matrices and thresholds
+        params (tuple): Split index sets, distance matrices and thresholds
 
     Returns:
         float: The AVE bias for the given split
@@ -326,7 +331,7 @@ def _plot_nn_dist_distr(params):
     Plot distributions of nearest neighbor distances
 
     Args:
-        params (tuple) : Split index sets, distance matrices and thresholds
+        params (tuple): Split index sets, distance matrices and thresholds
 
     """
     import matplotlib.pyplot as plt
@@ -363,7 +368,7 @@ def _plot_bias(params, niter):
     Plot nearest neighbor functions used to compute AVE bias. Used in place of _calc_bias for debugging splitter code.
 
     Args:
-        params (tuple) : Split index sets, distance matrices and thresholds
+        params (tuple): Split index sets, distance matrices and thresholds
 
     Returns:
         float: The AVE bias for the given split.
@@ -437,19 +442,23 @@ class AVEMinSplitter(Splitter):
 
     Uses distances between feature vectors and binary classifications to compute
     the AVE bias for a candidate split and find a split that minimizes the bias.
+
+    Attributes:
+        metric (str): Name of the metric to be used to compute distances between feature vectors.
+
+        verbose (bool): Ignored.
+
+        num_workers (int): Number of threads to use to parallelize computations.
+
+        max_iter (int): Maximmum number of iterations to execute to try to minimize bias.
+
+        ndist (int): Number of points to use to approximate CDF of distance distribution.
+
+        debug_mode (bool): If true, generate extra plots and log messages for debugging.
+
     """
 
     def __init__(self, metric='jaccard', verbose=True, num_workers=1, max_iter=300, ndist=100, debug_mode=False):
-        """
-        Args:
-            metric (str) : Name of the metric to be used to compute distances between feature vectors.
-            verbose (bool) : Ignored
-            num_workers (int): Number of threads to use to parallelize computations.
-            max_iter (int): Maximmum number of iterations to execute to try to minimize bias.
-            ndist (int): Number of points to use to approximate CDF of distance distribution.
-            debug_mode (bool): If true, generate extra plots and log messages for debugging.
-
-        """
 
         self.verbose = verbose
         self.metric = metric
@@ -473,20 +482,27 @@ class AVEMinSplitter(Splitter):
         """
         Split dataset into training and validation sets that minimize the AVE bias. A test set is not generated;
         to do a 3-way split, call this function twice.
-        TODO: This would mean calculating the distance matrices twice, though. Change to do both splits in the same call.
 
         Args:
-            dataset (dc.Dataset) : The DeepChem dataset to be split
-            frac_train (float) : The approximate fraction of compounds to put in the training set
-            frac_valid (float) : The approximate fraction of compounds to put in the validation or test set
-            frac_test (float) : Ignored; included only for compatibility with the DeepChem Splitter API
-            log_every_n (int or None) : Ignored
-            verbose (bool) : Ignored
+            dataset (dc.Dataset): The DeepChem dataset to be split
+
+            frac_train (float): The approximate fraction of compounds to put in the training set
+
+            frac_valid (float): The approximate fraction of compounds to put in the validation or test set
+
+            frac_test (float): Ignored; included only for compatibility with the DeepChem Splitter API
+
+            log_every_n (int or None): Ignored
+
+            verbose (bool): Ignored
 
         Returns:
-            tuple: Lists of indices of compounds assigned to the training and validation/test sets. The third
-                element of the tuple is an empty list, because this function only does a 2-way split.
+            tuple: Lists of indices of compounds assigned to the training and validation/test sets. 
+            
+            The third element of the tuple is an empty list, because this function only does a 2-way split.
 
+        Todo:
+            Change code to do a 3-way split in one call, rather than requiring the distance matrices to be computed twice.
         """
         if self.debug_mode:
             import matplotlib.pyplot as plt
@@ -547,7 +563,7 @@ class AVEMinSplitter(Splitter):
         inactive_arr = list(range(num_inactive))
 
         # randomly select an initial population of splits
-        while (len (pop ) < POP_SIZE ) :
+        while (len (pop ) < POP_SIZE ):
             shuffle(active_arr)
             shuffle(inactive_arr)
             # Each split set is a tuple: (valid_actives, valid_inactives, train_actives, train_inactives)
@@ -622,7 +638,7 @@ class AVEMinSplitter(Splitter):
             # "Recombine" and "mutate" the top scoring (least biased) splits to make a new population of splits 
             log.debug("breed")
             pop = []
-            while(len(pop ) < POP_SIZE ) :
+            while(len(pop ) < POP_SIZE ):
                 # randomly choose a pair
                 pair = random.sample(new_splits, 2 )
     
@@ -649,13 +665,13 @@ class AVEMinSplitter(Splitter):
                 overlapInactives = list(set([ x for x in newInactiveIndices if newInactiveIndices.count(x ) > 1 ] ) )
                 shuffle(overlapActives )
                 shuffle(overlapInactives )
-                for idx, overlapA in enumerate(overlapActives ) :
-                    if (idx % 2 ) :
+                for idx, overlapA in enumerate(overlapActives ):
+                    if (idx % 2 ):
                              newActiveIndicesV = np.delete(newActiveIndicesV, np.where(newActiveIndicesV == overlapA ) )
                     else :
                              newActiveIndicesT = np.delete(newActiveIndicesT, np.where(newActiveIndicesT == overlapA ) )
-                for idx, overlapI in enumerate(overlapInactives ) :
-                    if (idx % 2 ) :
+                for idx, overlapI in enumerate(overlapInactives ):
+                    if (idx % 2 ):
                              newInactiveIndicesV = np.delete(newInactiveIndicesV, np.where(newInactiveIndicesV == overlapI ) )
                     else :
                              newInactiveIndicesT = np.delete(newInactiveIndicesT, np.where(newInactiveIndicesT == overlapI ) )
@@ -670,21 +686,21 @@ class AVEMinSplitter(Splitter):
                 atSize = min(atSize, len(newActiveIndicesT ) )
                 itSize = min(itSize, len(newInactiveIndicesT ) )
   
-                if (np.random.rand() < RM_PROB and avSize > MIN_AV ) :
+                if (np.random.rand() < RM_PROB and avSize > MIN_AV ):
                     avSize -= 1 
-                if (np.random.rand() < ADD_PROB ) :
+                if (np.random.rand() < ADD_PROB ):
                     avSize += 1
-                if (np.random.rand() < RM_PROB and ivSize > MIN_IV ) :
+                if (np.random.rand() < RM_PROB and ivSize > MIN_IV ):
                     ivSize -= 1 
-                if (np.random.rand() < ADD_PROB ) :
+                if (np.random.rand() < ADD_PROB ):
                     ivSize += 1 
-                if (np.random.rand() < RM_PROB and atSize > MIN_AT ) :
+                if (np.random.rand() < RM_PROB and atSize > MIN_AT ):
                     atSize -= 1
-                if (np.random.rand() < ADD_PROB ) :
+                if (np.random.rand() < ADD_PROB ):
                     atSize += 1 
-                if (np.random.rand() < RM_PROB and itSize > MIN_IT ) :
+                if (np.random.rand() < RM_PROB and itSize > MIN_IT ):
                     itSize -= 1 
-                if (np.random.rand() < ADD_PROB ) :
+                if (np.random.rand() < ADD_PROB ):
                     itSize += 1 
       
                 avSamp = random.sample(list(newActiveIndicesV), min(len(newActiveIndicesV ), max(avSize, MIN_AV ) ) ) 
