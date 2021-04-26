@@ -21,16 +21,16 @@ import pandas as pd
 import pdb
 
 from atomsci.ddm.utils import datastore_functions as dsf
-if 'AMPL' in dsf.__file__: # install_dev.sh points to github directory
-    f=open(dsf.__file__.rsplit('/', maxsplit=4)[0]+'/VERSION', 'r')
-    ampl_version = f.read().strip()
-    f.close()
-else: # install.sh points to installation directory
+if 'site-packages' in dsf.__file__: # install_dev.sh points to github directory
     import subprocess
     import json
     data = subprocess.check_output(["pip", "list", "--format", "json"])
     parsed_results = json.loads(data)
     ampl_version=next(item for item in parsed_results if item["name"] == "atomsci-ampl")['version']
+else: # install.sh points to installation directory
+    f=open(dsf.__file__.rsplit('/', maxsplit=4)[0]+'/VERSION', 'r')
+    ampl_version = f.read().strip()
+    f.close()
 
 from atomsci.ddm.pipeline import model_datasets as model_datasets
 from atomsci.ddm.pipeline import model_wrapper as model_wrapper
