@@ -270,8 +270,13 @@ class ModelPipeline:
         # ****************************************************************************************
 
     def save_model_metadata(self, retries=5, sleep_sec=60):
-        """Inserts the model metadata into the model tracker DB, if self.params.save_results is True.
-        Otherwise, saves the model metadata to a .json file and sets the permissions.
+        """
+        Saves the data needed to reload the model in the model tracker DB or in a local tarball file.
+
+        Inserts the model metadata into the model tracker DB, if self.params.save_results is True.
+        Otherwise, saves the model metadata to a local .json file. Generates a gzipped tar archive
+        containing the metadata file, the transformer parameters and the model checkpoint files, and
+        saves it in the datastore or the filesystem according to the value of save_results.
 
         Args:
             retries (int): Number of times to retry saving to model tracker DB.
@@ -279,7 +284,7 @@ class ModelPipeline:
             sleep_sec (int): Number of seconds to sleep between retries, if saving to model tracker DB.
 
         Side effects:
-            Inserts the model metadata into the model zoo or writes out a metadata.json file
+            Saves the model metadata and parameters into the model tracker DB or a local tarball file.
         """
         if self.params.save_results:
             # Model tracker saves the model state in the datastore as well as saving the metadata
