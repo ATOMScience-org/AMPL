@@ -88,3 +88,5 @@ https://conda.anaconda.org/conda-forge/linux-64/rdkit-2020.09.3-py36hb3b0795_0.t
 https://conda.anaconda.org/conda-forge/linux-64/scikit-learn-0.22.1-py36hcdab131_1.tar.bz2
 https://conda.anaconda.org/conda-forge/noarch/deepchem-2.3.0-py_2.tar.bz2
 https://repo.anaconda.com/pkgs/main/noarch/seaborn-0.11.0-py_0.tar.bz2
+https://anaconda.org/anaconda/cudatoolkit/9.2/download/linux-64/cudatoolkit-9.2-0.tar.bz2
+https://anaconda.org/pytorch/pytorch/1.7.0/download/linux-64/pytorch-1.7.0-py3.6_cuda9.2.148_cudnn7.6.3_0.tar.bz2
