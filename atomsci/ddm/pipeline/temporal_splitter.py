@@ -37,23 +37,24 @@ class TemporalSplitter(Splitter):
     """
     Class for splitting a DeepChem dataset so that training and validation set compounds are associated with dates before a cutoff
     and test compounds have dates after the cutoff.
+
+    Attributes:
+        cutoff_date (np.datetime64 or str): Date at which to split compounds between training/validation and test sets.
+        If this isn't a datetime64 object, function will attempt to convert it to one.
+
+        date_col (str): Column where compound dates are stored in dataset attributes table.
+
+        base_splitter (str): Type of splitter to use for partitioning training and validation compounds.
+
+        metric (str): Name of metric to use with ave_min base splitter, if specified.
+
+        verbose (bool): Whether to print verbose diagnostic messages.
     """
 
     def __init__(self, cutoff_date, date_col, base_splitter, metric=None, verbose=True):
         """
         Create a temporal splitter.
 
-        Args:
-            cutoff_date (np.datetime64 or str): Date at which to split compounds between training/validation and test sets.
-            If this isn't a datetime64 object, function will attempt to convert it to one.
-
-            date_col (str): Column where compound dates are stored in dataset attributes table.
-
-            base_splitter (str): Type of splitter to use for partitioning training and validation compounds.
-
-            metric (str): Name of metric to use with ave_min base splitter, if specified.
-
-            verbose (bool): Whether to print verbose diagnostic messages.
         """
 
         self.cutoff_date = np.datetime64(cutoff_date)
