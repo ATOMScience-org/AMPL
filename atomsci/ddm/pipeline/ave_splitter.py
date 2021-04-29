@@ -1,6 +1,9 @@
 """
-Code to split a DeepChem dataset in such a way as to minimize the AVE bias, as described in 
-Wallach & Heifets, doi://10.1021/acs.jcim.7b00403
+Code to split a DeepChem dataset in such a way as to minimize the AVE bias, as described in `this paper by Wallach & Heifets
+<https://pubs.acs.org/doi/10.1021/acs.jcim.7b00403>`_
+
+Although the AVEMinSplitter class and its methods are public, you will typically not call them directly. Instead, they are invoked by
+setting `splitter` to 'ave_min' in the model parameters when you train a model.
 """
 
 # Portions of the code below are Copyright 2017 Atomwise Inc.
