@@ -40,6 +40,21 @@ def plot_dataset_dist_distr(dataset, feat_type, dist_metric, task_name, **metric
     """
     Generate a density plot showing the distribution of distances between dataset feature
     vectors, using the specified feature type and distance metric.
+
+    Args:
+        dataset (deepchem.Dataset): A dataset object. At minimum, it should contain a 2D numpy array 'X' of feature vectors.
+
+        feat_type (str): Type of features ('ECFP' or 'descriptors').
+
+        dist_metric (str): Name of metric to be used to compute distances; can be anything supported by scipy.spatial.distance.pdist.
+
+        task_name (str): Abbreviated name to describe dataset in plot title.
+
+        metric_kwargs: Additional arguments to pass to metric.
+
+    Returns:
+        np.ndarray: Distance matrix.
+
     """
     log = logging.getLogger('ATOM')
     num_cmpds = dataset.X.shape[0]
@@ -67,11 +82,42 @@ def plot_dataset_dist_distr(dataset, feat_type, dist_metric, task_name, **metric
     return dists
 
 #------------------------------------------------------------------------------------------------------------------
-def diversity_plots(dset_key, datastore=True, bucket='gsk_ml', title_prefix=None, ecfp_radius=4, umap_file=None, out_dir=None, 
+def diversity_plots(dset_key, datastore=True, bucket='public', title_prefix=None, ecfp_radius=4, umap_file=None, out_dir=None,
                     id_col='compound_id', smiles_col='rdkit_smiles', is_base_smiles=False, response_col=None, max_for_mcs=300):
     """
     Plot visualizations of diversity for an arbitrary table of compounds. At minimum, the file should contain
-    columns for a compound ID and a SMILES string.
+    columns for a compound ID and a SMILES string. Produces a clustered heatmap display of Tanimoto distances between
+    compounds along with a 2D UMAP projection plot based on ECFP fingerprints, with points colored according to the response
+    variable.
+
+    Args:
+        dset_key (str): Datastore key or filepath for dataset.
+
+        datastore (bool): Whether to load dataset from datastore or from filesystem.
+
+        bucket (str): Name of datastore bucket containing dataset.
+
+        title_prefix (str): Prefix for plot titles.
+
+        ecfp_radius (int): Radius for ECFP fingerprint calculation.
+
+        umap_file (str, optional): Path to file to write UMAP coordinates to.
+
+        out_dir (str, optional):  Output directory for plots and tables. If provided, plots will be output as PDF files rather
+            than in the current notebook, and some additional CSV files will be generated.
+
+        id_col (str): Column in dataset containing compound IDs.
+
+        smiles_col (str): Column in dataset containing SMILES strings.
+
+        is_base_smiles (bool): True if SMILES strings do not need to be salt-stripped and standardized.
+
+        response_col (str): Column in dataset containing response values.
+
+        max_for_mcs (int): Maximum dataset size for plots based on MCS distance. If the number of compounds is less than this
+            value, an additional cluster heatmap and UMAP projection plot will be produced based on maximum common substructure
+            distance.
+
     """
     # Load table of compound names, IDs and SMILES strings
     if datastore:
@@ -227,7 +273,12 @@ def diversity_plots(dset_key, datastore=True, bucket='gsk_ml', title_prefix=None
 
 
 #------------------------------------------------------------------------------------------------------------------
-def sa200_diversity_plots(ecfp_radius=6):
+# Specialized functions for particular datasets. Many of them depend on GSK datasets that we no longer have
+# access to, or to files on a no-longer-used LLNL development system, so they have been turned into private functions,
+# for historical reference only.
+#------------------------------------------------------------------------------------------------------------------
+
+def _sa200_diversity_plots(ecfp_radius=6):
     """
     Plot visualizations of diversity for the 208 compounds selected for phenotypic assays.
     """
@@ -239,7 +290,7 @@ def sa200_diversity_plots(ecfp_radius=6):
                     smiles_col='canonical_smiles')
 
 #------------------------------------------------------------------------------------------------------------------
-def bsep_diversity_plots(ecfp_radius=6):
+def _bsep_diversity_plots(ecfp_radius=6):
     """
     Plot visualizations of diversity for the compounds in the BSEP PIC50 dataset.
     """
@@ -247,11 +298,11 @@ def bsep_diversity_plots(ecfp_radius=6):
     out_dir = '/usr/local/data/bsep'
     os.makedirs(out_dir, exist_ok=True)
     title_prefix = 'ABCB11_Bile_Salt_Export_Pump_BSEP_membrane_vesicles_Imaging_PIC50 compound set'
-    diversity_plots(dset_key, datastore=True, bucket='gsk_ml', title_prefix=title_prefix, out_dir=out_dir, ecfp_radius=ecfp_radius)
+    diversity_plots(dset_key, datastore=True, bucket='gsk_papers', title_prefix=title_prefix, out_dir=out_dir, ecfp_radius=ecfp_radius)
 
 
 #------------------------------------------------------------------------------------------------------------------
-def obach_diversity_plots(ecfp_radius=6):
+def _obach_diversity_plots(ecfp_radius=6):
     """
     Plot visualizations of diversity for the compounds in the Obach, Lombardo et al PK dataset
     """
@@ -324,7 +375,7 @@ def obach_diversity_plots(ecfp_radius=6):
 
 
 #------------------------------------------------------------------------------------------------------------------
-def solubility_diversity_plots(ecfp_radius=6):
+def _solubility_diversity_plots(ecfp_radius=6):
     """
     Plot visualizations of diversity for the compounds in the Delaney and GSK aqueous solubility datasets
     """
@@ -341,7 +392,7 @@ def solubility_diversity_plots(ecfp_radius=6):
     diversity_plots(cmpd_file, file_prefix, title_prefix, out_dir=out_dir, ecfp_radius=ecfp_radius, id_col='compound_id')
 
 #------------------------------------------------------------------------------------------------------------------
-def compare_solubility_datasets(ecfp_radius=6):
+def _compare_solubility_datasets(ecfp_radius=6):
     """
     Plot projections of Delaney and GSK solubility datasets using the same UMAP projectors.
     """
@@ -426,7 +477,7 @@ def compare_solubility_datasets(ecfp_radius=6):
 
 
 #------------------------------------------------------------------------------------------------------------------
-def compare_obach_gsk_aq_sol(ecfp_radius=6):
+def _compare_obach_gsk_aq_sol(ecfp_radius=6):
     """
     Plot projections of Obach and GSK solubility datasets using the same UMAP projectors.
     """
@@ -492,7 +543,7 @@ def compare_obach_gsk_aq_sol(ecfp_radius=6):
     pdf.close()
 
 #------------------------------------------------------------------------------------------------------------------
-def liability_dset_diversity(bucket='gsk_ml', feat_type='descriptors', dist_metric='cosine', **metric_kwargs):
+def _liability_dset_diversity(bucket='public', feat_type='descriptors', dist_metric='cosine', **metric_kwargs):
     """
     Load datasets from datastore, featurize them, and plot distributions of their inter-compound
     distances.
@@ -556,11 +607,14 @@ def liability_dset_diversity(bucket='gsk_ml', feat_type='descriptors', dist_metr
         plot_dataset_dist_distr(model_dataset.dataset, feat_type, dist_metric, task_name, **metric_kwargs)
 
 # ------------------------------------------------------------------------------------------------------------------
-def get_dset_diversity(dset_key, ds_client, bucket='gsk_ml', feat_type='descriptors', dist_metric='cosine',
+def _get_dset_diversity(dset_key, ds_client, bucket='public', feat_type='descriptors', dist_metric='cosine',
                        **metric_kwargs):
     """
     Load datasets from datastore, featurize them, and plot distributions of their inter-compound
     distances.
+
+    TODO: Update this function so that it works on local files as well as datastore datasets. Remove the dependency on
+    precomputed GSK compound descriptors, and use computed descriptors instead.
     """
     log = logging.getLogger('ATOM')
 
