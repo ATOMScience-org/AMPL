@@ -19,8 +19,18 @@ from rdkit.ML.Descriptors import MoleculeDescriptors
 
 def add_mol_column(df, smiles_col, molecule_col='mol'):
     """
-    Add a column 'molecule_col' to data frame 'df' containing RDKit Mol objects
-    corresponding to the SMILES strings in column 'smiles_col'.
+    Converts SMILES strings in a data frame to RDKit Mol objects and adds them as a new column in the data frame.
+
+    Args:
+        df (pd.DataFrame): Data frame to add column to.
+
+        smiles_col (str): Column containing SMILES strings.
+
+        molecule_col (str): Name of column to create to hold Mol objects.
+
+    Returns:
+        pd.DataFrame: Modified data frame.
+
     """
     PandasTools.AddMoleculeColumnToFrame(df, smiles_col, molecule_col, includeFingerprints=True)
     return df
@@ -28,9 +38,16 @@ def add_mol_column(df, smiles_col, molecule_col='mol'):
 
 def calculate_descriptors(df, molecule_column='mol'):
     """
-    Uses RDKit to compute various descriptors for compounds in the given data frame. Expects
-    compounds to be represented by RDKit Mol objects in the column given by molecule_column.
-    Returns the input data frame with added columns for the descriptors.
+    Uses RDKit to compute various descriptors for compounds specified by Mol objects in the given data frame.
+
+    Args:
+        df (pd.DataFrame): Data frame containing molecules.
+
+        molecule_column (str): Name of column containing Mol objects for compounds.
+
+    Returns:
+        pd.DataFrame: Modified data frame with added columns for the descriptors.
+
     """
 
     descriptors = [x[0] for x in Descriptors._descList]
@@ -43,30 +60,54 @@ def calculate_descriptors(df, molecule_column='mol'):
 
 def cluster_dataframe(df, molecule_column='mol', cluster_column='cluster', cutoff=0.2):
     """
-    From RDKit cookbook http://rdkit.org/docs_temp/Cookbook.html. Performs Butina clustering
-    on the molecules represented as Mol objects in column molecule_column of data frame df,
-    using cutoff as the maximum Tanimoto distance for identifying neighbors of each molecule.
-    Returns the input dataframe with an extra column 'cluster_column' containing the cluster
+    Performs Butina clustering on compounds specified by Mol objects in a data frame.
+
+    Modifies the input dataframe to add a column 'cluster_column' containing the cluster
     index for each molecule.
-    """
-    df[cluster_column] = -1
-    df2 = df.reset_index()
-    df2['df_index'] = df.index
-    mols = df2[[molecule_column]].values.tolist()
-    fingerprints = [AllChem.GetMorganFingerprintAsBitVect(x[0], 2, 1024) for x in mols]
-    clusters = cluster_fingerprints(fingerprints, cutoff=cutoff)
-    for i in range(len(clusters)):
-        c = clusters[i]
-        for j in c:
-            df_index = df2.at[j, 'df_index']
-            df.at[df_index, cluster_column] = i
+
+    From RDKit cookbook http://rdkit.org/docs_temp/Cookbook.html.
+
+    Args:
+        df (pd.DataFrame): Data frame containing compounds to cluster.
+
+        molecule_column (str): Name of column containing rdkit Mol objects for compounds.
+
+        cluster_column (str): Column that will be created to hold cluster indices.
+
+        cutoff (float): Maximum Tanimoto distance parameter used by Butina algorithm to
+            identify neighbors of each molecule.
+
+        Returns:
+            None. Input data frame will be modified in place.
+
+        """
+        df[cluster_column] = -1
+        df2 = df.reset_index()
+        df2['df_index'] = df.index
+        mols = df2[[molecule_column]].values.tolist()
+        fingerprints = [AllChem.GetMorganFingerprintAsBitVect(x[0], 2, 1024) for x in mols]
+        clusters = cluster_fingerprints(fingerprints, cutoff=cutoff)
+        for i in range(len(clusters)):
+            c = clusters[i]
+            for j in c:
+                df_index = df2.at[j, 'df_index']
+                df.at[df_index, cluster_column] = i
 
 
 def cluster_fingerprints(fps, cutoff=0.2):
     """
-    From RDKit cookbook http://rdkit.org/docs_temp/Cookbook.html. Given a list of fingerprint
-    bit vectors fps, performs Butina clustering using the given Tanimoto distance cutoff.
-    Returns a list of cluster indices for each fingerprint.
+    Performs Butina clustering on compounds specified by a list of fingerprint bit vectors.
+
+    From RDKit cookbook http://rdkit.org/docs_temp/Cookbook.html.
+
+    Args:
+        fps (list of rdkit.ExplicitBitVect): List of fingerprint bit vectors.
+
+        cutoff (float): Cutoff distance parameter used to seed clusters in Butina algorithm.
+
+    Returns:
+        tuple of tuple: Indices of fingerprints assigned to each cluster.
+
     """
 
     # first generate the distance matrix:
@@ -83,8 +124,26 @@ def cluster_fingerprints(fps, cutoff=0.2):
 
 def mol_to_html(mol, name, type='svg', directory='rdkit_svg', width=400, height=200):
     """
-    Creates a PNG or SVG image file for the given molecule's structure  with filename 'name' in the given directory.
-    Returns an HTML image tag referencing the image file.
+    Creates an image file displaying the given molecule's 2D structure, and generates an HTML
+    tag for it.
+
+    Args:
+        mol (rdkit.Chem.Mol): Object representing molecule.
+
+        name (str): Filename of image file to create, relative to 'directory'.
+
+        type (str): Image format; must be 'png' or 'svg'.
+
+        directory (str): Path relative to notebook directory of subdirectory where image file will be written.
+            The directory will be created if necessary. Note that absolute paths will not work in notebooks.
+
+        width (int): Width of image bounding box.
+
+        height (int): Height of image bounding box.
+
+    Returns:
+        str: HTML image tag referencing the image file.
+
     """
     img_file = '%s/%s' % (directory, name)
     os.makedirs(directory, exist_ok=True)
@@ -99,6 +158,15 @@ def mol_to_html(mol, name, type='svg', directory='rdkit_svg', width=400, height=
 def mol_to_pil(mol, size=(400, 200)):
     """
     Returns a Python Image Library (PIL) object containing an image of the given molecule's structure.
+
+    Args:
+        mol (rdkit.Chem.Mol): Object representing molecule.
+
+        size (tuple): Width and height of bounding box of image.
+
+    Returns:
+        PIL.PngImageFile: An object containing an image of the molecule's structure.
+
     """
     pil = MolToImage(mol, size=(size[0], size[1]))
     return pil
@@ -108,6 +176,14 @@ def mol_to_png(mol, name, size=(400, 200)):
     """
     Draws the molecule mol into a PNG file with filename 'name' and with the given size
     in pixels.
+
+    Args:
+        mol (rdkit.Chem.Mol): Object representing molecule.
+
+        name (str): Path to write PNG file to.
+
+        size (tuple): Width and height of bounding box of image.
+
     """
     pil = mol_to_pil(mol, size)
     pil.save(name, 'PNG')
@@ -117,6 +193,14 @@ def mol_to_svg(mol, img_file, size=(400,200)):
     """
     Draw molecule mol's structure into an SVG file with path 'img_file' and with the
     given size.
+
+    Args:
+        mol (rdkit.Chem.Mol): Object representing molecule.
+
+        img_file (str): Path to write SVG file to.
+
+        size (tuple): Width and height of bounding box of image.
+
     """
     img_wd, img_ht = size
     AllChem.Compute2DCoords(mol)
@@ -143,6 +227,12 @@ def show_df(df):
     """
     Convenience function to display a pandas DataFrame in the current notebook window
     with HTML images rendered in table cells.
+
+    Args:
+        df (pd.DataFrame): Data frame to display.
+
+    Returns:
+
     """
     return HTML(df.to_html(escape=False))
 
@@ -150,5 +240,9 @@ def show_df(df):
 def show_html(html):
     """
     Convenience function to display an HTML image specified by image tag 'html'.
+
+    Args:
+        html (str): HTML image tag to render.
+
     """
     return HTML(html)
