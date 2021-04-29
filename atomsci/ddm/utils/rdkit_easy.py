@@ -80,18 +80,18 @@ def cluster_dataframe(df, molecule_column='mol', cluster_column='cluster', cutof
         Returns:
             None. Input data frame will be modified in place.
 
-        """
-        df[cluster_column] = -1
-        df2 = df.reset_index()
-        df2['df_index'] = df.index
-        mols = df2[[molecule_column]].values.tolist()
-        fingerprints = [AllChem.GetMorganFingerprintAsBitVect(x[0], 2, 1024) for x in mols]
-        clusters = cluster_fingerprints(fingerprints, cutoff=cutoff)
-        for i in range(len(clusters)):
-            c = clusters[i]
-            for j in c:
-                df_index = df2.at[j, 'df_index']
-                df.at[df_index, cluster_column] = i
+    """
+    df[cluster_column] = -1
+    df2 = df.reset_index()
+    df2['df_index'] = df.index
+    mols = df2[[molecule_column]].values.tolist()
+    fingerprints = [AllChem.GetMorganFingerprintAsBitVect(x[0], 2, 1024) for x in mols]
+    clusters = cluster_fingerprints(fingerprints, cutoff=cutoff)
+    for i in range(len(clusters)):
+        c = clusters[i]
+        for j in c:
+            df_index = df2.at[j, 'df_index']
+            df.at[df_index, cluster_column] = i
 
 
 def cluster_fingerprints(fps, cutoff=0.2):
