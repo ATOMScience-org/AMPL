@@ -1,48 +1,53 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
+  <meta charset="utf-8" />
   
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>pipeline.model_tracker &mdash; ATOM Data-Driven Modeling Pipeline 1.0 documentation</title>
-  
-
-  
-  
-  
+  <title>pipeline.model_tracker &mdash; ATOM Data-Driven Modeling Pipeline 1.1 documentation</title>
   
 
   
-
-  
-  
-    
-
-  
-
   <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    <link rel="index" title="Index" href="../../genindex.html" />
-    <link rel="search" title="Search" href="../../search.html" /> 
 
   
-  <script src="../../_static/js/modernizr.min.js"></script>
+  
 
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
-
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search">
+        <div class="wy-side-nav-search" >
           
 
           
@@ -54,6 +59,10 @@
 
           
             
+            
+              <div class="version">
+                1.1
+              </div>
             
           
 
@@ -69,6 +78,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -81,6 +91,7 @@
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -115,11 +126,13 @@
 
 
 
+
+
 <div role="navigation" aria-label="breadcrumbs navigation">
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../../index.html">Docs</a> &raquo;</li>
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
         
           <li><a href="../index.html">Module code</a> &raquo;</li>
         
@@ -147,9 +160,23 @@
 <span class="kn">import</span> <span class="nn">subprocess</span>
 <span class="kn">import</span> <span class="nn">tempfile</span>
 <span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">tarfile</span>
+<span class="kn">import</span> <span class="nn">logging</span>
 
-<span class="kn">from</span> <span class="nn">atomsci.clients</span> <span class="k">import</span> <span class="n">datastore_functions</span> <span class="k">as</span> <span class="n">dsf</span>
-<span class="kn">from</span> <span class="nn">atomsci.ddm.pipeline</span> <span class="k">import</span> <span class="n">mlmt_client_wrapper</span> <span class="k">as</span> <span class="n">mlmt_client_wrapper</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;ATOM&#39;</span><span class="p">)</span>
+
+<span class="kn">from</span> <span class="nn">atomsci.ddm.utils</span> <span class="kn">import</span> <span class="n">datastore_functions</span> <span class="k">as</span> <span class="n">dsf</span>
+<span class="kn">from</span> <span class="nn">atomsci.ddm.pipeline</span> <span class="kn">import</span> <span class="n">parameter_parser</span> <span class="k">as</span> <span class="n">parse</span>
+<span class="kn">from</span> <span class="nn">atomsci.ddm.pipeline</span> <span class="kn">import</span> <span class="n">transformations</span> <span class="k">as</span> <span class="n">trans</span>
+
+<span class="n">mlmt_supported</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">atomsci.clients</span> <span class="kn">import</span> <span class="n">MLMTClient</span>
+<span class="k">except</span> <span class="p">(</span><span class="ne">ModuleNotFoundError</span><span class="p">,</span> <span class="ne">ImportError</span><span class="p">):</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Model tracker client not supported in your environment; will save models in filesystem only.&quot;</span><span class="p">)</span>
+    <span class="n">mlmt_supported</span> <span class="o">=</span> <span class="kc">False</span>
 
 <div class="viewcode-block" id="UnableToTarException"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_tracker.UnableToTarException">[docs]</a><span class="k">class</span> <span class="nc">UnableToTarException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
     <span class="k">pass</span></div>
@@ -178,6 +205,10 @@
     
     <span class="k">if</span> <span class="n">pipeline</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;pipeline cannot be None.&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">mlmt_supported</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Model tracker not supported in your environment; can save models in filesystem only.&quot;</span><span class="p">)</span>
+        <span class="k">return</span>
 
     <span class="c1"># ModelPipeline.create_model_metadata() should be called before the call to save_model.</span>
     <span class="c1"># Get the metadata dictionary from the model pipeline.</span>
@@ -216,171 +247,360 @@
     <span class="c1"># Get the dataset_oid for actual metadata file stored in datastore.</span>
     <span class="n">model_dataset_oid</span> <span class="o">=</span> <span class="n">uploaded_results</span><span class="p">[</span><span class="s1">&#39;dataset_oid&#39;</span><span class="p">]</span>
     <span class="c1"># By adding dataset_oid to the dict, we can immediately find the datastore file asssociated with a model.</span>
-    <span class="n">metadata_dict</span><span class="p">[</span><span class="s1">&#39;ModelMetadata&#39;</span><span class="p">][</span><span class="s1">&#39;ModelParameters&#39;</span><span class="p">][</span><span class="s1">&#39;model_dataset_oid&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">model_dataset_oid</span>
+    <span class="n">metadata_dict</span><span class="p">[</span><span class="s1">&#39;model_parameters&#39;</span><span class="p">][</span><span class="s1">&#39;model_dataset_oid&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">model_dataset_oid</span>
 
 
     <span class="c1">#### Part 2: Save the model metadata ####</span>
-    <span class="n">client_wrapper</span> <span class="o">=</span> <span class="n">mlmt_client_wrapper</span><span class="o">.</span><span class="n">MLMTClientWrapper</span><span class="p">()</span>
-    <span class="n">client_wrapper</span><span class="o">.</span><span class="n">instantiate_mlmt_client</span><span class="p">()</span>
-    <span class="k">if</span> <span class="n">client_wrapper</span><span class="o">.</span><span class="n">mlmt_client</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">MLMTClientInstantiationException</span><span class="p">(</span>
-            <span class="s1">&#39;mlmt_client failed to instantitate.&#39;</span><span class="p">)</span>
-    <span class="c1"># Temporarily add collection_name key. The model tracker will use this key internally and pop it from the dict.</span>
-    <span class="n">metadata_dict</span><span class="p">[</span><span class="s1">&#39;collection_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">collection_name</span>
-    <span class="n">client_wrapper</span><span class="o">.</span><span class="n">save_metadata</span><span class="p">(</span><span class="n">model_metadata_dict</span><span class="o">=</span><span class="n">metadata_dict</span><span class="p">)</span>
+    <span class="n">mlmt_client</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">initialize_model_tracker</span><span class="p">()</span>
+    <span class="n">mlmt_client</span><span class="o">.</span><span class="n">save_metadata</span><span class="p">(</span><span class="n">collection_name</span><span class="o">=</span><span class="n">collection_name</span><span class="p">,</span>
+                                    <span class="n">model_uuid</span><span class="o">=</span><span class="n">metadata_dict</span><span class="p">[</span><span class="s1">&#39;model_uuid&#39;</span><span class="p">],</span>
+                                    <span class="n">model_metadata</span><span class="o">=</span><span class="n">metadata_dict</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">log</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Successfully inserted into the database with model_uuid </span><span class="si">%s</span><span class="s1">.&#39;</span> <span class="o">%</span> <span class="n">model_uuid</span><span class="p">)</span></div>
 
 <span class="c1"># *********************************************************************************************************************************</span>
-<div class="viewcode-block" id="get_models"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_tracker.get_models">[docs]</a><span class="k">def</span> <span class="nf">get_models</span><span class="p">(</span><span class="n">filter_dict</span><span class="p">,</span> <span class="n">client_wrapper</span><span class="p">,</span> <span class="n">collection_name</span><span class="o">=</span><span class="s1">&#39;model_tracker&#39;</span><span class="p">,</span> <span class="n">log</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Retrieve relevant models.</span>
-
-<span class="sd">    Retrieve models matching given criteria.</span>
+<div class="viewcode-block" id="get_full_metadata"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_tracker.get_full_metadata">[docs]</a><span class="k">def</span> <span class="nf">get_full_metadata</span><span class="p">(</span><span class="n">filter_dict</span><span class="p">,</span> <span class="n">collection_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Retrieve relevant full metadata (including training run metrics) of models matching given criteria.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        filter_dict (dict): dictionary to filter on</span>
 
-<span class="sd">    Returns:</span>
-<span class="sd">        A list of matching model dictionaries (matching metadata with matching</span>
-<span class="sd">        metrics). Raises MongoQueryException if the query fails.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">filter_dict</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;filter_dict cannot be None.&#39;</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">client_wrapper</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;client_wrapper cannot be None.&#39;</span><span class="p">)</span>
-
-    <span class="c1"># Temporarily add collection_name key. The model tracker will use this key</span>
-    <span class="c1"># internally and pop it from the dict.</span>
-    <span class="n">filter_dict</span><span class="p">[</span><span class="s1">&#39;collection_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">collection_name</span>
-    <span class="n">gen</span> <span class="o">=</span> <span class="n">client_wrapper</span><span class="o">.</span><span class="n">get_models_generator</span><span class="p">(</span><span class="n">filter_dict</span><span class="o">=</span><span class="n">filter_dict</span><span class="p">,</span> <span class="n">log</span><span class="o">=</span><span class="n">log</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">log</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Successfully constructed models generator.&#39;</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">gen</span></div>
-
-<span class="c1"># *********************************************************************************************************************************</span>
-<div class="viewcode-block" id="get_full_metadata"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_tracker.get_full_metadata">[docs]</a><span class="k">def</span> <span class="nf">get_full_metadata</span><span class="p">(</span><span class="n">filter_dict</span><span class="p">,</span> <span class="n">client_wrapper</span><span class="p">,</span> <span class="n">collection_name</span><span class="o">=</span><span class="s1">&#39;model_tracker&#39;</span><span class="p">,</span> <span class="n">log</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Retrieve relevant full metadata (including TrainingRun metrics).</span>
-
-<span class="sd">    Retrieve full metadata of models matching given criteria.</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        filter_dict (dict): dictionary to filter on</span>
+<span class="sd">        collection_name (str): Name of collection to search</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        A list of matching full model metadata (including TrainingRun metrics) dictionaries. Raises MongoQueryException if the query fails.</span>
+<span class="sd">        A list of matching full model metadata (including training run metrics) dictionaries. Raises MongoQueryException if the query fails.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">filter_dict</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;filter_dict cannot be None.&#39;</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">client_wrapper</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;client_wrapper cannot be None.&#39;</span><span class="p">)</span>
-
-    <span class="c1"># Temporarily add collection_name key. The model tracker will use this key</span>
-    <span class="c1"># internally and pop it from the dict.</span>
-    <span class="n">filter_dict</span><span class="p">[</span><span class="s1">&#39;collection_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">collection_name</span>
-    <span class="n">gen</span> <span class="o">=</span> <span class="n">client_wrapper</span><span class="o">.</span><span class="n">get_full_metadata_generator</span><span class="p">(</span><span class="n">filter_dict</span><span class="o">=</span><span class="n">filter_dict</span><span class="p">,</span> <span class="n">log</span><span class="o">=</span><span class="n">log</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">log</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Successfully constructed models generator.&#39;</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">gen</span></div>
-
-
-<span class="c1"># *********************************************************************************************************************************</span>
-
-<div class="viewcode-block" id="get_metadata"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_tracker.get_metadata">[docs]</a><span class="k">def</span> <span class="nf">get_metadata</span><span class="p">(</span><span class="n">filter_dict</span><span class="p">,</span> <span class="n">client_wrapper</span><span class="p">,</span> <span class="n">collection_name</span><span class="o">=</span><span class="s1">&#39;model_tracker&#39;</span><span class="p">,</span>
-               <span class="n">log</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Retrieve relevant metadata.</span>
-
-<span class="sd">    Retrieve metadata matching given criteria.</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        filter_dict (dict): dictionary to filter on</span>
-
-<span class="sd">    Returns:</span>
-<span class="sd">        A list of matching metadata dictionaries. Raises MongoQueryException if</span>
-<span class="sd">        the query fails.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">mlmt_supported</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Model tracker not supported in your environment; can load models from filesystem only.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span>
 
     <span class="k">if</span> <span class="n">filter_dict</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;filter_dict cannot be None.&#39;</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">client_wrapper</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;client_wrapper cannot be None.&#39;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Parameter filter_dict cannot be None.&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">collection_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Parameter collection_name cannot be None.&#39;</span><span class="p">)</span>
+    <span class="n">mlmt_client</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">initialize_model_tracker</span><span class="p">()</span>
 
-    <span class="c1"># Temporarily add collection_name key. The model tracker will use this key</span>
-    <span class="c1"># internally and pop it from the dict.</span>
-    <span class="n">filter_dict</span><span class="p">[</span><span class="s1">&#39;collection_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">collection_name</span>
-    <span class="n">gen</span> <span class="o">=</span> <span class="n">client_wrapper</span><span class="o">.</span><span class="n">get_metadata_generator</span><span class="p">(</span><span class="n">filter_dict</span><span class="o">=</span><span class="n">filter_dict</span><span class="p">,</span> <span class="n">log</span><span class="o">=</span><span class="n">log</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">log</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Successfully constructed metadata generator.&#39;</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">gen</span></div>
+    <span class="n">query_params</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;match_metadata&quot;</span><span class="p">:</span> <span class="n">filter_dict</span><span class="p">,</span>
+    <span class="p">}</span>
 
-<span class="c1"># *********************************************************************************************************************************</span>
-<div class="viewcode-block" id="save_metrics"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_tracker.save_metrics">[docs]</a><span class="k">def</span> <span class="nf">save_metrics</span><span class="p">(</span><span class="n">pipeline</span><span class="p">,</span> <span class="n">model_metrics</span><span class="p">,</span> <span class="n">collection_name</span><span class="o">=</span><span class="s1">&#39;model_tracker&#39;</span><span class="p">,</span> <span class="n">log</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Wrapper for mlmt_client save_model_metrics() function. Stores the performance metrics from a training</span>
-<span class="sd">    or prediction run in the model tracker database.</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        pipeline (ModelPipeline): The ModelPipeline object managing the training or prediction run.</span>
-
-<span class="sd">        model_metrics (dict): A dictionary containing the performance metrics data to be stored. It should have one of the following forms:</span>
-<span class="sd">            {&#39;model_uuid&#39; : &lt;model_UUID&gt;, &#39;ModelMetrics&#39; : {&#39;TrainingRun&#39; : {&#39;label&#39; : label, &#39;subset&#39; : subset, &#39;PredictionResults&#39; : results}}</span>
-<span class="sd">            {&#39;model_uuid&#39; : &lt;model_UUID&gt;, &#39;ModelMetrics&#39; : {&#39;PredictionRuns&#39; : {&#39;time_run&#39; : time_run, &#39;dataset_oid&#39; : dataset_oid, &lt;etc.&gt;,</span>
-<span class="sd">                                                                           &#39;PredictionResults&#39; : results}}</span>
-<span class="sd">        The dict will be appended to the appropriate model&#39;s list of metrics dicts in the model tracker DB.</span>
-
-<span class="sd">    Returns:</span>
-<span class="sd">        None if insertion was successful, raises MLMTClientInstantiationException or MongoInsertionException otherwise.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="n">client_wrapper</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">client_wrapper</span>
-    <span class="n">model_metrics</span><span class="p">[</span><span class="s1">&#39;collection_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">collection_name</span>
-    <span class="n">client_wrapper</span><span class="o">.</span><span class="n">save_metrics</span><span class="p">(</span><span class="n">model_metrics_dict</span><span class="o">=</span><span class="n">model_metrics</span><span class="p">,</span> <span class="n">log</span><span class="o">=</span><span class="n">log</span><span class="p">)</span>
-    <span class="n">pipeline</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Successfully saved model metrics into the model tracker database.&#39;</span><span class="p">)</span></div>
+    <span class="n">metadata_list</span> <span class="o">=</span> <span class="n">mlmt_client</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">query_model_metadata</span><span class="p">(</span>
+        <span class="n">collection_name</span><span class="o">=</span><span class="n">collection_name</span><span class="p">,</span>
+        <span class="n">query_params</span><span class="o">=</span><span class="n">query_params</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
+    <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">metadata_list</span><span class="p">)</span></div>
 
 <span class="c1"># *********************************************************************************************************************************</span>
-<div class="viewcode-block" id="get_metrics"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_tracker.get_metrics">[docs]</a><span class="k">def</span> <span class="nf">get_metrics</span><span class="p">(</span><span class="n">pipeline</span><span class="p">,</span> <span class="n">filter_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">collection_name</span><span class="o">=</span><span class="s1">&#39;model_tracker&#39;</span><span class="p">,</span> <span class="n">log</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Wrapper for mlmt_client.get_model_metrics(). Retrieves a list of performance metrics dictionaries</span>
-<span class="sd">    matching a query filter, or by default all performance results for the current model UUID, from all training</span>
-<span class="sd">    and/or prediction runs.</span>
+<div class="viewcode-block" id="get_metadata_by_uuid"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_tracker.get_metadata_by_uuid">[docs]</a><span class="k">def</span> <span class="nf">get_metadata_by_uuid</span><span class="p">(</span><span class="n">model_uuid</span><span class="p">,</span> <span class="n">collection_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Retrieve model parameter metadata by model_uuid. The resulting metadata dictionary can</span>
+<span class="sd">    be passed to parameter_parser.wrapper(); it does not contain performance metrics or</span>
+<span class="sd">    training dataset metadata.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        pipeline (ModelPipeline): The ModelPipeline object managing the training or prediction run.</span>
-
-<span class="sd">        filter_dict (dict): An optional dictionary of query criteria. If not specified, the function</span>
-<span class="sd">        returns all performance results for the current model UUID, from all training and/or prediction runs.</span>
-
+<span class="sd">        model_uuid (str): model unique identifier</span>
+<span class="sd">        collection_name(str): collection to search (optional, searches all collections if not specified)</span>
 <span class="sd">    Returns:</span>
-<span class="sd">        A list of dicts containing training and prediction performance metrics. Raises MongoQueryException if the query fails.</span>
+<span class="sd">        Matching metadata dictionary. Raises MongoQueryException if the query fails.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">if</span> <span class="n">filter_dict</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="c1"># Specify model_uuid at least.</span>
-        <span class="n">filter_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">model_uuid</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">model_uuid</span><span class="p">)</span>
-    <span class="c1"># Temporarily add collection_name key. The model tracker will use this key internally and pop it from the dict.</span>
-    <span class="n">filter_dict</span><span class="p">[</span><span class="s1">&#39;collection_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">collection_name</span>
-    <span class="n">client_wrapper</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">client_wrapper</span>
-    <span class="c1"># call next(gen) to get the next item.</span>
-    <span class="n">gen</span> <span class="o">=</span> <span class="n">client_wrapper</span><span class="o">.</span><span class="n">get_metrics_generator</span><span class="p">(</span><span class="n">filter_dict</span><span class="o">=</span><span class="n">filter_dict</span><span class="p">,</span> <span class="n">log</span><span class="o">=</span><span class="n">log</span><span class="p">)</span>
-    <span class="n">pipeline</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Successfully created metrics generator.&#39;</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">gen</span></div>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">mlmt_supported</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Model tracker not supported in your environment; can load models from filesystem only.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="n">mlmt_client</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">initialize_model_tracker</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">collection_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">collection_name</span> <span class="o">=</span> <span class="n">get_model_collection_by_uuid</span><span class="p">(</span><span class="n">model_uuid</span><span class="p">,</span> <span class="n">mlmt_client</span><span class="o">=</span><span class="n">mlmt_client</span><span class="p">)</span>
+
+    <span class="n">exclude_fields</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">&quot;training_metrics&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;time_built&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;training_dataset.dataset_metadata&quot;</span>
+    <span class="p">]</span>
+    <span class="k">return</span> <span class="n">mlmt_client</span><span class="o">.</span><span class="n">get_model</span><span class="p">(</span><span class="n">collection_name</span><span class="o">=</span><span class="n">collection_name</span><span class="p">,</span> <span class="n">model_uuid</span><span class="o">=</span><span class="n">model_uuid</span><span class="p">,</span>
+                                 <span class="n">exclude_fields</span><span class="o">=</span><span class="n">exclude_fields</span><span class="p">)</span></div>
+
+<span class="c1"># *********************************************************************************************************************************</span>
+<div class="viewcode-block" id="get_full_metadata_by_uuid"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_tracker.get_full_metadata_by_uuid">[docs]</a><span class="k">def</span> <span class="nf">get_full_metadata_by_uuid</span><span class="p">(</span><span class="n">model_uuid</span><span class="p">,</span> <span class="n">collection_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Retrieve model parameter metadata for the given model_uuid and collection.</span>
+<span class="sd">    The returned metadata dictionary will include training run performance metrics and</span>
+<span class="sd">    training dataset metadata.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        model_uuid (str): model unique identifier</span>
+<span class="sd">        collection_name(str): collection to search (optional, searches all collections if not specified)</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        Matching metadata dictionary. Raises MongoQueryException if the query fails.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">mlmt_supported</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Model tracker not supported in your environment; can load models from filesystem only.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="n">mlmt_client</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">initialize_model_tracker</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">collection_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">collection_name</span> <span class="o">=</span> <span class="n">get_model_collection_by_uuid</span><span class="p">(</span><span class="n">model_uuid</span><span class="p">,</span> <span class="n">mlmt_client</span><span class="o">=</span><span class="n">mlmt_client</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">mlmt_client</span><span class="o">.</span><span class="n">get_model</span><span class="p">(</span><span class="n">collection_name</span><span class="o">=</span><span class="n">collection_name</span><span class="p">,</span> <span class="n">model_uuid</span><span class="o">=</span><span class="n">model_uuid</span><span class="p">)</span></div>
+
+<span class="c1"># *********************************************************************************************************************************</span>
+<div class="viewcode-block" id="get_model_collection_by_uuid"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_tracker.get_model_collection_by_uuid">[docs]</a><span class="k">def</span> <span class="nf">get_model_collection_by_uuid</span><span class="p">(</span><span class="n">model_uuid</span><span class="p">,</span> <span class="n">mlmt_client</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Retrieve model collection given a uuid.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        model_uuid (str): model uuid</span>
+
+<span class="sd">        mlmt_client: Ignored</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        Matching collection name</span>
+<span class="sd">    Raises:</span>
+<span class="sd">        ValueError if there is no collection containing a model with the given uuid.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">mlmt_supported</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Model tracker not supported in your environment; can load models from filesystem only.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="n">mlmt_client</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">initialize_model_tracker</span><span class="p">()</span>
+
+    <span class="n">collections</span> <span class="o">=</span> <span class="n">mlmt_client</span><span class="o">.</span><span class="n">collections</span><span class="o">.</span><span class="n">get_collection_names</span><span class="p">()</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">collections</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">col</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;old_&#39;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">mlmt_client</span><span class="o">.</span><span class="n">count_models</span><span class="p">(</span><span class="n">collection_name</span><span class="o">=</span><span class="n">col</span><span class="p">,</span> <span class="n">model_uuid</span><span class="o">=</span><span class="n">model_uuid</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">col</span>
+
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Collection not found for uuid: &#39;</span> <span class="o">+</span> <span class="n">model_uuid</span><span class="p">)</span></div>
+
+<span class="c1"># *********************************************************************************************************************************</span>
+<div class="viewcode-block" id="get_model_training_data_by_uuid"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_tracker.get_model_training_data_by_uuid">[docs]</a><span class="k">def</span> <span class="nf">get_model_training_data_by_uuid</span><span class="p">(</span><span class="n">uuid</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Retrieve data used to train, validate, and test a model given the uuid</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        uuid (str): model uuid</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        a tuple of datafraes containint training data, validation data, and test data including the compound ID, RDKIT SMILES, and response value</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">mlmt_supported</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Model tracker not supported in your environment; can load models from filesystem only.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="n">model_meta</span> <span class="o">=</span> <span class="n">get_metadata_by_uuid</span><span class="p">(</span><span class="n">uuid</span><span class="p">)</span>
+    <span class="n">response_col</span> <span class="o">=</span> <span class="n">model_meta</span><span class="p">[</span><span class="s1">&#39;training_dataset&#39;</span><span class="p">][</span><span class="s1">&#39;response_cols&#39;</span><span class="p">]</span>
+    <span class="n">smiles_col</span> <span class="o">=</span> <span class="n">model_meta</span><span class="p">[</span><span class="s1">&#39;training_dataset&#39;</span><span class="p">][</span><span class="s1">&#39;smiles_col&#39;</span><span class="p">]</span>
+    <span class="n">id_col</span> <span class="o">=</span> <span class="n">model_meta</span><span class="p">[</span><span class="s1">&#39;training_dataset&#39;</span><span class="p">][</span><span class="s1">&#39;id_col&#39;</span><span class="p">]</span>
+    <span class="n">full_data</span>  <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">retrieve_dataset_by_dataset_oid</span><span class="p">(</span><span class="n">model_meta</span><span class="p">[</span><span class="s1">&#39;training_dataset&#39;</span><span class="p">][</span><span class="s1">&#39;dataset_oid&#39;</span><span class="p">])</span>
+
+    <span class="c1"># Pull split data and merge into initial dataset</span>
+    <span class="n">split_meta</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">search_datasets_by_key_value</span><span class="p">(</span><span class="s1">&#39;split_dataset_uuid&#39;</span><span class="p">,</span> <span class="n">model_meta</span><span class="p">[</span><span class="s1">&#39;splitting_parameters&#39;</span><span class="p">][</span><span class="s1">&#39;split_uuid&#39;</span><span class="p">])</span>
+    <span class="n">split_oid</span>  <span class="o">=</span> <span class="n">split_meta</span><span class="p">[</span><span class="s1">&#39;dataset_oid&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">split_data</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">retrieve_dataset_by_dataset_oid</span><span class="p">(</span><span class="n">split_oid</span><span class="p">)</span>
+    <span class="n">split_data</span><span class="p">[</span><span class="s1">&#39;compound_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">split_data</span><span class="p">[</span><span class="s1">&#39;cmpd_id&#39;</span><span class="p">]</span>
+    <span class="n">split_data</span> <span class="o">=</span> <span class="n">split_data</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;cmpd_id&#39;</span><span class="p">])</span>
+    <span class="n">full_data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">full_data</span><span class="p">,</span> <span class="n">split_data</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;inner&#39;</span><span class="p">,</span>
+            <span class="n">left_on</span><span class="o">=</span><span class="p">[</span><span class="n">id_col</span><span class="p">],</span> <span class="n">right_on</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;compound_id&#39;</span><span class="p">])</span>
+
+    <span class="n">train_data</span> <span class="o">=</span> <span class="n">full_data</span><span class="p">[</span><span class="n">full_data</span><span class="p">[</span><span class="s1">&#39;subset&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;train&#39;</span><span class="p">][[</span><span class="s1">&#39;compound_id&#39;</span><span class="p">,</span><span class="n">smiles_col</span><span class="p">,</span><span class="n">id_col</span><span class="p">,</span><span class="o">*</span><span class="n">response_col</span><span class="p">]]</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">valid_data</span> <span class="o">=</span> <span class="n">full_data</span><span class="p">[</span><span class="n">full_data</span><span class="p">[</span><span class="s1">&#39;subset&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;valid&#39;</span><span class="p">][[</span><span class="s1">&#39;compound_id&#39;</span><span class="p">,</span><span class="n">smiles_col</span><span class="p">,</span><span class="n">id_col</span><span class="p">,</span><span class="o">*</span><span class="n">response_col</span><span class="p">]]</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">test_data</span>  <span class="o">=</span> <span class="n">full_data</span><span class="p">[</span><span class="n">full_data</span><span class="p">[</span><span class="s1">&#39;subset&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;test&#39;</span><span class="p">][[</span><span class="s1">&#39;compound_id&#39;</span><span class="p">,</span><span class="n">smiles_col</span><span class="p">,</span><span class="n">id_col</span><span class="p">,</span><span class="o">*</span><span class="n">response_col</span><span class="p">]]</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">train_data</span><span class="p">,</span> <span class="n">valid_data</span><span class="p">,</span> <span class="n">test_data</span></div>
+
+
+<span class="c1"># *********************************************************************************************************************************</span>
+<div class="viewcode-block" id="save_model_tarball"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_tracker.save_model_tarball">[docs]</a><span class="k">def</span> <span class="nf">save_model_tarball</span><span class="p">(</span><span class="n">output_dir</span><span class="p">,</span> <span class="n">model_tarball_path</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Save the model parameters, metadata and transformers as a portable gzipped tar archive.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">tarball</span> <span class="o">=</span> <span class="n">tarfile</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">model_tarball_path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;w:gz&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;best_model&#39;</span><span class="p">,</span> <span class="s1">&#39;model_metadata.json&#39;</span><span class="p">]:</span>
+        <span class="n">tarball</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">/</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">output_dir</span><span class="p">,</span> <span class="n">filename</span><span class="p">),</span> <span class="n">arcname</span><span class="o">=</span><span class="s1">&#39;./</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">filename</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">/transformers.pkl&quot;</span> <span class="o">%</span> <span class="n">output_dir</span><span class="p">):</span>
+        <span class="n">tarball</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">/transformers.pkl&#39;</span> <span class="o">%</span> <span class="n">output_dir</span><span class="p">,</span> <span class="n">arcname</span><span class="o">=</span><span class="s1">&#39;./transformers.pkl&#39;</span><span class="p">)</span>
+    <span class="n">tarball</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Wrote model tarball to </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">model_tarball_path</span><span class="p">)</span></div>
+
+
+<span class="c1"># *********************************************************************************************************************************</span>
+<div class="viewcode-block" id="export_model"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_tracker.export_model">[docs]</a><span class="k">def</span> <span class="nf">export_model</span><span class="p">(</span><span class="n">model_uuid</span><span class="p">,</span> <span class="n">collection</span><span class="p">,</span> <span class="n">model_dir</span><span class="p">,</span> <span class="n">alt_bucket</span><span class="o">=</span><span class="s1">&#39;CRADA&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Export the metadata (parameters) and other files needed to recreate a model</span>
+<span class="sd">    from the model tracker database to a gzipped tar archive.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        model_uuid (str): Model unique identifier</span>
+
+<span class="sd">        collection (str): Name of the collection holding the model in the database.</span>
+
+<span class="sd">        model_dir (str): Path to directory where the model metadata and parameter files will be written. The directory will</span>
+<span class="sd">        be created if it doesn&#39;t already exist. Subsequently, the directory contents will be packed into a gzipped tar archive</span>
+<span class="sd">        named model_dir.tar.gz.</span>
+
+<span class="sd">        alt_bucket (str): Alternate datastore bucket to search for model tarball and transformer objects.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        none</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">mlmt_supported</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Model tracker not supported in your environment; can load models from filesystem only.&quot;</span><span class="p">)</span>
+        <span class="k">return</span>
+
+    <span class="n">ds_client</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">config_client</span><span class="p">()</span>
+    <span class="n">metadata_dict</span> <span class="o">=</span> <span class="n">get_metadata_by_uuid</span><span class="p">(</span><span class="n">model_uuid</span><span class="p">,</span> <span class="n">collection_name</span><span class="o">=</span><span class="n">collection</span><span class="p">)</span>
+
+    <span class="c1"># Get the tarball containing the saved model from the datastore, and extract it into model_dir.</span>
+    <span class="k">if</span> <span class="s1">&#39;ModelMetadata&#39;</span> <span class="ow">in</span> <span class="n">metadata_dict</span><span class="p">:</span>
+        <span class="c1"># Convert old style metadata</span>
+        <span class="n">metadata_dict</span> <span class="o">=</span> <span class="n">convert_metadata</span><span class="p">(</span><span class="n">metadata_dict</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="s1">&#39;model_parameters&#39;</span> <span class="ow">in</span> <span class="n">metadata_dict</span><span class="p">:</span>
+        <span class="n">model_parameters</span> <span class="o">=</span> <span class="n">metadata_dict</span><span class="p">[</span><span class="s1">&#39;model_parameters&#39;</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Bad metadata for model UUID </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">model_uuid</span><span class="p">)</span>
+
+    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">model_dir</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">model_params</span> <span class="o">=</span> <span class="n">parse</span><span class="o">.</span><span class="n">wrapper</span><span class="p">(</span><span class="n">metadata_dict</span><span class="p">)</span>
+
+    <span class="c1"># Override selected model training parameters</span>
+
+    <span class="c1"># Check that buckets where model tarball and transformers were saved still exist. If not, try alt_bucket.</span>
+    <span class="n">trans_bucket_differs</span> <span class="o">=</span> <span class="p">(</span><span class="n">model_params</span><span class="o">.</span><span class="n">transformer_bucket</span> <span class="o">!=</span> <span class="n">model_params</span><span class="o">.</span><span class="n">model_bucket</span><span class="p">)</span>
+    <span class="n">model_bucket_meta</span> <span class="o">=</span> <span class="n">ds_client</span><span class="o">.</span><span class="n">ds_buckets</span><span class="o">.</span><span class="n">get_buckets</span><span class="p">(</span><span class="n">buckets</span><span class="o">=</span><span class="p">[</span><span class="n">model_params</span><span class="o">.</span><span class="n">model_bucket</span><span class="p">])</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">model_bucket_meta</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">model_params</span><span class="o">.</span><span class="n">model_bucket</span> <span class="o">=</span> <span class="n">alt_bucket</span>
+    <span class="k">if</span> <span class="n">trans_bucket_differs</span><span class="p">:</span>
+        <span class="n">trans_bucket_meta</span> <span class="o">=</span> <span class="n">ds_client</span><span class="o">.</span><span class="n">ds_buckets</span><span class="o">.</span><span class="n">get_buckets</span><span class="p">(</span><span class="n">buckets</span><span class="o">=</span><span class="p">[</span><span class="n">model_params</span><span class="o">.</span><span class="n">transformer_bucket</span><span class="p">])</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">trans_bucket_meta</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">model_params</span><span class="o">.</span><span class="n">transformer_bucket</span> <span class="o">=</span> <span class="n">alt_bucket</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">model_bucket_meta</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">model_params</span><span class="o">.</span><span class="n">transformer_bucket</span> <span class="o">=</span> <span class="n">alt_bucket</span>
+
+    <span class="c1"># Unpack the model state tarball into a subdirectory of the new archive</span>
+    <span class="n">model_dataset_key</span> <span class="o">=</span> <span class="s1">&#39;model_</span><span class="si">%s</span><span class="s1">_tarball&#39;</span> <span class="o">%</span> <span class="n">model_uuid</span>
+    <span class="n">extract_dir</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">retrieve_dataset_by_datasetkey</span><span class="p">(</span><span class="n">model_dataset_key</span><span class="p">,</span> <span class="n">model_params</span><span class="o">.</span><span class="n">model_bucket</span><span class="p">,</span>
+                                                    <span class="n">client</span><span class="o">=</span><span class="n">ds_client</span><span class="p">,</span> <span class="n">return_metadata</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                                                    <span class="n">nrows</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">print_metadata</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                                                    <span class="n">tarpath</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">/best_model&#39;</span> <span class="o">%</span> <span class="n">model_dir</span><span class="p">)</span>
+
+    <span class="c1"># Download the transformers pickle file if there is one</span>
+    <span class="k">if</span> <span class="n">trans</span><span class="o">.</span><span class="n">transformers_needed</span><span class="p">(</span><span class="n">model_params</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">model_params</span><span class="o">.</span><span class="n">transformer_key</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">transformer_key</span> <span class="o">=</span> <span class="s1">&#39;transformers_</span><span class="si">%s</span><span class="s1">.pkl&#39;</span> <span class="o">%</span> <span class="n">model_uuid</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">transformer_key</span> <span class="o">=</span> <span class="n">model_params</span><span class="o">.</span><span class="n">transformer_key</span>
+            <span class="n">trans_fp</span> <span class="o">=</span> <span class="n">ds_client</span><span class="o">.</span><span class="n">open_bucket_dataset</span><span class="p">(</span><span class="n">model_params</span><span class="o">.</span><span class="n">transformer_bucket</span><span class="p">,</span> <span class="n">transformer_key</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;b&#39;</span><span class="p">)</span>
+            <span class="n">trans_data</span> <span class="o">=</span> <span class="n">trans_fp</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+            <span class="n">trans_fp</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="n">trans_path</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">/transformers.pkl&quot;</span> <span class="o">%</span> <span class="n">model_dir</span>
+            <span class="n">trans_out</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">trans_path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;wb&#39;</span><span class="p">)</span>
+            <span class="n">trans_out</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">trans_data</span><span class="p">)</span>
+            <span class="n">trans_out</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="k">del</span> <span class="n">model_parameters</span><span class="p">[</span><span class="s1">&#39;transformer_oid&#39;</span><span class="p">]</span>
+            <span class="n">model_parameters</span><span class="p">[</span><span class="s1">&#39;transformer_key&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;transformers.pkl&#39;</span>
+    
+        <span class="k">except</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Transformers expected but not found in datastore in bucket </span><span class="si">%s</span><span class="s2"> with key</span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">model_params</span><span class="o">.</span><span class="n">transformer_bucket</span><span class="p">,</span>
+                    <span class="n">transformer_key</span><span class="p">))</span>
+            <span class="k">raise</span>
+
+    <span class="c1"># Save the metadata params</span>
+    <span class="n">model_parameters</span><span class="p">[</span><span class="s1">&#39;save_results&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">meta_path</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">/model_metadata.json&quot;</span> <span class="o">%</span> <span class="n">model_dir</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">meta_path</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">meta_out</span><span class="p">:</span>
+        <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">metadata_dict</span><span class="p">,</span> <span class="n">meta_out</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+
+    <span class="c1"># Create a new tarball containing both the metadata and the parameters from the retrieved model tarball</span>
+    <span class="n">new_tarpath</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.tar.gz&quot;</span> <span class="o">%</span> <span class="n">model_dir</span>
+    <span class="n">tarball</span> <span class="o">=</span> <span class="n">tarfile</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">new_tarpath</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;w:gz&#39;</span><span class="p">)</span>
+    <span class="n">tarball</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">model_dir</span><span class="p">,</span> <span class="n">arcname</span><span class="o">=</span><span class="s1">&#39;.&#39;</span><span class="p">)</span>
+    <span class="n">tarball</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Wrote model files to </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">new_tarpath</span><span class="p">)</span></div>
+
+
+<span class="c1"># *********************************************************************************************************************************</span>
+<div class="viewcode-block" id="convert_metadata"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_tracker.convert_metadata">[docs]</a><span class="k">def</span> <span class="nf">convert_metadata</span><span class="p">(</span><span class="n">old_metadata</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convert model metadata from old format (with camel-case parameter group names) to new format.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        old_metadata (dict): Model metadata in old format</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        new_metadata (dict): Model metadata in new format</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">model_metadata</span> <span class="o">=</span> <span class="n">old_metadata</span><span class="p">[</span><span class="s1">&#39;ModelMetadata&#39;</span><span class="p">]</span>
+    <span class="n">model_parameters</span> <span class="o">=</span> <span class="n">model_metadata</span><span class="p">[</span><span class="s1">&#39;ModelParameters&#39;</span><span class="p">]</span>
+    <span class="n">training_dataset</span> <span class="o">=</span> <span class="n">model_metadata</span><span class="p">[</span><span class="s1">&#39;TrainingDataset&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">new_metadata</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;model_uuid&quot;</span><span class="p">:</span> <span class="n">old_metadata</span><span class="p">[</span><span class="s1">&#39;model_uuid&#39;</span><span class="p">],</span>
+        <span class="s2">&quot;time_built&quot;</span><span class="p">:</span> <span class="n">old_metadata</span><span class="p">[</span><span class="s1">&#39;time_built&#39;</span><span class="p">],</span>
+        <span class="s2">&quot;training_dataset&quot;</span><span class="p">:</span> <span class="n">training_dataset</span><span class="p">,</span>
+        <span class="s2">&quot;training_metrics&quot;</span><span class="p">:</span> <span class="p">[]</span>
+    <span class="p">}</span>
+
+    <span class="n">map_keys</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="s2">&quot;external_export_parameters&quot;</span><span class="p">,</span> <span class="s2">&quot;ExternalExportParameters&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;dataset_metadata&quot;</span><span class="p">,</span> <span class="s2">&quot;DatasetMetadata&quot;</span><span class="p">),</span>
+    <span class="p">]</span>
+
+    <span class="k">for</span> <span class="p">(</span><span class="n">nkey</span><span class="p">,</span> <span class="n">okey</span><span class="p">)</span> <span class="ow">in</span> <span class="n">map_keys</span><span class="p">:</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">training_dataset</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">okey</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">training_dataset</span><span class="p">[</span><span class="n">nkey</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="n">map_keys</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="s2">&quot;model_parameters&quot;</span><span class="p">,</span> <span class="s1">&#39;ModelParameters&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;ecfp_specific&quot;</span><span class="p">,</span> <span class="s1">&#39;ECFPSpecific&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;rf_specific&quot;</span><span class="p">,</span> <span class="s1">&#39;RFSpecific&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;autoencoder_specific&quot;</span><span class="p">,</span> <span class="s1">&#39;AutoencoderSpecific&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;descriptor_specific&quot;</span><span class="p">,</span> <span class="s1">&#39;DescriptorSpecific&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;nn_specific&quot;</span><span class="p">,</span> <span class="s2">&quot;NNSpecific&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;xgb_specific&quot;</span><span class="p">,</span> <span class="s2">&quot;xgbSpecific&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;umap_specific&quot;</span><span class="p">,</span> <span class="s2">&quot;UmapSpecific&quot;</span><span class="p">),</span>
+
+    <span class="p">]</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">nkey</span><span class="p">,</span> <span class="n">okey</span><span class="p">)</span> <span class="ow">in</span> <span class="n">map_keys</span><span class="p">:</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">model_metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">okey</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">new_metadata</span><span class="p">[</span><span class="n">nkey</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="c1"># Get rid of useless extra level in split params</span>
+    <span class="n">split_params</span> <span class="o">=</span> <span class="n">model_metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;SplittingParameters&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">split_params</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">splitting</span> <span class="o">=</span> <span class="n">split_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Splitting&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">splitting</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">new_metadata</span><span class="p">[</span><span class="s1">&#39;splitting_parameters&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">splitting</span>
+
+    <span class="k">return</span> <span class="n">new_metadata</span></div>
 </pre></div>
 
            </div>
            
           </div>
           <footer>
-  
 
   <hr/>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2019, ATOM DDM Team.
+        &#169; Copyright 2021, ATOM DDM Team.
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
-
         </div>
       </div>
 
@@ -389,34 +609,16 @@
   </div>
   
 
-
-  
-
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'../../',
-            VERSION:'1.0',
-            LANGUAGE:'None',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="../../_static/jquery.js"></script>
-      <script type="text/javascript" src="../../_static/underscore.js"></script>
-      <script type="text/javascript" src="../../_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-
-  
-
-  <script type="text/javascript" src="../../_static/js/theme.js"></script>
-
   <script type="text/javascript">
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
+  </script>
+
+  
+  
+    
+   
 
 </body>
 </html>
