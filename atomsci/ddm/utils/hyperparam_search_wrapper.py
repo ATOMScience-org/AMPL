@@ -1212,6 +1212,7 @@ class UserSpecifiedSearch(HyperparameterSearch):
 def build_hyperopt_search_domain(label, method, param_list):
     """
     Generate HyperOpt search domain object from method and parameters, layer_nums is only for NN models.
+    This function is used by the HyperOptSearch class, not intended for standalone usage.
     """
     if method == "choice":
         return hp.choice(label, param_list)
