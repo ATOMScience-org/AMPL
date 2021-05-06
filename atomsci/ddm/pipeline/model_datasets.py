@@ -357,8 +357,10 @@ class ModelDataset(object):
                                                            featurized_dset_df, self)
                 self.n_features = self.featurization.get_feature_count()
                 self.log.debug("Creating deepchem dataset")
-
+                
                 self.vals, w = feat.make_weights(self.vals)
+                if self.params.prediction_type=='classification':
+                    w = w.astype(np.float32)
 
                 self.dataset = DiskDataset.from_numpy(features, self.vals, ids=ids, w=w, verbose=False)
                 self.log.info("Using prefeaturized data; number of features = " + str(self.n_features))

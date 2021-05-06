@@ -16,7 +16,7 @@ import tensorflow as tf
 if dc.__version__.startswith('2.1'):
     from deepchem.models.tensorgraph.fcnet import MultitaskRegressor, MultitaskClassifier
 else:
-    from deepchem.models import MultitaskRegressor, MultitaskClassifier
+    from deepchem.models.fcnet import MultitaskRegressor, MultitaskClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import RandomForestRegressor
 
@@ -31,6 +31,7 @@ import yaml
 import glob
 from datetime import datetime
 import time
+from packaging import version
 
 from atomsci.ddm.utils import datastore_functions as dsf
 from atomsci.ddm.utils import llnl_utils
@@ -39,6 +40,42 @@ from atomsci.ddm.pipeline import perf_data as perf
 
 logging.basicConfig(format='%(asctime)-15s %(message)s')
 
+def dc_restore(model, checkpoint=None, model_dir=None, session=None):
+    """Reload the values of all variables from a checkpoint file.
+
+    copied from DeepChem 2.3 keras_model.py to silence warnings caused
+    when a model is loaded in inference mode.
+
+    Args:
+        model (DeepChem.KerasModel: keras model to restore
+        checkpoint (str): the path to the checkpoint file to load.  If this is None, the most recent
+            checkpoint will be chosen automatically.  Call get_checkpoints() to get a
+            list of all available checkpoints.
+        model_dir (str): default None
+            Directory to restore checkpoint from. If None, use model.model_dir.
+        session (tf.Session()) default None
+            Session to run restore ops under. If None, model.session is used.
+
+    Returns:
+        None
+    """
+    model._ensure_built()
+    if model_dir is None:
+        model_dir = model.model_dir
+    if checkpoint is None:
+        checkpoint = tf.train.latest_checkpoint(model_dir)
+    if checkpoint is None:
+        raise ValueError('No checkpoint found')
+    if tf.executing_eagerly():
+        # expect_partial() silences warnings when this model is restored for
+        # inference only.
+        model._checkpoint.restore(checkpoint).expect_partial()
+    else:
+        if session is None:
+            session = model.session
+        # expect_partial() silences warnings when this model is restored for
+        # inference only.
+        model._checkpoint.restore(checkpoint).expect_partial().run_restore_ops(session)
 
 # ****************************************************************************************
 def create_model_wrapper(params, featurizer, ds_client=None):
@@ -68,14 +105,11 @@ def create_model_wrapper(params, featurizer, ds_client=None):
                              livermore compute (lc): /usr/mic/bio/anaconda3/bin/pip install xgboost==0.90 --user \
                              twintron-blue (TTB): /opt/conda/bin/pip install xgboost==0.90 --user/ \ "
                             )
-        elif float(xgb.__version__) < 0.9:
-            raise Exception(f"xgboost required to be >= 0.9 for GPU support. \
-                             current version = {float(xgb.__version__)} \
-                             installatin: \
-                             from pip: pip3 install xgboost==0.90 \
-                             livermore compute (lc): /usr/mic/bio/anaconda3/bin/pip install xgboost==0.90 --user \
-                             twintron-blue (TTB): /opt/conda/bin/pip install xgboost==0.90 --user/ "
-                            )
+        elif version.parse(xgb.__version__) < version.parse('0.9'):
+            raise Exception(f"xgboost required to be = 0.9 for GPU support. \
+                             current version = xgb.__version__ \
+                             installation: \
+                             from pip: pip install xgboost==0.90")
         else:
             return DCxgboostModelWrapper(params, featurizer, ds_client)
     else:
@@ -370,6 +404,23 @@ class ModelWrapper(object):
         raise NotImplementedError
 
 
+    # ****************************************************************************************
+    def model_save(self):
+        """A wrapper function to save a model  due to the `DeepChem model.save()` has inconsistent implementation.
+
+        The `SKlearnModel()` class and xgboost model in DeepChem use `model.save()`,
+        while the `MultitaskRegressor` class uses `model.save_checkpoint()`. The
+        workaround is to try `model.save()` first. If failed, then try `model.save_checkpoint()`
+        """
+        try:
+            self.model.save()
+        except Exception as error:
+          try:
+            self.model.save_checkpoint()
+          except Exception as e:
+            self.log.error("Error when saving model:\n%s" % str(e))
+
+
 # ****************************************************************************************
 class DCNNModelWrapper(ModelWrapper):
     """Contains methods to load in a dataset, split and featurize the data, fit a model to the train dataset,
@@ -425,7 +476,7 @@ class DCNNModelWrapper(ModelWrapper):
         """
         super().__init__(params, featurizer, ds_client)
         self.g = tf.Graph()
-        self.sess = tf.Session(graph=self.g)
+        self.sess = tf.compat.v1.Session(graph=self.g)
         n_features = self.get_num_features()
         self.num_epochs_trained = 0
 
@@ -748,8 +799,8 @@ class DCNNModelWrapper(ModelWrapper):
                 break
 
         # Revert to last checkpoint
-        self.model.restore()
-        self.model.save()
+        dc_restore(self.model)
+        self.model_save()
 
         # Only copy the model files we need, not the entire directory
         self._copy_model(self.best_model_dir)
@@ -901,7 +952,7 @@ class DCNNModelWrapper(ModelWrapper):
             self.train_epoch_perfs[ei], self.train_epoch_perf_stds[ei] = self.train_perf_data[ei].compute_perf_metrics()
             self.test_epoch_perfs[ei], self.test_epoch_perf_stds[ei] = self.test_perf_data[ei].compute_perf_metrics()
         self.model.save_checkpoint()
-        self.model.save()
+        self.model_save()
 
         # Only copy the model files we need, not the entire directory
         self._copy_model(self.best_model_dir)
@@ -923,9 +974,9 @@ class DCNNModelWrapper(ModelWrapper):
             chkpt_dict = yaml.load(chkpt_in.read())
         chkpt_prefix = chkpt_dict['model_checkpoint_path']
         files = [chkpt_file]
-        files.append(os.path.join(self.model_dir, 'model.pickle'))
+        # files.append(os.path.join(self.model_dir, 'model.pickle'))
         files.append(os.path.join(self.model_dir, '%s.index' % chkpt_prefix))
-        files.append(os.path.join(self.model_dir, '%s.meta' % chkpt_prefix))
+        # files.append(os.path.join(self.model_dir, '%s.meta' % chkpt_prefix))
         files = files + glob.glob(os.path.join(self.model_dir, '%s.data-*' % chkpt_prefix))
         self._clean_up_excess_files(dest_dir)
         for file in files:
@@ -945,20 +996,52 @@ class DCNNModelWrapper(ModelWrapper):
             Resets the value of model, transformers, and transformers_x
         """
         if self.params.featurizer == 'graphconv':
-            self.model = dc.models.GraphConvModel.load_from_dir(reload_dir, restore=False)
+            self.model = dc.models.GraphConvModel(
+                n_tasks=self.params.num_model_tasks,
+                n_features=self.get_num_features(),
+                batch_size=self.params.batch_size,
+                model_dir=reload_dir,
+                uncertainty=self.params.uncertainty,
+                graph_conv_layers=self.params.layer_sizes[:-1],
+                dense_layer_size=self.params.layer_sizes[-1],
+                dropout=self.params.dropouts,
+                learning_rate=self.params.learning_rate,
+                mode=self.params.prediction_type)
         elif self.params.prediction_type == 'regression':
-            self.model = MultitaskRegressor.load_from_dir(reload_dir, restore=False)
+            self.model = MultitaskRegressor(
+                self.params.num_model_tasks,
+                n_features=self.get_num_features(),
+                layer_sizes=self.params.layer_sizes,
+                dropouts=self.params.dropouts,
+                weight_init_stddevs=self.params.weight_init_stddevs,
+                bias_init_consts=self.params.bias_init_consts,
+                weight_decay_penalty=self.params.weight_decay_penalty,
+                weight_decay_penalty_type=self.params.weight_decay_penalty_type,
+                model_dir=reload_dir,
+                learning_rate=self.params.learning_rate,
+                uncertainty=self.params.uncertainty)
         else:
-            self.model = MultitaskClassifier.load_from_dir(reload_dir, restore=False)
+            self.model = MultitaskClassifier(
+                self.params.num_model_tasks,
+                n_features=self.get_num_features(),
+                layer_sizes=self.params.layer_sizes,
+                dropouts=self.params.dropouts,
+                weight_init_stddevs=self.params.weight_init_stddevs,
+                bias_init_consts=self.params.bias_init_consts,
+                weight_decay_penalty=self.params.weight_decay_penalty,
+                weight_decay_penalty_type=self.params.weight_decay_penalty_type,
+                model_dir=reload_dir,
+                learning_rate=self.params.learning_rate,
+                n_classes=self.params.class_number)
         # Hack to run models trained in DeepChem 2.1 with DeepChem 2.2
-        self.model.default_outputs = self.model.outputs
+        # self.model.default_outputs = self.model.outputs
         # Get latest checkpoint path transposed to current model dir
         ckpt = tf.train.get_checkpoint_state(reload_dir)
         if os.path.exists(f"{ckpt.model_checkpoint_path}.index"):
             checkpoint = ckpt.model_checkpoint_path
         else:
             checkpoint = os.path.join(reload_dir, os.path.basename(ckpt.model_checkpoint_path))
-        self.model.restore(checkpoint=checkpoint)
+        dc_restore(self.model, checkpoint=checkpoint)
 
 
         # Load transformers if they would have been saved with the model
@@ -1260,7 +1343,7 @@ class DCRFModelWrapper(ModelWrapper):
             # For k-fold CV, retrain on the combined training and validation sets
             fit_dataset = self.data.combined_training_data()
             self.model.fit(fit_dataset, restore=False)
-        self.model.save()
+        self.model_save()
         # The best model is just the single RF training run.
         self.best_epoch = 0
 
@@ -1491,7 +1574,8 @@ class DCxgboostModelWrapper(ModelWrapper):
                                          gpu_id = 0,
                                          n_gpus = -1,
                                          max_bin = 16,
-#                                          tree_method = 'gpu_hist'
+#                                          tree_method = 'gpu_hist',
+                                         seed=0
                                          )
         else:
             xgb_model = xgb.XGBClassifier(max_depth=self.params.xgb_max_depth,
@@ -1517,9 +1601,9 @@ class DCxgboostModelWrapper(ModelWrapper):
                                           n_jobs=-1,                                          
                                           n_gpus = -1,
                                           max_bin = 16,
-#                                           tree_method = 'gpu_hist'
+#                                           tree_method = 'gpu_hist',
+                                          seed=0
                                          )
-
         self.model = dc.models.xgboost_models.XGBoostModel(xgb_model, model_dir=self.best_model_dir)
 
     # ****************************************************************************************
@@ -1580,7 +1664,7 @@ class DCxgboostModelWrapper(ModelWrapper):
             # For k-fold CV, retrain on the combined training and validation sets
             fit_dataset = self.data.combined_training_data()
             self.model.fit(fit_dataset, restore=False)
-        self.model.save()
+        self.model_save()
         # The best model is just the single xgb training run.
         self.best_epoch = 0
 
@@ -1623,6 +1707,7 @@ class DCxgboostModelWrapper(ModelWrapper):
                                          gpu_id = 0,
                                          n_gpus = -1,
                                          max_bin = 16,
+                                         seed=0
 #                                          tree_method = 'gpu_hist'
                                          )
         else:
@@ -1649,6 +1734,7 @@ class DCxgboostModelWrapper(ModelWrapper):
                                           n_jobs=-1,                                          
                                           n_gpus = -1,
                                           max_bin = 16,
+                                          seed=0
 #                                           tree_method = 'gpu_hist',
                                          )
 

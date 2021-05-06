@@ -24,6 +24,17 @@ import pdb
 import copy
 
 from atomsci.ddm.utils import datastore_functions as dsf
+if 'site-packages' in dsf.__file__: # install_dev.sh points to github directory
+    import subprocess
+    import json
+    data = subprocess.check_output(["pip", "list", "--format", "json"])
+    parsed_results = json.loads(data)
+    ampl_version=next(item for item in parsed_results if item["name"] == "atomsci-ampl")['version']
+else: # install.sh points to installation directory
+    f=open(dsf.__file__.rsplit('/', maxsplit=4)[0]+'/VERSION', 'r')
+    ampl_version = f.read().strip()
+    f.close()
+
 from atomsci.ddm.pipeline import model_datasets as model_datasets
 from atomsci.ddm.pipeline import model_wrapper as model_wrapper
 from atomsci.ddm.pipeline import featurization as feat
@@ -161,6 +172,12 @@ class ModelPipeline:
         self.log = logging.getLogger('ATOM')
         self.run_mode = 'training'  # default, can be overridden later
         self.start_time = time.time()
+
+        # if model is NN, set the uncertainty to False.
+        # https://github.com/deepchem/deepchem/issues/2422
+        if self.params.model_type == 'NN':
+            self.params.uncertainty = False
+
         # Default dataset_name parameter from dataset_key
         if params.dataset_name is None:
             self.params.dataset_name = os.path.splitext(os.path.basename(self.params.dataset_key))[0]
@@ -205,8 +222,7 @@ class ModelPipeline:
             os.makedirs(self.params.output_dir, exist_ok=True)
         self.output_dir = self.params.output_dir
         if self.params.model_tarball_path is None:
-            self.params.model_tarball_path = os.path.join(self.params.result_dir,
-                                                          '%s_model_%s.tar.gz' % (self.params.dataset_name, self.params.model_uuid))
+            self.params.model_tarball_path = os.path.join(str(self.params.result_dir), "{}_model_{}.tar.gz".format(self.params.dataset_name, self.params.model_uuid))
 
         # ****************************************************************************************
 
@@ -289,7 +305,8 @@ class ModelPipeline:
             uncertainty=self.params.uncertainty,
             time_generated=time.time(),
             save_results=self.params.save_results,
-            hyperparam_uuid=self.params.hyperparam_uuid
+            hyperparam_uuid=self.params.hyperparam_uuid,
+            ampl_version=ampl_version
         )
 
         splitting_metadata = self.data.get_split_metadata()
@@ -315,8 +332,13 @@ class ModelPipeline:
         # ****************************************************************************************
 
     def save_model_metadata(self, retries=5, sleep_sec=60):
-        """Inserts the model metadata into the model tracker DB, if self.params.save_results is True.
-        Otherwise, saves the model metadata to a .json file and sets the permissions.
+        """
+        Saves the data needed to reload the model in the model tracker DB or in a local tarball file.
+
+        Inserts the model metadata into the model tracker DB, if self.params.save_results is True.
+        Otherwise, saves the model metadata to a local .json file. Generates a gzipped tar archive
+        containing the metadata file, the transformer parameters and the model checkpoint files, and
+        saves it in the datastore or the filesystem according to the value of save_results.
 
         Args:
             retries (int): Number of times to retry saving to model tracker DB.
@@ -324,7 +346,7 @@ class ModelPipeline:
             sleep_sec (int): Number of seconds to sleep between retries, if saving to model tracker DB.
 
         Side effects:
-            Inserts the model metadata into the model zoo or writes out a metadata.json file
+            Saves the model metadata and parameters into the model tracker DB or a local tarball file.
         """
         if self.params.save_results:
             # Model tracker saves the model state in the datastore as well as saving the metadata
