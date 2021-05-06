@@ -1093,7 +1093,7 @@ def postprocess_args(parsed_args):
 
     # check to see if result_dir and dataset_key are relative paths
     # if so, make them relative to script_dir
-    if not os.path.isabs(parsed_args.dataset_key):
+    if (not parsed_args.dataset_key is None) and (not os.path.isabs(parsed_args.dataset_key)):
         parsed_args.dataset_key = \
             os.path.abspath(os.path.join(parsed_args.script_dir, parsed_args.dataset_key))
 
