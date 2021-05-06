@@ -1,7 +1,6 @@
 name: atomsci
 channels:
   - https://repo.anaconda.com/pkgs/free
-  - https://anaconda.org/pytorch/pytorch/1.7.0/download
   - https://anaconda.org/anaconda/cudatoolkit/9.2/download
   - conda-forge
   - defaults
