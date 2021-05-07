@@ -1,0 +1,700 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>utils.struct_utils &mdash; ATOM Data-Driven Modeling Pipeline 1.1 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> ATOM Data-Driven Modeling Pipeline
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">ATOM Data-Driven Modeling Pipeline</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>utils.struct_utils</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for utils.struct_utils</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Functions to manipulate and convert between various representations of chemical structures: SMILES, InChi and RDKit Mol objects.</span>
+<span class="sd">Many of these functions (those with a &#39;workers&#39; argument) accept either a single SMILES or InChi string or a list of strings</span>
+<span class="sd">as their first argument, and return a value with the same datatype. If a list is passed and the &#39;workers&#39; argument is &gt; 1,</span>
+<span class="sd">the calculation is parallelized across multiple threads; this can save significant time when operating on thousands of</span>
+<span class="sd">molecules.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">pdb</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">molvs</span>
+
+<span class="kn">from</span> <span class="nn">rdkit</span> <span class="kn">import</span> <span class="n">Chem</span>
+<span class="kn">from</span> <span class="nn">rdkit.Chem</span> <span class="kn">import</span> <span class="n">AllChem</span><span class="p">,</span> <span class="n">Draw</span><span class="p">,</span> <span class="n">Descriptors</span>
+
+<span class="n">stdizer</span> <span class="o">=</span> <span class="n">molvs</span><span class="o">.</span><span class="n">standardize</span><span class="o">.</span><span class="n">Standardizer</span><span class="p">(</span><span class="n">prefer_organic</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">uncharger</span> <span class="o">=</span> <span class="n">molvs</span><span class="o">.</span><span class="n">charge</span><span class="o">.</span><span class="n">Uncharger</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="get_rdkit_smiles"><a class="viewcode-back" href="../../utils.html#utils.struct_utils.get_rdkit_smiles">[docs]</a><span class="k">def</span> <span class="nf">get_rdkit_smiles</span><span class="p">(</span><span class="n">orig_smiles</span><span class="p">,</span> <span class="n">useIsomericSmiles</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Given a SMILES string, regenerate a &quot;canonical&quot; SMILES string for the same molecule</span>
+<span class="sd">    using the implementation in RDKit.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        orig_smiles (str): SMILES string to canonicalize.</span>
+
+<span class="sd">        useIsomericSmiles (bool): Whether to retain stereochemistry information in the generated string.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str: Canonicalized SMILES string.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">mol</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">MolFromSmiles</span><span class="p">(</span><span class="n">orig_smiles</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">mol</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;&quot;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">Chem</span><span class="o">.</span><span class="n">MolToSmiles</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">isomericSmiles</span><span class="o">=</span><span class="n">useIsomericSmiles</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="rdkit_smiles_from_smiles"><a class="viewcode-back" href="../../utils.html#utils.struct_utils.rdkit_smiles_from_smiles">[docs]</a><span class="k">def</span> <span class="nf">rdkit_smiles_from_smiles</span><span class="p">(</span><span class="n">orig_smiles</span><span class="p">,</span> <span class="n">useIsomericSmiles</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">workers</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parallel version of get_rdkit_smiles. If orig_smiles is a list and workers is &gt; 1, spawn &#39;workers&#39;</span>
+<span class="sd">    threads to convert input SMILES strings to standardized RDKit format.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        orig_smiles (list or str): List of SMILES strings to canonicalize.</span>
+
+<span class="sd">        useIsomericSmiles (bool): Whether to retain stereochemistry information in the generated strings.</span>
+
+<span class="sd">        workers (int): Number of parallel threads to use for calculation.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list or str: Canonicalized SMILES strings.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">orig_smiles</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+        <span class="n">func</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">rdkit_smiles_from_smiles</span><span class="p">,</span> <span class="n">useIsomericSmiles</span><span class="o">=</span><span class="n">useIsomericSmiles</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">workers</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="kn">from</span> <span class="nn">multiprocessing</span> <span class="kn">import</span> <span class="n">pool</span>
+            <span class="n">batchsize</span> <span class="o">=</span> <span class="mi">200</span>
+            <span class="n">batches</span> <span class="o">=</span> <span class="p">[</span><span class="n">orig_smiles</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span> <span class="o">+</span> <span class="n">batchsize</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">orig_smiles</span><span class="p">),</span> <span class="n">batchsize</span><span class="p">)]</span>
+            <span class="k">with</span> <span class="n">pool</span><span class="o">.</span><span class="n">Pool</span><span class="p">(</span><span class="n">workers</span><span class="p">)</span> <span class="k">as</span> <span class="n">p</span><span class="p">:</span>
+                <span class="n">rdkit_smiles</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">batches</span><span class="p">)</span>
+                <span class="n">rdkit_smiles</span> <span class="o">=</span> <span class="p">[</span><span class="n">y</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">rdkit_smiles</span> <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">x</span><span class="p">]</span>  <span class="c1"># Flatten results</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">rdkit_smiles</span> <span class="o">=</span> <span class="p">[</span><span class="n">func</span><span class="p">(</span><span class="n">smi</span><span class="p">)</span> <span class="k">for</span> <span class="n">smi</span> <span class="ow">in</span> <span class="n">orig_smiles</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Actual standardization code, everything above here is for multiprocessing and list parsing</span>
+        <span class="n">std_mol</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">MolFromSmiles</span><span class="p">(</span><span class="n">orig_smiles</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">std_mol</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">rdkit_smiles</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">rdkit_smiles</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">MolToSmiles</span><span class="p">(</span><span class="n">std_mol</span><span class="p">,</span> <span class="n">isomericSmiles</span><span class="o">=</span><span class="n">useIsomericSmiles</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">rdkit_smiles</span></div>
+
+
+<div class="viewcode-block" id="mols_from_smiles"><a class="viewcode-back" href="../../utils.html#utils.struct_utils.mols_from_smiles">[docs]</a><span class="k">def</span> <span class="nf">mols_from_smiles</span><span class="p">(</span><span class="n">orig_smiles</span><span class="p">,</span> <span class="n">workers</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parallel function to create RDKit Mol objects for a list of SMILES strings. If orig_smiles is a list</span>
+<span class="sd">    and workers is &gt; 1, spawn &#39;workers&#39; threads to convert input SMILES strings to Mol objects.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        orig_smiles (list or str): List of SMILES strings to convert to Mol objects.</span>
+
+<span class="sd">        workers (int): Number of parallel threads to use for calculation.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list of rdkit.Chem.Mol: RDKit objects representing molecules.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">orig_smiles</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+        <span class="n">func</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">mols_from_smiles</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">workers</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="kn">from</span> <span class="nn">multiprocessing</span> <span class="kn">import</span> <span class="n">pool</span>
+            <span class="n">batchsize</span> <span class="o">=</span> <span class="mi">200</span>
+            <span class="n">batches</span> <span class="o">=</span> <span class="p">[</span><span class="n">orig_smiles</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span> <span class="o">+</span> <span class="n">batchsize</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">orig_smiles</span><span class="p">),</span> <span class="n">batchsize</span><span class="p">)]</span>
+            <span class="k">with</span> <span class="n">pool</span><span class="o">.</span><span class="n">Pool</span><span class="p">(</span><span class="n">workers</span><span class="p">)</span> <span class="k">as</span> <span class="n">p</span><span class="p">:</span>
+                <span class="n">mols</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">batches</span><span class="p">)</span>
+                <span class="n">mols</span> <span class="o">=</span> <span class="p">[</span><span class="n">y</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">mols</span> <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">x</span><span class="p">]</span>  <span class="c1"># Flatten results</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">mols</span> <span class="o">=</span> <span class="p">[</span><span class="n">func</span><span class="p">(</span><span class="n">smi</span><span class="p">)</span> <span class="k">for</span> <span class="n">smi</span> <span class="ow">in</span> <span class="n">orig_smiles</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Actual standardization code, everything above here is for multiprocessing and list parsing</span>
+        <span class="n">mols</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">MolFromSmiles</span><span class="p">(</span><span class="n">orig_smiles</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">mols</span></div>
+
+
+<div class="viewcode-block" id="base_smiles_from_smiles"><a class="viewcode-back" href="../../utils.html#utils.struct_utils.base_smiles_from_smiles">[docs]</a><span class="k">def</span> <span class="nf">base_smiles_from_smiles</span><span class="p">(</span><span class="n">orig_smiles</span><span class="p">,</span> <span class="n">useIsomericSmiles</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">removeCharges</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">workers</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate standardized SMILES strings for the largest fragments of each molecule specified by</span>
+<span class="sd">    orig_smiles. Strips salt groups and replaces any rare isotopes with the most common ones for each element.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        orig_smiles (list or str): List of SMILES strings to canonicalize.</span>
+
+<span class="sd">        useIsomericSmiles (bool): Whether to retain stereochemistry information in the generated strings.</span>
+
+<span class="sd">        removeCharges (bool): If true, add or remove hydrogens to produce uncharged molecules.</span>
+
+<span class="sd">        workers (int): Number of parallel threads to use for calculation.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list or str: Canonicalized SMILES strings.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">orig_smiles</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+        <span class="n">func</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">base_smiles_from_smiles</span><span class="p">,</span> <span class="n">useIsomericSmiles</span><span class="o">=</span><span class="n">useIsomericSmiles</span><span class="p">,</span> <span class="n">removeCharges</span><span class="o">=</span><span class="n">removeCharges</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">workers</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="kn">from</span> <span class="nn">multiprocessing</span> <span class="kn">import</span> <span class="n">pool</span>
+            <span class="n">batchsize</span> <span class="o">=</span> <span class="mi">200</span>
+            <span class="n">batches</span> <span class="o">=</span> <span class="p">[</span><span class="n">orig_smiles</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span> <span class="o">+</span> <span class="n">batchsize</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">orig_smiles</span><span class="p">),</span> <span class="n">batchsize</span><span class="p">)]</span>
+            <span class="k">with</span> <span class="n">pool</span><span class="o">.</span><span class="n">Pool</span><span class="p">(</span><span class="n">workers</span><span class="p">)</span> <span class="k">as</span> <span class="n">p</span><span class="p">:</span>
+                <span class="n">base_smiles</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">batches</span><span class="p">)</span>
+                <span class="n">base_smiles</span> <span class="o">=</span> <span class="p">[</span><span class="n">y</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">base_smiles</span> <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">x</span><span class="p">]</span>  <span class="c1"># Flatten results</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">base_smiles</span> <span class="o">=</span> <span class="p">[</span><span class="n">func</span><span class="p">(</span><span class="n">smi</span><span class="p">)</span> <span class="k">for</span> <span class="n">smi</span> <span class="ow">in</span> <span class="n">orig_smiles</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Actual standardization code, everything above here is for multiprocessing and list parsing</span>
+        <span class="n">std_mol</span> <span class="o">=</span> <span class="n">base_mol_from_smiles</span><span class="p">(</span><span class="n">orig_smiles</span><span class="p">,</span> <span class="n">useIsomericSmiles</span><span class="p">,</span> <span class="n">removeCharges</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">std_mol</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">base_smiles</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">base_smiles</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">MolToSmiles</span><span class="p">(</span><span class="n">std_mol</span><span class="p">,</span> <span class="n">isomericSmiles</span><span class="o">=</span><span class="n">useIsomericSmiles</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">base_smiles</span></div>
+
+
+<div class="viewcode-block" id="kekulize_smiles"><a class="viewcode-back" href="../../utils.html#utils.struct_utils.kekulize_smiles">[docs]</a><span class="k">def</span> <span class="nf">kekulize_smiles</span><span class="p">(</span><span class="n">orig_smiles</span><span class="p">,</span> <span class="n">useIsomericSmiles</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">workers</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate Kekulized SMILES strings for the molecules specified by orig_smiles. Kekulized SMILES strings</span>
+<span class="sd">    are ones in which aromatic rings are represented by uppercase letters with alternating single and</span>
+<span class="sd">    double bonds, rather than lowercase letters; they are needed by some external applications.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        orig_smiles (list or str): List of SMILES strings to Kekulize.</span>
+
+<span class="sd">        useIsomericSmiles (bool): Whether to retain stereochemistry information in the generated strings.</span>
+
+<span class="sd">        workers (int): Number of parallel threads to use for calculation.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list or str: Kekulized SMILES strings.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">orig_smiles</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+        <span class="n">func</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">kekulize_smiles</span><span class="p">,</span> <span class="n">useIsomericSmiles</span><span class="o">=</span><span class="n">useIsomericSmiles</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">workers</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="kn">from</span> <span class="nn">multiprocessing</span> <span class="kn">import</span> <span class="n">pool</span>
+            <span class="n">batchsize</span> <span class="o">=</span> <span class="mi">200</span>
+            <span class="n">batches</span> <span class="o">=</span> <span class="p">[</span><span class="n">orig_smiles</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span> <span class="o">+</span> <span class="n">batchsize</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">orig_smiles</span><span class="p">),</span> <span class="n">batchsize</span><span class="p">)]</span>
+            <span class="k">with</span> <span class="n">pool</span><span class="o">.</span><span class="n">Pool</span><span class="p">(</span><span class="n">workers</span><span class="p">)</span> <span class="k">as</span> <span class="n">p</span><span class="p">:</span>
+                <span class="n">kekulized_smiles</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">batches</span><span class="p">)</span>
+                <span class="n">kekulized_smiles</span> <span class="o">=</span> <span class="p">[</span><span class="n">y</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">kekulized_smiles</span> <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">x</span><span class="p">]</span>  <span class="c1"># Flatten results</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">kekulized_smiles</span> <span class="o">=</span> <span class="p">[</span><span class="n">func</span><span class="p">(</span><span class="n">smi</span><span class="p">)</span> <span class="k">for</span> <span class="n">smi</span> <span class="ow">in</span> <span class="n">orig_smiles</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">std_mol</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">MolFromSmiles</span><span class="p">(</span><span class="n">orig_smiles</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">std_mol</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">kekulized_smiles</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">Chem</span><span class="o">.</span><span class="n">Kekulize</span><span class="p">(</span><span class="n">std_mol</span><span class="p">)</span>
+            <span class="n">kekulized_smiles</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">MolToSmiles</span><span class="p">(</span><span class="n">std_mol</span><span class="p">,</span> <span class="n">kekuleSmiles</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">isomericSmiles</span><span class="o">=</span><span class="n">useIsomericSmiles</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">kekulized_smiles</span></div>
+
+
+<div class="viewcode-block" id="base_mol_from_smiles"><a class="viewcode-back" href="../../utils.html#utils.struct_utils.base_mol_from_smiles">[docs]</a><span class="k">def</span> <span class="nf">base_mol_from_smiles</span><span class="p">(</span><span class="n">orig_smiles</span><span class="p">,</span> <span class="n">useIsomericSmiles</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">removeCharges</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate a standardized RDKit Mol object for the largest fragment of the molecule specified by</span>
+<span class="sd">    orig_smiles. Replace any rare isotopes with the most common ones for each element.</span>
+<span class="sd">    If removeCharges is True, add hydrogens as needed to eliminate charges.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        orig_smiles (str): SMILES string to standardize.</span>
+
+<span class="sd">        useIsomericSmiles (bool): Whether to retain stereochemistry information in the generated string.</span>
+
+<span class="sd">        removeCharges (bool): If true, add or remove hydrogens to produce uncharged molecules.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str: Standardized salt-stripped SMILES string.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">orig_smiles</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">orig_smiles</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">cmpd_mol</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">MolFromSmiles</span><span class="p">(</span><span class="n">orig_smiles</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">cmpd_mol</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">std_mol</span> <span class="o">=</span> <span class="n">stdizer</span><span class="o">.</span><span class="n">isotope_parent</span><span class="p">(</span><span class="n">stdizer</span><span class="o">.</span><span class="n">fragment_parent</span><span class="p">(</span><span class="n">cmpd_mol</span><span class="p">),</span> <span class="n">skip_standardize</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">removeCharges</span><span class="p">:</span>
+        <span class="n">std_mol</span> <span class="o">=</span> <span class="n">uncharger</span><span class="p">(</span><span class="n">std_mol</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">std_mol</span></div>
+
+
+<div class="viewcode-block" id="base_smiles_from_inchi"><a class="viewcode-back" href="../../utils.html#utils.struct_utils.base_smiles_from_inchi">[docs]</a><span class="k">def</span> <span class="nf">base_smiles_from_inchi</span><span class="p">(</span><span class="n">inchi_str</span><span class="p">,</span> <span class="n">useIsomericSmiles</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">removeCharges</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">workers</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate standardized salt-stripped SMILES strings for the largest fragments of each molecule represented by</span>
+<span class="sd">    InChi string(s) inchi_str. Replaces any rare isotopes with the most common ones for each element.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        inchi_str (list or str): List of InChi strings to convert.</span>
+
+<span class="sd">        useIsomericSmiles (bool): Whether to retain stereochemistry information in the generated strings.</span>
+
+<span class="sd">        removeCharges (bool): If true, add or remove hydrogens to produce uncharged molecules.</span>
+
+<span class="sd">        workers (int): Number of parallel threads to use for calculation.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list or str: Standardized SMILES strings.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">inchi_str</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+        <span class="n">func</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">base_smiles_from_inchi</span><span class="p">,</span> <span class="n">useIsomericSmiles</span><span class="o">=</span><span class="n">useIsomericSmiles</span><span class="p">,</span> <span class="n">removeCharges</span><span class="o">=</span><span class="n">removeCharges</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">workers</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="kn">from</span> <span class="nn">multiprocessing</span> <span class="kn">import</span> <span class="n">pool</span>
+            <span class="n">batchsize</span> <span class="o">=</span> <span class="mi">200</span>
+            <span class="n">batches</span> <span class="o">=</span> <span class="p">[</span><span class="n">inchi_str</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span> <span class="o">+</span> <span class="n">batchsize</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">inchi_str</span><span class="p">),</span> <span class="n">batchsize</span><span class="p">)]</span>
+            <span class="k">with</span> <span class="n">pool</span><span class="o">.</span><span class="n">Pool</span><span class="p">(</span><span class="n">workers</span><span class="p">)</span> <span class="k">as</span> <span class="n">p</span><span class="p">:</span>
+                <span class="n">base_smiles</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">batches</span><span class="p">)</span>
+                <span class="n">base_smiles</span> <span class="o">=</span> <span class="p">[</span><span class="n">y</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">base_smiles</span> <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">x</span><span class="p">]</span>  <span class="c1"># Flatten results</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">base_smiles</span> <span class="o">=</span> <span class="p">[</span><span class="n">func</span><span class="p">(</span><span class="n">inchi</span><span class="p">)</span> <span class="k">for</span> <span class="n">inchi</span> <span class="ow">in</span> <span class="n">inchi_str</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Actual standardization code, everything above here is for multiprocessing and list parsing</span>
+        <span class="n">std_mol</span> <span class="o">=</span> <span class="n">base_mol_from_inchi</span><span class="p">(</span><span class="n">inchi_str</span><span class="p">,</span> <span class="n">useIsomericSmiles</span><span class="p">,</span> <span class="n">removeCharges</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">std_mol</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">base_smiles</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">base_smiles</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">MolToSmiles</span><span class="p">(</span><span class="n">std_mol</span><span class="p">,</span> <span class="n">isomericSmiles</span><span class="o">=</span><span class="n">useIsomericSmiles</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">base_smiles</span></div>
+
+
+<div class="viewcode-block" id="base_mol_from_inchi"><a class="viewcode-back" href="../../utils.html#utils.struct_utils.base_mol_from_inchi">[docs]</a><span class="k">def</span> <span class="nf">base_mol_from_inchi</span><span class="p">(</span><span class="n">inchi_str</span><span class="p">,</span> <span class="n">useIsomericSmiles</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">removeCharges</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate a standardized RDKit Mol object for the largest fragment of the molecule specified by</span>
+<span class="sd">    InChi string inchi_str. Replace any rare isotopes with the most common ones for each element.</span>
+<span class="sd">    If removeCharges is True, add hydrogens as needed to eliminate charges.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        inchi_str (str): InChi string representing molecule.</span>
+
+<span class="sd">        useIsomericSmiles (bool): Whether to retain stereochemistry information in the generated string.</span>
+
+<span class="sd">        removeCharges (bool): If true, add or remove hydrogens to produce uncharged molecules.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str: Standardized salt-stripped SMILES string.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">inchi_str</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">inchi_str</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">cmpd_mol</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">inchi</span><span class="o">.</span><span class="n">MolFromInchi</span><span class="p">(</span><span class="n">inchi_str</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">cmpd_mol</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">std_mol</span> <span class="o">=</span> <span class="n">stdizer</span><span class="o">.</span><span class="n">isotope_parent</span><span class="p">(</span><span class="n">stdizer</span><span class="o">.</span><span class="n">fragment_parent</span><span class="p">(</span><span class="n">cmpd_mol</span><span class="p">),</span> <span class="n">skip_standardize</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">removeCharges</span><span class="p">:</span>
+        <span class="n">std_mol</span> <span class="o">=</span> <span class="n">uncharger</span><span class="p">(</span><span class="n">std_mol</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">std_mol</span></div>
+
+
+<div class="viewcode-block" id="draw_structure"><a class="viewcode-back" href="../../utils.html#utils.struct_utils.draw_structure">[docs]</a><span class="k">def</span> <span class="nf">draw_structure</span><span class="p">(</span><span class="n">smiles_str</span><span class="p">,</span> <span class="n">image_path</span><span class="p">,</span> <span class="n">image_size</span><span class="o">=</span><span class="mi">500</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Draw structure for the compound with the given SMILES string as a PNG file.</span>
+
+<span class="sd">    Note that there are more flexible functions for drawing structures in the rdkit_easy module.</span>
+<span class="sd">    This function is only retained for backward compatibility.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        smiles_str (str): SMILES representation of compound.</span>
+
+<span class="sd">        image_path (str): Filepath for image file to be generated.</span>
+
+<span class="sd">        image_size (int): Width of square bounding box for image.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        None.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">mol</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">MolFromSmiles</span><span class="p">(</span><span class="n">smiles_str</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">mol</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">((</span><span class="s2">&quot;Unable to read original SMILES for </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">cmpd_num</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">_discard</span> <span class="o">=</span> <span class="n">AllChem</span><span class="o">.</span><span class="n">Compute2DCoords</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>
+        <span class="n">Draw</span><span class="o">.</span><span class="n">MolToFile</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">image_path</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">image_size</span><span class="p">,</span> <span class="n">image_size</span><span class="p">),</span> <span class="n">fitImage</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">_standardize_chemistry</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">standard</span><span class="o">=</span><span class="s1">&#39;rdkit&#39;</span><span class="p">,</span> <span class="n">smiles_col</span><span class="o">=</span><span class="s1">&#39;rdkit_smiles&#39;</span><span class="p">,</span> <span class="n">workers</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Function used by merge_dataframes_by_smiles. Converts SMILES strings in a given column of a data frame</span>
+<span class="sd">    into either standardized salt-stripped SMILES strings or InChi strings.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">smiles</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">smiles_col</span><span class="p">])</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="n">standard</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;rdkit&#39;</span><span class="p">:</span>
+        <span class="n">col</span> <span class="o">=</span> <span class="s1">&#39;rdkit_smiles&#39;</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">base_smiles_from_smiles</span><span class="p">(</span><span class="n">smiles</span><span class="p">,</span> <span class="n">workers</span><span class="o">=</span><span class="n">workers</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">standard</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;inchi&#39;</span><span class="p">:</span>
+        <span class="n">col</span> <span class="o">=</span> <span class="s1">&#39;InCHI&#39;</span>
+        <span class="k">for</span> <span class="n">smi</span> <span class="ow">in</span> <span class="n">smiles</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">mol</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">MolFromSmiles</span><span class="p">(</span><span class="n">smi</span><span class="p">)</span>
+                <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Chem</span><span class="o">.</span><span class="n">inchi</span><span class="o">.</span><span class="n">MolToInchi</span><span class="p">(</span><span class="n">mol</span><span class="p">))</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;Invalid SMILES: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">smi</span><span class="p">))</span>
+    <span class="k">elif</span> <span class="n">std</span> <span class="o">==</span> <span class="s1">&#39;name&#39;</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Name technique currently not implemented&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;Unrecognized standardization type: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">standard</span><span class="p">))</span>
+    <span class="n">df</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">out</span>
+
+    <span class="k">return</span> <span class="n">df</span><span class="p">,</span> <span class="n">col</span>
+
+
+<span class="k">def</span> <span class="nf">_merge_values</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">strategy</span><span class="o">=</span><span class="s1">&#39;list&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Function used by merge_dataframes_by_smiles. Returns a summary of the values in &#39;values&#39;, unless</span>
+<span class="sd">    &#39;strategy&#39; == &#39;list&#39;, in which case it returns values itself.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">values</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="n">values</span>
+
+    <span class="k">if</span> <span class="n">values</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="s1">&#39;NaN&#39;</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">strategy</span> <span class="o">==</span> <span class="s1">&#39;list&#39;</span><span class="p">:</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="n">values</span>
+    <span class="k">elif</span> <span class="n">strategy</span> <span class="o">==</span> <span class="s1">&#39;uniquelist&#39;</span><span class="p">:</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">values</span><span class="p">))</span>
+    <span class="k">elif</span> <span class="n">strategy</span> <span class="o">==</span> <span class="s1">&#39;mean&#39;</span><span class="p">:</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">strategy</span> <span class="o">==</span> <span class="s1">&#39;geomean&#39;</span><span class="p">:</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">geomean</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">strategy</span> <span class="o">==</span> <span class="s1">&#39;median&#39;</span><span class="p">:</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">strategy</span> <span class="o">==</span> <span class="s1">&#39;mode&#39;</span><span class="p">:</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mode</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">strategy</span> <span class="o">==</span> <span class="s1">&#39;max&#39;</span><span class="p">:</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">strategy</span> <span class="o">==</span> <span class="s1">&#39;min&#39;</span><span class="p">:</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;Unknown column merge strategy: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">columnmerge</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">list</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="n">val</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">val</span>
+
+
+<span class="k">def</span> <span class="nf">_merge_dataframes_by_smiles</span><span class="p">(</span><span class="n">dataframes</span><span class="p">,</span> <span class="n">smiles_col</span><span class="o">=</span><span class="s1">&#39;rdkit_smiles&#39;</span><span class="p">,</span> <span class="n">id_col</span><span class="o">=</span><span class="s1">&#39;compound_id&#39;</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;outer&#39;</span><span class="p">,</span> <span class="n">comparetype</span><span class="o">=</span><span class="s1">&#39;rdkit&#39;</span><span class="p">,</span>
+                               <span class="n">columnmerge</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">workers</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Merge two dataframes labeled by SMILEs strings on a rdkit or InCHI canonicalization to identify shared compounds</span>
+
+<span class="sd">    DEPRECATED. This function was added by a developer no longer at ATOM and doesn&#39;t appear to be used by any</span>
+<span class="sd">    extant code.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">left_df</span><span class="p">,</span> <span class="n">joincol</span> <span class="o">=</span> <span class="n">_standardize_chemistry</span><span class="p">(</span><span class="n">dataframes</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">standard</span><span class="o">=</span><span class="n">comparetype</span><span class="p">,</span> <span class="n">workers</span><span class="o">=</span><span class="n">workers</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">df</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">dataframes</span><span class="p">[</span><span class="mi">1</span><span class="p">:]):</span>
+        <span class="n">df</span><span class="p">,</span> <span class="n">joincol</span> <span class="o">=</span> <span class="n">_standardize_chemistry</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">standard</span><span class="o">=</span><span class="n">comparetype</span><span class="p">,</span> <span class="n">smiles_col</span><span class="o">=</span><span class="s1">&#39;rdkit_smiles&#39;</span><span class="p">,</span> <span class="n">workers</span><span class="o">=</span><span class="n">workers</span><span class="p">)</span>
+        <span class="n">new_df</span> <span class="o">=</span> <span class="n">left_df</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="n">how</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="p">[</span><span class="n">joincol</span><span class="p">])</span>
+        <span class="n">new_df</span> <span class="o">=</span> <span class="n">new_df</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">columnmerge</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">shared_cols</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">left_df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">values</span><span class="p">)</span> <span class="o">&amp;</span> <span class="nb">set</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">values</span><span class="p">))</span>
+            <span class="n">shared_cols</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">joincol</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">shared_cols</span><span class="p">:</span>
+                <span class="n">lCol</span> <span class="o">=</span> <span class="n">col</span> <span class="o">+</span> <span class="s1">&#39;_x&#39;</span>
+                <span class="n">rCol</span> <span class="o">=</span> <span class="n">col</span> <span class="o">+</span> <span class="s1">&#39;_y&#39;</span>
+                <span class="n">vals</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">new_df</span><span class="p">[</span><span class="n">lCol</span><span class="p">],</span> <span class="n">new_df</span><span class="p">[</span><span class="n">rCol</span><span class="p">]))</span>
+                <span class="n">vals</span> <span class="o">=</span> <span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">vals</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">col</span> <span class="o">==</span> <span class="n">id_col</span><span class="p">:</span>
+                    <span class="n">vals</span> <span class="o">=</span> <span class="p">[</span><span class="n">_merge_values</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">strategy</span><span class="o">=</span><span class="s1">&#39;min&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">vals</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">vals</span> <span class="o">=</span> <span class="p">[</span><span class="n">_merge_values</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">strategy</span><span class="o">=</span><span class="n">columnmerge</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">vals</span><span class="p">]</span>
+
+                <span class="n">new_df</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">vals</span>
+                <span class="n">new_df</span> <span class="o">=</span> <span class="n">new_df</span><span class="o">.</span><span class="n">drop</span><span class="p">([</span><span class="n">lCol</span><span class="p">,</span> <span class="n">rCol</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">left_df</span> <span class="o">=</span> <span class="n">new_df</span>
+
+    <span class="k">return</span> <span class="n">new_df</span>
+
+
+<div class="viewcode-block" id="smiles_to_inchi_key"><a class="viewcode-back" href="../../utils.html#utils.struct_utils.smiles_to_inchi_key">[docs]</a><span class="k">def</span> <span class="nf">smiles_to_inchi_key</span><span class="p">(</span><span class="n">smiles</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generates an InChI key from a SMILES string.  Note that an InChI key is different from an InChI *string*;</span>
+<span class="sd">    it can be used as a unique identifier, but doesn&#39;t hold the information needed to reconstruct a molecule.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        smiles (str): SMILES string.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str: An InChI key. Returns None if RDKit cannot convert the SMILES string to an RDKit Mol object.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">MolFromSmiles</span><span class="p">(</span><span class="n">smiles</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">m</span><span class="p">:</span>
+        <span class="n">inchi</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">MolToInchi</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+        <span class="n">inchi_key</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">InchiToInchiKey</span><span class="p">(</span><span class="n">inchi</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">inchi_key</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">return</span> <span class="n">inchi_key</span></div>
+
+
+<div class="viewcode-block" id="fix_moe_smiles"><a class="viewcode-back" href="../../utils.html#utils.struct_utils.fix_moe_smiles">[docs]</a><span class="k">def</span> <span class="nf">fix_moe_smiles</span><span class="p">(</span><span class="n">smiles</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Correct the SMILES strings generated by MOE to standardize the representation of protonated atoms,</span>
+<span class="sd">    so that RDKit can read them.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        smiles (str): SMILES string.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str: The corrected SMILES string.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">protn_pat</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\[([cCBnNPS])([-\+])(@*)(H[1234]*)*\]&#39;</span><span class="p">)</span>
+    <span class="n">scalar</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">smiles</span><span class="p">)</span> <span class="o">==</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">smiles</span> <span class="o">=</span> <span class="p">[</span><span class="n">smiles</span><span class="p">]</span>
+        <span class="n">scalar</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">fixed</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">smi</span> <span class="ow">in</span> <span class="n">smiles</span><span class="p">:</span>
+        <span class="n">fixed</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">protn_pat</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[\1\3\4\2]&#39;</span><span class="p">,</span> <span class="n">smi</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">scalar</span><span class="p">:</span>
+        <span class="n">fixed</span> <span class="o">=</span> <span class="n">fixed</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">fixed</span></div>
+
+
+<div class="viewcode-block" id="mol_wt_from_smiles"><a class="viewcode-back" href="../../utils.html#utils.struct_utils.mol_wt_from_smiles">[docs]</a><span class="k">def</span> <span class="nf">mol_wt_from_smiles</span><span class="p">(</span><span class="n">smiles</span><span class="p">,</span> <span class="n">workers</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculate molecular weights for molecules represented by SMILES strings.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        smiles (list or str): List of SMILES strings.</span>
+
+<span class="sd">        workers (int): Number of parallel threads to use for calculations.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list or float: Molecular weights. NaN is returned for SMILES strings that could not be read by RDKit.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">smiles</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+        <span class="n">func</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">mol_wt_from_smiles</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">workers</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="kn">from</span> <span class="nn">multiprocessing</span> <span class="kn">import</span> <span class="n">pool</span>
+            <span class="n">batchsize</span> <span class="o">=</span> <span class="mi">200</span>
+            <span class="n">batches</span> <span class="o">=</span> <span class="p">[</span><span class="n">smiles</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span> <span class="o">+</span> <span class="n">batchsize</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">smiles</span><span class="p">),</span> <span class="n">batchsize</span><span class="p">)]</span>
+            <span class="k">with</span> <span class="n">pool</span><span class="o">.</span><span class="n">Pool</span><span class="p">(</span><span class="n">workers</span><span class="p">)</span> <span class="k">as</span> <span class="n">p</span><span class="p">:</span>
+                <span class="n">mol_wt</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">batches</span><span class="p">)</span>
+                <span class="n">mol_wt</span> <span class="o">=</span> <span class="p">[</span><span class="n">y</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">mol_wt</span> <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">x</span><span class="p">]</span>  <span class="c1"># Flatten results</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">mol_wt</span> <span class="o">=</span> <span class="p">[</span><span class="n">func</span><span class="p">(</span><span class="n">smi</span><span class="p">)</span> <span class="k">for</span> <span class="n">smi</span> <span class="ow">in</span> <span class="n">smiles</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">mol</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">MolFromSmiles</span><span class="p">(</span><span class="n">smiles</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">mol</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">mol_wt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">mol_wt</span> <span class="o">=</span> <span class="n">Descriptors</span><span class="o">.</span><span class="n">MolWt</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">mol_wt</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, ATOM DDM Team.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

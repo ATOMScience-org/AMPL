@@ -1,5 +1,7 @@
 """
-Functions for comparing and visualizing model performance
+Functions for comparing and visualizing model performance. Most of these functions rely on ATOM's model tracker and
+datastore services, which are not part of the standard AMPL installation, but a few functions will work on collections of
+models saved as local files.
 """
 
 import os
@@ -37,7 +39,13 @@ nan = np.float32('nan')
 #------------------------------------------------------------------------------------------------------------------
 def get_collection_datasets(collection_name):
     """
-    Returns a list of unique training (dataset_key, bucket) tuples used for all models in the given collection.
+    Returns a list of unique training datasets used for all models in a given collection.
+
+    Args:
+        collection_name (str): Name of model tracker collection to search for models.
+
+    Returns:
+        list: List of model training (dataset_key, bucket) tuples.
     """
     if not mlmt_supported:
         print("Model tracker not supported in your environment; can examine models saved in filesystem only.")
@@ -56,6 +64,17 @@ def extract_collection_perf_metrics(collection_name, output_dir, pred_type='regr
     """
     Obtain list of training datasets with models in the given collection. Get performance metrics for
     models on each dataset and save them as CSV files in the given output directory.
+
+    Args:
+        collection_name (str): Name of model tracker collection to search for models.
+
+        output_dir (str): Directory where tables of performance metrics will be written.
+
+        pred_type (str): Prediction type ('classification' or 'regression') of models to query.
+
+    Returns:
+        None
+
     """
     if not mlmt_supported:
         print("Model tracker not supported in your environment; can examine models saved in filesystem only.")
@@ -76,6 +95,21 @@ def get_training_perf_table(dataset_key, bucket, collection_name, pred_type='reg
     a given collection that were trained against a particular dataset. Identify training parameters
     that vary between models, and generate plots of performance vs particular combinations of
     parameters.
+
+    Args:
+        dataset_key (str): Training dataset key.
+
+        bucket (str): Training dataset bucket.
+
+        collection_name (str): Name of model tracker collection to search for models.
+
+        pred_type (str): Prediction type ('classification' or 'regression') of models to query.
+
+        other_filters (dict): Other filter criteria to use in querying models.
+
+    Returns:
+        pd.DataFrame: Table of models and performance metrics.
+
     """
     if not mlmt_supported:
         print("Model tracker not supported in your environment; can examine models saved in filesystem only.")
@@ -223,13 +257,14 @@ def get_training_perf_table(dataset_key, bucket, collection_name, pred_type='reg
 def get_best_perf_table(metric_type, col_name=None, result_dir=None, model_uuid=None, metadata_dict=None, PK_pipe=False):
     """
     Extract parameters and training run performance metrics for a single model. The model may be
-    specified either by a metadata dictionary or a model_uuid; in the latter case, the function
-    queries the model tracker DB for the model metadata.
+    specified either by a metadata dictionary, a model_uuid or a result directory; in the model_uuid case, the function
+    queries the model tracker DB for the model metadata. For models saved in the filesystem, can query the performance
+    data from the original result directory, but not from a saved tarball.
 
     Args:
-        col_name (str): Collection name containing model, if model is specified by model_uuid.
-
         metric_type (str): Performance metric to include in result dictionary.
+
+        col_name (str): Collection name containing model, if model is specified by model_uuid.
 
         result_dir (str): result directory of the model, if Model tracker is not supported and metadata_dict not provided.
 
@@ -238,10 +273,13 @@ def get_best_perf_table(metric_type, col_name=None, result_dir=None, model_uuid=
         metadata_dict (dict): Full metadata dictionary for a model, including training metrics and
         dataset metadata.
 
-        PK_pipe (bool): If True, include some additional parameters in the result dictionary.
+        PK_pipe (bool): If True, include some additional parameters in the result dictionary specific to PK models.
 
     Returns:
         model_info (dict): Dictionary of parameter or metric name - value pairs.
+
+    Todo:
+        Add support for models saved as local tarball files.
 
     """
     if not mlmt_supported and not result_dir:
@@ -330,6 +368,8 @@ def get_best_perf_table(metric_type, col_name=None, result_dir=None, model_uuid=
         model_info['rf_estimators'] = nan
         model_info['rf_max_features'] = nan
         model_info['rf_max_depth'] = nan
+        model_info['xgb_gamma'] = nan
+        model_info['xgb_learning_rate'] = nan
     if model_info['model_type'] == 'RF':
         rf_params = metadata_dict['rf_specific']
         model_info['rf_estimators'] = rf_params['rf_estimators']
@@ -340,6 +380,20 @@ def get_best_perf_table(metric_type, col_name=None, result_dir=None, model_uuid=
         model_info['learning_rate'] = nan
         model_info['layer_sizes'] = nan
         model_info['dropouts'] = nan
+        model_info['xgb_gamma'] = nan
+        model_info['xgb_learning_rate'] = nan
+    if model_info['model_type'] == 'xgboost':
+        xgb_params = metadata_dict['xgb_specific']
+        model_info['max_epochs'] = nan
+        model_info['best_epoch'] = nan
+        model_info['learning_rate'] = nan
+        model_info['layer_sizes'] = nan
+        model_info['dropouts'] = nan
+        model_info['rf_estimators'] = nan
+        model_info['rf_max_features'] = nan
+        model_info['rf_max_depth'] = nan
+        model_info['xgb_gamma'] = xgb_params['xgb_gamma']
+        model_info['xgb_learning_rate'] = xgb_params['xgb_learning_rate']
 
     for metrics_dict in metrics_dicts:
         subset = metrics_dict['subset']
@@ -353,21 +407,22 @@ def get_best_perf_table(metric_type, col_name=None, result_dir=None, model_uuid=
 
 
 # ---------------------------------------------------------------------------------------------------------
-def get_best_models_info(col_names=None, bucket='public', pred_type="regression", result_dir=None, PK_pipeline=False, output_dir='/usr/local/data',
+def get_best_models_info(col_names=None, bucket='public', pred_type="regression", result_dir=None, PK_pipeline=False,
+                         output_dir='/usr/local/data',
                          shortlist_key=None, input_dset_keys=None, save_results=False, subset='valid',
                          metric_type=None, selection_type='max', other_filters={}):
     """
-    Tabulate parameters and performance metrics for the best models, according to a given metric, for
+    Tabulate parameters and performance metrics for the best models, according to a given metric, trained against
     each specified dataset.
 
     Args:
         col_names (list of str): List of model tracker collections to search.
 
-        bucket (str): Datastore bucket for datasets.
+        bucket (str): Datastore bucket for training datasets.
 
         pred_type (str): Type of models (regression or classification).
 
-        result_dir (list of str): result directories of the model, if Model tracker is not supported.
+        result_dir (list of str): Result directories of the models, if model tracker is not supported.
 
         PK_pipeline (bool): Are we being called from PK pipeline?
 
@@ -380,7 +435,7 @@ def get_best_models_info(col_names=None, bucket='public', pred_type="regression"
 
         save_results (bool): If True, write the table of results to a CSV file.
 
-        subset (str): Input dataset subset for which metrics are used to select best models.
+        subset (str): Input dataset subset ('train', 'valid', or 'test') for which metrics are used to select best models.
 
         metric_type (str): Type of performance metric (r2_score, roc_auc_score, etc.) to use to select best models.
 
@@ -517,7 +572,7 @@ def get_best_models_info(col_names=None, bucket='public', pred_type="regression"
 # TODO: This function looks like work in progress, should we delete it?
 '''
 #---------------------------------------------------------------------------------------------------------
-def get_best_grouped_models_info(collection='pilot_fixed', pred_type='regression', top_n=1, subset='test'):
+def _get_best_grouped_models_info(collection='pilot_fixed', pred_type='regression', top_n=1, subset='test'):
     """
     Get results for models in the given collection.
     """
@@ -569,6 +624,19 @@ def get_umap_nn_model_perf_table(dataset_key, bucket, collection_name, pred_type
     Load performance metrics from model tracker for all NN models with the given prediction_type saved in
     the model tracker DB under a given collection that were trained against a particular dataset. Show
     parameter settings for UMAP transformer for models where they are available.
+
+    Args:
+        dataset_key (str): Dataset key for training dataset.
+
+        bucket (str): Dataset bucket for training dataset.
+
+        collection_name (str): Name of model tracker collection to search for models.
+
+        pred_type (str): Prediction type ('classification' or 'regression') of models to query.
+
+    Returns:
+        pd.DataFrame: Table of model performance metrics.
+
     """
     if not mlmt_supported:
         print("Model tracker not supported in your environment; can examine models saved in filesystem only.")
@@ -702,10 +770,16 @@ def get_umap_nn_model_perf_table(dataset_key, bucket, collection_name, pred_type
 #------------------------------------------------------------------------------------------------------------------
 def get_tarball_perf_table(model_tarball, pred_type='classification'):
     """
-    Retrieve model metadata and performance metrics stored in the model tarball .tar.gz file
-        model_tarball: model tarball file, named as model.tar.gz
-        pred_type: classification (default) or regression
-    Return a dataframe of performance metrics and the dictionary.
+    Retrieve model metadata and performance metrics for a model saved as a tarball (.tar.gz) file.
+
+    Args:
+        model_tarball (str): Path of model tarball file, named as model.tar.gz.
+
+        pred_type (str): Prediction type ('classification' or 'regression') of model.
+
+    Returns:
+        tuple (pd.DataFrame, dict): Table of performance metrics and a dictionary of model metadata.
+
     """
     tarf_content = tarfile.open(model_tarball, "r")
     metadata_file = tarf_content.getmember("./model_metadata.json")
@@ -745,8 +819,18 @@ def get_tarball_perf_table(model_tarball, pred_type='classification'):
 #------------------------------------------------------------------------------------------------------------------
 def get_filesystem_perf_results(result_dir, pred_type='classification'):
     """
-    Retrieve model metadata and performance metrics stored in the filesystem from a hyperparameter search run.
+    Retrieve metadata and performance metrics for models stored in the filesystem from a hyperparameter search run.
+
+    Args:
+        result_dir (str): Root directory for results from a hyperparameter search training run.
+
+        pred_type (str): Prediction type ('classification' or 'regression') of models to query.
+
+    Returns:
+        pd.DataFrame: Table of metadata fields and performance metrics.
+
     """
+    ampl_version_list = []
     model_uuid_list = []
     model_type_list = []
     max_epochs_list = []
@@ -759,6 +843,8 @@ def get_filesystem_perf_results(result_dir, pred_type='classification'):
     rf_estimators_list = []
     rf_max_features_list = []
     rf_max_depth_list = []
+    xgb_gamma_list = []
+    xgb_learning_rate_list = []
     best_epoch_list = []
     model_score_type_list = []
     feature_transform_type_list = []
@@ -769,7 +855,7 @@ def get_filesystem_perf_results(result_dir, pred_type='classification'):
         metrics = ['r2_score', 'rms_score', 'mae_score', 'num_compounds']
     else:
         metrics = ['roc_auc_score', 'prc_auc_score', 'precision', 'recall_score', 'num_compounds',
-                   'accuracy_score', 'npv', 'matthews_cc', 'kappa', 'cross_entropy', 'confusion_matrix']
+                   'accuracy_score', 'bal_accuracy', 'npv', 'matthews_cc', 'kappa', 'cross_entropy', 'confusion_matrix']
     score_dict = {}
     for subset in subsets:
         score_dict[subset] = {}
@@ -808,9 +894,11 @@ def get_filesystem_perf_results(result_dir, pred_type='classification'):
             if metrics_dict['label'] == 'best':
                 subset = metrics_dict['subset']
                 subset_metrics[subset] = metrics_dict['prediction_results']
-
+        
         model_uuid_list.append(model_uuid)
         model_params = metadata_dict['model_parameters']
+        ampl_version = model_params['ampl_version']
+        ampl_version_list.append(ampl_version)
         model_type = model_params['model_type']
         model_type_list.append(model_type)
         model_score_type = model_params['model_choice_score_type']
@@ -835,6 +923,8 @@ def get_filesystem_perf_results(result_dir, pred_type='classification'):
             rf_estimators_list.append(nan)
             rf_max_features_list.append(nan)
             rf_max_depth_list.append(nan)
+            xgb_gamma_list.append(nan)
+            xgb_learning_rate_list.append(nan)
         if model_type == 'RF':
             rf_params = metadata_dict['rf_specific']
             rf_estimators_list.append(rf_params['rf_estimators'])
@@ -845,6 +935,20 @@ def get_filesystem_perf_results(result_dir, pred_type='classification'):
             learning_rate_list.append(nan)
             layer_sizes_list.append(nan)
             dropouts_list.append(nan)
+            xgb_gamma_list.append(nan)
+            xgb_learning_rate_list.append(nan)
+        if model_type == 'xgboost':
+            xgb_params = metadata_dict['xgb_specific']
+            rf_estimators_list.append(nan)
+            rf_max_features_list.append(nan)
+            rf_max_depth_list.append(nan)
+            max_epochs_list.append(nan)
+            best_epoch_list.append(nan)
+            learning_rate_list.append(nan)
+            layer_sizes_list.append(nan)
+            dropouts_list.append(nan)
+            xgb_gamma_list.append(xgb_params['xgb_gamma'])
+            xgb_learning_rate_list.append(xgb_params['xgb_learning_rate'])
         for subset in subsets:
             for metric in metrics:
                 score_dict[subset][metric].append(subset_metrics[subset][metric])
@@ -853,6 +957,7 @@ def get_filesystem_perf_results(result_dir, pred_type='classification'):
 
     perf_df = pd.DataFrame(dict(
                     model_uuid=model_uuid_list,
+                    ampl_version=ampl_version_list,
                     model_type=model_type_list,
                     dataset_key=dataset_key_list,
                     featurizer=featurizer_list,
@@ -866,7 +971,10 @@ def get_filesystem_perf_results(result_dir, pred_type='classification'):
                     max_epochs=max_epochs_list,
                     rf_estimators=rf_estimators_list,
                     rf_max_features=rf_max_features_list,
-                    rf_max_depth=rf_max_depth_list))
+                    rf_max_depth=rf_max_depth_list,
+                    xgb_gamma=xgb_gamma_list,
+                    xgb_learning_rate=xgb_learning_rate_list))
+
     perf_df['model_choice_score'] = score_dict['valid']['model_choice_score']
     for subset in subsets:
         for metric in metrics:
@@ -880,8 +988,21 @@ def get_filesystem_perf_results(result_dir, pred_type='classification'):
 def copy_best_filesystem_models(result_dir, dest_dir, pred_type, force_update=False):
 
     """
-    Identify the best models for each dataset within a result directory tree, and copy
-    their tarballs to dest_dir.
+    Identify the best models for each dataset within a result directory tree (e.g. from a hyperparameter search).
+    Copy the associated model tarballs to a destination directory.
+
+    Args:
+        result_dir (str): Path to model training result directory.
+
+        dest_dir (str): Path of directory wherre model tarballs will be copied to.
+
+        pred_type (str): Prediction type ('classification' or 'regression') of models to copy
+
+        force_update (bool): If true, overwrite tarball files that already exist in dest_dir.
+
+    Returns:
+        pd.DataFrame: Table of performance metrics for best models.
+
     """
     perf_df = get_filesystem_perf_results(result_dir, pred_type)
     if pred_type == 'regression':
@@ -903,7 +1024,8 @@ def copy_best_filesystem_models(result_dir, dest_dir, pred_type, force_update=Fa
 def get_summary_perf_tables(collection_names=None, filter_dict={}, result_dir=None, prediction_type='regression', verbose=False):
     """
     Load model parameters and performance metrics from model tracker for all models saved in the model tracker DB under
-    the given collection names (or result directory if Model tracker is not available) with the given prediction type. Tabulate the parameters and metrics including:
+    the given collection names (or result directory if Model tracker is not available) with the given prediction type.
+    Tabulate the parameters and metrics including:
         dataset (assay name, target, parameter, key, bucket)
         dataset size (train/valid/test/total)
         number of training folds
@@ -912,7 +1034,21 @@ def get_summary_perf_tables(collection_names=None, filter_dict={}, result_dir=No
         transformation type
         metrics: r2_score, mae_score and rms_score for regression, or ROC AUC for classification
 
-    result_dir: use result_dir when the model tracker is not available. Use a list format if you have multiple result direcotries.
+
+    Args:
+        collection_names (list): Names of model tracker collections to search for models.
+
+        filter_dict (dict): Additional filter criteria to use in model query.
+
+        result_dir (str or list): Directories to search for models; must be provided if the model tracker DB is not available.
+
+        prediction_type (str): Type of models (classification or regression) to query.
+
+        verbose (bool): If true, print status messages as collections are processed.
+
+    Returns:
+        pd.DataFrame: Table of model metadata fields and performance metrics.
+
     """
 
     if not mlmt_supported and not result_dir:
@@ -920,6 +1056,7 @@ def get_summary_perf_tables(collection_names=None, filter_dict={}, result_dir=No
         return None
 
     collection_list = []
+    ampl_version_list=[]
     model_uuid_list = []
     time_built_list = []
     model_type_list = []
@@ -936,6 +1073,8 @@ def get_summary_perf_tables(collection_names=None, filter_dict={}, result_dir=No
     rf_estimators_list = []
     rf_max_features_list = []
     rf_max_depth_list = []
+    xgb_gamma_list = []
+    xgb_learning_rate_list = []
     best_epoch_list = []
     max_epochs_list = []
     learning_rate_list = []
@@ -952,7 +1091,7 @@ def get_summary_perf_tables(collection_names=None, filter_dict={}, result_dir=No
         score_types = ['r2_score', 'mae_score', 'rms_score']
     else:
         # TODO: add more classification metrics later
-        score_types = ['roc_auc_score', 'prc_auc_score', 'accuracy_score', 'precision', 'recall_score', 'npv', 'matthews_cc']
+        score_types = ['roc_auc_score', 'prc_auc_score', 'accuracy_score', 'bal_accuracy', 'precision', 'recall_score', 'npv', 'matthews_cc', 'kappa']
 
     subsets = ['train', 'valid', 'test']
     score_dict = {}
@@ -1009,6 +1148,8 @@ def get_summary_perf_tables(collection_names=None, filter_dict={}, result_dir=No
             time_built_list.append(time_built)
 
             model_params = metadata_dict['model_parameters']
+            ampl_version = model_params.get('ampl_version', 'probably 1.0.0')
+            ampl_version_list.append(ampl_version)
             model_type = model_params['model_type']
             model_type_list.append(model_type)
             featurizer = model_params['featurizer']
@@ -1057,6 +1198,8 @@ def get_summary_perf_tables(collection_names=None, filter_dict={}, result_dir=No
                 rf_estimators_list.append(nan)
                 rf_max_features_list.append(nan)
                 rf_max_depth_list.append(nan)
+                xgb_gamma_list.append(nan)
+                xgb_learning_rate_list.append(nan)
             elif model_type == 'RF':
                 rf_params = metadata_dict['rf_specific']
                 rf_estimators_list.append(rf_params['rf_estimators'])
@@ -1067,8 +1210,10 @@ def get_summary_perf_tables(collection_names=None, filter_dict={}, result_dir=No
                 learning_rate_list.append(nan)
                 layer_sizes_list.append(nan)
                 dropouts_list.append(nan)
+                xgb_gamma_list.append(nan)
+                xgb_learning_rate_list.append(nan)
             elif model_type == 'xgboost':
-                # TODO: Add xgboost parameters
+                xgb_params = metadata_dict['xgb_specific']
                 max_epochs_list.append(nan)
                 best_epoch_list.append(nan)
                 learning_rate_list.append(nan)
@@ -1077,6 +1222,8 @@ def get_summary_perf_tables(collection_names=None, filter_dict={}, result_dir=No
                 rf_estimators_list.append(nan)
                 rf_max_features_list.append(nan)
                 rf_max_depth_list.append(nan)
+                xgb_gamma_list.append(xgb_params['xgb_gamma'])
+                xgb_learning_rate_list.append(xgb_params['xgb_learning_rate'])
             else:
                 raise Exception('Unexpected model type %s' % model_type)
 
@@ -1105,6 +1252,7 @@ def get_summary_perf_tables(collection_names=None, filter_dict={}, result_dir=No
 
     col_dict = dict(
                     collection=collection_list,
+                    ampl_version=ampl_version_list,
                     model_uuid=model_uuid_list,
                     time_built=time_built_list,
                     model_type=model_type_list,
@@ -1126,6 +1274,8 @@ def get_summary_perf_tables(collection_names=None, filter_dict={}, result_dir=No
                     rf_estimators=rf_estimators_list,
                     rf_max_features=rf_max_features_list,
                     rf_max_depth=rf_max_depth_list,
+                    xgb_gamma=xgb_gamma_list,
+                    xgb_learning_rate=xgb_learning_rate_list,
                     dataset_bucket=bucket_list,
                     dataset_key=dataset_key_list,
                     dataset_size=dset_size_list,
@@ -1144,6 +1294,20 @@ def get_summary_perf_tables(collection_names=None, filter_dict={}, result_dir=No
 
 #------------------------------------------------------------------------------------------------------------------
 def get_summary_metadata_table(uuids, collections=None):
+    """
+    Tabulate metadata fields and performance metrics for a set of models identified by specific model_uuids.
+
+    Args:
+        uuids (list): List of model UUIDs to query.
+
+        collections (list or str): Names of collections in model tracker DB to get models from. If collections is
+            a string, it must identify one collection to search for all models. If a list, it must be of the same
+            length as `uuids`. If not provided, all collections will be searched.
+
+    Returns:
+        pd.DataFrame: Table of metadata fields and performance metrics for models.
+
+    """
 
     if not mlmt_supported:
         print("Model tracker not supported in your environment; can examine models saved in filesystem only.")
@@ -1204,46 +1368,148 @@ def get_summary_metadata_table(uuids, collections=None):
         try:
             split_uuid = model_meta['splitting_parameters']['split_uuid']
         except:
-            split_uuid = 'Not Avaliable'
+            split_uuid = 'Not Available'
 
-        if mdl_params['model_type'] == 'NN':
-            nn_params = model_meta['nn_specific']
-            minfo = {'Name': name,
-                     'Transformation': transform,
-                     'Model Type (Featurizer)':    '%s (%s)' % (mdl_params['model_type'],featurizer),
-                     'r^2 (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['r2_score'], valid_metrics['r2_score'], test_metrics['r2_score']),
-                     'MAE (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['mae_score'], valid_metrics['mae_score'], test_metrics['mae_score']),
-                     'RMSE(Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['rms_score'], valid_metrics['rms_score'], test_metrics['rms_score']),
-                     'Data Size (Train/Valid/Test)': '%i/%i/%i' % (train_metrics["num_compounds"],valid_metrics["num_compounds"],test_metrics["num_compounds"]),
-                     'Splitter':      model_meta['splitting_parameters']['splitter'],
-                     'Layer Sizes':   nn_params['layer_sizes'],
-                     'Optimizer':     nn_params['optimizer_type'],
-                     'Learning Rate': nn_params['learning_rate'],
-                     'Dropouts':      nn_params['dropouts'],
-                     'Best Epoch (Max)': '%i (%i)' % (nn_params['best_epoch'],nn_params['max_epochs']),
-                     'Collection':    collection_name,
-                     'UUID':          model_meta['model_uuid'],
-                     'Split UUID':    split_uuid,
-                     'Dataset Key':   data_params['dataset_key']}
-        elif mdl_params['model_type'] == 'RF':
-            rf_params = model_meta['rf_specific']
-            minfo = {'Name': name,
-                     'Transformation': transform,
-                     'Model Type (Featurizer)':    '%s (%s)' % (mdl_params['model_type'],featurizer),
-                     'Max Depth':    rf_params['rf_max_depth'],
-                     'Max Features': rf_params['rf_max_depth'],
-                     'RF Estimators': rf_params['rf_estimators'],
-                     'r^2 (Train/Valid/Test)':       '%0.2f/%0.2f/%0.2f' % (train_metrics['r2_score'], valid_metrics['r2_score'], test_metrics['r2_score']),
-                     'MAE (Train/Valid/Test)':       '%0.2f/%0.2f/%0.2f' % (train_metrics['mae_score'], valid_metrics['mae_score'], test_metrics['mae_score']),
-                     'RMSE(Train/Valid/Test)':       '%0.2f/%0.2f/%0.2f' % (train_metrics['rms_score'], valid_metrics['rms_score'], test_metrics['rms_score']),
-                     'Data Size (Train/Valid/Test)': '%i/%i/%i' % (train_metrics["num_compounds"],valid_metrics["num_compounds"],test_metrics["num_compounds"]),
-                     'Splitter':      model_meta['splitting_parameters']['splitter'],
-                     'Collection':    collection_name,
-                     'UUID':          model_meta['model_uuid'],
-                     'Split UUID':    split_uuid,
-                     'Dataset Key':   data_params['dataset_key']}
-        else:
-            architecture = 'unknown'
+        if mdl_params['prediction_type'] == 'regression':
+            if mdl_params['model_type'] == 'NN':
+                nn_params = model_meta['nn_specific']
+                minfo = {'Name': name,
+                         'Transformation': transform,
+                         'AMPL version used:': mdl_params.get('ampl_version', 'probably 1.0.0'),
+                         'Model Type (Featurizer)':    '%s (%s)' % (mdl_params['model_type'],featurizer),
+                         'r^2 (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['r2_score'], valid_metrics['r2_score'], test_metrics['r2_score']),
+                         'MAE (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['mae_score'], valid_metrics['mae_score'], test_metrics['mae_score']),
+                         'RMSE(Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['rms_score'], valid_metrics['rms_score'], test_metrics['rms_score']),
+                         'Data Size (Train/Valid/Test)': '%i/%i/%i' % (train_metrics["num_compounds"],valid_metrics["num_compounds"],test_metrics["num_compounds"]),
+                         'Splitter':      model_meta['splitting_parameters']['splitter'],
+                         'Layer Sizes':   nn_params['layer_sizes'],
+                         'Optimizer':     nn_params['optimizer_type'],
+                         'Learning Rate': nn_params['learning_rate'],
+                         'Dropouts':      nn_params['dropouts'],
+                         'Best Epoch (Max)': '%i (%i)' % (nn_params['best_epoch'],nn_params['max_epochs']),
+                         'Collection':    collection_name,
+                         'UUID':          model_meta['model_uuid'],
+                         'Split UUID':    split_uuid,
+                         'Dataset Key':   data_params['dataset_key']}
+            elif mdl_params['model_type'] == 'RF':
+                rf_params = model_meta['rf_specific']
+                minfo = {'Name': name,
+                         'Transformation': transform,
+                         'AMPL version used:': mdl_params.get('ampl_version', 'probably 1.0.0'),
+                         'Model Type (Featurizer)':    '%s (%s)' % (mdl_params['model_type'],featurizer),
+                         'Max Depth':    rf_params['rf_max_depth'],
+                         'Max Features': rf_params['rf_max_depth'],
+                         'RF Estimators': rf_params['rf_estimators'],
+                         'r^2 (Train/Valid/Test)':       '%0.2f/%0.2f/%0.2f' % (train_metrics['r2_score'], valid_metrics['r2_score'], test_metrics['r2_score']),
+                         'MAE (Train/Valid/Test)':       '%0.2f/%0.2f/%0.2f' % (train_metrics['mae_score'], valid_metrics['mae_score'], test_metrics['mae_score']),
+                         'RMSE(Train/Valid/Test)':       '%0.2f/%0.2f/%0.2f' % (train_metrics['rms_score'], valid_metrics['rms_score'], test_metrics['rms_score']),
+                         'Data Size (Train/Valid/Test)': '%i/%i/%i' % (train_metrics["num_compounds"],valid_metrics["num_compounds"],test_metrics["num_compounds"]),
+                         'Splitter':      model_meta['splitting_parameters']['splitter'],
+                         'Collection':    collection_name,
+                         'UUID':          model_meta['model_uuid'],
+                         'Split UUID':    split_uuid,
+                         'Dataset Key':   data_params['dataset_key']}
+            elif mdl_params['model_type'] == 'xgboost':
+                xgb_params = model_meta['xgb_specific']
+                minfo = {'Name': name,
+                         'Transformation': transform,
+                         'AMPL version used:': mdl_params.get('ampl_version', 'probably 1.0.0'),
+                         'Model Type (Featurizer)':    '%s (%s)' % (mdl_params['model_type'],featurizer),
+                         'Gamma':    xgb_params['xgb_gamma'],
+                         'Learning rate': xgb_params['xgb_max_depth'],
+                         'r^2 (Train/Valid/Test)':       '%0.2f/%0.2f/%0.2f' % (train_metrics['r2_score'], valid_metrics['r2_score'], test_metrics['r2_score']),
+                         'MAE (Train/Valid/Test)':       '%0.2f/%0.2f/%0.2f' % (train_metrics['mae_score'], valid_metrics['mae_score'], test_metrics['mae_score']),
+                         'RMSE(Train/Valid/Test)':       '%0.2f/%0.2f/%0.2f' % (train_metrics['rms_score'], valid_metrics['rms_score'], test_metrics['rms_score']),
+                         'Data Size (Train/Valid/Test)': '%i/%i/%i' % (train_metrics["num_compounds"],valid_metrics["num_compounds"],test_metrics["num_compounds"]),
+                         'Splitter':      model_meta['splitting_parameters']['splitter'],
+                         'Collection':    collection_name,
+                         'UUID':          model_meta['model_uuid'],
+                         'Split UUID':    split_uuid,
+                         'Dataset Key':   data_params['dataset_key']}
+            else:
+                architecture = 'unknown'
+        elif mdl_params['prediction_type'] == 'classification':
+            if mdl_params['model_type'] == 'NN':
+                nn_params = model_meta['nn_specific']
+                minfo = {'Name': name,
+                         'Transformation': transform,
+                         'AMPL version used:': mdl_params.get('ampl_version', 'probably 1.0.0'),
+                         'Model Type (Featurizer)':    '%s (%s)' % (mdl_params['model_type'],featurizer),
+                         'ROC AUC (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['roc_auc_score'], valid_metrics['roc_auc_score'], test_metrics['roc_auc_score']),
+                         'PRC AUC (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['prc_auc_score'], valid_metrics['prc_auc_score'], test_metrics['prc_auc_score']),
+                         'Balanced accuracy (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics.get('bal_accuracy', np.nan), valid_metrics.get('bal_accuracy',np.nan), test_metrics.get('bal_accuracy', np.nan)),
+                         'Accuracy (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['accuracy_score'], valid_metrics['accuracy_score'], test_metrics['accuracy_score']),
+                         'Precision (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['precision'], valid_metrics['precision'], test_metrics['precision']),
+                         'Recall (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['recall_score'], valid_metrics['recall_score'], test_metrics['recall_score']),
+                         'NPV (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['npv'], valid_metrics['npv'], test_metrics['npv']),
+                         'Kappa (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['kappa'], valid_metrics['kappa'], test_metrics['kappa']),
+                         'Matthews CC (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['matthews_cc'], valid_metrics['matthews_cc'], test_metrics['matthews_cc']),
+                         'Cross entropy (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['cross_entropy'], valid_metrics['cross_entropy'], test_metrics['cross_entropy']),
+                         'Confusion matrices (Train/Valid/Test)':     f"{str(train_metrics['confusion_matrix'])}/{str(valid_metrics['confusion_matrix'])}/{str(test_metrics['confusion_matrix'])}",
+                         'Data Size (Train/Valid/Test)': '%i/%i/%i' % (train_metrics["num_compounds"],valid_metrics["num_compounds"],test_metrics["num_compounds"]),
+                         'Splitter':      model_meta['splitting_parameters']['splitter'],
+                         'Layer Sizes':   nn_params['layer_sizes'],
+                         'Optimizer':     nn_params['optimizer_type'],
+                         'Learning Rate': nn_params['learning_rate'],
+                         'Dropouts':      nn_params['dropouts'],
+                         'Best Epoch (Max)': '%i (%i)' % (nn_params['best_epoch'],nn_params['max_epochs']),
+                         'Collection':    collection_name,
+                         'UUID':          model_meta['model_uuid'],
+                         'Split UUID':    split_uuid,
+                         'Dataset Key':   data_params['dataset_key']}
+            elif mdl_params['model_type'] == 'RF':
+                rf_params = model_meta['rf_specific']
+                minfo = {'Name': name,
+                         'Transformation': transform,
+                         'AMPL version used:': mdl_params.get('ampl_version', 'probably 1.0.0'),
+                         'Model Type (Featurizer)':    '%s (%s)' % (mdl_params['model_type'],featurizer),
+                         'Max Depth':    rf_params['rf_max_depth'],
+                         'Max Features': rf_params['rf_max_depth'],
+                         'RF Estimators': rf_params['rf_estimators'],
+                         'ROC AUC (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['roc_auc_score'], valid_metrics['roc_auc_score'], test_metrics['roc_auc_score']),
+                         'PRC AUC (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['prc_auc_score'], valid_metrics['prc_auc_score'], test_metrics['prc_auc_score']),
+                         'Balanced accuracy (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics.get('bal_accuracy', np.nan), valid_metrics.get('bal_accuracy',np.nan), test_metrics.get('bal_accuracy', np.nan)),
+                         'Accuracy (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['accuracy_score'], valid_metrics['accuracy_score'], test_metrics['accuracy_score']),
+                         'Precision (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['precision'], valid_metrics['precision'], test_metrics['precision']),
+                         'Recall (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['recall_score'], valid_metrics['recall_score'], test_metrics['recall_score']),
+                         'NPV (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['npv'], valid_metrics['npv'], test_metrics['npv']),
+                         'Kappa (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['kappa'], valid_metrics['kappa'], test_metrics['kappa']),
+                         'Matthews CC (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['matthews_cc'], valid_metrics['matthews_cc'], test_metrics['matthews_cc']),
+                         'Cross entropy (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['cross_entropy'], valid_metrics['cross_entropy'], test_metrics['cross_entropy']),
+                         'Confusion matrices (Train/Valid/Test)':     f"{train_metrics['confusion_matrix']}/{valid_metrics['confusion_matrix']}/{test_metrics['confusion_matrix']}",
+                         'Data Size (Train/Valid/Test)': '%i/%i/%i' % (train_metrics["num_compounds"],valid_metrics["num_compounds"],test_metrics["num_compounds"]),
+                         'Splitter':      model_meta['splitting_parameters']['splitter'],
+                         'Collection':    collection_name,
+                         'UUID':          model_meta['model_uuid'],
+                         'Split UUID':    split_uuid,
+                         'Dataset Key':   data_params['dataset_key']}
+            elif mdl_params['model_type'] == 'xgboost':
+                xgb_params = model_meta['xgb_specific']
+                minfo = {'Name': name,
+                         'Transformation': transform,
+                         'AMPL version used:': mdl_params.get('ampl_version', 'probably 1.0.0'),
+                         'Model Type (Featurizer)':    '%s (%s)' % (mdl_params['model_type'],featurizer),
+                         'Gamma':    xgb_params['xgb_gamma'],
+                         'XGB Learning rate': xgb_params['xgb_max_depth'],
+                         'ROC AUC (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['roc_auc_score'], valid_metrics['roc_auc_score'], test_metrics['roc_auc_score']),
+                         'PRC AUC (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['prc_auc_score'], valid_metrics['prc_auc_score'], test_metrics['prc_auc_score']),
+                         'Balanced accuracy (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics.get('bal_accuracy', np.nan), valid_metrics.get('bal_accuracy',np.nan), test_metrics.get('bal_accuracy', np.nan)),
+                         'Accuracy (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['accuracy_score'], valid_metrics['accuracy_score'], test_metrics['accuracy_score']),
+                         'Precision (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['precision'], valid_metrics['precision'], test_metrics['precision']),
+                         'Recall (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['recall_score'], valid_metrics['recall_score'], test_metrics['recall_score']),
+                         'NPV (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['npv'], valid_metrics['npv'], test_metrics['npv']),
+                         'Kappa (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['kappa'], valid_metrics['kappa'], test_metrics['kappa']),
+                         'Matthews CC (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['matthews_cc'], valid_metrics['matthews_cc'], test_metrics['matthews_cc']),
+                         'Cross entropy (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['cross_entropy'], valid_metrics['cross_entropy'], test_metrics['cross_entropy']),
+                         'Confusion matrices (Train/Valid/Test)':     f"{train_metrics['confusion_matrix']}/{valid_metrics['confusion_matrix']}/{test_metrics['confusion_matrix']}",
+                         'Data Size (Train/Valid/Test)': '%i/%i/%i' % (train_metrics["num_compounds"],valid_metrics["num_compounds"],test_metrics["num_compounds"]),
+                         'Splitter':      model_meta['splitting_parameters']['splitter'],
+                         'Collection':    collection_name,
+                         'UUID':          model_meta['model_uuid'],
+                         'Split UUID':    split_uuid,
+                         'Dataset Key':   data_params['dataset_key']}
+            else:
+                architecture = 'unknown'
 
         mlist.append(OrderedDict(minfo))
     return pd.DataFrame(mlist).set_index('Name').transpose()
@@ -1253,6 +1519,13 @@ def get_training_datasets(collection_names):
     """
     Query the model tracker DB for all the unique dataset keys and buckets used to train models in the given
     collections.
+
+    Args:
+        collection_names (list): List of names of model tracker collections to search for models.
+
+    Returns:
+        dict: Dictionary mapping collection names to lists of (dataset_key, bucket) tuples for training sets.
+
     """
     if not mlmt_supported:
         print("Model tracker not supported in your environment; can examine models saved in filesystem only.")
@@ -1272,6 +1545,15 @@ def get_dataset_models(collection_names, filter_dict={}):
     """
     Query the model tracker for all models saved in the model tracker DB under the given collection names. Returns a dictionary
     mapping (dataset_key,bucket) pairs to the list of (collection,model_uuid) pairs trained on the corresponding datasets.
+
+    Args:
+        collection_names (list): List of names of model tracker collections to search for models.
+
+        filter_dict (dict): Additional filter criteria to use in model query.
+
+    Returns:
+        dict: Dictionary mapping training set (dataset_key, bucket) tuples to (collection, model_uuid) pairs.
+
     """
     if not mlmt_supported:
         print("Model tracker not supported in your environment; can examine models saved in filesystem only.")
@@ -1316,6 +1598,15 @@ def get_multitask_perf_from_files(result_dir, pred_type='regression'):
     Retrieve model metadata and performance metrics stored in the filesystem from a multitask hyperparameter search.
     Format the per-task performance metrics in a table with a row for each task and columns for each model/subset
     combination.
+
+    Args:
+        result_dir (str): Path to root result directory containing output from a hyperparameter search run.
+
+        pred_type (str): Prediction type ('classification' or 'regression') of models to query.
+
+    Returns:
+        pd.DataFrame: Table of model metadata fields and performance metrics.
+
     """
 
     model_uuid_list = []
@@ -1429,6 +1720,15 @@ def get_multitask_perf_from_files_new(result_dir, pred_type='regression'):
     Retrieve model metadata and performance metrics stored in the filesystem from a multitask hyperparameter search.
     Format the per-task performance metrics in a table with a row for each task and columns for each model/subset
     combination.
+
+    Args:
+        result_dir (str): Path to root result directory containing output from a hyperparameter search run.
+
+        pred_type (str): Prediction type ('classification' or 'regression') of models to query.
+
+    Returns:
+        pd.DataFrame: Table of model metadata fields and performance metrics.
+
     """
 
     model_uuid_list = []
@@ -1535,28 +1835,39 @@ def get_multitask_perf_from_files_new(result_dir, pred_type='regression'):
 
 
 #-------------------------------------------------------------------------------------------------------------------
-def get_multitask_perf_from_tracker(collection_name, response_cols=None, expand_responses=None, expand_subsets='test', exhaustive=False):
+def get_multitask_perf_from_tracker(collection_name, response_cols=None, expand_responses=None, expand_subsets='test',
+                                    exhaustive=False):
     """
-    Retrieve full metadata from model tracker and format into table, taking into account multitask lists
-
-    response_cols: if None, checks to see if the entire collection has the same response cols.
-    Otherwise asks for clarification. Note: make sure response cols are listed in same order as in metadata.
-    Recommended: None first, then clarify.
-
-    expand_responses is an option to select which tasks / response columns you want to expand and keep in
-    the final dataframe. Useful if you have a lot of tasks and only want to look at the performance of a
-    few of them. Must also be a list or comma separated string, and a subset of response_cols, or None to expand
-    all responses.
-
-    expand_subsets is an option to expand columns for train, test and/or valid subsets of training metrics.
-    Again, list or comma separated string, or None to expand all.
-
-    exhaustive means return large dataframe with all model tracker metadata minus any columns not in expand_responses
-    exhaustive = False means return trimmed dataframe with most relevant columns
+    Retrieve full metadata and metrics from model tracker for all models in a collection and format them
+    into a table, including per-task performance metrics for multitask models.
 
     Meant for multitask NN models, but works for single task models as well.
 
     By AKP. Works for model tracker as of 10/2020
+
+    Args:
+        collection_name (str): Name of model tracker collection to search for models.
+
+        response_cols (list, str or None): Names of tasks (response columns) to query performance results for.
+            If None, checks to see if the entire collection has the same response cols.
+            Otherwise, should be list of strings or a comma-separated string.
+            asks for clarification. Note: make sure response cols are listed in same order as in metadata.
+            Recommended: None first, then clarify.
+
+        expand_responses (list, str or None): Names of tasks / response columns you want to include results for in
+            the final dataframe. Useful if you have a lot of tasks and only want to look at the performance of a
+            few of them. Must also be a list or comma separated string, and must be a subset of response_cols.
+            If None, will expand all responses.
+
+        expand_subsets (list, str or None): Dataset subsets ('train', 'valid' and/or 'test') to show metrics for.
+            Again, must be list or comma separated string, or None to expand all.
+
+        exhaustive (bool): If True, return large dataframe with all model tracker metadata minus any columns not
+            in expand_responses. If False, return trimmed dataframe with most relevant columns.
+
+    Returns:
+        pd.DataFrame: Table of model metadata fields and performance metrics.
+
     """
     if not mlmt_supported:
         print("Model tracker not supported in your environment; can examine models saved in filesystem only.")
@@ -1617,7 +1928,7 @@ def get_multitask_perf_from_tracker(collection_name, response_cols=None, expand_
         response_cols=alldat.response_cols[0]
         print("Response cols:", response_cols)
     else:
-        raise Exception(f"There is more than one set of response cols in this collection. Please choose from these lists (be sure to pass response_cols as a list, not a string with a list inside): {alldat.response_cols.astype(str).unique()}")
+        raise Exception(f"There is more than one set of response cols in this collection. Please choose from these lists: {alldat.response_cols.unique()}")
 
     # expand training metrics - deal with NA's in columns
     metrics=pd.DataFrame.from_dict(models['training_metrics'].tolist())
@@ -1673,14 +1984,16 @@ def get_multitask_perf_from_tracker(collection_name, response_cols=None, expand_
         return alldat
     else:
         alldat=alldat.drop(columns=alldat.columns[alldat.columns.str.contains('baseline')])
-        keepcols=['model_uuid', 'features', 'prediction_type',
+        keepcols=['ampl_version','model_uuid', 'features', 'prediction_type',
                   'transformers', 'uncertainty', 'batch_size', 'bias_init_consts',
                   'dropouts', 'layer_sizes', 'learning_rate', 'max_epochs', 'optimizer_type',
                   'weight_decay_penalty', 'weight_decay_penalty_type', 'weight_init_stddevs', 'splitter',
                   'split_uuid', 'split_test_frac', 'split_valid_frac', 'smiles_col', 'id_col',
-                  'feature_transform_type', 'response_cols', 'response_transform_type', 'num_model_tasks']
+                  'feature_transform_type', 'response_cols', 'response_transform_type', 'num_model_tasks',
+                  'rf_estimators', 'rf_max_depth', 'rf_max_features', 'xgb_gamma', 'xgb_learning_rate']
         keepcols.extend(alldat.columns[alldat.columns.str.contains('best')])
         keepcols = list(set(alldat.columns).intersection(keepcols))
+        keepcols.sort()
         alldat=alldat[keepcols]
         if sum(alldat.columns.str.contains('_2'))>0:
             print("Warning: One or more of your models has metadata for >1 best / >1 baseline epochs.")
@@ -1689,8 +2002,28 @@ def get_multitask_perf_from_tracker(collection_name, response_cols=None, expand_
 
 
 #-------------------------------------------------------------------------------------------------------------------
-# TODO: Update this function
-def aggregate_predictions(datasets, bucket, col_names, result_dir):
+def _aggregate_predictions(datasets, bucket, col_names, result_dir):
+    """
+    Run predictions for best dataset/model_type/split_type/featurizer (max r2 score) and save csv's in /usr/local/data/
+
+    DEPRECATED: Will not work in current software environment. Needs to be updated
+
+    Args:
+        datasets (list): List of (dataset_key, bucket) tuples to query models for.
+
+        bucket (str): Ignored.
+
+       col_names (list): List of names of model tracker collections to search for models.
+
+       result_dir (str): Ignored.
+
+    Returns:
+        None.
+
+    Todo:
+        Update for current software environment, or delete function if it's not useful.
+
+    """
     if not mlmt_supported:
         print("Model tracker not supported in your environment; can examine models saved in filesystem only.")
         return
@@ -1700,14 +2033,14 @@ def aggregate_predictions(datasets, bucket, col_names, result_dir):
     for dset_key, bucket in datasets:
         for model_type in ['NN', 'RF']:
             for split_type in ['scaffold', 'random']:
-                for descriptor_type in ['mordred_filtered', 'moe']:
+                for descriptor_type in ['mordred_filtered', 'moe', 'rdkit_raw']:
                     model_filter = {"training_dataset.dataset_key" : dset_key,
                                     "training_dataset.bucket" : bucket,
                                     "ModelMetrics.TrainingRun.label" : "best",
                                     'ModelMetrics.TrainingRun.subset': 'valid',
                                     'ModelMetrics.TrainingRun.PredictionResults.r2_score': ['max', None],
                                     'model_parameters.model_type': model_type,
-                                    'model_parameters.featurizer': 'descriptors',
+                                    'model_parameters.featurizer': 'computed_descriptors',
                                     'descriptor_specific.descriptor_type': descriptor_type,
                                     'splitting_parameters.splitter': split_type
                                    }
