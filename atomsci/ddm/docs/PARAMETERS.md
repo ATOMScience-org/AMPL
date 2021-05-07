@@ -949,3 +949,17 @@ The AMPL pipeline contains many parameters and options to fit models and make pr
 |-|-|
 |*Description:*|xgb_learning_rate (Boosting learning rate) searching domain of XGBoost models in Bayesian Optimization. The format is `scheme\|parameters`, e.g. `loguniform\|-6.9,-2.3`.
 |*Default:*|None|
+
+- **hp_checkpoint_save**  
+  
+|||
+|-|-|
+|*Description:*|binary file to save a checkpoint of the HPO trial project, which can be use to continue the HPO serach later.
+|*Default:*|None|c
+
+- **hp_checkpoint_load**  
+  
+|||
+|-|-|
+|*Description:*|binary file to load a checkpoint of a previous HPO trial project, to continue the HPO serach.
+|*Default:*|None|

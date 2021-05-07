@@ -18,7 +18,10 @@ import deepchem as dc
 import numpy as np
 import time
 import pandas as pd
+import scipy as sp
+from sklearn.metrics import pairwise_distances
 import pdb
+import copy
 
 from atomsci.ddm.utils import datastore_functions as dsf
 if 'site-packages' in dsf.__file__: # install_dev.sh points to github directory
@@ -44,6 +47,61 @@ logging.basicConfig(format='%(asctime)-15s %(message)s')
 # Only for debug!
 np.random.seed(123)
 
+
+# ---------------------------------------------
+def calc_AD_kmean_dist(train_dset, pred_dset, k, train_dset_pair_distance=None, dist_metric="euclidean"):
+    """
+    calculate the probability of the prediction dataset fall in the the domain of traning set. Use Euclidean distance of the K nearest neighbours.
+    train_dset and pred_dset should be in 2D numpy array format where each row is a compound.
+    """
+    if train_dset_pair_distance is None:
+        # calcualate the pairwise distance of training set
+        train_dset_pair_distance = pairwise_distances(X=train_dset, metric=dist_metric)
+    train_kmean_dis = []
+    for i in range(len(train_dset_pair_distance)):
+        kn_idx = np.argpartition(train_dset_pair_distance[i], k+1)
+        dis = np.mean(train_dset_pair_distance[i][kn_idx[:k+1]])
+        train_kmean_dis.append(dis)
+    train_dset_distribution = sp.stats.norm.fit(train_kmean_dis)
+    # pairwise distance between train and pred set
+    pred_size = len(pred_dset)
+    train_pred_dis = pairwise_distances(X=pred_dset, Y=train_dset, metric=dist_metric)
+    pred_kmean_dis_score = np.zeros(pred_size)
+    for i in range(pred_size):
+        pred_km_dis = np.mean(np.sort(train_pred_dis[i])[:k])
+        train_dset_std = train_dset_distribution[1] if train_dset_distribution[1] != 0 else 1e-6
+        pred_kmean_dis_score[i] = max(1e-6, (pred_km_dis - train_dset_distribution[0]) / train_dset_std)
+    return pred_kmean_dis_score
+
+# ---------------------------------------------
+def calc_AD_kmean_local_density(train_dset, pred_dset, k, train_dset_pair_distance=None, dist_metric="euclidean"):
+    """
+    Evaluate the AD of pred data by comparing the distance betweenthe unseen object and its k nearest neighbors in the training set to the distance between these k nearest neighbors and their k nearest neighbors in the training set. Return the distance ratio. Greater than 1 means the pred data is far from the domain.
+    """
+    if train_dset_pair_distance is None:
+        # calcualate the pair-wise distance of training set
+        train_pair_dist = pairwise_distances(X=train_dset, metric=dist_metric)
+    # pairwise distance between train and pred set
+    pred_size = len(pred_dset)
+    train_pred_dis = pairwise_distances(X=pred_dset, Y=train_dset, metric=dist_metric)
+    pred_kmean_dis_local_density = np.zeros(pred_size)
+    for i in range(pred_size):
+        # find the index of k nearest neighbour of each prediction data
+        kn_idx = np.argpartition(train_pred_dis[i], k)
+        pred_km_dis = np.mean(train_pred_dis[i][kn_idx[:k]])
+        # find the neighbours of each neighbour and calculate the distance
+        neighbor_dis = []
+        for nei_ix in kn_idx[:k]:
+            nei_kn_idx = np.argpartition(train_dset_pair_distance[nei_ix], k)
+            neighbor_dis.append(np.mean(train_dset_pair_distance[nei_ix][nei_kn_idx[:k]]))
+        ave_nei_dis = np.mean(neighbor_dis)
+        if ave_nei_dis == 0:
+            ave_nei_dis = 1e-6
+        pred_kmean_dis_local_density[i] = pred_km_dis / ave_nei_dis
+    return pred_kmean_dis_local_density
+
+
+# ******************************************************************************************************************************
 
 class ModelPipeline:
     """Contains methods to load in a dataset, split and featurize the data, fit a model to the train dataset,
@@ -585,13 +643,29 @@ class ModelPipeline:
         self.save_metrics(model_metrics, 'prediction_%s' % self.params.dataset_name)
 
     # ****************************************************************************************
-    def predict_on_dataframe(self, dset_df, is_featurized=False, contains_responses=False):
+    def calc_train_dset_pair_dis(self, metric="euclidean"):
+        """
+        Calculate the pairwise distance for training set compound feature vectors, needed for AD calculation.
+        """
+        
+        self.featurization = self.model_wrapper.featurization
+        self.load_featurize_data()
+        if len(self.data.train_valid_dsets) > 1:
+            # combine train and valid set for k-fold cv models
+            train_data = np.concatenate((self.data.train_valid_dsets[0][0].X, self.data.train_valid_dsets[0][1].X))
+        else:
+            train_data = self.data.train_valid_dsets[0][0].X
+        self.train_pair_dis = pairwise_distances(X=train_data, metric=metric)
+        self.train_pair_dis_metric = metric
+    
+    # ****************************************************************************************
+    def predict_on_dataframe(self, dset_df, is_featurized=False, contains_responses=False, AD_method=None, k=5, dist_metric="euclidean"):
         """Compute predicted responses from a pretrained model on a set of compounds listed in
-        a data frame. The data frame should contain, at minimum, a column of compound IDs; if
+        a data frame. the data frame should contain, at minimum, a column of compound IDs; if
         SMILES strings are needed to compute features, they should be provided as well.
 
         Args:
-            dset_df (DataFrame) : A data frame containing compound IDs (if the compounds are to be
+            dset_df (Dataframe) : A data frame containing compound IDs (if the compounds are to be
             featurized using descriptors) and/or SMILES strings (if the compounds are to be
             featurized using ECFP fingerprints or graph convolution) and/or precomputed features.
             The column names for the compound ID and SMILES columns should match id_col and smiles_col,
@@ -603,8 +677,15 @@ class ModelPipeline:
 
             contains_responses (bool): True if dataframe contains response values
 
-        Returns:
-            result_df (DataFrame) : Data frame indexed by compound IDs containing a column of SMILES
+            AD_method (str): with default, Applicable domain (AD) index will not be calcualted, use 
+            z_score or local_density to choose the method to calculate AD index.
+
+            k (int): number of the neareast neighbors to evaluate the AD index, default is 5.
+
+            dist_metric (str): distance metrics, valid values are 'cityblock', 'cosine', 'euclidean', 'jaccard', 'manhattan'
+
+        returns:
+            result_df (dataframe) : data frame indexed by compound ids containing a column of smiles
             strings, with additional columns containing the predicted values for each response variable.
             If the model was trained to predict uncertainties, the returned data frame will also
             include standard deviation columns (named <response_col>_std) for each response variable.
@@ -642,6 +723,27 @@ class ModelPipeline:
             for i, colname in enumerate(self.params.response_cols):
                 std_colname = 'std'
                 result_df[std_colname] = stds[:, i, 0]
+
+        if AD_method is not None:
+            if self.featurization.feat_type != "graphconv":
+                pred_data = copy.deepcopy(self.data.dataset.X)
+                self.run_mode = 'training'
+                self.load_featurize_data()
+                if len(self.data.train_valid_dsets) > 1:
+                    # combine train and valid set for k-fold CV models
+                    train_data = np.concatenate((self.data.train_valid_dsets[0][0].X, self.data.train_valid_dsets[0][1].X))
+                else:
+                    train_data = self.data.train_valid_dsets[0][0].X
+                if not hasattr(self, "train_pair_dis") or not hasattr(self, "train_pair_dis_metric") or self.train_pair_dis_metric != dist_metric:
+                    self.calc_train_dset_pair_dis(metric=dist_metric)
+
+                if AD_method == "local_density":
+                    result_df["AD_index"] = calc_AD_kmean_local_density(train_data, pred_data, k, train_dset_pair_distance=self.train_pair_dis, dist_metric=dist_metric)
+                else:
+                    result_df["AD_index"] = calc_AD_kmean_dist(train_data, pred_data, k, train_dset_pair_distance=self.train_pair_dis, dist_metric=dist_metric)
+            else:
+                self.log.warning("GraphConv features are not plain vectors, AD index cannot be calculated.")
+
         '''
         if contains_responses:
             for i, colname in enumerate(self.params.response_cols):
@@ -660,13 +762,20 @@ class ModelPipeline:
         return result_df
 
     # ****************************************************************************************
-    def predict_on_smiles(self, smiles, verbose=False):
+    def predict_on_smiles(self, smiles, verbose=False, AD_method=None, k=5, dist_metric="euclidean"):
         """Compute predicted responses from a pretrained model on a set of compounds given as a list of SMILES strings.
 
         Args:
             smiles (list) : A list containting valid SMILES strings
 
             verbose (boolean): A switch for disabling informational messages
+
+            AD_method (str): with default, Applicable domain (AD) index will not be calcualted, use 
+            z_score or local_density to choose the method to calculate AD index.
+
+            k (int): number of the neareast neighbors to evaluate the AD index, default is 5.
+
+            dist_metric (str): distance metrics, valid values are 'cityblock', 'cosine', 'euclidean', 'jaccard', 'manhattan'
 
         Returns:
             res (DataFrame) : Data frame indexed by compound IDs containing a column of SMILES
@@ -693,14 +802,14 @@ class ModelPipeline:
         df = pd.DataFrame({'compound_id': np.linspace(0, len(smiles) - 1, len(smiles), dtype=int),
                         self.params.smiles_col: smiles,
                         task: np.zeros(len(smiles))})
-        res = self.predict_on_dataframe(df)
+        res = self.predict_on_dataframe(df, AD_method=AD_method, k=k, dist_metric=dist_metric)
 
         sys.stdout = sys.__stdout__
 
         return res
 
     # ****************************************************************************************
-    def predict_full_dataset(self, dset_df, is_featurized=False, contains_responses=False, dset_params=None):
+    def predict_full_dataset(self, dset_df, is_featurized=False, contains_responses=False, dset_params=None, AD_method=None, k=5, dist_metric="euclidean"):
         """
         Compute predicted responses from a pretrained model on a set of compounds listed in
         a data frame. The data frame should contain, at minimum, a column of compound IDs; if
@@ -727,6 +836,13 @@ class ModelPipeline:
             dset_params (Namespace):  Parameters used to interpret dataset, including id_col, smiles_col,
             and optionally, response_cols. If not provided, id_col, smiles_col and response_cols are
             assumed to be same as in the pretrained model.
+
+            AD_method (str): with default, Applicable domain (AD) index will not be calcualted, use 
+            z_score or local_density to choose the method to calculate AD index.
+
+            k (int): number of the neareast neighbors to evaluate the AD index, default is 5.
+
+            dist_metric (str): distance metrics, valid values are 'cityblock', 'cosine', 'euclidean', 'jaccard', 'manhattan'
 
         Returns:
             result_df (DataFrame) : Data frame indexed by compound IDs containing a column of SMILES
@@ -783,6 +899,26 @@ class ModelPipeline:
             for i, colname in enumerate(self.params.response_cols):
                 std_colname = '%s_std' % colname
                 result_df[std_colname] = stds[:,i,0]
+
+        if AD_method is not None:
+            if self.featurization.feat_type != "graphconv":
+                pred_data = copy.deepcopy(self.data.dataset.X)
+                self.run_mode = 'training'
+                self.load_featurize_data()
+                if len(self.data.train_valid_dsets) > 1:
+                    # combine train and valid set for k-fold CV models
+                    train_data = np.concatenate((self.data.train_valid_dsets[0][0].X, self.data.train_valid_dsets[0][1].X))
+                else:
+                    train_data = self.data.train_valid_dsets[0][0].X
+                if not hasattr(self, "train_pair_dis") or not hasattr(self, "train_pair_dis_metric") or self.train_pair_dis_metric != dist_metric:
+                    self.calc_train_dset_pair_dis(metric=dist_metric)
+
+                if AD_method == "local_density":
+                    result_df["AD_index"] = calc_AD_kmean_local_density(train_data, pred_data, k, train_dset_pair_distance=self.train_pair_dis, dist_metric=dist_metric)
+                else:
+                    result_df["AD_index"] = calc_AD_kmean_dist(train_data, pred_data, k, train_dset_pair_distance=self.train_pair_dis, dist_metric=dist_metric)
+            else:
+                self.log.warning("GraphConv features are not plain vectors, AD index cannot be calculated.")
 
         return result_df
 

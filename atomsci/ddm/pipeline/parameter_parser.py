@@ -944,6 +944,13 @@ def get_parser():
     parser.add_argument(
         '--xgbl', dest='xgbl', required=False, default=None,
         help='xgb_learning_rate shown in HyperOpt domain format, e.g. --xgbl=loguniform|-6.9,-2.3')
+    # checkpoint
+    parser.add_argument(
+        '--hp_checkpoint_save', dest='hp_checkpoint_save', required=False, default=None,
+        help='binary file to save a checkpoint of the HPO trial project, which can be use to continue the HPO serach later. e.g. --hp_checkpoint_save=/path/to/file/checkpoint.pkl')
+    parser.add_argument(
+        '--hp_checkpoint_load', dest='hp_checkpoint_load', required=False, default=None,
+        help='binary file to load a checkpoint of a previous HPO trial project, to continue the HPO serach. e.g. --hp_checkpoint_load=/path/to/file/checkpoint.pkl')
 
 
     return parser
