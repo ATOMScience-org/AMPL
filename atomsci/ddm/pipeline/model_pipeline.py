@@ -59,9 +59,7 @@ def calc_AD_kmean_dist(train_dset, pred_dset, k, train_dset_pair_distance=None, 
     for i in range(pred_size):
         pred_km_dis = np.mean(np.sort(train_pred_dis[i])[:k])
         train_dset_std = train_dset_distribution[1] if train_dset_distribution[1] != 0 else 1e-6
-        pred_kmean_dis_score[i] = (pred_km_dis - train_dset_distribution[0]) / train_dset_std
-        if pred_kmean_dis_score[i] == 0:
-            pred_kmean_dis_score[i] = 1e-6
+        pred_kmean_dis_score[i] = max(1e-6, (pred_km_dis - train_dset_distribution[0]) / train_dset_std)
     return pred_kmean_dis_score
 
 # ---------------------------------------------
