@@ -1585,7 +1585,7 @@ def search_files_interactive (bucket='all', client=None, to_return='df', display
         example_val = list(kv_lookup[key].unique())
         example_val_list.append(example_val)
         temp_dict={'value_examples': example_val_list, 'keys': keys, }
-    display(pd.DataFrame.from_dict(temp_dict))
+    print(pd.DataFrame.from_dict(temp_dict))
     input_key = ""
     while input_key not in keys:
         input_key = input('Enter a key: ')
@@ -1596,7 +1596,7 @@ def search_files_interactive (bucket='all', client=None, to_return='df', display
     print('Select value(s) for key=', input_key, 'from the following list: ')
     values_for_key = retrieve_values_for_key(key=input_key, bucket=bucket)
     print("")
-    display(values_for_key)
+    print(values_for_key)
     print("")
 
     values_valid=False
@@ -1645,7 +1645,7 @@ def search_files_interactive (bucket='all', client=None, to_return='df', display
     print('Number of datasets found meeting criteria =', len(dataset_list))
     if len(dataset_list) > max_rows:
         print('Displaying first %s results' %(max_rows))
-    display(dataset_list.iloc[0:max_rows])
+    print(dataset_list.iloc[0:max_rows])
 
     if len(dataset_list) < 2:
         return dataset_list
@@ -1681,7 +1681,7 @@ def search_files_interactive (bucket='all', client=None, to_return='df', display
             example_val = list(kv_lookup[key].unique())
             example_val_list.append(example_val)
         temp_dict={'value_examples': example_val_list, 'keys': unique_keys, }
-        display(pd.DataFrame.from_dict(temp_dict))
+        print(pd.DataFrame.from_dict(temp_dict))
 
         new_key=""
         while new_key not in approved_keys:
@@ -1698,7 +1698,7 @@ def search_files_interactive (bucket='all', client=None, to_return='df', display
         values_for_key  = list(set(values_for_key) & set(approved_values))
 
         print("")
-        display(values_for_key)
+        print(values_for_key)
         print("")
         ##
         values_valid=False
@@ -1716,7 +1716,7 @@ def search_files_interactive (bucket='all', client=None, to_return='df', display
                         example_val = list(kv_lookup[key].unique())
                         example_val_list.append(example_val)
                     temp_dict={'value_examples': example_val_list, 'keys': unique_keys, }
-                    display(pd.DataFrame.from_dict(temp_dict))
+                    print(pd.DataFrame.from_dict(temp_dict))
 
                     new_key=""
                     while new_key not in approved_keys:
@@ -1733,7 +1733,7 @@ def search_files_interactive (bucket='all', client=None, to_return='df', display
                     values_for_key  = list(set(values_for_key) & set(approved_values))
 
                     print("")
-                    display(values_for_key)
+                    print(values_for_key)
                     print("")
 
             new_value = new_value.replace("'","")
@@ -1780,7 +1780,7 @@ def search_files_interactive (bucket='all', client=None, to_return='df', display
         print('Number of datasets found meeting criteria =', len(dataset_list2))
         if len(dataset_list2) > max_rows:
             print('Displaying first %s results' %(max_rows))
-        display(dataset_list2.iloc[0:max_rows])
+        print(dataset_list2.iloc[0:max_rows])
 
         print("")
         dataset_list = dataset_list2[:]
