@@ -10,7 +10,7 @@ from atomsci.ddm.utils.struct_utils import base_smiles_from_smiles
 
 # =====================================================================================================
 def predict_from_tracker_model(model_uuid, collection, input_df, id_col='compound_id', smiles_col='rdkit_smiles',
-                     response_col=None, is_featurized=False, dont_standardize=False, AD_method=None, k=5):
+                     response_col=None, is_featurized=False, dont_standardize=False, AD_method=None, k=5, dist_metric="euclidean"):
     """
     Loads a pretrained model from the model tracker database and runs predictions on compounds in an input
     data frame.
@@ -37,6 +37,8 @@ def predict_from_tracker_model(model_uuid, collection, input_df, id_col='compoun
         z_score or local_density to choose the method to calculate AD index.
         
         k (int): number of the neareast neighbors to evaluate the AD index, default is 5.
+
+        dist_metric (str): distance metrics, valid values are 'cityblock', 'cosine', 'euclidean', 'jaccard', 'manhattan'
     Return: 
         A data frame with compound IDs, SMILES strings and predicted response values. Actual response values
         will be included if response_col is provided. Standard prediction error estimates will be included
@@ -50,13 +52,13 @@ def predict_from_tracker_model(model_uuid, collection, input_df, id_col='compoun
     pred_params = parse.wrapper(pred_params)
     pipe = mp.create_prediction_pipeline(pred_params, model_uuid, collection)
     pred_df = pipe.predict_full_dataset(input_df, contains_responses=has_responses, is_featurized=is_featurized,
-                                        dset_params=pred_params, AD_method=AD_method, k=k)
+                                        dset_params=pred_params, AD_method=AD_method, k=k, dist_metric=dist_metric)
     pred_df = pred_df.sort_values(by=id_col)
     return pred_df
 
 # =====================================================================================================
 def predict_from_model_file(model_path, input_df, id_col='compound_id', smiles_col='rdkit_smiles',
-                     response_col=None, is_featurized=False, dont_standardize=False, AD_method=None, k=5):
+                     response_col=None, is_featurized=False, dont_standardize=False, AD_method=None, k=5, dist_metric="euclidean"):
     """
     Loads a pretrained model from a model tarball file and runs predictions on compounds in an input
     data frame.
@@ -81,6 +83,8 @@ def predict_from_model_file(model_path, input_df, id_col='compound_id', smiles_c
         z_score or local_density to choose the method to calculate AD index.
         
         k (int): number of the neareast neighbors to evaluate the AD index, default is 5.
+
+        dist_metric (str): distance metrics, valid values are 'cityblock', 'cosine', 'euclidean', 'jaccard', 'manhattan'
     Return: 
         A data frame with compound IDs, SMILES strings and predicted response values. Actual response values
         will be included if response_col is provided. Standard prediction error estimates will be included
@@ -97,7 +101,7 @@ def predict_from_model_file(model_path, input_df, id_col='compound_id', smiles_c
 
     pipe = mp.create_prediction_pipeline_from_file(pred_params, reload_dir=None, model_path=model_path)
     pred_df = pipe.predict_full_dataset(input_df, contains_responses=has_responses, is_featurized=is_featurized,
-                                        dset_params=pred_params, AD_method=AD_method, k=k)
+                                        dset_params=pred_params, AD_method=AD_method, k=k, dist_metric=dist_metric)
     pred_df = pred_df.sort_values(by=id_col)
     return pred_df
 
