@@ -36,6 +36,7 @@ import logging
 import socket
 import traceback
 import copy
+import pickle
 
 
 def run_command(shell_script, python_path, script_dir, params):
@@ -1231,6 +1232,7 @@ class UserSpecifiedSearch(HyperparameterSearch):
 def build_hyperopt_search_domain(label, method, param_list):
     """
     Generate HyperOpt search domain object from method and parameters, layer_nums is only for NN models.
+    This function is used by the HyperOptSearch class, not intended for standalone usage.
     """
     if method == "choice":
         return hp.choice(label, param_list)
@@ -1366,9 +1368,9 @@ class HyperOptSearch():
         feat = "_".join(self.params.featurizer) if isinstance(self.params.featurizer, list) else self.params.featurizer
         desc = "_".join(self.params.descriptor_type) if isinstance(self.params.descriptor_type, list) else self.params.descriptor_type
         if "_" not in feat or feat in ["computed_descriptors", "descriptors"]:
-            f = feat if feat in ["graphconv", "ecfp"] else desc
+            fd = feat if feat in ["graphconv", "ecfp"] else desc
         else:
-            f = f"{feat}_{desc}"
+            fd = f"{feat}_{desc}"
 
         def lossfn(p):
             if "featurizer" in p:
@@ -1481,8 +1483,35 @@ class HyperOptSearch():
         else:
             print(f'model_performance|train_roc_auc|train_acc|valid_roc_auc|valid_acc|test_roc_auc|test_acc|model_params|model\n')
 
-        trials = Trials()
-        best = fmin(lossfn, self.space, algo=tpe.suggest, max_evals=self.max_eval, trials=trials)
+        if self.params.hp_checkpoint_load is not None and os.path.isfile(self.params.hp_checkpoint_load):
+            print(f"load hpo trial object from {self.params.hp_checkpoint_load}")
+            with open(self.params.hp_checkpoint_load, "rb") as f:
+                trials = pickle.load(f)
+        else:
+            trials = Trials()
+
+        if self.params.hp_checkpoint_save is not None:
+            print(f"hp_checkpoint_save provided, save a checkpoint file every 5 trials.")
+            max_evals = 5
+            while True:
+                if os.path.isfile(self.params.hp_checkpoint_save):
+                    print(f"load hpo trial object from {self.params.hp_checkpoint_save}")
+                    with open(self.params.hp_checkpoint_save, "rb") as f:
+                        trials = pickle.load(f)
+                    max_evals = min(len(trials) + 5, self.max_eval)
+                else:
+                    max_evals = min(max_evals, self.max_eval)
+
+                best = fmin(lossfn, self.space, algo=tpe.suggest, max_evals=max_evals, trials=trials)
+
+                print(f"Save HPO trial object to {self.params.hp_checkpoint_save}")
+                with open(self.params.hp_checkpoint_save, "wb") as f:
+                    pickle.dump(trials, f)
+
+                if max_evals == self.max_eval:
+                    break
+        else:
+            best = fmin(lossfn, self.space, algo=tpe.suggest, max_evals=self.max_eval, trials=trials)
 
         print(f"Generating the performance -- iteration table and Copy the best model tarball.")
 
@@ -1512,11 +1541,11 @@ class HyperOptSearch():
         bmodel_prefix = "_".join(os.path.basename(best_model).split("_")[:-1])
         bmodel_uuid = os.path.basename(best_model).split(".")[0].split("_")[-1]
 
-        perf.to_csv(os.path.join(self.final_dir, f"performance_{self.params.prediction_type}_{bmodel_prefix}_{self.params.model_type}_{f}_{bmodel_uuid}.csv"), index=False)
+        perf.to_csv(os.path.join(self.final_dir, f"performance_{self.params.prediction_type}_{bmodel_prefix}_{self.params.model_type}_{fd}_{bmodel_uuid}.csv"), index=False)
         if os.path.isfile(best_model):
             # if the model tracker is used, the model won't be saved to the result_dir
             shutil.copy2(best_model, os.path.join(self.final_dir,
-                                              f"best_{self.params.prediction_type}_{bmodel_prefix}_{self.params.model_type}_{f}_{bmodel_uuid}.tar.gz"))
+                                              f"best_{self.params.prediction_type}_{bmodel_prefix}_{self.params.model_type}_{fd}_{bmodel_uuid}.tar.gz"))
 
 
 def main():
@@ -1545,7 +1574,7 @@ def main():
                    'slurm_time_limit'} | excluded_keys
     if params.search_type == 'hyperopt':
         # keep more parameters
-        keep_params = keep_params | {'lr', 'learning_rate','ls', 'layer_sizes','ls_ratio','dp', 'dropouts','rfe', 'rf_estimators','rfd', 'rf_max_depth','rff', 'rf_max_features','xgbg', 'xgb_gamma','xgbl', 'xgb_learning_rate'}
+        keep_params = keep_params | {'lr', 'learning_rate','ls', 'layer_sizes','ls_ratio','dp', 'dropouts','rfe', 'rf_estimators','rfd', 'rf_max_depth','rff', 'rf_max_features','xgbg', 'xgb_gamma','xgbl', 'xgb_learning_rate', 'hp_checkpoint_load', 'hp_checkpoint_save'}
 
     params.__dict__ = parse.prune_defaults(params, keep_params=keep_params)
     if params.search_type == 'grid':
