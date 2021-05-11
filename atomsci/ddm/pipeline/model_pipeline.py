@@ -21,6 +21,7 @@ import pandas as pd
 import pdb
 
 from atomsci.ddm.utils import datastore_functions as dsf
+
 if 'site-packages' in dsf.__file__: # install_dev.sh points to github directory
     import subprocess
     import json
@@ -591,20 +592,20 @@ class ModelPipeline:
         SMILES strings are needed to compute features, they should be provided as well.
 
         Args:
-            dset_df (DataFrame) : A data frame containing compound IDs (if the compounds are to be
+            dset_df (DataFrame): A data frame containing compound IDs (if the compounds are to be
             featurized using descriptors) and/or SMILES strings (if the compounds are to be
             featurized using ECFP fingerprints or graph convolution) and/or precomputed features.
             The column names for the compound ID and SMILES columns should match id_col and smiles_col,
             respectively, in the model parameters.
 
-            is_featurized (bool) : True if dset_df contains precomputed feature columns. If so,
+            is_featurized (bool): True if dset_df contains precomputed feature columns. If so,
             dset_df must contain *all* of the feature columns defined by the featurizer that was
             used when the model was trained.
 
             contains_responses (bool): True if dataframe contains response values
 
         Returns:
-            result_df (DataFrame) : Data frame indexed by compound IDs containing a column of SMILES
+            result_df (DataFrame): Data frame indexed by compound IDs containing a column of SMILES
             strings, with additional columns containing the predicted values for each response variable.
             If the model was trained to predict uncertainties, the returned data frame will also
             include standard deviation columns (named <response_col>_std) for each response variable.
@@ -664,12 +665,12 @@ class ModelPipeline:
         """Compute predicted responses from a pretrained model on a set of compounds given as a list of SMILES strings.
 
         Args:
-            smiles (list) : A list containting valid SMILES strings
+            smiles (list): A list containting valid SMILES strings
 
             verbose (boolean): A switch for disabling informational messages
 
         Returns:
-            res (DataFrame) : Data frame indexed by compound IDs containing a column of SMILES
+            res (DataFrame): Data frame indexed by compound IDs containing a column of SMILES
             strings, with additional columns containing the predicted values for each response variable.
             If the model was trained to predict uncertainties, the returned data frame will also
             include standard deviation columns (named <response_col>_std) for each response variable.
@@ -712,13 +713,13 @@ class ModelPipeline:
         and includes class probabilities in the output for classifier models.
 
         Args:
-            dset_df (DataFrame) : A data frame containing compound IDs (if the compounds are to be
+            dset_df (DataFrame): A data frame containing compound IDs (if the compounds are to be
             featurized using descriptors) and/or SMILES strings (if the compounds are to be
             featurized using ECFP fingerprints or graph convolution) and/or precomputed features.
             The column names for the compound ID and SMILES columns should match id_col and smiles_col,
             respectively, in the model parameters.
 
-            is_featurized (bool) : True if dset_df contains precomputed feature columns. If so,
+            is_featurized (bool): True if dset_df contains precomputed feature columns. If so,
             dset_df must contain *all* of the feature columns defined by the featurizer that was
             used when the model was trained.
 
@@ -729,7 +730,7 @@ class ModelPipeline:
             assumed to be same as in the pretrained model.
 
         Returns:
-            result_df (DataFrame) : Data frame indexed by compound IDs containing a column of SMILES
+            result_df (DataFrame): Data frame indexed by compound IDs containing a column of SMILES
             strings, with additional columns containing the predicted values for each response variable.
             If the model was trained to predict uncertainties, the returned data frame will also
             include standard deviation columns (named <response_col>_std) for each response variable.
@@ -996,13 +997,13 @@ def create_prediction_pipeline(params, model_uuid, collection_name=None, featuri
     where the ground truth is not known, given a pretrained model in the model tracker database.
 
     Args:
-        params (Namespace or dict) : A parsed parameters namespace, containing parameters describing how input
+        params (Namespace or dict): A parsed parameters namespace, containing parameters describing how input
         datasets should be processed. If a dictionary is passed, it will be parsed to fill in default values
         and convert it to a Namespace object.
 
-        model_uuid (str) : The UUID of a trained model.
+        model_uuid (str): The UUID of a trained model.
 
-        collection_name (str) : The collection where the model is stored in the model tracker DB.
+        collection_name (str): The collection where the model is stored in the model tracker DB.
 
         featurization (Featurization): An optional featurization object to be used for featurizing the input data.
         If none is provided, one will be created based on the stored model parameters.
@@ -1011,7 +1012,7 @@ def create_prediction_pipeline(params, model_uuid, collection_name=None, featuri
         original bucket no longer exists.
 
     Returns:
-        pipeline (ModelPipeline) : A pipeline object to be used for making predictions.
+        pipeline (ModelPipeline): A pipeline object to be used for making predictions.
     """
     mlmt_client = dsf.initialize_model_tracker()
     ds_client = dsf.config_client()
@@ -1106,10 +1107,10 @@ def create_prediction_pipeline_from_file(params, reload_dir, model_path=None, mo
     in the filesystem. The model may be stored either as a gzipped tar archive or as a directory.
 
     Args:
-        params (Namespace) : A parsed parameters namespace, containing parameters describing how input
+        params (Namespace): A parsed parameters namespace, containing parameters describing how input
         datasets should be processed.
 
-        reload_dir (str) : The path to the parent directory containing the various model subdirectories
+        reload_dir (str): The path to the parent directory containing the various model subdirectories
           (e.g.: '/home/cdsw/model/delaney-processed/delaney-processed/pxc50_NN_graphconv_scaffold_regression/').
         If reload_dir is None, then model_path must be specified. If both are specified, then the tar archive given
         by model_path will be unpacked into reload_dir, possibly overwriting existing files in that directory.
@@ -1124,7 +1125,7 @@ def create_prediction_pipeline_from_file(params, reload_dir, model_path=None, mo
         If none is provided, one will be created based on the stored model parameters.
 
     Returns:
-        pipeline (ModelPipeline) : A pipeline object to be used for making predictions.
+        pipeline (ModelPipeline): A pipeline object to be used for making predictions.
     """
 
     # Unpack the model tar archive if one is specified
@@ -1209,9 +1210,9 @@ def load_from_tracker(model_uuid, collection_name=None, client=None, verbose=Fal
     """Create a ModelPipeline object using the metadata in the  model tracker.
 
     Args:
-        model_uuid (str) : The UUID of a trained model.
+        model_uuid (str): The UUID of a trained model.
 
-        collection_name (str) : The collection where the model is stored in the model tracker DB.
+        collection_name (str): The collection where the model is stored in the model tracker DB.
 
         client : Ignored, for backward compatibility only
 
@@ -1222,7 +1223,7 @@ def load_from_tracker(model_uuid, collection_name=None, client=None, verbose=Fal
 
     Returns:
         tuple of:
-            pipeline (ModelPipeline) : A pipeline object to be used for making predictions.
+            pipeline (ModelPipeline): A pipeline object to be used for making predictions.
 
             pparams (Namespace): Parsed parameter namespace from the requested model.
     """
@@ -1267,9 +1268,9 @@ def ensemble_predict(model_uuids, collections, dset_df, labels=None, dset_params
     the predicted responses into one prediction per compound.
 
     Args:
-        model_uuids (iterable of str) : Sequence of UUIDs of trained models.
+        model_uuids (iterable of str): Sequence of UUIDs of trained models.
 
-        collections (str or iterable of str) : The collection(s) where the models are stored in the
+        collections (str or iterable of str): The collection(s) where the models are stored in the
         model tracker DB. If a single string, the same collection is assumed to contain all the models.
         Otherwise, collections should be of the same length as model_uuids.
 
@@ -1288,7 +1289,7 @@ def ensemble_predict(model_uuids, collections, dset_df, labels=None, dset_params
         aggregate (str): Method to be used to combine predictions.
 
     Returns:
-        pred_df (DataFrame) : Table with predicted responses from each model, plus the ensemble prediction.
+        pred_df (DataFrame): Table with predicted responses from each model, plus the ensemble prediction.
 
     """
 
@@ -1414,18 +1415,18 @@ def retrain_model(model_uuid, collection_name=None, result_dir=None, mt_client=N
     in the model tracker; or to make predictions on new data.
 
     Args:
-        model_uuid (str) : The UUID of a trained model.
+        model_uuid (str): The UUID of a trained model.
 
-        collection_name (str) : The collection where the model is stored in the model tracker DB.
+        collection_name (str): The collection where the model is stored in the model tracker DB.
 
-        result_dir (str) : The directory of model results when the model tracker is not available.
+        result_dir (str): The directory of model results when the model tracker is not available.
 
         mt_client : Ignored
 
         verbose (bool): A switch for disabling informational messages
 
     Returns:
-        pipeline (ModelPipeline) : A pipeline object containing data from the model training.
+        pipeline (ModelPipeline): A pipeline object containing data from the model training.
     """
 
     if not result_dir:
