@@ -82,7 +82,7 @@ def create_model_wrapper(params, featurizer, ds_client=None):
     """Factory function for creating Model objects of the correct subclass for params.model_type.
 
     Args:
-        params (Namespace) : Parameters passed to the model pipeline
+        params (Namespace): Parameters passed to the model pipeline
         featurizer (Featurization): Object managing the featurization of compounds
         ds_client (DatastoreClient): Interface to the file datastore
 

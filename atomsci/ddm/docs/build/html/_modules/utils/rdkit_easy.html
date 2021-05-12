@@ -86,8 +86,19 @@
               
             
             
-              <!-- Local TOC -->
-              <div class="local-toc"></div>
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/getting_started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/tests.html">Tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/running_ampl.html">Running AMPL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/advanced_ampl_usage.html">Advanced AMPL Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/advanced_installation.html">Advanced Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/advanced_testing.html">Advanced Testing</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">atomsci</a></li>
+</ul>
+
             
           
         </div>
@@ -228,11 +239,10 @@
 
 <span class="sd">        cluster_column (str): Column that will be created to hold cluster indices.</span>
 
-<span class="sd">        cutoff (float): Maximum Tanimoto distance parameter used by Butina algorithm to</span>
-<span class="sd">            identify neighbors of each molecule.</span>
+<span class="sd">        cutoff (float): Maximum Tanimoto distance parameter used by Butina algorithm to identify neighbors of each molecule.</span>
 
-<span class="sd">        Returns:</span>
-<span class="sd">            None. Input data frame will be modified in place.</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        None. Input data frame will be modified in place.</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">df</span><span class="p">[</span><span class="n">cluster_column</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
@@ -288,8 +298,7 @@
 
 <span class="sd">        type (str): Image format; must be &#39;png&#39; or &#39;svg&#39;.</span>
 
-<span class="sd">        directory (str): Path relative to notebook directory of subdirectory where image file will be written.</span>
-<span class="sd">            The directory will be created if necessary. Note that absolute paths will not work in notebooks.</span>
+<span class="sd">        directory (str): Path relative to notebook directory of subdirectory where image file will be written. The directory will be created if necessary. Note that absolute paths will not work in notebooks.</span>
 
 <span class="sd">        width (int): Width of image bounding box.</span>
 
@@ -386,6 +395,7 @@
 <span class="sd">        df (pd.DataFrame): Data frame to display.</span>
 
 <span class="sd">    Returns:</span>
+<span class="sd">        None</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">HTML</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">to_html</span><span class="p">(</span><span class="n">escape</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span></div>
@@ -397,6 +407,9 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">        html (str): HTML image tag to render.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        None</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">HTML</span><span class="p">(</span><span class="n">html</span><span class="p">)</span></div>

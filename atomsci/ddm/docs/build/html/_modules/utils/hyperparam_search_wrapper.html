@@ -86,8 +86,19 @@
               
             
             
-              <!-- Local TOC -->
-              <div class="local-toc"></div>
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/getting_started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/tests.html">Tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/running_ampl.html">Running AMPL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/advanced_ampl_usage.html">Advanced AMPL Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/advanced_installation.html">Advanced Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/advanced_testing.html">Advanced Testing</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">atomsci</a></li>
+</ul>
+
             
           
         </div>
@@ -195,11 +206,13 @@
 <div class="viewcode-block" id="run_command"><a class="viewcode-back" href="../../utils.html#utils.hyperparam_search_wrapper.run_command">[docs]</a><span class="k">def</span> <span class="nf">run_command</span><span class="p">(</span><span class="n">shell_script</span><span class="p">,</span> <span class="n">python_path</span><span class="p">,</span> <span class="n">script_dir</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Function to submit jobs on a slurm system</span>
+
 <span class="sd">    Args:</span>
 <span class="sd">        shell_script: Name of shell script to run</span>
 <span class="sd">        python_path: Path to python version</span>
 <span class="sd">        script_dir: Directory where script lives</span>
 <span class="sd">        params: parameters in dictionary format</span>
+
 <span class="sd">    Returns:</span>
 <span class="sd">        None</span>
 
@@ -215,12 +228,11 @@
 <span class="sd">    Function to submit a job using subprocess</span>
 
 <span class="sd">    Args:</span>
-
 <span class="sd">        cmd: Command to run</span>
 
 <span class="sd">    Returns:</span>
-
 <span class="sd">        output: Output of command</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">p</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">err</span><span class="p">)</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">communicate</span><span class="p">()</span>
@@ -234,11 +246,11 @@
 <span class="sd">    for new LC model tracker.</span>
 
 <span class="sd">    Args:</span>
-
 <span class="sd">        filter_dict: Dictionary containing metadata for model of interest</span>
-<span class="sd">    Returns:</span>
 
+<span class="sd">    Returns:</span>
 <span class="sd">        new_filter_dict: Filter dict reformatted</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">rename_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;model_parameters&#39;</span><span class="p">:</span>
                        <span class="p">{</span><span class="s1">&#39;dependencies&#39;</span><span class="p">,</span> <span class="s1">&#39;featurizer&#39;</span><span class="p">,</span> <span class="s1">&#39;git_hash_code&#39;</span><span class="p">,</span><span class="s1">&#39;model_bucket&#39;</span><span class="p">,</span> <span class="s1">&#39;model_choice_score_type&#39;</span><span class="p">,</span>
@@ -313,6 +325,7 @@
 
 <span class="sd">    Returns:</span>
 <span class="sd">        layer_sizes, dropouts: the layer sizes and dropouts generated based on the input parameters</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">itertools</span>
     <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -339,12 +352,11 @@
 <div class="viewcode-block" id="get_num_params"><a class="viewcode-back" href="../../utils.html#utils.hyperparam_search_wrapper.get_num_params">[docs]</a><span class="k">def</span> <span class="nf">get_num_params</span><span class="p">(</span><span class="n">combo</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calculates the number of parameters in a fully-connected neural networ</span>
-<span class="sd">    Args:</span>
 
+<span class="sd">    Args:</span>
 <span class="sd">        combo: Model parameters</span>
 
 <span class="sd">    Returns:</span>
-
 <span class="sd">        tmp_sum: Calculated number of parameters</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -473,7 +485,6 @@
 <span class="sd">        Performs additional parsing of parameters and generates all combinations</span>
 
 <span class="sd">        Returns:</span>
-
 <span class="sd">            None</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -579,10 +590,12 @@
 <div class="viewcode-block" id="HyperparameterSearch.generate_combos"><a class="viewcode-back" href="../../utils.html#utils.hyperparam_search_wrapper.HyperparameterSearch.generate_combos">[docs]</a>    <span class="k">def</span> <span class="nf">generate_combos</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params_dict</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Calls sub-function generate_combo and then uses itertools.product to generate all desired combinations</span>
+
 <span class="sd">        Args:</span>
 <span class="sd">            params_dict:</span>
 
 <span class="sd">        Returns:</span>
+<span class="sd">            None</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">new_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">generate_combo</span><span class="p">(</span><span class="n">params_dict</span><span class="p">)</span>
@@ -602,6 +615,7 @@
 
 <span class="sd">        Returns:</span>
 <span class="sd">            None</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">tmp_list</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">min</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">values</span><span class="p">())])):</span>
@@ -620,7 +634,9 @@
 <div class="viewcode-block" id="HyperparameterSearch.generate_assay_list"><a class="viewcode-back" href="../../utils.html#utils.hyperparam_search_wrapper.HyperparameterSearch.generate_assay_list">[docs]</a>    <span class="k">def</span> <span class="nf">generate_assay_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Generates the list of datasets to build models for, with their key, bucket, split, and split uuid</span>
+
 <span class="sd">        Returns:</span>
+<span class="sd">           None</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Creates the assay list with additional options for use_shortlist</span>
@@ -723,6 +739,7 @@
 <div class="viewcode-block" id="HyperparameterSearch.return_split_uuid"><a class="viewcode-back" href="../../utils.html#utils.hyperparam_search_wrapper.HyperparameterSearch.return_split_uuid">[docs]</a>    <span class="k">def</span> <span class="nf">return_split_uuid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset_key</span><span class="p">,</span> <span class="n">bucket</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">splitter</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">split_combo</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">retry_time</span><span class="o">=</span><span class="mi">60</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Loads a dataset, splits it, saves it, and returns the split_uuid</span>
+
 <span class="sd">        Args:</span>
 <span class="sd">            dataset_key: key for dataset to split</span>
 <span class="sd">            bucket: datastore-specific user group bucket</span>
@@ -730,6 +747,7 @@
 <span class="sd">            split_combo: tuple of form (split_valid_frac, split_test_frac)</span>
 
 <span class="sd">        Returns:</span>
+<span class="sd">            None</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">bucket</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -812,6 +830,7 @@
 <div class="viewcode-block" id="HyperparameterSearch.return_split_uuid_file"><a class="viewcode-back" href="../../utils.html#utils.hyperparam_search_wrapper.HyperparameterSearch.return_split_uuid_file">[docs]</a>    <span class="k">def</span> <span class="nf">return_split_uuid_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset_key</span><span class="p">,</span> <span class="n">response_cols</span><span class="p">,</span> <span class="n">bucket</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">splitter</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">split_combo</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">retry_time</span><span class="o">=</span><span class="mi">60</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Loads a dataset, splits it, saves it, and returns the split_uuid.</span>
+
 <span class="sd">        Args:</span>
 <span class="sd">            dataset_key: key for dataset to split</span>
 <span class="sd">            bucket: datastore-specific user group bucket</span>
@@ -819,6 +838,7 @@
 <span class="sd">            split_combo: tuple of form (split_valid_frac, split_test_frac)</span>
 
 <span class="sd">        Returns:</span>
+<span class="sd">            None</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         
@@ -868,6 +888,7 @@
 
 <span class="sd">        Returns:</span>
 <span class="sd">            None</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">retry</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
@@ -937,6 +958,7 @@
 
 <span class="sd">        Returns:</span>
 <span class="sd">            None</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">datasets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_shortlist_df</span><span class="p">()</span>
@@ -1052,6 +1074,7 @@
 
 <span class="sd">        Returns:</span>
 <span class="sd">            None</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">for</span> <span class="n">assay</span><span class="p">,</span> <span class="n">bucket</span><span class="p">,</span> <span class="n">response_cols</span><span class="p">,</span> <span class="n">collection</span><span class="p">,</span> <span class="n">splitter</span><span class="p">,</span> <span class="n">split_uuid</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">assays</span><span class="p">:</span>
             <span class="c1"># Writes the series of command line arguments for scripts without a hyperparameter combo</span>
@@ -1113,11 +1136,13 @@
 <div class="viewcode-block" id="HyperparameterSearch.already_run"><a class="viewcode-back" href="../../utils.html#utils.hyperparam_search_wrapper.HyperparameterSearch.already_run">[docs]</a>    <span class="k">def</span> <span class="nf">already_run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">assay_params</span><span class="p">,</span> <span class="n">retry_time</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Checks to see if a model with a given metadata combination has already been built</span>
+
 <span class="sd">        Args:</span>
 <span class="sd">            assay_params: model metadata information</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            Boolean specifying if model has been previously built</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">save_results</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">False</span>
@@ -1156,7 +1181,9 @@
 <div class="viewcode-block" id="HyperparameterSearch.run_search"><a class="viewcode-back" href="../../utils.html#utils.hyperparam_search_wrapper.HyperparameterSearch.run_search">[docs]</a>    <span class="k">def</span> <span class="nf">run_search</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The driver code for generating hyperparameter combinations and submitting jobs</span>
+
 <span class="sd">        Returns:</span>
+<span class="sd">            None</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Generating param combos&quot;</span><span class="p">)</span>
@@ -1197,6 +1224,7 @@
 
 <span class="sd">        Returns:</span>
 <span class="sd">            new_dict: The list of all combinations of parameters</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">params_dict</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
@@ -1247,6 +1275,7 @@
 
 <span class="sd">        Returns:</span>
 <span class="sd">            new_dict: The list of all combinations of parameters</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">params_dict</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
@@ -1296,6 +1325,7 @@
 
 <span class="sd">        Returns:</span>
 <span class="sd">            new_dict: The list of all combinations of parameters</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">params_dict</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
@@ -1345,6 +1375,7 @@
 
 <span class="sd">        Returns:</span>
 <span class="sd">            new_dict: The list of all combinations of parameters</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">params_dict</span><span class="p">:</span>
@@ -1380,13 +1411,12 @@
 <div class="viewcode-block" id="HyperOptSearch"><a class="viewcode-back" href="../../utils.html#utils.hyperparam_search_wrapper.HyperOptSearch">[docs]</a><span class="k">class</span> <span class="nc">HyperOptSearch</span><span class="p">():</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Perform hyperparameter search with Bayesian Optmization (Tree Parzen Estimator)</span>
+
 <span class="sd">    To use HyperOptSearch, modify the config json file as follows:</span>
+
 <span class="sd">        serach_type: use &quot;hyperopt&quot;</span>
-<span class="sd">        result_dir: use two directories (recommended), separated by comma, 1st one will be used to save the best model tarball, 2nd one will be used to store all models during the process.</span>
-<span class="sd">            e.g. &quot;result_dir&quot;: &quot;/path/of/the/final/dir,/path/of/the/temp/dir&quot;</span>
-<span class="sd">        model_type: RF or NN, also add max number of HyperOptSearch evaluations, e.g. &quot;model_type&quot;: &quot;RF|100&quot;.</span>
-<span class="sd">            If no max number provide, the default 100 will be used.</span>
-<span class="sd">        #For NN models only</span>
+<span class="sd">        result_dir: use two directories (recommended), separated by comma, 1st one will be used to save the best model tarball, 2nd one will be used to store all models during the process.  e.g. &quot;result_dir&quot;: &quot;/path/of/the/final/dir,/path/of/the/temp/dir&quot;</span>
+<span class="sd">        model_type: RF or NN, also add max number of HyperOptSearch evaluations, e.g. &quot;model_type&quot;: &quot;RF|100&quot;.  If no max number provide, the default 100 will be used.  #For NN models only</span>
 <span class="sd">        lr: specify learning rate searching method and related parameters as the following scheme.</span>
 <span class="sd">            method|parameter1,parameter2...</span>
 <span class="sd">            method: supported searching schemes in HyperOpt include: choice, uniform, loguniform, and uniformint, see https://github.com/hyperopt/hyperopt/wiki/FMin for details.</span>

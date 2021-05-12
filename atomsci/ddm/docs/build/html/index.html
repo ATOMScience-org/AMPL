@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Welcome to ATOM Data-Driven Modeling Pipeline’s documentation! &mdash; ATOM Data-Driven Modeling Pipeline 1.1 documentation</title>
+  <title>ATOM Modeling PipeLine (AMPL) for Drug Discovery &mdash; ATOM Data-Driven Modeling Pipeline 1.1 documentation</title>
   
 
   
@@ -37,7 +37,8 @@
 
     
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" /> 
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Getting started" href="guide/getting_started.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -86,12 +87,19 @@
               
             
             
-              <!-- Local TOC -->
-              <div class="local-toc"><ul>
-<li><a class="reference internal" href="#">Welcome to ATOM Data-Driven Modeling Pipeline’s documentation!</a></li>
-<li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="guide/getting_started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guide/install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guide/tests.html">Tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guide/running_ampl.html">Running AMPL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guide/advanced_ampl_usage.html">Advanced AMPL Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guide/advanced_installation.html">Advanced Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guide/advanced_testing.html">Advanced Testing</a></li>
 </ul>
-</div>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">atomsci</a></li>
+</ul>
+
             
           
         </div>
@@ -138,7 +146,7 @@
     
       <li><a href="#" class="icon icon-home"></a> &raquo;</li>
         
-      <li>Welcome to ATOM Data-Driven Modeling Pipeline’s documentation!</li>
+      <li>ATOM Modeling PipeLine (AMPL) for Drug Discovery</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -157,18 +165,105 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="welcome-to-atom-data-driven-modeling-pipeline-s-documentation">
-<h1>Welcome to ATOM Data-Driven Modeling Pipeline’s documentation!<a class="headerlink" href="#welcome-to-atom-data-driven-modeling-pipeline-s-documentation" title="Permalink to this headline">¶</a></h1>
-<div class="toctree-wrapper compound">
-</div>
-</div>
-<div class="section" id="indices-and-tables">
-<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="atom-modeling-pipeline-ampl-for-drug-discovery">
+<h1>ATOM Modeling PipeLine (AMPL) for Drug Discovery<a class="headerlink" href="#atom-modeling-pipeline-ampl-for-drug-discovery" title="Permalink to this headline">¶</a></h1>
+<p><strong>AMPL</strong> is an open-source, modular, extensible software pipeline for building and sharing models to advance in silico drug discovery.</p>
+<p>The ATOM Modeling PipeLine (AMPL) extends the functionality of DeepChem and supports an array of machine learning and molecular featurization tools. AMPL is an end-to-end data-driven modeling pipeline to generate machine learning models that can predict key safety and pharmacokinetic-relevant parameters. AMPL has been benchmarked on a large collection of pharmaceutical datasets covering a wide range of parameters.</p>
+<div class="section" id="features">
+<h2>Features<a class="headerlink" href="#features" title="Permalink to this headline">¶</a></h2>
+<p>AMPL enables tasks for modeling and prediction from data ingestion to data analysis and can be broken down into the following stages:</p>
 <ul class="simple">
-<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
-<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
-<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+<li><p>Data ingestion and curation</p></li>
+<li><p>Featurization</p></li>
+<li><p>Model training and tuning</p></li>
+<li><p>Prediction generation</p></li>
+<li><p>Visualization and analysis</p></li>
+<li><p>Details of running specific features are within the parameter (options) documentation.</p></li>
 </ul>
+<p>More detailed documentation is in the library documentation.</p>
+</div>
+<div class="section" id="built-with">
+<h2>Built with<a class="headerlink" href="#built-with" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference external" href="https://github.com/deepchem/deepchem">DeepChem</a>: The basis for the graph convolution models</p></li>
+<li><p><a class="reference external" href="http://www.rdkit.org">RDKit</a>: Molecular informatics library</p></li>
+<li><p><a class="reference external" href="https://github.com/mordred-descriptor/mordred">Mordred</a>: Chemical descriptors</p></li>
+<li><p>Other Python package dependencies</p></li>
+</ul>
+</div>
+<div class="section" id="user-guide">
+<h2>User guide<a class="headerlink" href="#user-guide" title="Permalink to this headline">¶</a></h2>
+<p>A step-by-step guide to getting started with MolVS.</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="guide/getting_started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guide/install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guide/tests.html">Tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guide/running_ampl.html">Running AMPL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guide/advanced_ampl_usage.html">Advanced AMPL Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guide/advanced_installation.html">Advanced Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guide/advanced_testing.html">Advanced Testing</a></li>
+</ul>
+</div>
+</div>
+<div class="section" id="api-documentation">
+<h2>API documentation<a class="headerlink" href="#api-documentation" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">atomsci</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="pipeline.html">pipeline package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#module-pipeline.ave_splitter">pipeline.ave_splitter module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#module-pipeline.chem_diversity">pipeline.chem_diversity module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#module-pipeline.compare_models">pipeline.compare_models module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#module-pipeline.dist_metrics">pipeline.dist_metrics module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#module-pipeline.diversity_plots">pipeline.diversity_plots module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#module-pipeline.featurization">pipeline.featurization module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#module-pipeline.hyper_perf_plots">pipeline.hyper_perf_plots module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline-mlmt-client-wrapper-module">pipeline.mlmt_client_wrapper module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#module-pipeline.model_datasets">pipeline.model_datasets module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline-model-pipeline-module">pipeline.model_pipeline module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#module-pipeline.model_tracker">pipeline.model_tracker module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#module-pipeline.model_wrapper">pipeline.model_wrapper module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#module-pipeline.parameter_parser">pipeline.parameter_parser module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#module-pipeline.perf_data">pipeline.perf_data module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#module-pipeline.perf_plots">pipeline.perf_plots module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#module-pipeline.splitting">pipeline.splitting module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#module-pipeline.transformations">pipeline.transformations module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#module-pipeline">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html">utils package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#module-utils.curate_data">utils.curate_data module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils-data-curation-functions-module">utils.data_curation_functions module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#module-utils.datastore_functions">utils.datastore_functions module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils-gentestset-module">utils.genTestset module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#module-utils.hyperparam_search_wrapper">utils.hyperparam_search_wrapper module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#module-utils.llnl_utils">utils.llnl_utils module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#module-utils.model_retrain">utils.model_retrain module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils-open-docs-module">utils.open-docs module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#module-utils.process_slurm">utils.process_slurm module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#module-utils.pubchem_utils">utils.pubchem_utils module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#module-utils.rdkit_easy">utils.rdkit_easy module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#module-utils.struct_utils">utils.struct_utils module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#module-utils.verify_results">utils.verify_results module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#module-utils">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="useful-links">
+<h2>Useful links<a class="headerlink" href="#useful-links" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference external" href="https://github.com/ATOMconsortium/AMPL">ATOM Data-Driven Modeling Pipeline on GitHub</a></p></li>
+<li><p><a class="reference external" href="https://github.com/ATOMconsortium/AMPL/blob/master/atomsci/ddm/docs/PARAMETERS.md">Pipeline parameters (options)</a></p></li>
+<li><p><a class="reference external" href="https://ampl.readthedocs.io/en/latest/index.html">Library documentation</a></p></li>
+</ul>
+</div>
 </div>
 
 
@@ -176,6 +271,9 @@
            
           </div>
           <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="guide/getting_started.html" class="btn btn-neutral float-right" title="Getting started" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
 
   <hr/>
 
