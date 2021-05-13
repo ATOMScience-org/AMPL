@@ -37,7 +37,8 @@
 
     
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" /> 
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="pipeline package" href="pipeline.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -86,28 +87,40 @@
               
             
             
-              <!-- Local TOC -->
-              <div class="local-toc"><ul>
-<li><a class="reference internal" href="#">utils package</a><ul>
-<li><a class="reference internal" href="#submodules">Submodules</a></li>
-<li><a class="reference internal" href="#module-utils.curate_data">utils.curate_data module</a></li>
-<li><a class="reference internal" href="#utils-data-curation-functions-module">utils.data_curation_functions module</a></li>
-<li><a class="reference internal" href="#module-utils.datastore_functions">utils.datastore_functions module</a></li>
-<li><a class="reference internal" href="#utils-gentestset-module">utils.genTestset module</a></li>
-<li><a class="reference internal" href="#module-utils.hyperparam_search_wrapper">utils.hyperparam_search_wrapper module</a></li>
-<li><a class="reference internal" href="#module-utils.llnl_utils">utils.llnl_utils module</a></li>
-<li><a class="reference internal" href="#module-utils.model_retrain">utils.model_retrain module</a></li>
-<li><a class="reference internal" href="#utils-open-docs-module">utils.open-docs module</a></li>
-<li><a class="reference internal" href="#module-utils.process_slurm">utils.process_slurm module</a></li>
-<li><a class="reference internal" href="#module-utils.pubchem_utils">utils.pubchem_utils module</a></li>
-<li><a class="reference internal" href="#module-utils.rdkit_easy">utils.rdkit_easy module</a></li>
-<li><a class="reference internal" href="#module-utils.struct_utils">utils.struct_utils module</a></li>
-<li><a class="reference internal" href="#module-utils.verify_results">utils.verify_results module</a></li>
-<li><a class="reference internal" href="#module-utils">Module contents</a></li>
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="guide/getting_started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guide/install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guide/tests.html">Tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guide/running_ampl.html">Running AMPL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guide/advanced_ampl_usage.html">Advanced AMPL Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guide/advanced_installation.html">Advanced Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guide/advanced_testing.html">Advanced Testing</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">atomsci</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="pipeline.html">pipeline package</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">utils package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-utils.curate_data">utils.curate_data module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#utils-data-curation-functions-module">utils.data_curation_functions module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-utils.datastore_functions">utils.datastore_functions module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#utils-gentestset-module">utils.genTestset module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-utils.hyperparam_search_wrapper">utils.hyperparam_search_wrapper module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-utils.llnl_utils">utils.llnl_utils module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-utils.model_retrain">utils.model_retrain module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#utils-open-docs-module">utils.open-docs module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-utils.process_slurm">utils.process_slurm module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-utils.pubchem_utils">utils.pubchem_utils module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-utils.rdkit_easy">utils.rdkit_easy module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-utils.struct_utils">utils.struct_utils module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-utils.verify_results">utils.verify_results module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-utils">Module contents</a></li>
 </ul>
 </li>
 </ul>
-</div>
+</li>
+</ul>
+
             
           
         </div>
@@ -153,6 +166,8 @@
   <ul class="wy-breadcrumbs">
     
       <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="modules.html">atomsci</a> &raquo;</li>
         
       <li>utils package</li>
     
@@ -396,6 +411,8 @@ Intended for general use. Add/modify functions as needed. Created 23Jul18 CHW</p
 <dt>Args:</dt><dd><p>files (list of tuples): format [(bucket1, dataset_key1), (bucket2, dataset_key2)]
 save_as (str): filename to use for new file</p>
 </dd>
+<dt>Returns:</dt><dd><p>None</p>
+</dd>
 </dl>
 </dd></dl>
 
@@ -413,7 +430,7 @@ the metadata for the files listed will then be updated in the Datastore</p>
 <dl class="simple">
 <dt>Args:</dt><dd><p>key_values (dict): keys and values specified by user for a file
 client (optional): set client if not using the default
-df (DataFrame) : dataframe to be uploaded
+df (DataFrame): dataframe to be uploaded
 enforced (bool, optional): If True (default) checks that all required keys are filled out</p>
 </dd>
 <dt>Returns:</dt><dd><p>(bool): returns True if all keys and values are ‘approved’ AND enforcement criteria are met</p>
@@ -446,6 +463,8 @@ singleton object is returned.</p>
 <p>from_bucket (str): Bucket where datasets are now.</p>
 <p>to_bucket (str): Bucket to move datasets to.</p>
 </dd>
+<dt>Returns:</dt><dd><p>None</p>
+</dd>
 </dl>
 </dd></dl>
 
@@ -476,6 +495,8 @@ dataset_oid_only (bool, optional): if True, return a list of dataset_oids meetin
 display_all_columns (bool, optional): If ‘False’ (default), then show only a selected subset of the columns
 max_rows (int, optional): maximum rows to display during interactive search</p>
 </dd>
+<dt>Returns:</dt><dd><p>None</p>
+</dd>
 </dl>
 </dd></dl>
 
@@ -487,7 +508,7 @@ max_rows (int, optional): maximum rows to display during interactive search</p>
 <dt>Args:</dt><dd><blockquote>
 <div><blockquote>
 <div><dl class="simple">
-<dt>metadata list of key,value pairs (list)<span class="classifier">a list with position 0 = string/list of buckets, and remaining positions dictionaries of search criteria</span></dt><dd><dl class="simple">
+<dt>metadata list of key,value pairs (list): a list with position 0 = string/list of buckets, and remaining positions dictionaries of search criteria</dt><dd><dl class="simple">
 <dt>example:</dt><dd><p>[{‘key’: ‘species’, ‘value’: [‘rat’] },
 {‘key’: ‘assay_category’,’value’: [‘solubility’, ‘volume_of_distribution’]}]</p>
 </dd>
@@ -526,14 +547,12 @@ Function extracts the key:value pairs and converts from the ‘datastore format�
 <dl class="py function">
 <dt id="utils.datastore_functions.key_exists">
 <code class="sig-prename descclassname"><span class="pre">utils.datastore_functions.</span></code><code class="sig-name descname"><span class="pre">key_exists</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bucket</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'all'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">client</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/datastore_functions.html#key_exists"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.datastore_functions.key_exists" title="Permalink to this definition">¶</a></dt>
-<dd><p>Check if key exists in bucket(s) specified.
-Args:</p>
-<blockquote>
-<div><p>key (str): the key of interest
+<dd><p>Check if key exists in bucket(s) specified.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>key (str): the key of interest
 bucket (str or list, optional): ‘all’ by default. Specify bucket (as a str or list) to limit search
 client (optional): set client if not using the default</p>
-</div></blockquote>
-<dl class="simple">
+</dd>
 <dt>Returns:</dt><dd><p>(bool): Returns True if key exists in bucket(s) specified</p>
 </dd>
 </dl>
@@ -545,9 +564,11 @@ client (optional): set client if not using the default</p>
 <dd><p>List the values for input key.  Requires that the input key be in the ‘approved’ list</p>
 <dl class="simple">
 <dt>Args:</dt><dd><p>bucket (str or list, optional): buckets to search (defaults to searching all buckets you have access to in the datastore)
-input_key : user specified key to query
-category : ‘experimental’ or ‘pdb_bind’
+input_key: user specified key to query
+category: ‘experimental’ or ‘pdb_bind’
 client (optional): set client if not using the default</p>
+</dd>
+<dt>Returns:</dt><dd><p>None</p>
 </dd>
 </dl>
 </dd></dl>
@@ -559,7 +580,7 @@ client (optional): set client if not using the default</p>
 This is designed to work well with the output from the filter_datasets_interactive function with defined_search=True</p>
 <dl>
 <dt>Args:</dt><dd><dl class="simple">
-<dt>defined_search (list)<span class="classifier">a list with position 0 = string/list of buckets, and remaining positions dictionaries of search criteria</span></dt><dd><dl class="simple">
+<dt>defined_search (list): a list with position 0 = string/list of buckets, and remaining positions dictionaries of search criteria</dt><dd><dl class="simple">
 <dt>example: defined_search = [‘gsk_ml’,</dt><dd><p>{‘key’: ‘species’, ‘value’: [‘rat’], ‘operator’: ‘in’},
 {‘key’: ‘assay_category’,’value’: [‘solubility’, ‘volume_of_distribution’], ‘operator’: ‘in’}]</p>
 </dd>
@@ -573,12 +594,12 @@ to_return (str, optional): (default=df)</p>
 ‘oid’ (dataset_oid) = return a list of dataset_oids meeting criteria
 ‘ds_key’ (dataset_key) = return a list of dataset_key + bucket tuples</p>
 </div></blockquote>
-<p>display_all_column (bool, optional) : default False. If True, displays all associated metadata instead of just a selected subset</p>
+<p>display_all_column (bool, optional): default False. If True, displays all associated metadata instead of just a selected subset</p>
 </dd>
 <dt>Returns:</dt><dd><p>One of the following will be returned (based on selection for ‘to_return’)
-(DataFrame) : dataframe of metadata for the files matching the criteria specified in the search
-(list) : list of dataset_oids meeting the criteria specified in the search
-(list) : list of bucket and dataset_key meeting the criteria specified in the search</p>
+(DataFrame): dataframe of metadata for the files matching the criteria specified in the search
+(list): list of dataset_oids meeting the criteria specified in the search
+(list): list of bucket and dataset_key meeting the criteria specified in the search</p>
 </dd>
 </dl>
 </dd></dl>
@@ -613,10 +634,9 @@ client (optional): set client if not using the default</p>
 <dl class="py function">
 <dt id="utils.datastore_functions.retrieve_dataset_by_dataset_oid">
 <code class="sig-prename descclassname"><span class="pre">utils.datastore_functions.</span></code><code class="sig-name descname"><span class="pre">retrieve_dataset_by_dataset_oid</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset_oid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">client</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_metadata</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nrows</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">print_metadata</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tarpath</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/datastore_functions.html#retrieve_dataset_by_dataset_oid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.datastore_functions.retrieve_dataset_by_dataset_oid" title="Permalink to this definition">¶</a></dt>
-<dd><p>retrieves the dataset and returns as a pandas dataframe (or other format as needed depending on file type).
-Args:</p>
-<blockquote>
-<div><p>dataset_oid (str) : unique identifier for the dataset you want
+<dd><p>retrieves the dataset and returns as a pandas dataframe (or other format as needed depending on file type).</p>
+<dl>
+<dt>Args:</dt><dd><p>dataset_oid (str): unique identifier for the dataset you want
 client (optional): set client if not using the default
 return_metadata (bool, optional): if set to True, return a dictionary of the metadata INSTEAD of a dataframe of the data
 nrows (num, optional): used to limit the number of rows returned
@@ -624,14 +644,11 @@ print_metadata (bool, optional): if set to True, displays the document metadata/
 sep (str, optional): separator used for csv file
 tarpath (str, optional): path to use for tarball files
 index_col (int, optional): For csv files, column to use as the row labels of the DataFrame</p>
-</div></blockquote>
-<dl>
-<dt>Returns:</dt><dd><dl class="simple">
-<dt>(DataFrame, OrderedDict, str, dict): filetype determines what type of object is returned.</dt><dd><p>xls and xlsx files returns an OrderedDict.
+</dd>
+<dt>Returns:</dt><dd><p>(DataFrame, OrderedDict, str, dict): filetype determines what type of object is returned.
+xls and xlsx files returns an OrderedDict.
 tarball (gz and tgz) files returns the location of the files as a string
 csv returns a DataFrame</p>
-</dd>
-</dl>
 <p>optionally, return a dictionary of the metadata only if ‘return_metadata’ is set to TRUE.</p>
 </dd>
 </dl>
@@ -652,12 +669,10 @@ sep (str, optional): separator used for csv file
 tarpath (str, optional): path to use for tarball files
 index_col (int, optional): For csv files, column to use as the row labels of the DataFrame</p>
 </dd>
-<dt>Returns:</dt><dd><dl class="simple">
-<dt>(DataFrame, OrderedDict, str, dict): filetype determines what type of object is returned.</dt><dd><p>xls and xlsx files returns an OrderedDict.
+<dt>Returns:</dt><dd><p>(DataFrame, OrderedDict, str, dict): filetype determines what type of object is returned.
+xls and xlsx files returns an OrderedDict.
 tarball (gz and tgz) files returns the location of the files as a string
 csv returns a DataFrame</p>
-</dd>
-</dl>
 <p>optionally, return a dictionary of the metadata only if ‘return_metadata’ is set to TRUE.</p>
 </dd>
 </dl>
@@ -683,7 +698,7 @@ sort (bool, optional): if ‘True’ (default), sort the keys alphabetically</p>
 <dd><p>Get a list of values associated with a specified key.</p>
 <dl class="simple">
 <dt>Args:</dt><dd><p>key (str): the key of interest
-bucket (str or list, optional) : ‘all’ by default. Specify bucket (as a str or list) to limit search
+bucket (str or list, optional): ‘all’ by default. Specify bucket (as a str or list) to limit search
 client (optional): set client if not using the default</p>
 </dd>
 <dt>Returns:</dt><dd><p>(list): Returns a list of values (str) associated with a specified key</p>
@@ -703,7 +718,7 @@ operator (str, optional): ‘in’ by default, but can be changed to any of the 
 <blockquote>
 <div><p>=, !=, &lt;, &lt;=, &gt;, &gt;=, all, in, not in</p>
 </div></blockquote>
-<p>bucket (str or list, optional) : ‘all’ by default. Specify bucket (as a str or list) to limit search
+<p>bucket (str or list, optional): ‘all’ by default. Specify bucket (as a str or list) to limit search
 display_all_columns (bool, optional): If ‘False’ (default), then show only a selected subset of the columns</p>
 </dd>
 <dt>Returns:</dt><dd><p>(DataFrame): summary table of the files and relevant metadata matching the criteria specified</p>
@@ -729,6 +744,8 @@ to_return (str): ‘df’ (df_results)  = return a pandas dataframe summarizing 
 </div></blockquote>
 <p>display_all_columns (bool, optional): If ‘False’ (default), then show only a selected subset of the columns
 max_rows (int, optional): maximum rows to display during interactive search</p>
+</dd>
+<dt>Returns:</dt><dd><p>None</p>
 </dd>
 </dl>
 </dd></dl>
@@ -773,6 +790,8 @@ client (optional): set client if not using the default
 kv_add (dict, optional): key-value pairs to add to the metadata for the file specified
 kv_del (str or list, optional): keys to delete from the metadata for the file specified</p>
 </dd>
+<dt>Returns:</dt><dd><p>None</p>
+</dd>
 </dl>
 </dd></dl>
 
@@ -787,6 +806,8 @@ client (optional): set client if not using the default
 kv_add (dict, optional): key-value pairs to add to the metadata for the file specified
 kv_del (str or list, optional): keys to delete from the metadata for the file specified</p>
 </dd>
+<dt>Returns:</dt><dd><p>None</p>
+</dd>
 </dl>
 </dd></dl>
 
@@ -794,20 +815,17 @@ kv_del (str or list, optional): keys to delete from the metadata for the file sp
 <dt id="utils.datastore_functions.upload_df_to_DS">
 <code class="sig-prename descclassname"><span class="pre">utils.datastore_functions.</span></code><code class="sig-name descname"><span class="pre">upload_df_to_DS</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bucket</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tags</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">client</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">override_check</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_metadata</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/datastore_functions.html#upload_df_to_DS"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.datastore_functions.upload_df_to_DS" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function will upload a file to the Datastore along with the associated metadata</p>
-<dl>
-<dt>Args:</dt><dd><p>df (DataFrame) : dataframe to be uploaded
-bucket (str) : bucket the file will be put in
-filename (str) : the filename to save the dataframe as in the datastore. Include the extension
-title (str) : title of the file in (human friendly format)
-description (str) : long text box to describe file (background/use notes)
-tags (list) : must be a list.
-key_values (dict) : key-value pairs to enable future users to find the file. Must be a dictionary.
+<dl class="simple">
+<dt>Args:</dt><dd><p>df (DataFrame): dataframe to be uploaded
+bucket (str): bucket the file will be put in
+filename (str): the filename to save the dataframe as in the datastore. Include the extension
+title (str): title of the file in (human friendly format)
+description (str): long text box to describe file (background/use notes)
+tags (list): must be a list.
+key_values (dict): key-value pairs to enable future users to find the file. Must be a dictionary.
 client (optional): set client if not using the default
-dataset_key (str) : If updating a file already in the datastore enter the corresponding dataset_key.</p>
-<blockquote>
-<div><p>If not, leave as ‘none’ and the dataset_key will be automatically generated.</p>
-</div></blockquote>
-<p>data_type (str,optional) : Specify dataType (e.g. csv,bz, etc) if not specified attempt to use file extension</p>
+dataset_key (str): If updating a file already in the datastore enter the corresponding dataset_key.  If not, leave as ‘none’ and the dataset_key will be automatically generated.
+data_type (str,optional): Specify dataType (e.g. csv,bz, etc) if not specified attempt to use file extension</p>
 </dd>
 <dt>Returns:</dt><dd><p>(dict): if return_metadata=True, then function returns a dictionary of the metadata for the uploaded dataset.</p>
 </dd>
@@ -818,7 +836,7 @@ dataset_key (str) : If updating a file already in the datastore enter the corres
 <dt id="utils.datastore_functions.upload_file_to_DS">
 <code class="sig-prename descclassname"><span class="pre">utils.datastore_functions.</span></code><code class="sig-name descname"><span class="pre">upload_file_to_DS</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bucket</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tags</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">client</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">override_check</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_metadata</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_ref</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/datastore_functions.html#upload_file_to_DS"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.datastore_functions.upload_file_to_DS" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function will upload a file to the Datastore along with the associated metadata</p>
-<dl>
+<dl class="simple">
 <dt>Args:</dt><dd><p>bucket (str): bucket the file will be put in
 title (str): title of the file in (human friendly format)
 description (str): long text box to describe file (background/use notes)
@@ -827,14 +845,11 @@ key_values (dict): key:value pairs to enable future users to find the file. Must
 filepath (str): current location of the file
 filename (str): current filename of the file
 client (optional): set client if not using the default
-dataset_key (str, optional): If updating a file already in the datastore enter the corresponding dataset_key.</p>
-<blockquote>
-<div><p>If not, leave as ‘none’ and the dataset_key will be automatically generated.</p>
-</div></blockquote>
-<p>override_check (bool, optional): If ‘True’ then do NOT perform a check of the keys/values against approved list and enforcement criteria
+dataset_key (str, optional): If updating a file already in the datastore enter the corresponding dataset_key.  If not, leave as ‘none’ and the dataset_key will be automatically generated.
+override_check (bool, optional): If ‘True’ then do NOT perform a check of the keys/values against approved list and enforcement criteria
 return_metadata (bool, optional): If ‘True’ (default=False), then return the metadata from the uploaded file
-file_ref (bool, optional) : If ‘True’ (default=False), links file to the datastore instead of creating a copy to managed by the datastore.
-data_type (str,optional) : Specify dataType (e.g. csv,bz, etc) if not specified attempt to use file extension</p>
+file_ref (bool, optional): If ‘True’ (default=False), links file to the datastore instead of creating a copy to managed by the datastore.
+data_type (str,optional): Specify dataType (e.g. csv,bz, etc) if not specified attempt to use file extension</p>
 </dd>
 <dt>Returns:</dt><dd><p>(dict): optionally returns the metadata from the uploaded file (if return_metadata=True)</p>
 </dd>
@@ -861,6 +876,8 @@ dataset_key (str, optional): If updating a file already in the datastore enter t
 <p>override_check (bool, optional): If True, overrides checking the metadata for the file when uploaded.
 return_metadata (bool, optional): If True, returns metadata for the file after it is uploaded.</p>
 </dd>
+<dt>Returns:</dt><dd><p>None</p>
+</dd>
 </dl>
 </dd></dl>
 
@@ -880,8 +897,11 @@ Author: Amanda Minnich</p>
 <dl class="py method">
 <dt id="utils.hyperparam_search_wrapper.GeometricSearch.generate_assay_list">
 <code class="sig-name descname"><span class="pre">generate_assay_list</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/hyperparam_search_wrapper.html#GeometricSearch.generate_assay_list"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.hyperparam_search_wrapper.GeometricSearch.generate_assay_list" title="Permalink to this definition">¶</a></dt>
-<dd><p>Generates the list of datasets to build models for, with their key, bucket, split, and split uuid
-Returns:</p>
+<dd><p>Generates the list of datasets to build models for, with their key, bucket, split, and split uuid</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>None</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -901,10 +921,10 @@ you want to try for that param</p>
 <dt id="utils.hyperparam_search_wrapper.GeometricSearch.generate_param_combos">
 <code class="sig-name descname"><span class="pre">generate_param_combos</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/hyperparam_search_wrapper.html#GeometricSearch.generate_param_combos"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.hyperparam_search_wrapper.GeometricSearch.generate_param_combos" title="Permalink to this definition">¶</a></dt>
 <dd><p>Performs additional parsing of parameters and generates all combinations</p>
-<p>Returns:</p>
-<blockquote>
-<div><p>None</p>
-</div></blockquote>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>None</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -939,8 +959,11 @@ you want to try for that param</p>
 <dl class="py method">
 <dt id="utils.hyperparam_search_wrapper.GridSearch.generate_assay_list">
 <code class="sig-name descname"><span class="pre">generate_assay_list</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/hyperparam_search_wrapper.html#GridSearch.generate_assay_list"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.hyperparam_search_wrapper.GridSearch.generate_assay_list" title="Permalink to this definition">¶</a></dt>
-<dd><p>Generates the list of datasets to build models for, with their key, bucket, split, and split uuid
-Returns:</p>
+<dd><p>Generates the list of datasets to build models for, with their key, bucket, split, and split uuid</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>None</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -960,10 +983,10 @@ you want to try for that param</p>
 <dt id="utils.hyperparam_search_wrapper.GridSearch.generate_param_combos">
 <code class="sig-name descname"><span class="pre">generate_param_combos</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/hyperparam_search_wrapper.html#GridSearch.generate_param_combos"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.hyperparam_search_wrapper.GridSearch.generate_param_combos" title="Permalink to this definition">¶</a></dt>
 <dd><p>Performs additional parsing of parameters and generates all combinations</p>
-<p>Returns:</p>
-<blockquote>
-<div><p>None</p>
-</div></blockquote>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>None</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -994,19 +1017,12 @@ you want to try for that param</p>
 <dt id="utils.hyperparam_search_wrapper.HyperOptSearch">
 <em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">utils.hyperparam_search_wrapper.</span></code><code class="sig-name descname"><span class="pre">HyperOptSearch</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/hyperparam_search_wrapper.html#HyperOptSearch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.hyperparam_search_wrapper.HyperOptSearch" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Perform hyperparameter search with Bayesian Optmization (Tree Parzen Estimator)
-To use HyperOptSearch, modify the config json file as follows:</p>
+<p>Perform hyperparameter search with Bayesian Optmization (Tree Parzen Estimator)</p>
+<p>To use HyperOptSearch, modify the config json file as follows:</p>
 <blockquote>
 <div><p>serach_type: use “hyperopt”
-result_dir: use two directories (recommended), separated by comma, 1st one will be used to save the best model tarball, 2nd one will be used to store all models during the process.</p>
-<blockquote>
-<div><p>e.g. “result_dir”: “/path/of/the/final/dir,/path/of/the/temp/dir”</p>
-</div></blockquote>
-<dl class="simple">
-<dt>model_type: RF or NN, also add max number of HyperOptSearch evaluations, e.g. “model_type”: “RF|100”.</dt><dd><p>If no max number provide, the default 100 will be used.</p>
-</dd>
-</dl>
-<p>#For NN models only
+result_dir: use two directories (recommended), separated by comma, 1st one will be used to save the best model tarball, 2nd one will be used to store all models during the process.  e.g. “result_dir”: “/path/of/the/final/dir,/path/of/the/temp/dir”
+model_type: RF or NN, also add max number of HyperOptSearch evaluations, e.g. “model_type”: “RF|100”.  If no max number provide, the default 100 will be used.  #For NN models only
 lr: specify learning rate searching method and related parameters as the following scheme.</p>
 <blockquote>
 <div><p>method|parameter1,parameter2…
@@ -1047,12 +1063,10 @@ rff: rf_max_feature, e.g. uniformint|8,128</p>
 <dl class="py method">
 <dt id="utils.hyperparam_search_wrapper.HyperparameterSearch.already_run">
 <code class="sig-name descname"><span class="pre">already_run</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">assay_params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">retry_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/hyperparam_search_wrapper.html#HyperparameterSearch.already_run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.hyperparam_search_wrapper.HyperparameterSearch.already_run" title="Permalink to this definition">¶</a></dt>
-<dd><p>Checks to see if a model with a given metadata combination has already been built
-Args:</p>
-<blockquote>
-<div><p>assay_params: model metadata information</p>
-</div></blockquote>
+<dd><p>Checks to see if a model with a given metadata combination has already been built</p>
 <dl class="simple">
+<dt>Args:</dt><dd><p>assay_params: model metadata information</p>
+</dd>
 <dt>Returns:</dt><dd><p>Boolean specifying if model has been previously built</p>
 </dd>
 </dl>
@@ -1071,8 +1085,11 @@ Args:</p>
 <dl class="py method">
 <dt id="utils.hyperparam_search_wrapper.HyperparameterSearch.generate_assay_list">
 <code class="sig-name descname"><span class="pre">generate_assay_list</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/hyperparam_search_wrapper.html#HyperparameterSearch.generate_assay_list"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.hyperparam_search_wrapper.HyperparameterSearch.generate_assay_list" title="Permalink to this definition">¶</a></dt>
-<dd><p>Generates the list of datasets to build models for, with their key, bucket, split, and split uuid
-Returns:</p>
+<dd><p>Generates the list of datasets to build models for, with their key, bucket, split, and split uuid</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>None</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -1084,22 +1101,23 @@ Returns:</p>
 <dl class="py method">
 <dt id="utils.hyperparam_search_wrapper.HyperparameterSearch.generate_combos">
 <code class="sig-name descname"><span class="pre">generate_combos</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params_dict</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/hyperparam_search_wrapper.html#HyperparameterSearch.generate_combos"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.hyperparam_search_wrapper.HyperparameterSearch.generate_combos" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calls sub-function generate_combo and then uses itertools.product to generate all desired combinations
-Args:</p>
-<blockquote>
-<div><p>params_dict:</p>
-</div></blockquote>
-<p>Returns:</p>
+<dd><p>Calls sub-function generate_combo and then uses itertools.product to generate all desired combinations</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>params_dict:</p>
+</dd>
+<dt>Returns:</dt><dd><p>None</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt id="utils.hyperparam_search_wrapper.HyperparameterSearch.generate_param_combos">
 <code class="sig-name descname"><span class="pre">generate_param_combos</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/hyperparam_search_wrapper.html#HyperparameterSearch.generate_param_combos"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.hyperparam_search_wrapper.HyperparameterSearch.generate_param_combos" title="Permalink to this definition">¶</a></dt>
 <dd><p>Performs additional parsing of parameters and generates all combinations</p>
-<p>Returns:</p>
-<blockquote>
-<div><p>None</p>
-</div></blockquote>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>None</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -1150,36 +1168,41 @@ split_uuids included. Generates splits for the split_combos [[0.1,0.1], [0.15,0.
 <dl class="py method">
 <dt id="utils.hyperparam_search_wrapper.HyperparameterSearch.return_split_uuid">
 <code class="sig-name descname"><span class="pre">return_split_uuid</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bucket</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">splitter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">split_combo</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">retry_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">60</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/hyperparam_search_wrapper.html#HyperparameterSearch.return_split_uuid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.hyperparam_search_wrapper.HyperparameterSearch.return_split_uuid" title="Permalink to this definition">¶</a></dt>
-<dd><p>Loads a dataset, splits it, saves it, and returns the split_uuid
-Args:</p>
-<blockquote>
-<div><p>dataset_key: key for dataset to split
+<dd><p>Loads a dataset, splits it, saves it, and returns the split_uuid</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>dataset_key: key for dataset to split
 bucket: datastore-specific user group bucket
 splitter: Type of splitter to use to split the dataset
 split_combo: tuple of form (split_valid_frac, split_test_frac)</p>
-</div></blockquote>
-<p>Returns:</p>
+</dd>
+<dt>Returns:</dt><dd><p>None</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt id="utils.hyperparam_search_wrapper.HyperparameterSearch.return_split_uuid_file">
 <code class="sig-name descname"><span class="pre">return_split_uuid_file</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">response_cols</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bucket</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">splitter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">split_combo</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">retry_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">60</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/hyperparam_search_wrapper.html#HyperparameterSearch.return_split_uuid_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.hyperparam_search_wrapper.HyperparameterSearch.return_split_uuid_file" title="Permalink to this definition">¶</a></dt>
-<dd><p>Loads a dataset, splits it, saves it, and returns the split_uuid.
-Args:</p>
-<blockquote>
-<div><p>dataset_key: key for dataset to split
+<dd><p>Loads a dataset, splits it, saves it, and returns the split_uuid.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>dataset_key: key for dataset to split
 bucket: datastore-specific user group bucket
 splitter: Type of splitter to use to split the dataset
 split_combo: tuple of form (split_valid_frac, split_test_frac)</p>
-</div></blockquote>
-<p>Returns:</p>
+</dd>
+<dt>Returns:</dt><dd><p>None</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt id="utils.hyperparam_search_wrapper.HyperparameterSearch.run_search">
 <code class="sig-name descname"><span class="pre">run_search</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/hyperparam_search_wrapper.html#HyperparameterSearch.run_search"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.hyperparam_search_wrapper.HyperparameterSearch.run_search" title="Permalink to this definition">¶</a></dt>
-<dd><p>The driver code for generating hyperparameter combinations and submitting jobs
-Returns:</p>
+<dd><p>The driver code for generating hyperparameter combinations and submitting jobs</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>None</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -1214,8 +1237,11 @@ Returns:</p>
 <dl class="py method">
 <dt id="utils.hyperparam_search_wrapper.RandomSearch.generate_assay_list">
 <code class="sig-name descname"><span class="pre">generate_assay_list</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/hyperparam_search_wrapper.html#RandomSearch.generate_assay_list"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.hyperparam_search_wrapper.RandomSearch.generate_assay_list" title="Permalink to this definition">¶</a></dt>
-<dd><p>Generates the list of datasets to build models for, with their key, bucket, split, and split uuid
-Returns:</p>
+<dd><p>Generates the list of datasets to build models for, with their key, bucket, split, and split uuid</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>None</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -1235,10 +1261,10 @@ you want to try for that param</p>
 <dt id="utils.hyperparam_search_wrapper.RandomSearch.generate_param_combos">
 <code class="sig-name descname"><span class="pre">generate_param_combos</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/hyperparam_search_wrapper.html#RandomSearch.generate_param_combos"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.hyperparam_search_wrapper.RandomSearch.generate_param_combos" title="Permalink to this definition">¶</a></dt>
 <dd><p>Performs additional parsing of parameters and generates all combinations</p>
-<p>Returns:</p>
-<blockquote>
-<div><p>None</p>
-</div></blockquote>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>None</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -1273,8 +1299,11 @@ you want to try for that param</p>
 <dl class="py method">
 <dt id="utils.hyperparam_search_wrapper.UserSpecifiedSearch.generate_assay_list">
 <code class="sig-name descname"><span class="pre">generate_assay_list</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/hyperparam_search_wrapper.html#UserSpecifiedSearch.generate_assay_list"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.hyperparam_search_wrapper.UserSpecifiedSearch.generate_assay_list" title="Permalink to this definition">¶</a></dt>
-<dd><p>Generates the list of datasets to build models for, with their key, bucket, split, and split uuid
-Returns:</p>
+<dd><p>Generates the list of datasets to build models for, with their key, bucket, split, and split uuid</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>None</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -1294,10 +1323,10 @@ you want to try for that param</p>
 <dt id="utils.hyperparam_search_wrapper.UserSpecifiedSearch.generate_param_combos">
 <code class="sig-name descname"><span class="pre">generate_param_combos</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/hyperparam_search_wrapper.html#UserSpecifiedSearch.generate_param_combos"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.hyperparam_search_wrapper.UserSpecifiedSearch.generate_param_combos" title="Permalink to this definition">¶</a></dt>
 <dd><p>Performs additional parsing of parameters and generates all combinations</p>
-<p>Returns:</p>
-<blockquote>
-<div><p>None</p>
-</div></blockquote>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>None</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -1333,15 +1362,13 @@ you want to try for that param</p>
 <dl class="py function">
 <dt id="utils.hyperparam_search_wrapper.get_num_params">
 <code class="sig-prename descclassname"><span class="pre">utils.hyperparam_search_wrapper.</span></code><code class="sig-name descname"><span class="pre">get_num_params</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">combo</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/hyperparam_search_wrapper.html#get_num_params"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.hyperparam_search_wrapper.get_num_params" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calculates the number of parameters in a fully-connected neural networ
-Args:</p>
-<blockquote>
-<div><p>combo: Model parameters</p>
-</div></blockquote>
-<p>Returns:</p>
-<blockquote>
-<div><p>tmp_sum: Calculated number of parameters</p>
-</div></blockquote>
+<dd><p>Calculates the number of parameters in a fully-connected neural networ</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>combo: Model parameters</p>
+</dd>
+<dt>Returns:</dt><dd><p>tmp_sum: Calculated number of parameters</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -1378,42 +1405,36 @@ returns [[8, 8], [8, 4]] [[0,0],[0,0]]</p>
 <code class="sig-prename descclassname"><span class="pre">utils.hyperparam_search_wrapper.</span></code><code class="sig-name descname"><span class="pre">reformat_filter_dict</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filter_dict</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/hyperparam_search_wrapper.html#reformat_filter_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.hyperparam_search_wrapper.reformat_filter_dict" title="Permalink to this definition">¶</a></dt>
 <dd><p>Function to reformat a filter dictionary to match the Model Tracker metadata structure. Updated 9/2020 by A. Paulson
 for new LC model tracker.</p>
-<p>Args:</p>
-<blockquote>
-<div><p>filter_dict: Dictionary containing metadata for model of interest</p>
-</div></blockquote>
-<p>Returns:</p>
-<blockquote>
-<div><p>new_filter_dict: Filter dict reformatted</p>
-</div></blockquote>
+<dl class="simple">
+<dt>Args:</dt><dd><p>filter_dict: Dictionary containing metadata for model of interest</p>
+</dd>
+<dt>Returns:</dt><dd><p>new_filter_dict: Filter dict reformatted</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt id="utils.hyperparam_search_wrapper.run_cmd">
 <code class="sig-prename descclassname"><span class="pre">utils.hyperparam_search_wrapper.</span></code><code class="sig-name descname"><span class="pre">run_cmd</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cmd</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/hyperparam_search_wrapper.html#run_cmd"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.hyperparam_search_wrapper.run_cmd" title="Permalink to this definition">¶</a></dt>
 <dd><p>Function to submit a job using subprocess</p>
-<p>Args:</p>
-<blockquote>
-<div><p>cmd: Command to run</p>
-</div></blockquote>
-<p>Returns:</p>
-<blockquote>
-<div><p>output: Output of command</p>
-</div></blockquote>
+<dl class="simple">
+<dt>Args:</dt><dd><p>cmd: Command to run</p>
+</dd>
+<dt>Returns:</dt><dd><p>output: Output of command</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt id="utils.hyperparam_search_wrapper.run_command">
 <code class="sig-prename descclassname"><span class="pre">utils.hyperparam_search_wrapper.</span></code><code class="sig-name descname"><span class="pre">run_command</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shell_script</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">python_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">script_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/hyperparam_search_wrapper.html#run_command"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.hyperparam_search_wrapper.run_command" title="Permalink to this definition">¶</a></dt>
-<dd><p>Function to submit jobs on a slurm system
-Args:</p>
-<blockquote>
-<div><p>shell_script: Name of shell script to run
+<dd><p>Function to submit jobs on a slurm system</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>shell_script: Name of shell script to run
 python_path: Path to python version
 script_dir: Directory where script lives
 params: parameters in dictionary format</p>
-</div></blockquote>
-<dl class="simple">
+</dd>
 <dt>Returns:</dt><dd><p>None</p>
 </dd>
 </dl>
@@ -1584,7 +1605,7 @@ sidlst (list): list of sids specified as integers</p>
 <dd><p>Retrieve summary info on bioactivity assays.</p>
 <dl class="simple">
 <dt>Args:</dt><dd><p>myList (list): List of PubChem AIDs (bioactivity assay ids)
-intv (1) : number of INCHIKEYS to submit queries for in one request, default is 1</p>
+intv (1): number of INCHIKEYS to submit queries for in one request, default is 1</p>
 </dd>
 <dt>Returns:</dt><dd><p>Nothing returned yet, will return basic stats to help decide whether to use assay or not</p>
 </dd>
@@ -1611,7 +1632,7 @@ sidlst (list): list of sids specified as integers</p>
 Will return only one SMILES string per INCHIKEY.  If there are multiple values returned, the first is retained and the others are returned in a the discard_lst.  INCHIKEYS that fail to return a SMILES string are put in the fail_lst</p>
 <dl class="simple">
 <dt>Args:</dt><dd><p>myList (list): List of INCHIKEYS
-intv (1) : number of INCHIKEYS to submit queries for in one request, default is 1</p>
+intv (1): number of INCHIKEYS to submit queries for in one request, default is 1</p>
 </dd>
 <dt>Returns:</dt><dd><p>list of SMILES strings corresponding to INCHIKEYS
 list of INCHIKEYS, which failed to return a SMILES string
@@ -1662,12 +1683,9 @@ index for each molecule.</p>
 <dt>Args:</dt><dd><p>df (pd.DataFrame): Data frame containing compounds to cluster.</p>
 <p>molecule_column (str): Name of column containing rdkit Mol objects for compounds.</p>
 <p>cluster_column (str): Column that will be created to hold cluster indices.</p>
-<dl class="simple">
-<dt>cutoff (float): Maximum Tanimoto distance parameter used by Butina algorithm to</dt><dd><p>identify neighbors of each molecule.</p>
+<p>cutoff (float): Maximum Tanimoto distance parameter used by Butina algorithm to identify neighbors of each molecule.</p>
 </dd>
 <dt>Returns:</dt><dd><p>None. Input data frame will be modified in place.</p>
-</dd>
-</dl>
 </dd>
 </dl>
 </dd></dl>
@@ -1695,10 +1713,7 @@ tag for it.</p>
 <dt>Args:</dt><dd><p>mol (rdkit.Chem.Mol): Object representing molecule.</p>
 <p>name (str): Filename of image file to create, relative to ‘directory’.</p>
 <p>type (str): Image format; must be ‘png’ or ‘svg’.</p>
-<dl class="simple">
-<dt>directory (str): Path relative to notebook directory of subdirectory where image file will be written.</dt><dd><p>The directory will be created if necessary. Note that absolute paths will not work in notebooks.</p>
-</dd>
-</dl>
+<p>directory (str): Path relative to notebook directory of subdirectory where image file will be written. The directory will be created if necessary. Note that absolute paths will not work in notebooks.</p>
 <p>width (int): Width of image bounding box.</p>
 <p>height (int): Height of image bounding box.</p>
 </dd>
@@ -1754,8 +1769,9 @@ with HTML images rendered in table cells.</p>
 <dl class="simple">
 <dt>Args:</dt><dd><p>df (pd.DataFrame): Data frame to display.</p>
 </dd>
+<dt>Returns:</dt><dd><p>None</p>
+</dd>
 </dl>
-<p>Returns:</p>
 </dd></dl>
 
 <dl class="py function">
@@ -1764,6 +1780,8 @@ with HTML images rendered in table cells.</p>
 <dd><p>Convenience function to display an HTML image specified by image tag ‘html’.</p>
 <dl class="simple">
 <dt>Args:</dt><dd><p>html (str): HTML image tag to render.</p>
+</dd>
+<dt>Returns:</dt><dd><p>None</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1968,6 +1986,9 @@ it can be used as a unique identifier, but doesn’t hold the information needed
            
           </div>
           <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="pipeline.html" class="btn btn-neutral float-left" title="pipeline package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
 
   <hr/>
 

@@ -74,11 +74,10 @@ def cluster_dataframe(df, molecule_column='mol', cluster_column='cluster', cutof
 
         cluster_column (str): Column that will be created to hold cluster indices.
 
-        cutoff (float): Maximum Tanimoto distance parameter used by Butina algorithm to
-            identify neighbors of each molecule.
+        cutoff (float): Maximum Tanimoto distance parameter used by Butina algorithm to identify neighbors of each molecule.
 
-        Returns:
-            None. Input data frame will be modified in place.
+    Returns:
+        None. Input data frame will be modified in place.
 
     """
     df[cluster_column] = -1
@@ -134,8 +133,7 @@ def mol_to_html(mol, name, type='svg', directory='rdkit_svg', width=400, height=
 
         type (str): Image format; must be 'png' or 'svg'.
 
-        directory (str): Path relative to notebook directory of subdirectory where image file will be written.
-            The directory will be created if necessary. Note that absolute paths will not work in notebooks.
+        directory (str): Path relative to notebook directory of subdirectory where image file will be written. The directory will be created if necessary. Note that absolute paths will not work in notebooks.
 
         width (int): Width of image bounding box.
 
@@ -232,6 +230,7 @@ def show_df(df):
         df (pd.DataFrame): Data frame to display.
 
     Returns:
+        None
 
     """
     return HTML(df.to_html(escape=False))
@@ -243,6 +242,9 @@ def show_html(html):
 
     Args:
         html (str): HTML image tag to render.
+
+    Returns:
+        None
 
     """
     return HTML(html)

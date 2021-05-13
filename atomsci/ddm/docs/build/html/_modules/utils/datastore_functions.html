@@ -86,8 +86,19 @@
               
             
             
-              <!-- Local TOC -->
-              <div class="local-toc"></div>
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/getting_started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/tests.html">Tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/running_ampl.html">Running AMPL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/advanced_ampl_usage.html">Advanced AMPL Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/advanced_installation.html">Advanced Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/advanced_testing.html">Advanced Testing</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">atomsci</a></li>
+</ul>
+
             
           
         </div>
@@ -341,6 +352,7 @@
 <span class="c1">#------------------------------------------------------------------------------------------------------</span>
 <div class="viewcode-block" id="key_exists"><a class="viewcode-back" href="../../utils.html#utils.datastore_functions.key_exists">[docs]</a><span class="k">def</span> <span class="nf">key_exists</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">bucket</span><span class="o">=</span><span class="s1">&#39;all&#39;</span><span class="p">,</span> <span class="n">client</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Check if key exists in bucket(s) specified.</span>
+
 <span class="sd">    Args:</span>
 <span class="sd">        key (str): the key of interest</span>
 <span class="sd">        bucket (str or list, optional): &#39;all&#39; by default. Specify bucket (as a str or list) to limit search</span>
@@ -386,7 +398,7 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">        key (str): the key of interest</span>
-<span class="sd">        bucket (str or list, optional) : &#39;all&#39; by default. Specify bucket (as a str or list) to limit search</span>
+<span class="sd">        bucket (str or list, optional): &#39;all&#39; by default. Specify bucket (as a str or list) to limit search</span>
 <span class="sd">        client (optional): set client if not using the default</span>
 
 <span class="sd">    Returns:</span>
@@ -479,9 +491,9 @@
 
 <span class="sd">    Returns:</span>
 <span class="sd">        (DataFrame, OrderedDict, str, dict): filetype determines what type of object is returned.</span>
-<span class="sd">            xls and xlsx files returns an OrderedDict.</span>
-<span class="sd">            tarball (gz and tgz) files returns the location of the files as a string</span>
-<span class="sd">            csv returns a DataFrame</span>
+<span class="sd">        xls and xlsx files returns an OrderedDict.</span>
+<span class="sd">        tarball (gz and tgz) files returns the location of the files as a string</span>
+<span class="sd">        csv returns a DataFrame</span>
 
 <span class="sd">        optionally, return a dictionary of the metadata only if &#39;return_metadata&#39; is set to TRUE.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -603,8 +615,9 @@
 <span class="c1">#------------------------------------------------------------------------------------------------------</span>
 <div class="viewcode-block" id="retrieve_dataset_by_dataset_oid"><a class="viewcode-back" href="../../utils.html#utils.datastore_functions.retrieve_dataset_by_dataset_oid">[docs]</a><span class="k">def</span> <span class="nf">retrieve_dataset_by_dataset_oid</span><span class="p">(</span><span class="n">dataset_oid</span><span class="p">,</span> <span class="n">client</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">return_metadata</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">nrows</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">print_metadata</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">index_col</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tarpath</span><span class="o">=</span><span class="s2">&quot;.&quot;</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; retrieves the dataset and returns as a pandas dataframe (or other format as needed depending on file type).</span>
+
 <span class="sd">    Args:</span>
-<span class="sd">        dataset_oid (str) : unique identifier for the dataset you want</span>
+<span class="sd">        dataset_oid (str): unique identifier for the dataset you want</span>
 <span class="sd">        client (optional): set client if not using the default</span>
 <span class="sd">        return_metadata (bool, optional): if set to True, return a dictionary of the metadata INSTEAD of a dataframe of the data</span>
 <span class="sd">        nrows (num, optional): used to limit the number of rows returned</span>
@@ -615,9 +628,9 @@
 
 <span class="sd">    Returns:</span>
 <span class="sd">        (DataFrame, OrderedDict, str, dict): filetype determines what type of object is returned.</span>
-<span class="sd">            xls and xlsx files returns an OrderedDict.</span>
-<span class="sd">            tarball (gz and tgz) files returns the location of the files as a string</span>
-<span class="sd">            csv returns a DataFrame</span>
+<span class="sd">        xls and xlsx files returns an OrderedDict.</span>
+<span class="sd">        tarball (gz and tgz) files returns the location of the files as a string</span>
+<span class="sd">        csv returns a DataFrame</span>
 
 <span class="sd">        optionally, return a dictionary of the metadata only if &#39;return_metadata&#39; is set to TRUE.&quot;&quot;&quot;</span>
 
@@ -712,8 +725,9 @@
 <span class="sd">        client (optional): set client if not using the default</span>
 <span class="sd">        operator (str, optional): &#39;in&#39; by default, but can be changed to any of the following:</span>
 <span class="sd">                       =, !=, &lt;, &lt;=, &gt;, &gt;=, all, in, not in</span>
-<span class="sd">        bucket (str or list, optional) : &#39;all&#39; by default. Specify bucket (as a str or list) to limit search</span>
+<span class="sd">        bucket (str or list, optional): &#39;all&#39; by default. Specify bucket (as a str or list) to limit search</span>
 <span class="sd">        display_all_columns (bool, optional): If &#39;False&#39; (default), then show only a selected subset of the columns</span>
+
 <span class="sd">    Returns:</span>
 <span class="sd">        (DataFrame): summary table of the files and relevant metadata matching the criteria specified&quot;&quot;&quot;</span>
 
@@ -772,6 +786,7 @@
 
     <span class="sd">&quot;&quot;&quot;Retrieve column(s) from csv file (may be bz2 compressed) in datastore.</span>
 <span class="sd">       &#39;NA&#39; returned if column not in file (as well as warning message).</span>
+
 <span class="sd">    Args:</span>
 <span class="sd">        return_names (bool): If true, just return column headers from file</span>
 <span class="sd">        max_rows (int): default=0 which will return all rows</span>
@@ -873,6 +888,10 @@
 <span class="sd">        dataset_oid_only (bool, optional): if True, return a list of dataset_oids meeting the criteria;   if False, returns a dataframe of all the metadata for the files meeting search criteria</span>
 <span class="sd">        display_all_columns (bool, optional): If &#39;False&#39; (default), then show only a selected subset of the columns</span>
 <span class="sd">        max_rows (int, optional): maximum rows to display during interactive search</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        None</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
 
 
@@ -1155,7 +1174,7 @@
 <span class="sd">    Args:</span>
 <span class="sd">        key_values (dict): keys and values specified by user for a file</span>
 <span class="sd">        client (optional): set client if not using the default</span>
-<span class="sd">        df (DataFrame) : dataframe to be uploaded</span>
+<span class="sd">        df (DataFrame): dataframe to be uploaded</span>
 <span class="sd">        enforced (bool, optional): If True (default) checks that all required keys are filled out</span>
 
 <span class="sd">    Returns:</span>
@@ -1247,12 +1266,11 @@
 <span class="sd">        filepath (str): current location of the file</span>
 <span class="sd">        filename (str): current filename of the file</span>
 <span class="sd">        client (optional): set client if not using the default</span>
-<span class="sd">        dataset_key (str, optional): If updating a file already in the datastore enter the corresponding dataset_key.</span>
-<span class="sd">                      If not, leave as &#39;none&#39; and the dataset_key will be automatically generated.</span>
+<span class="sd">        dataset_key (str, optional): If updating a file already in the datastore enter the corresponding dataset_key.  If not, leave as &#39;none&#39; and the dataset_key will be automatically generated.</span>
 <span class="sd">        override_check (bool, optional): If &#39;True&#39; then do NOT perform a check of the keys/values against approved list and enforcement criteria</span>
 <span class="sd">        return_metadata (bool, optional): If &#39;True&#39; (default=False), then return the metadata from the uploaded file</span>
-<span class="sd">        file_ref (bool, optional) : If &#39;True&#39; (default=False), links file to the datastore instead of creating a copy to managed by the datastore.</span>
-<span class="sd">        data_type (str,optional) : Specify dataType (e.g. csv,bz, etc) if not specified attempt to use file extension</span>
+<span class="sd">        file_ref (bool, optional): If &#39;True&#39; (default=False), links file to the datastore instead of creating a copy to managed by the datastore.</span>
+<span class="sd">        data_type (str,optional): Specify dataType (e.g. csv,bz, etc) if not specified attempt to use file extension</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        (dict): optionally returns the metadata from the uploaded file (if return_metadata=True)&quot;&quot;&quot;</span>
@@ -1326,17 +1344,16 @@
     <span class="sd">&quot;&quot;&quot;This function will upload a file to the Datastore along with the associated metadata</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        df (DataFrame) : dataframe to be uploaded</span>
-<span class="sd">        bucket (str) : bucket the file will be put in</span>
-<span class="sd">        filename (str) : the filename to save the dataframe as in the datastore. Include the extension</span>
-<span class="sd">        title (str) : title of the file in (human friendly format)</span>
-<span class="sd">        description (str) : long text box to describe file (background/use notes)</span>
-<span class="sd">        tags (list) : must be a list.</span>
-<span class="sd">        key_values (dict) : key-value pairs to enable future users to find the file. Must be a dictionary.</span>
+<span class="sd">        df (DataFrame): dataframe to be uploaded</span>
+<span class="sd">        bucket (str): bucket the file will be put in</span>
+<span class="sd">        filename (str): the filename to save the dataframe as in the datastore. Include the extension</span>
+<span class="sd">        title (str): title of the file in (human friendly format)</span>
+<span class="sd">        description (str): long text box to describe file (background/use notes)</span>
+<span class="sd">        tags (list): must be a list.</span>
+<span class="sd">        key_values (dict): key-value pairs to enable future users to find the file. Must be a dictionary.</span>
 <span class="sd">        client (optional): set client if not using the default</span>
-<span class="sd">        dataset_key (str) : If updating a file already in the datastore enter the corresponding dataset_key.</span>
-<span class="sd">                  If not, leave as &#39;none&#39; and the dataset_key will be automatically generated.</span>
-<span class="sd">        data_type (str,optional) : Specify dataType (e.g. csv,bz, etc) if not specified attempt to use file extension</span>
+<span class="sd">        dataset_key (str): If updating a file already in the datastore enter the corresponding dataset_key.  If not, leave as &#39;none&#39; and the dataset_key will be automatically generated.</span>
+<span class="sd">        data_type (str,optional): Specify dataType (e.g. csv,bz, etc) if not specified attempt to use file extension</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        (dict): if return_metadata=True, then function returns a dictionary of the metadata for the uploaded dataset.</span>
@@ -1405,6 +1422,9 @@
 <span class="sd">        kv_add (dict, optional): key-value pairs to add to the metadata for the file specified</span>
 <span class="sd">        kv_del (str or list, optional): keys to delete from the metadata for the file specified</span>
 
+<span class="sd">    Returns:</span>
+<span class="sd">        None</span>
+
 <span class="sd">    &#39;&#39;&#39;</span>
 
     <span class="c1">#configure client if needed</span>
@@ -1461,6 +1481,9 @@
 <span class="sd">        kv_add (dict, optional): key-value pairs to add to the metadata for the file specified</span>
 <span class="sd">        kv_del (str or list, optional): keys to delete from the metadata for the file specified</span>
 
+<span class="sd">    Returns:</span>
+<span class="sd">        None</span>
+
 <span class="sd">    &#39;&#39;&#39;</span>
 
     <span class="c1">#configure client if needed</span>
@@ -1509,7 +1532,7 @@
 <span class="sd">    This is designed to work well with the output from the filter_datasets_interactive function with defined_search=True</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        defined_search (list) : a list with position 0 = string/list of buckets, and remaining positions dictionaries of search criteria</span>
+<span class="sd">        defined_search (list): a list with position 0 = string/list of buckets, and remaining positions dictionaries of search criteria</span>
 <span class="sd">                              example: defined_search = [&#39;gsk_ml&#39;,</span>
 <span class="sd">                                 {&#39;key&#39;: &#39;species&#39;, &#39;value&#39;: [&#39;rat&#39;], &#39;operator&#39;: &#39;in&#39;},</span>
 <span class="sd">                                 {&#39;key&#39;: &#39;assay_category&#39;,&#39;value&#39;: [&#39;solubility&#39;, &#39;volume_of_distribution&#39;], &#39;operator&#39;: &#39;in&#39;}]</span>
@@ -1518,13 +1541,13 @@
 <span class="sd">                    &#39;df&#39; (df_results)  = return a pandas dataframe summarizing metadata of files meeting criteria</span>
 <span class="sd">                    &#39;oid&#39; (dataset_oid) = return a list of dataset_oids meeting criteria</span>
 <span class="sd">                    &#39;ds_key&#39; (dataset_key) = return a list of dataset_key + bucket tuples</span>
-<span class="sd">        display_all_column (bool, optional) : default False. If True, displays all associated metadata instead of just a selected subset</span>
+<span class="sd">        display_all_column (bool, optional): default False. If True, displays all associated metadata instead of just a selected subset</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        One of the following will be returned (based on selection for &#39;to_return&#39;)</span>
-<span class="sd">        (DataFrame) : dataframe of metadata for the files matching the criteria specified in the search</span>
-<span class="sd">        (list) : list of dataset_oids meeting the criteria specified in the search</span>
-<span class="sd">        (list) : list of bucket and dataset_key meeting the criteria specified in the search</span>
+<span class="sd">        (DataFrame): dataframe of metadata for the files matching the criteria specified in the search</span>
+<span class="sd">        (list): list of dataset_oids meeting the criteria specified in the search</span>
+<span class="sd">        (list): list of bucket and dataset_key meeting the criteria specified in the search</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
     <span class="k">if</span> <span class="n">to_return</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;df&#39;</span><span class="p">,</span> <span class="s1">&#39;oid&#39;</span><span class="p">,</span><span class="s1">&#39;ds_key&#39;</span><span class="p">]:</span>
@@ -1611,6 +1634,10 @@
 <span class="sd">                          If not, leave as &#39;none&#39; and the dataset_key will be automatically generated.</span>
 <span class="sd">        override_check (bool, optional): If True, overrides checking the metadata for the file when uploaded.</span>
 <span class="sd">        return_metadata (bool, optional): If True, returns metadata for the file after it is uploaded.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        None</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
 
     <span class="k">if</span> <span class="n">client</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -1661,9 +1688,13 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">        bucket (str or list, optional): buckets to search (defaults to searching all buckets you have access to in the datastore)</span>
-<span class="sd">        input_key : user specified key to query</span>
-<span class="sd">        category : &#39;experimental&#39; or &#39;pdb_bind&#39;</span>
+<span class="sd">        input_key: user specified key to query</span>
+<span class="sd">        category: &#39;experimental&#39; or &#39;pdb_bind&#39;</span>
 <span class="sd">        client (optional): set client if not using the default</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        None</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
 
     <span class="n">values_for_key</span><span class="o">=</span><span class="p">[]</span>
@@ -1698,6 +1729,10 @@
 <span class="sd">                         &#39;ds_key&#39; (dataset_key) = return a list of dataset_key + bucket tuples</span>
 <span class="sd">        display_all_columns (bool, optional): If &#39;False&#39; (default), then show only a selected subset of the columns</span>
 <span class="sd">        max_rows (int, optional): maximum rows to display during interactive search</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        None</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
 
     <span class="k">if</span> <span class="n">to_return</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;df&#39;</span><span class="p">,</span><span class="s1">&#39;search&#39;</span><span class="p">,</span><span class="s1">&#39;oid&#39;</span><span class="p">,</span><span class="s1">&#39;ds_key&#39;</span><span class="p">]:</span>
@@ -1968,7 +2003,12 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">        files (list of tuples): format [(bucket1, dataset_key1), (bucket2, dataset_key2)]</span>
-<span class="sd">        save_as (str): filename to use for new file&#39;&#39;&#39;</span>
+<span class="sd">        save_as (str): filename to use for new file</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        None</span>
+
+<span class="sd">    &#39;&#39;&#39;</span>
 
     <span class="c1">#configure client</span>
     <span class="k">if</span> <span class="n">client</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -2066,7 +2106,7 @@
     <span class="sd">&quot;&quot;&quot;Simple utility to search through list of key value pairs and return values for query key</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        metadata list of key,value pairs (list) : a list with position 0 = string/list of buckets, and remaining positions dictionaries of search criteria</span>
+<span class="sd">        metadata list of key,value pairs (list): a list with position 0 = string/list of buckets, and remaining positions dictionaries of search criteria</span>
 <span class="sd">                              example:</span>
 <span class="sd">                                 [{&#39;key&#39;: &#39;species&#39;, &#39;value&#39;: [&#39;rat&#39;] },</span>
 <span class="sd">                                 {&#39;key&#39;: &#39;assay_category&#39;,&#39;value&#39;: [&#39;solubility&#39;, &#39;volume_of_distribution&#39;]}]</span>
@@ -2098,6 +2138,9 @@
 <span class="sd">        from_bucket (str): Bucket where datasets are now.</span>
 
 <span class="sd">        to_bucket (str): Bucket to move datasets to.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        None</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">ds_client</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
