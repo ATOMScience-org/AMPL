@@ -32,7 +32,11 @@ if 'site-packages' in dsf.__file__: # install_dev.sh points to github directory
     parsed_results = json.loads(data)
     ampl_version=next(item for item in parsed_results if item["name"] == "atomsci-ampl")['version']
 else: # install.sh points to installation directory
-    f=open(dsf.__file__.rsplit('/', maxsplit=4)[0]+'/VERSION', 'r')
+    import pkg_resources
+    VERSION_fn = os.path.join(
+        os.path.dirname(pkg_resources.resource_filename('atomsci', '')),
+        'VERSION')
+    f=open(VERSION_fn, 'r')
     ampl_version = f.read().strip()
     f.close()
 

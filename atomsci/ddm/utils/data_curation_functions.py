@@ -113,7 +113,7 @@ def standardize_relations(dset_df, db='DTC'):
 def upload_file_dtc_raw_data(dset_name, title, description, tags,
                             functional_area, 
                            target, target_type, activity, assay_category,file_path,
-			   data_origin='journal',  species='human',  
+    		   data_origin='journal',  species='human',  
                            force_update=False):
     """Uploads raw DTC data to the datastore
 
@@ -161,7 +161,7 @@ def upload_file_dtc_raw_data(dset_name, title, description, tags,
         'id_col' : 'compound_id'
      }
 
-    #uploaded_file = dsf.upload_file_to_DS(bucket=bucket, filepath=file_path, filename=filename, 		title = title, description=description, tags=tags, key_values=kv, client=None, 			dataset_key=dataset_key, override_check=False, return_metadata=True)
+    #uploaded_file = dsf.upload_file_to_DS(bucket=bucket, filepath=file_path, filename=filename,     	title = title, description=description, tags=tags, key_values=kv, client=None, 			dataset_key=dataset_key, override_check=False, return_metadata=True)
 
     ds_client = dsf.config_client()
     if force_update or not dsf.dataset_key_exists(dataset_key, bucket, ds_client):
@@ -289,6 +289,8 @@ def get_smiles_dtc_data(nm_df,targ_lst,save_smiles_df):
 
     print("num shared compounds",shared_inchi_keys.nunique())
     lst=[]
+    for targ in targ_lst :
+        df=save_df[targ]
         #print(aurka_df.shape,aurkb_df.shape, shared_inchi_keys.shape)
         lst.append(df[df['standard_inchi_key'].isin(shared_inchi_keys)])
         
@@ -338,65 +340,65 @@ def get_smiles_4dtc_data(nm_df,targ_lst,save_smiles_df):
         list, list, str: A list of smiles. A list of inchi keys shared between targets.
             And a description of the targets
     """
-	save_df={}
-	description_str = "" 
-	for targ in targ_lst :
-	    lst1= [ ('gene_names',targ),('standard_type','IC50'),('standard_relation','=') ]
-	    lst1_tmp= [ ('gene_names',targ),('standard_type','IC50')]
-	    jak1_df=down_select(nm_df,lst1)
-	    jak1_df_tmp=down_select(nm_df,lst1_tmp)
-	    print(targ,"distinct compounds = only",jak1_df['standard_inchi_key'].nunique())
-	    print(targ,"distinct compounds <,>,=",jak1_df_tmp['standard_inchi_key'].nunique())
-	    description = '''
+    save_df={}
+    description_str = "" 
+    for targ in targ_lst :
+        lst1= [ ('gene_names',targ),('standard_type','IC50'),('standard_relation','=') ]
+        lst1_tmp= [ ('gene_names',targ),('standard_type','IC50')]
+        jak1_df=down_select(nm_df,lst1)
+        jak1_df_tmp=down_select(nm_df,lst1_tmp)
+        print(targ,"distinct compounds = only",jak1_df['standard_inchi_key'].nunique())
+        print(targ,"distinct compounds <,>,=",jak1_df_tmp['standard_inchi_key'].nunique())
+        description = '''
 # '''+targ+" distinct compounds = only: "+str(jak1_df['standard_inchi_key'].nunique())+'''
 # '''+targ+" distinct compounds <,>,=: "+str(jak1_df_tmp['standard_inchi_key'].nunique())
-	    description_str += description
+        description_str += description
             #to ignore censored data
-	    #save_df[targ]=jak1_df
-	    #to include censored data
-	    save_df[targ]=jak1_df_tmp
+        #save_df[targ]=jak1_df
+        #to include censored data
+        save_df[targ]=jak1_df_tmp
 
-	prev_targ=targ_lst[0]
-	shared_inchi_keys=save_df[prev_targ]['standard_inchi_key']
-	for it in range(1,len(targ_lst),1) :
-	    curr_targ=targ_lst[it]
-	    df=save_df[curr_targ]
-	    shared_inchi_keys=df[df['standard_inchi_key'].isin(shared_inchi_keys)]['standard_inchi_key']
+    prev_targ=targ_lst[0]
+    shared_inchi_keys=save_df[prev_targ]['standard_inchi_key']
+    for it in range(1,len(targ_lst),1) :
+        curr_targ=targ_lst[it]
+        df=save_df[curr_targ]
+        shared_inchi_keys=df[df['standard_inchi_key'].isin(shared_inchi_keys)]['standard_inchi_key']
 
-	print("num shared compounds",shared_inchi_keys.nunique())
-	lst=[]
-	for targ in targ_lst :
-	    df=save_df[targ]
-	    #print(aurka_df.shape,aurkb_df.shape, shared_inchi_keys.shape)
-	    lst.append(df[df['standard_inchi_key'].isin(shared_inchi_keys)])
-	    
-	shared_df=pd.concat(lst)
-	# Add pIC50 values
-	print('Add pIC50 values.')
-	shared_df['PIC50']=shared_df['standard_value'].apply(ic50topic50)
+    print("num shared compounds",shared_inchi_keys.nunique())
+    lst=[]
+    for targ in targ_lst :
+        df=save_df[targ]
+        #print(aurka_df.shape,aurkb_df.shape, shared_inchi_keys.shape)
+        lst.append(df[df['standard_inchi_key'].isin(shared_inchi_keys)])
+        
+    shared_df=pd.concat(lst)
+    # Add pIC50 values
+    print('Add pIC50 values.')
+    shared_df['PIC50']=shared_df['standard_value'].apply(ic50topic50)
 
-	# Merge in SMILES strings
-	print('Merge in SMILES strings.')
-	smiles_lst=[]
-	for targ in targ_lst :
-	    df=save_df[targ]
-	    df['PIC50']=df['standard_value'].apply(ic50topic50)
-	    smiles_df=df.merge(save_smiles_df,on='standard_inchi_key',suffixes=('_'+targ,'_'))
-	    #the file puts the SMILES string in quotes, which need to be removed
-	    smiles_df['smiles']=smiles_df['smiles'].str.replace('"','')
-	    smiles_df['rdkit_smiles']=smiles_df['smiles'].apply(struct_utils.base_smiles_from_smiles)
-	    smiles_df['smiles']=smiles_df['smiles'].str.replace('"','')
-	    print("Shape of dataframe:", smiles_df.shape)
-	    print("Number of unique standard_inchi_key:", smiles_df['standard_inchi_key'].nunique())
-	    smiles_lst.append(smiles_df)
+    # Merge in SMILES strings
+    print('Merge in SMILES strings.')
+    smiles_lst=[]
+    for targ in targ_lst :
+        df=save_df[targ]
+        df['PIC50']=df['standard_value'].apply(ic50topic50)
+        smiles_df=df.merge(save_smiles_df,on='standard_inchi_key',suffixes=('_'+targ,'_'))
+        #the file puts the SMILES string in quotes, which need to be removed
+        smiles_df['smiles']=smiles_df['smiles'].str.replace('"','')
+        smiles_df['rdkit_smiles']=smiles_df['smiles'].apply(struct_utils.base_smiles_from_smiles)
+        smiles_df['smiles']=smiles_df['smiles'].str.replace('"','')
+        print("Shape of dataframe:", smiles_df.shape)
+        print("Number of unique standard_inchi_key:", smiles_df['standard_inchi_key'].nunique())
+        smiles_lst.append(smiles_df)
 
 
-	return smiles_lst, shared_inchi_keys, description_str
+    return smiles_lst, shared_inchi_keys, description_str
 
 def upload_df_dtc_smiles(dset_name, title, description, tags,
                             functional_area, 
                            target, target_type, activity, assay_category,smiles_df,orig_fileID,
-			   data_origin='journal',  species='human',  
+    		   data_origin='journal',  species='human',  
                            force_update=False):
     """Uploads DTC smiles data to the datastore
 
@@ -446,12 +448,12 @@ def upload_df_dtc_smiles(dset_name, title, description, tags,
 
      }
 
-    #uploaded_file = dsf.upload_file_to_DS(bucket=bucket, filepath=file_path, filename=filename, 		title = title, description=description, tags=tags, key_values=kv, client=None, 			dataset_key=dataset_key, override_check=False, return_metadata=True)
+    #uploaded_file = dsf.upload_file_to_DS(bucket=bucket, filepath=file_path, filename=filename,     	title = title, description=description, tags=tags, key_values=kv, client=None, 			dataset_key=dataset_key, override_check=False, return_metadata=True)
 
     ds_client = dsf.config_client()
     if force_update or not dsf.dataset_key_exists(dataset_key, bucket, ds_client):
         uploaded_file = dsf.upload_df_to_DS(bucket=bucket, filename=filename,df=smiles_df, title = title, description=description, tags=tags, key_values=kv, client=None, dataset_key=dataset_key, override_check=False, return_metadata=True)
-        #uploaded_file = dsf.upload_file_to_DS(bucket=bucket, filepath=file_path, filename=filename, 		title = title, description=description, tags=tags, key_values=kv, client=None, 			dataset_key=dataset_key, override_check=False, return_metadata=True)
+        #uploaded_file = dsf.upload_file_to_DS(bucket=bucket, filepath=file_path, filename=filename,     	title = title, description=description, tags=tags, key_values=kv, client=None, 			dataset_key=dataset_key, override_check=False, return_metadata=True)
 
         print("Uploaded raw dataset with key %s" % dataset_key)
     else:
@@ -480,41 +482,41 @@ def atom_curation(targ_lst, smiles_lst, shared_inchi_keys):
             dropped during the curation process for each target.
 
     """
-	imp.reload(curate_data)
-	tolerance=10
-	column='PIC50'; #'standard_value'
-	list_bad_duplicates='No'
-	max_std=1
-	curated_lst=[]
-	num_dropped_lst=[]
-	#print(targ_lst)
-	#print(smiles_lst)
-	for it in range(len(targ_lst)) :
-		data=smiles_lst[it]
-		data = data[data.standard_relation.str.strip() == '=']
-		print("gene_names",data.gene_names.unique())
-		print("standard_type",data.standard_type.unique())
-		print("standard_relation",data.standard_relation.unique())
-		print("before",data.shape)
-		curated_df=curate_data.average_and_remove_duplicates (column, tolerance, list_bad_duplicates, data, max_std, compound_id='standard_inchi_key',smiles_col='rdkit_smiles')
+    imp.reload(curate_data)
+    tolerance=10
+    column='PIC50'; #'standard_value'
+    list_bad_duplicates='No'
+    max_std=1
+    curated_lst=[]
+    num_dropped_lst=[]
+    #print(targ_lst)
+    #print(smiles_lst)
+    for it in range(len(targ_lst)) :
+    	data=smiles_lst[it]
+    	data = data[data.standard_relation.str.strip() == '=']
+    	print("gene_names",data.gene_names.unique())
+    	print("standard_type",data.standard_type.unique())
+    	print("standard_relation",data.standard_relation.unique())
+    	print("before",data.shape)
+    	curated_df=curate_data.average_and_remove_duplicates (column, tolerance, list_bad_duplicates, data, max_std, compound_id='standard_inchi_key',smiles_col='rdkit_smiles')
 
-		# (Yaru) Remove inf in curated_df
-		curated_df = curated_df[~curated_df.isin([np.inf]).any(1)]
-		# (Yaru) Remove nan on rdkit_smiles
-		curated_df = curated_df.dropna(subset=['rdkit_smiles'])
+    	# (Yaru) Remove inf in curated_df
+    	curated_df = curated_df[~curated_df.isin([np.inf]).any(1)]
+    	# (Yaru) Remove nan on rdkit_smiles
+    	curated_df = curated_df.dropna(subset=['rdkit_smiles'])
 
-		curated_lst.append(curated_df)
-		prev_cmpd_cnt=shared_inchi_keys.nunique()
-		num_dropped=prev_cmpd_cnt-curated_df.shape[0]
-		num_dropped_lst.append(num_dropped)
-		print("After",curated_df.shape, "# of dropped compounds",num_dropped)
+    	curated_lst.append(curated_df)
+    	prev_cmpd_cnt=shared_inchi_keys.nunique()
+    	num_dropped=prev_cmpd_cnt-curated_df.shape[0]
+    	num_dropped_lst.append(num_dropped)
+    	print("After",curated_df.shape, "# of dropped compounds",num_dropped)
 
-	return curated_lst,num_dropped_lst
+    return curated_lst,num_dropped_lst
 
 def upload_df_dtc_mleqonly(dset_name, title, description, tags,
                             functional_area, 
                            target, target_type, activity, assay_category,data_df,dtc_smiles_fileID,
-			   data_origin='journal',  species='human',  
+    		   data_origin='journal',  species='human',  
                            force_update=False):
     """Uploads DTC mleqonly data to the datastore
 
@@ -571,13 +573,13 @@ def upload_df_dtc_mleqonly(dset_name, title, description, tags,
         'source_file_id' : dtc_smiles_fileID
      }
 
-    #uploaded_file = dsf.upload_file_to_DS(bucket=bucket, filepath=file_path, filename=filename, 		title = title, description=description, tags=tags, key_values=kv, client=None, 			dataset_key=dataset_key, override_check=False, return_metadata=True)
+    #uploaded_file = dsf.upload_file_to_DS(bucket=bucket, filepath=file_path, filename=filename,     	title = title, description=description, tags=tags, key_values=kv, client=None, 			dataset_key=dataset_key, override_check=False, return_metadata=True)
 
     ds_client = dsf.config_client()
     if force_update or not dsf.dataset_key_exists(dataset_key, bucket, ds_client):
         uploaded_file = dsf.upload_df_to_DS(bucket=bucket, filename=filename,df=data_df, title = title, description=description, tags=tags, key_values=kv, client=None, dataset_key=dataset_key, override_check=False, return_metadata=True)
 
-        #uploaded_file = dsf.upload_file_to_DS(bucket=bucket, filepath=file_path, filename=filename, 		title = title, description=description, tags=tags, key_values=kv, client=None, 			dataset_key=dataset_key, override_check=False, return_metadata=True)
+        #uploaded_file = dsf.upload_file_to_DS(bucket=bucket, filepath=file_path, filename=filename,     	title = title, description=description, tags=tags, key_values=kv, client=None, 			dataset_key=dataset_key, override_check=False, return_metadata=True)
 
         print("Uploaded raw dataset with key %s" % dataset_key)
     else:
@@ -590,7 +592,7 @@ def upload_df_dtc_mleqonly(dset_name, title, description, tags,
 def upload_df_dtc_mleqonly_class(dset_name, title, description, tags,
                             functional_area, 
                            target, target_type, activity, assay_category,data_df,dtc_mleqonly_fileID,
-			   data_origin='journal',  species='human',  
+    		   data_origin='journal',  species='human',  
                            force_update=False):
     """Uploads DTC mleqonly classification data to the datastore
 
@@ -642,8 +644,8 @@ def upload_df_dtc_mleqonly_class(dset_name, title, description, tags,
         'id_col' : 'compound_id',
         'response_col' : 'binary_class',
         'prediction_type' : 'classification',
-	'num_classes' : 2,
-	'class_names' : ['inactive','active'],
+    'num_classes' : 2,
+    'class_names' : ['inactive','active'],
         'smiles_col' : 'rdkit_smiles',
         'units' : 'unitless',
         'source_file_id' : dtc_mleqonly_fileID
@@ -732,7 +734,7 @@ def upload_df_dtc_base_smiles_all(dset_name, title, description, tags,
 def upload_file_dtc_smiles_regr_all(dset_name, title, description, tags,
                             functional_area, 
                            target, target_type, activity, assay_category,file_path,dtc_smiles_fileID,
-			smiles_column,  data_origin='journal',  species='human',  
+    		smiles_column,  data_origin='journal',  species='human',  
                            force_update=False):
     """Uploads regression DTC data to the datastore
 
@@ -788,13 +790,13 @@ def upload_file_dtc_smiles_regr_all(dset_name, title, description, tags,
         'source_file_id' : dtc_smiles_fileID
      }
 
-    #uploaded_file = dsf.upload_file_to_DS(bucket=bucket, filepath=file_path, filename=filename, 		title = title, description=description, tags=tags, key_values=kv, client=None, 			dataset_key=dataset_key, override_check=False, return_metadata=True)
+    #uploaded_file = dsf.upload_file_to_DS(bucket=bucket, filepath=file_path, filename=filename,     	title = title, description=description, tags=tags, key_values=kv, client=None, 			dataset_key=dataset_key, override_check=False, return_metadata=True)
 
     ds_client = dsf.config_client()
     if force_update or not dsf.dataset_key_exists(dataset_key, bucket, ds_client):
         #uploaded_file = dsf.upload_df_to_DS(bucket=bucket, filename=filename,df=data_df, title = title, description=description, tags=tags, key_values=kv, client=None, dataset_key=dataset_key, override_check=False, return_metadata=True)
 
-        uploaded_file = dsf.upload_file_to_DS(bucket=bucket, filepath=file_path, filename=filename, 		title = title, description=description, tags=tags, key_values=kv, client=None, 			dataset_key=dataset_key, override_check=False, return_metadata=True)
+        uploaded_file = dsf.upload_file_to_DS(bucket=bucket, filepath=file_path, filename=filename,     	title = title, description=description, tags=tags, key_values=kv, client=None, 			dataset_key=dataset_key, override_check=False, return_metadata=True)
 
         print("Uploaded raw dataset with key %s" % dataset_key)
     else:
@@ -807,7 +809,7 @@ def upload_file_dtc_smiles_regr_all(dset_name, title, description, tags,
 def upload_df_dtc_smiles_regr_all_class(dset_name, title, description, tags,
                             functional_area, 
                            target, target_type, activity, assay_category,data_df,dtc_smiles_regr_all_fileID,
-			   smiles_column, data_origin='journal',  species='human',  
+    		   smiles_column, data_origin='journal',  species='human',  
                            force_update=False):
     """Uploads DTC classification data to the datastore
 
@@ -858,20 +860,20 @@ def upload_df_dtc_smiles_regr_all_class(dset_name, title, description, tags,
         'id_col' : 'compound_id',
         'response_col' : 'PIC50',
         'prediction_type' : 'classification',
-	'num_classes' : 2,
+    'num_classes' : 2,
         'smiles_col' : smiles_column,
-	'class_names' : ['inactive','active'],
+    'class_names' : ['inactive','active'],
         'units' : 'unitless',
         'source_file_id' : dtc_smiles_regr_all_fileID
      }
 
-    #uploaded_file = dsf.upload_file_to_DS(bucket=bucket, filepath=file_path, filename=filename, 		title = title, description=description, tags=tags, key_values=kv, client=None, 			dataset_key=dataset_key, override_check=False, return_metadata=True)
+    #uploaded_file = dsf.upload_file_to_DS(bucket=bucket, filepath=file_path, filename=filename,     	title = title, description=description, tags=tags, key_values=kv, client=None, 			dataset_key=dataset_key, override_check=False, return_metadata=True)
 
     ds_client = dsf.config_client()
     if force_update or not dsf.dataset_key_exists(dataset_key, bucket, ds_client):
         uploaded_file = dsf.upload_df_to_DS(bucket=bucket, filename=filename,df=data_df, title = title, description=description, tags=tags, key_values=kv, client=None, dataset_key=dataset_key, override_check=False, return_metadata=True)
 
-        #uploaded_file = dsf.upload_file_to_DS(bucket=bucket, filepath=file_path, filename=filename, 		title = title, description=description, tags=tags, key_values=kv, client=None, 			dataset_key=dataset_key, override_check=False, return_metadata=True)
+        #uploaded_file = dsf.upload_file_to_DS(bucket=bucket, filepath=file_path, filename=filename,     	title = title, description=description, tags=tags, key_values=kv, client=None, 			dataset_key=dataset_key, override_check=False, return_metadata=True)
 
         print("Uploaded raw dataset with key %s" % dataset_key)
     else:
@@ -888,7 +890,7 @@ def upload_df_dtc_smiles_regr_all_class(dset_name, title, description, tags,
 def upload_file_excape_raw_data(dset_name, title, description, tags,
                             functional_area, 
                            target, target_type, activity, assay_category,file_path,
-			   data_origin='journal',  species='human',  
+    		   data_origin='journal',  species='human',  
                            force_update=False):
     """Uploads raw Excape data to the datastore
 
@@ -935,7 +937,7 @@ def upload_file_excape_raw_data(dset_name, title, description, tags,
         'id_col' : 'Original_Entry_ID'
      }
 
-    #uploaded_file = dsf.upload_file_to_DS(bucket=bucket, filepath=file_path, filename=filename, 		title = title, description=description, tags=tags, key_values=kv, client=None, 			dataset_key=dataset_key, override_check=False, return_metadata=True)
+    #uploaded_file = dsf.upload_file_to_DS(bucket=bucket, filepath=file_path, filename=filename,     	title = title, description=description, tags=tags, key_values=kv, client=None, 			dataset_key=dataset_key, override_check=False, return_metadata=True)
 
     ds_client = dsf.config_client()
     if force_update or not dsf.dataset_key_exists(dataset_key, bucket, ds_client):
@@ -943,7 +945,7 @@ def upload_file_excape_raw_data(dset_name, title, description, tags,
         #                               description=description,
         #                               tags=tags, key_values=kv, client=None, dataset_key=dataset_key,
         #                               override_check=True, return_metadata=True)
-        uploaded_file = dsf.upload_file_to_DS(bucket=bucket, filepath=file_path, filename=filename, 		title = title, description=description, tags=tags, key_values=kv, client=None, 			dataset_key=dataset_key, override_check=False, return_metadata=True)
+        uploaded_file = dsf.upload_file_to_DS(bucket=bucket, filepath=file_path, filename=filename,     	title = title, description=description, tags=tags, key_values=kv, client=None, 			dataset_key=dataset_key, override_check=False, return_metadata=True)
 
         print("Uploaded raw dataset with key %s" % dataset_key)
     else:
@@ -973,43 +975,43 @@ def get_smiles_excape_data(nm_df,targ_lst):
             all inchi keys used in the dataset.
 
     """
-	# Delete NaN
-	nm_df = nm_df.dropna(subset=['pXC50'])
+    # Delete NaN
+    nm_df = nm_df.dropna(subset=['pXC50'])
 
-	# (Yaru) Use nm_df, which has removed nan's
-	# Don't need to retrieve SMILES, since already in excape file 	
-	# No filtering by censored
-	save_df={}
-	targ = targ_lst[0]
-	save_df[targ_lst[0]] = nm_df
-	print(targ,"distinct compounds = only",nm_df['Ambit_InchiKey'].nunique())
-	shared_inchi_keys = nm_df['Ambit_InchiKey']
+    # (Yaru) Use nm_df, which has removed nan's
+    # Don't need to retrieve SMILES, since already in excape file 	
+    # No filtering by censored
+    save_df={}
+    targ = targ_lst[0]
+    save_df[targ_lst[0]] = nm_df
+    print(targ,"distinct compounds = only",nm_df['Ambit_InchiKey'].nunique())
+    shared_inchi_keys = nm_df['Ambit_InchiKey']
 
-	# Merge in SMILES strings
-	smiles_lst=[]
+    # Merge in SMILES strings
+    smiles_lst=[]
 
-	save_df[targ_lst[0]] = nm_df
+    save_df[targ_lst[0]] = nm_df
 
-	for targ in targ_lst :
-	    df=save_df[targ]
-	    smiles_df = df
-	    #df['PIC50']=df['standard_value'].apply(ic50topic50)
-	    #smiles_df=df.merge(save_smiles_df,on='standard_inchi_key',suffixes=('_'+targ,'_'))
-	    #the file puts the SMILES string in quotes, which need to be removed
-	    #smiles_df['smiles']=smiles_df['smiles'].str.replace('"','')
-	    smiles_df['rdkit_smiles']=smiles_df['SMILES'].apply(struct_utils.base_smiles_from_smiles)
-	    #smiles_df['smiles']=smiles_df['smiles'].str.replace('"','')
-	    print(smiles_df.shape)
-	    print(smiles_df['Ambit_InchiKey'].nunique())
-	    smiles_lst.append(smiles_df)
+    for targ in targ_lst :
+        df=save_df[targ]
+        smiles_df = df
+        #df['PIC50']=df['standard_value'].apply(ic50topic50)
+        #smiles_df=df.merge(save_smiles_df,on='standard_inchi_key',suffixes=('_'+targ,'_'))
+        #the file puts the SMILES string in quotes, which need to be removed
+        #smiles_df['smiles']=smiles_df['smiles'].str.replace('"','')
+        smiles_df['rdkit_smiles']=smiles_df['SMILES'].apply(struct_utils.base_smiles_from_smiles)
+        #smiles_df['smiles']=smiles_df['smiles'].str.replace('"','')
+        print(smiles_df.shape)
+        print(smiles_df['Ambit_InchiKey'].nunique())
+        smiles_lst.append(smiles_df)
 
-	return smiles_lst, shared_inchi_keys
+    return smiles_lst, shared_inchi_keys
 
 
 def upload_df_excape_smiles(dset_name, title, description, tags,
                             functional_area, 
                            target, target_type, activity, assay_category,smiles_df,orig_fileID,
-			   data_origin='journal',  species='human',  
+    		   data_origin='journal',  species='human',  
                            force_update=False):
     """Uploads Excape SMILES data to the datastore
 
@@ -1060,12 +1062,12 @@ def upload_df_excape_smiles(dset_name, title, description, tags,
 
      }
 
-    #uploaded_file = dsf.upload_file_to_DS(bucket=bucket, filepath=file_path, filename=filename, 		title = title, description=description, tags=tags, key_values=kv, client=None, 			dataset_key=dataset_key, override_check=False, return_metadata=True)
+    #uploaded_file = dsf.upload_file_to_DS(bucket=bucket, filepath=file_path, filename=filename,     	title = title, description=description, tags=tags, key_values=kv, client=None, 			dataset_key=dataset_key, override_check=False, return_metadata=True)
 
     ds_client = dsf.config_client()
     if force_update or not dsf.dataset_key_exists(dataset_key, bucket, ds_client):
         uploaded_file = dsf.upload_df_to_DS(bucket=bucket, filename=filename,df=smiles_df, title = title, description=description, tags=tags, key_values=kv, client=None, dataset_key=dataset_key, override_check=False, return_metadata=True)
-        #uploaded_file = dsf.upload_file_to_DS(bucket=bucket, filepath=file_path, filename=filename, 		title = title, description=description, tags=tags, key_values=kv, client=None, 			dataset_key=dataset_key, override_check=False, return_metadata=True)
+        #uploaded_file = dsf.upload_file_to_DS(bucket=bucket, filepath=file_path, filename=filename,     	title = title, description=description, tags=tags, key_values=kv, client=None, 			dataset_key=dataset_key, override_check=False, return_metadata=True)
 
         print("Uploaded raw dataset with key %s" % dataset_key)
     else:
@@ -1076,7 +1078,7 @@ def upload_df_excape_smiles(dset_name, title, description, tags,
     return raw_dset_oid
 
 def atom_curation_excape(targ_lst, smiles_lst, shared_inchi_keys):
-	"""Apply ATOM standard 'curation' step
+    """Apply ATOM standard 'curation' step
 
     Apply ATOM standard 'curation' step: Average replicate assays, 
     remove duplicates and drop cases with large variance between replicates.
@@ -1092,51 +1094,51 @@ def atom_curation_excape(targ_lst, smiles_lst, shared_inchi_keys):
     Returns:
         list:A list of curated DataFrames
     """
-	imp.reload(curate_data)
-	tolerance=10
-	column='pXC50'; #'standard_value'
-	list_bad_duplicates='No'
-	max_std=1
-	curated_lst=[]
-	#print(targ_lst)
-	#print(smiles_lst)
-	for it in range(len(targ_lst)) :
-		data=smiles_lst[it]
-		#data = data[data.standard_relation.str.strip() == '=']
-		#print("gene_names",data.gene_names.unique())
-		#print("standard_type",data.standard_type.unique())
-		#print("standard_relation",data.standard_relation.unique())
-		print("before",data.shape)
-		curated_df=curate_data.average_and_remove_duplicates (column, tolerance, list_bad_duplicates, data, max_std, compound_id='standard_inchi_key',smiles_col='rdkit_smiles')
+    imp.reload(curate_data)
+    tolerance=10
+    column='pXC50'; #'standard_value'
+    list_bad_duplicates='No'
+    max_std=1
+    curated_lst=[]
+    #print(targ_lst)
+    #print(smiles_lst)
+    for it in range(len(targ_lst)) :
+    	data=smiles_lst[it]
+    	#data = data[data.standard_relation.str.strip() == '=']
+    	#print("gene_names",data.gene_names.unique())
+    	#print("standard_type",data.standard_type.unique())
+    	#print("standard_relation",data.standard_relation.unique())
+    	print("before",data.shape)
+    	curated_df=curate_data.average_and_remove_duplicates (column, tolerance, list_bad_duplicates, data, max_std, compound_id='standard_inchi_key',smiles_col='rdkit_smiles')
 
-		# (Yaru) Remove inf in curated_df
-		curated_df = curated_df[~curated_df.isin([np.inf]).any(1)]
-		# (Yaru) Remove nan on rdkit_smiles
-		curated_df = curated_df.dropna(subset=['rdkit_smiles'])
-		curated_df = curated_df.dropna(subset=['VALUE_NUM_mean'])
-		curated_df = curated_df.dropna(subset=['pXC50'])
-		
-		# (Kevin)
-		# Filter criteria:
-		#   pXC50 not missing
-		#   rdkit_smiles not blank
-		#   pXC50 > 3
-		#dset_df = dset_df[dset_df.pXC50 >= 3.0]
+    	# (Yaru) Remove inf in curated_df
+    	curated_df = curated_df[~curated_df.isin([np.inf]).any(1)]
+    	# (Yaru) Remove nan on rdkit_smiles
+    	curated_df = curated_df.dropna(subset=['rdkit_smiles'])
+    	curated_df = curated_df.dropna(subset=['VALUE_NUM_mean'])
+    	curated_df = curated_df.dropna(subset=['pXC50'])
+    	
+    	# (Kevin)
+    	# Filter criteria:
+    	#   pXC50 not missing
+    	#   rdkit_smiles not blank
+    	#   pXC50 > 3
+    	#dset_df = dset_df[dset_df.pXC50 >= 3.0]
 
-		curated_lst.append(curated_df)
-		prev_cmpd_cnt=shared_inchi_keys.nunique()
-		num_dropped=prev_cmpd_cnt-curated_df.shape[0]
-		print("After",curated_df.shape, "# of dropped compounds",num_dropped)
+    	curated_lst.append(curated_df)
+    	prev_cmpd_cnt=shared_inchi_keys.nunique()
+    	num_dropped=prev_cmpd_cnt-curated_df.shape[0]
+    	print("After",curated_df.shape, "# of dropped compounds",num_dropped)
 
-	return curated_lst
+    return curated_lst
 
 
 def upload_df_excape_mleqonly(dset_name, title, description, tags,
                             functional_area, 
                            target, target_type, activity, assay_category,data_df,smiles_fileID,
-			   data_origin='journal',  species='human',  
+    		   data_origin='journal',  species='human',  
                            force_update=False):
-   """Uploads Excape mleqonly data to the datastore
+    """Uploads Excape mleqonly data to the datastore
 
     Upload mleqonly to the datastore from the given DataFrame. 
     Returns the datastore OID of the uploaded dataset. The dataset is uploaded to the
@@ -1163,6 +1165,7 @@ def upload_df_excape_mleqonly(dset_name, title, description, tags,
     Returns:
         str: datastore OID of the uploaded dataset.
     """
+
     bucket = 'public'
     #he6: this used to say _dtc_mleqonly.csv
     filename = '%s_excape_mleqonly.csv' % dset_name
@@ -1179,7 +1182,7 @@ def upload_df_excape_mleqonly(dset_name, title, description, tags,
         'journal_doi' : 'https://dx.doi.org/10.1186%2Fs13321-017-0203-5', # ExCAPE-DB
         'sample_type' : 'in_vitro',
         'species' : species,
-        'target' : 'CYP2D6',
+        'target' : target,
         'target_type' : target_type,
         'id_col' : 'Original_Entry_ID',
         'response_col' : 'VALUE_NUM_mean',
@@ -1189,13 +1192,13 @@ def upload_df_excape_mleqonly(dset_name, title, description, tags,
         'source_file_id' : smiles_fileID
      }
 
-    #uploaded_file = dsf.upload_file_to_DS(bucket=bucket, filepath=file_path, filename=filename, 		title = title, description=description, tags=tags, key_values=kv, client=None, 			dataset_key=dataset_key, override_check=False, return_metadata=True)
+    #uploaded_file = dsf.upload_file_to_DS(bucket=bucket, filepath=file_path, filename=filename,     	title = title, description=description, tags=tags, key_values=kv, client=None, 			dataset_key=dataset_key, override_check=False, return_metadata=True)
 
     ds_client = dsf.config_client()
     if force_update or not dsf.dataset_key_exists(dataset_key, bucket, ds_client):
         uploaded_file = dsf.upload_df_to_DS(bucket=bucket, filename=filename,df=data_df, title = title, description=description, tags=tags, key_values=kv, client=None, dataset_key=dataset_key, override_check=False, return_metadata=True)
 
-        #uploaded_file = dsf.upload_file_to_DS(bucket=bucket, filepath=file_path, filename=filename, 		title = title, description=description, tags=tags, key_values=kv, client=None, 			dataset_key=dataset_key, override_check=False, return_metadata=True)
+        #uploaded_file = dsf.upload_file_to_DS(bucket=bucket, filepath=file_path, filename=filename,     	title = title, description=description, tags=tags, key_values=kv, client=None, 			dataset_key=dataset_key, override_check=False, return_metadata=True)
 
         print("Uploaded raw dataset with key %s" % dataset_key)
     else:
@@ -1208,9 +1211,9 @@ def upload_df_excape_mleqonly(dset_name, title, description, tags,
 def upload_df_excape_mleqonly_class(dset_name, title, description, tags,
                             functional_area, 
                            target, target_type, activity, assay_category,data_df,mleqonly_fileID,
-			   data_origin='journal',  species='human',  
+    		   data_origin='journal',  species='human',  
                            force_update=False):
-   """Uploads Excape mleqonly classification data to the datastore
+    """Uploads Excape mleqonly classification data to the datastore
 
     data_df contains a binary classification dataset with 'active' and 'incative' classes.
 
@@ -1260,20 +1263,20 @@ def upload_df_excape_mleqonly_class(dset_name, title, description, tags,
         'id_col' : 'compound_id',
         'response_col' : 'binary_class',
         'prediction_type' : 'classification',
-	'num_classes' : 2,
-	'class_names' : ['inactive','active'],
+    'num_classes' : 2,
+    'class_names' : ['inactive','active'],
         'smiles_col' : 'rdkit_smiles',
         'units' : 'unitless',
         'source_file_id' : mleqonly_fileID
      }
 
-    #uploaded_file = dsf.upload_file_to_DS(bucket=bucket, filepath=file_path, filename=filename, 		title = title, description=description, tags=tags, key_values=kv, client=None, 			dataset_key=dataset_key, override_check=False, return_metadata=True)
+    #uploaded_file = dsf.upload_file_to_DS(bucket=bucket, filepath=file_path, filename=filename,     	title = title, description=description, tags=tags, key_values=kv, client=None, 			dataset_key=dataset_key, override_check=False, return_metadata=True)
 
     ds_client = dsf.config_client()
     if force_update or not dsf.dataset_key_exists(dataset_key, bucket, ds_client):
         uploaded_file = dsf.upload_df_to_DS(bucket=bucket, filename=filename,df=data_df, title = title, description=description, tags=tags, key_values=kv, client=None, dataset_key=dataset_key, override_check=False, return_metadata=True)
 
-        #uploaded_file = dsf.upload_file_to_DS(bucket=bucket, filepath=file_path, filename=filename, 		title = title, description=description, tags=tags, key_values=kv, client=None, 			dataset_key=dataset_key, override_check=False, return_metadata=True)
+        #uploaded_file = dsf.upload_file_to_DS(bucket=bucket, filepath=file_path, filename=filename,     	title = title, description=description, tags=tags, key_values=kv, client=None, 			dataset_key=dataset_key, override_check=False, return_metadata=True)
 
         print("Uploaded raw dataset with key %s" % dataset_key)
     else:

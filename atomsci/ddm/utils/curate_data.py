@@ -376,7 +376,7 @@ def filter_in_by_column_values (column, values, data):
     Returns:
         DataFrame: DataFrame containing filtered rows.
     """
-   return filter_in_out_by_column_values (column, values, data, 'in')
+    return filter_in_out_by_column_values (column, values, data, 'in')
 
 
 # ******************************************************************************************************************************************
