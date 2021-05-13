@@ -30,6 +30,7 @@ def transformers_needed(params):
 
     Args:
         params (argparse.namespace: Object containing the parameter list
+
     Returns:
         boolean: True if transformers are required given the model parameters.
     """
@@ -73,7 +74,9 @@ def create_feature_transformers(params, model_dataset):
 
     Args:
         params (argparse.namespace: Object containing the parameter list
+
         model_dataset (ModelDataset): Contains the dataset to be transformed.
+
     Returns:
         (list of DeepChem transformer objects): list of transformers for the feature matrix
     """
@@ -132,6 +135,7 @@ class UMAPTransformer(Transformer):
 
         Args:
             params (Namespace): Contains parameters used to instantiate the transformer.
+
             dataset (Dataset): Dataset used to "train" the projection mapping.
         """
 

@@ -826,6 +826,7 @@
     <span class="c1"># ****************************************************************************************</span>
     <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns a human-readable description of this Featurization object.</span>
+
 <span class="sd">        Returns:</span>
 <span class="sd">            (str): Describes the featurization type</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -842,10 +843,12 @@
 <div class="viewcode-block" id="DynamicFeaturization.extract_prefeaturized_data"><a class="viewcode-back" href="../../pipeline.html#pipeline.featurization.DynamicFeaturization.extract_prefeaturized_data">[docs]</a>    <span class="k">def</span> <span class="nf">extract_prefeaturized_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">merged_dset_df</span><span class="p">,</span> <span class="n">model_dataset</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Attempts to extract prefeaturized data for the given dataset. For dynamic featurizers, we don&#39;t save</span>
 <span class="sd">        this data, so this method always returns None.</span>
+
 <span class="sd">        Args:</span>
 <span class="sd">            merged_dset_df (DataFrame): dataset merged with the featurizers</span>
 
 <span class="sd">            model_dataset (ModelDataset): Object containing the dataset to be featurized</span>
+
 <span class="sd">        Returns:</span>
 <span class="sd">            None, None, None, None</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -1110,9 +1113,11 @@
     <span class="k">def</span> <span class="nf">load_descriptor_spec</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">desc_spec_bucket</span><span class="p">,</span> <span class="n">desc_spec_key</span><span class="p">)</span> <span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Read a descriptor specification table from the datastore or the filesystem.</span>
 <span class="sd">        The table is a CSV file with the following columns:</span>
+
 <span class="sd">        descr_type:     A string specifying a descriptor source/program and a subset of descriptor columns</span>
 
 <span class="sd">        source:         Name of the program/package that generates the descriptors</span>
+
 <span class="sd">        scaled:         Binary indicator for whether subset of descriptor values are scaled by molecule&#39;s atom count</span>
 
 <span class="sd">        descriptors:    A semicolon separated list of descriptor columns.</span>
@@ -1498,6 +1503,7 @@
 
 <span class="sd">        Args:</span>
 <span class="sd">            dataset (deepchem.Dataset): featurized dataset</span>
+
 <span class="sd">        Returns:</span>
 <span class="sd">            (list of DeepChem transformer objects): list of transformers for the feature matrix</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -1509,6 +1515,7 @@
 <div class="viewcode-block" id="DescriptorFeaturization.get_feature_specific_metadata"><a class="viewcode-back" href="../../pipeline.html#pipeline.featurization.DescriptorFeaturization.get_feature_specific_metadata">[docs]</a>    <span class="k">def</span> <span class="nf">get_feature_specific_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns a dictionary of parameter settings for this Featurization object that are specific</span>
 <span class="sd">        to the feature type.</span>
+
 <span class="sd">        Args:</span>
 <span class="sd">            params (Namespace): Argparse Namespace argument containing the parameters</span>
 <span class="sd">        &quot;&quot;&quot;</span>

@@ -113,7 +113,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#module-utils.pubchem_utils">utils.pubchem_utils module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-utils.rdkit_easy">utils.rdkit_easy module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-utils.struct_utils">utils.struct_utils module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-utils.verify_results">utils.verify_results module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#utils-verify-results-module">utils.verify_results module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-utils">Module contents</a></li>
 </ul>
 </li>
@@ -197,42 +197,27 @@
 <span id="utils-curate-data-module"></span><h2>utils.curate_data module<a class="headerlink" href="#module-utils.curate_data" title="Permalink to this headline">¶</a></h2>
 <p>Utility functions used for AMPL dataset curation and creation.</p>
 <dl class="py function">
-<dt id="utils.curate_data.add_binary_tertiary_classification">
-<code class="sig-prename descclassname"><span class="pre">utils.curate_data.</span></code><code class="sig-name descname"><span class="pre">add_binary_tertiary_classification</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">low_limit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">high_limit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_column</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/curate_data.html#add_binary_tertiary_classification"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.curate_data.add_binary_tertiary_classification" title="Permalink to this definition">¶</a></dt>
-<dd><p>this function is set up for 3-tier (low, med, high) and 2-tier (low, high) classification.
-If low_limit and high_limit are equal, the 2-tier system will be utilized
-low_limit = values below this limit are considered “low”
-high_limit = values above this limit are considered “high”
-source_column = the column heading of the values being compared against high/med/low criteria</p>
-</dd></dl>
-
-<dl class="py function">
-<dt id="utils.curate_data.add_classification">
-<code class="sig-prename descclassname"><span class="pre">utils.curate_data.</span></code><code class="sig-name descname"><span class="pre">add_classification</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">low_limit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">high_limit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_column</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/curate_data.html#add_classification"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.curate_data.add_classification" title="Permalink to this definition">¶</a></dt>
-<dd><p>this function is set up for 3-tier (low, med, high) and 2-tier (low, high) classification.
-If low_limit and high_limit are equal, the 2-tier system will be utilized
-low_limit = values below this limit are considered “low”
-high_limit = values above this limit are considered “high”
-source_column = the column heading of the values being compared against high/med/low criteria</p>
-</dd></dl>
-
-<dl class="py function">
 <dt id="utils.curate_data.add_classification_column">
 <code class="sig-prename descclassname"><span class="pre">utils.curate_data.</span></code><code class="sig-name descname"><span class="pre">add_classification_column</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">thresholds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value_column</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label_column</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">right_inclusive</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/curate_data.html#add_classification_column"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.curate_data.add_classification_column" title="Permalink to this definition">¶</a></dt>
-<dd><p>Add a classification column ‘label_column’ to data frame ‘data’ based on values in ‘value_column’,
+<dd><p>Add a classification column to a DataFrame.</p>
+<p>Add a classification column ‘label_column’ to DataFrame ‘data’ based on values in ‘value_column’,
 according to a sequence of thresholds. The number of classes is one plus the number of thresholds.</p>
 <dl>
-<dt>Args:</dt><dd><p>thresholds (float or sequence of floats): Thresholds to use to assign class labels. Label i will
-be assigned to values such that thresholds[i-1] &lt; value &lt;= thresholds[i] (if right_inclusive is True)
+<dt>Args:</dt><dd><dl class="simple">
+<dt>thresholds (float or sequence of floats): Thresholds to use to assign class labels. Label i will</dt><dd><p>be assigned to values such that thresholds[i-1] &lt; value &lt;= thresholds[i] (if right_inclusive is True)
 or thresholds[i-1] &lt;= value &lt; thresholds[i] (otherwise).</p>
+</dd>
+</dl>
 <p>value_column (str): Name of the column from which class labels are derived.</p>
 <p>label_column (str): Name of the new column to be created for class labels.</p>
-<p>data (DataFrame): Data frame holding all data.</p>
-<p>right_inclusive (bool): Whether the thresholding intervals are closed on the right or on the left.
-Set this False to get the same behavior as add_binary_tertiary_classification. The default behavior
+<p>data (DataFrame): DataFrame holding all data.</p>
+<dl class="simple">
+<dt>right_inclusive (bool): Whether the thresholding intervals are closed on the right or on the left.</dt><dd><p>Set this False to get the same behavior as add_binary_tertiary_classification. The default behavior
 is preferred for the common case where the classification is based on a left-censoring threshold.</p>
 </dd>
-<dt>Returns:</dt><dd><p>data (DataFrame): Data frame updated to include class label column.</p>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><p>DataFrame: DataFrame updated to include class label column.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -240,129 +225,264 @@ is preferred for the common case where the classification is based on a left-cen
 <dl class="py function">
 <dt id="utils.curate_data.aggregate_assay_data">
 <code class="sig-prename descclassname"><span class="pre">utils.curate_data.</span></code><code class="sig-name descname"><span class="pre">aggregate_assay_data</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">assay_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value_col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'VALUE_NUM'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_value_col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label_actives</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">active_thresh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'CMPD_NUMBER'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smiles_col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'rdkit_smiles'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">relation_col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'VALUE_FLAG'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">date_col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/curate_data.html#aggregate_assay_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.curate_data.aggregate_assay_data" title="Permalink to this definition">¶</a></dt>
-<dd><p>Map RDKit SMILES strings in assay_df to base structures, then compute an MLE estimate of the mean value over replicate measurements
+<dd><p>Aggregates replicated values in assay data</p>
+<p>Map RDKit SMILES strings in assay_df to base structures, then compute an MLE estimate of the mean value over replicate measurements
 for the same SMILES strings, taking censoring into account. Generate an aggregated result table with one value for each unique base
 SMILES string, to be used in an ML-ready dataset.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>assay_df</strong> – The input data frame to be processed.</p></li>
-<li><p><strong>value_col</strong> – The column in the data frame containing assay values to be averaged.</p></li>
-<li><p><strong>output_value_col</strong> – Optional; the column name to use in the output data frame for the averaged data.</p></li>
-<li><p><strong>label_actives</strong> – If True, generate an additional column ‘active’ indicating whether the mean value is above a threshold specified by active_thresh.</p></li>
-<li><p><strong>active_thresh</strong> – The threshold to be used for labeling compounds as active or inactive.</p></li>
-</ul>
+<dl>
+<dt>Args:</dt><dd><p>assay_df (DataFrame): The input DataFrame to be processed.</p>
+<p>value_col (str): The column in the DataFrame containing assay values to be averaged.</p>
+<p>output_value_col (str): Optional; the column name to use in the output DataFrame for the averaged data.</p>
+<p>label_actives (bool): If True, generate an additional column ‘active’ indicating whether the mean value is above a threshold specified by active_thresh.</p>
+<dl class="simple">
+<dt>active_thresh (float): The threshold to be used for labeling compounds as active or inactive.</dt><dd><p>If active_thresh is None (the default), the threshold used is the minimum reported value across all records
+with left-censored values (i.e., those with ‘&lt;’ in the relation column.</p>
 </dd>
 </dl>
-<p>If active_thresh is None (the default), the threshold used is the minimum reported value across all records
-with left-censored values (i.e., those with ‘&lt;’ in the relation column.
-:param id_col: The input data frame column containing compound IDs.
-:param smiles_col: The input data frame column containing SMILES strings.
-:param relation_col: The input data frame column containing relational operators (&lt;, &gt;, etc.).
-:param date_col: The input data frame column containing dates when the assay data was uploaded. If not None, the code will assign the earliest
-date among replicates to the aggregate data record.
-:return: A data frame containing averaged assay values, with one value per compound.</p>
+<p>id_col (str): The input DataFrame column containing compound IDs.</p>
+<p>smiles_col (str): The input DataFrame column containing SMILES strings.</p>
+<p>relation_col (str): The input DataFrame column containing relational operators (&lt;, &gt;, etc.).</p>
+<dl class="simple">
+<dt>date_col (str): The input DataFrame column containing dates when the assay data was uploaded. If not None, the code will assign the earliest</dt><dd><p>date among replicates to the aggregate data record.</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><p>A DataFrame containing averaged assay values, with one value per compound.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt id="utils.curate_data.average_and_remove_duplicates">
 <code class="sig-prename descclassname"><span class="pre">utils.curate_data.</span></code><code class="sig-name descname"><span class="pre">average_and_remove_duplicates</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">column</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tolerance</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">list_bad_duplicates</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_stdev</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compound_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'CMPD_NUMBER'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rm_duplicate_only</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smiles_col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'rdkit_smiles_parent'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/curate_data.html#average_and_remove_duplicates"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.curate_data.average_and_remove_duplicates" title="Permalink to this definition">¶</a></dt>
-<dd><p>This while loop loops through until no’bad duplicates’ are left.
-column - column with the value of interest
-tolerance - acceptable % difference between value and average</p>
-<blockquote>
-<div><p>ie.: if “[(value - mean)/mean*100]&gt;tolerance” then remove data row</p>
-</div></blockquote>
-<p>rm_duplicate_only - only remove bad duplicates, don’t average good ones, the resulting table can be fed into aggregate assay data to further process.
-note: The mean is recalculated on each loop through to make sure it isn’t skewed by the ‘bad duplicate’ values</p>
+<dd><p>This while loop loops through until no ‘bad duplicates’ are left.</p>
+<p>This function removes duplicates based on max_stdev and tolerance. If the
+value in data[column] falls too far from the mean based on tolerance and
+max_stdev then that entry is removed. This is repeated until all bad
+entries are removed</p>
+<dl>
+<dt>Args:</dt><dd><p>column (str): column with the value of interest</p>
+<dl class="simple">
+<dt>tolerance (float): acceptable % difference between value and average</dt><dd><p>ie.: if “[(value - mean)/mean*100]&gt;tolerance” then remove data row</p>
+</dd>
+</dl>
+<p>list_bad_duplicates (str): ‘Yes’ to list the bad duplicates</p>
+<p>data (DataFrame): input DataFrame</p>
+<p>max_stdev (float): maximum standard deviation threshold</p>
+<p>compound_id (str): column containing compound ids</p>
+<dl class="simple">
+<dt>rm_duplicate_only (bool): only remove bad duplicates, don’t average good ones, the resulting table can be fed into aggregate assay data to further process.</dt><dd><p>note: The mean is recalculated on each loop through to make sure it isn’t skewed by the ‘bad duplicate’ values</p>
+</dd>
+</dl>
+<p>smiles_col (str): column containing base rdkit smiles strings</p>
+</dd>
+<dt>Returns:</dt><dd><p>DataFrame: Returns remaining rows after all bad duplicates have been removed.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt id="utils.curate_data.create_new_rows_for_extra_results">
 <code class="sig-prename descclassname"><span class="pre">utils.curate_data.</span></code><code class="sig-name descname"><span class="pre">create_new_rows_for_extra_results</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">extra_result_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/curate_data.html#create_new_rows_for_extra_results"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.curate_data.create_new_rows_for_extra_results" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Moves results from an extra column to an existing column</p>
+<p>Returns a new DataFrame with values from ‘extra_result_col’ appended to the
+end of ‘value_col’. NaN values in ‘extra_result_col’ are dropped. ‘Extra_result_col’
+is dropped from the resulting DataFrame</p>
+<dl>
+<dt>Args:</dt><dd><p>extra_result_col (str): A column in ‘data’.</p>
+<p>value_col (str): A column in ‘data’.</p>
+<p>data (DataFrame):</p>
+</dd>
+<dt>Returns:</dt><dd><p>DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt id="utils.curate_data.filter_in_by_column_values">
 <code class="sig-prename descclassname"><span class="pre">utils.curate_data.</span></code><code class="sig-name descname"><span class="pre">filter_in_by_column_values</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">column</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/curate_data.html#filter_in_by_column_values"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.curate_data.filter_in_by_column_values" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Include rows only for given values in specified column.</p>
+<p>Filters in all rows in data if row[column] in values.</p>
+<dl>
+<dt>Args:</dt><dd><p>column (str): Name of a column in data.</p>
+<dl class="simple">
+<dt>values (iterable): An iterable, Series, DataFrame, or dict of values</dt><dd><p>contained in data[column].</p>
+</dd>
+</dl>
+<p>data (DataFrame): A DataFrame.</p>
+</dd>
+<dt>Returns:</dt><dd><p>DataFrame: DataFrame containing filtered rows.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt id="utils.curate_data.filter_in_out_by_column_values">
 <code class="sig-prename descclassname"><span class="pre">utils.curate_data.</span></code><code class="sig-name descname"><span class="pre">filter_in_out_by_column_values</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">column</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">in_out</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/curate_data.html#filter_in_out_by_column_values"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.curate_data.filter_in_out_by_column_values" title="Permalink to this definition">¶</a></dt>
-<dd><p>Include rows only for given values in specified column.
-column - column name.
-values - list of acceptable values.</p>
+<dd><p>Include rows only for given values in specified column.</p>
+<p>Given a DataFrame, column, and an iterable, Series, DataFrame, or dict, of values, 
+return a DataFrame with rows containing value in values or all rows 
+that do not containe a value in values.</p>
+<dl>
+<dt>Args:</dt><dd><p>column (str): Name of a column in data.</p>
+<dl class="simple">
+<dt>values (iterable): An iterable, Series, DataFrame, or dict of values</dt><dd><p>contained in data[column].</p>
+</dd>
+</dl>
+<p>data (DataFrame): A DataFrame.</p>
+<dl class="simple">
+<dt>in_out (str): If set to ‘in’, will filter in rows that contain a value</dt><dd><p>in values. If set to anything else, this function will filter out
+rows that contian a value in values.</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><p>DataFrame: DataFrame containing filtered rows.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt id="utils.curate_data.filter_out_by_column_values">
 <code class="sig-prename descclassname"><span class="pre">utils.curate_data.</span></code><code class="sig-name descname"><span class="pre">filter_out_by_column_values</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">column</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/curate_data.html#filter_out_by_column_values"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.curate_data.filter_out_by_column_values" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Exclude rows only for given values in specified column.</p>
+<p>Filters out all rows in data if row[column] in values.</p>
+<dl>
+<dt>Args:</dt><dd><p>column (str): Name of a column in data.</p>
+<dl class="simple">
+<dt>values (iterable): An iterable, Series, DataFrame, or dict of values</dt><dd><p>contained in data[column].</p>
+</dd>
+</dl>
+<p>data (DataFrame): A DataFrame.</p>
+</dd>
+<dt>Returns:</dt><dd><p>DataFrame: DataFrame containing filtered rows.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt id="utils.curate_data.filter_out_comments">
 <code class="sig-prename descclassname"><span class="pre">utils.curate_data.</span></code><code class="sig-name descname"><span class="pre">filter_out_comments</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">values_cs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/curate_data.html#filter_out_comments"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.curate_data.filter_out_comments" title="Permalink to this definition">¶</a></dt>
-<dd><p>Remove rows that contain the text listed
-values - list of values that are not case sensitive
-values_cs - list of values that are case sensitive</p>
+<dd><p>Remove rows that contain the text listed</p>
+<p>Removes any rows where data[‘COMMENTS’] contains the words in
+values or values_cs. Used for removing results that indicate
+bad data in the comments.</p>
+<dl>
+<dt>Args:</dt><dd><p>values (str): list of values that are not case sensitive</p>
+<p>values_cs (str): list of values that are case sensitive</p>
+<p>data (DataFrame): DataFrame containing a column named ‘COMMENTS’</p>
+</dd>
+<dt>Returns:</dt><dd><p>DataFrame: Returns a DataFrame with the remaining rows</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt id="utils.curate_data.freq_table">
 <code class="sig-prename descclassname"><span class="pre">utils.curate_data.</span></code><code class="sig-name descname"><span class="pre">freq_table</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dset_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">column</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_freq</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/curate_data.html#freq_table"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.curate_data.freq_table" title="Permalink to this definition">¶</a></dt>
-<dd><p>Generate a data frame tabulating the repeat frequencies of each unique value in ‘vals’.
+<dd><p>Generate a DataFrame tabluating the repeat requencies of unique values.</p>
+<p>Generate a DataFrame tabulating the repeat frequencies of each unique value in ‘column’.
 Restrict it to values occurring at least min_freq times.</p>
-</dd></dl>
-
-<dl class="py function">
-<dt id="utils.curate_data.get_binary_class">
-<code class="sig-prename descclassname"><span class="pre">utils.curate_data.</span></code><code class="sig-name descname"><span class="pre">get_binary_class</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">thresh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/curate_data.html#get_binary_class"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.curate_data.get_binary_class" title="Permalink to this definition">¶</a></dt>
-<dd><p>Map a continuous value to a binary classification by thresholding.</p>
+<dl>
+<dt>Args:</dt><dd><p>dset_df (DataFrame): An input DataFrame</p>
+<p>column (str): The name of one column in DataFrame</p>
+<p>min_freq (int): Restrict unique count to at least min_freq times.</p>
+</dd>
+<dt>Returns:</dt><dd><dl class="simple">
+<dt>DataFrame: Dataframe containing two columns: the column passed in as the ‘column’ argument</dt><dd><p>and the column ‘Count’. The ‘Count’ column contains the number of occurances for each
+value in the ‘column’ argument.</p>
+</dd>
+</dl>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt id="utils.curate_data.get_rdkit_smiles_parent">
 <code class="sig-prename descclassname"><span class="pre">utils.curate_data.</span></code><code class="sig-name descname"><span class="pre">get_rdkit_smiles_parent</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/curate_data.html#get_rdkit_smiles_parent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.curate_data.get_rdkit_smiles_parent" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt id="utils.curate_data.get_three_level_class">
-<code class="sig-prename descclassname"><span class="pre">utils.curate_data.</span></code><code class="sig-name descname"><span class="pre">get_three_level_class</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">red_thresh</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">yellow_thresh</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/curate_data.html#get_three_level_class"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.curate_data.get_three_level_class" title="Permalink to this definition">¶</a></dt>
-<dd><p>Map a continuous value to a three level (green, yellow, red) classification in which intermediate (“yellow”)
-values are tagged with class -1. The idea is that these values will be removed from the data set.</p>
+<dd><p>Strip the salts off the rdkit SMILES strings</p>
+<p>First, loops through data and determines the base/parent smiles string for each row.
+Appends the base smiles string to a new row in a list.
+Then adds the list as a new column, ‘rdkit_smiles_parent’, in ‘data’.
+Basically calls base_smiles_from_smiles for each smile in the column ‘rdkit_smiles’</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>data (DataFrame): A DataFrame with a column named ‘rdkit_smiles’.</p>
+</dd>
+<dt>Returns:</dt><dd><p>DataFrame with column ‘rdkit_smiles_parent’ with salts stripped</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt id="utils.curate_data.labeled_freq_table">
 <code class="sig-prename descclassname"><span class="pre">utils.curate_data.</span></code><code class="sig-name descname"><span class="pre">labeled_freq_table</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dset_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">columns</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_freq</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/curate_data.html#labeled_freq_table"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.curate_data.labeled_freq_table" title="Permalink to this definition">¶</a></dt>
-<dd><p>Generate a frequency table in which additional columns are included. The first column in ‘columns’
+<dd><p>Generate a frequency table in which additional columns are included.</p>
+<p>Generate a frequency table in which additional columns are included. The first column in ‘columns’
 is assumed to be a unique ID; there should be a many-to-1 mapping from the ID to each of the additional
 columns.</p>
+<dl>
+<dt>Args:</dt><dd><p>dset_df (DataFrame): The input DataFrame.</p>
+<dl class="simple">
+<dt>columns (list(str)): A list of columns to include in the output frequency table.</dt><dd><p>The first column in ‘columns’ is assumed to be a unique ID; there should be 
+a many-to-1 mapping from the ID to each of the additional columns.</p>
+</dd>
+</dl>
+<p>min_freq (int): Restrict unique count to at least min_freq times.</p>
+</dd>
+<dt>Returns:</dt><dd><p>DataFrame: A DataFrame containing a frequency table.</p>
+</dd>
+<dt>Raises:</dt><dd><dl class="simple">
+<dt>Exception: If the DataFrame violates the rule: there should be a many-to-1 </dt><dd><p>mapping from the ID to each of the additional columns.</p>
+</dd>
+</dl>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt id="utils.curate_data.mle_censored_mean">
 <code class="sig-prename descclassname"><span class="pre">utils.curate_data.</span></code><code class="sig-name descname"><span class="pre">mle_censored_mean</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cmpd_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">std_est</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value_col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'PIC50'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">relation_col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'relation'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/curate_data.html#mle_censored_mean"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.curate_data.mle_censored_mean" title="Permalink to this definition">¶</a></dt>
-<dd><p>Compute a maximum likelihood estimate of the true mean value underlying the distribution of replicate assay measurements for a
+<dd><p>Computes maximum likelihood estimate of the true mean value for a single replicated compound.</p>
+<p>Compute a maximum likelihood estimate of the true mean value underlying the distribution of replicate assay measurements for a
 single compound. The data may be a mix of censored and uncensored measurements, as indicated by the ‘relation’ column in the input
-data frame cmpd_df. std_est is an estimate for the standard deviation of the distribution, which is assumed to be Gaussian;
+DataFrame cmpd_df. std_est is an estimate for the standard deviation of the distribution, which is assumed to be Gaussian;
 we typically compute a common estimate for the whole dataset using replicate_rmsd().</p>
+<dl>
+<dt>Args:</dt><dd><p>cmpd_df (DataFrame): DataFrame containing measurements and SMILES strings.</p>
+<p>std_est (float): An estimate for the standard deviation of the distribution.</p>
+<p>smiles_col (str): Name of the column that contains SMILES strings.</p>
+<p>value_col (str): Name of the column that contains target values.</p>
+<p>relation_col (str): The input DataFrame column containing relational operators (&lt;, &gt;, etc.).</p>
+</dd>
+<dt>Returns:</dt><dd><p>float: maximum likelihood estimate of the true mean for a replicated compound
+str: Relation, ‘’ not censored, ‘&gt;’ right censored, ‘&lt;’ left censored</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt id="utils.curate_data.replicate_rmsd">
 <code class="sig-prename descclassname"><span class="pre">utils.curate_data.</span></code><code class="sig-name descname"><span class="pre">replicate_rmsd</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dset_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smiles_col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'base_rdkit_smiles'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value_col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'PIC50'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">relation_col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'relation'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/curate_data.html#replicate_rmsd"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.curate_data.replicate_rmsd" title="Permalink to this definition">¶</a></dt>
-<dd><p>Compute RMS deviation of all replicate uncensored measurements in dset_df from their means. Measurements are treated
+<dd><p>Compute RMS deviation of all replicate uncensored measurements from means</p>
+<p>Compute RMS deviation of all replicate uncensored measurements in dset_df from their means. Measurements are treated
 as replicates if they correspond to the same SMILES string, and are considered censored if the relation
 column contains &gt; or &lt;. The resulting value is meant to be used as an estimate of measurement error for all compounds
 in the dataset.</p>
+<dl>
+<dt>Args:</dt><dd><p>dset_df (DataFrame): DataFrame containing uncensored measurements and SMILES strings.</p>
+<p>smiles_col (str): Name of the column that contains SMILES strings.</p>
+<p>value_col (str): Name of the column that contains target values.</p>
+<p>relation_col (str): The input DataFrame column containing relational operators (&lt;, &gt;, etc.).</p>
+</dd>
+<dt>Returns:</dt><dd><p>float: returns root mean squared deviation of all replicate uncensored measurements</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt id="utils.curate_data.set_group_permissions">
 <code class="sig-prename descclassname"><span class="pre">utils.curate_data.</span></code><code class="sig-name descname"><span class="pre">set_group_permissions</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">system</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'AD'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">owner</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'GSK'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/curate_data.html#set_group_permissions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.curate_data.set_group_permissions" title="Permalink to this definition">¶</a></dt>
-<dd><p>Set file group and permissions to standard values for a dataset containing proprietary
+<dd><p>Sets file and group permissions
+Set file group and permissions to standard values for a dataset containing proprietary
 data owned by ‘owner’. Later we may add a ‘public’ option, or groups for data from other pharma companies.</p>
 <dl>
 <dt>Args:</dt><dd><p>path (string): File path</p>
@@ -379,18 +499,36 @@ restricted access group.</p>
 <dl class="py function">
 <dt id="utils.curate_data.summarize_data">
 <code class="sig-prename descclassname"><span class="pre">utils.curate_data.</span></code><code class="sig-name descname"><span class="pre">summarize_data</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">column</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_bins</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_column</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'No'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/curate_data.html#summarize_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.curate_data.summarize_data" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Summarizes the in data[column]</p>
+<p>Summarizes the data by printing mean, stdev, max, and min of the data. Creates
+plots of the binned values in data[column]. If log_column != ‘No’ this also
+creates plots that compares normal and log distributions of the data.</p>
+<dl>
+<dt>Args:</dt><dd><p>column (str): Column of interest.</p>
+<p>num_bins (int): Number of bins in the histogram.</p>
+<p>title (str): Title of the histogram.</p>
+<p>units (str): Units for values in ‘column’.</p>
+<p>filepath (str): This file path gets printed to the console.</p>
+<p>data (DataFrame): Input DataFrame.</p>
+<dl class="simple">
+<dt>log_column (str): Defaults to ‘No’. Any other value will generate</dt><dd><p>a plot comparing normal and log distributions.</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><p>None</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt id="utils.curate_data.xc50topxc50_for_nm">
 <code class="sig-prename descclassname"><span class="pre">utils.curate_data.</span></code><code class="sig-name descname"><span class="pre">xc50topxc50_for_nm</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/curate_data.html#xc50topxc50_for_nm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.curate_data.xc50topxc50_for_nm" title="Permalink to this definition">¶</a></dt>
-<dd><p>Convert XC50 values measured in nanomolars to -log10 (PX50)
-Args :</p>
-<blockquote>
-<div><p>x: input XC50 value measured in nanomolars</p>
-</div></blockquote>
+<dd><p>Convert XC50 values measured in nanomolars to -log10 (PX50)</p>
+<p>Convert XC50 values measured in nanomolars to -log10 (PX50)</p>
 <dl class="simple">
-<dt>Returns :</dt><dd><p>-log10 value of x</p>
+<dt>Args :</dt><dd><p>x (float): input XC50 value measured in nanomolars</p>
+</dd>
+<dt>Returns :</dt><dd><p>float: -log10 value of x</p>
 </dd>
 </dl>
 </dd></dl>
@@ -407,9 +545,9 @@ Intended for general use. Add/modify functions as needed. Created 23Jul18 CHW</p
 <dt id="utils.datastore_functions.bulk_export_kv_for_files">
 <code class="sig-prename descclassname"><span class="pre">utils.datastore_functions.</span></code><code class="sig-name descname"><span class="pre">bulk_export_kv_for_files</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">files</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_as</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">client</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/datastore_functions.html#bulk_export_kv_for_files"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.datastore_functions.bulk_export_kv_for_files" title="Permalink to this definition">¶</a></dt>
 <dd><p>exports a csv file with 3 columns: bucket, dataset_key, key/value pairs to make reviewing  metadata easier</p>
-<dl class="simple">
-<dt>Args:</dt><dd><p>files (list of tuples): format [(bucket1, dataset_key1), (bucket2, dataset_key2)]
-save_as (str): filename to use for new file</p>
+<dl>
+<dt>Args:</dt><dd><p>files (list of tuples): format [(bucket1, dataset_key1), (bucket2, dataset_key2)]</p>
+<p>save_as (str): filename to use for new file</p>
 </dd>
 <dt>Returns:</dt><dd><p>None</p>
 </dd>
@@ -427,11 +565,11 @@ the metadata for the files listed will then be updated in the Datastore</p>
 <dt id="utils.datastore_functions.check_key_val">
 <code class="sig-prename descclassname"><span class="pre">utils.datastore_functions.</span></code><code class="sig-name descname"><span class="pre">check_key_val</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">client</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enforced</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/datastore_functions.html#check_key_val"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.datastore_functions.check_key_val" title="Permalink to this definition">¶</a></dt>
 <dd><p>Checks to ensure the keys and values specified are ‘approved’ and that (optionally) all required keys are filled out.</p>
-<dl class="simple">
-<dt>Args:</dt><dd><p>key_values (dict): keys and values specified by user for a file
-client (optional): set client if not using the default
-df (DataFrame): dataframe to be uploaded
-enforced (bool, optional): If True (default) checks that all required keys are filled out</p>
+<dl>
+<dt>Args:</dt><dd><p>key_values (dict): keys and values specified by user for a file</p>
+<p>client (optional): set client if not using the default</p>
+<p>df (DataFrame): dataframe to be uploaded</p>
+<p>enforced (bool, optional): If True (default) checks that all required keys are filled out</p>
 </dd>
 <dt>Returns:</dt><dd><p>(bool): returns True if all keys and values are ‘approved’ AND enforcement criteria are met</p>
 </dd>
@@ -472,10 +610,10 @@ singleton object is returned.</p>
 <dt id="utils.datastore_functions.dataset_key_exists">
 <code class="sig-prename descclassname"><span class="pre">utils.datastore_functions.</span></code><code class="sig-name descname"><span class="pre">dataset_key_exists</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bucket</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">client</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/datastore_functions.html#dataset_key_exists"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.datastore_functions.dataset_key_exists" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a boolean indicating whether the given dataset_key is already present in the bucket specified.</p>
-<dl class="simple">
-<dt>Args:</dt><dd><p>dataset_key (str): the dataset_key for the dataset you want (unique in each bucket)
-bucket (str): the bucket the dataset you want resides in
-client (optional): set client if not using the default</p>
+<dl>
+<dt>Args:</dt><dd><p>dataset_key (str): the dataset_key for the dataset you want (unique in each bucket)</p>
+<p>bucket (str): the bucket the dataset you want resides in</p>
+<p>client (optional): set client if not using the default</p>
 </dd>
 <dt>Returns:</dt><dd><p>(bool): returns ‘True’ if dataset_key is present in bucket specified</p>
 </dd>
@@ -486,14 +624,14 @@ client (optional): set client if not using the default</p>
 <dt id="utils.datastore_functions.filter_datasets_interactive">
 <code class="sig-prename descclassname"><span class="pre">utils.datastore_functions.</span></code><code class="sig-name descname"><span class="pre">filter_datasets_interactive</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bucket</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'all'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">client</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_search</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">restrict_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">restrict_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset_oid_only</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">display_all_columns</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_rows</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/datastore_functions.html#filter_datasets_interactive"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.datastore_functions.filter_datasets_interactive" title="Permalink to this definition">¶</a></dt>
 <dd><p>This is an old way of searching for files. Not based on the current format. Only use</p>
-<dl class="simple">
-<dt>Args:</dt><dd><p>bucket (str or list, optional): buckets to search (defaults to searching all buckets you have access to in the datastore)
-client (optional): set client if not using the default
-restrict_key (bool, optional): if set to True, restricts the search to keys that are on the approved list (see file in bucket with dataset_key: accepted_key_values)
-restrict_key (bool, optional): if set to True, restricts the search to values that are on the approved list (see file in bucket with dataset_key: accepted_key_values)
-dataset_oid_only (bool, optional): if True, return a list of dataset_oids meeting the criteria;   if False, returns a dataframe of all the metadata for the files meeting search criteria
-display_all_columns (bool, optional): If ‘False’ (default), then show only a selected subset of the columns
-max_rows (int, optional): maximum rows to display during interactive search</p>
+<dl>
+<dt>Args:</dt><dd><p>bucket (str or list, optional): buckets to search (defaults to searching all buckets you have access to in the datastore)</p>
+<p>client (optional): set client if not using the default</p>
+<p>restrict_key (bool, optional): if set to True, restricts the search to keys that are on the approved list (see file in bucket with dataset_key: accepted_key_values)</p>
+<p>restrict_key (bool, optional): if set to True, restricts the search to values that are on the approved list (see file in bucket with dataset_key: accepted_key_values)</p>
+<p>dataset_oid_only (bool, optional): if True, return a list of dataset_oids meeting the criteria;   if False, returns a dataframe of all the metadata for the files meeting search criteria</p>
+<p>display_all_columns (bool, optional): If ‘False’ (default), then show only a selected subset of the columns</p>
+<p>max_rows (int, optional): maximum rows to display during interactive search</p>
 </dd>
 <dt>Returns:</dt><dd><p>None</p>
 </dd>
@@ -548,10 +686,10 @@ Function extracts the key:value pairs and converts from the ‘datastore format�
 <dt id="utils.datastore_functions.key_exists">
 <code class="sig-prename descclassname"><span class="pre">utils.datastore_functions.</span></code><code class="sig-name descname"><span class="pre">key_exists</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bucket</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'all'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">client</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/datastore_functions.html#key_exists"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.datastore_functions.key_exists" title="Permalink to this definition">¶</a></dt>
 <dd><p>Check if key exists in bucket(s) specified.</p>
-<dl class="simple">
-<dt>Args:</dt><dd><p>key (str): the key of interest
-bucket (str or list, optional): ‘all’ by default. Specify bucket (as a str or list) to limit search
-client (optional): set client if not using the default</p>
+<dl>
+<dt>Args:</dt><dd><p>key (str): the key of interest</p>
+<p>bucket (str or list, optional): ‘all’ by default. Specify bucket (as a str or list) to limit search</p>
+<p>client (optional): set client if not using the default</p>
 </dd>
 <dt>Returns:</dt><dd><p>(bool): Returns True if key exists in bucket(s) specified</p>
 </dd>
@@ -562,11 +700,11 @@ client (optional): set client if not using the default</p>
 <dt id="utils.datastore_functions.list_key_values">
 <code class="sig-prename descclassname"><span class="pre">utils.datastore_functions.</span></code><code class="sig-name descname"><span class="pre">list_key_values</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bucket</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">category</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'experimental'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">client</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/datastore_functions.html#list_key_values"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.datastore_functions.list_key_values" title="Permalink to this definition">¶</a></dt>
 <dd><p>List the values for input key.  Requires that the input key be in the ‘approved’ list</p>
-<dl class="simple">
-<dt>Args:</dt><dd><p>bucket (str or list, optional): buckets to search (defaults to searching all buckets you have access to in the datastore)
-input_key: user specified key to query
-category: ‘experimental’ or ‘pdb_bind’
-client (optional): set client if not using the default</p>
+<dl>
+<dt>Args:</dt><dd><p>bucket (str or list, optional): buckets to search (defaults to searching all buckets you have access to in the datastore)</p>
+<p>input_key: user specified key to query</p>
+<p>category: ‘experimental’ or ‘pdb_bind’</p>
+<p>client (optional): set client if not using the default</p>
 </dd>
 <dt>Returns:</dt><dd><p>None</p>
 </dd>
@@ -619,12 +757,12 @@ to_return (str, optional): (default=df)</p>
 <dl class="py function">
 <dt id="utils.datastore_functions.retrieve_columns_from_dataset">
 <code class="sig-prename descclassname"><span class="pre">utils.datastore_functions.</span></code><code class="sig-name descname"><span class="pre">retrieve_columns_from_dataset</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bucket</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">client</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_rows</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">column_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/datastore_functions.html#retrieve_columns_from_dataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.datastore_functions.retrieve_columns_from_dataset" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
+<dd><dl>
 <dt>Retrieve column(s) from csv file (may be bz2 compressed) in datastore.</dt><dd><p>‘NA’ returned if column not in file (as well as warning message).</p>
 </dd>
-<dt>Args:</dt><dd><p>return_names (bool): If true, just return column headers from file
-max_rows (int): default=0 which will return all rows
-client (optional): set client if not using the default</p>
+<dt>Args:</dt><dd><p>return_names (bool): If true, just return column headers from file</p>
+<p>max_rows (int): default=0 which will return all rows</p>
+<p>client (optional): set client if not using the default</p>
 </dd>
 <dt>Returns:</dt><dd><p>(dict): dictionary corresponding to selected columns</p>
 </dd>
@@ -636,14 +774,14 @@ client (optional): set client if not using the default</p>
 <code class="sig-prename descclassname"><span class="pre">utils.datastore_functions.</span></code><code class="sig-name descname"><span class="pre">retrieve_dataset_by_dataset_oid</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset_oid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">client</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_metadata</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nrows</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">print_metadata</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tarpath</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/datastore_functions.html#retrieve_dataset_by_dataset_oid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.datastore_functions.retrieve_dataset_by_dataset_oid" title="Permalink to this definition">¶</a></dt>
 <dd><p>retrieves the dataset and returns as a pandas dataframe (or other format as needed depending on file type).</p>
 <dl>
-<dt>Args:</dt><dd><p>dataset_oid (str): unique identifier for the dataset you want
-client (optional): set client if not using the default
-return_metadata (bool, optional): if set to True, return a dictionary of the metadata INSTEAD of a dataframe of the data
-nrows (num, optional): used to limit the number of rows returned
-print_metadata (bool, optional): if set to True, displays the document metadata/properties
-sep (str, optional): separator used for csv file
-tarpath (str, optional): path to use for tarball files
-index_col (int, optional): For csv files, column to use as the row labels of the DataFrame</p>
+<dt>Args:</dt><dd><p>dataset_oid (str): unique identifier for the dataset you want</p>
+<p>client (optional): set client if not using the default</p>
+<p>return_metadata (bool, optional): if set to True, return a dictionary of the metadata INSTEAD of a dataframe of the data</p>
+<p>nrows (num, optional): used to limit the number of rows returned</p>
+<p>print_metadata (bool, optional): if set to True, displays the document metadata/properties</p>
+<p>sep (str, optional): separator used for csv file</p>
+<p>tarpath (str, optional): path to use for tarball files</p>
+<p>index_col (int, optional): For csv files, column to use as the row labels of the DataFrame</p>
 </dd>
 <dt>Returns:</dt><dd><p>(DataFrame, OrderedDict, str, dict): filetype determines what type of object is returned.
 xls and xlsx files returns an OrderedDict.
@@ -659,15 +797,15 @@ csv returns a DataFrame</p>
 <code class="sig-prename descclassname"><span class="pre">utils.datastore_functions.</span></code><code class="sig-name descname"><span class="pre">retrieve_dataset_by_datasetkey</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bucket</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">client</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_metadata</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nrows</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">print_metadata</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tarpath</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/datastore_functions.html#retrieve_dataset_by_datasetkey"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.datastore_functions.retrieve_dataset_by_datasetkey" title="Permalink to this definition">¶</a></dt>
 <dd><p>Retrieves the dataset and returns as a pandas dataframe (or other format as needed depending on file type).</p>
 <dl>
-<dt>Args:</dt><dd><p>dataset_key (str): the dataset_key for the dataset you want (unique in each bucket)
-bucket (str): the bucket the dataset you want resides in
-client (optional): set client if not using the default
-return_metadata (bool, optional): if set to True, return a dictionary of the metadata INSTEAD of a dataframe of the data
-nrows (num, optional): used to limit the number of rows returned
-print_metadata (bool, optional): if set to True, displays the document metadata/properties
-sep (str, optional): separator used for csv file
-tarpath (str, optional): path to use for tarball files
-index_col (int, optional): For csv files, column to use as the row labels of the DataFrame</p>
+<dt>Args:</dt><dd><p>dataset_key (str): the dataset_key for the dataset you want (unique in each bucket)</p>
+<p>bucket (str): the bucket the dataset you want resides in</p>
+<p>client (optional): set client if not using the default</p>
+<p>return_metadata (bool, optional): if set to True, return a dictionary of the metadata INSTEAD of a dataframe of the data</p>
+<p>nrows (num, optional): used to limit the number of rows returned</p>
+<p>print_metadata (bool, optional): if set to True, displays the document metadata/properties</p>
+<p>sep (str, optional): separator used for csv file</p>
+<p>tarpath (str, optional): path to use for tarball files</p>
+<p>index_col (int, optional): For csv files, column to use as the row labels of the DataFrame</p>
 </dd>
 <dt>Returns:</dt><dd><p>(DataFrame, OrderedDict, str, dict): filetype determines what type of object is returned.
 xls and xlsx files returns an OrderedDict.
@@ -682,10 +820,10 @@ csv returns a DataFrame</p>
 <dt id="utils.datastore_functions.retrieve_keys">
 <code class="sig-prename descclassname"><span class="pre">utils.datastore_functions.</span></code><code class="sig-name descname"><span class="pre">retrieve_keys</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bucket</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'all'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">client</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sort</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/datastore_functions.html#retrieve_keys"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.datastore_functions.retrieve_keys" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get a list of keys in bucket(s) specified.</p>
-<dl class="simple">
-<dt>Args:</dt><dd><p>bucket (str, optional): ‘all’ by default. Specify bucket (as a str or list) to limit search
-client (optional): set client if not using the default
-sort (bool, optional): if ‘True’ (default), sort the keys alphabetically</p>
+<dl>
+<dt>Args:</dt><dd><p>bucket (str, optional): ‘all’ by default. Specify bucket (as a str or list) to limit search</p>
+<p>client (optional): set client if not using the default</p>
+<p>sort (bool, optional): if ‘True’ (default), sort the keys alphabetically</p>
 </dd>
 <dt>Returns:</dt><dd><p>(list): returns a list of keys in bucket(s) specified</p>
 </dd>
@@ -696,10 +834,10 @@ sort (bool, optional): if ‘True’ (default), sort the keys alphabetically</p>
 <dt id="utils.datastore_functions.retrieve_values_for_key">
 <code class="sig-prename descclassname"><span class="pre">utils.datastore_functions.</span></code><code class="sig-name descname"><span class="pre">retrieve_values_for_key</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bucket</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'all'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">client</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/datastore_functions.html#retrieve_values_for_key"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.datastore_functions.retrieve_values_for_key" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get a list of values associated with a specified key.</p>
-<dl class="simple">
-<dt>Args:</dt><dd><p>key (str): the key of interest
-bucket (str or list, optional): ‘all’ by default. Specify bucket (as a str or list) to limit search
-client (optional): set client if not using the default</p>
+<dl>
+<dt>Args:</dt><dd><p>key (str): the key of interest</p>
+<p>bucket (str or list, optional): ‘all’ by default. Specify bucket (as a str or list) to limit search</p>
+<p>client (optional): set client if not using the default</p>
 </dd>
 <dt>Returns:</dt><dd><p>(list): Returns a list of values (str) associated with a specified key</p>
 </dd>
@@ -711,15 +849,15 @@ client (optional): set client if not using the default</p>
 <code class="sig-prename descclassname"><span class="pre">utils.datastore_functions.</span></code><code class="sig-name descname"><span class="pre">search_datasets_by_key_value</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">client</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">operator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'in'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bucket</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'all'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">display_all_columns</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/datastore_functions.html#search_datasets_by_key_value"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.datastore_functions.search_datasets_by_key_value" title="Permalink to this definition">¶</a></dt>
 <dd><p>Find datasets by key:value pairs and returns a DataFrame of datasets and associated properties.</p>
 <dl>
-<dt>Args:</dt><dd><p>key (str): the key of interest
-value (str): the value of interest
-client (optional): set client if not using the default
-operator (str, optional): ‘in’ by default, but can be changed to any of the following:</p>
-<blockquote>
-<div><p>=, !=, &lt;, &lt;=, &gt;, &gt;=, all, in, not in</p>
-</div></blockquote>
-<p>bucket (str or list, optional): ‘all’ by default. Specify bucket (as a str or list) to limit search
-display_all_columns (bool, optional): If ‘False’ (default), then show only a selected subset of the columns</p>
+<dt>Args:</dt><dd><p>key (str): the key of interest</p>
+<p>value (str): the value of interest</p>
+<p>client (optional): set client if not using the default</p>
+<dl class="simple">
+<dt>operator (str, optional): ‘in’ by default, but can be changed to any of the following:</dt><dd><p>=, !=, &lt;, &lt;=, &gt;, &gt;=, all, in, not in</p>
+</dd>
+</dl>
+<p>bucket (str or list, optional): ‘all’ by default. Specify bucket (as a str or list) to limit search</p>
+<p>display_all_columns (bool, optional): If ‘False’ (default), then show only a selected subset of the columns</p>
 </dd>
 <dt>Returns:</dt><dd><p>(DataFrame): summary table of the files and relevant metadata matching the criteria specified</p>
 </dd>
@@ -731,19 +869,19 @@ display_all_columns (bool, optional): If ‘False’ (default), then show only a
 <code class="sig-prename descclassname"><span class="pre">utils.datastore_functions.</span></code><code class="sig-name descname"><span class="pre">search_files_interactive</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bucket</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'all'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">client</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">to_return</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'df'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">display_all_columns</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_rows</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/datastore_functions.html#search_files_interactive"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.datastore_functions.search_files_interactive" title="Permalink to this definition">¶</a></dt>
 <dd><p>This tool helps you find the files you need via an interactive/guided interface.</p>
 <dl>
-<dt>Args:</dt><dd><p>bucket (str or list, optional): buckets to search (defaults to searching all buckets you have access to in the datastore)
-client (optional): set client if not using the default
-to_return (str): ‘df’ (df_results)  = return a pandas dataframe summarizing metadata of files meeting criteria</p>
-<blockquote>
-<div><dl class="simple">
+<dt>Args:</dt><dd><p>bucket (str or list, optional): buckets to search (defaults to searching all buckets you have access to in the datastore)</p>
+<p>client (optional): set client if not using the default</p>
+<dl>
+<dt>to_return (str): ‘df’ (df_results)  = return a pandas dataframe summarizing metadata of files meeting criteria</dt><dd><dl class="simple">
 <dt>‘search’ (search_criteria) = return a list containing search criteria where position 0 = string/list of buckets, and remaining positions are dictionaries of search criteria.</dt><dd><p>Designed to work with ‘repeat_defined_search’ function.</p>
 </dd>
 </dl>
 <p>‘oid’ (dataset_oid) = return a list of dataset_oids meeting criteria
 ‘ds_key’ (dataset_key) = return a list of dataset_key + bucket tuples</p>
-</div></blockquote>
-<p>display_all_columns (bool, optional): If ‘False’ (default), then show only a selected subset of the columns
-max_rows (int, optional): maximum rows to display during interactive search</p>
+</dd>
+</dl>
+<p>display_all_columns (bool, optional): If ‘False’ (default), then show only a selected subset of the columns</p>
+<p>max_rows (int, optional): maximum rows to display during interactive search</p>
 </dd>
 <dt>Returns:</dt><dd><p>None</p>
 </dd>
@@ -764,15 +902,15 @@ max_rows (int, optional): maximum rows to display during interactive search</p>
 <dt id="utils.datastore_functions.summarize_datasets">
 <code class="sig-prename descclassname"><span class="pre">utils.datastore_functions.</span></code><code class="sig-name descname"><span class="pre">summarize_datasets</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset_keys</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bucket</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">client</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">column</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_as</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_ht</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">labels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">last</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/datastore_functions.html#summarize_datasets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.datastore_functions.summarize_datasets" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate summary statistics such as min/max/median/mean on files specified (all files must be in same bucket).</p>
-<dl class="simple">
-<dt>Args:</dt><dd><p>dataset_keys (list): dataset_keys corresponding to the files to summarize
-bucket (str): bucket the files reside in
-client (optional): set client if not using the default
-column (str, optional): column to summarize (will be prompted to specify if not pre-specified or if column does not exist in file)
-save_as (str, optional): filename to save image of box plot(s) to
-plot_ht (int, optional): height of box plots (default = 10)
-labels (‘str’, optional):
-last (bool optional): If True (default=False), then summarize values from last column instead of specifying column heading</p>
+<dl>
+<dt>Args:</dt><dd><p>dataset_keys (list): dataset_keys corresponding to the files to summarize</p>
+<p>bucket (str): bucket the files reside in</p>
+<p>client (optional): set client if not using the default</p>
+<p>column (str, optional): column to summarize (will be prompted to specify if not pre-specified or if column does not exist in file)</p>
+<p>save_as (str, optional): filename to save image of box plot(s) to</p>
+<p>plot_ht (int, optional): height of box plots (default = 10)</p>
+<p>labels (‘str’, optional):</p>
+<p>last (bool optional): If True (default=False), then summarize values from last column instead of specifying column heading</p>
 </dd>
 <dt>Returns</dt><dd><p>(DataFrame): returns table summarizing the stats for the file(s) specified</p>
 </dd>
@@ -783,12 +921,12 @@ last (bool optional): If True (default=False), then summarize values from last c
 <dt id="utils.datastore_functions.update_distribution_kv">
 <code class="sig-prename descclassname"><span class="pre">utils.datastore_functions.</span></code><code class="sig-name descname"><span class="pre">update_distribution_kv</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bucket</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">client</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kv_add</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kv_del</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_metadata</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/datastore_functions.html#update_distribution_kv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.datastore_functions.update_distribution_kv" title="Permalink to this definition">¶</a></dt>
 <dd><p>update the key:values for specified file. No change to file.</p>
-<dl class="simple">
-<dt>Args:</dt><dd><p>bucket (str): Specify bucket where the file exists
-dataset_key (str): dataset_key for the file to update metadata for
-client (optional): set client if not using the default
-kv_add (dict, optional): key-value pairs to add to the metadata for the file specified
-kv_del (str or list, optional): keys to delete from the metadata for the file specified</p>
+<dl>
+<dt>Args:</dt><dd><p>bucket (str): Specify bucket where the file exists</p>
+<p>dataset_key (str): dataset_key for the file to update metadata for</p>
+<p>client (optional): set client if not using the default</p>
+<p>kv_add (dict, optional): key-value pairs to add to the metadata for the file specified</p>
+<p>kv_del (str or list, optional): keys to delete from the metadata for the file specified</p>
 </dd>
 <dt>Returns:</dt><dd><p>None</p>
 </dd>
@@ -799,12 +937,12 @@ kv_del (str or list, optional): keys to delete from the metadata for the file sp
 <dt id="utils.datastore_functions.update_kv">
 <code class="sig-prename descclassname"><span class="pre">utils.datastore_functions.</span></code><code class="sig-name descname"><span class="pre">update_kv</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bucket</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">client</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kv_add</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kv_del</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_metadata</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/datastore_functions.html#update_kv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.datastore_functions.update_kv" title="Permalink to this definition">¶</a></dt>
 <dd><p>update the key:values for specified file. No change to file.</p>
-<dl class="simple">
-<dt>Args:</dt><dd><p>bucket (str): Specify bucket where the file exists
-dataset_key (str): dataset_key for the file to update metadata for
-client (optional): set client if not using the default
-kv_add (dict, optional): key-value pairs to add to the metadata for the file specified
-kv_del (str or list, optional): keys to delete from the metadata for the file specified</p>
+<dl>
+<dt>Args:</dt><dd><p>bucket (str): Specify bucket where the file exists</p>
+<p>dataset_key (str): dataset_key for the file to update metadata for</p>
+<p>client (optional): set client if not using the default</p>
+<p>kv_add (dict, optional): key-value pairs to add to the metadata for the file specified</p>
+<p>kv_del (str or list, optional): keys to delete from the metadata for the file specified</p>
 </dd>
 <dt>Returns:</dt><dd><p>None</p>
 </dd>
@@ -815,17 +953,17 @@ kv_del (str or list, optional): keys to delete from the metadata for the file sp
 <dt id="utils.datastore_functions.upload_df_to_DS">
 <code class="sig-prename descclassname"><span class="pre">utils.datastore_functions.</span></code><code class="sig-name descname"><span class="pre">upload_df_to_DS</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bucket</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tags</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">client</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">override_check</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_metadata</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/datastore_functions.html#upload_df_to_DS"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.datastore_functions.upload_df_to_DS" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function will upload a file to the Datastore along with the associated metadata</p>
-<dl class="simple">
-<dt>Args:</dt><dd><p>df (DataFrame): dataframe to be uploaded
-bucket (str): bucket the file will be put in
-filename (str): the filename to save the dataframe as in the datastore. Include the extension
-title (str): title of the file in (human friendly format)
-description (str): long text box to describe file (background/use notes)
-tags (list): must be a list.
-key_values (dict): key-value pairs to enable future users to find the file. Must be a dictionary.
-client (optional): set client if not using the default
-dataset_key (str): If updating a file already in the datastore enter the corresponding dataset_key.  If not, leave as ‘none’ and the dataset_key will be automatically generated.
-data_type (str,optional): Specify dataType (e.g. csv,bz, etc) if not specified attempt to use file extension</p>
+<dl>
+<dt>Args:</dt><dd><p>df (DataFrame): dataframe to be uploaded</p>
+<p>bucket (str): bucket the file will be put in</p>
+<p>filename (str): the filename to save the dataframe as in the datastore. Include the extension</p>
+<p>title (str): title of the file in (human friendly format)</p>
+<p>description (str): long text box to describe file (background/use notes)</p>
+<p>tags (list): must be a list.</p>
+<p>key_values (dict): key-value pairs to enable future users to find the file. Must be a dictionary.</p>
+<p>client (optional): set client if not using the default</p>
+<p>dataset_key (str): If updating a file already in the datastore enter the corresponding dataset_key.  If not, leave as ‘none’ and the dataset_key will be automatically generated.</p>
+<p>data_type (str,optional): Specify dataType (e.g. csv,bz, etc) if not specified attempt to use file extension</p>
 </dd>
 <dt>Returns:</dt><dd><p>(dict): if return_metadata=True, then function returns a dictionary of the metadata for the uploaded dataset.</p>
 </dd>
@@ -836,20 +974,20 @@ data_type (str,optional): Specify dataType (e.g. csv,bz, etc) if not specified a
 <dt id="utils.datastore_functions.upload_file_to_DS">
 <code class="sig-prename descclassname"><span class="pre">utils.datastore_functions.</span></code><code class="sig-name descname"><span class="pre">upload_file_to_DS</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bucket</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tags</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">client</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">override_check</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_metadata</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_ref</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/datastore_functions.html#upload_file_to_DS"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.datastore_functions.upload_file_to_DS" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function will upload a file to the Datastore along with the associated metadata</p>
-<dl class="simple">
-<dt>Args:</dt><dd><p>bucket (str): bucket the file will be put in
-title (str): title of the file in (human friendly format)
-description (str): long text box to describe file (background/use notes)
-tags (list): must be a list.
-key_values (dict): key:value pairs to enable future users to find the file. Must be a dictionary.
-filepath (str): current location of the file
-filename (str): current filename of the file
-client (optional): set client if not using the default
-dataset_key (str, optional): If updating a file already in the datastore enter the corresponding dataset_key.  If not, leave as ‘none’ and the dataset_key will be automatically generated.
-override_check (bool, optional): If ‘True’ then do NOT perform a check of the keys/values against approved list and enforcement criteria
-return_metadata (bool, optional): If ‘True’ (default=False), then return the metadata from the uploaded file
-file_ref (bool, optional): If ‘True’ (default=False), links file to the datastore instead of creating a copy to managed by the datastore.
-data_type (str,optional): Specify dataType (e.g. csv,bz, etc) if not specified attempt to use file extension</p>
+<dl>
+<dt>Args:</dt><dd><p>bucket (str): bucket the file will be put in</p>
+<p>title (str): title of the file in (human friendly format)</p>
+<p>description (str): long text box to describe file (background/use notes)</p>
+<p>tags (list): must be a list.</p>
+<p>key_values (dict): key:value pairs to enable future users to find the file. Must be a dictionary.</p>
+<p>filepath (str): current location of the file</p>
+<p>filename (str): current filename of the file</p>
+<p>client (optional): set client if not using the default</p>
+<p>dataset_key (str, optional): If updating a file already in the datastore enter the corresponding dataset_key.  If not, leave as ‘none’ and the dataset_key will be automatically generated.</p>
+<p>override_check (bool, optional): If ‘True’ then do NOT perform a check of the keys/values against approved list and enforcement criteria</p>
+<p>return_metadata (bool, optional): If ‘True’ (default=False), then return the metadata from the uploaded file</p>
+<p>file_ref (bool, optional): If ‘True’ (default=False), links file to the datastore instead of creating a copy to managed by the datastore.</p>
+<p>data_type (str,optional): Specify dataType (e.g. csv,bz, etc) if not specified attempt to use file extension</p>
 </dd>
 <dt>Returns:</dt><dd><p>(dict): optionally returns the metadata from the uploaded file (if return_metadata=True)</p>
 </dd>
@@ -861,20 +999,20 @@ data_type (str,optional): Specify dataType (e.g. csv,bz, etc) if not specified a
 <code class="sig-prename descclassname"><span class="pre">utils.datastore_functions.</span></code><code class="sig-name descname"><span class="pre">upload_pickle_to_DS</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bucket</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tags</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">client</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">override_check</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_metadata</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/datastore_functions.html#upload_pickle_to_DS"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.datastore_functions.upload_pickle_to_DS" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function will upload a file to the Datastore along with the associated metadata.</p>
 <dl>
-<dt>Args:</dt><dd><p>data (DataFrame, str, list, tuple, pickle): data to be pickled and uploaded
-bucket (str): bucket the file will be put in
-filename (str): the filename to save the dataframe as in the datastore. Include the extension
-title (str): title of the file in (human friendly format)
-description (str): long text box to describe file (background/use notes)
-tags (list): must be a list.
-key_values (dict): key:value pairs to enable future users to find the file. Must be a dictionary.
-client (optional): set client if not using the default
-dataset_key (str, optional): If updating a file already in the datastore enter the corresponding dataset_key.</p>
-<blockquote>
-<div><p>If not, leave as ‘none’ and the dataset_key will be automatically generated.</p>
-</div></blockquote>
-<p>override_check (bool, optional): If True, overrides checking the metadata for the file when uploaded.
-return_metadata (bool, optional): If True, returns metadata for the file after it is uploaded.</p>
+<dt>Args:</dt><dd><p>data (DataFrame, str, list, tuple, pickle): data to be pickled and uploaded</p>
+<p>bucket (str): bucket the file will be put in</p>
+<p>filename (str): the filename to save the dataframe as in the datastore. Include the extension</p>
+<p>title (str): title of the file in (human friendly format)</p>
+<p>description (str): long text box to describe file (background/use notes)</p>
+<p>tags (list): must be a list.</p>
+<p>key_values (dict): key:value pairs to enable future users to find the file. Must be a dictionary.</p>
+<p>client (optional): set client if not using the default</p>
+<dl class="simple">
+<dt>dataset_key (str, optional): If updating a file already in the datastore enter the corresponding dataset_key.</dt><dd><p>If not, leave as ‘none’ and the dataset_key will be automatically generated.</p>
+</dd>
+</dl>
+<p>override_check (bool, optional): If True, overrides checking the metadata for the file when uploaded.</p>
+<p>return_metadata (bool, optional): If True, returns metadata for the file after it is uploaded.</p>
 </dd>
 <dt>Returns:</dt><dd><p>None</p>
 </dd>
@@ -1184,11 +1322,11 @@ split_combo: tuple of form (split_valid_frac, split_test_frac)</p>
 <dt id="utils.hyperparam_search_wrapper.HyperparameterSearch.return_split_uuid_file">
 <code class="sig-name descname"><span class="pre">return_split_uuid_file</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">response_cols</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bucket</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">splitter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">split_combo</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">retry_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">60</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/hyperparam_search_wrapper.html#HyperparameterSearch.return_split_uuid_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.hyperparam_search_wrapper.HyperparameterSearch.return_split_uuid_file" title="Permalink to this definition">¶</a></dt>
 <dd><p>Loads a dataset, splits it, saves it, and returns the split_uuid.</p>
-<dl class="simple">
-<dt>Args:</dt><dd><p>dataset_key: key for dataset to split
-bucket: datastore-specific user group bucket
-splitter: Type of splitter to use to split the dataset
-split_combo: tuple of form (split_valid_frac, split_test_frac)</p>
+<dl>
+<dt>Args:</dt><dd><p>dataset_key: key for dataset to split</p>
+<p>bucket: datastore-specific user group bucket</p>
+<p>splitter: Type of splitter to use to split the dataset</p>
+<p>split_combo: tuple of form (split_valid_frac, split_test_frac)</p>
 </dd>
 <dt>Returns:</dt><dd><p>None</p>
 </dd>
@@ -1356,7 +1494,8 @@ you want to try for that param</p>
 <dl class="py function">
 <dt id="utils.hyperparam_search_wrapper.build_hyperopt_search_domain">
 <code class="sig-prename descclassname"><span class="pre">utils.hyperparam_search_wrapper.</span></code><code class="sig-name descname"><span class="pre">build_hyperopt_search_domain</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param_list</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/hyperparam_search_wrapper.html#build_hyperopt_search_domain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.hyperparam_search_wrapper.build_hyperopt_search_domain" title="Permalink to this definition">¶</a></dt>
-<dd><p>Generate HyperOpt search domain object from method and parameters, layer_nums is only for NN models.</p>
+<dd><p>Generate HyperOpt search domain object from method and parameters, layer_nums is only for NN models.
+This function is used by the HyperOptSearch class, not intended for standalone usage.</p>
 </dd></dl>
 
 <dl class="py function">
@@ -1429,11 +1568,11 @@ for new LC model tracker.</p>
 <dt id="utils.hyperparam_search_wrapper.run_command">
 <code class="sig-prename descclassname"><span class="pre">utils.hyperparam_search_wrapper.</span></code><code class="sig-name descname"><span class="pre">run_command</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shell_script</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">python_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">script_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/hyperparam_search_wrapper.html#run_command"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.hyperparam_search_wrapper.run_command" title="Permalink to this definition">¶</a></dt>
 <dd><p>Function to submit jobs on a slurm system</p>
-<dl class="simple">
-<dt>Args:</dt><dd><p>shell_script: Name of shell script to run
-python_path: Path to python version
-script_dir: Directory where script lives
-params: parameters in dictionary format</p>
+<dl>
+<dt>Args:</dt><dd><p>shell_script: Name of shell script to run</p>
+<p>python_path: Path to python version</p>
+<p>script_dir: Directory where script lives</p>
+<p>params: parameters in dictionary format</p>
 </dd>
 <dt>Returns:</dt><dd><p>None</p>
 </dd>
@@ -1513,9 +1652,9 @@ command.</p>
 <dt id="utils.model_retrain.train_model">
 <code class="sig-prename descclassname"><span class="pre">utils.model_retrain.</span></code><code class="sig-name descname"><span class="pre">train_model</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/model_retrain.html#train_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.model_retrain.train_model" title="Permalink to this definition">¶</a></dt>
 <dd><p>Retrain a model saved in a model_metadata.json file</p>
-<dl class="simple">
-<dt>Args:</dt><dd><p>input (str): path to model_metadata.json file
-output (str): path to output directory</p>
+<dl>
+<dt>Args:</dt><dd><p>input (str): path to model_metadata.json file</p>
+<p>output (str): path to output directory</p>
 </dd>
 <dt>Returns:</dt><dd><p>None</p>
 </dd>
@@ -1526,9 +1665,9 @@ output (str): path to output directory</p>
 <dt id="utils.model_retrain.train_model_from_tar">
 <code class="sig-prename descclassname"><span class="pre">utils.model_retrain.</span></code><code class="sig-name descname"><span class="pre">train_model_from_tar</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/model_retrain.html#train_model_from_tar"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.model_retrain.train_model_from_tar" title="Permalink to this definition">¶</a></dt>
 <dd><p>Retrain a model saved in a tar.gz file</p>
-<dl class="simple">
-<dt>Args:</dt><dd><p>input (str): path to a tar.gz file
-output (str): path to output directory</p>
+<dl>
+<dt>Args:</dt><dd><p>input (str): path to a tar.gz file</p>
+<p>output (str): path to output directory</p>
 </dd>
 <dt>Returns:</dt><dd><p>None</p>
 </dd>
@@ -1590,9 +1729,9 @@ output (str): path to output directory</p>
 <dt id="utils.pubchem_utils.download_activitytype">
 <code class="sig-prename descclassname"><span class="pre">utils.pubchem_utils.</span></code><code class="sig-name descname"><span class="pre">download_activitytype</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">aid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sid</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/pubchem_utils.html#download_activitytype"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.pubchem_utils.download_activitytype" title="Permalink to this definition">¶</a></dt>
 <dd><p>Retrieve data for assays for a select list of sids.</p>
-<dl class="simple">
-<dt>Args:</dt><dd><p>myList (list): a bioactivity id (aid)
-sidlst (list): list of sids specified as integers</p>
+<dl>
+<dt>Args:</dt><dd><p>myList (list): a bioactivity id (aid)</p>
+<p>sidlst (list): list of sids specified as integers</p>
 </dd>
 <dt>Returns:</dt><dd><p>Nothing returned yet, will return basic stats to help decide whether to use assay or not</p>
 </dd>
@@ -1603,9 +1742,9 @@ sidlst (list): list of sids specified as integers</p>
 <dt id="utils.pubchem_utils.download_bioactivity_assay">
 <code class="sig-prename descclassname"><span class="pre">utils.pubchem_utils.</span></code><code class="sig-name descname"><span class="pre">download_bioactivity_assay</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">myList</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">intv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/pubchem_utils.html#download_bioactivity_assay"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.pubchem_utils.download_bioactivity_assay" title="Permalink to this definition">¶</a></dt>
 <dd><p>Retrieve summary info on bioactivity assays.</p>
-<dl class="simple">
-<dt>Args:</dt><dd><p>myList (list): List of PubChem AIDs (bioactivity assay ids)
-intv (1): number of INCHIKEYS to submit queries for in one request, default is 1</p>
+<dl>
+<dt>Args:</dt><dd><p>myList (list): List of PubChem AIDs (bioactivity assay ids)</p>
+<p>intv (1): number of INCHIKEYS to submit queries for in one request, default is 1</p>
 </dd>
 <dt>Returns:</dt><dd><p>Nothing returned yet, will return basic stats to help decide whether to use assay or not</p>
 </dd>
@@ -1616,9 +1755,9 @@ intv (1): number of INCHIKEYS to submit queries for in one request, default is 1
 <dt id="utils.pubchem_utils.download_dose_response_from_bioactivity">
 <code class="sig-prename descclassname"><span class="pre">utils.pubchem_utils.</span></code><code class="sig-name descname"><span class="pre">download_dose_response_from_bioactivity</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">aid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sidlst</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/pubchem_utils.html#download_dose_response_from_bioactivity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.pubchem_utils.download_dose_response_from_bioactivity" title="Permalink to this definition">¶</a></dt>
 <dd><p>Retrieve data for assays for a select list of sids.</p>
-<dl class="simple">
-<dt>Args:</dt><dd><p>myList (list): a bioactivity id (aid)
-sidlst (list): list of sids specified as integers</p>
+<dl>
+<dt>Args:</dt><dd><p>myList (list): a bioactivity id (aid)</p>
+<p>sidlst (list): list of sids specified as integers</p>
 </dd>
 <dt>Returns:</dt><dd><p>Nothing returned yet, will return basic stats to help decide whether to use assay or not</p>
 </dd>
@@ -1630,13 +1769,13 @@ sidlst (list): list of sids specified as integers</p>
 <code class="sig-prename descclassname"><span class="pre">utils.pubchem_utils.</span></code><code class="sig-name descname"><span class="pre">download_smiles</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">myList</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">intv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/pubchem_utils.html#download_smiles"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.pubchem_utils.download_smiles" title="Permalink to this definition">¶</a></dt>
 <dd><p>Retrieve canonical SMILES strings for a list of input INCHIKEYS.
 Will return only one SMILES string per INCHIKEY.  If there are multiple values returned, the first is retained and the others are returned in a the discard_lst.  INCHIKEYS that fail to return a SMILES string are put in the fail_lst</p>
-<dl class="simple">
-<dt>Args:</dt><dd><p>myList (list): List of INCHIKEYS
-intv (1): number of INCHIKEYS to submit queries for in one request, default is 1</p>
+<dl>
+<dt>Args:</dt><dd><p>myList (list): List of INCHIKEYS</p>
+<p>intv (1): number of INCHIKEYS to submit queries for in one request, default is 1</p>
 </dd>
-<dt>Returns:</dt><dd><p>list of SMILES strings corresponding to INCHIKEYS
-list of INCHIKEYS, which failed to return a SMILES string
-list of CIDs and SMILES, which were returned beyond the first CID and SMILE found for input INCHIKEY</p>
+<dt>Returns:</dt><dd><p>list of SMILES strings corresponding to INCHIKEYS</p>
+<p>list of INCHIKEYS, which failed to return a SMILES string</p>
+<p>list of CIDs and SMILES, which were returned beyond the first CID and SMILE found for input INCHIKEY</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1973,8 +2112,8 @@ it can be used as a unique identifier, but doesn’t hold the information needed
 </dd></dl>
 
 </div>
-<div class="section" id="module-utils.verify_results">
-<span id="utils-verify-results-module"></span><h2>utils.verify_results module<a class="headerlink" href="#module-utils.verify_results" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="utils-verify-results-module">
+<h2>utils.verify_results module<a class="headerlink" href="#utils-verify-results-module" title="Permalink to this headline">¶</a></h2>
 </div>
 <div class="section" id="module-utils">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-utils" title="Permalink to this headline">¶</a></h2>

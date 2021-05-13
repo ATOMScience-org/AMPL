@@ -174,11 +174,14 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">        myList (list): List of INCHIKEYS</span>
+
 <span class="sd">        intv (1): number of INCHIKEYS to submit queries for in one request, default is 1</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        list of SMILES strings corresponding to INCHIKEYS</span>
+
 <span class="sd">        list of INCHIKEYS, which failed to return a SMILES string</span>
+
 <span class="sd">        list of CIDs and SMILES, which were returned beyond the first CID and SMILE found for input INCHIKEY</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">ncmpds</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">myList</span><span class="p">)</span>
@@ -231,6 +234,7 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">        myList (list): List of PubChem AIDs (bioactivity assay ids)</span>
+
 <span class="sd">        intv (1): number of INCHIKEYS to submit queries for in one request, default is 1</span>
 
 <span class="sd">    Returns:</span>
@@ -318,6 +322,7 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">        myList (list): a bioactivity id (aid)</span>
+
 <span class="sd">        sidlst (list): list of sids specified as integers</span>
 
 <span class="sd">    Returns:</span>
@@ -359,6 +364,7 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">        myList (list): a bioactivity id (aid)</span>
+
 <span class="sd">        sidlst (list): list of sids specified as integers</span>
 
 <span class="sd">    Returns:</span>

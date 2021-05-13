@@ -48,11 +48,14 @@ def dc_restore(model, checkpoint=None, model_dir=None, session=None):
 
     Args:
         model (DeepChem.KerasModel: keras model to restore
+
         checkpoint (str): the path to the checkpoint file to load.  If this is None, the most recent
             checkpoint will be chosen automatically.  Call get_checkpoints() to get a
             list of all available checkpoints.
+
         model_dir (str): default None
             Directory to restore checkpoint from. If None, use model.model_dir.
+
         session (tf.Session()) default None
             Session to run restore ops under. If None, model.session is used.
 
@@ -83,7 +86,9 @@ def create_model_wrapper(params, featurizer, ds_client=None):
 
     Args:
         params (Namespace): Parameters passed to the model pipeline
+
         featurizer (Featurization): Object managing the featurization of compounds
+
         ds_client (DatastoreClient): Interface to the file datastore
 
     Returns:
@@ -124,10 +129,15 @@ class ModelWrapper(object):
         Attributes:
         Set in __init__
             params (argparse.Namespace): The argparse.Namespace parameter object that contains all parameter information
+
             featurziation (Featurization object): The featurization object created outside of model_wrapper
+
             log (log): The logger
+
             output_dir (str): The parent path of the model directory
+
             transformers (list): Initialized as an empty list, stores the transformers on the response col
+
             transformers_x (list): Initialized as an empty list, stores the transformers on the featurizers
 
         set in setup_model_dirs:
@@ -139,16 +149,23 @@ class ModelWrapper(object):
 
         Args:
             params (Namespace object): contains all parameter information.
+
             featurizer (Featurization object): initialized outside of model_wrapper
+
             ds_client (DatastoreClient): Interface to the file datastore
 
         Side effects:
             Sets the following attributes of ModelWrapper:
                 params (argparse.Namespace): The argparse.Namespace parameter object that contains all parameter information
+
                 featurziation (Featurization object): The featurization object created outside of model_wrapper
+
                 log (log): The logger
+
                 output_dir (str): The parent path of the model directory
+
                 transformers (list): Initialized as an empty list, stores the transformers on the response col
+
                 transformers_x (list): Initialized as an empty list, stores the transformers on the featurizers
 
         """
@@ -209,7 +226,9 @@ class ModelWrapper(object):
         Side effects
             Overwrites the attributes:
                 transformers: A list of deepchem transformation objects on response_col, only if conditions are met
+
                 transformers_x: A list of deepchem transformation objects on featurizers, only if conditions are met.
+
                 params.transformer_key: A string pointing to the dataset key containing the transformer in the datastore, or the path to the transformer
 
         """
@@ -295,6 +314,7 @@ class ModelWrapper(object):
 
         Args:
             perf_data: A PerfData object that stores the predicted values and metrics
+
         Returns:
             dict: A dictionary of the prediction results
 
@@ -373,6 +393,7 @@ class ModelWrapper(object):
 
         Args:
             model_dataset (DiskDataset): Stores the current dataset and related methods
+
         Returns:
             dict: A dictionary containing predicted values and metrics for the current full dataset
 
@@ -430,25 +451,39 @@ class DCNNModelWrapper(ModelWrapper):
         Set in __init__
             params (argparse.Namespace): The argparse.Namespace parameter object that contains all parameter information
             featurziation (Featurization object): The featurization object created outside of model_wrapper
+
             log (log): The logger
+
             output_dir (str): The parent path of the model directory
+
             transformers (list): Initialized as an empty list, stores the transformers on the response col
+
             transformers_x (list): Initialized as an empty list, stores the transformers on the featurizers
+
             model_dir (str): The subdirectory under output_dir that contains the model. Created in setup_model_dirs.
+
             best_model_dir (str): The subdirectory under output_dir that contains the best model. Created in setup_model_dirs
+
             g: The tensorflow graph object
+
             sess: The tensor flow graph session
+
             model: The dc.models.GraphConvModel, MultitaskRegressor, or MultitaskClassifier object, as specified by the params attribute
 
         Created in train:
             data (ModelDataset): contains the dataset, set in pipeline
+
             best_epoch (int): Initialized as None, keeps track of the epoch with the best validation score
+
             train_perf_data (np.array of PerfData): Initialized as an empty array, 
                 contains the predictions and performance of the training dataset
+
             valid_perf_data (np.array of PerfData): Initialized as an empty array,
                 contains the predictions and performance of the validation dataset
+
             train_epoch_perfs (np.array of dicts): Initialized as an empty array,
                 contains a list of dictionaries of predicted values and metrics on the training dataset
+
             valid_epoch_perfs (np.array of dicts): Initialized as an empty array,
                 contains a list of dictionaries of predicted values and metrics on the validation dataset
 
@@ -459,17 +494,26 @@ class DCNNModelWrapper(ModelWrapper):
 
         Args:
             params (Namespace object): contains all parameter information.
+
             featurizer (Featurizer object): initialized outside of model_wrapper
 
         Side effects:
             params (argparse.Namespace): The argparse.Namespace parameter object that contains all parameter information
+
             featurziation (Featurization object): The featurization object created outside of model_wrapper
+
             log (log): The logger
+
             output_dir (str): The parent path of the model directory
+
             transformers (list): Initialized as an empty list, stores the transformers on the response col
+
             transformers_x (list): Initialized as an empty list, stores the transformers on the featurizers
+
             g: The tensorflow graph object
+
             sess: The tensor flow graph session
+
             model: The dc.models.GraphConvModel, MultitaskRegressor, or MultitaskClassifier object, as specified by the params attribute
 
 
@@ -678,13 +722,18 @@ class DCNNModelWrapper(ModelWrapper):
         Side effects:
             Sets the following attributes for DCNNModelWrapper:
                 data (ModelDataset): contains the dataset, set in pipeline
+
                 best_epoch (int): Initialized as None, keeps track of the epoch with the best validation score
+
                 train_perf_data (list of PerfData): Initialized as an empty array, 
                     contains the predictions and performance of the training dataset
+
                 valid_perf_data (list of PerfData): Initialized as an empty array,
                     contains the predictions and performance of the validation dataset
+
                 train_epoch_perfs (np.array): Initialized as an empty array,
                     contains a list of dictionaries of predicted values and metrics on the training dataset
+
                 valid_epoch_perfs (np.array of dicts): Initialized as an empty array,
                     contains a list of dictionaries of predicted values and metrics on the validation dataset
         """
@@ -709,13 +758,19 @@ class DCNNModelWrapper(ModelWrapper):
         Side effects:
             Sets the following attributes for DCNNModelWrapper:
                 data (ModelDataset): contains the dataset, set in pipeline
+
                 best_epoch (int): Initialized as None, keeps track of the epoch with the best validation score
+
                 best_validation_score (float): The best validation model choice score attained during training.
+
                 train_perf_data (list of PerfData): Initialized as an empty array, 
                     contains the predictions and performance of the training dataset
+
                 valid_perf_data (list of PerfData): Initialized as an empty array,
                     contains the predictions and performance of the validation dataset
+
                 train_epoch_perfs (np.array): A standard training set performance metric (r2_score or roc_auc), at the end of each epoch.
+
                 valid_epoch_perfs (np.array): A standard validation set performance metric (r2_score or roc_auc), at the end of each epoch.
         """
         self.data = pipeline.data
@@ -820,13 +875,18 @@ class DCNNModelWrapper(ModelWrapper):
         Side effects:
             Sets the following attributes for DCNNModelWrapper:
                 data (ModelDataset): contains the dataset, set in pipeline
+
                 best_epoch (int): Initialized as None, keeps track of the epoch with the best validation score
+
                 train_perf_data (list of PerfData): Initialized as an empty array, 
                     contains the predictions and performance of the training dataset
+
                 valid_perf_data (list of PerfData): Initialized as an empty array,
                     contains the predictions and performance of the validation dataset
+
                 train_epoch_perfs (np.array): Contains a standard training set performance metric (r2_score or roc_auc), averaged over folds,
                     at the end of each epoch.
+
                 valid_epoch_perfs (np.array): Contains a standard validation set performance metric (r2_score or roc_auc), averaged over folds,
                     at the end of each epoch.
         """
@@ -1065,6 +1125,7 @@ class DCNNModelWrapper(ModelWrapper):
 
         Args:
             subset (str): Label for the current subset of the dataset (choices ['train','valid','test','full'])
+
             epoch_label (str): Label for the training epoch we want results for (choices ['best'])
 
         Returns:
@@ -1072,6 +1133,7 @@ class DCNNModelWrapper(ModelWrapper):
 
         Raises:
             ValueError: if epoch_label not in ['best']
+
             ValueError: If subset not in ['train','valid','test','full']
         """
         if subset == 'full':
@@ -1100,6 +1162,7 @@ class DCNNModelWrapper(ModelWrapper):
 
         Args:
             subset (str): Label for the current subset of the dataset (choices ['train','valid','test','full'])
+
             epoch_label (str): Label for the training epoch we want results for (choices ['best'])
 
         Returns:
@@ -1107,6 +1170,7 @@ class DCNNModelWrapper(ModelWrapper):
 
         Raises:
             ValueError: if epoch_label not in ['best']
+
             ValueError: If subset not in ['train','valid','test','full']
         """
 
@@ -1263,6 +1327,7 @@ class DCRFModelWrapper(ModelWrapper):
 
         Args:
             params (Namespace object): contains all parameter information.
+
             featurizer (Featurization): Object managing the featurization of compounds
             ds_client: datastore client.
         """
@@ -1296,10 +1361,15 @@ class DCRFModelWrapper(ModelWrapper):
 
         Side effects:
             data (ModelDataset): contains the dataset, set in pipeline
+
             best_epoch (int): Set to 0, not applicable to deepchem random forest models
+
             train_perf_data (PerfData): Contains the predictions and performance of the training dataset
+
             valid_perf_data (PerfData): Contains the predictions and performance of the validation dataset
+
             train_perfs (dict): A dictionary of predicted values and metrics on the training dataset
+
             valid_perfs (dict): A dictionary of predicted values and metrics on the training dataset
         """
 
@@ -1354,6 +1424,7 @@ class DCRFModelWrapper(ModelWrapper):
 
         Args:
             reload_dir (str): Directory where saved model is located.
+
             model_dataset (ModelDataset Object): contains the current full dataset
 
         Side effects:
@@ -1390,6 +1461,7 @@ class DCRFModelWrapper(ModelWrapper):
 
         Args:
             subset: 'train', 'valid', 'test' or 'full' accordingly.
+
             epoch_label: ignored; this function always returns the results for the current model.
 
         Returns:
@@ -1542,6 +1614,7 @@ class DCxgboostModelWrapper(ModelWrapper):
 
         Args:
             params (Namespace object): contains all parameter information.
+
             featurizer (Featurization): Object managing the featurization of compounds
             ds_client: datastore client.
         """
@@ -1618,10 +1691,15 @@ class DCxgboostModelWrapper(ModelWrapper):
 
         Side effects:
             data (ModelDataset): contains the dataset, set in pipeline
+
             best_epoch (int): Set to 0, not applicable to deepchem xgboost models
+
             train_perf_data (PerfData): Contains the predictions and performance of the training dataset
+
             valid_perf_data (PerfData): Contains the predictions and performance of the validation dataset
+
             train_perfs (dict): A dictionary of predicted values and metrics on the training dataset
+
             valid_perfs (dict): A dictionary of predicted values and metrics on the training dataset
         """
 
@@ -1676,6 +1754,7 @@ class DCxgboostModelWrapper(ModelWrapper):
 
         Args:
             reload_dir (str): Directory where saved model is located.
+
             model_dataset (ModelDataset Object): contains the current full dataset
 
         Side effects:
@@ -1759,6 +1838,7 @@ class DCxgboostModelWrapper(ModelWrapper):
 
         Args:
             subset: 'train', 'valid', 'test' or 'full' accordingly.
+
             epoch_label: ignored; this function always returns the results for the current model.
 
         Returns:
@@ -1787,6 +1867,7 @@ class DCxgboostModelWrapper(ModelWrapper):
 
         Args:
             subset (str): may be 'train', 'valid', 'test' or 'full'
+
             epoch_label (not used in random forest, but kept as part of the method structure)
 
         Results:

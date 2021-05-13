@@ -40,8 +40,11 @@ def save_model(pipeline, collection_name='model_tracker', log=True):
 
     Args:
         pipeline (ModelPipeline object): the pipeline to use
+
         collection_name (str): the name of the Mongo DB collection to use
+
         log (bool): True if logs should be printed, default False
+
         use_personal_client (bool): True if personal client should be used (i.e. for testing), default False
 
     Returns:
@@ -144,7 +147,9 @@ def get_metadata_by_uuid(model_uuid, collection_name=None):
 
     Args:
         model_uuid (str): model unique identifier
+
         collection_name(str): collection to search (optional, searches all collections if not specified)
+
     Returns:
         Matching metadata dictionary. Raises MongoQueryException if the query fails.
     """
@@ -174,7 +179,9 @@ def get_full_metadata_by_uuid(model_uuid, collection_name=None):
 
     Args:
         model_uuid (str): model unique identifier
+
         collection_name(str): collection to search (optional, searches all collections if not specified)
+
     Returns:
         Matching metadata dictionary. Raises MongoQueryException if the query fails.
     """
@@ -198,8 +205,10 @@ def get_model_collection_by_uuid(model_uuid, mlmt_client=None):
         model_uuid (str): model uuid
 
         mlmt_client: Ignored
+
     Returns:
         Matching collection name
+
     Raises:
         ValueError if there is no collection containing a model with the given uuid.
     """
@@ -224,6 +233,7 @@ def get_model_training_data_by_uuid(uuid):
 
     Args:
         uuid (str): model uuid
+
     Returns:
         a tuple of datafraes containint training data, validation data, and test data including the compound ID, RDKIT SMILES, and response value
     """

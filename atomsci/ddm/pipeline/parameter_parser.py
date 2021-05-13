@@ -1112,6 +1112,7 @@ def prune_defaults(params, keep_params={}):
 
     Args:
         params (argparse.Namespace): Raw parsed arguments.
+
         keep_params (list): List of parameters to keep
 
     Returns:

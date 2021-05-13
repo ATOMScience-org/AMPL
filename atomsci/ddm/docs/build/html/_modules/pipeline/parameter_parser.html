@@ -1025,14 +1025,19 @@
             <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Scaling factor for constraining network size based on number of parameters in the network for &#39;</span>
                  <span class="s1">&#39;hyperparam search&#39;</span><span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
-        <span class="s1">&#39;--python_path&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;python_path&#39;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;python&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Path to desired python version&#39;</span><span class="p">)</span>
+        <span class="s1">&#39;--python_path&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;python_path&#39;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> 
+        <span class="c1"># default to the version of python used to run this script</span>
+        <span class="n">default</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">executable</span><span class="p">,</span> 
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Path to desired python version&#39;</span><span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
             <span class="s1">&#39;--rerun&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span> <span class="s1">&#39;rerun&#39;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_false&#39;</span><span class="p">,</span>
             <span class="n">help</span><span class="o">=</span><span class="s1">&#39;If False, check model tracker to see if a model with that particular param combination has &#39;</span>
                  <span class="s1">&#39;already been built&#39;</span><span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">rerun</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
-        <span class="s1">&#39;--script_dir&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;script_dir&#39;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;.&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;--script_dir&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;script_dir&#39;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> 
+        <span class="c1"># use location of this file to generate script dir</span>
+        <span class="n">default</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="vm">__file__</span><span class="p">,</span> <span class="s1">&#39;../..&#39;</span><span class="p">)),</span>
         <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Path where pipeline file you want to run hyperparam search from is located&#39;</span><span class="p">)</span>
 
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
@@ -1109,6 +1114,13 @@
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
         <span class="s1">&#39;--xgbl&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;xgbl&#39;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="s1">&#39;xgb_learning_rate shown in HyperOpt domain format, e.g. --xgbl=loguniform|-6.9,-2.3&#39;</span><span class="p">)</span>
+    <span class="c1"># checkpoint</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--hp_checkpoint_save&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;hp_checkpoint_save&#39;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;binary file to save a checkpoint of the HPO trial project, which can be use to continue the HPO serach later. e.g. --hp_checkpoint_save=/path/to/file/checkpoint.pkl&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--hp_checkpoint_load&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;hp_checkpoint_load&#39;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;binary file to load a checkpoint of a previous HPO trial project, to continue the HPO serach. e.g. --hp_checkpoint_load=/path/to/file/checkpoint.pkl&#39;</span><span class="p">)</span>
 
 
     <span class="k">return</span> <span class="n">parser</span></div>
@@ -1250,6 +1262,13 @@
                 <span class="p">(</span><span class="n">parsed_args</span><span class="o">.</span><span class="n">bias_init_consts</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">parsed_args</span><span class="o">.</span><span class="n">bias_init_consts</span><span class="p">)</span> <span class="o">!=</span> <span class="n">nlayers</span><span class="p">)):</span>
                 <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;layer_sizes, dropouts, weight_init_stddevs and bias_init_consts arguments must be the &quot;</span>
                                 <span class="s2">&quot;same length&quot;</span><span class="p">)</span>
+
+    <span class="c1"># check to see if result_dir and dataset_key are relative paths</span>
+    <span class="c1"># if so, make them relative to script_dir</span>
+    <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">parsed_args</span><span class="o">.</span><span class="n">dataset_key</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isabs</span><span class="p">(</span><span class="n">parsed_args</span><span class="o">.</span><span class="n">dataset_key</span><span class="p">)):</span>
+        <span class="n">parsed_args</span><span class="o">.</span><span class="n">dataset_key</span> <span class="o">=</span> \
+            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">parsed_args</span><span class="o">.</span><span class="n">script_dir</span><span class="p">,</span> <span class="n">parsed_args</span><span class="o">.</span><span class="n">dataset_key</span><span class="p">))</span>
+
     <span class="k">return</span> <span class="n">parsed_args</span></div>
 
 <span class="c1">#***********************************************************************************************************</span>
@@ -1258,6 +1277,7 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">        params (argparse.Namespace): Raw parsed arguments.</span>
+
 <span class="sd">        keep_params (list): List of parameters to keep</span>
 
 <span class="sd">    Returns:</span>

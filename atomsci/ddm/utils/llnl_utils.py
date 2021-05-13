@@ -31,6 +31,7 @@ def get_command_output(cmd):
     
     Args:
         cmd: Command to run
+
     Returns:
         output: Output of command
     """
@@ -46,6 +47,7 @@ def get_my_username():
     
     Args:
         none
+
     Returns:
         username (str): The current effective username
     """
@@ -67,6 +69,7 @@ def throttle_jobs(max_jobs, retry_time=10, my_username=None, verbose=True):
 
         my_username (str): Effective username of the caller; defaults to output of 'whoami'
         command.
+
     Returns:
         none
     """

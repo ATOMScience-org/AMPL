@@ -213,11 +213,14 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">        model (DeepChem.KerasModel: keras model to restore</span>
+
 <span class="sd">        checkpoint (str): the path to the checkpoint file to load.  If this is None, the most recent</span>
 <span class="sd">            checkpoint will be chosen automatically.  Call get_checkpoints() to get a</span>
 <span class="sd">            list of all available checkpoints.</span>
+
 <span class="sd">        model_dir (str): default None</span>
 <span class="sd">            Directory to restore checkpoint from. If None, use model.model_dir.</span>
+
 <span class="sd">        session (tf.Session()) default None</span>
 <span class="sd">            Session to run restore ops under. If None, model.session is used.</span>
 
@@ -248,7 +251,9 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">        params (Namespace): Parameters passed to the model pipeline</span>
+
 <span class="sd">        featurizer (Featurization): Object managing the featurization of compounds</span>
+
 <span class="sd">        ds_client (DatastoreClient): Interface to the file datastore</span>
 
 <span class="sd">    Returns:</span>
@@ -289,10 +294,15 @@
 <span class="sd">        Attributes:</span>
 <span class="sd">        Set in __init__</span>
 <span class="sd">            params (argparse.Namespace): The argparse.Namespace parameter object that contains all parameter information</span>
+
 <span class="sd">            featurziation (Featurization object): The featurization object created outside of model_wrapper</span>
+
 <span class="sd">            log (log): The logger</span>
+
 <span class="sd">            output_dir (str): The parent path of the model directory</span>
+
 <span class="sd">            transformers (list): Initialized as an empty list, stores the transformers on the response col</span>
+
 <span class="sd">            transformers_x (list): Initialized as an empty list, stores the transformers on the featurizers</span>
 
 <span class="sd">        set in setup_model_dirs:</span>
@@ -304,16 +314,23 @@
 
 <span class="sd">        Args:</span>
 <span class="sd">            params (Namespace object): contains all parameter information.</span>
+
 <span class="sd">            featurizer (Featurization object): initialized outside of model_wrapper</span>
+
 <span class="sd">            ds_client (DatastoreClient): Interface to the file datastore</span>
 
 <span class="sd">        Side effects:</span>
 <span class="sd">            Sets the following attributes of ModelWrapper:</span>
 <span class="sd">                params (argparse.Namespace): The argparse.Namespace parameter object that contains all parameter information</span>
+
 <span class="sd">                featurziation (Featurization object): The featurization object created outside of model_wrapper</span>
+
 <span class="sd">                log (log): The logger</span>
+
 <span class="sd">                output_dir (str): The parent path of the model directory</span>
+
 <span class="sd">                transformers (list): Initialized as an empty list, stores the transformers on the response col</span>
+
 <span class="sd">                transformers_x (list): Initialized as an empty list, stores the transformers on the featurizers</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -374,7 +391,9 @@
 <span class="sd">        Side effects</span>
 <span class="sd">            Overwrites the attributes:</span>
 <span class="sd">                transformers: A list of deepchem transformation objects on response_col, only if conditions are met</span>
+
 <span class="sd">                transformers_x: A list of deepchem transformation objects on featurizers, only if conditions are met.</span>
+
 <span class="sd">                params.transformer_key: A string pointing to the dataset key containing the transformer in the datastore, or the path to the transformer</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -460,6 +479,7 @@
 
 <span class="sd">        Args:</span>
 <span class="sd">            perf_data: A PerfData object that stores the predicted values and metrics</span>
+
 <span class="sd">        Returns:</span>
 <span class="sd">            dict: A dictionary of the prediction results</span>
 
@@ -538,6 +558,7 @@
 
 <span class="sd">        Args:</span>
 <span class="sd">            model_dataset (DiskDataset): Stores the current dataset and related methods</span>
+
 <span class="sd">        Returns:</span>
 <span class="sd">            dict: A dictionary containing predicted values and metrics for the current full dataset</span>
 
@@ -595,25 +616,39 @@
 <span class="sd">        Set in __init__</span>
 <span class="sd">            params (argparse.Namespace): The argparse.Namespace parameter object that contains all parameter information</span>
 <span class="sd">            featurziation (Featurization object): The featurization object created outside of model_wrapper</span>
+
 <span class="sd">            log (log): The logger</span>
+
 <span class="sd">            output_dir (str): The parent path of the model directory</span>
+
 <span class="sd">            transformers (list): Initialized as an empty list, stores the transformers on the response col</span>
+
 <span class="sd">            transformers_x (list): Initialized as an empty list, stores the transformers on the featurizers</span>
+
 <span class="sd">            model_dir (str): The subdirectory under output_dir that contains the model. Created in setup_model_dirs.</span>
+
 <span class="sd">            best_model_dir (str): The subdirectory under output_dir that contains the best model. Created in setup_model_dirs</span>
+
 <span class="sd">            g: The tensorflow graph object</span>
+
 <span class="sd">            sess: The tensor flow graph session</span>
+
 <span class="sd">            model: The dc.models.GraphConvModel, MultitaskRegressor, or MultitaskClassifier object, as specified by the params attribute</span>
 
 <span class="sd">        Created in train:</span>
 <span class="sd">            data (ModelDataset): contains the dataset, set in pipeline</span>
+
 <span class="sd">            best_epoch (int): Initialized as None, keeps track of the epoch with the best validation score</span>
+
 <span class="sd">            train_perf_data (np.array of PerfData): Initialized as an empty array, </span>
 <span class="sd">                contains the predictions and performance of the training dataset</span>
+
 <span class="sd">            valid_perf_data (np.array of PerfData): Initialized as an empty array,</span>
 <span class="sd">                contains the predictions and performance of the validation dataset</span>
+
 <span class="sd">            train_epoch_perfs (np.array of dicts): Initialized as an empty array,</span>
 <span class="sd">                contains a list of dictionaries of predicted values and metrics on the training dataset</span>
+
 <span class="sd">            valid_epoch_perfs (np.array of dicts): Initialized as an empty array,</span>
 <span class="sd">                contains a list of dictionaries of predicted values and metrics on the validation dataset</span>
 
@@ -624,17 +659,26 @@
 
 <span class="sd">        Args:</span>
 <span class="sd">            params (Namespace object): contains all parameter information.</span>
+
 <span class="sd">            featurizer (Featurizer object): initialized outside of model_wrapper</span>
 
 <span class="sd">        Side effects:</span>
 <span class="sd">            params (argparse.Namespace): The argparse.Namespace parameter object that contains all parameter information</span>
+
 <span class="sd">            featurziation (Featurization object): The featurization object created outside of model_wrapper</span>
+
 <span class="sd">            log (log): The logger</span>
+
 <span class="sd">            output_dir (str): The parent path of the model directory</span>
+
 <span class="sd">            transformers (list): Initialized as an empty list, stores the transformers on the response col</span>
+
 <span class="sd">            transformers_x (list): Initialized as an empty list, stores the transformers on the featurizers</span>
+
 <span class="sd">            g: The tensorflow graph object</span>
+
 <span class="sd">            sess: The tensor flow graph session</span>
+
 <span class="sd">            model: The dc.models.GraphConvModel, MultitaskRegressor, or MultitaskClassifier object, as specified by the params attribute</span>
 
 
@@ -843,13 +887,18 @@
 <span class="sd">        Side effects:</span>
 <span class="sd">            Sets the following attributes for DCNNModelWrapper:</span>
 <span class="sd">                data (ModelDataset): contains the dataset, set in pipeline</span>
+
 <span class="sd">                best_epoch (int): Initialized as None, keeps track of the epoch with the best validation score</span>
+
 <span class="sd">                train_perf_data (list of PerfData): Initialized as an empty array, </span>
 <span class="sd">                    contains the predictions and performance of the training dataset</span>
+
 <span class="sd">                valid_perf_data (list of PerfData): Initialized as an empty array,</span>
 <span class="sd">                    contains the predictions and performance of the validation dataset</span>
+
 <span class="sd">                train_epoch_perfs (np.array): Initialized as an empty array,</span>
 <span class="sd">                    contains a list of dictionaries of predicted values and metrics on the training dataset</span>
+
 <span class="sd">                valid_epoch_perfs (np.array of dicts): Initialized as an empty array,</span>
 <span class="sd">                    contains a list of dictionaries of predicted values and metrics on the validation dataset</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -874,13 +923,19 @@
 <span class="sd">        Side effects:</span>
 <span class="sd">            Sets the following attributes for DCNNModelWrapper:</span>
 <span class="sd">                data (ModelDataset): contains the dataset, set in pipeline</span>
+
 <span class="sd">                best_epoch (int): Initialized as None, keeps track of the epoch with the best validation score</span>
+
 <span class="sd">                best_validation_score (float): The best validation model choice score attained during training.</span>
+
 <span class="sd">                train_perf_data (list of PerfData): Initialized as an empty array, </span>
 <span class="sd">                    contains the predictions and performance of the training dataset</span>
+
 <span class="sd">                valid_perf_data (list of PerfData): Initialized as an empty array,</span>
 <span class="sd">                    contains the predictions and performance of the validation dataset</span>
+
 <span class="sd">                train_epoch_perfs (np.array): A standard training set performance metric (r2_score or roc_auc), at the end of each epoch.</span>
+
 <span class="sd">                valid_epoch_perfs (np.array): A standard validation set performance metric (r2_score or roc_auc), at the end of each epoch.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">data</span>
@@ -985,13 +1040,18 @@
 <span class="sd">        Side effects:</span>
 <span class="sd">            Sets the following attributes for DCNNModelWrapper:</span>
 <span class="sd">                data (ModelDataset): contains the dataset, set in pipeline</span>
+
 <span class="sd">                best_epoch (int): Initialized as None, keeps track of the epoch with the best validation score</span>
+
 <span class="sd">                train_perf_data (list of PerfData): Initialized as an empty array, </span>
 <span class="sd">                    contains the predictions and performance of the training dataset</span>
+
 <span class="sd">                valid_perf_data (list of PerfData): Initialized as an empty array,</span>
 <span class="sd">                    contains the predictions and performance of the validation dataset</span>
+
 <span class="sd">                train_epoch_perfs (np.array): Contains a standard training set performance metric (r2_score or roc_auc), averaged over folds,</span>
 <span class="sd">                    at the end of each epoch.</span>
+
 <span class="sd">                valid_epoch_perfs (np.array): Contains a standard validation set performance metric (r2_score or roc_auc), averaged over folds,</span>
 <span class="sd">                    at the end of each epoch.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -1230,6 +1290,7 @@
 
 <span class="sd">        Args:</span>
 <span class="sd">            subset (str): Label for the current subset of the dataset (choices [&#39;train&#39;,&#39;valid&#39;,&#39;test&#39;,&#39;full&#39;])</span>
+
 <span class="sd">            epoch_label (str): Label for the training epoch we want results for (choices [&#39;best&#39;])</span>
 
 <span class="sd">        Returns:</span>
@@ -1237,6 +1298,7 @@
 
 <span class="sd">        Raises:</span>
 <span class="sd">            ValueError: if epoch_label not in [&#39;best&#39;]</span>
+
 <span class="sd">            ValueError: If subset not in [&#39;train&#39;,&#39;valid&#39;,&#39;test&#39;,&#39;full&#39;]</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">subset</span> <span class="o">==</span> <span class="s1">&#39;full&#39;</span><span class="p">:</span>
@@ -1265,6 +1327,7 @@
 
 <span class="sd">        Args:</span>
 <span class="sd">            subset (str): Label for the current subset of the dataset (choices [&#39;train&#39;,&#39;valid&#39;,&#39;test&#39;,&#39;full&#39;])</span>
+
 <span class="sd">            epoch_label (str): Label for the training epoch we want results for (choices [&#39;best&#39;])</span>
 
 <span class="sd">        Returns:</span>
@@ -1272,6 +1335,7 @@
 
 <span class="sd">        Raises:</span>
 <span class="sd">            ValueError: if epoch_label not in [&#39;best&#39;]</span>
+
 <span class="sd">            ValueError: If subset not in [&#39;train&#39;,&#39;valid&#39;,&#39;test&#39;,&#39;full&#39;]</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
@@ -1428,6 +1492,7 @@
 
 <span class="sd">        Args:</span>
 <span class="sd">            params (Namespace object): contains all parameter information.</span>
+
 <span class="sd">            featurizer (Featurization): Object managing the featurization of compounds</span>
 <span class="sd">            ds_client: datastore client.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -1461,10 +1526,15 @@
 
 <span class="sd">        Side effects:</span>
 <span class="sd">            data (ModelDataset): contains the dataset, set in pipeline</span>
+
 <span class="sd">            best_epoch (int): Set to 0, not applicable to deepchem random forest models</span>
+
 <span class="sd">            train_perf_data (PerfData): Contains the predictions and performance of the training dataset</span>
+
 <span class="sd">            valid_perf_data (PerfData): Contains the predictions and performance of the validation dataset</span>
+
 <span class="sd">            train_perfs (dict): A dictionary of predicted values and metrics on the training dataset</span>
+
 <span class="sd">            valid_perfs (dict): A dictionary of predicted values and metrics on the training dataset</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
@@ -1519,6 +1589,7 @@
 
 <span class="sd">        Args:</span>
 <span class="sd">            reload_dir (str): Directory where saved model is located.</span>
+
 <span class="sd">            model_dataset (ModelDataset Object): contains the current full dataset</span>
 
 <span class="sd">        Side effects:</span>
@@ -1555,6 +1626,7 @@
 
 <span class="sd">        Args:</span>
 <span class="sd">            subset: &#39;train&#39;, &#39;valid&#39;, &#39;test&#39; or &#39;full&#39; accordingly.</span>
+
 <span class="sd">            epoch_label: ignored; this function always returns the results for the current model.</span>
 
 <span class="sd">        Returns:</span>
@@ -1707,6 +1779,7 @@
 
 <span class="sd">        Args:</span>
 <span class="sd">            params (Namespace object): contains all parameter information.</span>
+
 <span class="sd">            featurizer (Featurization): Object managing the featurization of compounds</span>
 <span class="sd">            ds_client: datastore client.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -1783,10 +1856,15 @@
 
 <span class="sd">        Side effects:</span>
 <span class="sd">            data (ModelDataset): contains the dataset, set in pipeline</span>
+
 <span class="sd">            best_epoch (int): Set to 0, not applicable to deepchem xgboost models</span>
+
 <span class="sd">            train_perf_data (PerfData): Contains the predictions and performance of the training dataset</span>
+
 <span class="sd">            valid_perf_data (PerfData): Contains the predictions and performance of the validation dataset</span>
+
 <span class="sd">            train_perfs (dict): A dictionary of predicted values and metrics on the training dataset</span>
+
 <span class="sd">            valid_perfs (dict): A dictionary of predicted values and metrics on the training dataset</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
@@ -1841,6 +1919,7 @@
 
 <span class="sd">        Args:</span>
 <span class="sd">            reload_dir (str): Directory where saved model is located.</span>
+
 <span class="sd">            model_dataset (ModelDataset Object): contains the current full dataset</span>
 
 <span class="sd">        Side effects:</span>
@@ -1924,6 +2003,7 @@
 
 <span class="sd">        Args:</span>
 <span class="sd">            subset: &#39;train&#39;, &#39;valid&#39;, &#39;test&#39; or &#39;full&#39; accordingly.</span>
+
 <span class="sd">            epoch_label: ignored; this function always returns the results for the current model.</span>
 
 <span class="sd">        Returns:</span>
@@ -1952,6 +2032,7 @@
 
 <span class="sd">        Args:</span>
 <span class="sd">            subset (str): may be &#39;train&#39;, &#39;valid&#39;, &#39;test&#39; or &#39;full&#39;</span>
+
 <span class="sd">            epoch_label (not used in random forest, but kept as part of the method structure)</span>
 
 <span class="sd">        Results:</span>
