@@ -23,6 +23,19 @@ import atomsci.ddm.utils.struct_utils as struct_utils
 import atomsci.ddm.utils.curate_data as curate_data, imp
 
 def set_data_root(dir):
+    '''Set global variables for data directories
+
+    Creates paths for DTC and Excape given a root data directory. 
+    Global variables 'data_root' and 'data_dirs'. 'data_root' is the
+    root data directory. 'data_dirs' is a dictionary that maps 'DTC' and 'Excape'
+    to directores calcuated from 'data_root'
+
+    Args:
+        dir (str): root data directory containing folds 'dtc' and 'excape'
+
+    Returns:
+        None
+    '''
     global data_root, data_dirs
     data_root = dir
     #data_dirs = dict(ChEMBL = '%s/ChEMBL' % data_root, DTC = '%s/DTC' % data_root, 
@@ -55,9 +68,24 @@ pub_dsets = dict(
 
 # ----------------------------------------------------------------------------------------------------------------------
 def standardize_relations(dset_df, db='DTC'):
-    """
+    """ Standardizes censoring operators
+
     Standardize the censoring operators to =, < or >, and remove any rows whose operators
-    don't map to a standard one.
+    don't map to a standard one. There is a special case for db='ChEMBL' that strips
+    the extra "'"s around relationship symbols. Assumes relationship columns are 
+    'Standard Relation' and 'standard_relation' for ChEMBL and DTC respectively.
+
+    This function makes the following mappings: ">" to ">", ">=" to ">", "<" to "<",
+    "<=" to "<", and "=" to "=". All other relations are removed from the DataFrame.
+
+    Args:
+        dset_df (DataFrame): Input DataFrame. Must contain either 'Standard Relation'
+            or 'standard_relation'
+        db (str): Source database. Must be either 'DTC' or 'ChEMBL'
+
+    Returns:
+        DataFrame: Dataframe with the standardized relationship sybmols
+
     """
     relation_cols = dict(ChEMBL='Standard Relation', DTC='standard_relation')
     rel_col = relation_cols[db]
@@ -79,19 +107,39 @@ def standardize_relations(dset_df, db='DTC'):
     dset_df = dset_df[dset_df[rel_col] != "@"]
     return dset_df
 
-
 # ----------------------------------------------------------------------------------------------------------------------
 # DTC-specific curation functions
 # ----------------------------------------------------------------------------------------------------------------------
-"""
-Upload a raw dataset to the datastore from the given data frame. 
-Returns the datastore OID of the uploaded dataset.
-"""
 def upload_file_dtc_raw_data(dset_name, title, description, tags,
                             functional_area, 
                            target, target_type, activity, assay_category,file_path,
 			   data_origin='journal',  species='human',  
                            force_update=False):
+    """Uploads raw DTC data to the datastore
+
+    Upload a raw dataset to the datastore from the given DataFrame. 
+    Returns the datastore OID of the uploaded dataset. The dataset is uploaded to the
+    public bucket and lists https://doi.org/10.1016/j.chembiol.2017.11.009' as the doi.
+    This also assumes that the id_col is 'compound_id'
+
+    Args:
+        dset_name (str): Name of the dataset. Should not include a file extension.
+        title (str): title of the file in (human friendly format)
+        description (str): long text box to describe file (background/use notes)
+        tags (list): Must be a list of strings.
+        functional_area (str): The functional area.
+        target (str): The target.
+        target_type (str): The target type of the dataset.
+        activity (str): The activity of the dataset.
+        assay_category (str): The assay category of the dataset.
+        file_path (str): The filepath of the dataset.
+        data_origin (str): The origin of the dataset e.g. journal.
+        species (str): The species of the dataset e.g. human, rat, dog.
+        force_update (bool): Overwrite existing datasets in the datastore.
+
+    Returns:
+        str: datastore OID of the uploaded dataset.
+    """
 
     bucket = 'public'
     filename = '%s.csv' % dset_name
@@ -121,7 +169,9 @@ def upload_file_dtc_raw_data(dset_name, title, description, tags,
         #                               description=description,
         #                               tags=tags, key_values=kv, client=None, dataset_key=dataset_key,
         #                               override_check=True, return_metadata=True)
-        uploaded_file = dsf.upload_file_to_DS(bucket=bucket, filepath=file_path, filename=filename, 		title = title, description=description, tags=tags, key_values=kv, client=None, 			dataset_key=dataset_key, override_check=False, return_metadata=True)
+        uploaded_file = dsf.upload_file_to_DS(bucket=bucket, filepath=file_path, filename=filename,
+            title = title, description=description, tags=tags, key_values=kv, client=None,
+            dataset_key=dataset_key, override_check=False, return_metadata=True)
 
         print("Uploaded raw dataset with key %s" % dataset_key)
     else:
@@ -132,22 +182,32 @@ def upload_file_dtc_raw_data(dset_name, title, description, tags,
     return raw_dset_oid
 
 def filter_dtc_data(orig_df,geneNames):
-    """
+    """ Extracts and post processes JAK1, 2, and 3 datasets from DTC
+
+    This is specific to the DTC database.
     Extract JAK1, 2 and 3 datasets from Drug Target Commons database, filtered for data usability.
+    filter criteria:
+       gene_names == JAK1 | JAK2 | JAK3
+       InChi key not missing
+       standard_type IC50
+       units NM
+       standard_relation mappable to =, < or >
+       wildtype_or_mutant != 'mutated'
+       valid SMILES
+       maps to valid RDKit base SMILES
+       standard_value not missing
+       pIC50 > 3
+
+    Args:
+        orig_df (DataFrame): Input DataFrame. Must contain the following columns: gene_names
+            standard_inchi_key, standard_type, standard_units, standard_value, compound_id,
+            wildtype_or_mutant.
+        geneNames (list): A list of gene names to filter out of orig_df e.g. ['JAK1', 'JAK2'].
+
+    Returns:
+        DataFrame: The filtered rows of the orig_df
+
     """
-    # filter criteria:
-    #   gene_names == JAK1 | JAK2 | JAK3
-    #   InChi key not missing
-    #   standard_type IC50
-    #   units NM
-    #   standard_relation mappable to =, < or >
-    #   wildtype_or_mutant != 'mutated'
-    #   valid SMILES
-    #   maps to valid RDKit base SMILES
-    #   standard_value not missing
-    #   pIC50 > 3
-    #--------------------------------------------------
-    # Filter dataset on existing columns
     dset_df = orig_df[orig_df.gene_names.isin(geneNames) &
                       ~(orig_df.standard_inchi_key.isna()) &
                       (orig_df.standard_type == 'IC50') &
@@ -158,69 +218,126 @@ def filter_dtc_data(orig_df,geneNames):
     return dset_df
 
 def ic50topic50(x) :
+    """Calculates pIC50 from IC50
+
+    Calculates pIC50 from IC50
+
+    Args:
+        x (float): An IC50.
+
+    Returns:
+        float: The pIC50.
+    """
     print(x)
     return -np.log10((x/1000000000.0))
 
-
 def down_select(df,kv_lst) :
+    """Filters rows given a set of values
+
+    Given a DataFrame and a list of tuples columns (k) to values (v), this function
+    filters out all rows where df[k] == v.
+
+    Args:
+        df (DataFrame): An input DataFrame.
+        kv_list (list): A list of tuples of (column, value)
+
+    Returns:
+        DataFrame: Rows where all df[k] == v
+    """
     for k,v in kv_lst :
         df=df[df[k]==v] 
     return df
 
-
 def get_smiles_dtc_data(nm_df,targ_lst,save_smiles_df):
-        save_df={}
-        for targ in targ_lst :
-            lst1= [ ('gene_names',targ),('standard_type','IC50'),('standard_relation','=') ]
-            lst1_tmp= [ ('gene_names',targ),('standard_type','IC50')]
-            jak1_df=down_select(nm_df,lst1)
-            jak1_df_tmp=down_select(nm_df,lst1_tmp)
-            print(targ,"distinct compounds = only",jak1_df['standard_inchi_key'].nunique())
-            print(targ,"distinct compounds <,>,=",jak1_df_tmp['standard_inchi_key'].nunique())
-            ## we convert to log values so make sure there are no 0 values
-            save_df[targ]=jak1_df_tmp[jak1_df_tmp['standard_value']>0]
+    """Returns SMILES strings from DTC data
 
-        prev_targ=targ_lst[0]
-        shared_inchi_keys=save_df[prev_targ]['standard_inchi_key']
-        for it in range(1,len(targ_lst),1) :
-            curr_targ=targ_lst[it]
-            df=save_df[curr_targ]
-            shared_inchi_keys=df[df['standard_inchi_key'].isin(shared_inchi_keys)]['standard_inchi_key']
+    nm_df must be a DataFrame from DTC with the following columns: gene_names,
+    standard_type, standard_value, 'standard_inchi_key', and standard_relation.
 
-        print("num shared compounds",shared_inchi_keys.nunique())
-        lst=[]
-        for targ in targ_lst :
-            df=save_df[targ]
-            #print(aurka_df.shape,aurkb_df.shape, shared_inchi_keys.shape)
-            lst.append(df[df['standard_inchi_key'].isin(shared_inchi_keys)])
-            
-        shared_df=pd.concat(lst)
-        # Add pIC50 values
-        print('Add pIC50 values.')
-        print(shared_df['standard_value'])
-        shared_df['PIC50']=shared_df['standard_value'].apply(ic50topic50)
+    This function selects all rows where nm_df['gene_names'] is in targ_lst,
+    nm_df['standard_type']=='IC50', nm_df['standard_relation']=='=', and 
+    'standard_value' > 0.
 
-        # Merge in SMILES strings
-        print('Merge in SMILES strings.')
-        smiles_lst=[]
-        for targ in targ_lst :
-            df=save_df[targ]
-            df['PIC50']=df['standard_value'].apply(ic50topic50)
-            smiles_df=df.merge(save_smiles_df,on='standard_inchi_key',suffixes=('_'+targ,'_'))
-            #the file puts the SMILES string in quotes, which need to be removed
-            smiles_df['smiles']=smiles_df['smiles'].str.replace('"','')
-            smiles_df['rdkit_smiles']=smiles_df['smiles'].apply(struct_utils.base_smiles_from_smiles)
-            smiles_df['smiles']=smiles_df['smiles'].str.replace('"','')
-            print(smiles_df.shape)
-            print(smiles_df['standard_inchi_key'].nunique())
-            smiles_lst.append(smiles_df)
+    Then pIC50 values are calculated and added to the 'PIC50' column, and
+    smiles strings are merged in from save_smiles_df
+
+    Args:
+        nm_df (DataFrame): Input DataFrame.
+        targ_lst (list): A list of targets.
+        save_smiles_df (DataFrame): A DataFrame with the column 'standard_inchi_key'
+
+    Returns:
+        list, list: A list of smiles and a list of inchi keys shared between targets.
+    """
+    save_df={}
+    for targ in targ_lst :
+        lst1= [ ('gene_names',targ),('standard_type','IC50'),('standard_relation','=') ]
+        lst1_tmp= [ ('gene_names',targ),('standard_type','IC50')]
+        jak1_df=down_select(nm_df,lst1)
+        jak1_df_tmp=down_select(nm_df,lst1_tmp)
+        print(targ,"distinct compounds = only",jak1_df['standard_inchi_key'].nunique())
+        print(targ,"distinct compounds <,>,=",jak1_df_tmp['standard_inchi_key'].nunique())
+        ## we convert to log values so make sure there are no 0 values
+        save_df[targ]=jak1_df_tmp[jak1_df_tmp['standard_value']>0]
+
+    prev_targ=targ_lst[0]
+    shared_inchi_keys=save_df[prev_targ]['standard_inchi_key']
+    for it in range(1,len(targ_lst),1) :
+        curr_targ=targ_lst[it]
+        df=save_df[curr_targ]
+        shared_inchi_keys=df[df['standard_inchi_key'].isin(shared_inchi_keys)]['standard_inchi_key']
+
+    print("num shared compounds",shared_inchi_keys.nunique())
+    lst=[]
+        #print(aurka_df.shape,aurkb_df.shape, shared_inchi_keys.shape)
+        lst.append(df[df['standard_inchi_key'].isin(shared_inchi_keys)])
+        
+    shared_df=pd.concat(lst)
+    # Add pIC50 values
+    print('Add pIC50 values.')
+    print(shared_df['standard_value'])
+    shared_df['PIC50']=shared_df['standard_value'].apply(ic50topic50)
+
+    # Merge in SMILES strings
+    print('Merge in SMILES strings.')
+    smiles_lst=[]
+    for targ in targ_lst :
+        df=save_df[targ]
+        df['PIC50']=df['standard_value'].apply(ic50topic50)
+        smiles_df=df.merge(save_smiles_df,on='standard_inchi_key',suffixes=('_'+targ,'_'))
+        #the file puts the SMILES string in quotes, which need to be removed
+        smiles_df['smiles']=smiles_df['smiles'].str.replace('"','')
+        smiles_df['rdkit_smiles']=smiles_df['smiles'].apply(struct_utils.base_smiles_from_smiles)
+        smiles_df['smiles']=smiles_df['smiles'].str.replace('"','')
+        print(smiles_df.shape)
+        print(smiles_df['standard_inchi_key'].nunique())
+        smiles_lst.append(smiles_df)
 
 
-        return smiles_lst, shared_inchi_keys
-
+    return smiles_lst, shared_inchi_keys
 
 def get_smiles_4dtc_data(nm_df,targ_lst,save_smiles_df):
+    """Returns SMILES strings from DTC data
 
+    nm_df must be a DataFrame from DTC with the following columns: gene_names,
+    standard_type, standard_value, 'standard_inchi_key', and standard_relation.
+
+    This function selects all rows where nm_df['gene_names'] is in targ_lst,
+    nm_df['standard_type']=='IC50', nm_df['standard_relation']=='=', and 
+    'standard_value' > 0.
+
+    Then pIC50 values are calculated and added to the 'PIC50' column, and
+    smiles strings are merged in from save_smiles_df
+
+    Args:
+        nm_df (DataFrame): Input DataFrame.
+        targ_lst (list): A list of targets.
+        save_smiles_df (DataFrame): A DataFrame with the column 'standard_inchi_key'
+
+    Returns:
+        list, list, str: A list of smiles. A list of inchi keys shared between targets.
+            And a description of the targets
+    """
 	save_df={}
 	description_str = "" 
 	for targ in targ_lst :
@@ -281,7 +398,32 @@ def upload_df_dtc_smiles(dset_name, title, description, tags,
                            target, target_type, activity, assay_category,smiles_df,orig_fileID,
 			   data_origin='journal',  species='human',  
                            force_update=False):
+    """Uploads DTC smiles data to the datastore
 
+    Upload a raw dataset to the datastore from the given DataFrame. 
+    Returns the datastore OID of the uploaded dataset. The dataset is uploaded to the
+    public bucket and lists https://doi.org/10.1016/j.chembiol.2017.11.009' as the doi.
+    This also assumes that the id_col is 'compound_id'
+
+    Args:
+        dset_name (str): Name of the dataset. Should not include a file extension.
+        title (str): title of the file in (human friendly format)
+        description (str): long text box to describe file (background/use notes)
+        tags (list): Must be a list of strings.
+        functional_area (str): The functional area.
+        target (str): The target.
+        target_type (str): The target type of the dataset.
+        activity (str): The activity of the dataset.
+        assay_category (str): The assay category of the dataset.
+        smiles_df (DataFrame): DataFrame containing SMILES to be uploaded.
+        orig_fileID (str): Source file id used to generate smiles_df.
+        data_origin (str): The origin of the dataset e.g. journal.
+        species (str): The species of the dataset e.g. human, rat, dog.
+        force_update (bool): Overwrite existing datasets in the datastore.
+
+    Returns:
+        str: datastore OID of the uploaded dataset.
+    """
     bucket = 'public'
     filename = '%s_dtc_smiles.csv' % dset_name
     dataset_key = 'dskey_' + filename
@@ -319,11 +461,25 @@ def upload_df_dtc_smiles(dset_name, title, description, tags,
     raw_dset_oid = uploaded_file['dataset_oid']
     return raw_dset_oid
 
-
-# Apply ATOM standard 'curation' step to "shared_df": Average replicate assays, remove duplicates and drop cases with large variance between replicates.
-# mleqonly
 def atom_curation(targ_lst, smiles_lst, shared_inchi_keys):
-	
+    """Apply ATOM standard 'curation' step to "shared_df"
+
+    Apply ATOM standard 'curation' step to "shared_df": Average replicate assays, 
+    remove duplicates and drop cases with large variance between replicates.
+    mleqonly
+
+    Args:
+        targ_lst (list): A list of targets.
+        smiles_lst (list): A list of DataFrames.
+            These DataFrames must contain the columns gene_names, standard_type,
+            standard_relation, standard_inchi_key, PIC50, and rdkit_smiles
+        shared_inchi_keys (list): A list of inchi keys used in this dataset.
+
+    Returns:
+        list, list:A list of curated DataFrames and a list of the number of compounds
+            dropped during the curation process for each target.
+
+    """
 	imp.reload(curate_data)
 	tolerance=10
 	column='PIC50'; #'standard_value'
@@ -355,37 +511,40 @@ def atom_curation(targ_lst, smiles_lst, shared_inchi_keys):
 
 	return curated_lst,num_dropped_lst
 
-# Use Kevin's "aggregate_assay_data()" to remove duplicates and generate base rdkit smiles
-def aggregate_assay(targ_lst, smiles_lst):
-	tolerance=10
-	column='PIC50'; #'standard_value'
-	list_bad_duplicates='No'
-	max_std=1
-
-	for it in range(len(targ_lst)) :
-    		data=smiles_lst[it]
-    		print("before",data.shape)
-    
-    		temp_df=curate_data.aggregate_assay_data(data, value_col=column, output_value_col=None,
-                             label_actives=True,
-                             active_thresh=None,
-                             id_col='standard_inchi_key', smiles_col='rdkit_smiles', relation_col='standard_relation')
-
-    		# (Yaru) Remove inf in curated_df
-    		temp_df = temp_df[~temp_df.isin([np.inf]).any(1)]
-    		#censored_curated_df = censored_curated_df[~censored_curated_df.isin([np.inf]).any(1)]
-
-	return temp_df
-
-
-
-
-
 def upload_df_dtc_mleqonly(dset_name, title, description, tags,
                             functional_area, 
                            target, target_type, activity, assay_category,data_df,dtc_smiles_fileID,
 			   data_origin='journal',  species='human',  
                            force_update=False):
+    """Uploads DTC mleqonly data to the datastore
+
+    Upload mleqonly data to the datastore from the given DataFrame. The DataFrame
+    must contain the column 'rdkit_smiles' and 'VALUE_NUM_mean'. This function is 
+    meant to upload data that has been aggregated using 
+    atomsci.ddm.utils.curate_data.average_and_remove_duplicates.
+    Returns the datastore OID of the uploaded dataset. The dataset is uploaded to the
+    public bucket and lists https://doi.org/10.1016/j.chembiol.2017.11.009' as the doi.
+    This also assumes that the id_col is 'compound_id'.
+
+    Args:
+        dset_name (str): Name of the dataset. Should not include a file extension.
+        title (str): title of the file in (human friendly format)
+        description (str): long text box to describe file (background/use notes)
+        tags (list): Must be a list of strings.
+        functional_area (str): The functional area.
+        target (str): The target.
+        target_type (str): The target type of the dataset.
+        activity (str): The activity of the dataset.
+        assay_category (str): The assay category of the dataset.
+        data_df (DataFrame): DataFrame to be uploaded.
+        dtc_smiles_fileID (str): Source file id used to generate data_df.
+        data_origin (str): The origin of the dataset e.g. journal.
+        species (str): The species of the dataset e.g. human, rat, dog.
+        force_update (bool): Overwrite existing datasets in the datastore.
+
+    Returns:
+        str: datastore OID of the uploaded dataset.
+    """
 
     bucket = 'public'
     filename = '%s_dtc_mleqonly.csv' % dset_name
@@ -402,7 +561,7 @@ def upload_df_dtc_mleqonly(dset_name, title, description, tags,
         'journal_doi' : 'https://doi.org/10.1016/j.chembiol.2017.11.009',
         'sample_type' : 'in_vitro',
         'species' : species,
-        'target' : 'CYP2D6',
+        'target' : target,
         'target_type' : target_type,
         'id_col' : 'compound_id',
         'response_col' : 'VALUE_NUM_mean',
@@ -428,12 +587,41 @@ def upload_df_dtc_mleqonly(dset_name, title, description, tags,
     raw_dset_oid = uploaded_file['dataset_oid']
     return raw_dset_oid
 
-
 def upload_df_dtc_mleqonly_class(dset_name, title, description, tags,
                             functional_area, 
                            target, target_type, activity, assay_category,data_df,dtc_mleqonly_fileID,
 			   data_origin='journal',  species='human',  
                            force_update=False):
+    """Uploads DTC mleqonly classification data to the datastore
+
+    Upload mleqonly classification data to the datastore from the given DataFrame. The DataFrame
+    must contain the column 'rdkit_smiles' and 'binary_class'. This function is 
+    meant to upload data that has been aggregated using 
+    atomsci.ddm.utils.curate_data.average_and_remove_duplicates and then thresholded to
+    make a binary classification dataset.
+    Returns the datastore OID of the uploaded dataset. The dataset is uploaded to the
+    public bucket and lists https://doi.org/10.1016/j.chembiol.2017.11.009' as the doi.
+    This also assumes that the id_col is 'compound_id'.
+
+    Args:
+        dset_name (str): Name of the dataset. Should not include a file extension.
+        title (str): title of the file in (human friendly format)
+        description (str): long text box to describe file (background/use notes)
+        tags (list): Must be a list of strings.
+        functional_area (str): The functional area.
+        target (str): The target.
+        target_type (str): The target type of the dataset.
+        activity (str): The activity of the dataset.
+        assay_category (str): The assay category of the dataset.
+        data_df (DataFrame): DataFrame to be uploaded.
+        dtc_mleqonly_fileID (str): Source file id used to generate data_df.
+        data_origin (str): The origin of the dataset e.g. journal.
+        species (str): The species of the dataset e.g. human, rat, dog.
+        force_update (bool): Overwrite existing datasets in the datastore.
+
+    Returns:
+        str: datastore OID of the uploaded dataset.
+    """
     bucket = 'public'
     filename = '%s_dtc_mleqonly_class.csv' % dset_name
     dataset_key = 'dskey_' + filename
@@ -472,13 +660,39 @@ def upload_df_dtc_mleqonly_class(dset_name, title, description, tags,
     raw_dset_oid = uploaded_file['dataset_oid']
     return raw_dset_oid
 
-
-
 def upload_df_dtc_base_smiles_all(dset_name, title, description, tags,
                             functional_area,
                            target, target_type, activity, assay_category,data_df,dtc_mleqonly_fileID,
                            data_origin='journal',  species='human',
                            force_update=False):
+    """Uploads DTC base smiles data to the datastore
+
+    Uploads base SMILES string for the DTC dataset.
+
+    Returns the datastore OID of the uploaded dataset. The dataset is uploaded to the
+    public bucket and lists https://doi.org/10.1016/j.chembiol.2017.11.009' as the doi.
+    This also assumes that the id_col is 'compound_id', the response column is set to PIC50,
+    and the SMILES are assumed to be in 'base_rdkit_smiles'.
+
+    Args:
+        dset_name (str): Name of the dataset. Should not include a file extension.
+        title (str): title of the file in (human friendly format)
+        description (str): long text box to describe file (background/use notes)
+        tags (list): Must be a list of strings.
+        functional_area (str): The functional area.
+        target (str): The target.
+        target_type (str): The target type of the dataset.
+        activity (str): The activity of the dataset.
+        assay_category (str): The assay category of the dataset.
+        data_df (DataFrame): DataFrame to be uploaded.
+        dtc_mleqonly_fileID (str): Source file id used to generate data_df.
+        data_origin (str): The origin of the dataset e.g. journal.
+        species (str): The species of the dataset e.g. human, rat, dog.
+        force_update (bool): Overwrite existing datasets in the datastore.
+
+    Returns:
+        str: datastore OID of the uploaded dataset.
+    """
     bucket = 'public'
     filename = '%s_dtc_base_smiles_all.csv' % dset_name
     dataset_key = 'dskey_' + filename
@@ -520,6 +734,34 @@ def upload_file_dtc_smiles_regr_all(dset_name, title, description, tags,
                            target, target_type, activity, assay_category,file_path,dtc_smiles_fileID,
 			smiles_column,  data_origin='journal',  species='human',  
                            force_update=False):
+    """Uploads regression DTC data to the datastore
+
+    Uploads regression dataset for DTC dataset.
+
+    Returns the datastore OID of the uploaded dataset. The dataset is uploaded to the
+    public bucket and lists https://doi.org/10.1016/j.chembiol.2017.11.009' as the doi.
+    This also assumes that the id_col is 'compound_id', the response column is set to PIC50.
+
+    Args:
+        dset_name (str): Name of the dataset. Should not include a file extension.
+        title (str): title of the file in (human friendly format)
+        description (str): long text box to describe file (background/use notes)
+        tags (list): Must be a list of strings.
+        functional_area (str): The functional area.
+        target (str): The target.
+        target_type (str): The target type of the dataset.
+        activity (str): The activity of the dataset.
+        assay_category (str): The assay category of the dataset.
+        data_df (DataFrame): DataFrame to be uploaded.
+        dtc_smiles_fileID(str): Source file id used to generate data_df.
+        smiles_column (str): Column containing SMILES.
+        data_origin (str): The origin of the dataset e.g. journal.
+        species (str): The species of the dataset e.g. human, rat, dog.
+        force_update (bool): Overwrite existing datasets in the datastore.
+
+    Returns:
+        str: datastore OID of the uploaded dataset.
+    """
 
     bucket = 'public'
     filename = '%s_dtc_smiles_regr_all.csv' % dset_name
@@ -567,7 +809,35 @@ def upload_df_dtc_smiles_regr_all_class(dset_name, title, description, tags,
                            target, target_type, activity, assay_category,data_df,dtc_smiles_regr_all_fileID,
 			   smiles_column, data_origin='journal',  species='human',  
                            force_update=False):
+    """Uploads DTC classification data to the datastore
 
+    Uploads binary classiciation data for the DTC dataset. Classnames are assumed to
+    be 'active' and 'inactive'
+
+    Returns the datastore OID of the uploaded dataset. The dataset is uploaded to the
+    public bucket and lists https://doi.org/10.1016/j.chembiol.2017.11.009' as the doi.
+    This also assumes that the id_col is 'compound_id', the response column is set to PIC50.
+
+    Args:
+        dset_name (str): Name of the dataset. Should not include a file extension.
+        title (str): title of the file in (human friendly format)
+        description (str): long text box to describe file (background/use notes)
+        tags (list): Must be a list of strings.
+        functional_area (str): The functional area.
+        target (str): The target.
+        target_type (str): The target type of the dataset.
+        activity (str): The activity of the dataset.
+        assay_category (str): The assay category of the dataset.
+        data_df (DataFrame): DataFrame to be uploaded.
+        dtc_smiles_regr_all_fileID(str): Source file id used to generate data_df.
+        smiles_column (str): Column containing SMILES.
+        data_origin (str): The origin of the dataset e.g. journal.
+        species (str): The species of the dataset e.g. human, rat, dog.
+        force_update (bool): Overwrite existing datasets in the datastore.
+
+    Returns:
+        str: datastore OID of the uploaded dataset.
+    """
     bucket = 'public'
     filename = '%s_dtc_smiles_regr_all_class.csv' % dset_name
     dataset_key = 'dskey_' + filename
@@ -611,22 +881,40 @@ def upload_df_dtc_smiles_regr_all_class(dset_name, title, description, tags,
     raw_dset_oid = uploaded_file['dataset_oid']
     return raw_dset_oid
 
-
-
 # ----------------------------------------------------------------------------------------------------------------------
 # Excape-specific curation functions
 # ----------------------------------------------------------------------------------------------------------------------
 
-"""
-Upload a raw dataset to the datastore from the given data frame. 
-Returns the datastore OID of the uploaded dataset.
-"""
 def upload_file_excape_raw_data(dset_name, title, description, tags,
                             functional_area, 
                            target, target_type, activity, assay_category,file_path,
 			   data_origin='journal',  species='human',  
                            force_update=False):
+    """Uploads raw Excape data to the datastore
 
+    Upload a raw dataset to the datastore from the given DataFrame. 
+    Returns the datastore OID of the uploaded dataset. The dataset is uploaded to the
+    public bucket and lists https://dx.doi.org/10.1186%2Fs13321-017-0203-5 as the doi.
+    This also assumes that the id_col is 'Original_Entry_ID'
+
+    Args:
+        dset_name (str): Name of the dataset. Should not include a file extension.
+        title (str): title of the file in (human friendly format)
+        description (str): long text box to describe file (background/use notes)
+        tags (list): Must be a list of strings.
+        functional_area (str): The functional area.
+        target (str): The target.
+        target_type (str): The target type of the dataset.
+        activity (str): The activity of the dataset.
+        assay_category (str): The assay category of the dataset.
+        file_path (str): The filepath of the dataset.
+        data_origin (str): The origin of the dataset e.g. journal.
+        species (str): The species of the dataset e.g. human, rat, dog.
+        force_update (bool): Overwrite existing datasets in the datastore.
+
+    Returns:
+        str: datastore OID of the uploaded dataset.
+    """
     bucket = 'public'
     filename = '%s_excape.csv' % dset_name
     dataset_key = 'dskey_' + filename
@@ -665,8 +953,26 @@ def upload_file_excape_raw_data(dset_name, title, description, tags,
     raw_dset_oid = uploaded_file['dataset_oid']
     return raw_dset_oid
 
-
 def get_smiles_excape_data(nm_df,targ_lst):
+    """Calculate base rdkit smiles
+
+    Divides up nm_df based on target and makes one DataFrame for each target.
+
+    Rows with NaN pXC50 values are dropped. Base rdkit SMILES are calculated
+    from the SMILES column using 
+    atomsci.ddm.utils.struct_utils.base_rdkit_smiles_from_smiles. A new column,
+    'rdkit_smiles, is added to each output DataFrame.
+
+    Args:
+        nm_df (DataFrame): DataFrame for Excape database. Should contain the columns,
+            pXC50, SMILES, and Ambit_InchiKey
+        targ_lst (list): A list of targets to filter out of nm_df
+
+    Returns:
+        list, list: A list of DataFrames, one for each target, and a list of 
+            all inchi keys used in the dataset.
+
+    """
 	# Delete NaN
 	nm_df = nm_df.dropna(subset=['pXC50'])
 
@@ -705,9 +1011,35 @@ def upload_df_excape_smiles(dset_name, title, description, tags,
                            target, target_type, activity, assay_category,smiles_df,orig_fileID,
 			   data_origin='journal',  species='human',  
                            force_update=False):
+    """Uploads Excape SMILES data to the datastore
 
+    Upload SMILES to the datastore from the given DataFrame. 
+    Returns the datastore OID of the uploaded dataset. The dataset is uploaded to the
+    public bucket and lists https://dx.doi.org/10.1186%2Fs13321-017-0203-5 as the doi.
+    This also assumes that the id_col is 'Original_Entry_ID'
+
+    Args:
+        dset_name (str): Name of the dataset. Should not include a file extension.
+        title (str): title of the file in (human friendly format)
+        description (str): long text box to describe file (background/use notes)
+        tags (list): Must be a list of strings.
+        functional_area (str): The functional area.
+        target (str): The target.
+        target_type (str): The target type of the dataset.
+        activity (str): The activity of the dataset.
+        assay_category (str): The assay category of the dataset.
+        smiles_df (DataFrame): DataFrame containing SMILES to be uploaded.
+        orig_fileID (str): Source file id used to generate smiles_df.
+        data_origin (str): The origin of the dataset e.g. journal.
+        species (str): The species of the dataset e.g. human, rat, dog.
+        force_update (bool): Overwrite existing datasets in the datastore.
+
+    Returns:
+        str: datastore OID of the uploaded dataset.
+    """
     bucket = 'public'
-    filename = '%s_dtc_smiles.csv' % dset_name
+    #he6: this used to say _dtc_smiles.csv
+    filename = '%s_excape_smiles.csv' % dset_name
     dataset_key = 'dskey_' + filename
 
     kv = { 'file_category': 'experimental',
@@ -743,10 +1075,23 @@ def upload_df_excape_smiles(dset_name, title, description, tags,
     raw_dset_oid = uploaded_file['dataset_oid']
     return raw_dset_oid
 
-# Apply ATOM standard 'curation' step to "shared_df": Average replicate assays, remove duplicates and drop cases with large variance between replicates.
-# mleqonly
 def atom_curation_excape(targ_lst, smiles_lst, shared_inchi_keys):
-	
+	"""Apply ATOM standard 'curation' step
+
+    Apply ATOM standard 'curation' step: Average replicate assays, 
+    remove duplicates and drop cases with large variance between replicates.
+    Rows with NaN values in rdkit_smiles, VALUE_NUM_mean, and pXC50 are dropped
+
+    Args:
+        targ_lst (list): A list of targets.
+        smiles_lst (list): A of DataFrames.
+            These DataFrames must contain the columns gene_names, standard_type,
+            standard_relation, standard_inchi_key, pXC50, and rdkit_smiles
+        shared_inchi_keys (list): A list of inchi keys used in this dataset.
+
+    Returns:
+        list:A list of curated DataFrames
+    """
 	imp.reload(curate_data)
 	tolerance=10
 	column='pXC50'; #'standard_value'
@@ -791,9 +1136,36 @@ def upload_df_excape_mleqonly(dset_name, title, description, tags,
                            target, target_type, activity, assay_category,data_df,smiles_fileID,
 			   data_origin='journal',  species='human',  
                            force_update=False):
+   """Uploads Excape mleqonly data to the datastore
 
+    Upload mleqonly to the datastore from the given DataFrame. 
+    Returns the datastore OID of the uploaded dataset. The dataset is uploaded to the
+    public bucket and lists https://dx.doi.org/10.1186%2Fs13321-017-0203-5 as the doi.
+    This also assumes that the id_col is 'Original_Entry_ID', smiles_col is 'rdkit_smiles'
+    and response_col is 'VALUE_NUM_mean'.
+
+    Args:
+        dset_name (str): Name of the dataset. Should not include a file extension.
+        title (str): title of the file in (human friendly format)
+        description (str): long text box to describe file (background/use notes)
+        tags (list): Must be a list of strings.
+        functional_area (str): The functional area.
+        target (str): The target.
+        target_type (str): The target type of the dataset.
+        activity (str): The activity of the dataset.
+        assay_category (str): The assay category of the dataset.
+        data_df (DataFrame): DataFrame containing SMILES to be uploaded.
+        smiles_fileID (str): Source file id used to generate data_df.
+        data_origin (str): The origin of the dataset e.g. journal.
+        species (str): The species of the dataset e.g. human, rat, dog.
+        force_update (bool): Overwrite existing datasets in the datastore.
+
+    Returns:
+        str: datastore OID of the uploaded dataset.
+    """
     bucket = 'public'
-    filename = '%s_dtc_mleqonly.csv' % dset_name
+    #he6: this used to say _dtc_mleqonly.csv
+    filename = '%s_excape_mleqonly.csv' % dset_name
     dataset_key = 'dskey_' + filename
 
     kv = { 'file_category': 'experimental',
@@ -838,9 +1210,38 @@ def upload_df_excape_mleqonly_class(dset_name, title, description, tags,
                            target, target_type, activity, assay_category,data_df,mleqonly_fileID,
 			   data_origin='journal',  species='human',  
                            force_update=False):
+   """Uploads Excape mleqonly classification data to the datastore
 
+    data_df contains a binary classification dataset with 'active' and 'incative' classes.
+
+    Upload mleqonly classification to the datastore from the given DataFrame. 
+    Returns the datastore OID of the uploaded dataset. The dataset is uploaded to the
+    public bucket and lists https://dx.doi.org/10.1186%2Fs13321-017-0203-5 as the doi.
+    This also assumes that the id_col is 'Original_Entry_ID', smiles_col is 'rdkit_smiles'
+    and response_col is 'binary_class'.
+
+    Args:
+        dset_name (str): Name of the dataset. Should not include a file extension.
+        title (str): title of the file in (human friendly format)
+        description (str): long text box to describe file (background/use notes)
+        tags (list): Must be a list of strings.
+        functional_area (str): The functional area.
+        target (str): The target.
+        target_type (str): The target type of the dataset.
+        activity (str): The activity of the dataset.
+        assay_category (str): The assay category of the dataset.
+        data_df (DataFrame): DataFrame containing SMILES to be uploaded.
+        mleqonly_fileID (str): Source file id used to generate data_df.
+        data_origin (str): The origin of the dataset e.g. journal.
+        species (str): The species of the dataset e.g. human, rat, dog.
+        force_update (bool): Overwrite existing datasets in the datastore.
+
+    Returns:
+        str: datastore OID of the uploaded dataset.
+    """
     bucket = 'public'
-    filename = '%s_dtc_mleqonly_class.csv' % dset_name
+    #he6: this used to say _dtc_mleqonly.csv
+    filename = '%s_excape_mleqonly_class.csv' % dset_name
     dataset_key = 'dskey_' + filename
 
     kv = { 'file_category': 'experimental',
