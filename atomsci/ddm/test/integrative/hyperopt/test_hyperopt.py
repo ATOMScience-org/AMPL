@@ -37,18 +37,22 @@ def test():
     # ------------
     with open("H1_RF_hyperopt.json", "r") as f:
         hp_params = json.load(f)
-        
+
     script_dir = parse.__file__.strip("parameter_parser.py").replace("/pipeline/", "")
     python_path = sys.executable
     hp_params["script_dir"] = script_dir
     hp_params["python_path"] = python_path
-    
+
+    params = parse.wrapper(hp_params)
+    if not os.path.isfile(params.dataset_key):
+        hp_params["dataset_key"] = os.path.join(script_dir, hp_params["dataset_key"])
+
     with open("H1_RF_hyperopt.json", "w") as f:
         json.dump(hp_params, f, indent=4)
-    
+
     run_cmd = f"{python_path} {script_dir}/utils/hyperparam_search_wrapper.py --config_file ./H1_RF_hyperopt.json"
     os.system(run_cmd)
-    
+
     # check results
     # -------------
     perf_table = glob.glob("./output/performance*")
