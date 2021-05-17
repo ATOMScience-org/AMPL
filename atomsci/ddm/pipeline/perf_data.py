@@ -11,7 +11,7 @@ import deepchem as dc
 import numpy as np
 import tensorflow as tf
 from sklearn.metrics import roc_auc_score, confusion_matrix, average_precision_score, precision_score, recall_score
-from sklearn.metrics import accuracy_score, matthews_corrcoef, cohen_kappa_score, log_loss
+from sklearn.metrics import accuracy_score, matthews_corrcoef, cohen_kappa_score, log_loss, balanced_accuracy_score
 from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
 
 from atomsci.ddm.pipeline import transformations as trans
@@ -23,6 +23,7 @@ def rms_error(y_real, y_pred):
 
     Args:
         y_real (np.array): Array of ground truth values
+
         y_pred (np.array): Array of predicted values
 
     Returns:
@@ -38,6 +39,7 @@ def negative_predictive_value(y_real, y_pred):
 
     Args:
         y_real (np.array): Array of ground truth values
+
         y_pred (np.array): Array of predicted values
 
     Returns:
@@ -55,8 +57,8 @@ def negative_predictive_value(y_real, y_pred):
 
 # params.model_choice_score_type must be a key in one of the dictionaries below:
 regr_score_func = dict(r2 = r2_score, mae = mean_absolute_error, rmse = rms_error)
-classif_score_func = dict(roc_auc = roc_auc_score, precision = precision_score, ppv = precision_score, recall = recall_score, 
-                          npv = negative_predictive_value, cross_entropy = log_loss, accuracy = accuracy_score,
+classif_score_func = dict(roc_auc = roc_auc_score, precision = precision_score, ppv = precision_score, recall = recall_score,
+                          npv = negative_predictive_value, cross_entropy = log_loss, accuracy = accuracy_score, bal_accuracy = balanced_accuracy_score,
                           avg_precision = average_precision_score, mcc = matthews_corrcoef, kappa = cohen_kappa_score)
 
 # The following score types are loss functions, meaning the result must be sign flipped so we can maximize it in model selection
@@ -554,6 +556,7 @@ class ClassificationPerfData(PerfData):
         if self.num_classes == 2:
             npvs = []
         accuracies = []
+        bal_accs = []
         kappas = []
         matthews_ccs = []
         confusion_matrices = []
@@ -582,6 +585,7 @@ class ClassificationPerfData(PerfData):
 
             cross_entropies.append(log_loss(task_real_vals, task_class_probs))
             accuracies.append(accuracy_score(task_real_classes, task_pred_classes))
+            bal_accs.append(balanced_accuracy_score(task_real_classes, task_pred_classes))
             kappas.append(float(cohen_kappa_score(task_real_classes, task_pred_classes)))
             matthews_ccs.append(float(matthews_corrcoef(task_real_classes, task_pred_classes)))
             confusion_matrices.append(confusion_matrix(task_real_classes, task_pred_classes).tolist())
@@ -614,6 +618,10 @@ class ClassificationPerfData(PerfData):
         pred_results['accuracy_score'] = float(np.mean(accuracies))
         if self.num_tasks > 1:
             pred_results['task_accuracies'] = accuracies
+
+        pred_results['bal_accuracy'] = float(np.mean(bal_accs))
+        if self.num_tasks > 1:
+            pred_results['task_bal_accuracies'] = bal_accs
 
         pred_results['kappa'] = float(np.mean(kappas))
         if self.num_tasks > 1:

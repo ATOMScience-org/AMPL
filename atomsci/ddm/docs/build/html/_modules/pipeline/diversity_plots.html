@@ -1,48 +1,53 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
+  <meta charset="utf-8" />
   
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>pipeline.diversity_plots &mdash; ATOM Data-Driven Modeling Pipeline 1.0 documentation</title>
-  
-
-  
-  
-  
+  <title>pipeline.diversity_plots &mdash; ATOM Data-Driven Modeling Pipeline 1.1 documentation</title>
   
 
   
-
-  
-  
-    
-
-  
-
   <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    <link rel="index" title="Index" href="../../genindex.html" />
-    <link rel="search" title="Search" href="../../search.html" /> 
 
   
-  <script src="../../_static/js/modernizr.min.js"></script>
+  
 
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
-
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search">
+        <div class="wy-side-nav-search" >
           
 
           
@@ -54,6 +59,10 @@
 
           
             
+            
+              <div class="version">
+                1.1
+              </div>
             
           
 
@@ -69,6 +78,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -76,11 +86,23 @@
               
             
             
-              <!-- Local TOC -->
-              <div class="local-toc"></div>
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/getting_started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/tests.html">Tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/running_ampl.html">Running AMPL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/advanced_ampl_usage.html">Advanced AMPL Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/advanced_installation.html">Advanced Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/advanced_testing.html">Advanced Testing</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">atomsci</a></li>
+</ul>
+
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -115,11 +137,13 @@
 
 
 
+
+
 <div role="navigation" aria-label="breadcrumbs navigation">
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../../index.html">Docs</a> &raquo;</li>
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
         
           <li><a href="../index.html">Module code</a> &raquo;</li>
         
@@ -149,23 +173,23 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">seaborn</span> <span class="k">as</span> <span class="nn">sns</span>
 <span class="kn">import</span> <span class="nn">umap</span>
-<span class="kn">from</span> <span class="nn">scipy.stats.kde</span> <span class="k">import</span> <span class="n">gaussian_kde</span>
-<span class="kn">from</span> <span class="nn">scipy.cluster.hierarchy</span> <span class="k">import</span> <span class="n">linkage</span>
+<span class="kn">from</span> <span class="nn">scipy.stats.kde</span> <span class="kn">import</span> <span class="n">gaussian_kde</span>
+<span class="kn">from</span> <span class="nn">scipy.cluster.hierarchy</span> <span class="kn">import</span> <span class="n">linkage</span>
 <span class="kn">import</span> <span class="nn">matplotlib</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-<span class="kn">from</span> <span class="nn">matplotlib.backends.backend_pdf</span> <span class="k">import</span> <span class="n">PdfPages</span>
+<span class="kn">from</span> <span class="nn">matplotlib.backends.backend_pdf</span> <span class="kn">import</span> <span class="n">PdfPages</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">argparse</span>
-<span class="kn">from</span> <span class="nn">rdkit</span> <span class="k">import</span> <span class="n">Chem</span>
-<span class="kn">from</span> <span class="nn">rdkit.Chem</span> <span class="k">import</span> <span class="n">AllChem</span><span class="p">,</span> <span class="n">Draw</span>
+<span class="kn">from</span> <span class="nn">rdkit</span> <span class="kn">import</span> <span class="n">Chem</span>
+<span class="kn">from</span> <span class="nn">rdkit.Chem</span> <span class="kn">import</span> <span class="n">AllChem</span><span class="p">,</span> <span class="n">Draw</span>
 
-<span class="kn">from</span> <span class="nn">atomsci.ddm.utils</span> <span class="k">import</span> <span class="n">struct_utils</span>
-<span class="kn">from</span> <span class="nn">atomsci.ddm.pipeline</span> <span class="k">import</span> <span class="n">dist_metrics</span> <span class="k">as</span> <span class="n">dm</span>
-<span class="kn">from</span> <span class="nn">atomsci.ddm.pipeline</span> <span class="k">import</span>  <span class="n">chem_diversity</span> <span class="k">as</span> <span class="n">cd</span>
-<span class="kn">from</span> <span class="nn">atomsci.ddm.pipeline</span> <span class="k">import</span>  <span class="n">parameter_parser</span> <span class="k">as</span> <span class="n">parse</span>
-<span class="kn">from</span> <span class="nn">atomsci.ddm.pipeline</span> <span class="k">import</span>  <span class="n">model_datasets</span> <span class="k">as</span> <span class="n">md</span>
-<span class="kn">from</span> <span class="nn">atomsci.ddm.pipeline</span> <span class="k">import</span>  <span class="n">featurization</span> <span class="k">as</span> <span class="n">feat</span>
-<span class="kn">from</span> <span class="nn">atomsci.clients</span> <span class="k">import</span> <span class="n">datastore_functions</span> <span class="k">as</span> <span class="n">dsf</span>
+<span class="kn">from</span> <span class="nn">atomsci.ddm.utils</span> <span class="kn">import</span> <span class="n">struct_utils</span>
+<span class="kn">from</span> <span class="nn">atomsci.ddm.pipeline</span> <span class="kn">import</span> <span class="n">dist_metrics</span> <span class="k">as</span> <span class="n">dm</span>
+<span class="kn">from</span> <span class="nn">atomsci.ddm.pipeline</span> <span class="kn">import</span>  <span class="n">chem_diversity</span> <span class="k">as</span> <span class="n">cd</span>
+<span class="kn">from</span> <span class="nn">atomsci.ddm.pipeline</span> <span class="kn">import</span>  <span class="n">parameter_parser</span> <span class="k">as</span> <span class="n">parse</span>
+<span class="kn">from</span> <span class="nn">atomsci.ddm.pipeline</span> <span class="kn">import</span>  <span class="n">model_datasets</span> <span class="k">as</span> <span class="n">md</span>
+<span class="kn">from</span> <span class="nn">atomsci.ddm.pipeline</span> <span class="kn">import</span>  <span class="n">featurization</span> <span class="k">as</span> <span class="n">feat</span>
+<span class="kn">from</span> <span class="nn">atomsci.ddm.utils</span> <span class="kn">import</span> <span class="n">datastore_functions</span> <span class="k">as</span> <span class="n">dsf</span>
 
 <span class="c1">#matplotlib.style.use(&#39;ggplot&#39;)</span>
 <span class="n">matplotlib</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">&#39;xtick&#39;</span><span class="p">,</span> <span class="n">labelsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
@@ -181,6 +205,21 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Generate a density plot showing the distribution of distances between dataset feature</span>
 <span class="sd">    vectors, using the specified feature type and distance metric.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        dataset (deepchem.Dataset): A dataset object. At minimum, it should contain a 2D numpy array &#39;X&#39; of feature vectors.</span>
+
+<span class="sd">        feat_type (str): Type of features (&#39;ECFP&#39; or &#39;descriptors&#39;).</span>
+
+<span class="sd">        dist_metric (str): Name of metric to be used to compute distances; can be anything supported by scipy.spatial.distance.pdist.</span>
+
+<span class="sd">        task_name (str): Abbreviated name to describe dataset in plot title.</span>
+
+<span class="sd">        metric_kwargs: Additional arguments to pass to metric.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        np.ndarray: Distance matrix.</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;ATOM&#39;</span><span class="p">)</span>
     <span class="n">num_cmpds</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -208,32 +247,87 @@
     <span class="k">return</span> <span class="n">dists</span></div>
 
 <span class="c1">#------------------------------------------------------------------------------------------------------------------</span>
-<div class="viewcode-block" id="diversity_plots"><a class="viewcode-back" href="../../pipeline.html#pipeline.diversity_plots.diversity_plots">[docs]</a><span class="k">def</span> <span class="nf">diversity_plots</span><span class="p">(</span><span class="n">dset_key</span><span class="p">,</span> <span class="n">datastore</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">bucket</span><span class="o">=</span><span class="s1">&#39;gsk_ml&#39;</span><span class="p">,</span> <span class="n">title_prefix</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ecfp_radius</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">out_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> 
-                    <span class="n">id_col</span><span class="o">=</span><span class="s1">&#39;compound_id&#39;</span><span class="p">,</span> <span class="n">smiles_col</span><span class="o">=</span><span class="s1">&#39;rdkit_smiles&#39;</span><span class="p">,</span> <span class="n">max_for_mcs</span><span class="o">=</span><span class="mi">300</span><span class="p">):</span>
+<div class="viewcode-block" id="diversity_plots"><a class="viewcode-back" href="../../pipeline.html#pipeline.diversity_plots.diversity_plots">[docs]</a><span class="k">def</span> <span class="nf">diversity_plots</span><span class="p">(</span><span class="n">dset_key</span><span class="p">,</span> <span class="n">datastore</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">bucket</span><span class="o">=</span><span class="s1">&#39;public&#39;</span><span class="p">,</span> <span class="n">title_prefix</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ecfp_radius</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">umap_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">out_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                    <span class="n">id_col</span><span class="o">=</span><span class="s1">&#39;compound_id&#39;</span><span class="p">,</span> <span class="n">smiles_col</span><span class="o">=</span><span class="s1">&#39;rdkit_smiles&#39;</span><span class="p">,</span> <span class="n">is_base_smiles</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">response_col</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_for_mcs</span><span class="o">=</span><span class="mi">300</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Plot visualizations of diversity for an arbitrary table of compounds. At minimum, the file should contain</span>
-<span class="sd">    columns for a compound ID and a SMILES string.</span>
+<span class="sd">    columns for a compound ID and a SMILES string. Produces a clustered heatmap display of Tanimoto distances between</span>
+<span class="sd">    compounds along with a 2D UMAP projection plot based on ECFP fingerprints, with points colored according to the response</span>
+<span class="sd">    variable.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        dset_key (str): Datastore key or filepath for dataset.</span>
+
+<span class="sd">        datastore (bool): Whether to load dataset from datastore or from filesystem.</span>
+
+<span class="sd">        bucket (str): Name of datastore bucket containing dataset.</span>
+
+<span class="sd">        title_prefix (str): Prefix for plot titles.</span>
+
+<span class="sd">        ecfp_radius (int): Radius for ECFP fingerprint calculation.</span>
+
+<span class="sd">        umap_file (str, optional): Path to file to write UMAP coordinates to.</span>
+
+<span class="sd">        out_dir (str, optional):  Output directory for plots and tables. If provided, plots will be output as PDF files rather</span>
+<span class="sd">            than in the current notebook, and some additional CSV files will be generated.</span>
+
+<span class="sd">        id_col (str): Column in dataset containing compound IDs.</span>
+
+<span class="sd">        smiles_col (str): Column in dataset containing SMILES strings.</span>
+
+<span class="sd">        is_base_smiles (bool): True if SMILES strings do not need to be salt-stripped and standardized.</span>
+
+<span class="sd">        response_col (str): Column in dataset containing response values.</span>
+
+<span class="sd">        max_for_mcs (int): Maximum dataset size for plots based on MCS distance. If the number of compounds is less than this</span>
+<span class="sd">            value, an additional cluster heatmap and UMAP projection plot will be produced based on maximum common substructure</span>
+<span class="sd">            distance.</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Load table of compound names, IDs and SMILES strings</span>
     <span class="k">if</span> <span class="n">datastore</span><span class="p">:</span>
         <span class="n">cmpd_df</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">retrieve_dataset_by_datasetkey</span><span class="p">(</span><span class="n">dset_key</span><span class="p">,</span> <span class="n">bucket</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">cmpd_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">dset_key</span><span class="p">,</span> <span class="n">index_col</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">cmpd_df</span> <span class="o">=</span> <span class="n">cmpd_df</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="n">smiles_col</span><span class="p">)</span>
     <span class="n">file_prefix</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">dset_key</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
     <span class="k">if</span> <span class="n">title_prefix</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">title_prefix</span> <span class="o">=</span> <span class="n">file_prefix</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">)</span>
     <span class="n">compound_ids</span> <span class="o">=</span> <span class="n">cmpd_df</span><span class="p">[</span><span class="n">id_col</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
     <span class="n">smiles_strs</span> <span class="o">=</span> <span class="n">cmpd_df</span><span class="p">[</span><span class="n">smiles_col</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
     <span class="n">ncmpds</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">smiles_strs</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">ncmpds</span><span class="p">)</span>
     <span class="c1"># Strip salts, canonicalize SMILES strings and create RDKit Mol objects</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Canonicalizing molecules...&quot;</span><span class="p">)</span>
-    <span class="n">base_mols</span> <span class="o">=</span> <span class="p">[</span><span class="n">struct_utils</span><span class="o">.</span><span class="n">base_mol_from_smiles</span><span class="p">(</span><span class="n">smiles</span><span class="p">)</span> <span class="k">for</span> <span class="n">smiles</span> <span class="ow">in</span> <span class="n">smiles_strs</span><span class="p">]</span>
-    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">mol</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">base_mols</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">mol</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Unable to get base molecule for compound </span><span class="si">%d</span><span class="s1"> = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">compound_ids</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
-    <span class="n">base_smiles</span> <span class="o">=</span> <span class="p">[</span><span class="n">Chem</span><span class="o">.</span><span class="n">MolToSmiles</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span> <span class="k">for</span> <span class="n">mol</span> <span class="ow">in</span> <span class="n">base_mols</span><span class="p">]</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Done&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">is_base_smiles</span><span class="p">:</span>
+        <span class="n">base_mols</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">Chem</span><span class="o">.</span><span class="n">MolFromSmiles</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">smiles_strs</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Canonicalizing </span><span class="si">%d</span><span class="s2"> molecules...&quot;</span> <span class="o">%</span> <span class="n">ncmpds</span><span class="p">)</span>
+        <span class="n">base_mols</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">struct_utils</span><span class="o">.</span><span class="n">base_mol_from_smiles</span><span class="p">(</span><span class="n">smiles</span><span class="p">)</span> <span class="k">for</span> <span class="n">smiles</span> <span class="ow">in</span> <span class="n">smiles_strs</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">mol</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">base_mols</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">mol</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Unable to get base molecule for compound </span><span class="si">%d</span><span class="s1"> = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">compound_ids</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Done&quot;</span><span class="p">)</span>
+
+    <span class="n">has_good_smiles</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">mol</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">mol</span> <span class="ow">in</span> <span class="n">base_mols</span><span class="p">])</span>
+    <span class="n">base_mols</span> <span class="o">=</span> <span class="n">base_mols</span><span class="p">[</span><span class="n">has_good_smiles</span><span class="p">]</span>
+
+    <span class="n">cmpd_df</span> <span class="o">=</span> <span class="n">cmpd_df</span><span class="p">[</span><span class="n">has_good_smiles</span><span class="p">]</span>
+    <span class="n">ncmpds</span> <span class="o">=</span> <span class="n">cmpd_df</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">compound_ids</span> <span class="o">=</span> <span class="n">cmpd_df</span><span class="p">[</span><span class="n">id_col</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">responses</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">response_col</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">responses</span> <span class="o">=</span> <span class="n">cmpd_df</span><span class="p">[</span><span class="n">response_col</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+        <span class="n">uniq_responses</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">responses</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">uniq_responses</span> <span class="o">==</span> <span class="nb">set</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]):</span>
+            <span class="n">response_type</span> <span class="o">=</span> <span class="s1">&#39;binary&#39;</span>
+            <span class="n">colorpal</span> <span class="o">=</span>  <span class="p">{</span><span class="mi">0</span> <span class="p">:</span> <span class="s1">&#39;forestgreen&#39;</span><span class="p">,</span> <span class="mi">1</span> <span class="p">:</span> <span class="s1">&#39;red&#39;</span><span class="p">}</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">uniq_responses</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">10</span><span class="p">:</span>
+            <span class="n">response_type</span> <span class="o">=</span> <span class="s1">&#39;categorical&#39;</span>
+            <span class="n">colorpal</span> <span class="o">=</span> <span class="n">sns</span><span class="o">.</span><span class="n">color_palette</span><span class="p">(</span><span class="s1">&#39;husl&#39;</span><span class="p">,</span> <span class="n">n_colors</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">uniq_responses</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">response_type</span> <span class="o">=</span> <span class="s1">&#39;continuous&#39;</span>
+            <span class="n">colorpal</span> <span class="o">=</span> <span class="n">sns</span><span class="o">.</span><span class="n">blend_palette</span><span class="p">([</span><span class="s1">&#39;red&#39;</span><span class="p">,</span> <span class="s1">&#39;green&#39;</span><span class="p">,</span> <span class="s1">&#39;blue&#39;</span><span class="p">],</span> <span class="mi">12</span><span class="p">,</span> <span class="n">as_cmap</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+
 
     <span class="c1"># Generate ECFP fingerprints</span>
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Computing fingerprints...&quot;</span><span class="p">)</span>
@@ -282,7 +376,7 @@
             <span class="n">pdf</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
     
         <span class="c1"># Draw a UMAP projection based on MCS distance</span>
-        <span class="n">mapper</span> <span class="o">=</span> <span class="n">umap</span><span class="o">.</span><span class="n">UMAP</span><span class="p">(</span><span class="n">n_neighbors</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">n_components</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="s1">&#39;precomputed&#39;</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">17</span><span class="p">)</span>
+        <span class="n">mapper</span> <span class="o">=</span> <span class="n">umap</span><span class="o">.</span><span class="n">UMAP</span><span class="p">(</span><span class="n">n_neighbors</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">min_dist</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">n_components</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="s1">&#39;precomputed&#39;</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">17</span><span class="p">)</span>
         <span class="n">reps</span> <span class="o">=</span> <span class="n">mapper</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">mcs_dist</span><span class="p">)</span>
         <span class="n">rep_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_records</span><span class="p">(</span><span class="n">reps</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">])</span>
         <span class="n">rep_df</span><span class="p">[</span><span class="s1">&#39;compound_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">compound_ids</span>
@@ -290,7 +384,12 @@
             <span class="n">pdf_path</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">/</span><span class="si">%s</span><span class="s1">_mcs_umap_proj.pdf&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">out_dir</span><span class="p">,</span> <span class="n">file_prefix</span><span class="p">)</span>
             <span class="n">pdf</span> <span class="o">=</span> <span class="n">PdfPages</span><span class="p">(</span><span class="n">pdf_path</span><span class="p">)</span>
         <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span><span class="mi">12</span><span class="p">))</span>
-        <span class="n">sns</span><span class="o">.</span><span class="n">scatterplot</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">rep_df</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">responses</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">sns</span><span class="o">.</span><span class="n">scatterplot</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">rep_df</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">rep_df</span><span class="p">[</span><span class="s1">&#39;response&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">responses</span>
+            <span class="n">sns</span><span class="o">.</span><span class="n">scatterplot</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="n">hue</span><span class="o">=</span><span class="s1">&#39;response&#39;</span><span class="p">,</span> <span class="n">palette</span><span class="o">=</span><span class="n">colorpal</span><span class="p">,</span>
+                            <span class="n">data</span><span class="o">=</span><span class="n">rep_df</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">, 2D projection based on MCS distance&quot;</span> <span class="o">%</span> <span class="n">title_prefix</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">out_dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">pdf</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
@@ -302,15 +401,24 @@
     <span class="n">tani_dist</span> <span class="o">=</span> <span class="n">dm</span><span class="o">.</span><span class="n">tanimoto</span><span class="p">(</span><span class="n">fps</span><span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Done&quot;</span><span class="p">)</span>
     <span class="c1"># Draw a UMAP projection based on Tanimoto distance</span>
-    <span class="n">mapper</span> <span class="o">=</span> <span class="n">umap</span><span class="o">.</span><span class="n">UMAP</span><span class="p">(</span><span class="n">n_neighbors</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">n_components</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="s1">&#39;precomputed&#39;</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">17</span><span class="p">)</span>
+    <span class="n">mapper</span> <span class="o">=</span> <span class="n">umap</span><span class="o">.</span><span class="n">UMAP</span><span class="p">(</span><span class="n">n_neighbors</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">min_dist</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">n_components</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="s1">&#39;precomputed&#39;</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">17</span><span class="p">)</span>
     <span class="n">reps</span> <span class="o">=</span> <span class="n">mapper</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">tani_dist</span><span class="p">)</span>
     <span class="n">rep_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_records</span><span class="p">(</span><span class="n">reps</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">])</span>
     <span class="n">rep_df</span><span class="p">[</span><span class="s1">&#39;compound_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">compound_ids</span>
+    <span class="k">if</span> <span class="n">responses</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">rep_df</span><span class="p">[</span><span class="s1">&#39;response&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">responses</span>
+    <span class="k">if</span> <span class="n">umap_file</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">rep_df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">umap_file</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Wrote UMAP mapping to </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">umap_file</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">out_dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">pdf_path</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">/</span><span class="si">%s</span><span class="s1">_tani_umap_proj.pdf&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">out_dir</span><span class="p">,</span> <span class="n">file_prefix</span><span class="p">)</span>
         <span class="n">pdf</span> <span class="o">=</span> <span class="n">PdfPages</span><span class="p">(</span><span class="n">pdf_path</span><span class="p">)</span>
     <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span><span class="mi">12</span><span class="p">))</span>
-    <span class="n">sns</span><span class="o">.</span><span class="n">scatterplot</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">rep_df</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">responses</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">sns</span><span class="o">.</span><span class="n">scatterplot</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">rep_df</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">sns</span><span class="o">.</span><span class="n">scatterplot</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="n">hue</span><span class="o">=</span><span class="s1">&#39;response&#39;</span><span class="p">,</span> <span class="n">palette</span><span class="o">=</span><span class="n">colorpal</span><span class="p">,</span>
+                        <span class="n">data</span><span class="o">=</span><span class="n">rep_df</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
     <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">, 2D projection based on Tanimoto distance&quot;</span> <span class="o">%</span> <span class="n">title_prefix</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">out_dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">pdf</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
@@ -330,7 +438,12 @@
 
 
 <span class="c1">#------------------------------------------------------------------------------------------------------------------</span>
-<div class="viewcode-block" id="sa200_diversity_plots"><a class="viewcode-back" href="../../pipeline.html#pipeline.diversity_plots.sa200_diversity_plots">[docs]</a><span class="k">def</span> <span class="nf">sa200_diversity_plots</span><span class="p">(</span><span class="n">ecfp_radius</span><span class="o">=</span><span class="mi">6</span><span class="p">):</span>
+<span class="c1"># Specialized functions for particular datasets. Many of them depend on GSK datasets that we no longer have</span>
+<span class="c1"># access to, or to files on a no-longer-used LLNL development system, so they have been turned into private functions,</span>
+<span class="c1"># for historical reference only.</span>
+<span class="c1">#------------------------------------------------------------------------------------------------------------------</span>
+
+<span class="k">def</span> <span class="nf">_sa200_diversity_plots</span><span class="p">(</span><span class="n">ecfp_radius</span><span class="o">=</span><span class="mi">6</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Plot visualizations of diversity for the 208 compounds selected for phenotypic assays.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -339,10 +452,10 @@
     <span class="n">file_prefix</span> <span class="o">=</span> <span class="s1">&#39;sa200&#39;</span>
     <span class="n">title_prefix</span> <span class="o">=</span> <span class="s1">&#39;Phenotypic assay compound set&#39;</span>
     <span class="n">diversity_plots</span><span class="p">(</span><span class="n">sa200_file</span><span class="p">,</span> <span class="n">datastore</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">bucket</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">title_prefix</span><span class="o">=</span><span class="n">title_prefix</span><span class="p">,</span> <span class="n">out_dir</span><span class="o">=</span><span class="n">out_dir</span><span class="p">,</span> <span class="n">ecfp_radius</span><span class="o">=</span><span class="n">ecfp_radius</span><span class="p">,</span> 
-                    <span class="n">smiles_col</span><span class="o">=</span><span class="s1">&#39;canonical_smiles&#39;</span><span class="p">)</span></div>
+                    <span class="n">smiles_col</span><span class="o">=</span><span class="s1">&#39;canonical_smiles&#39;</span><span class="p">)</span>
 
 <span class="c1">#------------------------------------------------------------------------------------------------------------------</span>
-<div class="viewcode-block" id="bsep_diversity_plots"><a class="viewcode-back" href="../../pipeline.html#pipeline.diversity_plots.bsep_diversity_plots">[docs]</a><span class="k">def</span> <span class="nf">bsep_diversity_plots</span><span class="p">(</span><span class="n">ecfp_radius</span><span class="o">=</span><span class="mi">6</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_bsep_diversity_plots</span><span class="p">(</span><span class="n">ecfp_radius</span><span class="o">=</span><span class="mi">6</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Plot visualizations of diversity for the compounds in the BSEP PIC50 dataset.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -350,11 +463,11 @@
     <span class="n">out_dir</span> <span class="o">=</span> <span class="s1">&#39;/usr/local/data/bsep&#39;</span>
     <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">out_dir</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">title_prefix</span> <span class="o">=</span> <span class="s1">&#39;ABCB11_Bile_Salt_Export_Pump_BSEP_membrane_vesicles_Imaging_PIC50 compound set&#39;</span>
-    <span class="n">diversity_plots</span><span class="p">(</span><span class="n">dset_key</span><span class="p">,</span> <span class="n">datastore</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">bucket</span><span class="o">=</span><span class="s1">&#39;gsk_ml&#39;</span><span class="p">,</span> <span class="n">title_prefix</span><span class="o">=</span><span class="n">title_prefix</span><span class="p">,</span> <span class="n">out_dir</span><span class="o">=</span><span class="n">out_dir</span><span class="p">,</span> <span class="n">ecfp_radius</span><span class="o">=</span><span class="n">ecfp_radius</span><span class="p">)</span></div>
+    <span class="n">diversity_plots</span><span class="p">(</span><span class="n">dset_key</span><span class="p">,</span> <span class="n">datastore</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">bucket</span><span class="o">=</span><span class="s1">&#39;gsk_papers&#39;</span><span class="p">,</span> <span class="n">title_prefix</span><span class="o">=</span><span class="n">title_prefix</span><span class="p">,</span> <span class="n">out_dir</span><span class="o">=</span><span class="n">out_dir</span><span class="p">,</span> <span class="n">ecfp_radius</span><span class="o">=</span><span class="n">ecfp_radius</span><span class="p">)</span>
 
 
 <span class="c1">#------------------------------------------------------------------------------------------------------------------</span>
-<div class="viewcode-block" id="obach_diversity_plots"><a class="viewcode-back" href="../../pipeline.html#pipeline.diversity_plots.obach_diversity_plots">[docs]</a><span class="k">def</span> <span class="nf">obach_diversity_plots</span><span class="p">(</span><span class="n">ecfp_radius</span><span class="o">=</span><span class="mi">6</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_obach_diversity_plots</span><span class="p">(</span><span class="n">ecfp_radius</span><span class="o">=</span><span class="mi">6</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Plot visualizations of diversity for the compounds in the Obach, Lombardo et al PK dataset</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -422,12 +535,12 @@
     <span class="n">g</span> <span class="o">=</span> <span class="n">sns</span><span class="o">.</span><span class="n">clustermap</span><span class="p">(</span><span class="n">tani_df</span><span class="p">,</span> <span class="n">row_linkage</span><span class="o">=</span><span class="n">tani_linkage</span><span class="p">,</span> <span class="n">col_linkage</span><span class="o">=</span><span class="n">tani_linkage</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span><span class="mi">12</span><span class="p">),</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;plasma&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">out_dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">pdf</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">fig</span><span class="p">)</span>
-        <span class="n">pdf</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+        <span class="n">pdf</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
 
 
 <span class="c1">#------------------------------------------------------------------------------------------------------------------</span>
-<div class="viewcode-block" id="solubility_diversity_plots"><a class="viewcode-back" href="../../pipeline.html#pipeline.diversity_plots.solubility_diversity_plots">[docs]</a><span class="k">def</span> <span class="nf">solubility_diversity_plots</span><span class="p">(</span><span class="n">ecfp_radius</span><span class="o">=</span><span class="mi">6</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_solubility_diversity_plots</span><span class="p">(</span><span class="n">ecfp_radius</span><span class="o">=</span><span class="mi">6</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Plot visualizations of diversity for the compounds in the Delaney and GSK aqueous solubility datasets</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -441,10 +554,10 @@
     <span class="n">cmpd_file</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">/ATOM_GSK_Solubility_Aqueous.csv&#39;</span> <span class="o">%</span> <span class="n">data_dir</span>
     <span class="n">title_prefix</span> <span class="o">=</span> <span class="s1">&#39;GSK Aqueous Solubility compound set&#39;</span>
     <span class="n">file_prefix</span> <span class="o">=</span> <span class="s1">&#39;gsk_aq_sol&#39;</span>
-    <span class="n">diversity_plots</span><span class="p">(</span><span class="n">cmpd_file</span><span class="p">,</span> <span class="n">file_prefix</span><span class="p">,</span> <span class="n">title_prefix</span><span class="p">,</span> <span class="n">out_dir</span><span class="o">=</span><span class="n">out_dir</span><span class="p">,</span> <span class="n">ecfp_radius</span><span class="o">=</span><span class="n">ecfp_radius</span><span class="p">,</span> <span class="n">id_col</span><span class="o">=</span><span class="s1">&#39;compound_id&#39;</span><span class="p">)</span></div>
+    <span class="n">diversity_plots</span><span class="p">(</span><span class="n">cmpd_file</span><span class="p">,</span> <span class="n">file_prefix</span><span class="p">,</span> <span class="n">title_prefix</span><span class="p">,</span> <span class="n">out_dir</span><span class="o">=</span><span class="n">out_dir</span><span class="p">,</span> <span class="n">ecfp_radius</span><span class="o">=</span><span class="n">ecfp_radius</span><span class="p">,</span> <span class="n">id_col</span><span class="o">=</span><span class="s1">&#39;compound_id&#39;</span><span class="p">)</span>
 
 <span class="c1">#------------------------------------------------------------------------------------------------------------------</span>
-<div class="viewcode-block" id="compare_solubility_datasets"><a class="viewcode-back" href="../../pipeline.html#pipeline.diversity_plots.compare_solubility_datasets">[docs]</a><span class="k">def</span> <span class="nf">compare_solubility_datasets</span><span class="p">(</span><span class="n">ecfp_radius</span><span class="o">=</span><span class="mi">6</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_compare_solubility_datasets</span><span class="p">(</span><span class="n">ecfp_radius</span><span class="o">=</span><span class="mi">6</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Plot projections of Delaney and GSK solubility datasets using the same UMAP projectors.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -524,12 +637,12 @@
     <span class="n">g</span> <span class="o">=</span> <span class="n">sns</span><span class="o">.</span><span class="n">scatterplot</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">hue</span><span class="o">=</span><span class="s1">&#39;dataset&#39;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s1">&#39;dataset&#39;</span><span class="p">,</span> <span class="n">palette</span><span class="o">=</span><span class="n">dataset_pal</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">rep_df</span><span class="p">)</span>
     <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;Solubility dataset fingerprints, UMAP projection trained on GSK aqueous solubility data&quot;</span><span class="p">,</span> <span class="n">fontdict</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;fontsize&#39;</span> <span class="p">:</span> <span class="mi">12</span><span class="p">})</span>
     <span class="n">pdf</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
-    <span class="n">pdf</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+    <span class="n">pdf</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
 
 
 <span class="c1">#------------------------------------------------------------------------------------------------------------------</span>
-<div class="viewcode-block" id="compare_obach_gsk_aq_sol"><a class="viewcode-back" href="../../pipeline.html#pipeline.diversity_plots.compare_obach_gsk_aq_sol">[docs]</a><span class="k">def</span> <span class="nf">compare_obach_gsk_aq_sol</span><span class="p">(</span><span class="n">ecfp_radius</span><span class="o">=</span><span class="mi">6</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_compare_obach_gsk_aq_sol</span><span class="p">(</span><span class="n">ecfp_radius</span><span class="o">=</span><span class="mi">6</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Plot projections of Obach and GSK solubility datasets using the same UMAP projectors.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -592,10 +705,10 @@
     <span class="n">g</span> <span class="o">=</span> <span class="n">sns</span><span class="o">.</span><span class="n">scatterplot</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">hue</span><span class="o">=</span><span class="s1">&#39;dataset&#39;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s1">&#39;dataset&#39;</span><span class="p">,</span> <span class="n">palette</span><span class="o">=</span><span class="n">dataset_pal</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">rep_df</span><span class="p">)</span>
     <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;Obach and GSK solubility dataset fingerprints, UMAP projection trained on Obach data&quot;</span><span class="p">,</span> <span class="n">fontdict</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;fontsize&#39;</span> <span class="p">:</span> <span class="mi">12</span><span class="p">})</span>
     <span class="n">pdf</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
-    <span class="n">pdf</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+    <span class="n">pdf</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
 <span class="c1">#------------------------------------------------------------------------------------------------------------------</span>
-<div class="viewcode-block" id="liability_dset_diversity"><a class="viewcode-back" href="../../pipeline.html#pipeline.diversity_plots.liability_dset_diversity">[docs]</a><span class="k">def</span> <span class="nf">liability_dset_diversity</span><span class="p">(</span><span class="n">bucket</span><span class="o">=</span><span class="s1">&#39;gsk_ml&#39;</span><span class="p">,</span> <span class="n">feat_type</span><span class="o">=</span><span class="s1">&#39;descriptors&#39;</span><span class="p">,</span> <span class="n">dist_metric</span><span class="o">=</span><span class="s1">&#39;cosine&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">metric_kwargs</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_liability_dset_diversity</span><span class="p">(</span><span class="n">bucket</span><span class="o">=</span><span class="s1">&#39;public&#39;</span><span class="p">,</span> <span class="n">feat_type</span><span class="o">=</span><span class="s1">&#39;descriptors&#39;</span><span class="p">,</span> <span class="n">dist_metric</span><span class="o">=</span><span class="s1">&#39;cosine&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">metric_kwargs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Load datasets from datastore, featurize them, and plot distributions of their inter-compound</span>
 <span class="sd">    distances.</span>
@@ -658,102 +771,108 @@
             <span class="k">continue</span>
         <span class="n">plot_dataset_dist_distr</span><span class="p">(</span><span class="n">model_dataset</span><span class="o">.</span><span class="n">dataset</span><span class="p">,</span> <span class="n">feat_type</span><span class="p">,</span> <span class="n">dist_metric</span><span class="p">,</span> <span class="n">task_name</span><span class="p">,</span> <span class="o">**</span><span class="n">metric_kwargs</span><span class="p">)</span>
 
-    <span class="c1"># ------------------------------------------------------------------------------------------------------------------</span>
-    <span class="k">def</span> <span class="nf">get_dset_diversity</span><span class="p">(</span><span class="n">dset_key</span><span class="p">,</span> <span class="n">ds_client</span><span class="p">,</span> <span class="n">bucket</span><span class="o">=</span><span class="s1">&#39;gsk_ml&#39;</span><span class="p">,</span> <span class="n">feat_type</span><span class="o">=</span><span class="s1">&#39;descriptors&#39;</span><span class="p">,</span> <span class="n">dist_metric</span><span class="o">=</span><span class="s1">&#39;cosine&#39;</span><span class="p">,</span>
-                           <span class="o">**</span><span class="n">metric_kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Load datasets from datastore, featurize them, and plot distributions of their inter-compound</span>
-<span class="sd">        distances.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;ATOM&#39;</span><span class="p">)</span>
-    
-        <span class="n">dset_df</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">retrieve_dataset_by_datasetkey</span><span class="p">(</span><span class="n">dset_key</span><span class="p">,</span> <span class="n">bucket</span><span class="p">,</span> <span class="n">ds_client</span><span class="p">)</span>
-    
-        <span class="k">if</span> <span class="n">feat_type</span> <span class="o">==</span> <span class="s1">&#39;descriptors&#39;</span><span class="p">:</span>
-            <span class="n">params</span> <span class="o">=</span> <span class="n">parse</span><span class="o">.</span><span class="n">wrapper</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span>
-                <span class="n">dataset_key</span><span class="o">=</span><span class="n">dset_key</span><span class="p">,</span>
-                <span class="n">bucket</span><span class="o">=</span><span class="n">bucket</span><span class="p">,</span>
-                <span class="n">descriptor_key</span><span class="o">=</span><span class="s1">&#39;/ds/projdata/gsk_data/GSK_Descriptors/GSK_2D_3D_MOE_Descriptors_By_Variant_ID_With_Base_RDKit_SMILES.feather&#39;</span><span class="p">,</span>
-                <span class="n">descriptor_type</span><span class="o">=</span><span class="s1">&#39;moe&#39;</span><span class="p">,</span>
-                <span class="n">featurizer</span><span class="o">=</span><span class="s1">&#39;descriptors&#39;</span><span class="p">,</span>
-                <span class="n">system</span><span class="o">=</span><span class="s1">&#39;twintron-blue&#39;</span><span class="p">,</span>
-                <span class="n">datastore</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                <span class="n">transformers</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
-        <span class="k">elif</span> <span class="n">feat_type</span> <span class="o">==</span> <span class="s1">&#39;ECFP&#39;</span><span class="p">:</span>
-            <span class="n">params</span> <span class="o">=</span> <span class="n">parse</span><span class="o">.</span><span class="n">wrapper</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span>
-                <span class="n">dataset_key</span><span class="o">=</span><span class="n">dset_key</span><span class="p">,</span>
-                <span class="n">bucket</span><span class="o">=</span><span class="n">bucket</span><span class="p">,</span>
-                <span class="n">featurizer</span><span class="o">=</span><span class="s1">&#39;ECFP&#39;</span><span class="p">,</span>
-                <span class="n">system</span><span class="o">=</span><span class="s1">&#39;twintron-blue&#39;</span><span class="p">,</span>
-                <span class="n">datastore</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                <span class="n">ecfp_radius</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
-                <span class="n">ecfp_size</span><span class="o">=</span><span class="mi">1024</span><span class="p">,</span>
-                <span class="n">transformers</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Feature type </span><span class="si">%s</span><span class="s2"> not supported&quot;</span> <span class="o">%</span> <span class="n">feat_type</span><span class="p">)</span>
-            <span class="k">return</span>
-        <span class="n">metadata</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">get_keyval</span><span class="p">(</span><span class="n">dataset_key</span><span class="o">=</span><span class="n">dset_key</span><span class="p">,</span> <span class="n">bucket</span><span class="o">=</span><span class="n">bucket</span><span class="p">)</span>
-        <span class="k">if</span> <span class="s1">&#39;id_col&#39;</span> <span class="ow">in</span> <span class="n">metadata</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-            <span class="n">params</span><span class="o">.</span><span class="n">id_col</span> <span class="o">=</span> <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;id_col&#39;</span><span class="p">]</span>
-        <span class="k">if</span> <span class="s1">&#39;param&#39;</span> <span class="ow">in</span> <span class="n">metadata</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-            <span class="n">params</span><span class="o">.</span><span class="n">response_cols</span> <span class="o">=</span> <span class="p">[</span><span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;param&#39;</span><span class="p">]]</span>
-        <span class="k">elif</span> <span class="s1">&#39;response_col&#39;</span> <span class="ow">in</span> <span class="n">metadata</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-            <span class="n">params</span><span class="o">.</span><span class="n">response_cols</span> <span class="o">=</span> <span class="p">[</span><span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;response_col&#39;</span><span class="p">]]</span>
-        <span class="k">elif</span> <span class="s1">&#39;response_cols&#39;</span> <span class="ow">in</span> <span class="n">metadata</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-            <span class="n">params</span><span class="o">.</span><span class="n">response_cols</span> <span class="o">=</span> <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;response_cols&#39;</span><span class="p">]</span>
-    
-        <span class="k">if</span> <span class="s1">&#39;smiles_col&#39;</span> <span class="ow">in</span> <span class="n">metadata</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-            <span class="n">params</span><span class="o">.</span><span class="n">smiles_col</span> <span class="o">=</span> <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;smiles_col&#39;</span><span class="p">]</span>
-    
-        <span class="k">if</span> <span class="s1">&#39;class_name&#39;</span> <span class="ow">in</span> <span class="n">metadata</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-            <span class="n">params</span><span class="o">.</span><span class="n">class_name</span> <span class="o">=</span> <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;class_name&#39;</span><span class="p">]</span>
-        <span class="k">if</span> <span class="s1">&#39;class_number&#39;</span> <span class="ow">in</span> <span class="n">metadata</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-            <span class="n">params</span><span class="o">.</span><span class="n">class_number</span> <span class="o">=</span> <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;class_number&#39;</span><span class="p">]</span>
-        <span class="n">params</span><span class="o">.</span><span class="n">dataset_name</span> <span class="o">=</span> <span class="n">dset_key</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">&#39;.csv&#39;</span><span class="p">)</span>
-    
-        <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Featurizing data with </span><span class="si">%s</span><span class="s2"> featurizer&quot;</span> <span class="o">%</span> <span class="n">feat_type</span><span class="p">)</span>
-        <span class="n">featurization</span> <span class="o">=</span> <span class="n">feat</span><span class="o">.</span><span class="n">create_featurization</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
-        <span class="n">model_dataset</span> <span class="o">=</span> <span class="n">md</span><span class="o">.</span><span class="n">MinimalDataset</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">featurization</span><span class="p">)</span>
-        <span class="n">model_dataset</span><span class="o">.</span><span class="n">get_featurized_data</span><span class="p">(</span><span class="n">dset_df</span><span class="p">)</span>
-        <span class="n">num_cmpds</span> <span class="o">=</span> <span class="n">model_dataset</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="k">if</span> <span class="n">num_cmpds</span> <span class="o">&gt;</span> <span class="mi">50000</span><span class="p">:</span>
-            <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Too many compounds to compute distance matrix: </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">num_cmpds</span><span class="p">)</span>
-            <span class="k">return</span>
-        <span class="c1"># plot_dataset_dist_distr(model_dataset.dataset, feat_type, dist_metric, params.response_cols, **metric_kwargs)</span>
-        <span class="n">dists</span> <span class="o">=</span> <span class="n">cd</span><span class="o">.</span><span class="n">calc_dist_diskdataset</span><span class="p">(</span><span class="s1">&#39;descriptors&#39;</span><span class="p">,</span> <span class="n">dist_metric</span><span class="p">,</span> <span class="n">model_dataset</span><span class="o">.</span><span class="n">dataset</span><span class="p">,</span> <span class="n">calc_type</span><span class="o">=</span><span class="s1">&#39;all&#39;</span><span class="p">)</span>
-        <span class="kn">import</span> <span class="nn">scipy</span>
-        <span class="n">dists</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">spatial</span><span class="o">.</span><span class="n">distance</span><span class="o">.</span><span class="n">squareform</span><span class="p">(</span><span class="n">dists</span><span class="p">)</span>
-        <span class="n">res_dir</span> <span class="o">=</span> <span class="s1">&#39;/ds/projdata/gsk_data/model_analysis/&#39;</span>
-        <span class="n">plt_dir</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">/Plots&#39;</span> <span class="o">%</span> <span class="n">res_dir</span>
-        <span class="n">file_prefix</span> <span class="o">=</span> <span class="n">dset_key</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">&#39;.csv&#39;</span><span class="p">)</span>
-        <span class="n">mcs_linkage</span> <span class="o">=</span> <span class="n">linkage</span><span class="p">(</span><span class="n">dists</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;complete&#39;</span><span class="p">)</span>
-        <span class="n">pdf_path</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">/</span><span class="si">%s</span><span class="s1">_mcs_clustermap.pdf&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">plt_dir</span><span class="p">,</span> <span class="n">file_prefix</span><span class="p">)</span>
-        <span class="n">pdf</span> <span class="o">=</span> <span class="n">PdfPages</span><span class="p">(</span><span class="n">pdf_path</span><span class="p">)</span>
-        <span class="n">g</span> <span class="o">=</span> <span class="n">sns</span><span class="o">.</span><span class="n">clustermap</span><span class="p">(</span><span class="n">dists</span><span class="p">,</span> <span class="n">row_linkage</span><span class="o">=</span><span class="n">mcs_linkage</span><span class="p">,</span> <span class="n">col_linkage</span><span class="o">=</span><span class="n">mcs_linkage</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">12</span><span class="p">),</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;plasma&#39;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">plt_dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">pdf</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">fig</span><span class="p">)</span>
-            <span class="n">pdf</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-        <span class="k">return</span> <span class="n">dists</span></div>
+<span class="c1"># ------------------------------------------------------------------------------------------------------------------</span>
+<span class="k">def</span> <span class="nf">_get_dset_diversity</span><span class="p">(</span><span class="n">dset_key</span><span class="p">,</span> <span class="n">ds_client</span><span class="p">,</span> <span class="n">bucket</span><span class="o">=</span><span class="s1">&#39;public&#39;</span><span class="p">,</span> <span class="n">feat_type</span><span class="o">=</span><span class="s1">&#39;descriptors&#39;</span><span class="p">,</span> <span class="n">dist_metric</span><span class="o">=</span><span class="s1">&#39;cosine&#39;</span><span class="p">,</span>
+                       <span class="o">**</span><span class="n">metric_kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Load datasets from datastore, featurize them, and plot distributions of their inter-compound</span>
+<span class="sd">    distances.</span>
+
+<span class="sd">    TODO: Update this function so that it works on local files as well as datastore datasets. Remove the dependency on</span>
+<span class="sd">    precomputed GSK compound descriptors, and use computed descriptors instead.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;ATOM&#39;</span><span class="p">)</span>
+
+    <span class="n">dset_df</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">retrieve_dataset_by_datasetkey</span><span class="p">(</span><span class="n">dset_key</span><span class="p">,</span> <span class="n">bucket</span><span class="p">,</span> <span class="n">ds_client</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">feat_type</span> <span class="o">==</span> <span class="s1">&#39;descriptors&#39;</span><span class="p">:</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="n">parse</span><span class="o">.</span><span class="n">wrapper</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">dataset_key</span><span class="o">=</span><span class="n">dset_key</span><span class="p">,</span>
+            <span class="n">bucket</span><span class="o">=</span><span class="n">bucket</span><span class="p">,</span>
+            <span class="n">descriptor_key</span><span class="o">=</span><span class="s1">&#39;/ds/projdata/gsk_data/GSK_Descriptors/GSK_2D_3D_MOE_Descriptors_By_Variant_ID_With_Base_RDKit_SMILES.feather&#39;</span><span class="p">,</span>
+            <span class="n">descriptor_type</span><span class="o">=</span><span class="s1">&#39;moe&#39;</span><span class="p">,</span>
+            <span class="n">featurizer</span><span class="o">=</span><span class="s1">&#39;descriptors&#39;</span><span class="p">,</span>
+            <span class="n">system</span><span class="o">=</span><span class="s1">&#39;twintron-blue&#39;</span><span class="p">,</span>
+            <span class="n">datastore</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">transformers</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+    <span class="k">elif</span> <span class="n">feat_type</span> <span class="o">==</span> <span class="s1">&#39;ECFP&#39;</span><span class="p">:</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="n">parse</span><span class="o">.</span><span class="n">wrapper</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">dataset_key</span><span class="o">=</span><span class="n">dset_key</span><span class="p">,</span>
+            <span class="n">bucket</span><span class="o">=</span><span class="n">bucket</span><span class="p">,</span>
+            <span class="n">featurizer</span><span class="o">=</span><span class="s1">&#39;ECFP&#39;</span><span class="p">,</span>
+            <span class="n">system</span><span class="o">=</span><span class="s1">&#39;twintron-blue&#39;</span><span class="p">,</span>
+            <span class="n">datastore</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">ecfp_radius</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+            <span class="n">ecfp_size</span><span class="o">=</span><span class="mi">1024</span><span class="p">,</span>
+            <span class="n">transformers</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Feature type </span><span class="si">%s</span><span class="s2"> not supported&quot;</span> <span class="o">%</span> <span class="n">feat_type</span><span class="p">)</span>
+        <span class="k">return</span>
+    <span class="n">metadata</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">get_keyval</span><span class="p">(</span><span class="n">dataset_key</span><span class="o">=</span><span class="n">dset_key</span><span class="p">,</span> <span class="n">bucket</span><span class="o">=</span><span class="n">bucket</span><span class="p">)</span>
+    <span class="k">if</span> <span class="s1">&#39;id_col&#39;</span> <span class="ow">in</span> <span class="n">metadata</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">id_col</span> <span class="o">=</span> <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;id_col&#39;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="s1">&#39;param&#39;</span> <span class="ow">in</span> <span class="n">metadata</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">response_cols</span> <span class="o">=</span> <span class="p">[</span><span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;param&#39;</span><span class="p">]]</span>
+    <span class="k">elif</span> <span class="s1">&#39;response_col&#39;</span> <span class="ow">in</span> <span class="n">metadata</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">response_cols</span> <span class="o">=</span> <span class="p">[</span><span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;response_col&#39;</span><span class="p">]]</span>
+    <span class="k">elif</span> <span class="s1">&#39;response_cols&#39;</span> <span class="ow">in</span> <span class="n">metadata</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">response_cols</span> <span class="o">=</span> <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;response_cols&#39;</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="s1">&#39;smiles_col&#39;</span> <span class="ow">in</span> <span class="n">metadata</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">smiles_col</span> <span class="o">=</span> <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;smiles_col&#39;</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="s1">&#39;class_number&#39;</span> <span class="ow">in</span> <span class="n">metadata</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">class_number</span> <span class="o">=</span> <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;class_number&#39;</span><span class="p">]</span>
+    <span class="n">params</span><span class="o">.</span><span class="n">dataset_name</span> <span class="o">=</span> <span class="n">dset_key</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">&#39;.csv&#39;</span><span class="p">)</span>
+
+    <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Featurizing data with </span><span class="si">%s</span><span class="s2"> featurizer&quot;</span> <span class="o">%</span> <span class="n">feat_type</span><span class="p">)</span>
+    <span class="n">featurization</span> <span class="o">=</span> <span class="n">feat</span><span class="o">.</span><span class="n">create_featurization</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+    <span class="n">model_dataset</span> <span class="o">=</span> <span class="n">md</span><span class="o">.</span><span class="n">MinimalDataset</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">featurization</span><span class="p">)</span>
+    <span class="n">model_dataset</span><span class="o">.</span><span class="n">get_featurized_data</span><span class="p">(</span><span class="n">dset_df</span><span class="p">)</span>
+    <span class="n">num_cmpds</span> <span class="o">=</span> <span class="n">model_dataset</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">num_cmpds</span> <span class="o">&gt;</span> <span class="mi">50000</span><span class="p">:</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Too many compounds to compute distance matrix: </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">num_cmpds</span><span class="p">)</span>
+        <span class="k">return</span>
+    <span class="c1"># plot_dataset_dist_distr(model_dataset.dataset, feat_type, dist_metric, params.response_cols, **metric_kwargs)</span>
+    <span class="n">dists</span> <span class="o">=</span> <span class="n">cd</span><span class="o">.</span><span class="n">calc_dist_diskdataset</span><span class="p">(</span><span class="s1">&#39;descriptors&#39;</span><span class="p">,</span> <span class="n">dist_metric</span><span class="p">,</span> <span class="n">model_dataset</span><span class="o">.</span><span class="n">dataset</span><span class="p">,</span> <span class="n">calc_type</span><span class="o">=</span><span class="s1">&#39;all&#39;</span><span class="p">)</span>
+    <span class="kn">import</span> <span class="nn">scipy</span>
+    <span class="n">dists</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">spatial</span><span class="o">.</span><span class="n">distance</span><span class="o">.</span><span class="n">squareform</span><span class="p">(</span><span class="n">dists</span><span class="p">)</span>
+    <span class="n">res_dir</span> <span class="o">=</span> <span class="s1">&#39;/ds/projdata/gsk_data/model_analysis/&#39;</span>
+    <span class="n">plt_dir</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">/Plots&#39;</span> <span class="o">%</span> <span class="n">res_dir</span>
+    <span class="n">file_prefix</span> <span class="o">=</span> <span class="n">dset_key</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">&#39;.csv&#39;</span><span class="p">)</span>
+    <span class="n">mcs_linkage</span> <span class="o">=</span> <span class="n">linkage</span><span class="p">(</span><span class="n">dists</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;complete&#39;</span><span class="p">)</span>
+    <span class="n">pdf_path</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">/</span><span class="si">%s</span><span class="s1">_mcs_clustermap.pdf&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">plt_dir</span><span class="p">,</span> <span class="n">file_prefix</span><span class="p">)</span>
+    <span class="n">pdf</span> <span class="o">=</span> <span class="n">PdfPages</span><span class="p">(</span><span class="n">pdf_path</span><span class="p">)</span>
+    <span class="n">g</span> <span class="o">=</span> <span class="n">sns</span><span class="o">.</span><span class="n">clustermap</span><span class="p">(</span><span class="n">dists</span><span class="p">,</span> <span class="n">row_linkage</span><span class="o">=</span><span class="n">mcs_linkage</span><span class="p">,</span> <span class="n">col_linkage</span><span class="o">=</span><span class="n">mcs_linkage</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">12</span><span class="p">),</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;plasma&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">plt_dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">pdf</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">fig</span><span class="p">)</span>
+        <span class="n">pdf</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">dists</span>
 </pre></div>
 
            </div>
            
           </div>
           <footer>
-  
 
   <hr/>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2019, ATOM DDM Team.
+        &#169; Copyright 2021, ATOM DDM Team.
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
-
         </div>
       </div>
 
@@ -762,34 +881,16 @@
   </div>
   
 
-
-  
-
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'../../',
-            VERSION:'1.0',
-            LANGUAGE:'None',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="../../_static/jquery.js"></script>
-      <script type="text/javascript" src="../../_static/underscore.js"></script>
-      <script type="text/javascript" src="../../_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-
-  
-
-  <script type="text/javascript" src="../../_static/js/theme.js"></script>
-
   <script type="text/javascript">
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
+  </script>
+
+  
+  
+    
+   
 
 </body>
 </html>

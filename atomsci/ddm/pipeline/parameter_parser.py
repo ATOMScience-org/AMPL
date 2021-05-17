@@ -860,14 +860,19 @@ def get_parser():
             help='Scaling factor for constraining network size based on number of parameters in the network for '
                  'hyperparam search')
     parser.add_argument(
-        '--python_path', dest='python_path', required=False, default='python', help='Path to desired python version')
+        '--python_path', dest='python_path', required=False, 
+        # default to the version of python used to run this script
+        default=sys.executable, 
+        help='Path to desired python version')
     parser.add_argument(
             '--rerun', dest= 'rerun', required=False, action='store_false',
             help='If False, check model tracker to see if a model with that particular param combination has '
                  'already been built')
     parser.set_defaults(rerun=True)
     parser.add_argument(
-        '--script_dir', dest='script_dir', required=False, default='.',
+        '--script_dir', dest='script_dir', required=False, 
+        # use location of this file to generate script dir
+        default=os.path.abspath(os.path.join(__file__, '../..')),
         help='Path where pipeline file you want to run hyperparam search from is located')
 
     parser.add_argument(
@@ -944,6 +949,13 @@ def get_parser():
     parser.add_argument(
         '--xgbl', dest='xgbl', required=False, default=None,
         help='xgb_learning_rate shown in HyperOpt domain format, e.g. --xgbl=loguniform|-6.9,-2.3')
+    # checkpoint
+    parser.add_argument(
+        '--hp_checkpoint_save', dest='hp_checkpoint_save', required=False, default=None,
+        help='binary file to save a checkpoint of the HPO trial project, which can be use to continue the HPO serach later. e.g. --hp_checkpoint_save=/path/to/file/checkpoint.pkl')
+    parser.add_argument(
+        '--hp_checkpoint_load', dest='hp_checkpoint_load', required=False, default=None,
+        help='binary file to load a checkpoint of a previous HPO trial project, to continue the HPO serach. e.g. --hp_checkpoint_load=/path/to/file/checkpoint.pkl')
 
 
     return parser
@@ -1085,6 +1097,14 @@ def postprocess_args(parsed_args):
                 (parsed_args.bias_init_consts is not None and len(parsed_args.bias_init_consts) != nlayers)):
                 raise Exception("layer_sizes, dropouts, weight_init_stddevs and bias_init_consts arguments must be the "
                                 "same length")
+
+    # check to see if result_dir and dataset_key are relative paths
+    # if so, make them relative to script_dir
+    # We may also want to check if the dataset file in its relative path exists, if it exists, there is no need to add the script_dir. So it is compatible with the 1.0.1 code.
+    if (not parsed_args.dataset_key is None) and (not os.path.isabs(parsed_args.dataset_key)) and (not os.path.isfile(parsed_args.dataset_key)):
+        parsed_args.dataset_key = \
+            os.path.abspath(os.path.join(parsed_args.script_dir, parsed_args.dataset_key))
+
     return parsed_args
 
 #***********************************************************************************************************
@@ -1093,6 +1113,7 @@ def prune_defaults(params, keep_params={}):
 
     Args:
         params (argparse.Namespace): Raw parsed arguments.
+
         keep_params (list): List of parameters to keep
 
     Returns:

@@ -37,6 +37,7 @@ def create_model_dataset(params, featurization, ds_client=None):
         in the factory function.
         
         ds_client (Datastore client)
+
     Returns:
         either (DatastoreDataset) or (FileDataset): instantiated ModelDataset subclass specified by params
     """
@@ -357,8 +358,10 @@ class ModelDataset(object):
                                                            featurized_dset_df, self)
                 self.n_features = self.featurization.get_feature_count()
                 self.log.debug("Creating deepchem dataset")
-
+                
                 self.vals, w = feat.make_weights(self.vals)
+                if self.params.prediction_type=='classification':
+                    w = w.astype(np.float32)
 
                 self.dataset = DiskDataset.from_numpy(features, self.vals, ids=ids, w=w, verbose=False)
                 self.log.info("Using prefeaturized data; number of features = " + str(self.n_features))
@@ -641,6 +644,7 @@ class ModelDataset(object):
         
         Args:
             subset (string): Label of subset, 'train', 'test', or 'valid'
+
             transformers: Transformers object for full dataset
             
         Returns:
@@ -828,19 +832,29 @@ class DatastoreDataset(ModelDataset):
 
         set in __init__:
             params (Namespace object): contains all parameter information
+
             log (logger object): logger for all warning messages.
+
             dataset_name (str): set from the parameter object, the name of the dataset
+
             output_dit (str): The root directory for saving output files
+
             split_strategy (str): the flag for determining the split strategy (e.g. 'train_test_valid','k-fold')
+
             featurization (Featurization object): The featurization object created by ModelDataset or input as an optional argument in the factory function.
+
             splitting (Splitting object): A splitting object created by the ModelDataset intiailization method
+
             combined_train_valid_data (dc.DiskDataset): A dataset object (initialized as None), of the merged train and valid splits
             ds_client (datastore client):
 
         set in get_featurized_data:
             dataset: A new featurized DeepChem DiskDataset.
+
             n_features: The count of features (int)
+
             vals: The response col after featurization (np.array)
+
             attr: A pd.dataframe containing the compound ids and smiles
 
         set in get_dataset_tasks:
@@ -848,8 +862,11 @@ class DatastoreDataset(ModelDataset):
 
         set in split_dataset or load_presplit_dataset:
             train_valid_dsets:  A list of tuples of (training,validation) DeepChem Datasets
+
             test_dset: (dc.data.Dataset): The test dataset to be held out
+
             train_valid_attr: A list of tuples of (training,validation) attribute DataFrames
+
             test_attr: The attribute DataFrame for the test set, containing compound IDs and SMILES strings.
 
         set in load_full_dataset()

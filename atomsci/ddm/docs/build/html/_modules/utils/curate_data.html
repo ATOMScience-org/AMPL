@@ -1,0 +1,981 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>utils.curate_data &mdash; ATOM Data-Driven Modeling Pipeline 1.1 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> ATOM Data-Driven Modeling Pipeline
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/getting_started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/tests.html">Tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/running_ampl.html">Running AMPL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/advanced_ampl_usage.html">Advanced AMPL Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/advanced_installation.html">Advanced Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/advanced_testing.html">Advanced Testing</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">atomsci</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">ATOM Data-Driven Modeling Pipeline</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>utils.curate_data</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for utils.curate_data</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Utility functions used for AMPL dataset curation and creation.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">&quot;&quot;&quot; TOC:</span>
+<span class="sd">aggregate_assay_data(assay_df, value_col=&#39;VALUE_NUM&#39;, output_value_col=None,</span>
+<span class="sd">                         label_actives=True,</span>
+<span class="sd">                         active_thresh=None,</span>
+<span class="sd">                         id_col=&#39;CMPD_NUMBER&#39;, smiles_col=&#39;rdkit_smiles&#39;, relation_col=&#39;VALUE_FLAG&#39;, date_col=None)</span>
+<span class="sd">replicate_rmsd(dset_df, smiles_col=&#39;base_rdkit_smiles&#39;, value_col=&#39;PIC50&#39;, relation_col=&#39;relation&#39;)</span>
+<span class="sd">mle_censored_mean(cmpd_df, std_est, value_col=&#39;PIC50&#39;, relation_col=&#39;relation&#39;)</span>
+<span class="sd">get_three_level_class(value, red_thresh, yellow_thresh)</span>
+<span class="sd">get_binary_class(value, thresh=4.0)</span>
+<span class="sd">set_group_permissions(path, system=&#39;AD&#39;, owner=&#39;GSK&#39;)</span>
+<span class="sd">filter_in_by_column_values (column, values, data)</span>
+<span class="sd">filter_out_by_column_values (column, values, data)</span>
+<span class="sd">filter_out_comments (values, values_cs, data) ...delete rows that contain comments listed (can specify &#39;case sensitive&#39; if needed)</span>
+<span class="sd">get_rdkit_smiles_parent (data)...................creates a new column with the rdkit smiles parent (salts stripped off)</span>
+<span class="sd">average_and_remove_duplicates (column, tolerance, list_bad_duplicates, data)</span>
+<span class="sd">summarize_data(column, num_bins, title, units, filepath, data)..............prints mix/max/avg/histogram</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">pdb</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">scipy.stats</span> <span class="kn">import</span> <span class="n">norm</span>
+<span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="kn">import</span> <span class="n">minimize_scalar</span>
+<span class="kn">from</span> <span class="nn">sklearn</span> <span class="kn">import</span> <span class="n">metrics</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">urllib3</span>
+<span class="kn">from</span> <span class="nn">atomsci.ddm.utils.struct_utils</span> <span class="kn">import</span> <span class="n">get_rdkit_smiles</span><span class="p">,</span> <span class="n">base_smiles_from_smiles</span>
+
+<span class="n">feather_supported</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">feather</span>
+<span class="k">except</span> <span class="p">(</span><span class="ne">ImportError</span><span class="p">,</span> <span class="ne">AttributeError</span><span class="p">,</span> <span class="ne">ModuleNotFoundError</span><span class="p">):</span>
+    <span class="n">feather_supported</span> <span class="o">=</span> <span class="kc">False</span>
+
+<span class="kn">from</span> <span class="nn">rdkit</span> <span class="kn">import</span> <span class="n">Chem</span>
+<span class="kn">from</span> <span class="nn">rdkit.Chem.Descriptors</span> <span class="kn">import</span> <span class="n">MolWt</span>
+
+<span class="kn">import</span> <span class="nn">seaborn</span> <span class="k">as</span> <span class="nn">sns</span>
+<span class="kn">import</span> <span class="nn">matplotlib</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+
+<span class="c1"># ******************************************************************************************************************************************</span>
+<div class="viewcode-block" id="set_group_permissions"><a class="viewcode-back" href="../../utils.html#utils.curate_data.set_group_permissions">[docs]</a><span class="k">def</span> <span class="nf">set_group_permissions</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">system</span><span class="o">=</span><span class="s1">&#39;AD&#39;</span><span class="p">,</span> <span class="n">owner</span><span class="o">=</span><span class="s1">&#39;GSK&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Sets file and group permissions</span>
+<span class="sd">    Set file group and permissions to standard values for a dataset containing proprietary</span>
+<span class="sd">    data owned by &#39;owner&#39;. Later we may add a &#39;public&#39; option, or groups for data from other pharma companies.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        path (string): File path</span>
+
+<span class="sd">        system (string): Computing environment from which group ownerships will be derived; currently, either &#39;LC&#39; for LC</span>
+<span class="sd">        filesystems or &#39;AD&#39; for LLNL systems where owners and groups are managed by Active Directory.</span>
+
+<span class="sd">        owner (string): Who the data belongs to, either &#39;public&#39; or the name of a company (e.g. &#39;GSK&#39;) associated with a</span>
+<span class="sd">        restricted access group.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Currently, if we&#39;re not on an LC machine, we&#39;re on an AD-controlled system. This could change.</span>
+    <span class="k">if</span> <span class="n">system</span> <span class="o">!=</span> <span class="s1">&#39;LC&#39;</span><span class="p">:</span>
+        <span class="n">system</span> <span class="o">=</span> <span class="s1">&#39;AD&#39;</span>
+    <span class="n">owner_group_map</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">GSK</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;LC&#39;</span> <span class="p">:</span> <span class="s1">&#39;gskcraa&#39;</span><span class="p">,</span> <span class="s1">&#39;AD&#39;</span> <span class="p">:</span> <span class="s1">&#39;gskusers-ad&#39;</span><span class="p">},</span>
+                           <span class="n">public</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;LC&#39;</span> <span class="p">:</span> <span class="s1">&#39;atom&#39;</span><span class="p">,</span> <span class="s1">&#39;AD&#39;</span> <span class="p">:</span> <span class="s1">&#39;atom&#39;</span><span class="p">}</span> <span class="p">)</span>
+    <span class="n">group</span> <span class="o">=</span> <span class="n">owner_group_map</span><span class="p">[</span><span class="n">owner</span><span class="p">][</span><span class="n">system</span><span class="p">]</span>
+    <span class="n">shutil</span><span class="o">.</span><span class="n">chown</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">group</span><span class="o">=</span><span class="n">group</span><span class="p">)</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="mo">0o770</span><span class="p">)</span></div>
+
+<span class="c1"># ******************************************************************************************************************************************</span>
+<div class="viewcode-block" id="replicate_rmsd"><a class="viewcode-back" href="../../utils.html#utils.curate_data.replicate_rmsd">[docs]</a><span class="k">def</span> <span class="nf">replicate_rmsd</span><span class="p">(</span><span class="n">dset_df</span><span class="p">,</span> <span class="n">smiles_col</span><span class="o">=</span><span class="s1">&#39;base_rdkit_smiles&#39;</span><span class="p">,</span> <span class="n">value_col</span><span class="o">=</span><span class="s1">&#39;PIC50&#39;</span><span class="p">,</span> <span class="n">relation_col</span><span class="o">=</span><span class="s1">&#39;relation&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Compute RMS deviation of all replicate uncensored measurements from means</span>
+
+<span class="sd">    Compute RMS deviation of all replicate uncensored measurements in dset_df from their means. Measurements are treated</span>
+<span class="sd">    as replicates if they correspond to the same SMILES string, and are considered censored if the relation</span>
+<span class="sd">    column contains &gt; or &lt;. The resulting value is meant to be used as an estimate of measurement error for all compounds</span>
+<span class="sd">    in the dataset.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        dset_df (DataFrame): DataFrame containing uncensored measurements and SMILES strings.</span>
+
+<span class="sd">        smiles_col (str): Name of the column that contains SMILES strings.</span>
+
+<span class="sd">        value_col (str): Name of the column that contains target values.</span>
+
+<span class="sd">        relation_col (str): The input DataFrame column containing relational operators (&lt;, &gt;, etc.).</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        float: returns root mean squared deviation of all replicate uncensored measurements</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">dset_df</span> <span class="o">=</span> <span class="n">dset_df</span><span class="p">[</span><span class="o">~</span><span class="p">(</span><span class="n">dset_df</span><span class="p">[</span><span class="n">relation_col</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">([</span><span class="s1">&#39;&lt;&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;&#39;</span><span class="p">]))]</span>
+    <span class="n">uniq_smiles</span><span class="p">,</span> <span class="n">uniq_counts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">dset_df</span><span class="p">[</span><span class="n">smiles_col</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">return_counts</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">smiles_with_reps</span> <span class="o">=</span> <span class="n">uniq_smiles</span><span class="p">[</span><span class="n">uniq_counts</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="n">uniq_devs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">smiles</span> <span class="ow">in</span> <span class="n">smiles_with_reps</span><span class="p">:</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="n">dset_df</span><span class="p">[</span><span class="n">dset_df</span><span class="p">[</span><span class="n">smiles_col</span><span class="p">]</span> <span class="o">==</span> <span class="n">smiles</span><span class="p">][</span><span class="n">value_col</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+        <span class="n">uniq_devs</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">values</span> <span class="o">-</span> <span class="n">values</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span>
+    <span class="n">uniq_devs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">uniq_devs</span><span class="p">)</span>
+    <span class="n">rmsd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">uniq_devs</span> <span class="o">**</span> <span class="mi">2</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">rmsd</span></div>
+
+<span class="c1"># ******************************************************************************************************************************************</span>
+<div class="viewcode-block" id="mle_censored_mean"><a class="viewcode-back" href="../../utils.html#utils.curate_data.mle_censored_mean">[docs]</a><span class="k">def</span> <span class="nf">mle_censored_mean</span><span class="p">(</span><span class="n">cmpd_df</span><span class="p">,</span> <span class="n">std_est</span><span class="p">,</span> <span class="n">value_col</span><span class="o">=</span><span class="s1">&#39;PIC50&#39;</span><span class="p">,</span> <span class="n">relation_col</span><span class="o">=</span><span class="s1">&#39;relation&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Computes maximum likelihood estimate of the true mean value for a single replicated compound.</span>
+
+<span class="sd">    Compute a maximum likelihood estimate of the true mean value underlying the distribution of replicate assay measurements for a</span>
+<span class="sd">    single compound. The data may be a mix of censored and uncensored measurements, as indicated by the &#39;relation&#39; column in the input</span>
+<span class="sd">    DataFrame cmpd_df. std_est is an estimate for the standard deviation of the distribution, which is assumed to be Gaussian;</span>
+<span class="sd">    we typically compute a common estimate for the whole dataset using replicate_rmsd().</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        cmpd_df (DataFrame): DataFrame containing measurements and SMILES strings.</span>
+
+<span class="sd">        std_est (float): An estimate for the standard deviation of the distribution.</span>
+
+<span class="sd">        smiles_col (str): Name of the column that contains SMILES strings.</span>
+
+<span class="sd">        value_col (str): Name of the column that contains target values.</span>
+
+<span class="sd">        relation_col (str): The input DataFrame column containing relational operators (&lt;, &gt;, etc.).</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        float: maximum likelihood estimate of the true mean for a replicated compound</span>
+<span class="sd">        str: Relation, &#39;&#39; not censored, &#39;&gt;&#39; right censored, &#39;&lt;&#39; left censored</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">left_censored</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">cmpd_df</span><span class="p">[</span><span class="n">relation_col</span><span class="p">]</span><span class="o">.</span><span class="n">values</span> <span class="o">==</span> <span class="s1">&#39;&lt;&#39;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+    <span class="n">right_censored</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">cmpd_df</span><span class="p">[</span><span class="n">relation_col</span><span class="p">]</span><span class="o">.</span><span class="n">values</span> <span class="o">==</span> <span class="s1">&#39;&gt;&#39;</span> <span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+    <span class="n">not_censored</span> <span class="o">=</span> <span class="o">~</span><span class="p">(</span><span class="n">left_censored</span> <span class="o">|</span> <span class="n">right_censored</span><span class="p">)</span>
+    <span class="n">n_left_cens</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">left_censored</span><span class="p">)</span>
+    <span class="n">n_right_cens</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">right_censored</span><span class="p">)</span>
+    <span class="n">nreps</span> <span class="o">=</span> <span class="n">cmpd_df</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">values</span> <span class="o">=</span> <span class="n">cmpd_df</span><span class="p">[</span><span class="n">value_col</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">nan</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="s1">&#39;nan&#39;</span><span class="p">)</span>
+
+    <span class="n">relation</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="c1"># If all the replicate values are left- or right-censored, return the smallest or largest reported (threshold) value accordingly.</span>
+    <span class="k">if</span> <span class="n">n_left_cens</span> <span class="o">==</span> <span class="n">nreps</span><span class="p">:</span>
+        <span class="n">mle_value</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+        <span class="n">relation</span> <span class="o">=</span> <span class="s1">&#39;&lt;&#39;</span>
+    <span class="k">elif</span> <span class="n">n_right_cens</span> <span class="o">==</span> <span class="n">nreps</span><span class="p">:</span>
+        <span class="n">mle_value</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+        <span class="n">relation</span> <span class="o">=</span> <span class="s1">&#39;&gt;&#39;</span>
+    <span class="k">elif</span> <span class="n">n_left_cens</span> <span class="o">+</span> <span class="n">n_right_cens</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="c1"># If no values are censored, the MLE is the actual mean.</span>
+        <span class="n">mle_value</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Some, but not all observations are censored.</span>
+        <span class="c1"># First, define the negative log likelihood function</span>
+        <span class="k">def</span> <span class="nf">loglik</span><span class="p">(</span><span class="n">mu</span><span class="p">):</span>
+            <span class="n">ll</span> <span class="o">=</span> <span class="o">-</span><span class="nb">sum</span><span class="p">(</span><span class="n">norm</span><span class="o">.</span><span class="n">logpdf</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="n">not_censored</span><span class="p">],</span> <span class="n">loc</span><span class="o">=</span><span class="n">mu</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">std_est</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">n_left_cens</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">ll</span> <span class="o">-=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">norm</span><span class="o">.</span><span class="n">logcdf</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="n">left_censored</span><span class="p">],</span> <span class="n">loc</span><span class="o">=</span><span class="n">mu</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">std_est</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">n_right_cens</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">ll</span> <span class="o">-=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">norm</span><span class="o">.</span><span class="n">logsf</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="n">right_censored</span><span class="p">],</span> <span class="n">loc</span><span class="o">=</span><span class="n">mu</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">std_est</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">ll</span>
+
+        <span class="c1"># Then minimize it</span>
+        <span class="n">opt_res</span> <span class="o">=</span> <span class="n">minimize_scalar</span><span class="p">(</span><span class="n">loglik</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;brent&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">opt_res</span><span class="o">.</span><span class="n">success</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Likelihood maximization failed, message is: &quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span> <span class="o">%</span> <span class="n">opt_res</span><span class="o">.</span><span class="n">message</span><span class="p">)</span>
+            <span class="n">mle_value</span> <span class="o">=</span> <span class="n">nan</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">mle_value</span> <span class="o">=</span> <span class="n">opt_res</span><span class="o">.</span><span class="n">x</span>
+    <span class="k">return</span> <span class="n">mle_value</span><span class="p">,</span> <span class="n">relation</span></div>
+
+
+<span class="c1"># ******************************************************************************************************************************************</span>
+<div class="viewcode-block" id="aggregate_assay_data"><a class="viewcode-back" href="../../utils.html#utils.curate_data.aggregate_assay_data">[docs]</a><span class="k">def</span> <span class="nf">aggregate_assay_data</span><span class="p">(</span><span class="n">assay_df</span><span class="p">,</span> <span class="n">value_col</span><span class="o">=</span><span class="s1">&#39;VALUE_NUM&#39;</span><span class="p">,</span> <span class="n">output_value_col</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                         <span class="n">label_actives</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                         <span class="n">active_thresh</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                         <span class="n">id_col</span><span class="o">=</span><span class="s1">&#39;CMPD_NUMBER&#39;</span><span class="p">,</span> <span class="n">smiles_col</span><span class="o">=</span><span class="s1">&#39;rdkit_smiles&#39;</span><span class="p">,</span> <span class="n">relation_col</span><span class="o">=</span><span class="s1">&#39;VALUE_FLAG&#39;</span><span class="p">,</span> <span class="n">date_col</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Aggregates replicated values in assay data</span>
+
+<span class="sd">    Map RDKit SMILES strings in assay_df to base structures, then compute an MLE estimate of the mean value over replicate measurements</span>
+<span class="sd">    for the same SMILES strings, taking censoring into account. Generate an aggregated result table with one value for each unique base</span>
+<span class="sd">    SMILES string, to be used in an ML-ready dataset.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        assay_df (DataFrame): The input DataFrame to be processed.</span>
+
+<span class="sd">        value_col (str): The column in the DataFrame containing assay values to be averaged.</span>
+
+<span class="sd">        output_value_col (str): Optional; the column name to use in the output DataFrame for the averaged data.</span>
+
+<span class="sd">        label_actives (bool): If True, generate an additional column &#39;active&#39; indicating whether the mean value is above a threshold specified by active_thresh.</span>
+
+<span class="sd">        active_thresh (float): The threshold to be used for labeling compounds as active or inactive.</span>
+<span class="sd">            If active_thresh is None (the default), the threshold used is the minimum reported value across all records</span>
+<span class="sd">            with left-censored values (i.e., those with &#39;&lt;&#39; in the relation column.</span>
+
+<span class="sd">        id_col (str): The input DataFrame column containing compound IDs.</span>
+
+<span class="sd">        smiles_col (str): The input DataFrame column containing SMILES strings.</span>
+
+<span class="sd">        relation_col (str): The input DataFrame column containing relational operators (&lt;, &gt;, etc.).</span>
+
+<span class="sd">        date_col (str): The input DataFrame column containing dates when the assay data was uploaded. If not None, the code will assign the earliest</span>
+<span class="sd">            date among replicates to the aggregate data record.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        A DataFrame containing averaged assay values, with one value per compound.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">assay_df</span> <span class="o">=</span> <span class="n">assay_df</span><span class="o">.</span><span class="n">fillna</span><span class="p">({</span><span class="n">relation_col</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">smiles_col</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">})</span>
+    <span class="c1"># Filter out rows where SMILES is missing</span>
+    <span class="n">n_missing_smiles</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">smiles</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">smiles</span> <span class="ow">in</span> <span class="n">assay_df</span><span class="p">[</span><span class="n">smiles_col</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">])</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%d</span><span class="s2"> entries in input table are missing SMILES strings&quot;</span> <span class="o">%</span> <span class="n">n_missing_smiles</span><span class="p">)</span>
+    <span class="n">has_smiles</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">smiles</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">smiles</span> <span class="ow">in</span> <span class="n">assay_df</span><span class="p">[</span><span class="n">smiles_col</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">])</span>
+    <span class="n">assay_df</span> <span class="o">=</span> <span class="n">assay_df</span><span class="p">[</span><span class="n">has_smiles</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="c1"># Estimate the measurement error across replicates for this assay</span>
+    <span class="n">std_est</span> <span class="o">=</span> <span class="n">replicate_rmsd</span><span class="p">(</span><span class="n">assay_df</span><span class="p">,</span> <span class="n">smiles_col</span><span class="o">=</span><span class="n">smiles_col</span><span class="p">,</span> <span class="n">value_col</span><span class="o">=</span><span class="n">value_col</span><span class="p">,</span> <span class="n">relation_col</span><span class="o">=</span><span class="n">relation_col</span><span class="p">)</span>
+
+    <span class="c1"># Map SMILES strings to base structure SMILES strings, then map these to indices into the list of</span>
+    <span class="c1"># unique base structures</span>
+    <span class="n">orig_smiles_strs</span> <span class="o">=</span> <span class="n">assay_df</span><span class="p">[</span><span class="n">smiles_col</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">norig</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">orig_smiles_strs</span><span class="p">))</span>
+    <span class="n">smiles_strs</span> <span class="o">=</span> <span class="p">[</span><span class="n">base_smiles_from_smiles</span><span class="p">(</span><span class="n">smiles</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span> <span class="k">for</span> <span class="n">smiles</span> <span class="ow">in</span> <span class="n">orig_smiles_strs</span><span class="p">]</span>
+    <span class="n">assay_df</span><span class="p">[</span><span class="s1">&#39;base_rdkit_smiles&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">smiles_strs</span>
+    <span class="n">uniq_smiles_strs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">smiles_strs</span><span class="p">))</span>
+    <span class="n">nuniq</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">uniq_smiles_strs</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%d</span><span class="s2"> unique SMILES strings are reduced to </span><span class="si">%d</span><span class="s2"> unique base SMILES strings&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">norig</span><span class="p">,</span> <span class="n">nuniq</span><span class="p">))</span>
+    <span class="n">smiles_map</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">([(</span><span class="n">smiles</span><span class="p">,</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">smiles</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">uniq_smiles_strs</span><span class="p">)])</span>
+    <span class="n">smiles_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">smiles_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">smiles</span><span class="p">,</span> <span class="n">nuniq</span><span class="p">)</span> <span class="k">for</span> <span class="n">smiles</span> <span class="ow">in</span> <span class="n">smiles_strs</span><span class="p">])</span>
+
+    <span class="n">assay_vals</span> <span class="o">=</span> <span class="n">assay_df</span><span class="p">[</span><span class="n">value_col</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">value_flags</span> <span class="o">=</span> <span class="n">assay_df</span><span class="p">[</span><span class="n">relation_col</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+
+    <span class="c1"># Compute a maximum likelihood estimate of the mean assay value for each compound, averaging over replicates</span>
+    <span class="c1"># and factoring in censoring. Report the censoring/relation/value_flag only if the flags are consistent across</span>
+    <span class="c1"># all replicates.  # Exclude compounds that couldn&#39;t be mapped to SMILES strings.</span>
+
+    <span class="n">cmpd_ids</span> <span class="o">=</span> <span class="n">assay_df</span><span class="p">[</span><span class="n">id_col</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">reported_cmpd_ids</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">]</span><span class="o">*</span><span class="n">nuniq</span>
+    <span class="n">reported_value_flags</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">]</span><span class="o">*</span><span class="n">nuniq</span>
+    <span class="k">if</span> <span class="n">date_col</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">reported_dates</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">]</span><span class="o">*</span><span class="n">nuniq</span>
+    <span class="n">reported_assay_val</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">nuniq</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nuniq</span><span class="p">):</span>
+        <span class="n">cmpd_ind</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">smiles_indices</span> <span class="o">==</span> <span class="n">i</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">cmpd_df</span> <span class="o">=</span> <span class="n">assay_df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">cmpd_ind</span><span class="p">]</span>
+        <span class="n">reported_assay_val</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">reported_value_flags</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">mle_censored_mean</span><span class="p">(</span><span class="n">cmpd_df</span><span class="p">,</span> <span class="n">std_est</span><span class="p">,</span> <span class="n">value_col</span><span class="o">=</span><span class="n">value_col</span><span class="p">,</span>
+                                                                           <span class="n">relation_col</span><span class="o">=</span><span class="n">relation_col</span><span class="p">)</span>
+        <span class="c1"># When multiple compound IDs map to the same base SMILES string, use the lexicographically smallest one.</span>
+        <span class="n">reported_cmpd_ids</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">cmpd_ids</span><span class="p">[</span><span class="n">cmpd_ind</span><span class="p">]))[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="c1"># If a date column is specified, use the earliest one among replicates</span>
+        <span class="k">if</span> <span class="n">date_col</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># np.datetime64 doesn&#39;t seem to understand the date format in GSK&#39;s crit res tables</span>
+            <span class="c1">#earliest_date = sorted([np.datetime64(d) for d in cmpd_df[date_col].values])[0]</span>
+            <span class="n">earliest_date</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">cmpd_df</span><span class="p">[</span><span class="n">date_col</span><span class="p">],</span> <span class="n">infer_datetime_format</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">reported_dates</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">datetime_as_string</span><span class="p">(</span><span class="n">earliest_date</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">output_value_col</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">output_value_col</span> <span class="o">=</span> <span class="n">value_col</span>
+    <span class="n">agg_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span>
+                   <span class="s1">&#39;compound_id&#39;</span> <span class="p">:</span> <span class="n">reported_cmpd_ids</span><span class="p">,</span>
+                   <span class="s1">&#39;base_rdkit_smiles&#39;</span> <span class="p">:</span> <span class="n">uniq_smiles_strs</span><span class="p">,</span>
+                   <span class="s1">&#39;relation&#39;</span> <span class="p">:</span> <span class="n">reported_value_flags</span><span class="p">,</span>
+                   <span class="n">output_value_col</span> <span class="p">:</span> <span class="n">reported_assay_val</span><span class="p">})</span>
+
+    <span class="k">if</span> <span class="n">date_col</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">agg_df</span><span class="p">[</span><span class="n">date_col</span><span class="p">]</span> <span class="o">=</span> <span class="n">reported_dates</span>
+
+    <span class="c1"># Label each compound as active or not, based on the reported relation and values relative to a common threshold</span>
+    <span class="k">if</span> <span class="n">label_actives</span><span class="p">:</span>
+        <span class="n">inactive_df</span> <span class="o">=</span> <span class="n">agg_df</span><span class="p">[</span><span class="n">agg_df</span><span class="o">.</span><span class="n">relation</span> <span class="o">==</span> <span class="s1">&#39;&lt;&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">inactive_df</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">active_thresh</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">active_thresh</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">inactive_df</span><span class="p">[</span><span class="n">output_value_col</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">active_thresh</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">is_active</span> <span class="o">=</span> <span class="p">((</span><span class="n">agg_df</span><span class="o">.</span><span class="n">relation</span> <span class="o">!=</span> <span class="s1">&#39;&lt;&#39;</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">agg_df</span><span class="p">[</span><span class="n">output_value_col</span><span class="p">]</span><span class="o">.</span><span class="n">values</span> <span class="o">&gt;</span> <span class="n">active_thresh</span><span class="p">))</span>
+            <span class="n">agg_df</span><span class="p">[</span><span class="s1">&#39;active&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">is_active</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">agg_df</span><span class="p">[</span><span class="s1">&#39;active&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="k">return</span> <span class="n">agg_df</span></div>
+
+<span class="c1"># ******************************************************************************************************************************************</span>
+<div class="viewcode-block" id="freq_table"><a class="viewcode-back" href="../../utils.html#utils.curate_data.freq_table">[docs]</a><span class="k">def</span> <span class="nf">freq_table</span><span class="p">(</span><span class="n">dset_df</span><span class="p">,</span> <span class="n">column</span><span class="p">,</span> <span class="n">min_freq</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Generate a DataFrame tabluating the repeat requencies of unique values.</span>
+
+<span class="sd">    Generate a DataFrame tabulating the repeat frequencies of each unique value in &#39;column&#39;.</span>
+<span class="sd">    Restrict it to values occurring at least min_freq times.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        dset_df (DataFrame): An input DataFrame</span>
+
+<span class="sd">        column (str): The name of one column in DataFrame</span>
+
+<span class="sd">        min_freq (int): Restrict unique count to at least min_freq times.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        DataFrame: Dataframe containing two columns: the column passed in as the &#39;column&#39; argument</span>
+<span class="sd">            and the column &#39;Count&#39;. The &#39;Count&#39; column contains the number of occurances for each</span>
+<span class="sd">            value in the &#39;column&#39; argument.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">vals</span> <span class="o">=</span> <span class="n">dset_df</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">uniq_vals</span><span class="p">,</span> <span class="n">counts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">vals</span><span class="p">,</span> <span class="n">return_counts</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">uniq_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="n">column</span><span class="p">:</span> <span class="n">uniq_vals</span><span class="p">,</span> <span class="s1">&#39;Count&#39;</span><span class="p">:</span> <span class="n">counts</span><span class="p">})</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="s1">&#39;Count&#39;</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">uniq_df</span> <span class="o">=</span> <span class="n">uniq_df</span><span class="p">[</span><span class="n">uniq_df</span><span class="o">.</span><span class="n">Count</span> <span class="o">&gt;=</span> <span class="n">min_freq</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">uniq_df</span></div>
+
+<span class="c1"># ******************************************************************************************************************************************</span>
+<div class="viewcode-block" id="labeled_freq_table"><a class="viewcode-back" href="../../utils.html#utils.curate_data.labeled_freq_table">[docs]</a><span class="k">def</span> <span class="nf">labeled_freq_table</span><span class="p">(</span><span class="n">dset_df</span><span class="p">,</span> <span class="n">columns</span><span class="p">,</span> <span class="n">min_freq</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Generate a frequency table in which additional columns are included.</span>
+
+<span class="sd">    Generate a frequency table in which additional columns are included. The first column in &#39;columns&#39;</span>
+<span class="sd">    is assumed to be a unique ID; there should be a many-to-1 mapping from the ID to each of the additional</span>
+<span class="sd">    columns.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        dset_df (DataFrame): The input DataFrame.</span>
+
+<span class="sd">        columns (list(str)): A list of columns to include in the output frequency table.</span>
+<span class="sd">            The first column in &#39;columns&#39; is assumed to be a unique ID; there should be </span>
+<span class="sd">            a many-to-1 mapping from the ID to each of the additional columns.</span>
+
+<span class="sd">        min_freq (int): Restrict unique count to at least min_freq times.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        DataFrame: A DataFrame containing a frequency table.</span>
+<span class="sd">    </span>
+<span class="sd">    Raises:</span>
+<span class="sd">        Exception: If the DataFrame violates the rule: there should be a many-to-1 </span>
+<span class="sd">            mapping from the ID to each of the additional columns.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">id_col</span> <span class="o">=</span> <span class="n">columns</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">freq_df</span> <span class="o">=</span> <span class="n">freq_table</span><span class="p">(</span><span class="n">dset_df</span><span class="p">,</span> <span class="n">id_col</span><span class="p">,</span> <span class="n">min_freq</span><span class="o">=</span><span class="n">min_freq</span><span class="p">)</span>
+    <span class="n">uniq_ids</span> <span class="o">=</span> <span class="n">freq_df</span><span class="p">[</span><span class="n">id_col</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">addl_cols</span> <span class="o">=</span> <span class="n">columns</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+    <span class="n">addl_vals</span> <span class="o">=</span> <span class="p">{</span><span class="n">colname</span><span class="p">:</span> <span class="p">[]</span> <span class="k">for</span> <span class="n">colname</span> <span class="ow">in</span> <span class="n">addl_cols</span><span class="p">}</span>
+    <span class="n">uniq_df</span> <span class="o">=</span> <span class="n">dset_df</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="n">columns</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">uniq_id</span> <span class="ow">in</span> <span class="n">uniq_ids</span><span class="p">:</span>
+        <span class="n">subset_df</span> <span class="o">=</span> <span class="n">uniq_df</span><span class="p">[</span><span class="n">uniq_df</span><span class="p">[</span><span class="n">id_col</span><span class="p">]</span> <span class="o">==</span> <span class="n">uniq_id</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">subset_df</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Additional columns should be unique for ID </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">uniq_id</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">colname</span> <span class="ow">in</span> <span class="n">addl_cols</span><span class="p">:</span>
+            <span class="n">addl_vals</span><span class="p">[</span><span class="n">colname</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">subset_df</span><span class="p">[</span><span class="n">colname</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="k">for</span> <span class="n">colname</span> <span class="ow">in</span> <span class="n">addl_cols</span><span class="p">:</span>
+        <span class="n">freq_df</span><span class="p">[</span><span class="n">colname</span><span class="p">]</span> <span class="o">=</span> <span class="n">addl_vals</span><span class="p">[</span><span class="n">colname</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">freq_df</span></div>
+
+<span class="c1"># ******************************************************************************************************************************************</span>
+<span class="c1"># The functions below are from Claire Weber&#39;s data_utils module.</span>
+
+<span class="c1"># ******************************************************************************************************************************************</span>
+<div class="viewcode-block" id="filter_in_out_by_column_values"><a class="viewcode-back" href="../../utils.html#utils.curate_data.filter_in_out_by_column_values">[docs]</a><span class="k">def</span> <span class="nf">filter_in_out_by_column_values</span><span class="p">(</span><span class="n">column</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">in_out</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Include rows only for given values in specified column.</span>
+
+<span class="sd">    Given a DataFrame, column, and an iterable, Series, DataFrame, or dict, of values, </span>
+<span class="sd">    return a DataFrame with rows containing value in values or all rows </span>
+<span class="sd">    that do not containe a value in values.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        column (str): Name of a column in data.</span>
+
+<span class="sd">        values (iterable): An iterable, Series, DataFrame, or dict of values</span>
+<span class="sd">            contained in data[column].</span>
+
+<span class="sd">        data (DataFrame): A DataFrame.</span>
+
+<span class="sd">        in_out (str): If set to &#39;in&#39;, will filter in rows that contain a value</span>
+<span class="sd">            in values. If set to anything else, this function will filter out</span>
+<span class="sd">            rows that contian a value in values.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        DataFrame: DataFrame containing filtered rows.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">in_out</span> <span class="o">==</span> <span class="s1">&#39;in&#39;</span><span class="p">:</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">data</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span> <span class="p">(</span><span class="n">values</span><span class="p">)]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="o">~</span><span class="n">data</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span> <span class="p">(</span><span class="n">values</span><span class="p">)]</span>
+
+    <span class="k">return</span> <span class="n">data</span></div>
+
+
+<span class="c1"># ******************************************************************************************************************************************</span>
+<div class="viewcode-block" id="filter_in_by_column_values"><a class="viewcode-back" href="../../utils.html#utils.curate_data.filter_in_by_column_values">[docs]</a><span class="k">def</span> <span class="nf">filter_in_by_column_values</span> <span class="p">(</span><span class="n">column</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Include rows only for given values in specified column.</span>
+
+<span class="sd">    Filters in all rows in data if row[column] in values.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        column (str): Name of a column in data.</span>
+
+<span class="sd">        values (iterable): An iterable, Series, DataFrame, or dict of values</span>
+<span class="sd">            contained in data[column].</span>
+
+<span class="sd">        data (DataFrame): A DataFrame.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        DataFrame: DataFrame containing filtered rows.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">filter_in_out_by_column_values</span> <span class="p">(</span><span class="n">column</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="s1">&#39;in&#39;</span><span class="p">)</span></div>
+
+
+<span class="c1"># ******************************************************************************************************************************************</span>
+<div class="viewcode-block" id="filter_out_by_column_values"><a class="viewcode-back" href="../../utils.html#utils.curate_data.filter_out_by_column_values">[docs]</a><span class="k">def</span> <span class="nf">filter_out_by_column_values</span> <span class="p">(</span><span class="n">column</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Exclude rows only for given values in specified column.</span>
+
+<span class="sd">    Filters out all rows in data if row[column] in values.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        column (str): Name of a column in data.</span>
+
+<span class="sd">        values (iterable): An iterable, Series, DataFrame, or dict of values</span>
+<span class="sd">            contained in data[column].</span>
+
+<span class="sd">        data (DataFrame): A DataFrame.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        DataFrame: DataFrame containing filtered rows.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">filter_in_out_by_column_values</span> <span class="p">(</span><span class="n">column</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="s1">&#39;out&#39;</span><span class="p">)</span></div>
+
+
+<span class="c1"># ******************************************************************************************************************************************</span>
+<div class="viewcode-block" id="filter_out_comments"><a class="viewcode-back" href="../../utils.html#utils.curate_data.filter_out_comments">[docs]</a><span class="k">def</span> <span class="nf">filter_out_comments</span> <span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">values_cs</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Remove rows that contain the text listed</span>
+
+<span class="sd">    Removes any rows where data[&#39;COMMENTS&#39;] contains the words in</span>
+<span class="sd">    values or values_cs. Used for removing results that indicate</span>
+<span class="sd">    bad data in the comments.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        values (str): list of values that are not case sensitive</span>
+
+<span class="sd">        values_cs (str): list of values that are case sensitive</span>
+
+<span class="sd">        data (DataFrame): DataFrame containing a column named &#39;COMMENTS&#39;</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        DataFrame: Returns a DataFrame with the remaining rows</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">column</span> <span class="o">=</span> <span class="s1">&#39;COMMENTS&#39;</span>
+    <span class="n">data</span><span class="p">[</span><span class="s1">&#39;Remove&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span> <span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">contains</span> <span class="p">(</span><span class="s1">&#39;|&#39;</span><span class="o">.</span><span class="n">join</span> <span class="p">(</span><span class="n">values</span><span class="p">),</span> <span class="n">case</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">data</span><span class="p">[</span><span class="s1">&#39;Remove&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span> <span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">contains</span> <span class="p">(</span><span class="s1">&#39;|&#39;</span><span class="o">.</span><span class="n">join</span> <span class="p">(</span><span class="n">values_cs</span><span class="p">),</span> <span class="n">case</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span> <span class="mi">1</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;Remove&#39;</span><span class="p">])</span>
+    <span class="n">data</span><span class="p">[</span><span class="s1">&#39;Remove&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span> <span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">contains</span> <span class="p">(</span><span class="s1">&#39;nan&#39;</span><span class="p">,</span> <span class="n">case</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;Remove&#39;</span><span class="p">])</span>
+    <span class="n">data</span><span class="p">[</span><span class="s1">&#39;Remove&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span> <span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">column</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;Remove&#39;</span><span class="p">])</span>
+    <span class="n">data_removed</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">data</span><span class="o">.</span><span class="n">Remove</span> <span class="o">==</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">data</span><span class="o">.</span><span class="n">Remove</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="n">data_removed</span> <span class="o">=</span> <span class="n">data_removed</span><span class="p">[</span><span class="s1">&#39;COMMENTS&#39;</span><span class="p">]</span>
+    <span class="c1">#print(data_removed)</span>
+    <span class="k">del</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;Remove&#39;</span><span class="p">]</span>
+
+    <span class="c1"># Results</span>
+    <span class="c1">#print (&quot;&quot;)</span>
+    <span class="c1">#print(&#39;Remove results with comments indicating bad data&#39;)</span>
+    <span class="c1">#print(&quot;Dataframe size&quot;, data.shape[:])</span>
+    <span class="c1">#comments = pd.DataFrame(data[&#39;COMMENTS&#39;].unique())</span>
+    <span class="c1">#comments = comments.sort_values(comments.columns[0])</span>
+    <span class="c1">#print (comments) # For the purpose of reviewing comments remaining</span>
+
+    <span class="k">return</span> <span class="n">data</span></div>
+
+
+<span class="c1"># ******************************************************************************************************************************************</span>
+<div class="viewcode-block" id="get_rdkit_smiles_parent"><a class="viewcode-back" href="../../utils.html#utils.curate_data.get_rdkit_smiles_parent">[docs]</a><span class="k">def</span> <span class="nf">get_rdkit_smiles_parent</span> <span class="p">(</span><span class="n">data</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Strip the salts off the rdkit SMILES strings</span>
+
+<span class="sd">    First, loops through data and determines the base/parent smiles string for each row.</span>
+<span class="sd">    Appends the base smiles string to a new row in a list.</span>
+<span class="sd">    Then adds the list as a new column, &#39;rdkit_smiles_parent&#39;, in &#39;data&#39;.</span>
+<span class="sd">    Basically calls base_smiles_from_smiles for each smile in the column &#39;rdkit_smiles&#39;</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        data (DataFrame): A DataFrame with a column named &#39;rdkit_smiles&#39;.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        DataFrame with column &#39;rdkit_smiles_parent&#39; with salts stripped</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">print</span> <span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+    <span class="nb">print</span> <span class="p">(</span><span class="s2">&quot;Adding SMILES column &#39;rdkit_smiles_parent&#39; with salts stripped...(may take a while)&quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">i_max</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">rdkit_smiles_parent</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span> <span class="p">(</span><span class="n">i_max</span><span class="p">):</span>
+        <span class="n">smile</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;rdkit_smiles&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">type</span> <span class="p">(</span><span class="n">smile</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">float</span><span class="p">:</span>
+            <span class="n">split</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">split</span> <span class="o">=</span> <span class="n">base_smiles_from_smiles</span> <span class="p">(</span><span class="n">smile</span><span class="p">)</span>
+
+        <span class="n">rdkit_smiles_parent</span><span class="o">.</span><span class="n">append</span> <span class="p">(</span><span class="n">split</span><span class="p">)</span>
+
+    <span class="c1">#  2. Add base smiles string (stripped smiles) to dataset</span>
+    <span class="n">data</span><span class="p">[</span><span class="s1">&#39;rdkit_smiles_parent&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">rdkit_smiles_parent</span>
+
+    <span class="k">return</span> <span class="n">data</span></div>
+
+
+<span class="c1"># ******************************************************************************************************************************************</span>
+<div class="viewcode-block" id="average_and_remove_duplicates"><a class="viewcode-back" href="../../utils.html#utils.curate_data.average_and_remove_duplicates">[docs]</a><span class="k">def</span> <span class="nf">average_and_remove_duplicates</span> <span class="p">(</span><span class="n">column</span><span class="p">,</span> <span class="n">tolerance</span><span class="p">,</span> <span class="n">list_bad_duplicates</span><span class="p">,</span>
+        <span class="n">data</span><span class="p">,</span> <span class="n">max_stdev</span> <span class="o">=</span> <span class="mi">100000</span><span class="p">,</span> <span class="n">compound_id</span><span class="o">=</span><span class="s1">&#39;CMPD_NUMBER&#39;</span><span class="p">,</span> 
+        <span class="n">rm_duplicate_only</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">smiles_col</span><span class="o">=</span><span class="s1">&#39;rdkit_smiles_parent&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;This while loop loops through until no &#39;bad duplicates&#39; are left.</span>
+
+<span class="sd">    This function removes duplicates based on max_stdev and tolerance. If the</span>
+<span class="sd">    value in data[column] falls too far from the mean based on tolerance and</span>
+<span class="sd">    max_stdev then that entry is removed. This is repeated until all bad</span>
+<span class="sd">    entries are removed</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        column (str): column with the value of interest</span>
+
+<span class="sd">        tolerance (float): acceptable % difference between value and average</span>
+<span class="sd">            ie.: if &quot;[(value - mean)/mean*100]&gt;tolerance&quot; then remove data row</span>
+
+<span class="sd">        list_bad_duplicates (str): &#39;Yes&#39; to list the bad duplicates</span>
+
+<span class="sd">        data (DataFrame): input DataFrame</span>
+
+<span class="sd">        max_stdev (float): maximum standard deviation threshold</span>
+
+<span class="sd">        compound_id (str): column containing compound ids</span>
+
+<span class="sd">        rm_duplicate_only (bool): only remove bad duplicates, don&#39;t average good ones, the resulting table can be fed into aggregate assay data to further process.</span>
+<span class="sd">            note: The mean is recalculated on each loop through to make sure it isn&#39;t skewed by the &#39;bad duplicate&#39; values</span>
+
+<span class="sd">        smiles_col (str): column containing base rdkit smiles strings</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        DataFrame: Returns remaining rows after all bad duplicates have been removed.</span>
+<span class="sd">            </span>
+<span class="sd">      &quot;&quot;&quot;</span>
+
+    <span class="n">list_bad_duplicates</span> <span class="o">=</span> <span class="n">list_bad_duplicates</span>
+    <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">bad_duplicates</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">removed</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">removed</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">removed</span><span class="p">)</span> 
+
+    <span class="k">while</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">bad_duplicates</span> <span class="o">!=</span><span class="mi">0</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">data</span><span class="o">.</span><span class="n">empty</span> <span class="p">:</span>
+        <span class="c1">#a. reset table if needed</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">del</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;VALUE_NUM_mean&#39;</span><span class="p">]</span>
+            <span class="k">del</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;VALUE_NUM_std&#39;</span><span class="p">]</span>
+            <span class="k">del</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;Perc_Var&#39;</span><span class="p">]</span>
+            <span class="k">del</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;Remove_BadDuplicate&#39;</span><span class="p">]</span>
+
+        <span class="c1"># 1. Calculate mean of duplicates</span>
+        <span class="n">unique_smiles</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">smiles_col</span><span class="p">)</span>
+        <span class="n">VALUE_NUM_mean</span> <span class="o">=</span> <span class="n">unique_smiles</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+        <span class="n">VALUE_NUM_std</span> <span class="o">=</span> <span class="n">unique_smiles</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">std</span><span class="p">()</span>
+        <span class="n">temporary_data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">VALUE_NUM_mean</span><span class="p">,</span><span class="n">VALUE_NUM_std</span><span class="p">],</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">temporary_data</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;VALUE_NUM_mean&quot;</span><span class="p">,</span><span class="s2">&quot;VALUE_NUM_std&quot;</span><span class="p">]</span>
+        <span class="n">temporary_data</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="c1"># 2. Add columns for mean back to main data file</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">temporary_data</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="n">smiles_col</span><span class="p">)</span>
+
+        <span class="c1"># 3. Add column for percent variance (value - mean)/value*100</span>
+        <span class="n">data</span><span class="p">[</span><span class="s1">&#39;Perc_Var&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">column</span><span class="p">]</span> <span class="o">-</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;VALUE_NUM_mean&#39;</span><span class="p">])</span><span class="o">/</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;VALUE_NUM_mean&#39;</span><span class="p">])</span><span class="o">*</span><span class="mi">100</span>
+
+        <span class="c1"># 4. Make removal recommendations</span>
+        <span class="n">data</span><span class="p">[</span><span class="s1">&#39;Remove_BadDuplicate&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">((</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;Perc_Var&#39;</span><span class="p">]</span><span class="o">&gt;</span><span class="n">tolerance</span><span class="p">),</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">data</span><span class="p">[</span><span class="s1">&#39;Remove_BadDuplicate&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">((</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;VALUE_NUM_std&#39;</span><span class="p">]</span><span class="o">&gt;</span><span class="n">max_stdev</span><span class="p">),</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="n">bad_duplicates</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;Remove_BadDuplicate&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>  <span class="c1"># 0 = no bad duplicates, 1 = bad duplicates</span>
+
+        <span class="n">to_remove</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;Remove_BadDuplicate&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">]</span>
+
+        <span class="c1"># 5. Remove bad duplicates</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">data</span><span class="o">.</span><span class="n">Remove_BadDuplicate</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">]</span>
+
+        <span class="n">removed</span> <span class="o">=</span> <span class="n">removed</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">to_remove</span><span class="p">)</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="n">i</span><span class="o">+</span><span class="mi">1</span>
+
+        <span class="c1"># 6. If bad duplicates were removed, loop back to step &#39;a.&#39; to reset table &amp; re-calc. If no bad duplicates, exit &#39;while loop&#39;.</span>
+
+
+    <span class="c1">#print results</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Bad duplicates removed from dataset&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Dataframe size&quot;</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[:])</span>
+
+    <span class="k">if</span> <span class="n">list_bad_duplicates</span> <span class="o">==</span> <span class="s1">&#39;Yes&#39;</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;List of &#39;bad&#39; duplicates removed&quot;</span><span class="p">)</span>
+        <span class="n">col</span> <span class="o">=</span> <span class="p">[</span><span class="n">compound_id</span><span class="p">,</span> <span class="n">column</span><span class="p">,</span> <span class="s1">&#39;VALUE_NUM_mean&#39;</span><span class="p">,</span> <span class="s1">&#39;Perc_Var&#39;</span><span class="p">,</span> <span class="s1">&#39;VALUE_NUM_std&#39;</span><span class="p">]</span>
+        <span class="n">removed</span> <span class="o">=</span> <span class="n">removed</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">compound_id</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span> <span class="n">removed</span><span class="p">[</span><span class="n">col</span><span class="p">])</span>
+
+    <span class="c1"># retain only instance of each unique rdkit_smiles_parent</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">rm_duplicate_only</span><span class="p">:</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="n">smiles_col</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Dataset de-duplicated&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Dataframe size&quot;</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[:])</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;New column created with averaged values: &quot;</span><span class="p">,</span> <span class="s1">&#39;VALUE_NUM_mean&#39;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">data</span></div>
+
+
+<span class="c1"># ******************************************************************************************************************************************</span>
+<div class="viewcode-block" id="summarize_data"><a class="viewcode-back" href="../../utils.html#utils.curate_data.summarize_data">[docs]</a><span class="k">def</span> <span class="nf">summarize_data</span><span class="p">(</span><span class="n">column</span><span class="p">,</span> <span class="n">num_bins</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">units</span><span class="p">,</span> <span class="n">filepath</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">log_column</span> <span class="o">=</span> <span class="s1">&#39;No&#39;</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Summarizes the in data[column]</span>
+
+<span class="sd">    Summarizes the data by printing mean, stdev, max, and min of the data. Creates</span>
+<span class="sd">    plots of the binned values in data[column]. If log_column != &#39;No&#39; this also</span>
+<span class="sd">    creates plots that compares normal and log distributions of the data.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        column (str): Column of interest.</span>
+
+<span class="sd">        num_bins (int): Number of bins in the histogram.</span>
+
+<span class="sd">        title (str): Title of the histogram.</span>
+
+<span class="sd">        units (str): Units for values in &#39;column&#39;.</span>
+
+<span class="sd">        filepath (str): This file path gets printed to the console.</span>
+
+<span class="sd">        data (DataFrame): Input DataFrame.</span>
+
+<span class="sd">        log_column (str): Defaults to &#39;No&#39;. Any other value will generate</span>
+<span class="sd">            a plot comparing normal and log distributions.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        None</span>
+
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="n">dataset_mean</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+    <span class="n">dataset_max</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+    <span class="n">dataset_min</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+    <span class="n">dataset_std</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">std</span><span class="p">()</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Post-processing dataset&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">filepath</span> <span class="o">!=</span> <span class="s2">&quot;&quot;</span> <span class="p">:</span>
+       <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;file source: &#39;</span><span class="p">,</span> <span class="n">filepath</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Total Number of results =&quot;</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;dataset mean =&quot;</span><span class="p">,</span> <span class="n">dataset_mean</span><span class="p">,</span> <span class="n">units</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;dataset stdev =&quot;</span><span class="p">,</span> <span class="n">dataset_std</span><span class="p">,</span> <span class="n">units</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;dataset max =&quot;</span><span class="p">,</span> <span class="n">dataset_max</span><span class="p">,</span> <span class="n">units</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;dataset min =&quot;</span><span class="p">,</span> <span class="n">dataset_min</span><span class="p">,</span> <span class="n">units</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="s1">&#39;classification&#39;</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;___Data Counts by Classification___( 0 = low)&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">&#39;classification&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">classification</span><span class="o">.</span><span class="n">count</span><span class="p">())</span>
+
+    <span class="n">plt</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">column</span><span class="p">],</span> <span class="n">num_bins</span><span class="p">,</span> <span class="n">facecolor</span><span class="o">=</span><span class="s1">&#39;blue&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;Value&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Count&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="n">title</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+
+    <span class="k">if</span> <span class="n">log_column</span> <span class="o">!=</span> <span class="s1">&#39;No&#39;</span><span class="p">:</span>
+
+        <span class="n">logify_data</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">data</span><span class="p">[</span><span class="n">column</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="n">removed</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="n">logify_data</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;___Comparison of normal vs log distributions____&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">removed</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;&#39;&#39;***NOTE: To logify, values equal to or less than 0 removed. Data removed from plot only - not from dataset.</span>
+<span class="s1">              &#39;&#39;&#39;</span><span class="p">,</span> <span class="n">removed</span><span class="p">,</span> <span class="s2">&quot;results removed.&quot;</span><span class="p">)</span>
+
+        <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">14</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
+
+        <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">121</span><span class="p">)</span>
+        <span class="n">plot1</span><span class="o">=</span><span class="n">plt</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">column</span><span class="p">],</span> <span class="n">edgecolor</span><span class="o">=</span><span class="s1">&#39;k&#39;</span><span class="p">,</span><span class="n">linewidth</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span><span class="n">color</span><span class="o">=</span><span class="s1">&#39;blue&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="n">column</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;Value&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Count&#39;</span><span class="p">)</span>
+
+        <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">122</span><span class="p">)</span>
+        <span class="n">plot2</span><span class="o">=</span><span class="n">plt</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">logify_data</span><span class="p">[</span><span class="n">log_column</span><span class="p">],</span> <span class="n">edgecolor</span><span class="o">=</span><span class="s1">&#39;k&#39;</span><span class="p">,</span><span class="n">linewidth</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span><span class="n">color</span><span class="o">=</span><span class="s1">&#39;green&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="n">log_column</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;Value&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Count&#39;</span><span class="p">)</span>
+
+        <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
+
+<span class="c1"># ******************************************************************************************************************************************</span>
+<div class="viewcode-block" id="create_new_rows_for_extra_results"><a class="viewcode-back" href="../../utils.html#utils.curate_data.create_new_rows_for_extra_results">[docs]</a><span class="k">def</span> <span class="nf">create_new_rows_for_extra_results</span> <span class="p">(</span> <span class="n">extra_result_col</span><span class="p">,</span> <span class="n">value_col</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Moves results from an extra column to an existing column</span>
+
+<span class="sd">    Returns a new DataFrame with values from &#39;extra_result_col&#39; appended to the</span>
+<span class="sd">    end of &#39;value_col&#39;. NaN values in &#39;extra_result_col&#39; are dropped. &#39;Extra_result_col&#39;</span>
+<span class="sd">    is dropped from the resulting DataFrame</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        extra_result_col (str): A column in &#39;data&#39;.</span>
+
+<span class="sd">        value_col (str): A column in &#39;data&#39;.</span>
+
+<span class="sd">        data (DataFrame):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        DataFrame</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">addrows</span> <span class="o">=</span> <span class="n">data</span>
+    <span class="n">addrows</span> <span class="o">=</span> <span class="n">addrows</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="p">[</span><span class="n">extra_result_col</span><span class="p">])</span>
+    <span class="n">addrows</span> <span class="o">=</span> <span class="n">addrows</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span> <span class="o">=</span> <span class="n">value_col</span><span class="p">)</span>
+    <span class="n">addrows</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="n">extra_result_col</span><span class="p">:</span> <span class="n">value_col</span><span class="p">},</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">data</span><span class="p">,</span><span class="n">addrows</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="n">data</span></div>
+
+<span class="c1"># ******************************************************************************************************************************************</span>
+<span class="c1"># Generalized function to assign class labels based on thresholds on a continous value column.</span>
+
+<div class="viewcode-block" id="add_classification_column"><a class="viewcode-back" href="../../utils.html#utils.curate_data.add_classification_column">[docs]</a><span class="k">def</span> <span class="nf">add_classification_column</span><span class="p">(</span><span class="n">thresholds</span><span class="p">,</span> <span class="n">value_column</span><span class="p">,</span> <span class="n">label_column</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">right_inclusive</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Add a classification column to a DataFrame.</span>
+
+<span class="sd">    Add a classification column &#39;label_column&#39; to DataFrame &#39;data&#39; based on values in &#39;value_column&#39;,</span>
+<span class="sd">    according to a sequence of thresholds. The number of classes is one plus the number of thresholds.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        thresholds (float or sequence of floats): Thresholds to use to assign class labels. Label i will</span>
+<span class="sd">            be assigned to values such that thresholds[i-1] &lt; value &lt;= thresholds[i] (if right_inclusive is True)</span>
+<span class="sd">            or thresholds[i-1] &lt;= value &lt; thresholds[i] (otherwise).</span>
+
+<span class="sd">        value_column (str): Name of the column from which class labels are derived.</span>
+
+<span class="sd">        label_column (str): Name of the new column to be created for class labels.</span>
+
+<span class="sd">        data (DataFrame): DataFrame holding all data.</span>
+
+<span class="sd">        right_inclusive (bool): Whether the thresholding intervals are closed on the right or on the left.</span>
+<span class="sd">            Set this False to get the same behavior as add_binary_tertiary_classification. The default behavior</span>
+<span class="sd">            is preferred for the common case where the classification is based on a left-censoring threshold.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        DataFrame: DataFrame updated to include class label column.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">thresholds</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">thresholds</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+        <span class="c1"># raised if thresholds is scalar</span>
+        <span class="n">thresholds</span> <span class="o">=</span> <span class="p">[</span><span class="n">thresholds</span><span class="p">]</span>
+
+    <span class="n">nclasses</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">thresholds</span><span class="p">)</span>
+    <span class="n">values</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">value_column</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">labels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">values</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">thresh</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">thresholds</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">right_inclusive</span><span class="p">:</span>
+            <span class="n">labels</span><span class="p">[</span><span class="n">values</span> <span class="o">&gt;</span> <span class="n">thresh</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span><span class="o">+</span><span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">labels</span><span class="p">[</span><span class="n">values</span> <span class="o">&gt;=</span> <span class="n">thresh</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span><span class="o">+</span><span class="mi">1</span>
+    <span class="n">labels</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">values</span><span class="p">)]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+    <span class="n">data</span><span class="p">[</span><span class="n">label_column</span><span class="p">]</span> <span class="o">=</span> <span class="n">labels</span>
+    <span class="k">return</span> <span class="n">data</span></div>
+
+
+<span class="c1"># ******************************************************************************************************************************************</span>
+<div class="viewcode-block" id="xc50topxc50_for_nm"><a class="viewcode-back" href="../../utils.html#utils.curate_data.xc50topxc50_for_nm">[docs]</a><span class="k">def</span> <span class="nf">xc50topxc50_for_nm</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="p">:</span>
+   <span class="sd">&quot;&quot;&quot;Convert XC50 values measured in nanomolars to -log10 (PX50)</span>
+
+<span class="sd">   Convert XC50 values measured in nanomolars to -log10 (PX50)</span>
+<span class="sd">   </span>
+<span class="sd">   Args :</span>
+<span class="sd">     x (float): input XC50 value measured in nanomolars</span>
+
+<span class="sd">   Returns :</span>
+<span class="sd">       float: -log10 value of x</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+   <span class="k">return</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">((</span><span class="n">x</span><span class="o">/</span><span class="mf">1000000000.0</span><span class="p">))</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, ATOM DDM Team.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

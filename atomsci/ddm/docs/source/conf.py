@@ -20,13 +20,13 @@ sys.path.insert(0, os.path.abspath('../../'))
 # -- Project information -----------------------------------------------------
 
 project = 'ATOM Data-Driven Modeling Pipeline'
-copyright = '2019, ATOM DDM Team'
+copyright = '2021, ATOM DDM Team'
 author = 'ATOM DDM Team'
 
 # The short X.Y version
-version = ''
+version = '1.1'
 # The full version, including alpha/beta/rc tags
-release = '1.0'
+release = '1.1'
 
 
 # -- General configuration ---------------------------------------------------
@@ -40,10 +40,12 @@ release = '1.0'
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
+    'sphinx.ext.intersphinx',
     'sphinx.ext.doctest',
     'sphinx.ext.coverage',
     'sphinx.ext.ifconfig',
     'sphinx.ext.viewcode',
+    'sphinx.ext.extlinks',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -180,3 +182,4 @@ epub_exclude_files = ['search.html']
 
 # -- Extension configuration -------------------------------------------------
 autodoc_mock_imports = ["rdkit", "tensorflow.contrib", "atomsci", "yaml", "sklearn.preprocessing.Imputer"]
+

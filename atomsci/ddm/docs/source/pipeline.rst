@@ -52,22 +52,6 @@ pipeline.featurization module
     :undoc-members:
     :show-inheritance:
 
-pipeline.hyper\_perf\_plots module
-----------------------------------
-
-.. automodule:: pipeline.hyper_perf_plots
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-pipeline.mlmt\_client\_wrapper module
--------------------------------------
-
-.. automodule:: pipeline.mlmt_client_wrapper
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 pipeline.model\_datasets module
 -------------------------------
 

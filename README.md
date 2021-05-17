@@ -297,6 +297,14 @@ Hyperparameter optimization for AMPL model fitting is available to run on SLURM 
     ```
     python hyperparam_search_wrapper.py --config_file filename.json
     ```
+    
+5. Save a checkpoint to continue it later.
+    
+    To save a checkpoint file of the hyperparameter search job, you want to set the following two parameters.
+    - "hp_checkpoint_save": "/path/to/the/checkpoint/file.pkl"
+    - "hp_checkpoint_load": "/path/to/the/checkpoint/file.pkl"
+    
+    If the "hp_checkpoint_load" is provided, the hyperparameter search will continue from the checkpoint. 
 
 &nbsp;  
 &nbsp;  
