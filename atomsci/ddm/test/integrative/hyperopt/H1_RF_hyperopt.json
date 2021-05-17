@@ -24,6 +24,6 @@
     "rfd": "uniformint|8,512",
     "rff": "uniformint|8,200",
     "result_dir": "./output,./tmp",
-    "script_dir": "/gpfs/gsfs12/users/shid6/AMPL_update/AMPL/atomsci/ddm",
-    "python_path": "/data/shid6/conda/envs/ampl_new/bin/python"
+    "script_dir": "/usr/WS1/he6/code/ATOM/AMPL_test/atomsci/ddm",
+    "python_path": "/g/g19/he6/.conda/envs/dc23/bin/python"
 }
