@@ -205,8 +205,11 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">        pipeline (ModelPipeline object): the pipeline to use</span>
+
 <span class="sd">        collection_name (str): the name of the Mongo DB collection to use</span>
+
 <span class="sd">        log (bool): True if logs should be printed, default False</span>
+
 <span class="sd">        use_personal_client (bool): True if personal client should be used (i.e. for testing), default False</span>
 
 <span class="sd">    Returns:</span>
@@ -309,7 +312,9 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">        model_uuid (str): model unique identifier</span>
+
 <span class="sd">        collection_name(str): collection to search (optional, searches all collections if not specified)</span>
+
 <span class="sd">    Returns:</span>
 <span class="sd">        Matching metadata dictionary. Raises MongoQueryException if the query fails.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -339,7 +344,9 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">        model_uuid (str): model unique identifier</span>
+
 <span class="sd">        collection_name(str): collection to search (optional, searches all collections if not specified)</span>
+
 <span class="sd">    Returns:</span>
 <span class="sd">        Matching metadata dictionary. Raises MongoQueryException if the query fails.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -363,8 +370,10 @@
 <span class="sd">        model_uuid (str): model uuid</span>
 
 <span class="sd">        mlmt_client: Ignored</span>
+
 <span class="sd">    Returns:</span>
 <span class="sd">        Matching collection name</span>
+
 <span class="sd">    Raises:</span>
 <span class="sd">        ValueError if there is no collection containing a model with the given uuid.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -389,6 +398,7 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">        uuid (str): model uuid</span>
+
 <span class="sd">    Returns:</span>
 <span class="sd">        a tuple of datafraes containint training data, validation data, and test data including the compound ID, RDKIT SMILES, and response value</span>
 <span class="sd">    &quot;&quot;&quot;</span>

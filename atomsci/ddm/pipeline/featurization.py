@@ -661,6 +661,7 @@ class DynamicFeaturization(Featurization):
     # ****************************************************************************************
     def __str__(self):
         """Returns a human-readable description of this Featurization object.
+
         Returns:
             (str): Describes the featurization type
         """
@@ -677,10 +678,12 @@ class DynamicFeaturization(Featurization):
     def extract_prefeaturized_data(self, merged_dset_df, model_dataset):
         """Attempts to extract prefeaturized data for the given dataset. For dynamic featurizers, we don't save
         this data, so this method always returns None.
+
         Args:
             merged_dset_df (DataFrame): dataset merged with the featurizers
 
             model_dataset (ModelDataset): Object containing the dataset to be featurized
+
         Returns:
             None, None, None, None
         """
@@ -945,9 +948,11 @@ class DescriptorFeaturization(PersistentFeaturization):
     def load_descriptor_spec(cls, desc_spec_bucket, desc_spec_key) :
         """Read a descriptor specification table from the datastore or the filesystem.
         The table is a CSV file with the following columns:
+
         descr_type:     A string specifying a descriptor source/program and a subset of descriptor columns
 
         source:         Name of the program/package that generates the descriptors
+
         scaled:         Binary indicator for whether subset of descriptor values are scaled by molecule's atom count
 
         descriptors:    A semicolon separated list of descriptor columns.
@@ -1333,6 +1338,7 @@ class DescriptorFeaturization(PersistentFeaturization):
 
         Args:
             dataset (deepchem.Dataset): featurized dataset
+
         Returns:
             (list of DeepChem transformer objects): list of transformers for the feature matrix
         """
@@ -1344,6 +1350,7 @@ class DescriptorFeaturization(PersistentFeaturization):
     def get_feature_specific_metadata(self, params):
         """Returns a dictionary of parameter settings for this Featurization object that are specific
         to the feature type.
+
         Args:
             params (Namespace): Argparse Namespace argument containing the parameters
         """

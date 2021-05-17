@@ -315,7 +315,9 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">        bucket (str, optional): &#39;all&#39; by default. Specify bucket (as a str or list) to limit search</span>
+
 <span class="sd">        client (optional): set client if not using the default</span>
+
 <span class="sd">        sort (bool, optional): if &#39;True&#39; (default), sort the keys alphabetically</span>
 
 <span class="sd">    Returns:</span>
@@ -355,7 +357,9 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">        key (str): the key of interest</span>
+
 <span class="sd">        bucket (str or list, optional): &#39;all&#39; by default. Specify bucket (as a str or list) to limit search</span>
+
 <span class="sd">        client (optional): set client if not using the default</span>
 
 <span class="sd">    Returns:</span>
@@ -398,7 +402,9 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">        key (str): the key of interest</span>
+
 <span class="sd">        bucket (str or list, optional): &#39;all&#39; by default. Specify bucket (as a str or list) to limit search</span>
+
 <span class="sd">        client (optional): set client if not using the default</span>
 
 <span class="sd">    Returns:</span>
@@ -455,7 +461,9 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">        dataset_key (str): the dataset_key for the dataset you want (unique in each bucket)</span>
+
 <span class="sd">        bucket (str): the bucket the dataset you want resides in</span>
+
 <span class="sd">        client (optional): set client if not using the default</span>
 
 <span class="sd">    Returns:</span>
@@ -480,13 +488,21 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">        dataset_key (str): the dataset_key for the dataset you want (unique in each bucket)</span>
+
 <span class="sd">        bucket (str): the bucket the dataset you want resides in</span>
+
 <span class="sd">        client (optional): set client if not using the default</span>
+
 <span class="sd">        return_metadata (bool, optional): if set to True, return a dictionary of the metadata INSTEAD of a dataframe of the data</span>
+
 <span class="sd">        nrows (num, optional): used to limit the number of rows returned</span>
+
 <span class="sd">        print_metadata (bool, optional): if set to True, displays the document metadata/properties</span>
+
 <span class="sd">        sep (str, optional): separator used for csv file</span>
+
 <span class="sd">        tarpath (str, optional): path to use for tarball files</span>
+
 <span class="sd">        index_col (int, optional): For csv files, column to use as the row labels of the DataFrame</span>
 
 <span class="sd">    Returns:</span>
@@ -618,12 +634,19 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">        dataset_oid (str): unique identifier for the dataset you want</span>
+
 <span class="sd">        client (optional): set client if not using the default</span>
+
 <span class="sd">        return_metadata (bool, optional): if set to True, return a dictionary of the metadata INSTEAD of a dataframe of the data</span>
+
 <span class="sd">        nrows (num, optional): used to limit the number of rows returned</span>
+
 <span class="sd">        print_metadata (bool, optional): if set to True, displays the document metadata/properties</span>
+
 <span class="sd">        sep (str, optional): separator used for csv file</span>
+
 <span class="sd">        tarpath (str, optional): path to use for tarball files</span>
+
 <span class="sd">        index_col (int, optional): For csv files, column to use as the row labels of the DataFrame</span>
 
 <span class="sd">    Returns:</span>
@@ -721,11 +744,16 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">        key (str): the key of interest</span>
+
 <span class="sd">        value (str): the value of interest</span>
+
 <span class="sd">        client (optional): set client if not using the default</span>
+
 <span class="sd">        operator (str, optional): &#39;in&#39; by default, but can be changed to any of the following:</span>
 <span class="sd">                       =, !=, &lt;, &lt;=, &gt;, &gt;=, all, in, not in</span>
+
 <span class="sd">        bucket (str or list, optional): &#39;all&#39; by default. Specify bucket (as a str or list) to limit search</span>
+
 <span class="sd">        display_all_columns (bool, optional): If &#39;False&#39; (default), then show only a selected subset of the columns</span>
 
 <span class="sd">    Returns:</span>
@@ -789,7 +817,9 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">        return_names (bool): If true, just return column headers from file</span>
+
 <span class="sd">        max_rows (int): default=0 which will return all rows</span>
+
 <span class="sd">        client (optional): set client if not using the default</span>
 
 <span class="sd">    Returns:</span>
@@ -882,11 +912,17 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">        bucket (str or list, optional): buckets to search (defaults to searching all buckets you have access to in the datastore)</span>
+
 <span class="sd">        client (optional): set client if not using the default</span>
+
 <span class="sd">        restrict_key (bool, optional): if set to True, restricts the search to keys that are on the approved list (see file in bucket with dataset_key: accepted_key_values)</span>
+
 <span class="sd">        restrict_key (bool, optional): if set to True, restricts the search to values that are on the approved list (see file in bucket with dataset_key: accepted_key_values)</span>
+
 <span class="sd">        dataset_oid_only (bool, optional): if True, return a list of dataset_oids meeting the criteria;   if False, returns a dataframe of all the metadata for the files meeting search criteria</span>
+
 <span class="sd">        display_all_columns (bool, optional): If &#39;False&#39; (default), then show only a selected subset of the columns</span>
+
 <span class="sd">        max_rows (int, optional): maximum rows to display during interactive search</span>
 
 <span class="sd">    Returns:</span>
@@ -1074,12 +1110,19 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">        dataset_keys (list): dataset_keys corresponding to the files to summarize</span>
+
 <span class="sd">        bucket (str): bucket the files reside in</span>
+
 <span class="sd">        client (optional): set client if not using the default</span>
+
 <span class="sd">        column (str, optional): column to summarize (will be prompted to specify if not pre-specified or if column does not exist in file)</span>
+
 <span class="sd">        save_as (str, optional): filename to save image of box plot(s) to</span>
+
 <span class="sd">        plot_ht (int, optional): height of box plots (default = 10)</span>
+
 <span class="sd">        labels (&#39;str&#39;, optional):</span>
+
 <span class="sd">        last (bool optional): If True (default=False), then summarize values from last column instead of specifying column heading</span>
 
 <span class="sd">    Returns</span>
@@ -1173,8 +1216,11 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">        key_values (dict): keys and values specified by user for a file</span>
+
 <span class="sd">        client (optional): set client if not using the default</span>
+
 <span class="sd">        df (DataFrame): dataframe to be uploaded</span>
+
 <span class="sd">        enforced (bool, optional): If True (default) checks that all required keys are filled out</span>
 
 <span class="sd">    Returns:</span>
@@ -1259,17 +1305,29 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">        bucket (str): bucket the file will be put in</span>
+
 <span class="sd">        title (str): title of the file in (human friendly format)</span>
+
 <span class="sd">        description (str): long text box to describe file (background/use notes)</span>
+
 <span class="sd">        tags (list): must be a list.</span>
+
 <span class="sd">        key_values (dict): key:value pairs to enable future users to find the file. Must be a dictionary.</span>
+
 <span class="sd">        filepath (str): current location of the file</span>
+
 <span class="sd">        filename (str): current filename of the file</span>
+
 <span class="sd">        client (optional): set client if not using the default</span>
+
 <span class="sd">        dataset_key (str, optional): If updating a file already in the datastore enter the corresponding dataset_key.  If not, leave as &#39;none&#39; and the dataset_key will be automatically generated.</span>
+
 <span class="sd">        override_check (bool, optional): If &#39;True&#39; then do NOT perform a check of the keys/values against approved list and enforcement criteria</span>
+
 <span class="sd">        return_metadata (bool, optional): If &#39;True&#39; (default=False), then return the metadata from the uploaded file</span>
+
 <span class="sd">        file_ref (bool, optional): If &#39;True&#39; (default=False), links file to the datastore instead of creating a copy to managed by the datastore.</span>
+
 <span class="sd">        data_type (str,optional): Specify dataType (e.g. csv,bz, etc) if not specified attempt to use file extension</span>
 
 <span class="sd">    Returns:</span>
@@ -1345,14 +1403,23 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">        df (DataFrame): dataframe to be uploaded</span>
+
 <span class="sd">        bucket (str): bucket the file will be put in</span>
+
 <span class="sd">        filename (str): the filename to save the dataframe as in the datastore. Include the extension</span>
+
 <span class="sd">        title (str): title of the file in (human friendly format)</span>
+
 <span class="sd">        description (str): long text box to describe file (background/use notes)</span>
+
 <span class="sd">        tags (list): must be a list.</span>
+
 <span class="sd">        key_values (dict): key-value pairs to enable future users to find the file. Must be a dictionary.</span>
+
 <span class="sd">        client (optional): set client if not using the default</span>
+
 <span class="sd">        dataset_key (str): If updating a file already in the datastore enter the corresponding dataset_key.  If not, leave as &#39;none&#39; and the dataset_key will be automatically generated.</span>
+
 <span class="sd">        data_type (str,optional): Specify dataType (e.g. csv,bz, etc) if not specified attempt to use file extension</span>
 
 <span class="sd">    Returns:</span>
@@ -1417,9 +1484,13 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">        bucket (str): Specify bucket where the file exists</span>
+
 <span class="sd">        dataset_key (str): dataset_key for the file to update metadata for</span>
+
 <span class="sd">        client (optional): set client if not using the default</span>
+
 <span class="sd">        kv_add (dict, optional): key-value pairs to add to the metadata for the file specified</span>
+
 <span class="sd">        kv_del (str or list, optional): keys to delete from the metadata for the file specified</span>
 
 <span class="sd">    Returns:</span>
@@ -1476,9 +1547,13 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">        bucket (str): Specify bucket where the file exists</span>
+
 <span class="sd">        dataset_key (str): dataset_key for the file to update metadata for</span>
+
 <span class="sd">        client (optional): set client if not using the default</span>
+
 <span class="sd">        kv_add (dict, optional): key-value pairs to add to the metadata for the file specified</span>
+
 <span class="sd">        kv_del (str or list, optional): keys to delete from the metadata for the file specified</span>
 
 <span class="sd">    Returns:</span>
@@ -1536,11 +1611,13 @@
 <span class="sd">                              example: defined_search = [&#39;gsk_ml&#39;,</span>
 <span class="sd">                                 {&#39;key&#39;: &#39;species&#39;, &#39;value&#39;: [&#39;rat&#39;], &#39;operator&#39;: &#39;in&#39;},</span>
 <span class="sd">                                 {&#39;key&#39;: &#39;assay_category&#39;,&#39;value&#39;: [&#39;solubility&#39;, &#39;volume_of_distribution&#39;], &#39;operator&#39;: &#39;in&#39;}]</span>
+
 <span class="sd">        client (optional): set client if not using the default</span>
 <span class="sd">        to_return (str, optional): (default=df)</span>
 <span class="sd">                    &#39;df&#39; (df_results)  = return a pandas dataframe summarizing metadata of files meeting criteria</span>
 <span class="sd">                    &#39;oid&#39; (dataset_oid) = return a list of dataset_oids meeting criteria</span>
 <span class="sd">                    &#39;ds_key&#39; (dataset_key) = return a list of dataset_key + bucket tuples</span>
+
 <span class="sd">        display_all_column (bool, optional): default False. If True, displays all associated metadata instead of just a selected subset</span>
 
 <span class="sd">    Returns:</span>
@@ -1623,16 +1700,26 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">        data (DataFrame, str, list, tuple, pickle): data to be pickled and uploaded</span>
+
 <span class="sd">        bucket (str): bucket the file will be put in</span>
+
 <span class="sd">        filename (str): the filename to save the dataframe as in the datastore. Include the extension</span>
+
 <span class="sd">        title (str): title of the file in (human friendly format)</span>
+
 <span class="sd">        description (str): long text box to describe file (background/use notes)</span>
+
 <span class="sd">        tags (list): must be a list.</span>
+
 <span class="sd">        key_values (dict): key:value pairs to enable future users to find the file. Must be a dictionary.</span>
+
 <span class="sd">        client (optional): set client if not using the default</span>
+
 <span class="sd">        dataset_key (str, optional): If updating a file already in the datastore enter the corresponding dataset_key.</span>
 <span class="sd">                          If not, leave as &#39;none&#39; and the dataset_key will be automatically generated.</span>
+
 <span class="sd">        override_check (bool, optional): If True, overrides checking the metadata for the file when uploaded.</span>
+
 <span class="sd">        return_metadata (bool, optional): If True, returns metadata for the file after it is uploaded.</span>
 
 <span class="sd">    Returns:</span>
@@ -1688,8 +1775,11 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">        bucket (str or list, optional): buckets to search (defaults to searching all buckets you have access to in the datastore)</span>
+
 <span class="sd">        input_key: user specified key to query</span>
+
 <span class="sd">        category: &#39;experimental&#39; or &#39;pdb_bind&#39;</span>
+
 <span class="sd">        client (optional): set client if not using the default</span>
 
 <span class="sd">    Returns:</span>
@@ -1721,13 +1811,17 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">        bucket (str or list, optional): buckets to search (defaults to searching all buckets you have access to in the datastore)</span>
+
 <span class="sd">        client (optional): set client if not using the default</span>
+
 <span class="sd">        to_return (str): &#39;df&#39; (df_results)  = return a pandas dataframe summarizing metadata of files meeting criteria</span>
 <span class="sd">                         &#39;search&#39; (search_criteria) = return a list containing search criteria where position 0 = string/list of buckets, and remaining positions are dictionaries of search criteria.</span>
 <span class="sd">                                                      Designed to work with &#39;repeat_defined_search&#39; function.</span>
 <span class="sd">                         &#39;oid&#39; (dataset_oid) = return a list of dataset_oids meeting criteria</span>
 <span class="sd">                         &#39;ds_key&#39; (dataset_key) = return a list of dataset_key + bucket tuples</span>
+
 <span class="sd">        display_all_columns (bool, optional): If &#39;False&#39; (default), then show only a selected subset of the columns</span>
+
 <span class="sd">        max_rows (int, optional): maximum rows to display during interactive search</span>
 
 <span class="sd">    Returns:</span>
@@ -1774,7 +1868,7 @@
         <span class="n">example_val</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">kv_lookup</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">())</span>
         <span class="n">example_val_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">example_val</span><span class="p">)</span>
         <span class="n">temp_dict</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;value_examples&#39;</span><span class="p">:</span> <span class="n">example_val_list</span><span class="p">,</span> <span class="s1">&#39;keys&#39;</span><span class="p">:</span> <span class="n">keys</span><span class="p">,</span> <span class="p">}</span>
-    <span class="n">display</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">temp_dict</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">temp_dict</span><span class="p">))</span>
     <span class="n">input_key</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
     <span class="k">while</span> <span class="n">input_key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
         <span class="n">input_key</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;Enter a key: &#39;</span><span class="p">)</span>
@@ -1785,7 +1879,7 @@
     <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Select value(s) for key=&#39;</span><span class="p">,</span> <span class="n">input_key</span><span class="p">,</span> <span class="s1">&#39;from the following list: &#39;</span><span class="p">)</span>
     <span class="n">values_for_key</span> <span class="o">=</span> <span class="n">retrieve_values_for_key</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="n">input_key</span><span class="p">,</span> <span class="n">bucket</span><span class="o">=</span><span class="n">bucket</span><span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
-    <span class="n">display</span><span class="p">(</span><span class="n">values_for_key</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">values_for_key</span><span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
 
     <span class="n">values_valid</span><span class="o">=</span><span class="kc">False</span>
@@ -1834,7 +1928,7 @@
     <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Number of datasets found meeting criteria =&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">dataset_list</span><span class="p">))</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dataset_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">max_rows</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Displaying first </span><span class="si">%s</span><span class="s1"> results&#39;</span> <span class="o">%</span><span class="p">(</span><span class="n">max_rows</span><span class="p">))</span>
-    <span class="n">display</span><span class="p">(</span><span class="n">dataset_list</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">max_rows</span><span class="p">])</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">dataset_list</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">max_rows</span><span class="p">])</span>
 
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dataset_list</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">dataset_list</span>
@@ -1870,7 +1964,7 @@
             <span class="n">example_val</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">kv_lookup</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">())</span>
             <span class="n">example_val_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">example_val</span><span class="p">)</span>
         <span class="n">temp_dict</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;value_examples&#39;</span><span class="p">:</span> <span class="n">example_val_list</span><span class="p">,</span> <span class="s1">&#39;keys&#39;</span><span class="p">:</span> <span class="n">unique_keys</span><span class="p">,</span> <span class="p">}</span>
-        <span class="n">display</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">temp_dict</span><span class="p">))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">temp_dict</span><span class="p">))</span>
 
         <span class="n">new_key</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
         <span class="k">while</span> <span class="n">new_key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">approved_keys</span><span class="p">:</span>
@@ -1887,7 +1981,7 @@
         <span class="n">values_for_key</span>  <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">values_for_key</span><span class="p">)</span> <span class="o">&amp;</span> <span class="nb">set</span><span class="p">(</span><span class="n">approved_values</span><span class="p">))</span>
 
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
-        <span class="n">display</span><span class="p">(</span><span class="n">values_for_key</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">values_for_key</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
         <span class="c1">##</span>
         <span class="n">values_valid</span><span class="o">=</span><span class="kc">False</span>
@@ -1905,7 +1999,7 @@
                         <span class="n">example_val</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">kv_lookup</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">())</span>
                         <span class="n">example_val_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">example_val</span><span class="p">)</span>
                     <span class="n">temp_dict</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;value_examples&#39;</span><span class="p">:</span> <span class="n">example_val_list</span><span class="p">,</span> <span class="s1">&#39;keys&#39;</span><span class="p">:</span> <span class="n">unique_keys</span><span class="p">,</span> <span class="p">}</span>
-                    <span class="n">display</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">temp_dict</span><span class="p">))</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">temp_dict</span><span class="p">))</span>
 
                     <span class="n">new_key</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
                     <span class="k">while</span> <span class="n">new_key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">approved_keys</span><span class="p">:</span>
@@ -1922,7 +2016,7 @@
                     <span class="n">values_for_key</span>  <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">values_for_key</span><span class="p">)</span> <span class="o">&amp;</span> <span class="nb">set</span><span class="p">(</span><span class="n">approved_values</span><span class="p">))</span>
 
                     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
-                    <span class="n">display</span><span class="p">(</span><span class="n">values_for_key</span><span class="p">)</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="n">values_for_key</span><span class="p">)</span>
                     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
 
             <span class="n">new_value</span> <span class="o">=</span> <span class="n">new_value</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;&#39;&quot;</span><span class="p">,</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
@@ -1969,7 +2063,7 @@
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Number of datasets found meeting criteria =&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">dataset_list2</span><span class="p">))</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dataset_list2</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">max_rows</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Displaying first </span><span class="si">%s</span><span class="s1"> results&#39;</span> <span class="o">%</span><span class="p">(</span><span class="n">max_rows</span><span class="p">))</span>
-        <span class="n">display</span><span class="p">(</span><span class="n">dataset_list2</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">max_rows</span><span class="p">])</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">dataset_list2</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">max_rows</span><span class="p">])</span>
 
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
         <span class="n">dataset_list</span> <span class="o">=</span> <span class="n">dataset_list2</span><span class="p">[:]</span>
@@ -2003,6 +2097,7 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">        files (list of tuples): format [(bucket1, dataset_key1), (bucket2, dataset_key2)]</span>
+
 <span class="sd">        save_as (str): filename to use for new file</span>
 
 <span class="sd">    Returns:</span>

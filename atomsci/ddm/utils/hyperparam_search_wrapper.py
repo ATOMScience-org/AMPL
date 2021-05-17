@@ -45,8 +45,11 @@ def run_command(shell_script, python_path, script_dir, params):
 
     Args:
         shell_script: Name of shell script to run
+
         python_path: Path to python version
+
         script_dir: Directory where script lives
+
         params: parameters in dictionary format
 
     Returns:
@@ -669,8 +672,11 @@ class HyperparameterSearch(object):
 
         Args:
             dataset_key: key for dataset to split
+
             bucket: datastore-specific user group bucket
+
             splitter: Type of splitter to use to split the dataset
+
             split_combo: tuple of form (split_valid_frac, split_test_frac)
 
         Returns:

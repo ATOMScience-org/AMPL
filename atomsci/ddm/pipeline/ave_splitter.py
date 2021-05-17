@@ -78,9 +78,13 @@ def _calc_dist_mat(feat1, feat2, metric, pool, num_workers):
 
     Args:
         feat1 (np.ndarray): First feature array
+
         feat2 (np.ndarray): Second feature array
+
         metric (str): Name of metric to use (e.g. 'jaccard', 'euclidean')
+
         pool (multiprocessing.Pool or None): Pool of workers to parallelize calculation
+
         num_workers (int) Number of parallel workers:
 
     Returns:

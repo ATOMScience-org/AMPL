@@ -81,6 +81,7 @@ def standardize_relations(dset_df, db='DTC'):
     Args:
         dset_df (DataFrame): Input DataFrame. Must contain either 'Standard Relation'
             or 'standard_relation'
+
         db (str): Source database. Must be either 'DTC' or 'ChEMBL'
 
     Returns:
@@ -124,17 +125,29 @@ def upload_file_dtc_raw_data(dset_name, title, description, tags,
 
     Args:
         dset_name (str): Name of the dataset. Should not include a file extension.
+
         title (str): title of the file in (human friendly format)
+
         description (str): long text box to describe file (background/use notes)
+
         tags (list): Must be a list of strings.
+
         functional_area (str): The functional area.
+
         target (str): The target.
+
         target_type (str): The target type of the dataset.
+
         activity (str): The activity of the dataset.
+
         assay_category (str): The assay category of the dataset.
+
         file_path (str): The filepath of the dataset.
+
         data_origin (str): The origin of the dataset e.g. journal.
+
         species (str): The species of the dataset e.g. human, rat, dog.
+
         force_update (bool): Overwrite existing datasets in the datastore.
 
     Returns:
@@ -202,6 +215,7 @@ def filter_dtc_data(orig_df,geneNames):
         orig_df (DataFrame): Input DataFrame. Must contain the following columns: gene_names
             standard_inchi_key, standard_type, standard_units, standard_value, compound_id,
             wildtype_or_mutant.
+
         geneNames (list): A list of gene names to filter out of orig_df e.g. ['JAK1', 'JAK2'].
 
     Returns:
@@ -239,6 +253,7 @@ def down_select(df,kv_lst) :
 
     Args:
         df (DataFrame): An input DataFrame.
+
         kv_list (list): A list of tuples of (column, value)
 
     Returns:
@@ -263,7 +278,9 @@ def get_smiles_dtc_data(nm_df,targ_lst,save_smiles_df):
 
     Args:
         nm_df (DataFrame): Input DataFrame.
+
         targ_lst (list): A list of targets.
+
         save_smiles_df (DataFrame): A DataFrame with the column 'standard_inchi_key'
 
     Returns:
@@ -333,7 +350,9 @@ def get_smiles_4dtc_data(nm_df,targ_lst,save_smiles_df):
 
     Args:
         nm_df (DataFrame): Input DataFrame.
+
         targ_lst (list): A list of targets.
+
         save_smiles_df (DataFrame): A DataFrame with the column 'standard_inchi_key'
 
     Returns:
@@ -409,18 +428,31 @@ def upload_df_dtc_smiles(dset_name, title, description, tags,
 
     Args:
         dset_name (str): Name of the dataset. Should not include a file extension.
+
         title (str): title of the file in (human friendly format)
+
         description (str): long text box to describe file (background/use notes)
+
         tags (list): Must be a list of strings.
+
         functional_area (str): The functional area.
+
         target (str): The target.
+
         target_type (str): The target type of the dataset.
+
         activity (str): The activity of the dataset.
+
         assay_category (str): The assay category of the dataset.
+
         smiles_df (DataFrame): DataFrame containing SMILES to be uploaded.
+
         orig_fileID (str): Source file id used to generate smiles_df.
+
         data_origin (str): The origin of the dataset e.g. journal.
+
         species (str): The species of the dataset e.g. human, rat, dog.
+
         force_update (bool): Overwrite existing datasets in the datastore.
 
     Returns:
@@ -472,9 +504,11 @@ def atom_curation(targ_lst, smiles_lst, shared_inchi_keys):
 
     Args:
         targ_lst (list): A list of targets.
+
         smiles_lst (list): A list of DataFrames.
             These DataFrames must contain the columns gene_names, standard_type,
             standard_relation, standard_inchi_key, PIC50, and rdkit_smiles
+
         shared_inchi_keys (list): A list of inchi keys used in this dataset.
 
     Returns:
@@ -530,18 +564,31 @@ def upload_df_dtc_mleqonly(dset_name, title, description, tags,
 
     Args:
         dset_name (str): Name of the dataset. Should not include a file extension.
+
         title (str): title of the file in (human friendly format)
+
         description (str): long text box to describe file (background/use notes)
+
         tags (list): Must be a list of strings.
+
         functional_area (str): The functional area.
+
         target (str): The target.
+
         target_type (str): The target type of the dataset.
+
         activity (str): The activity of the dataset.
+
         assay_category (str): The assay category of the dataset.
+
         data_df (DataFrame): DataFrame to be uploaded.
+
         dtc_smiles_fileID (str): Source file id used to generate data_df.
+
         data_origin (str): The origin of the dataset e.g. journal.
+
         species (str): The species of the dataset e.g. human, rat, dog.
+
         force_update (bool): Overwrite existing datasets in the datastore.
 
     Returns:
@@ -607,18 +654,31 @@ def upload_df_dtc_mleqonly_class(dset_name, title, description, tags,
 
     Args:
         dset_name (str): Name of the dataset. Should not include a file extension.
+
         title (str): title of the file in (human friendly format)
+
         description (str): long text box to describe file (background/use notes)
+
         tags (list): Must be a list of strings.
+
         functional_area (str): The functional area.
+
         target (str): The target.
+
         target_type (str): The target type of the dataset.
+
         activity (str): The activity of the dataset.
+
         assay_category (str): The assay category of the dataset.
+
         data_df (DataFrame): DataFrame to be uploaded.
+
         dtc_mleqonly_fileID (str): Source file id used to generate data_df.
+
         data_origin (str): The origin of the dataset e.g. journal.
+
         species (str): The species of the dataset e.g. human, rat, dog.
+
         force_update (bool): Overwrite existing datasets in the datastore.
 
     Returns:
@@ -678,18 +738,31 @@ def upload_df_dtc_base_smiles_all(dset_name, title, description, tags,
 
     Args:
         dset_name (str): Name of the dataset. Should not include a file extension.
+
         title (str): title of the file in (human friendly format)
+
         description (str): long text box to describe file (background/use notes)
+
         tags (list): Must be a list of strings.
+
         functional_area (str): The functional area.
+
         target (str): The target.
+
         target_type (str): The target type of the dataset.
+
         activity (str): The activity of the dataset.
+
         assay_category (str): The assay category of the dataset.
+
         data_df (DataFrame): DataFrame to be uploaded.
+
         dtc_mleqonly_fileID (str): Source file id used to generate data_df.
+
         data_origin (str): The origin of the dataset e.g. journal.
+
         species (str): The species of the dataset e.g. human, rat, dog.
+
         force_update (bool): Overwrite existing datasets in the datastore.
 
     Returns:
@@ -746,19 +819,33 @@ def upload_file_dtc_smiles_regr_all(dset_name, title, description, tags,
 
     Args:
         dset_name (str): Name of the dataset. Should not include a file extension.
+
         title (str): title of the file in (human friendly format)
+
         description (str): long text box to describe file (background/use notes)
+
         tags (list): Must be a list of strings.
+
         functional_area (str): The functional area.
+
         target (str): The target.
+
         target_type (str): The target type of the dataset.
+
         activity (str): The activity of the dataset.
+
         assay_category (str): The assay category of the dataset.
+
         data_df (DataFrame): DataFrame to be uploaded.
+
         dtc_smiles_fileID(str): Source file id used to generate data_df.
+
         smiles_column (str): Column containing SMILES.
+
         data_origin (str): The origin of the dataset e.g. journal.
+
         species (str): The species of the dataset e.g. human, rat, dog.
+
         force_update (bool): Overwrite existing datasets in the datastore.
 
     Returns:
@@ -822,19 +909,33 @@ def upload_df_dtc_smiles_regr_all_class(dset_name, title, description, tags,
 
     Args:
         dset_name (str): Name of the dataset. Should not include a file extension.
+
         title (str): title of the file in (human friendly format)
+
         description (str): long text box to describe file (background/use notes)
+
         tags (list): Must be a list of strings.
+
         functional_area (str): The functional area.
+
         target (str): The target.
+
         target_type (str): The target type of the dataset.
+
         activity (str): The activity of the dataset.
+
         assay_category (str): The assay category of the dataset.
+
         data_df (DataFrame): DataFrame to be uploaded.
+
         dtc_smiles_regr_all_fileID(str): Source file id used to generate data_df.
+
         smiles_column (str): Column containing SMILES.
+
         data_origin (str): The origin of the dataset e.g. journal.
+
         species (str): The species of the dataset e.g. human, rat, dog.
+
         force_update (bool): Overwrite existing datasets in the datastore.
 
     Returns:
@@ -901,17 +1002,29 @@ def upload_file_excape_raw_data(dset_name, title, description, tags,
 
     Args:
         dset_name (str): Name of the dataset. Should not include a file extension.
+
         title (str): title of the file in (human friendly format)
+
         description (str): long text box to describe file (background/use notes)
+
         tags (list): Must be a list of strings.
+
         functional_area (str): The functional area.
+
         target (str): The target.
+
         target_type (str): The target type of the dataset.
+
         activity (str): The activity of the dataset.
+
         assay_category (str): The assay category of the dataset.
+
         file_path (str): The filepath of the dataset.
+
         data_origin (str): The origin of the dataset e.g. journal.
+
         species (str): The species of the dataset e.g. human, rat, dog.
+
         force_update (bool): Overwrite existing datasets in the datastore.
 
     Returns:
@@ -968,6 +1081,7 @@ def get_smiles_excape_data(nm_df,targ_lst):
     Args:
         nm_df (DataFrame): DataFrame for Excape database. Should contain the columns,
             pXC50, SMILES, and Ambit_InchiKey
+
         targ_lst (list): A list of targets to filter out of nm_df
 
     Returns:
@@ -1022,18 +1136,31 @@ def upload_df_excape_smiles(dset_name, title, description, tags,
 
     Args:
         dset_name (str): Name of the dataset. Should not include a file extension.
+
         title (str): title of the file in (human friendly format)
+
         description (str): long text box to describe file (background/use notes)
+
         tags (list): Must be a list of strings.
+
         functional_area (str): The functional area.
+
         target (str): The target.
+
         target_type (str): The target type of the dataset.
+
         activity (str): The activity of the dataset.
+
         assay_category (str): The assay category of the dataset.
+
         smiles_df (DataFrame): DataFrame containing SMILES to be uploaded.
+
         orig_fileID (str): Source file id used to generate smiles_df.
+
         data_origin (str): The origin of the dataset e.g. journal.
+
         species (str): The species of the dataset e.g. human, rat, dog.
+
         force_update (bool): Overwrite existing datasets in the datastore.
 
     Returns:
@@ -1086,9 +1213,11 @@ def atom_curation_excape(targ_lst, smiles_lst, shared_inchi_keys):
 
     Args:
         targ_lst (list): A list of targets.
+
         smiles_lst (list): A of DataFrames.
             These DataFrames must contain the columns gene_names, standard_type,
             standard_relation, standard_inchi_key, pXC50, and rdkit_smiles
+
         shared_inchi_keys (list): A list of inchi keys used in this dataset.
 
     Returns:
@@ -1148,18 +1277,31 @@ def upload_df_excape_mleqonly(dset_name, title, description, tags,
 
     Args:
         dset_name (str): Name of the dataset. Should not include a file extension.
+
         title (str): title of the file in (human friendly format)
+
         description (str): long text box to describe file (background/use notes)
+
         tags (list): Must be a list of strings.
+
         functional_area (str): The functional area.
+
         target (str): The target.
+
         target_type (str): The target type of the dataset.
+
         activity (str): The activity of the dataset.
+
         assay_category (str): The assay category of the dataset.
+
         data_df (DataFrame): DataFrame containing SMILES to be uploaded.
+
         smiles_fileID (str): Source file id used to generate data_df.
+
         data_origin (str): The origin of the dataset e.g. journal.
+
         species (str): The species of the dataset e.g. human, rat, dog.
+
         force_update (bool): Overwrite existing datasets in the datastore.
 
     Returns:
@@ -1225,18 +1367,31 @@ def upload_df_excape_mleqonly_class(dset_name, title, description, tags,
 
     Args:
         dset_name (str): Name of the dataset. Should not include a file extension.
+
         title (str): title of the file in (human friendly format)
+
         description (str): long text box to describe file (background/use notes)
+
         tags (list): Must be a list of strings.
+
         functional_area (str): The functional area.
+
         target (str): The target.
+
         target_type (str): The target type of the dataset.
+
         activity (str): The activity of the dataset.
+
         assay_category (str): The assay category of the dataset.
+
         data_df (DataFrame): DataFrame containing SMILES to be uploaded.
+
         mleqonly_fileID (str): Source file id used to generate data_df.
+
         data_origin (str): The origin of the dataset e.g. journal.
+
         species (str): The species of the dataset e.g. human, rat, dog.
+
         force_update (bool): Overwrite existing datasets in the datastore.
 
     Returns:

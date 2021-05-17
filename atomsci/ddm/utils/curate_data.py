@@ -84,8 +84,11 @@ def replicate_rmsd(dset_df, smiles_col='base_rdkit_smiles', value_col='PIC50', r
 
     Args:
         dset_df (DataFrame): DataFrame containing uncensored measurements and SMILES strings.
+
         smiles_col (str): Name of the column that contains SMILES strings.
+
         value_col (str): Name of the column that contains target values.
+
         relation_col (str): The input DataFrame column containing relational operators (<, >, etc.).
 
     Returns:
@@ -114,9 +117,13 @@ def mle_censored_mean(cmpd_df, std_est, value_col='PIC50', relation_col='relatio
 
     Args:
         cmpd_df (DataFrame): DataFrame containing measurements and SMILES strings.
+
         std_est (float): An estimate for the standard deviation of the distribution.
+
         smiles_col (str): Name of the column that contains SMILES strings.
+
         value_col (str): Name of the column that contains target values.
+
         relation_col (str): The input DataFrame column containing relational operators (<, >, etc.).
 
     Returns:
@@ -177,15 +184,23 @@ def aggregate_assay_data(assay_df, value_col='VALUE_NUM', output_value_col=None,
 
     Args:
         assay_df (DataFrame): The input DataFrame to be processed.
+
         value_col (str): The column in the DataFrame containing assay values to be averaged.
+
         output_value_col (str): Optional; the column name to use in the output DataFrame for the averaged data.
+
         label_actives (bool): If True, generate an additional column 'active' indicating whether the mean value is above a threshold specified by active_thresh.
+
         active_thresh (float): The threshold to be used for labeling compounds as active or inactive.
             If active_thresh is None (the default), the threshold used is the minimum reported value across all records
             with left-censored values (i.e., those with '<' in the relation column.
+
         id_col (str): The input DataFrame column containing compound IDs.
+
         smiles_col (str): The input DataFrame column containing SMILES strings.
+
         relation_col (str): The input DataFrame column containing relational operators (<, >, etc.).
+
         date_col (str): The input DataFrame column containing dates when the assay data was uploaded. If not None, the code will assign the earliest
             date among replicates to the aggregate data record.
 
@@ -276,7 +291,9 @@ def freq_table(dset_df, column, min_freq=1):
 
     Args:
         dset_df (DataFrame): An input DataFrame
+
         column (str): The name of one column in DataFrame
+
         min_freq (int): Restrict unique count to at least min_freq times.
 
     Returns:
@@ -300,9 +317,11 @@ def labeled_freq_table(dset_df, columns, min_freq=1):
 
     Args:
         dset_df (DataFrame): The input DataFrame.
+
         columns (list(str)): A list of columns to include in the output frequency table.
             The first column in 'columns' is assumed to be a unique ID; there should be 
             a many-to-1 mapping from the ID to each of the additional columns.
+
         min_freq (int): Restrict unique count to at least min_freq times.
 
     Returns:
@@ -342,9 +361,12 @@ def filter_in_out_by_column_values(column, values, data, in_out):
 
     Args:
         column (str): Name of a column in data.
+
         values (iterable): An iterable, Series, DataFrame, or dict of values
             contained in data[column].
+
         data (DataFrame): A DataFrame.
+
         in_out (str): If set to 'in', will filter in rows that contain a value
             in values. If set to anything else, this function will filter out
             rows that contian a value in values.
@@ -369,8 +391,10 @@ def filter_in_by_column_values (column, values, data):
 
     Args:
         column (str): Name of a column in data.
+
         values (iterable): An iterable, Series, DataFrame, or dict of values
             contained in data[column].
+
         data (DataFrame): A DataFrame.
 
     Returns:
@@ -387,8 +411,10 @@ def filter_out_by_column_values (column, values, data):
 
     Args:
         column (str): Name of a column in data.
+
         values (iterable): An iterable, Series, DataFrame, or dict of values
             contained in data[column].
+
         data (DataFrame): A DataFrame.
 
     Returns:
@@ -407,7 +433,9 @@ def filter_out_comments (values, values_cs, data):
 
     Args:
         values (str): list of values that are not case sensitive
+
         values_cs (str): list of values that are case sensitive
+
         data (DataFrame): DataFrame containing a column named 'COMMENTS'
 
     Returns:
@@ -484,14 +512,21 @@ def average_and_remove_duplicates (column, tolerance, list_bad_duplicates,
 
     Args:
         column (str): column with the value of interest
+
         tolerance (float): acceptable % difference between value and average
             ie.: if "[(value - mean)/mean*100]>tolerance" then remove data row
+
         list_bad_duplicates (str): 'Yes' to list the bad duplicates
+
         data (DataFrame): input DataFrame
+
         max_stdev (float): maximum standard deviation threshold
+
         compound_id (str): column containing compound ids
+
         rm_duplicate_only (bool): only remove bad duplicates, don't average good ones, the resulting table can be fed into aggregate assay data to further process.
             note: The mean is recalculated on each loop through to make sure it isn't skewed by the 'bad duplicate' values
+
         smiles_col (str): column containing base rdkit smiles strings
 
     Returns:
@@ -575,11 +610,17 @@ def summarize_data(column, num_bins, title, units, filepath, data, log_column = 
 
     Args:
         column (str): Column of interest.
+
         num_bins (int): Number of bins in the histogram.
+
         title (str): Title of the histogram.
+
         units (str): Units for values in 'column'.
+
         filepath (str): This file path gets printed to the console.
+
         data (DataFrame): Input DataFrame.
+
         log_column (str): Defaults to 'No'. Any other value will generate
             a plot comparing normal and log distributions.
 
@@ -650,7 +691,9 @@ def create_new_rows_for_extra_results ( extra_result_col, value_col, data):
 
     Args:
         extra_result_col (str): A column in 'data'.
+
         value_col (str): A column in 'data'.
+
         data (DataFrame):
 
     Returns:
@@ -677,9 +720,13 @@ def add_classification_column(thresholds, value_column, label_column, data, righ
         thresholds (float or sequence of floats): Thresholds to use to assign class labels. Label i will
             be assigned to values such that thresholds[i-1] < value <= thresholds[i] (if right_inclusive is True)
             or thresholds[i-1] <= value < thresholds[i] (otherwise).
+
         value_column (str): Name of the column from which class labels are derived.
+
         label_column (str): Name of the new column to be created for class labels.
+
         data (DataFrame): DataFrame holding all data.
+
         right_inclusive (bool): Whether the thresholding intervals are closed on the right or on the left.
             Set this False to get the same behavior as add_binary_tertiary_classification. The default behavior
             is preferred for the common case where the classification is based on a left-censoring threshold.

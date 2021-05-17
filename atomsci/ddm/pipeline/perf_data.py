@@ -23,6 +23,7 @@ def rms_error(y_real, y_pred):
 
     Args:
         y_real (np.array): Array of ground truth values
+
         y_pred (np.array): Array of predicted values
 
     Returns:
@@ -38,6 +39,7 @@ def negative_predictive_value(y_real, y_pred):
 
     Args:
         y_real (np.array): Array of ground truth values
+
         y_pred (np.array): Array of predicted values
 
     Returns:

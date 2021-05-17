@@ -39,6 +39,7 @@ def train_model(input, output):
 
     Args:
         input (str): path to model_metadata.json file
+
         output (str): path to output directory
 
     Returns:
@@ -74,6 +75,7 @@ def train_model_from_tar(input, output):
 
     Args:
         input (str): path to a tar.gz file
+
         output (str): path to output directory
 
     Returns:

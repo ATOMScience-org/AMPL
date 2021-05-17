@@ -202,6 +202,7 @@
 <span class="sd">        in the factory function.</span>
 <span class="sd">        </span>
 <span class="sd">        ds_client (Datastore client)</span>
+
 <span class="sd">    Returns:</span>
 <span class="sd">        either (DatastoreDataset) or (FileDataset): instantiated ModelDataset subclass specified by params</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -808,6 +809,7 @@
 <span class="sd">        </span>
 <span class="sd">        Args:</span>
 <span class="sd">            subset (string): Label of subset, &#39;train&#39;, &#39;test&#39;, or &#39;valid&#39;</span>
+
 <span class="sd">            transformers: Transformers object for full dataset</span>
 <span class="sd">            </span>
 <span class="sd">        Returns:</span>
@@ -995,19 +997,29 @@
 
 <span class="sd">        set in __init__:</span>
 <span class="sd">            params (Namespace object): contains all parameter information</span>
+
 <span class="sd">            log (logger object): logger for all warning messages.</span>
+
 <span class="sd">            dataset_name (str): set from the parameter object, the name of the dataset</span>
+
 <span class="sd">            output_dit (str): The root directory for saving output files</span>
+
 <span class="sd">            split_strategy (str): the flag for determining the split strategy (e.g. &#39;train_test_valid&#39;,&#39;k-fold&#39;)</span>
+
 <span class="sd">            featurization (Featurization object): The featurization object created by ModelDataset or input as an optional argument in the factory function.</span>
+
 <span class="sd">            splitting (Splitting object): A splitting object created by the ModelDataset intiailization method</span>
+
 <span class="sd">            combined_train_valid_data (dc.DiskDataset): A dataset object (initialized as None), of the merged train and valid splits</span>
 <span class="sd">            ds_client (datastore client):</span>
 
 <span class="sd">        set in get_featurized_data:</span>
 <span class="sd">            dataset: A new featurized DeepChem DiskDataset.</span>
+
 <span class="sd">            n_features: The count of features (int)</span>
+
 <span class="sd">            vals: The response col after featurization (np.array)</span>
+
 <span class="sd">            attr: A pd.dataframe containing the compound ids and smiles</span>
 
 <span class="sd">        set in get_dataset_tasks:</span>
@@ -1015,8 +1027,11 @@
 
 <span class="sd">        set in split_dataset or load_presplit_dataset:</span>
 <span class="sd">            train_valid_dsets:  A list of tuples of (training,validation) DeepChem Datasets</span>
+
 <span class="sd">            test_dset: (dc.data.Dataset): The test dataset to be held out</span>
+
 <span class="sd">            train_valid_attr: A list of tuples of (training,validation) attribute DataFrames</span>
+
 <span class="sd">            test_attr: The attribute DataFrame for the test set, containing compound IDs and SMILES strings.</span>
 
 <span class="sd">        set in load_full_dataset()</span>
