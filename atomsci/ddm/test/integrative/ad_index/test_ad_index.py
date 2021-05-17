@@ -40,10 +40,13 @@ def test():
     hp_params["script_dir"] = script_dir
     hp_params["python_path"] = python_path
 
-    train_df = pd.read_csv("./H1_std.csv")
+    params = parse.wrapper(hp_params)
+    if not os.path.isfile(params.dataset_key):
+        params.dataset_key = os.path.join(params.script_dir, params.dataset_key)
+
+    train_df = pd.read_csv(params.dataset_key)
 
     print(f"Train a RF models with ECFP")
-    params = parse.wrapper(hp_params)
     pl = mp.ModelPipeline(params)
     pl.train_model()
 

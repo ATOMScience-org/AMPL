@@ -4,7 +4,7 @@
     "save_results": "False",
     "data_owner": "username",
     "prediction_type": "regression",
-    "dataset_key": "./H1_std.csv",
+    "dataset_key": "test/test_datasets/H1_std.csv",
     "id_col": "compound_id",
     "smiles_col": "rdkit_smiles",
     "response_cols": "pKi_mean",
@@ -15,7 +15,5 @@
     "transformers": "True",
     "model_type": "RF",
     "featurizer": "ecfp",
-    "result_dir": "./output",
-    "script_dir": "/usr/WS2/shi12/ampl/master/atomsci/ddm",
-    "python_path": "/g/g92/shi12/ws/conda/envs/ampl/bin/python"
+    "result_dir": "./output"
 }
