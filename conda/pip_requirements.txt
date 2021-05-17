@@ -77,7 +77,7 @@ tqdm==4.56.1
 traitlets==4.3.3
 typing-extensions==3.7.4.3
 umap-learn==0.4.6
-urllib3==1.26.2
+urllib3==1.26.4
 wcwidth==0.2.5
 webcolors==1.11.1
 Werkzeug==1.0.1
