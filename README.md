@@ -121,7 +121,7 @@ cd ..
 &nbsp; 
 
 <a name="AMPL-usage-survey"></a>
-#### AMPL usage survey 
+### AMPL usage survey 
 - The ATOM team would like to hear your experiences in using the AMPL software. The team actively uses feedback to develop the best possible drug discovery modeling pipeline. Click [here](https://docs.google.com/forms/d/e/1FAIpQLSdM7mRXsvRr4MXUIoWgh9hQSmAOFgwXD3nLA4sLpNygec6hzA/viewform?usp=sf_link) to access the survey link. The survey typically takes 5 minutes to complete. Thank you for providing your feedback. 
 &nbsp;
 &nbsp;
