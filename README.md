@@ -27,6 +27,7 @@ Documentation in readthedocs format is available [here](https://ampl.readthedocs
   - [Prerequisites](#Prerequisites)
   - [Install](#Install)
   - [Install with Docker](#Install-docker)
+  - [AMPL usage survey](#AMPL-usage-survey)
 - [Examples](#Example-AMPL-usage)
 - [Tests](#Tests)
 - [AMPL Features](#AMPL-Features)
@@ -98,9 +99,6 @@ cd ..
 - More details on installation can be found in [Advanced installation](#Advanced-installation).  
 &nbsp;  
 
-#### AMPL Usage Survey 
-- The ATOM team would like to hear your experiences in using the AMPL software. The team actively uses feedback to develop the best possible drug discovery modeling pipeline. Click [here](https://docs.google.com/forms/d/e/1FAIpQLSdM7mRXsvRr4MXUIoWgh9hQSmAOFgwXD3nLA4sLpNygec6hzA/viewform?usp=sf_link) to access the survey link. The survey typically takes 5 minutes to complete. Thank you for providing your feedback. 
-
 <a name="Install-docker"></a>
 ### Install with Docker
 - Download and install Docker Desktop.
@@ -122,8 +120,13 @@ cd ..
 - Be sure to save any work you want to be permanent in your workspace folder. If the container is shut down, you'll lose anything not in that folder.
 
 &nbsp; 
-&nbsp;  
 
+<a name="AMPL-usage-survey"></a>
+#### AMPL Usage Survey 
+- The ATOM team would like to hear your experiences in using the AMPL software. The team actively uses feedback to develop the best possible drug discovery modeling pipeline. Click [here](https://docs.google.com/forms/d/e/1FAIpQLSdM7mRXsvRr4MXUIoWgh9hQSmAOFgwXD3nLA4sLpNygec6hzA/viewform?usp=sf_link) to access the survey link. The survey typically takes 5 minutes to complete. Thank you for providing your feedback. 
+
+&nbsp;
+&nbsp;
 
 ---
 <a name="Example-AMPL-usage"></a>
