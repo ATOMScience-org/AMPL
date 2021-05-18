@@ -118,13 +118,11 @@ cd ..
   - Replace the `d33b0faf6bc9` with `localhost`
   - If this doesn't work, exit the container and change port from 8888 to some other number such as 7777 or 8899 (in all 3 places it's written), then rerun both commands
 - Be sure to save any work you want to be permanent in your workspace folder. If the container is shut down, you'll lose anything not in that folder.
-
 &nbsp; 
 
 <a name="AMPL-usage-survey"></a>
 #### AMPL usage survey 
 - The ATOM team would like to hear your experiences in using the AMPL software. The team actively uses feedback to develop the best possible drug discovery modeling pipeline. Click [here](https://docs.google.com/forms/d/e/1FAIpQLSdM7mRXsvRr4MXUIoWgh9hQSmAOFgwXD3nLA4sLpNygec6hzA/viewform?usp=sf_link) to access the survey link. The survey typically takes 5 minutes to complete. Thank you for providing your feedback. 
-
 &nbsp;
 &nbsp;
 
