@@ -98,6 +98,9 @@ cd ..
 - More details on installation can be found in [Advanced installation](#Advanced-installation).  
 &nbsp;  
 
+#### AMPL Usage Survey 
+- The ATOM team would like to hear your experiences in using the AMPL software. The team actively uses feedback to develop the best possible drug discovery modeling pipeline. Here is the survey link, https://docs.google.com/forms/d/e/1FAIpQLSdM7mRXsvRr4MXUIoWgh9hQSmAOFgwXD3nLA4sLpNygec6hzA/viewform?usp=sf_link. The survey typically takes 5 minutes to complete. Thank you for providing your feedback. 
+
 <a name="Install-docker"></a>
 ### Install with Docker
 - Download and install Docker Desktop.
