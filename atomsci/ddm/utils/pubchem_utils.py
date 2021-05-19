@@ -9,11 +9,14 @@ def download_smiles(myList,intv=1) :
 
     Args:
         myList (list): List of INCHIKEYS
-        intv (1) : number of INCHIKEYS to submit queries for in one request, default is 1
+
+        intv (1): number of INCHIKEYS to submit queries for in one request, default is 1
 
     Returns:
         list of SMILES strings corresponding to INCHIKEYS
+
         list of INCHIKEYS, which failed to return a SMILES string
+
         list of CIDs and SMILES, which were returned beyond the first CID and SMILE found for input INCHIKEY
     """
     ncmpds=len(myList)
@@ -66,7 +69,8 @@ def download_bioactivity_assay(myList,intv=1) :
 
     Args:
         myList (list): List of PubChem AIDs (bioactivity assay ids)
-        intv (1) : number of INCHIKEYS to submit queries for in one request, default is 1
+
+        intv (1): number of INCHIKEYS to submit queries for in one request, default is 1
 
     Returns:
         Nothing returned yet, will return basic stats to help decide whether to use assay or not
@@ -153,6 +157,7 @@ def download_dose_response_from_bioactivity(aid,sidlst) :
 
     Args:
         myList (list): a bioactivity id (aid)
+
         sidlst (list): list of sids specified as integers
 
     Returns:
@@ -194,6 +199,7 @@ def download_activitytype(aid,sid) :
 
     Args:
         myList (list): a bioactivity id (aid)
+
         sidlst (list): list of sids specified as integers
 
     Returns:

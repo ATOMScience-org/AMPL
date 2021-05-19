@@ -14,14 +14,18 @@ import sys
 import numpy as np
 import logging
 import itertools
+from numpy.core.numeric import NaN
 import pandas as pd
 import uuid
 
 import subprocess
+import shutil
 import time
 
+from hyperopt import fmin, tpe, hp, Trials, STATUS_OK
 
 from atomsci.ddm.pipeline import featurization as feat
+from atomsci.ddm.pipeline import model_pipeline as mp
 from atomsci.ddm.pipeline import parameter_parser as parse
 from atomsci.ddm.pipeline import model_datasets as model_datasets
 from atomsci.ddm.utils import datastore_functions as dsf
@@ -32,16 +36,22 @@ import logging
 import socket
 import traceback
 import copy
+import pickle
 
 
 def run_command(shell_script, python_path, script_dir, params):
     """
     Function to submit jobs on a slurm system
+
     Args:
         shell_script: Name of shell script to run
+
         python_path: Path to python version
+
         script_dir: Directory where script lives
+
         params: parameters in dictionary format
+
     Returns:
         None
 
@@ -71,14 +81,13 @@ def gen_maestro_command(python_path, script_dir, params):
 def run_cmd(cmd):
     """
     Function to submit a job using subprocess
-    
+
     Args:
-        
         cmd: Command to run
 
     Returns:
-        
         output: Output of command
+
     """
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
     (output, err) = p.communicate()
@@ -88,44 +97,45 @@ def run_cmd(cmd):
 
 def reformat_filter_dict(filter_dict):
     """
-    Function to reformat a filter dictionary to match the Model Tracker metadata structure. May be obsolete for updated
-    model tracker.
-    
+    Function to reformat a filter dictionary to match the Model Tracker metadata structure. Updated 9/2020 by A. Paulson
+    for new LC model tracker.
+
     Args:
-        
         filter_dict: Dictionary containing metadata for model of interest
 
     Returns:
-        
         new_filter_dict: Filter dict reformatted
 
     """
-    rename_dict = {'ModelMetadata.ModelParameters':
-                       {'featurizer', 'model_choice_score_type', 'model_dataset_oid', 'model_type',
-                        'num_model_tasks', 'prediction_type', 'transformer_bucket', 'transformer_key',
+    rename_dict = {'model_parameters':
+                       {'dependencies', 'featurizer', 'git_hash_code','model_bucket', 'model_choice_score_type',
+                        'model_dataset_oid','model_type', 'num_model_tasks', 'prediction_type', 'save_results',
+                        'system', 'task_type', 'time_generated', 'transformer_bucket', 'transformer_key',
                         'transformer_oid', 'transformers', 'uncertainty'},
-                   'ModelMetadata.SplittingParameters.Splitting':
-                       {'num_folds', 'split_strategy', 'split_test_frac', 'split_uuid', 'split_valid_frac', 'splitter'},
-                   'ModelMetadata.TrainingDataset':
-                       {'dataset_key', 'dataset_bucket', 'dataset_oid', 'num_classes',
-                        'feature_transform_type', 'response_transform_type', 'id_col', 'smiles_col', 'response_cols'},
-                   'ModelMetadata.UmapSpecific':
-                       {'umap_dim', 'umap_metric', 'umap_targ_wt', 'umap_neighbors', 'umap_min_dist'}}
+               'splitting_parameters':
+                       {'base_splitter', 'butina_cutoff', 'cutoff_date', 'date_col','num_folds', 'split_strategy',
+                        'split_test_frac', 'split_uuid', 'split_valid_frac', 'splitter'},
+               'training_dataset':
+                       {'bucket', 'dataset_key', 'dataset_oid', 'num_classes','feature_transform_type',
+                        'response_transform_type', 'id_col', 'smiles_col', 'response_cols'},
+               'umap_specific':
+                       {'umap_dim', 'umap_metric', 'umap_min_dist', 'umap_neighbors','umap_targ_wt'}
+              }
     if filter_dict['model_type'] == 'NN':
-        rename_dict['ModelMetadata.NNSpecific'] = {
-                'batch_size', 'bias_init_consts', 'dropouts', 'layer_sizes', 'learning_rate', 'max_epochs', 'optimizer_type', 'weight_init_stddevs'}
-        # Need to omit baseline_epoch because we hadn't been saving it in the model metadata
+        rename_dict['nn_specific'] = {'baseline_epoch', 'batch_size', 'best_epoch', 'bias_init_consts','dropouts',
+                                      'layer_sizes', 'learning_rate', 'max_epochs','optimizer_type', 'weight_decay_penalty',
+                                      'weight_decay_penalty_type', 'weight_init_stddevs'}
     elif filter_dict['model_type'] == 'RF':
-        rename_dict['ModelMetadata.RFSpecific'] = {'rf_estimators', 'rf_max_features'}
+        rename_dict['rf_specific'] = {'rf_estimators', 'rf_max_depth', 'rf_max_features'}
     elif filter_dict['model_type'] == 'xgboost':
-        rename_dict['ModelMetadata.xgboostSpecific'] = {'xgb_learning_rate',
-                                                        'xgb_gamma'}
+        rename_dict['xgb_specific'] = {'xgb_colsample_bytree', 'xgb_gamma', 'xgb_learning_rate','xgb_max_depth',
+                               'xgb_min_child_weight', 'xgb_n_estimators','xgb_subsample'}
     if filter_dict['featurizer'] == 'ecfp':
-        rename_dict['ModelMetadata.ECFPSpecific'] = {'ecfp_radius', 'ecfp_size'}
-    elif filter_dict['featurizer'] == 'descriptor':
-        rename_dict['ModelMetadata.DescriptorSpecific'] = {'descriptor_key', 'descriptor_bucket', 'descriptor_oid', 'descriptor_type'}
+        rename_dict['ecfp_specific'] = {'ecfp_radius', 'ecfp_size'}
+    elif (filter_dict['featurizer'] == 'descriptor') | (filter_dict['featurizer'] == 'computed_descriptors'):
+        rename_dict['descriptor_specific'] = {'descriptor_key', 'descriptor_bucket', 'descriptor_oid', 'descriptor_type'}
     elif filter_dict['featurizer'] == 'molvae':
-        rename_dict['ModelMetadata.AutoencoderSpecific'] = {'autoencoder_model_key', 'autoencoder_model_bucket', 'autoencoder_model_oid', 'autoencoder_type'}
+        rename_dict['autoencoder_specific'] = {'autoencoder_model_key', 'autoencoder_model_bucket', 'autoencoder_model_oid', 'autoencoder_type'}
     new_filter_dict = {}
     for key, values in rename_dict.items():
         for value in values:
@@ -158,18 +168,19 @@ def permutate_NNlayer_combo_params(layer_nums, node_nums, dropout_list, max_fina
     Example:
     permutate_NNlayer_combo_params([2], [4,8,8], [0], 16)
     returns [[8, 8], [8, 4]] [[0,0],[0,0]]
-    
+
     Args:
         layer_nums: specify numbers of layers.
-        
+
         node_nums: specify numbers of nodes per layer.
-        
+
         dropout_list: specify the dropouts.
-        
+
         max_last_layer_size: sets the max size of the last layer. It will be set to the smallest node_num if needed.
-        
+
     Returns:
         layer_sizes, dropouts: the layer sizes and dropouts generated based on the input parameters
+
     """
     import itertools
     import numpy as np
@@ -180,7 +191,7 @@ def permutate_NNlayer_combo_params(layer_nums, node_nums, dropout_list, max_fina
     # set to the smallest node_num in the provided list, if necessary.
     if node_nums[-1] > max_final_layer_size:
         max_final_layer_size = node_nums[-1]
-        
+
     for dropout in dropout_list:
         _repeated_layers =[]
         for layer_num in layer_nums:
@@ -196,12 +207,11 @@ def permutate_NNlayer_combo_params(layer_nums, node_nums, dropout_list, max_fina
 def get_num_params(combo):
     """
     Calculates the number of parameters in a fully-connected neural networ
+
     Args:
-        
         combo: Model parameters
 
     Returns:
-        
         tmp_sum: Calculated number of parameters
 
     """
@@ -234,11 +244,11 @@ class HyperparameterSearch(object):
     """
     def __init__(self, params):
         """
-        
+
         Args:
-            
+
             params: The input hyperparameter parameters
-            
+
             hyperparam_uuid: Optional, UUID for hyperparameter run if you want to group this run with a previous run.
             We ended up mainly doing this via collections, so not really used
         """
@@ -297,10 +307,31 @@ class HyperparameterSearch(object):
             os.makedirs(slurm_path)
         self.shell_script = os.path.join(self.params.result_dir, 'run.sh')
         with open(self.shell_script, 'w') as f:
-            hostname = ''.join(list(filter(lambda x: x.isalpha(), socket.gethostname())))
-            f.write("#!/bin/bash\n#SBATCH -A {2}\n#SBATCH -N 1\n#SBATCH -p partition={0}\n#SBATCH -t {4}"
-                    "\n#SBATCH -p {3}\n#SBATCH --export=ALL\n#SBATCH -D {1}\n".format(hostname, slurm_path,
-                    self.params.lc_account, self.params.slurm_partition, self.params.slurm_time_limit))
+            f.write("#!/bin/bash\n")
+
+            f.write("#SBATCH -D {0}\n".format(slurm_path))
+
+            # If any of these properties == None, that property is not set
+            if self.params.slurm_account:
+                f.write("#SBATCH -A {0}\n".format(self.params.slurm_account))
+            elif self.params.lc_account:
+                f.write("#SBATCH -A {0}\n".format(self.params.lc_account))
+
+            if self.params.slurm_export:
+                f.write("#SBATCH --export={0}\n".format(self.params.slurm_export))
+
+            if self.params.slurm_nodes:
+                f.write("#SBATCH -N {0}\n".format(self.params.slurm_nodes))
+
+            if self.params.slurm_partition:
+                f.write("#SBATCH -p {0}\n".format(self.params.slurm_partition))
+
+            if self.params.slurm_time_limit:
+                f.write("#SBATCH -t {0}\n".format(self.params.slurm_time_limit))
+
+            if self.params.slurm_options:
+                f.write('{0}\n'.format(self.params.slurm_options))
+
             f.write('start=`date +%s`\necho $3\n$1 $2/pipeline/model_pipeline.py $3\nend=`date +%s`\n'
                     'runtime=$((end-start))\necho "runtime: " $runtime')
 
@@ -309,7 +340,6 @@ class HyperparameterSearch(object):
         Performs additional parsing of parameters and generates all combinations
 
         Returns:
-
             None
 
         """
@@ -341,44 +371,86 @@ class HyperparameterSearch(object):
             self.params.model_type = [self.params.model_type]
         if type(self.params.featurizer) == str:
             self.params.featurizer = [self.params.featurizer]
+        if type(self.params.descriptor_type) == str:
+            self.params.descriptor_type = [self.params.descriptor_type]
+
         for model_type in self.params.model_type:
             if model_type == 'NN':
                 # if the model type is NN, loops through the featurizer to check for GraphConv.
                 for featurizer in self.params.featurizer:
-                    subcombo = {k: val for k, val in self.hyperparams.items() if k in
-                                self.hyperparam_keys - self.rf_specific_keys - self.xgboost_specific_keys}
-                    # could put in list
-                    subcombo['model_type'] = [model_type]
-                    subcombo['featurizer'] = [featurizer]
-                    self.param_combos.extend(self.generate_combos(subcombo))
+                    if featurizer == 'computed_descriptors':
+                        for desc in self.params.descriptor_type:
+                            subcombo = {k: val for k, val in self.hyperparams.items() if k in
+                                        self.hyperparam_keys - self.rf_specific_keys - self.xgboost_specific_keys}
+                            # could put in list
+                            subcombo['model_type'] = [model_type]
+                            subcombo['featurizer'] = [featurizer]
+                            subcombo['descriptor_type'] = [desc]
+                            self.param_combos.extend(self.generate_combos(subcombo))
+                    else:
+                        subcombo = {k: val for k, val in self.hyperparams.items() if k in
+                                    self.hyperparam_keys - self.rf_specific_keys - self.xgboost_specific_keys}
+                        # could put in list
+                        subcombo['model_type'] = [model_type]
+                        subcombo['featurizer'] = [featurizer]
+                        subcombo['descriptor_type'] = ['moe']
+                        if (featurizer == 'graphconv') & (self.params.prediction_type=='classification'):
+                            subcombo['uncertainty'] = [False]
+                            
+                        self.param_combos.extend(self.generate_combos(subcombo))
             elif model_type == 'RF':
                 for featurizer in self.params.featurizer:
                     if featurizer == 'graphconv':
                         continue
-                    # Adds the subcombo for RF
-                    subcombo = {k: val for k, val in self.hyperparams.items() if k in
-                                self.hyperparam_keys - self.nn_specific_keys - self.xgboost_specific_keys}
-                    subcombo['model_type'] = [model_type]
-                    subcombo['featurizer'] = [featurizer]
-                    self.param_combos.extend(self.generate_combos(subcombo))
+                    elif featurizer == 'computed_descriptors':
+                        for desc in self.params.descriptor_type:
+                            # Adds the subcombo for RF
+                            subcombo = {k: val for k, val in self.hyperparams.items() if k in
+                                        self.hyperparam_keys - self.nn_specific_keys - self.xgboost_specific_keys}
+                            subcombo['model_type'] = [model_type]
+                            subcombo['featurizer'] = [featurizer]
+                            subcombo['descriptor_type'] = [desc]
+                            self.param_combos.extend(self.generate_combos(subcombo))
+                    else:
+                        # Adds the subcombo for RF
+                        subcombo = {k: val for k, val in self.hyperparams.items() if k in
+                                    self.hyperparam_keys - self.nn_specific_keys - self.xgboost_specific_keys}
+                        subcombo['model_type'] = [model_type]
+                        subcombo['featurizer'] = [featurizer]
+                        subcombo['descriptor_type'] = ['moe']
+
+                        self.param_combos.extend(self.generate_combos(subcombo))
             elif model_type == 'xgboost':
                 for featurizer in self.params.featurizer:
                     if featurizer == 'graphconv':
                         continue
-                    # Adds the subcombo for xgboost
-                    subcombo = {k: val for k, val in self.hyperparams.items() if k in
-                                self.hyperparam_keys - self.nn_specific_keys - self.rf_specific_keys}
-                    subcombo['model_type'] = [model_type]
-                    subcombo['featurizer'] = [featurizer]
-                    self.param_combos.extend(self.generate_combos(subcombo))
+                    elif featurizer == 'computed_descriptors':
+                        for desc in self.params.descriptor_type:
+                            # Adds the subcombo for xgboost
+                            subcombo = {k: val for k, val in self.hyperparams.items() if k in
+                                        self.hyperparam_keys - self.nn_specific_keys - self.rf_specific_keys}
+                            subcombo['model_type'] = [model_type]
+                            subcombo['featurizer'] = [featurizer]
+                            subcombo['descriptor_type'] = [desc]
+                            self.param_combos.extend(self.generate_combos(subcombo))
+                    else:
+                        # Adds the subcombo for xgboost
+                        subcombo = {k: val for k, val in self.hyperparams.items() if k in
+                                    self.hyperparam_keys - self.nn_specific_keys - self.rf_specific_keys}
+                        subcombo['model_type'] = [model_type]
+                        subcombo['featurizer'] = [featurizer]
+                        subcombo['descriptor_type'] = ['moe']
+                        self.param_combos.extend(self.generate_combos(subcombo))
 
     def generate_combos(self, params_dict):
         """
         Calls sub-function generate_combo and then uses itertools.product to generate all desired combinations
+
         Args:
             params_dict:
 
         Returns:
+            None
 
         """
         new_dict = self.generate_combo(params_dict)
@@ -395,9 +467,10 @@ class HyperparameterSearch(object):
     def assemble_layers(self):
         """
         Reformats layer parameters
-        
+
         Returns:
             None
+
         """
         tmp_list = []
         for i in range(min([len(x) for x in list(self.layers.values())])):
@@ -416,7 +489,9 @@ class HyperparameterSearch(object):
     def generate_assay_list(self):
         """
         Generates the list of datasets to build models for, with their key, bucket, split, and split uuid
+
         Returns:
+           None
 
         """
         # Creates the assay list with additional options for use_shortlist
@@ -429,23 +504,23 @@ class HyperparameterSearch(object):
             for splitter in splitters:
                 if 'previously_split' in self.params.__dict__.keys() and 'split_uuid' in self.params.__dict__.keys() \
                     and self.params.previously_split and self.params.split_uuid is not None:
-                    self.assays.append((self.params.dataset_key, self.params.bucket, splitter, self.params.split_uuid))
+                    self.assays.append((self.params.dataset_key, self.params.bucket, self.params.response_cols, self.params.collection_name, self.params.splitter, self.params.split_uuid))
                 else:
                     try:
                         split_uuid = self.return_split_uuid(self.params.dataset_key, splitter=splitter)
-                        self.assays.append((self.params.dataset_key, self.params.bucket, splitter, split_uuid))
+                        self.assays.append((self.params.dataset_key, self.params.bucket, self.params.response_cols, self.params.collection_name, splitter, split_uuid))
                     except Exception as e:
                         print(e)
                         print(traceback.print_exc())
                         sys.exit(1)
         else:
             self.assays = self.get_shortlist_df(split_uuids=True)
-        self.assays = [(t[0].strip(), t[1].strip(), t[2].strip(), t[3].strip()) for t in self.assays]
+        self.assays = [(t[0].strip(), t[1].strip(), t[2], t[3].strip(), t[4].strip(), t[5].strip()) for t in self.assays]
 
     def get_dataset_metadata(self, assay_params, retry_time=60):
         """
         Gather the required metadata for a dataset
-        
+
         Args:
             assay_params: dataset metadata
 
@@ -496,7 +571,7 @@ class HyperparameterSearch(object):
     def split_and_save_dataset(self, assay_params):
         """
         Splits a given dataset, saves it, and sets the split_uuid in the metadata
-        
+
         Args:
             assay_params: Dataset metadata
 
@@ -519,6 +594,7 @@ class HyperparameterSearch(object):
     def return_split_uuid(self, dataset_key, bucket=None, splitter=None, split_combo=None, retry_time=60):
         """
         Loads a dataset, splits it, saves it, and returns the split_uuid
+
         Args:
             dataset_key: key for dataset to split
             bucket: datastore-specific user group bucket
@@ -526,6 +602,7 @@ class HyperparameterSearch(object):
             split_combo: tuple of form (split_valid_frac, split_test_frac)
 
         Returns:
+            None
 
         """
         if bucket is None:
@@ -605,13 +682,71 @@ class HyperparameterSearch(object):
                     print("Could not save split dataset for dataset %s because of exception %s" % (dataset_key, e))
                     return None
 
+    def return_split_uuid_file(self, dataset_key, response_cols, bucket=None, splitter=None, split_combo=None, retry_time=60):
+        """
+        Loads a dataset, splits it, saves it, and returns the split_uuid.
+
+        Args:
+            dataset_key: key for dataset to split
+
+            bucket: datastore-specific user group bucket
+
+            splitter: Type of splitter to use to split the dataset
+
+            split_combo: tuple of form (split_valid_frac, split_test_frac)
+
+        Returns:
+            None
+
+        """
+        
+        if bucket is None:
+            bucket = self.params.bucket
+        if splitter is None:
+            splitter=self.params.splitter
+        if split_combo is None:
+            split_valid_frac = self.params.split_valid_frac
+            split_test_frac = self.params.split_test_frac
+        else:
+            split_valid_frac = split_combo[0]
+            split_test_frac = split_combo[1]
+        
+        assay_params = {'dataset_key': dataset_key, 'bucket': bucket, 'splitter': splitter,
+                        'split_valid_frac': split_valid_frac, 'split_test_frac': split_test_frac}
+        if 'id_col' in self.params.__dict__.keys():
+            assay_params['id_col']=self.params.id_col
+        if 'smiles_col' in self.params.__dict__.keys():
+            assay_params['smiles_col']=self.params.smiles_col
+        if isinstance(response_cols, list):
+            assay_params['response_cols']=",".join(response_cols)
+        elif isinstance(response_cols,str):
+            assay_params['response_cols']=response_cols
+            
+        assay_params['dataset_name'] = assay_params['dataset_key'].split('/')[-1].replace('.csv','')
+        # use ecfp b/c it's fast and doesn't save anything to file system
+        assay_params['featurizer'] = 'ecfp'
+        assay_params['previously_featurized'] = False
+        assay_params['datastore'] = False
+        
+        namespace_params = parse.wrapper(assay_params)
+        # TODO: Don't want to recreate each time
+        featurization = feat.create_featurization(namespace_params)
+        data = model_datasets.create_model_dataset(namespace_params, featurization)
+        
+        data.get_featurized_data()
+        data.split_dataset()
+        data.save_split_dataset()
+        return data.split_uuid
+            
+    
     def generate_split_shortlist(self, retry_time=60):
         """
         Processes a shortlist, generates splits for each dataset on the list, and uploads a new shortlist file with the
         split_uuids included. Generates splits for the split_combos [[0.1,0.1], [0.1,0.2],[0.2,0.2]], [random, scaffold]
-        
+
         Returns:
             None
+
         """
         retry = True
         i = 0
@@ -633,10 +768,10 @@ class HyperparameterSearch(object):
 
         datasets = self.get_shortlist_df()
         rows = []
-        for assay, bucket in datasets:
-            split_uuids = {'dataset_key': assay, 'bucket': bucket}
+        for assay, bucket, response_cols, collection in datasets:
+            split_uuids = {'dataset_key': assay, 'bucket': bucket, 'response_cols':response_cols, 'collection':collection}
             for splitter in ['random', 'scaffold']:
-                for split_combo in [[0.1,0.1], [0.1,0.2],[0.2,0.2]]:
+                for split_combo in [[0.1,0.1], [0.15,0.15],[0.1,0.2],[0.2,0.2]]:
                     split_name = "%s_%d_%d" % (splitter, split_combo[0]*100, split_combo[1]*100)
                     try:
                         split_uuids[split_name] = self.return_split_uuid(assay, bucket, splitter, split_combo)
@@ -673,10 +808,40 @@ class HyperparameterSearch(object):
                     #TODO: Add save to disk.
                     print("Could not save new shortlist because of exception %s, exiting" % e)
                     retry = False
+    
+    def generate_split_shortlist_file(self):
+        """
+        Processes a shortlist, generates splits for each dataset on the list, and uploads a new shortlist file with the
+        split_uuids included. Generates splits for the split_combos [[0.1,0.1], [0.15,0.15], [0.1,0.2], [0.2,0.2]], [random, scaffold]
+
+        Returns:
+            None
+
+        """
+
+        datasets = self.get_shortlist_df()
+        rows = []
+        for assay, bucket, response_cols, collection in datasets:
+            split_uuids = {'dataset_key': assay, 'bucket': bucket, 'response_cols':response_cols, 'collection':collection}
+            for splitter in ['random', 'scaffold']:
+                for split_combo in [[0.1,0.1], [0.15,0.15],[0.1,0.2],[0.2,0.2]]:
+                    split_name = "%s_%d_%d" % (splitter, split_combo[0]*100, split_combo[1]*100)
+                    try:
+                        split_uuids[split_name] = self.return_split_uuid_file(assay, response_cols, bucket, splitter, split_combo)
+                    except Exception as e:
+                        print(e)
+                        print("Splitting failed for dataset %s" % assay)
+                        split_uuids[split_name] = None
+                        continue
+            rows.append(split_uuids)
+        df = pd.DataFrame(rows)
+        fname = self.params.shortlist_key.replace('.csv','_with_uuids.csv')
+        df.to_csv(fname, index=False)
+        
 
     def get_shortlist_df(self, split_uuids=False, retry_time=60):
         """
-        
+
         Args:
             split_uuids: Boolean value saying if you want just datasets returned or the split_uuids as well
 
@@ -713,12 +878,22 @@ class HyperparameterSearch(object):
                 col_name = 'dataset_key'
             assays = df[col_name].values.tolist()
         if 'bucket' in df.columns:
-            datasets = list(zip(assays, df.bucket.values.tolist()))
+            buckets = df['bucket'].values.tolist()
         elif 'bucket_name' in df.columns:
-            datasets = list(zip(assays, df.bucket_name.values.tolist()))
+            buckets = df['bucket_name'].values.tolist()
         else:
-            datasets = list(zip(assays, [self.params.bucket]))
-        datasets = [(d[0].strip(), d[1].strip()) for d in datasets]
+            buckets=[self.params.bucket]*len(df)
+        if 'response_cols' in df.columns:
+            responses= df.response_cols.str.split(',').tolist()
+        else:
+            responses=[self.params.response_cols]*len(df)
+        if 'collection' in df.columns:
+            collections=df.collection.values.tolist()
+        else:
+            collections=[self.params.collection_name]*len(df)
+        datasets=list(zip(assays,buckets,responses,collections))
+        datasets = [(d[0].strip(), d[1].strip(), ",".join(d[2]), d[3].strip()) for d in datasets]
+            
         if not split_uuids:
             return datasets
         if type(self.params.splitter) == str:
@@ -730,13 +905,20 @@ class HyperparameterSearch(object):
             split_name = '%s_%d_%d' % (splitter, self.params.split_valid_frac*100, self.params.split_test_frac*100)
             if split_name in df.columns:
                 for i, row in df.iterrows():
-                    assays.append((datasets[i][0], datasets[i][1], splitter, row[split_name]))
+                    try:
+                        assays.append((datasets[i][0], datasets[i][1], datasets[i][2], datasets[i][3], splitter, row[split_name]))
+                    except:
+                        print("dataset_key, bucket, response_cols, & collecion_name must be specified in shortlist or config file, not neither.")
             else:
-                for assay, bucket in datasets:
+                print(f"Warning: {split_name} not found in shortlist. Creating default split scaffold_10_10 now.")
+                for assay, bucket, response_cols, collection in datasets:
                     try:
                     # do we want to move this into loop so we ignore ones it failed for?
-                        split_uuid = self.return_split_uuid(assay, bucket)
-                        assays.append((assay, bucket, splitter, split_uuid))
+                        if self.params.datastore:
+                            split_uuid = self.return_split_uuid(assay, bucket)
+                        else:
+                            split_uuid = self.return_split_uuid_file(assay, response_cols, bucket)
+                        assays.append((assay, bucket, response_cols, collection, splitter, split_uuid))
                     except Exception as e:
                         print("Splitting failed for dataset %s, skipping..." % assay)
                         print(e)
@@ -751,17 +933,21 @@ class HyperparameterSearch(object):
 
         Returns:
             None
+
         """
         result_assay_params = []
-        for assay, bucket, splitter, split_uuid in self.assays:
+        for assay, bucket, response_cols, collection, splitter, split_uuid in self.assays:
             # Writes the series of command line arguments for scripts without a hyperparameter combo
             assay_params = copy.deepcopy(self.new_params)
             assay_params['dataset_key'] = assay
             assay_params['dataset_name'] = os.path.splitext(os.path.basename(assay))[0]
             assay_params['bucket'] = bucket
+            assay_params['response_cols'] = response_cols
+            assay_params['collection_name'] = collection
             assay_params['split_uuid'] = split_uuid
             assay_params['previously_split'] = True
             assay_params['splitter'] = splitter
+            print(f"prediction_type: {assay_params['prediction_type']}")
             try:
                 self.get_dataset_metadata(assay_params)
             except Exception as e:
@@ -831,11 +1017,13 @@ class HyperparameterSearch(object):
     def already_run(self, assay_params, retry_time=10):
         """
         Checks to see if a model with a given metadata combination has already been built
+
         Args:
             assay_params: model metadata information
 
         Returns:
             Boolean specifying if model has been previously built
+
         """
         if not self.params.save_results:
             return False
@@ -874,7 +1062,9 @@ class HyperparameterSearch(object):
     def run_search(self):
         """
         The driver code for generating hyperparameter combinations and submitting jobs
+
         Returns:
+            None
 
         """
         job_list = self.generate_searches()
@@ -882,6 +1072,19 @@ class HyperparameterSearch(object):
         self.submit_jobs(job_list)
 
     def generate_searches(self):
+        """Generate a list of training jobs
+
+        Generates a list of model training jobs that spans
+        the hyperparameter search space. This function
+        filters out jobs that are redundant by calling filter_jobs
+
+        Args:
+            None
+
+        Returns:
+            list(tuple): A list of tuples that contain assay parameters
+        """
+
         print("Generating param combos") 
         self.generate_param_combos()
         print("Generating assay list")
@@ -894,6 +1097,18 @@ class HyperparameterSearch(object):
         return job_list
 
     def generate_maestro_commands(self):
+        """Generates commands that can be used by maestro
+
+        Generates a list of commands that can be put directly into
+        the shell to run model training.
+
+        Args:
+            None
+
+        Returns:
+            list: A list of shell commands
+        """
+
         job_list = self.generate_searches()
         commands = []
         for assay_params in job_list:
@@ -920,13 +1135,14 @@ class GridSearch(HyperparameterSearch):
     def generate_combo(self, params_dict):
         """
         Method to generate all combinations from a given set of key-value pairs
-        
+
         Args:
             params_dict: Set of key-value pairs with the key being the param name and the value being the list of values
             you want to try for that param
-        
+
         Returns:
             new_dict: The list of all combinations of parameters
+
         """
         if not params_dict:
             return None
@@ -973,6 +1189,7 @@ class RandomSearch(HyperparameterSearch):
 
         Returns:
             new_dict: The list of all combinations of parameters
+
         """
         if not params_dict:
             return None
@@ -995,7 +1212,7 @@ class GeometricSearch(HyperparameterSearch):
     """
     Generates parameter values in logistic steps, rather than linear like GridSearch does
     """
-    
+
     def __init__(self, params):
         super().__init__(params)
 
@@ -1011,13 +1228,14 @@ class GeometricSearch(HyperparameterSearch):
     def generate_combo(self, params_dict):
         """
         Method to generate all combinations from a given set of key-value pairs
-        
+
         Args:
             params_dict: Set of key-value pairs with the key being the param name and the value being the list of values
             you want to try for that param
-        
+
         Returns:
             new_dict: The list of all combinations of parameters
+
         """
         if not params_dict:
             return None
@@ -1041,7 +1259,7 @@ class UserSpecifiedSearch(HyperparameterSearch):
     """
     Generates combinations using the user-specified steps
     """
-    
+
     def __init__(self, params):
         super().__init__(params)
 
@@ -1057,15 +1275,16 @@ class UserSpecifiedSearch(HyperparameterSearch):
     def generate_combo(self, params_dict):
         """
         Method to generate all combinations from a given set of key-value pairs
-        
+
         Args:
             params_dict: Set of key-value pairs with the key being the param name and the value being the list of values
             you want to try for that param
-        
+
         Returns:
             new_dict: The list of all combinations of parameters
+
         """
-        
+
         if not params_dict:
             return None
         new_dict = {}
@@ -1081,27 +1300,381 @@ class UserSpecifiedSearch(HyperparameterSearch):
                 new_dict[key] = value
         return new_dict
 
+def build_hyperopt_search_domain(label, method, param_list):
+    """
+    Generate HyperOpt search domain object from method and parameters, layer_nums is only for NN models.
+    This function is used by the HyperOptSearch class, not intended for standalone usage.
+    """
+    if method == "choice":
+        return hp.choice(label, param_list)
+    elif method == "uniform":
+        return hp.uniform(label, param_list[0], param_list[1])
+    elif method == "loguniform":
+        return hp.loguniform(label, param_list[0], param_list[1])
+    elif method == "uniformint":
+        return hp.uniformint(label, param_list[0], param_list[1])
+    else:
+        raise Exception(f"Method {method} is not supported, choose from 'choice, uniform, loguniform, uniformint'.")
+
+class HyperOptSearch():
+    """
+    Perform hyperparameter search with Bayesian Optmization (Tree Parzen Estimator)
+
+    To use HyperOptSearch, modify the config json file as follows:
+
+        serach_type: use "hyperopt"
+        result_dir: use two directories (recommended), separated by comma, 1st one will be used to save the best model tarball, 2nd one will be used to store all models during the process.  e.g. "result_dir": "/path/of/the/final/dir,/path/of/the/temp/dir"
+        model_type: RF or NN, also add max number of HyperOptSearch evaluations, e.g. "model_type": "RF|100".  If no max number provide, the default 100 will be used.  #For NN models only
+        lr: specify learning rate searching method and related parameters as the following scheme.
+            method|parameter1,parameter2...
+            method: supported searching schemes in HyperOpt include: choice, uniform, loguniform, and uniformint, see https://github.com/hyperopt/hyperopt/wiki/FMin for details.
+            parameters:
+                choice: all values to search from, separated by comma, e.g. choice|0.0001,0.0005,0.0002,0.001
+                uniform: low and high bound of the interval to serach, e.g. uniform|0.00001,0.001
+                loguniform: low and high bound (in natural log) of the interval to serach, e.g. loguniform|-13.8,-6.9
+                uniformint: low and high bound of the interval to serach, e.g. uniformint|8,256
+        ls: similar as learning_rate, specify number of layers and size of each one.
+            method|num_layers|parameter1,parameter2...
+            e.g. choice|2|8,16,32,64,128,256,512  #this will generate a two-layer config, each layer takes size from the list "8,16,32,64,128,256,512"
+            e.g. uniformint|3|8,512  #this will generate a three-layer config, each layer takes size from the uniform interval [8,512]
+        dp: similar as layer_sizes, just make sure dropouts and layer_sizes should have the same number of layers.
+            e.g. uniform|3|0,0.4   #this will generate a three-layer config, each layer takes size from the uniform interval [0,0.4]
+
+        #For RF models only
+        rfe: rf_estimator, same structure as the learning rate above, e.g. uniformint|64,512  #take integer values from a uniform interval [64,512]
+        rfd: rf_max_depth, e.g. uniformint|8,256
+        rff: rf_max_feature, e.g. uniformint|8,128
+    """
+    def __init__(self, params):
+        self.params = params
+        #separate temp output dir and final output dir
+        result_dir_list = params.result_dir.split(",")
+        if len(result_dir_list) > 1:
+            self.params.result_dir = result_dir_list[1]
+            self.final_dir = result_dir_list[0]
+        else:
+            self.params.result_dir = result_dir_list[0]
+            self.final_dir = result_dir_list[0]
+
+        if len(self.params.model_type.split("|")) > 1:
+            self.max_eval = int(self.params.model_type.split("|")[1])
+            self.params.model_type = self.params.model_type.split("|")[0]
+        else:
+            self.max_eval = 100
+
+        #define the searching space
+        self.space = {}
+        if isinstance(self.params.featurizer, list):
+            self.space["featurizer"] = build_hyperopt_search_domain("featurizer", "choice", self.params.featurizer)
+        if isinstance(self.params.descriptor_type, list):
+            self.space["descriptor_type"] = build_hyperopt_search_domain("descriptor_type", "choice", self.params.descriptor_type)
+        if self.params.model_type == "RF":
+            #build searching domain for RF parameters
+            if self.params.rfe:
+                domain_list = self.params.rfe.split("|")
+                method = domain_list[0]
+                par_list = [float(e) for e in domain_list[1].split(",")]
+                self.space["rf_estimators"] = build_hyperopt_search_domain("rf_estimators", method, par_list)
+
+            if self.params.rfd:
+                domain_list = self.params.rfd.split("|")
+                method = domain_list[0]
+                par_list = [float(e) for e in domain_list[1].split(",")]
+                self.space["rf_max_depth"] = build_hyperopt_search_domain("rf_max_depth", method, par_list)
+
+            if self.params.rff:
+                domain_list = self.params.rff.split("|")
+                method = domain_list[0]
+                par_list = [float(e) for e in domain_list[1].split(",")]
+                self.space["rf_max_features"] = build_hyperopt_search_domain("rf_max_features", method, par_list)
+        elif self.params.model_type == "NN":
+            #build searching domain for NN parameters
+            if self.params.lr:
+                domain_list = self.params.lr.split("|")
+                method = domain_list[0]
+                par_list = [float(e) for e in domain_list[1].split(",")]
+                self.space["learning_rate"] = build_hyperopt_search_domain("learning_rate", method, par_list)
+
+            # for layer sizes, use a different method if the ls_ratio is provided
+            if self.params.ls:
+                domain_list = self.params.ls.split("|")
+                method = domain_list[0]
+                num_layer = int(domain_list[1])
+                par_list = [float(e) for e in domain_list[2].split(",")]
+                if not self.params.ls_ratio:
+                    for i in range(num_layer):
+                        self.space[f"ls{i}"] = build_hyperopt_search_domain(f"ls{i}", method, par_list)
+                else:
+                    self.space["ls"] = build_hyperopt_search_domain("ls", method, par_list)
+                    domain_list = self.params.ls_ratio.split("|")
+                    method = domain_list[0]
+                    par_list = [float(e) for e in domain_list[-1].split(",")]
+                    for i in range(1,num_layer):
+                        self.space[f"ratio{i}"] = build_hyperopt_search_domain(f"ratio{i}", method, par_list)
+
+            if self.params.dp:
+                domain_list = self.params.dp.split("|")
+                method = domain_list[0]
+                num_layer = int(domain_list[1])
+                par_list = [float(e) for e in domain_list[2].split(",")]
+                for i in range(num_layer):
+                    self.space[f"dp{i}"] = build_hyperopt_search_domain(f"dp{i}", method, par_list)
+        elif self.params.model_type == "xgboost":
+            #build searching domain for XGBoost parameters
+            if self.params.xgbg:
+                domain_list = self.params.xgbg.split("|")
+                method = domain_list[0]
+                par_list = [float(e) for e in domain_list[1].split(",")]
+                self.space["xgbg"] = build_hyperopt_search_domain("xgbg", method, par_list)
+
+            if self.params.xgbl:
+                domain_list = self.params.xgbl.split("|")
+                method = domain_list[0]
+                par_list = [float(e) for e in domain_list[1].split(",")]
+                self.space["xgbl"] = build_hyperopt_search_domain("xgbl", method, par_list)
+
+
+    def run_search(self):
+        #name of the results
+        feat = "_".join(self.params.featurizer) if isinstance(self.params.featurizer, list) else self.params.featurizer
+        desc = "_".join(self.params.descriptor_type) if isinstance(self.params.descriptor_type, list) else self.params.descriptor_type
+        if "_" not in feat or feat in ["computed_descriptors", "descriptors"]:
+            fd = feat if feat in ["graphconv", "ecfp"] else desc
+        else:
+            fd = f"{feat}_{desc}"
+
+        def lossfn(p):
+            if "featurizer" in p:
+                self.params.featurizer = p["featurizer"]
+
+            if "descriptor_type" in p:
+                self.params.descriptor_type = p["descriptor_type"]
+
+            if self.params.model_type == "RF":
+                if self.params.rfe:
+                    self.params.rf_estimators =  p["rf_estimators"]
+                if self.params.rfd:
+                    self.params.rf_max_depth = p["rf_max_depth"]
+                if self.params.rff:
+                    self.params.rf_max_features = p["rf_max_features"]
+                hp_params = f'{self.params.rf_estimators}_{self.params.rf_max_depth}_{self.params.rf_max_features}'
+                print(f'rf_estimators: {self.params.rf_estimators}, rf_max_depth: {self.params.rf_max_depth}, rf_max_feature: {self.params.rf_max_features}')
+            elif self.params.model_type == "NN":
+                if self.params.lr:
+                    self.params.learning_rate = p["learning_rate"]
+                if self.params.dp:
+                    self.params.dropouts = ",".join([str(p[e]) for e in p if e[:2] == "dp"])
+                if self.params.ls:
+                    if not self.params.ls_ratio:
+                        self.params.layer_sizes = ",".join([str(p[e]) for e in p if e[:2] == "ls"])
+                    else:
+                        list_layer_sizes = [p["ls"]]
+                        for i in range(1,len([e for e in p if e[:5] == "ratio"])+1):
+                            list_layer_sizes.append(int(list_layer_sizes[-1] * p[f"ratio{i}"]))
+                        self.params.layer_sizes = ",".join([str(e) for e in list_layer_sizes])
+                hp_params = f'{self.params.learning_rate}_{self.params.layer_sizes}_{self.params.dropouts}'
+                print(f"learning_rate: {self.params.learning_rate}, layer_sizes: {self.params.layer_sizes}, dropouts: {self.params.dropouts}")
+            elif self.params.model_type == "xgboost":
+                if self.params.xgbg:
+                    self.params.xgb_gamma = p["xgbg"]
+                if self.params.xgbl:
+                    self.params.xgb_learning_rate = p["xgbl"]
+                hp_params = f'{self.params.xgb_gamma}_{self.params.xgb_learning_rate}'
+                print(f"xgb_gamma: {self.params.xgb_gamma}, xgb_learing_rate: {self.params.xgb_learning_rate}")
+
+            # set hyperparam to False to make sure the layer_sizes and dropouts are not lists if not optimized.
+            self.params.hyperparam = False
+            if isinstance(self.params.layer_sizes, list):
+                if isinstance(self.params.layer_sizes[0], list):
+                    self.params.layer_sizes = ",".join([str(e) for e in self.params.layer_sizes[0]])
+                else:
+                    self.params.layer_sizes = ",".join([str(e) for e in self.params.layer_sizes])
+                hp_params = f'{self.params.learning_rate}_{self.params.layer_sizes}_{self.params.dropouts}'
+            if isinstance(self.params.dropouts, list):
+                if isinstance(self.params.dropouts[0], list):
+                    self.params.dropouts = ",".join([str(e) for e in self.params.dropouts[0]])
+                else:
+                    self.params.dropouts = ",".join([str(e) for e in self.params.dropouts])
+                hp_params = f'{self.params.learning_rate}_{self.params.layer_sizes}_{self.params.dropouts}'
+
+            tparam = parse.wrapper(self.params.__dict__)
+            print(f"{self.params.model_type} model with {self.params.featurizer} and {self.params.descriptor_type}")
+            # make sure classification model has uncertainty as False. 
+            if tparam.prediction_type != "regression":
+                tparam.uncertainty = False
+            pl = mp.ModelPipeline(tparam)
+
+            model_failed = False
+            try:
+                pl.train_model()
+            except:
+                model_failed = True
+
+            subsets = ["train", "valid", "test"]
+            pred_results = dict(zip(subsets, [{} for _ in subsets]))
+            for subset in subsets:
+                if not model_failed:
+                    perf_data = pl.model_wrapper.get_perf_data(subset=subset, epoch_label="best")
+                    sub_pred_results = perf_data.get_prediction_results()
+                else:
+                    if tparam.prediction_type == "regression":
+                        sub_pred_results = {"r2_score": 0, "rms_score": 100}
+                    else:
+                        sub_pred_results = {"roc_auc_score": 0, "accuracy_score": 0}
+
+                if tparam.prediction_type == "regression":
+                    pred_results[subset]["r2"] = sub_pred_results['r2_score']
+                    pred_results[subset]["rms"] = sub_pred_results['rms_score']
+                else:
+                    pred_results[subset]["roc_auc"] = sub_pred_results["roc_auc_score"]
+                    pred_results[subset]["acc"] = sub_pred_results["accuracy_score"]
+            if tparam.prediction_type == "regression":
+                res_dict = {'loss': 1-pred_results["valid"]["r2"], 'status': STATUS_OK, 'model': tparam.model_tarball_path, 'featurizer': tparam.featurizer, 'desc': tparam.descriptor_type}
+                for subset in subsets:
+                    res_dict[f"{subset}_r2"] = pred_results[subset]["r2"]
+                    res_dict[f"{subset}_rms"] = pred_results[subset]["rms"]
+            else:
+                res_dict = {'loss': 100-pred_results["valid"]["roc_auc"], 'status': STATUS_OK, 'model': tparam.model_tarball_path, 'featurizer': tparam.featurizer, 'desc': tparam.descriptor_type}
+                for subset in subsets:
+                    res_dict[f"{subset}_roc_auc"] = pred_results[subset]["roc_auc"]
+                    res_dict[f"{subset}_acc"] = pred_results[subset]["acc"]
+            res_dict["hp_params"] = hp_params
+
+            # print the model metrics as logs
+            print()
+            if tparam.prediction_type == "regression":
+                print(f'model_performance|{res_dict["train_r2"]:.3f}|{res_dict["train_rms"]:.3f}|{res_dict["valid_r2"]:.3f}|{res_dict["valid_rms"]:.3f}|{res_dict["test_r2"]:.3f}|{res_dict["test_rms"]:.3f}|{res_dict["hp_params"]}|{res_dict["model"]}\n')
+            else:
+                print(f'model_performance|{res_dict["train_roc_auc"]:.3f}|{res_dict["train_acc"]:.3f}|{res_dict["valid_roc_auc"]:.3f}|{res_dict["valid_acc"]:.3f}|{res_dict["test_roc_auc"]:.3f}|{res_dict["test_acc"]:.3f}|{res_dict["hp_params"]}|{res_dict["model"]}\n')
+
+            return res_dict
+
+        if self.params.prediction_type == "regression":
+            print(f'model_performance|train_r2|train_rms|valid_r2|valid_rms|test_r2|test_rms|model_params|model\n')
+        else:
+            print(f'model_performance|train_roc_auc|train_acc|valid_roc_auc|valid_acc|test_roc_auc|test_acc|model_params|model\n')
+
+        if self.params.hp_checkpoint_load is not None and os.path.isfile(self.params.hp_checkpoint_load):
+            print(f"load hpo trial object from {self.params.hp_checkpoint_load}")
+            with open(self.params.hp_checkpoint_load, "rb") as f:
+                trials = pickle.load(f)
+        else:
+            trials = Trials()
+
+        if self.params.hp_checkpoint_save is not None:
+            print(f"hp_checkpoint_save provided, save a checkpoint file every 5 trials.")
+            max_evals = 5
+            while True:
+                if os.path.isfile(self.params.hp_checkpoint_save):
+                    print(f"load hpo trial object from {self.params.hp_checkpoint_save}")
+                    with open(self.params.hp_checkpoint_save, "rb") as f:
+                        trials = pickle.load(f)
+                    max_evals = min(len(trials) + 5, self.max_eval)
+                else:
+                    max_evals = min(max_evals, self.max_eval)
+
+                best = fmin(lossfn, self.space, algo=tpe.suggest, max_evals=max_evals, trials=trials)
+
+                print(f"Save HPO trial object to {self.params.hp_checkpoint_save}")
+                with open(self.params.hp_checkpoint_save, "wb") as f:
+                    pickle.dump(trials, f)
+
+                if max_evals == self.max_eval:
+                    break
+        else:
+            best = fmin(lossfn, self.space, algo=tpe.suggest, max_evals=self.max_eval, trials=trials)
+
+        print(f"Generating the performance -- iteration table and Copy the best model tarball.")
+
+        feat_list = [trials.trials[i]["result"]["featurizer"] for i in range(len(trials.trials))]
+        desc_list = [trials.trials[i]["result"]["desc"] for i in range(len(trials.trials))]
+        hp_params_list = [trials.trials[i]["result"]["hp_params"] for i in range(len(trials.trials))]
+        trial_data = {"trial": list(range(len(trials.trials))), "featurizer": feat_list, "descriptor": desc_list, "model_params": hp_params_list}
+        subsets = ["train", "valid", "test"]
+        for subset in subsets:
+            if self.params.prediction_type == "regression":
+                trial_data[f"{subset}_r2"] = [trials.trials[i]["result"][f"{subset}_r2"] for i in range(len(trials.trials))]
+                trial_data[f"{subset}_rms"] = [trials.trials[i]["result"][f"{subset}_rms"] for i in range(len(trials.trials))]
+            else:
+                trial_data[f"{subset}_roc_auc"] = [trials.trials[i]["result"][f"{subset}_roc_auc"] for i in range(len(trials.trials))]
+                trial_data[f"{subset}_acc"] = [trials.trials[i]["result"][f"{subset}_acc"] for i in range(len(trials.trials))]
+        perf = pd.DataFrame(trial_data)
+
+        if self.params.prediction_type == "regression":
+            best_trial = perf.sort_values(by="valid_r2", ascending=False)["trial"].iloc[0]
+            best_model = trials.trials[best_trial]["result"]["model"]
+            print(f'Best model: {best_model}, valid R2: {perf.sort_values(by="valid_r2", ascending=False)["valid_r2"].iloc[0]}')
+        else:
+            best_trial = perf.sort_values(by="valid_roc_auc", ascending=False)["trial"].iloc[0]
+            best_model = trials.trials[best_trial]["result"]["model"]
+            print(f'Best model: {best_model}, valid ROC_AUC: {perf.sort_values(by="valid_roc_auc", ascending=False)["valid_roc_auc"].iloc[0]}')
+
+        bmodel_prefix = "_".join(os.path.basename(best_model).split("_")[:-1])
+        bmodel_uuid = os.path.basename(best_model).split(".")[0].split("_")[-1]
+
+        perf.to_csv(os.path.join(self.final_dir, f"performance_{self.params.prediction_type}_{bmodel_prefix}_{self.params.model_type}_{fd}_{bmodel_uuid}.csv"), index=False)
+        if os.path.isfile(best_model):
+            # if the model tracker is used, the model won't be saved to the result_dir
+            shutil.copy2(best_model, os.path.join(self.final_dir,
+                                              f"best_{self.params.prediction_type}_{bmodel_prefix}_{self.params.model_type}_{fd}_{bmodel_uuid}.tar.gz"))
+
 def parse_params(param_list):
+    """Parse paramters
+
+    Parses parameters using parameter_parser.wrapper and 
+    filters out unnecessary parameters. Returns what an
+    argparse.Namespace
+
+    Args:
+        *any_arg: any single input of a str, dict, argparse.Namespace, or list
+
+    Returns:
+        argparse.Namespace
+    """
     params = parse.wrapper(param_list)
-    keep_params = {'model_type',
+    keep_params = {'prediction_type',
+                   'model_type',
                    'featurizer',
+                   'hyperparam_uuid',
                    'splitter',
                    'datastore',
                    'save_results',
                    'previously_featurized',
+                   'prediction_type',
                    'descriptor_key',
                    'descriptor_type',
                    'split_valid_frac',
                    'split_test_frac',
                    'bucket',
                    'lc_account',
-                   'slurm_time_limit',
-                   'slurm_partition'} | excluded_keys
+                   'slurm_account',
+                   'slurm_export',
+                   'slurm_nodes',
+                   'slurm_options',
+                   'slurm_partition',
+                   'slurm_time_limit'} | excluded_keys
+    if params.search_type == 'hyperopt':
+        # keep more parameters
+        keep_params = keep_params | {'lr', 'learning_rate','ls', 'layer_sizes','ls_ratio','dp', 'dropouts','rfe', 'rf_estimators','rfd', 'rf_max_depth','rff', 'rf_max_features','xgbg', 'xgb_gamma','xgbl', 'xgb_learning_rate', 'hp_checkpoint_load', 'hp_checkpoint_save'}
+
     params.__dict__ = parse.prune_defaults(params, keep_params=keep_params)
 
     return params
 
 def build_search(params):
+    """ Builds HyperparamterSearch object
+
+        Looks at params.search_type and builds a HyperparamSearch object
+        of the correct flavor. Will exit if the search_type is not
+        recognized.
+
+    Args:
+        params (Namespace): Namespace returned by 
+            atomsci.ddm.pipeline.parameter_parser.wrapper()
+
+    Returns:
+        HyperparameterSearch
+    """
     if params.search_type == 'grid':
         hs = GridSearch(params)
     elif params.search_type == 'random':
@@ -1110,6 +1683,8 @@ def build_search(params):
         hs = GeometricSearch(params)
     elif params.search_type == 'user_specified':
         hs = UserSpecifiedSearch(params)
+    elif params.search_type == 'hyperopt':
+        hs = HyperOptSearch(params)
     else:
         print("Incorrect search type specified")
         sys.exit(1)
@@ -1117,12 +1692,23 @@ def build_search(params):
     return hs
 
 def main():
-    """Entry point when script is run"""
+    """Entry point when script is run
+    
+    Args:
+        None
+
+    Returns:
+        None
+    
+    """
+
     params = parse_params(sys.argv[1:])
     hs = build_search(params)
 
-    if params.split_only:
+    if params.split_only and params.datastore:
         hs.generate_split_shortlist()
+    elif params.split_only and not params.datastore:
+        hs.generate_split_shortlist_file()
     else:
         hs.run_search()
 

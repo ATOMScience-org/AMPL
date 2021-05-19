@@ -16,7 +16,7 @@ import tensorflow as tf
 if dc.__version__.startswith('2.1'):
     from deepchem.models.tensorgraph.fcnet import MultitaskRegressor, MultitaskClassifier
 else:
-    from deepchem.models import MultitaskRegressor, MultitaskClassifier
+    from deepchem.models.fcnet import MultitaskRegressor, MultitaskClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import RandomForestRegressor
 
@@ -31,6 +31,7 @@ import yaml
 import glob
 from datetime import datetime
 import time
+from packaging import version
 
 from atomsci.ddm.utils import datastore_functions as dsf
 from atomsci.ddm.utils import llnl_utils
@@ -39,14 +40,55 @@ from atomsci.ddm.pipeline import perf_data as perf
 
 logging.basicConfig(format='%(asctime)-15s %(message)s')
 
+def dc_restore(model, checkpoint=None, model_dir=None, session=None):
+    """Reload the values of all variables from a checkpoint file.
+
+    copied from DeepChem 2.3 keras_model.py to silence warnings caused
+    when a model is loaded in inference mode.
+
+    Args:
+        model (DeepChem.KerasModel: keras model to restore
+
+        checkpoint (str): the path to the checkpoint file to load.  If this is None, the most recent
+            checkpoint will be chosen automatically.  Call get_checkpoints() to get a
+            list of all available checkpoints.
+
+        model_dir (str): default None
+            Directory to restore checkpoint from. If None, use model.model_dir.
+
+        session (tf.Session()) default None
+            Session to run restore ops under. If None, model.session is used.
+
+    Returns:
+        None
+    """
+    model._ensure_built()
+    if model_dir is None:
+        model_dir = model.model_dir
+    if checkpoint is None:
+        checkpoint = tf.train.latest_checkpoint(model_dir)
+    if checkpoint is None:
+        raise ValueError('No checkpoint found')
+    if tf.executing_eagerly():
+        # expect_partial() silences warnings when this model is restored for
+        # inference only.
+        model._checkpoint.restore(checkpoint).expect_partial()
+    else:
+        if session is None:
+            session = model.session
+        # expect_partial() silences warnings when this model is restored for
+        # inference only.
+        model._checkpoint.restore(checkpoint).expect_partial().run_restore_ops(session)
 
 # ****************************************************************************************
 def create_model_wrapper(params, featurizer, ds_client=None):
     """Factory function for creating Model objects of the correct subclass for params.model_type.
 
     Args:
-        params (Namespace) : Parameters passed to the model pipeline
+        params (Namespace): Parameters passed to the model pipeline
+
         featurizer (Featurization): Object managing the featurization of compounds
+
         ds_client (DatastoreClient): Interface to the file datastore
 
     Returns:
@@ -64,18 +106,15 @@ def create_model_wrapper(params, featurizer, ds_client=None):
             raise Exception("Unable to import xgboost. \
                              xgboost package needs to be installed to use xgboost model. \
                              Installatin: \
-                             from pip: pip3 install xgboost.\
-                             livermore compute (lc): /usr/mic/bio/anaconda3/bin/pip install xgboost --user \
-                             twintron-blue (TTB): /opt/conda/bin/pip install xgboost --user/ \ "
+                             from pip: pip3 install xgboost==0.90.\
+                             livermore compute (lc): /usr/mic/bio/anaconda3/bin/pip install xgboost==0.90 --user \
+                             twintron-blue (TTB): /opt/conda/bin/pip install xgboost==0.90 --user/ \ "
                             )
-        elif float(xgb.__version__) < 0.9:
-            raise Exception(f"xgboost required to be >= 0.9 for GPU support. \
-                             current version = {float(xgb.__version__)} \
-                             installatin: \
-                             from pip: pip3 install --upgrade xgboost \
-                             livermore compute (lc): /usr/mic/bio/anaconda3/bin/pip install --upgrade xgboost --user \
-                             twintron-blue (TTB): /opt/conda/bin/pip install --upgrade xgboost --user/ "
-                            )
+        elif version.parse(xgb.__version__) < version.parse('0.9'):
+            raise Exception(f"xgboost required to be = 0.9 for GPU support. \
+                             current version = xgb.__version__ \
+                             installation: \
+                             from pip: pip install xgboost==0.90")
         else:
             return DCxgboostModelWrapper(params, featurizer, ds_client)
     else:
@@ -90,15 +129,19 @@ class ModelWrapper(object):
         Attributes:
         Set in __init__
             params (argparse.Namespace): The argparse.Namespace parameter object that contains all parameter information
+
             featurziation (Featurization object): The featurization object created outside of model_wrapper
+
             log (log): The logger
+
             output_dir (str): The parent path of the model directory
+
             transformers (list): Initialized as an empty list, stores the transformers on the response col
+
             transformers_x (list): Initialized as an empty list, stores the transformers on the featurizers
 
         set in setup_model_dirs:
             best_model_dir (str): The subdirectory under output_dir that contains the best model. Created in setup_model_dirs
-            baseline_model_dir (str): The subdirectory under output_dir that contains the baseline epoch model. Created in setup_model_dirs
 
     """
     def __init__(self, params, featurizer, ds_client):
@@ -106,16 +149,23 @@ class ModelWrapper(object):
 
         Args:
             params (Namespace object): contains all parameter information.
+
             featurizer (Featurization object): initialized outside of model_wrapper
+
             ds_client (DatastoreClient): Interface to the file datastore
 
         Side effects:
             Sets the following attributes of ModelWrapper:
                 params (argparse.Namespace): The argparse.Namespace parameter object that contains all parameter information
+
                 featurziation (Featurization object): The featurization object created outside of model_wrapper
+
                 log (log): The logger
+
                 output_dir (str): The parent path of the model directory
+
                 transformers (list): Initialized as an empty list, stores the transformers on the response col
+
                 transformers_x (list): Initialized as an empty list, stores the transformers on the featurizers
 
         """
@@ -138,11 +188,8 @@ class ModelWrapper(object):
         Side effects:
             Sets the following attributes of ModelWrapper:
                 best_model_dir (str): The subdirectory under output_dir that contains the best model. Created in setup_model_dirs
-                baseline_model_dir (str): The subdirectory under output_dir that contains the baseline epoch model.
-                    Created in setup_model_dirs
         """
         self.best_model_dir = os.path.join(self.output_dir, 'best_model')
-        self.baseline_model_dir = os.path.join(self.output_dir, 'baseline_epoch_model')
 
         # ****************************************************************************************
 
@@ -179,7 +226,9 @@ class ModelWrapper(object):
         Side effects
             Overwrites the attributes:
                 transformers: A list of deepchem transformation objects on response_col, only if conditions are met
+
                 transformers_x: A list of deepchem transformation objects on featurizers, only if conditions are met.
+
                 params.transformer_key: A string pointing to the dataset key containing the transformer in the datastore, or the path to the transformer
 
         """
@@ -259,16 +308,13 @@ class ModelWrapper(object):
         # ****************************************************************************************
 
     def get_train_valid_pred_results(self, perf_data):
-        """Returns predicted values and metrics for the current training or validation set,
-        based on the information stored in perf_data, which is a PerfData object.
-        The intent is preserve the predictions and metrics from the initial training and
-        validation model fitting cycle; these will differ in the k-fold cross-validation
-        case from the predictions of the model that is retrained on the combined training &
-        validation set. Results are returned as a dictionary of parameter, value pairs in
-        the format expected by the model tracker.
+        """Returns predicted values and metrics for the training, validation or test set
+        associated with the PerfData object perf_data. Results are returned as a dictionary 
+        of parameter, value pairs in the format expected by the model tracker.
 
         Args:
             perf_data: A PerfData object that stores the predicted values and metrics
+
         Returns:
             dict: A dictionary of the prediction results
 
@@ -347,6 +393,7 @@ class ModelWrapper(object):
 
         Args:
             model_dataset (DiskDataset): Stores the current dataset and related methods
+
         Returns:
             dict: A dictionary containing predicted values and metrics for the current full dataset
 
@@ -378,6 +425,23 @@ class ModelWrapper(object):
         raise NotImplementedError
 
 
+    # ****************************************************************************************
+    def model_save(self):
+        """A wrapper function to save a model  due to the `DeepChem model.save()` has inconsistent implementation.
+
+        The `SKlearnModel()` class and xgboost model in DeepChem use `model.save()`,
+        while the `MultitaskRegressor` class uses `model.save_checkpoint()`. The
+        workaround is to try `model.save()` first. If failed, then try `model.save_checkpoint()`
+        """
+        try:
+            self.model.save()
+        except Exception as error:
+          try:
+            self.model.save_checkpoint()
+          except Exception as e:
+            self.log.error("Error when saving model:\n%s" % str(e))
+
+
 # ****************************************************************************************
 class DCNNModelWrapper(ModelWrapper):
     """Contains methods to load in a dataset, split and featurize the data, fit a model to the train dataset,
@@ -387,26 +451,39 @@ class DCNNModelWrapper(ModelWrapper):
         Set in __init__
             params (argparse.Namespace): The argparse.Namespace parameter object that contains all parameter information
             featurziation (Featurization object): The featurization object created outside of model_wrapper
+
             log (log): The logger
+
             output_dir (str): The parent path of the model directory
+
             transformers (list): Initialized as an empty list, stores the transformers on the response col
+
             transformers_x (list): Initialized as an empty list, stores the transformers on the featurizers
+
             model_dir (str): The subdirectory under output_dir that contains the model. Created in setup_model_dirs.
+
             best_model_dir (str): The subdirectory under output_dir that contains the best model. Created in setup_model_dirs
-            baseline_model_dir (str): The subdirectory under output_dir that contains the baseline epoch model.
+
             g: The tensorflow graph object
+
             sess: The tensor flow graph session
+
             model: The dc.models.GraphConvModel, MultitaskRegressor, or MultitaskClassifier object, as specified by the params attribute
 
         Created in train:
             data (ModelDataset): contains the dataset, set in pipeline
+
             best_epoch (int): Initialized as None, keeps track of the epoch with the best validation score
+
             train_perf_data (np.array of PerfData): Initialized as an empty array, 
                 contains the predictions and performance of the training dataset
+
             valid_perf_data (np.array of PerfData): Initialized as an empty array,
                 contains the predictions and performance of the validation dataset
+
             train_epoch_perfs (np.array of dicts): Initialized as an empty array,
                 contains a list of dictionaries of predicted values and metrics on the training dataset
+
             valid_epoch_perfs (np.array of dicts): Initialized as an empty array,
                 contains a list of dictionaries of predicted values and metrics on the validation dataset
 
@@ -417,25 +494,35 @@ class DCNNModelWrapper(ModelWrapper):
 
         Args:
             params (Namespace object): contains all parameter information.
+
             featurizer (Featurizer object): initialized outside of model_wrapper
 
         Side effects:
             params (argparse.Namespace): The argparse.Namespace parameter object that contains all parameter information
+
             featurziation (Featurization object): The featurization object created outside of model_wrapper
+
             log (log): The logger
+
             output_dir (str): The parent path of the model directory
+
             transformers (list): Initialized as an empty list, stores the transformers on the response col
+
             transformers_x (list): Initialized as an empty list, stores the transformers on the featurizers
+
             g: The tensorflow graph object
+
             sess: The tensor flow graph session
+
             model: The dc.models.GraphConvModel, MultitaskRegressor, or MultitaskClassifier object, as specified by the params attribute
 
 
         """
         super().__init__(params, featurizer, ds_client)
         self.g = tf.Graph()
-        self.sess = tf.Session(graph=self.g)
+        self.sess = tf.compat.v1.Session(graph=self.g)
         n_features = self.get_num_features()
+        self.num_epochs_trained = 0
 
         if self.params.featurizer == 'graphconv':
 
@@ -554,11 +641,12 @@ class DCNNModelWrapper(ModelWrapper):
 
     # ****************************************************************************************
     def recreate_model(self):
-        """Replaces the current self.model object with a new DeepChem Model object of the correct type for the
-        requested featurizer and prediction type """
-
+        """
+        Creates a new DeepChem Model object of the correct type for the requested featurizer and prediction type 
+        and returns it.
+        """
         if self.params.featurizer == 'graphconv':
-            self.model = dc.models.GraphConvModel(
+            model = dc.models.GraphConvModel(
                 self.params.num_model_tasks,
                 batch_size=self.params.batch_size,
                 learning_rate=self.params.learning_rate,
@@ -579,7 +667,7 @@ class DCNNModelWrapper(ModelWrapper):
         else:
             n_features = self.get_num_features()
             if self.params.prediction_type == 'regression':
-                self.model = MultitaskRegressor(
+                model = MultitaskRegressor(
                     self.params.num_model_tasks,
                     n_features,
                     layer_sizes=self.params.layer_sizes,
@@ -600,7 +688,7 @@ class DCNNModelWrapper(ModelWrapper):
                     tensorboard=False,
                     uncertainty=self.params.uncertainty)
             else:
-                self.model = MultitaskClassifier(
+                model = MultitaskClassifier(
                     self.params.num_model_tasks,
                     n_features,
                     layer_sizes=self.params.layer_sizes,
@@ -621,6 +709,8 @@ class DCNNModelWrapper(ModelWrapper):
                     tensorboard=False,
                     n_classes=self.params.class_number)
 
+        return model
+
     # ****************************************************************************************
     def train(self, pipeline):
         """Trains a neural net model for multiple epochs, choose the epoch with the best validation
@@ -632,19 +722,62 @@ class DCNNModelWrapper(ModelWrapper):
         Side effects:
             Sets the following attributes for DCNNModelWrapper:
                 data (ModelDataset): contains the dataset, set in pipeline
+
                 best_epoch (int): Initialized as None, keeps track of the epoch with the best validation score
+
                 train_perf_data (list of PerfData): Initialized as an empty array, 
                     contains the predictions and performance of the training dataset
+
                 valid_perf_data (list of PerfData): Initialized as an empty array,
                     contains the predictions and performance of the validation dataset
+
                 train_epoch_perfs (np.array): Initialized as an empty array,
                     contains a list of dictionaries of predicted values and metrics on the training dataset
+
                 valid_epoch_perfs (np.array of dicts): Initialized as an empty array,
                     contains a list of dictionaries of predicted values and metrics on the validation dataset
         """
         # TODO: Fix docstrings above
+        num_folds = len(pipeline.data.train_valid_dsets)
+        if num_folds > 1:
+            self.train_kfold_cv(pipeline)
+        else:
+            self.train_with_early_stopping(pipeline)
+
+    # ****************************************************************************************
+    def train_with_early_stopping(self, pipeline):
+        """Trains a neural net model for up to self.params.max_epochs epochs, while tracking the validation
+        set metric given by params.model_choice_score_type. Saves a model checkpoint each time the metric
+        is improved over its previous saved value by more than a threshold percentage. If the metric fails to
+        improve for more than a specified 'patience' number of epochs, stop training and revert the model state
+        to the last saved checkpoint. 
+
+        Args:
+            pipeline (ModelPipeline): The ModelPipeline instance for this model run.
+
+        Side effects:
+            Sets the following attributes for DCNNModelWrapper:
+                data (ModelDataset): contains the dataset, set in pipeline
+
+                best_epoch (int): Initialized as None, keeps track of the epoch with the best validation score
+
+                best_validation_score (float): The best validation model choice score attained during training.
+
+                train_perf_data (list of PerfData): Initialized as an empty array, 
+                    contains the predictions and performance of the training dataset
+
+                valid_perf_data (list of PerfData): Initialized as an empty array,
+                    contains the predictions and performance of the validation dataset
+
+                train_epoch_perfs (np.array): A standard training set performance metric (r2_score or roc_auc), at the end of each epoch.
+
+                valid_epoch_perfs (np.array): A standard validation set performance metric (r2_score or roc_auc), at the end of each epoch.
+        """
         self.data = pipeline.data
-        self.best_epoch = None
+        self.best_epoch = 0
+        self.best_valid_score = None
+        self.early_stopping_min_improvement = self.params.early_stopping_min_improvement
+        self.early_stopping_patience = self.params.early_stopping_patience
         self.train_epoch_perfs = np.zeros(self.params.max_epochs)
         self.valid_epoch_perfs = np.zeros(self.params.max_epochs)
         self.test_epoch_perfs = np.zeros(self.params.max_epochs)
@@ -652,7 +785,6 @@ class DCNNModelWrapper(ModelWrapper):
         self.valid_epoch_perf_stds = np.zeros(self.params.max_epochs)
         self.test_epoch_perf_stds = np.zeros(self.params.max_epochs)
         self.model_choice_scores = np.zeros(self.params.max_epochs)
-        baseline_epoch = self.params.baseline_epoch
 
         self.train_perf_data = []
         self.valid_perf_data = []
@@ -668,90 +800,225 @@ class DCNNModelWrapper(ModelWrapper):
         time_limit = int(self.params.slurm_time_limit)
         training_start = time.time()
 
+        train_dset, valid_dset = pipeline.data.train_valid_dsets[0]
+        for ei in range(self.params.max_epochs):
+            if llnl_utils.is_lc_system() and (ei > 0):
+                # If we're running on an LC system, check that we have enough time to complete another epoch
+                # before the current job finishes, by extrapolating from the time elapsed so far.
+
+                now = time.time() 
+                elapsed_time = now - pipeline.start_time
+                training_time = now - training_start
+                time_remaining = time_limit * 60 - elapsed_time
+                time_needed = training_time/ei
+
+                if time_needed > 0.9 * time_remaining:
+                    self.log.warn("Projected time to finish one more epoch exceeds time left in job; cutting training to %d epochs" %
+                                    ei)
+                    self.params.max_epochs = ei
+                    break
+
+            # Train the model for one epoch. We turn off automatic checkpointing, so the last checkpoint
+            # saved will be the one we created intentionally when we reached a new best validation score.
+            self.model.fit(train_dset, nb_epoch=1, checkpoint_interval=0)
+            train_pred = self.model.predict(train_dset, [])
+            valid_pred = self.model.predict(valid_dset, [])
+            test_pred = self.model.predict(test_dset, [])
+
+            train_perf = self.train_perf_data[ei].accumulate_preds(train_pred, train_dset.ids)
+            valid_perf = self.valid_perf_data[ei].accumulate_preds(valid_pred, valid_dset.ids)
+            test_perf = self.test_perf_data[ei].accumulate_preds(test_pred, test_dset.ids)
+            self.log.info("Epoch %d: training %s = %.3f, validation %s = %.3f, test %s = %.3f" % (
+                          ei, pipeline.metric_type, train_perf, pipeline.metric_type, valid_perf,
+                          pipeline.metric_type, test_perf))
+
+            # Compute performance metrics for each subset, and check if we've reached a new best validation set score
+
+            self.train_epoch_perfs[ei], _ = self.train_perf_data[ei].compute_perf_metrics()
+            self.valid_epoch_perfs[ei], _ = self.valid_perf_data[ei].compute_perf_metrics()
+            self.test_epoch_perfs[ei], _ = self.test_perf_data[ei].compute_perf_metrics()
+            valid_score = self.valid_perf_data[ei].model_choice_score(self.params.model_choice_score_type)
+            self.model_choice_scores[ei] = valid_score
+            self.num_epochs_trained = ei + 1
+            if self.best_valid_score is None:
+                self.model.save_checkpoint()
+                self.best_valid_score = valid_score
+                self.best_epoch = ei
+            elif valid_score - self.best_valid_score > self.early_stopping_min_improvement:
+                # Save a new checkpoint
+                self.model.save_checkpoint()
+                self.best_valid_score = valid_score
+                self.best_epoch = ei
+            elif ei - self.best_epoch > self.early_stopping_patience:
+                self.log.info(f"No improvement after {self.early_stopping_patience} epochs, stopping training")
+                break
+
+        # Revert to last checkpoint
+        dc_restore(self.model)
+        self.model_save()
+
+        # Only copy the model files we need, not the entire directory
+        self._copy_model(self.best_model_dir)
+        self.log.info(f"Best model from epoch {self.best_epoch} saved to {self.best_model_dir}")
+
+
+
+    # ****************************************************************************************
+    def train_kfold_cv(self, pipeline):
+        """Trains a neural net model with K-fold cross-validation for a specified number of epochs.
+        Finds the epoch with the best validation set performance averaged over folds, then refits 
+        a model for the same number of epochs to the combined training and validation data.
+
+        Args:
+            pipeline (ModelPipeline): The ModelPipeline instance for this model run.
+
+        Side effects:
+            Sets the following attributes for DCNNModelWrapper:
+                data (ModelDataset): contains the dataset, set in pipeline
+
+                best_epoch (int): Initialized as None, keeps track of the epoch with the best validation score
+
+                train_perf_data (list of PerfData): Initialized as an empty array, 
+                    contains the predictions and performance of the training dataset
+
+                valid_perf_data (list of PerfData): Initialized as an empty array,
+                    contains the predictions and performance of the validation dataset
+
+                train_epoch_perfs (np.array): Contains a standard training set performance metric (r2_score or roc_auc), averaged over folds,
+                    at the end of each epoch.
+
+                valid_epoch_perfs (np.array): Contains a standard validation set performance metric (r2_score or roc_auc), averaged over folds,
+                    at the end of each epoch.
+        """
+        # TODO: Fix docstrings above
         num_folds = len(pipeline.data.train_valid_dsets)
+        self.data = pipeline.data
+        self.best_epoch = 0
+        self.best_valid_score = None
+        self.train_epoch_perfs = np.zeros(self.params.max_epochs)
+        self.valid_epoch_perfs = np.zeros(self.params.max_epochs)
+        self.test_epoch_perfs = np.zeros(self.params.max_epochs)
+        self.train_epoch_perf_stds = np.zeros(self.params.max_epochs)
+        self.valid_epoch_perf_stds = np.zeros(self.params.max_epochs)
+        self.test_epoch_perf_stds = np.zeros(self.params.max_epochs)
+        self.model_choice_scores = np.zeros(self.params.max_epochs)
+        self.early_stopping_min_improvement = self.params.early_stopping_min_improvement
+        self.early_stopping_patience = self.params.early_stopping_patience
+
+
+        # Create PerfData structures for computing cross-validation metrics
+        self.valid_perf_data = []
+        for ei in range(self.params.max_epochs):
+            self.valid_perf_data.append(perf.create_perf_data(self.params.prediction_type, pipeline.data, self.transformers, 'valid'))
+
+        test_dset = pipeline.data.test_dset
+
+        time_limit = int(self.params.slurm_time_limit)
+        training_start = time.time()
+
+        # Train a separate model for each fold
+        models = []
         for k in range(num_folds):
-            restore_hold = False
-            if k > 0:
-                # Replace self.model with a completely new one
-                self.log.info("Creating new model")
-                self.recreate_model()
-            train_dset, valid_dset = pipeline.data.train_valid_dsets[k]
-            for ei in range(self.params.max_epochs):
-                if llnl_utils.is_lc_system() and (k == 0) and (ei > 0):
-                    # If we're running on an LC system, check that we have enough time to complete ei+1 epochs
-                    # across all folds, plus rerun the training, before the current job finishes, by 
-                    # extrapolating from the time elapsed so far.
+            models.append(self.recreate_model())
 
-                    now = time.time() 
-                    elapsed_time = now - pipeline.start_time
-                    training_time = now - training_start
-                    time_remaining = time_limit * 60 - elapsed_time
-                    # epochs_remaining is how many epochs we have to run if we do one more in fold 0, then run an equal number of 
-                    # epochs for each of the remaining folds, then do the same number of epochs on the combined training & validation set.
-                    epochs_remaining = (ei+1) * (num_folds+1) - ei
-                    time_per_epoch = training_time/ei
-                    time_needed = epochs_remaining * time_per_epoch
+        for ei in range(self.params.max_epochs):
+            
+            if llnl_utils.is_lc_system() and (ei > 0):
+                # If we're running on an LC system, check that we have enough time to complete another epoch
+                # across all folds, plus rerun the training, before the current job finishes, by 
+                # extrapolating from the time elapsed so far.
+    
+                now = time.time() 
+                elapsed_time = now - pipeline.start_time
+                training_time = now - training_start
+                time_remaining = time_limit * 60 - elapsed_time
 
-                    if time_needed > 0.9 * time_remaining:
-                        self.log.warn("Projected time to finish one more epoch exceeds time left in job; cutting training to %d epochs" %
-                                        ei)
-                        self.params.max_epochs = ei
-                        break
+                # epochs_remaining is how many epochs we have to run if we do one more across all folds,
+                # then do self.best_epoch+1 epochs on the combined training & validation set, allowing for the
+                # possibility that the next epoch may be the best one.
 
-                self.model.fit(train_dset, nb_epoch=1, restore=restore_hold)
+                epochs_remaining = ei + 2
+                time_per_epoch = training_time/ei
+                time_needed = epochs_remaining * time_per_epoch
+    
+                if time_needed > 0.9 * time_remaining:
+                    self.log.warn('Projected time to finish one more epoch exceeds time left in job; cutting training to %d epochs' % ei)
+                    self.params.max_epochs = ei
+                    break
+
+
+            # Create PerfData structures that are only used within loop to compute metrics during initial training
+            train_perf_data = perf.create_perf_data(self.params.prediction_type, pipeline.data, self.transformers, 'train')
+            test_perf_data = perf.create_perf_data(self.params.prediction_type, pipeline.data, self.transformers, 'test')
+            for k in range(num_folds):
+                self.model = models[k]
+                train_dset, valid_dset = pipeline.data.train_valid_dsets[k]
+
+                # We turn off automatic checkpointing - we only want to save a checkpoints for the final model.
+                self.model.fit(train_dset, nb_epoch=1, checkpoint_interval=0, restore=False)
                 train_pred = self.model.predict(train_dset, [])
                 valid_pred = self.model.predict(valid_dset, [])
                 test_pred = self.model.predict(test_dset, [])
 
-                train_perf = self.train_perf_data[ei].accumulate_preds(train_pred, train_dset.ids)
+                train_perf = train_perf_data.accumulate_preds(train_pred, train_dset.ids)
                 valid_perf = self.valid_perf_data[ei].accumulate_preds(valid_pred, valid_dset.ids)
-                test_perf = self.test_perf_data[ei].accumulate_preds(test_pred, test_dset.ids)
+                test_perf = test_perf_data.accumulate_preds(test_pred, test_dset.ids)
                 self.log.info("Fold %d, epoch %d: training %s = %.3f, validation %s = %.3f, test %s = %.3f" % (
-                              k, ei + 1, pipeline.metric_type, train_perf, pipeline.metric_type, valid_perf,
+                              k, ei, pipeline.metric_type, train_perf, pipeline.metric_type, valid_perf,
                               pipeline.metric_type, test_perf))
-                restore_hold = True
 
-        # Compute performance metrics for each epoch across validation sets for all folds, and find the
-        # epoch that had the best validation set performance. Also compute the training set metrics at
-        # each epoch, for later visualization.
-        for ei in range(self.params.max_epochs):
+            # Compute performance metrics for current epoch across validation sets for all folds, and update
+            # the best_epoch and best score if the new score exceeds the previous best score by a specified
+            # threshold.
 
-            self.train_epoch_perfs[ei], self.train_epoch_perf_stds[ei] = self.train_perf_data[ei].compute_perf_metrics()
             self.valid_epoch_perfs[ei], self.valid_epoch_perf_stds[ei] = self.valid_perf_data[ei].compute_perf_metrics()
-            self.test_epoch_perfs[ei], self.test_epoch_perf_stds[ei] = self.test_perf_data[ei].compute_perf_metrics()
-            self.model_choice_scores[ei] = self.valid_perf_data[ei].model_choice_score(self.params.model_choice_score_type)
-        self.best_epoch = int(np.argmax(self.model_choice_scores))
+            valid_score = self.valid_perf_data[ei].model_choice_score(self.params.model_choice_score_type)
+            self.model_choice_scores[ei] = valid_score
+            self.num_epochs_trained = ei + 1
+            if self.best_valid_score is None:
+                self.best_valid_score = valid_score
+                self.best_epoch = ei
+                self.log.info(f"Total cross-validation score for epoch {ei} is {valid_score:.3}")
+            elif valid_score - self.best_valid_score > self.early_stopping_min_improvement:
+                self.best_valid_score = valid_score
+                self.best_epoch = ei
+                self.log.info(f"*** Total cross-validation score for epoch {ei} is {valid_score:.3}, is new maximum")
+            elif ei - self.best_epoch > self.early_stopping_patience:
+                self.log.info(f"No improvement after {self.early_stopping_patience} epochs, stopping training")
+                break
+            else:
+                self.log.info(f"Total cross-validation score for epoch {ei} is {valid_score:.3}")
 
-        # Train a new model for max(best_epoch, baseline_epoch) epochs. Save the model weights at both of
-        # these epochs.
-        min_epoch = min(baseline_epoch, self.best_epoch)
-        max_epoch = max(baseline_epoch, self.best_epoch)
-        if self.best_epoch <= baseline_epoch:
-            min_epoch_dir = self.best_model_dir
-            max_epoch_dir = self.baseline_model_dir
-        else:
-            min_epoch_dir = self.baseline_model_dir
-            max_epoch_dir = self.best_model_dir
-
-        if num_folds > 1:
-            # For k-fold CV, retrain on the combined training and validation sets
-            fit_dataset = pipeline.data.combined_training_data()
-        else:
-            fit_dataset = pipeline.data.train_valid_dsets[0][0]
+        # Train a new model for best_epoch epochs on the combined training/validation set. Compute the training and test
+        # set metrics at each epoch.
+        fit_dataset = pipeline.data.combined_training_data()
         retrain_start = time.time()
-        self.recreate_model()
-        self.model.fit(fit_dataset, nb_epoch=min_epoch, restore=False)
-        self.model.save()
+        self.model = self.recreate_model()
+        self.log.info(f"Best epoch was {self.best_epoch}, retraining with combined training/validation set")
+
+        self.train_perf_data = []
+        self.test_perf_data = []
+        for ei in range(self.best_epoch+1):
+            self.train_perf_data.append(perf.create_perf_data(self.params.prediction_type, pipeline.data, self.transformers, 'train_valid'))
+            self.test_perf_data.append(perf.create_perf_data(self.params.prediction_type, pipeline.data, self.transformers, 'test'))
+
+            self.model.fit(fit_dataset, nb_epoch=1, checkpoint_interval=0, restore=False)
+            train_pred = self.model.predict(fit_dataset, [])
+            test_pred = self.model.predict(test_dset, [])
+            train_perf = self.train_perf_data[ei].accumulate_preds(train_pred, fit_dataset.ids)
+            test_perf = self.test_perf_data[ei].accumulate_preds(test_pred, test_dset.ids)
+            self.log.info(f"Combined folds: Epoch {ei}, training {pipeline.metric_type} = {train_perf:.3},"
+                         + f"test {pipeline.metric_type} = {test_perf:.3}")
+            self.train_epoch_perfs[ei], self.train_epoch_perf_stds[ei] = self.train_perf_data[ei].compute_perf_metrics()
+            self.test_epoch_perfs[ei], self.test_epoch_perf_stds[ei] = self.test_perf_data[ei].compute_perf_metrics()
+        self.model.save_checkpoint()
+        self.model_save()
 
         # Only copy the model files we need, not the entire directory
-        self._copy_model(min_epoch_dir)
-        if max_epoch > min_epoch:
-            self.model.fit(fit_dataset, nb_epoch=max_epoch-min_epoch, restore=True)
-            self.model.save()
-        self._copy_model(max_epoch_dir)
+        self._copy_model(self.best_model_dir)
         retrain_time = time.time() - retrain_start
-        self.log.info("Time to retrain model for %d epochs: %.1f seconds, %.1f sec/epoch" % (max_epoch, retrain_time, retrain_time/max_epoch))
-
+        self.log.info("Time to retrain model for %d epochs: %.1f seconds, %.1f sec/epoch" % (self.best_epoch, retrain_time, 
+                       retrain_time/self.best_epoch))
 
     # ****************************************************************************************
     def _copy_model(self, dest_dir):
@@ -767,9 +1034,9 @@ class DCNNModelWrapper(ModelWrapper):
             chkpt_dict = yaml.load(chkpt_in.read())
         chkpt_prefix = chkpt_dict['model_checkpoint_path']
         files = [chkpt_file]
-        files.append(os.path.join(self.model_dir, 'model.pickle'))
+        # files.append(os.path.join(self.model_dir, 'model.pickle'))
         files.append(os.path.join(self.model_dir, '%s.index' % chkpt_prefix))
-        files.append(os.path.join(self.model_dir, '%s.meta' % chkpt_prefix))
+        # files.append(os.path.join(self.model_dir, '%s.meta' % chkpt_prefix))
         files = files + glob.glob(os.path.join(self.model_dir, '%s.data-*' % chkpt_prefix))
         self._clean_up_excess_files(dest_dir)
         for file in files:
@@ -789,13 +1056,53 @@ class DCNNModelWrapper(ModelWrapper):
             Resets the value of model, transformers, and transformers_x
         """
         if self.params.featurizer == 'graphconv':
-            self.model = dc.models.GraphConvModel.load_from_dir(reload_dir)
+            self.model = dc.models.GraphConvModel(
+                n_tasks=self.params.num_model_tasks,
+                n_features=self.get_num_features(),
+                batch_size=self.params.batch_size,
+                model_dir=reload_dir,
+                uncertainty=self.params.uncertainty,
+                graph_conv_layers=self.params.layer_sizes[:-1],
+                dense_layer_size=self.params.layer_sizes[-1],
+                dropout=self.params.dropouts,
+                learning_rate=self.params.learning_rate,
+                mode=self.params.prediction_type)
         elif self.params.prediction_type == 'regression':
-            self.model = MultitaskRegressor.load_from_dir(reload_dir)
+            self.model = MultitaskRegressor(
+                self.params.num_model_tasks,
+                n_features=self.get_num_features(),
+                layer_sizes=self.params.layer_sizes,
+                dropouts=self.params.dropouts,
+                weight_init_stddevs=self.params.weight_init_stddevs,
+                bias_init_consts=self.params.bias_init_consts,
+                weight_decay_penalty=self.params.weight_decay_penalty,
+                weight_decay_penalty_type=self.params.weight_decay_penalty_type,
+                model_dir=reload_dir,
+                learning_rate=self.params.learning_rate,
+                uncertainty=self.params.uncertainty)
         else:
-            self.model = MultitaskClassifier.load_from_dir(reload_dir)
+            self.model = MultitaskClassifier(
+                self.params.num_model_tasks,
+                n_features=self.get_num_features(),
+                layer_sizes=self.params.layer_sizes,
+                dropouts=self.params.dropouts,
+                weight_init_stddevs=self.params.weight_init_stddevs,
+                bias_init_consts=self.params.bias_init_consts,
+                weight_decay_penalty=self.params.weight_decay_penalty,
+                weight_decay_penalty_type=self.params.weight_decay_penalty_type,
+                model_dir=reload_dir,
+                learning_rate=self.params.learning_rate,
+                n_classes=self.params.class_number)
         # Hack to run models trained in DeepChem 2.1 with DeepChem 2.2
-        self.model.default_outputs = self.model.outputs
+        # self.model.default_outputs = self.model.outputs
+        # Get latest checkpoint path transposed to current model dir
+        ckpt = tf.train.get_checkpoint_state(reload_dir)
+        if os.path.exists(f"{ckpt.model_checkpoint_path}.index"):
+            checkpoint = ckpt.model_checkpoint_path
+        else:
+            checkpoint = os.path.join(reload_dir, os.path.basename(ckpt.model_checkpoint_path))
+        dc_restore(self.model, checkpoint=checkpoint)
+
 
         # Load transformers if they would have been saved with the model
         if trans.transformers_needed(self.params) and (self.params.transformer_key is not None):
@@ -813,18 +1120,20 @@ class DCNNModelWrapper(ModelWrapper):
     def get_pred_results(self, subset, epoch_label=None):
         """Returns predicted values and metrics from a training, validation or test subset
         of the current dataset, or the full dataset. subset may be 'train', 'valid', 'test'
-        accordingly.  epoch_label indicates the training epoch we want results for, and may be
-        'best' or 'baseline'. Results are returned as a dictionary of parameter, value pairs.
+        accordingly.  epoch_label indicates the training epoch we want results for; currently the
+        only option for this is 'best'.  Results are returned as a dictionary of parameter, value pairs.
 
         Args:
             subset (str): Label for the current subset of the dataset (choices ['train','valid','test','full'])
-            epoch_label (str): Label for the training epoch we want results for (choices ['best','baseline'])
+
+            epoch_label (str): Label for the training epoch we want results for (choices ['best'])
 
         Returns:
             dict: A dictionary of parameter/ value pairs of the prediction values and results of the dataset subset
 
         Raises:
-            ValueError: if epoch_label not in ['best','baseline']
+            ValueError: if epoch_label not in ['best']
+
             ValueError: If subset not in ['train','valid','test','full']
         """
         if subset == 'full':
@@ -832,13 +1141,6 @@ class DCNNModelWrapper(ModelWrapper):
         if epoch_label == 'best':
             epoch = self.best_epoch
             model_dir = self.best_model_dir
-        elif epoch_label == 'baseline':
-            #TODO: This check should probably go somewhere else
-            if self.params.max_epochs < self.params.baseline_epoch:
-                epoch = self.params.max_epochs - 1
-            else:
-                epoch = self.params.baseline_epoch - 1
-            model_dir = self.baseline_model_dir
         else:
             raise ValueError("Unknown epoch_label '%s'" % epoch_label)
         if subset == 'train':
@@ -854,19 +1156,21 @@ class DCNNModelWrapper(ModelWrapper):
     def get_perf_data(self, subset, epoch_label=None):
         """Returns predicted values and metrics from a training, validation or test subset
         of the current dataset, or the full dataset. subset may be 'train', 'valid', 'test' or 'full',
-        epoch_label indicates the training epoch we want results for, and may be 'best' or
-        'baseline'. Results are returned as a PerfData object of the appropriate class for the model's
-        split strategy and prediction type.
+        epoch_label indicates the training epoch we want results for; currently the
+        only option for this is 'best'. Results are returned as a PerfData object of the appropriate class 
+        for the model's split strategy and prediction type.
 
         Args:
             subset (str): Label for the current subset of the dataset (choices ['train','valid','test','full'])
-            epoch_label (str): Label for the training epoch we want results for (choices ['best','baseline'])
+
+            epoch_label (str): Label for the training epoch we want results for (choices ['best'])
 
         Returns:
             PerfData object: Performance object pulled from the appropriate subset
 
         Raises:
-            ValueError: if epoch_label not in ['best','baseline']
+            ValueError: if epoch_label not in ['best']
+
             ValueError: If subset not in ['train','valid','test','full']
         """
 
@@ -875,13 +1179,6 @@ class DCNNModelWrapper(ModelWrapper):
         if epoch_label == 'best':
             epoch = self.best_epoch
             model_dir = self.best_model_dir
-        elif epoch_label == 'baseline':
-            #TODO: This check should probably go somewhere else
-            if self.params.max_epochs < self.params.baseline_epoch:
-                epoch = self.params.max_epochs - 1
-            else:
-                epoch = self.params.baseline_epoch - 1
-            model_dir = self.baseline_model_dir
         else:
             raise ValueError("Unknown epoch_label '%s'" % epoch_label)
 
@@ -981,7 +1278,6 @@ class DCNNModelWrapper(ModelWrapper):
                     weight_init_stddevs = self.params.weight_init_stddevs,
                     bias_init_consts = self.params.bias_init_consts,
                     learning_rate = self.params.learning_rate,
-                    baseline_epoch=self.params.baseline_epoch,
                     weight_decay_penalty=self.params.weight_decay_penalty,
                     weight_decay_penalty_type=self.params.weight_decay_penalty_type
         )
@@ -1014,7 +1310,6 @@ class DCRFModelWrapper(ModelWrapper):
             transformers_x (list): Initialized as an empty list, stores the transformers on the featurizers
             model_dir (str): The subdirectory under output_dir that contains the model. Created in setup_model_dirs.
             best_model_dir (str): The subdirectory under output_dir that contains the best model. Created in setup_model_dirs
-            baseline_model_dir (str): The subdirectory under output_dir that contains the baseline epoch model.
             model: The dc.models.sklearn_models.SklearnModel as specified by the params attribute
 
         Created in train:
@@ -1032,13 +1327,13 @@ class DCRFModelWrapper(ModelWrapper):
 
         Args:
             params (Namespace object): contains all parameter information.
+
             featurizer (Featurization): Object managing the featurization of compounds
             ds_client: datastore client.
         """
         super().__init__(params, featurizer, ds_client)
         self.best_model_dir = os.path.join(self.output_dir, 'best_model')
         self.model_dir = self.best_model_dir
-        self.baseline_model_dir = self.best_model_dir
         os.makedirs(self.best_model_dir, exist_ok=True)
 
         if self.params.prediction_type == 'regression':
@@ -1066,10 +1361,15 @@ class DCRFModelWrapper(ModelWrapper):
 
         Side effects:
             data (ModelDataset): contains the dataset, set in pipeline
+
             best_epoch (int): Set to 0, not applicable to deepchem random forest models
+
             train_perf_data (PerfData): Contains the predictions and performance of the training dataset
+
             valid_perf_data (PerfData): Contains the predictions and performance of the validation dataset
+
             train_perfs (dict): A dictionary of predicted values and metrics on the training dataset
+
             valid_perfs (dict): A dictionary of predicted values and metrics on the training dataset
         """
 
@@ -1113,7 +1413,7 @@ class DCRFModelWrapper(ModelWrapper):
             # For k-fold CV, retrain on the combined training and validation sets
             fit_dataset = self.data.combined_training_data()
             self.model.fit(fit_dataset, restore=False)
-        self.model.save()
+        self.model_save()
         # The best model is just the single RF training run.
         self.best_epoch = 0
 
@@ -1124,6 +1424,7 @@ class DCRFModelWrapper(ModelWrapper):
 
         Args:
             reload_dir (str): Directory where saved model is located.
+
             model_dataset (ModelDataset Object): contains the current full dataset
 
         Side effects:
@@ -1160,6 +1461,7 @@ class DCRFModelWrapper(ModelWrapper):
 
         Args:
             subset: 'train', 'valid', 'test' or 'full' accordingly.
+
             epoch_label: ignored; this function always returns the results for the current model.
 
         Returns:
@@ -1295,7 +1597,6 @@ class DCxgboostModelWrapper(ModelWrapper):
             transformers_x (list): Initialized as an empty list, stores the transformers on the featurizers
             model_dir (str): The subdirectory under output_dir that contains the model. Created in setup_model_dirs.
             best_model_dir (str): The subdirectory under output_dir that contains the best model. Created in setup_model_dirs
-            baseline_model_dir (str): The subdirectory under output_dir that contains the baseline epoch model.
             model: The dc.models.sklearn_models.SklearnModel as specified by the params attribute
 
         Created in train:
@@ -1313,13 +1614,13 @@ class DCxgboostModelWrapper(ModelWrapper):
 
         Args:
             params (Namespace object): contains all parameter information.
+
             featurizer (Featurization): Object managing the featurization of compounds
             ds_client: datastore client.
         """
         super().__init__(params, featurizer, ds_client)
         self.best_model_dir = os.path.join(self.output_dir, 'best_model')
         self.model_dir = self.best_model_dir
-        self.baseline_model_dir = self.best_model_dir
         os.makedirs(self.best_model_dir, exist_ok=True)
 
         if self.params.prediction_type == 'regression':
@@ -1346,7 +1647,8 @@ class DCxgboostModelWrapper(ModelWrapper):
                                          gpu_id = 0,
                                          n_gpus = -1,
                                          max_bin = 16,
-#                                          tree_method = 'gpu_hist'
+#                                          tree_method = 'gpu_hist',
+                                         seed=0
                                          )
         else:
             xgb_model = xgb.XGBClassifier(max_depth=self.params.xgb_max_depth,
@@ -1372,9 +1674,9 @@ class DCxgboostModelWrapper(ModelWrapper):
                                           n_jobs=-1,                                          
                                           n_gpus = -1,
                                           max_bin = 16,
-#                                           tree_method = 'gpu_hist'
+#                                           tree_method = 'gpu_hist',
+                                          seed=0
                                          )
-
         self.model = dc.models.xgboost_models.XGBoostModel(xgb_model, model_dir=self.best_model_dir)
 
     # ****************************************************************************************
@@ -1389,10 +1691,15 @@ class DCxgboostModelWrapper(ModelWrapper):
 
         Side effects:
             data (ModelDataset): contains the dataset, set in pipeline
+
             best_epoch (int): Set to 0, not applicable to deepchem xgboost models
+
             train_perf_data (PerfData): Contains the predictions and performance of the training dataset
+
             valid_perf_data (PerfData): Contains the predictions and performance of the validation dataset
+
             train_perfs (dict): A dictionary of predicted values and metrics on the training dataset
+
             valid_perfs (dict): A dictionary of predicted values and metrics on the training dataset
         """
 
@@ -1435,7 +1742,7 @@ class DCxgboostModelWrapper(ModelWrapper):
             # For k-fold CV, retrain on the combined training and validation sets
             fit_dataset = self.data.combined_training_data()
             self.model.fit(fit_dataset, restore=False)
-        self.model.save()
+        self.model_save()
         # The best model is just the single xgb training run.
         self.best_epoch = 0
 
@@ -1447,6 +1754,7 @@ class DCxgboostModelWrapper(ModelWrapper):
 
         Args:
             reload_dir (str): Directory where saved model is located.
+
             model_dataset (ModelDataset Object): contains the current full dataset
 
         Side effects:
@@ -1478,6 +1786,7 @@ class DCxgboostModelWrapper(ModelWrapper):
                                          gpu_id = 0,
                                          n_gpus = -1,
                                          max_bin = 16,
+                                         seed=0
 #                                          tree_method = 'gpu_hist'
                                          )
         else:
@@ -1504,6 +1813,7 @@ class DCxgboostModelWrapper(ModelWrapper):
                                           n_jobs=-1,                                          
                                           n_gpus = -1,
                                           max_bin = 16,
+                                          seed=0
 #                                           tree_method = 'gpu_hist',
                                          )
 
@@ -1528,6 +1838,7 @@ class DCxgboostModelWrapper(ModelWrapper):
 
         Args:
             subset: 'train', 'valid', 'test' or 'full' accordingly.
+
             epoch_label: ignored; this function always returns the results for the current model.
 
         Returns:
@@ -1556,6 +1867,7 @@ class DCxgboostModelWrapper(ModelWrapper):
 
         Args:
             subset (str): may be 'train', 'valid', 'test' or 'full'
+
             epoch_label (not used in random forest, but kept as part of the method structure)
 
         Results:
@@ -1594,9 +1906,7 @@ class DCxgboostModelWrapper(ModelWrapper):
         pred = self.model.predict(dataset, self.transformers)
         ncmpds = pred.shape[0]
         pred = pred.reshape((ncmpds, 1, -1))
-
-        if self.params.uncertainty:
-            self.log.warning("uncertainty not supported by xgboost models")
+        self.log.warning("uncertainty not supported by xgboost models")
 
         return pred, std
 

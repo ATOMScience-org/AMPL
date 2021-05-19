@@ -37,6 +37,7 @@ def create_model_dataset(params, featurization, ds_client=None):
         in the factory function.
         
         ds_client (Datastore client)
+
     Returns:
         either (DatastoreDataset) or (FileDataset): instantiated ModelDataset subclass specified by params
     """
@@ -351,13 +352,16 @@ class ModelDataset(object):
             try:
                 self.log.debug("Attempting to load featurized dataset")
                 featurized_dset_df = self.load_featurized_data()
+                featurized_dset_df[self.params.id_col] = featurized_dset_df[self.params.id_col].astype(str)
                 self.log.debug("Got dataset, attempting to extract data")
                 features, ids, self.vals, self.attr = self.featurization.extract_prefeaturized_data(
                                                            featurized_dset_df, self)
                 self.n_features = self.featurization.get_feature_count()
                 self.log.debug("Creating deepchem dataset")
-
+                
                 self.vals, w = feat.make_weights(self.vals)
+                if self.params.prediction_type=='classification':
+                    w = w.astype(np.float32)
 
                 self.dataset = DiskDataset.from_numpy(features, self.vals, ids=ids, w=w, verbose=False)
                 self.log.info("Using prefeaturized data; number of features = " + str(self.n_features))
@@ -640,6 +644,7 @@ class ModelDataset(object):
         
         Args:
             subset (string): Label of subset, 'train', 'test', or 'valid'
+
             transformers: Transformers object for full dataset
             
         Returns:
@@ -648,7 +653,7 @@ class ModelDataset(object):
                 (weight_dict): dictionary mapping compound ids to arrays of per-task weights
         """
         if subset not in self.subset_response_dict:
-            if subset in ('train', 'valid'):
+            if subset in ('train', 'valid', 'train_valid'):
                 dataset = self.combined_training_data()
             elif subset == 'test':
                 dataset = self.test_dset
@@ -778,7 +783,7 @@ class MinimalDataset(ModelDataset):
             self.log.warning("Formatting already featurized data...")
             feature_cols = [dset_df[col].values.reshape(-1,1) for col in self.featurization.get_feature_columns()]
             features = np.concatenate(feature_cols, axis=1)
-            ids = dset_df[params.id_col].values
+            ids = dset_df[params.id_col].astype(str).values
             #TODO: check size is right
             nrows = len(ids)
             ncols = len(params.response_cols)
@@ -827,19 +832,29 @@ class DatastoreDataset(ModelDataset):
 
         set in __init__:
             params (Namespace object): contains all parameter information
+
             log (logger object): logger for all warning messages.
+
             dataset_name (str): set from the parameter object, the name of the dataset
+
             output_dit (str): The root directory for saving output files
+
             split_strategy (str): the flag for determining the split strategy (e.g. 'train_test_valid','k-fold')
+
             featurization (Featurization object): The featurization object created by ModelDataset or input as an optional argument in the factory function.
+
             splitting (Splitting object): A splitting object created by the ModelDataset intiailization method
+
             combined_train_valid_data (dc.DiskDataset): A dataset object (initialized as None), of the merged train and valid splits
             ds_client (datastore client):
 
         set in get_featurized_data:
             dataset: A new featurized DeepChem DiskDataset.
+
             n_features: The count of features (int)
+
             vals: The response col after featurization (np.array)
+
             attr: A pd.dataframe containing the compound ids and smiles
 
         set in get_dataset_tasks:
@@ -847,8 +862,11 @@ class DatastoreDataset(ModelDataset):
 
         set in split_dataset or load_presplit_dataset:
             train_valid_dsets:  A list of tuples of (training,validation) DeepChem Datasets
+
             test_dset: (dc.data.Dataset): The test dataset to be held out
+
             train_valid_attr: A list of tuples of (training,validation) attribute DataFrames
+
             test_attr: The attribute DataFrame for the test set, containing compound IDs and SMILES strings.
 
         set in load_full_dataset()
@@ -892,6 +910,7 @@ class DatastoreDataset(ModelDataset):
         """
         self.dataset_key = self.params.dataset_key
         dset_df = dsf.retrieve_dataset_by_datasetkey(self.dataset_key, self.params.bucket, self.ds_client)
+        dset_df[self.params.id_col] = dset_df[self.params.id_col].astype(str)
         dataset_metadata = dsf.retrieve_dataset_by_datasetkey(self.dataset_key, self.params.bucket, self.ds_client,
                                                           return_metadata=True)
         self.dataset_oid = dataset_metadata['dataset_oid']
@@ -1030,6 +1049,7 @@ class DatastoreDataset(ModelDataset):
         featurized_dset_metadata = dsf.retrieve_dataset_by_datasetkey(featurized_dset_key, self.params.bucket, 
                                                                       self.ds_client, return_metadata=True)
         self.dataset_oid = featurized_dset_metadata['dataset_oid']
+        featurized_dset_df[self.params.id_col] = featurized_dset_df[self.params.id_col].astype(str)
         return featurized_dset_df
 
     # ****************************************************************************************
@@ -1186,7 +1206,7 @@ class FileDataset(ModelDataset):
             raise Exception("Failed to load dataset %s" % dataset_path)
         if dset_df.empty:
             raise Exception("Dataset %s is empty" % dataset_path)
-
+        dset_df[self.params.id_col] = dset_df[self.params.id_col].astype(str)
         return dset_df
 
     # ****************************************************************************************
@@ -1264,6 +1284,7 @@ class FileDataset(ModelDataset):
         featurized_dset_path = os.path.join(data_dir, featurized_dset_name)
         featurized_dset_df = pd.read_csv(featurized_dset_path)
         self.dataset_key = featurized_dset_path
+        featurized_dset_df[self.params.id_col] = featurized_dset_df[self.params.id_col].astype(str)
         return featurized_dset_df
 
     # ****************************************************************************************

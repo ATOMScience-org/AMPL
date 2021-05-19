@@ -18,9 +18,28 @@ import deepchem as dc
 import numpy as np
 import time
 import pandas as pd
+import scipy as sp
+from sklearn.metrics import pairwise_distances
 import pdb
+import copy
 
 from atomsci.ddm.utils import datastore_functions as dsf
+
+if 'site-packages' in dsf.__file__: # install_dev.sh points to github directory
+    import subprocess
+    import json
+    data = subprocess.check_output(["pip", "list", "--format", "json"])
+    parsed_results = json.loads(data)
+    ampl_version=next(item for item in parsed_results if item["name"] == "atomsci-ampl")['version']
+else: # install.sh points to installation directory
+    import pkg_resources
+    VERSION_fn = os.path.join(
+        os.path.dirname(pkg_resources.resource_filename('atomsci', '')),
+        'VERSION')
+    f=open(VERSION_fn, 'r')
+    ampl_version = f.read().strip()
+    f.close()
+
 from atomsci.ddm.pipeline import model_datasets as model_datasets
 from atomsci.ddm.pipeline import model_wrapper as model_wrapper
 from atomsci.ddm.pipeline import featurization as feat
@@ -33,6 +52,61 @@ logging.basicConfig(format='%(asctime)-15s %(message)s')
 # Only for debug!
 np.random.seed(123)
 
+
+# ---------------------------------------------
+def calc_AD_kmean_dist(train_dset, pred_dset, k, train_dset_pair_distance=None, dist_metric="euclidean"):
+    """
+    calculate the probability of the prediction dataset fall in the the domain of traning set. Use Euclidean distance of the K nearest neighbours.
+    train_dset and pred_dset should be in 2D numpy array format where each row is a compound.
+    """
+    if train_dset_pair_distance is None:
+        # calcualate the pairwise distance of training set
+        train_dset_pair_distance = pairwise_distances(X=train_dset, metric=dist_metric)
+    train_kmean_dis = []
+    for i in range(len(train_dset_pair_distance)):
+        kn_idx = np.argpartition(train_dset_pair_distance[i], k+1)
+        dis = np.mean(train_dset_pair_distance[i][kn_idx[:k+1]])
+        train_kmean_dis.append(dis)
+    train_dset_distribution = sp.stats.norm.fit(train_kmean_dis)
+    # pairwise distance between train and pred set
+    pred_size = len(pred_dset)
+    train_pred_dis = pairwise_distances(X=pred_dset, Y=train_dset, metric=dist_metric)
+    pred_kmean_dis_score = np.zeros(pred_size)
+    for i in range(pred_size):
+        pred_km_dis = np.mean(np.sort(train_pred_dis[i])[:k])
+        train_dset_std = train_dset_distribution[1] if train_dset_distribution[1] != 0 else 1e-6
+        pred_kmean_dis_score[i] = max(1e-6, (pred_km_dis - train_dset_distribution[0]) / train_dset_std)
+    return pred_kmean_dis_score
+
+# ---------------------------------------------
+def calc_AD_kmean_local_density(train_dset, pred_dset, k, train_dset_pair_distance=None, dist_metric="euclidean"):
+    """
+    Evaluate the AD of pred data by comparing the distance betweenthe unseen object and its k nearest neighbors in the training set to the distance between these k nearest neighbors and their k nearest neighbors in the training set. Return the distance ratio. Greater than 1 means the pred data is far from the domain.
+    """
+    if train_dset_pair_distance is None:
+        # calcualate the pair-wise distance of training set
+        train_pair_dist = pairwise_distances(X=train_dset, metric=dist_metric)
+    # pairwise distance between train and pred set
+    pred_size = len(pred_dset)
+    train_pred_dis = pairwise_distances(X=pred_dset, Y=train_dset, metric=dist_metric)
+    pred_kmean_dis_local_density = np.zeros(pred_size)
+    for i in range(pred_size):
+        # find the index of k nearest neighbour of each prediction data
+        kn_idx = np.argpartition(train_pred_dis[i], k)
+        pred_km_dis = np.mean(train_pred_dis[i][kn_idx[:k]])
+        # find the neighbours of each neighbour and calculate the distance
+        neighbor_dis = []
+        for nei_ix in kn_idx[:k]:
+            nei_kn_idx = np.argpartition(train_dset_pair_distance[nei_ix], k)
+            neighbor_dis.append(np.mean(train_dset_pair_distance[nei_ix][nei_kn_idx[:k]]))
+        ave_nei_dis = np.mean(neighbor_dis)
+        if ave_nei_dis == 0:
+            ave_nei_dis = 1e-6
+        pred_kmean_dis_local_density[i] = pred_km_dis / ave_nei_dis
+    return pred_kmean_dis_local_density
+
+
+# ******************************************************************************************************************************
 
 class ModelPipeline:
     """Contains methods to load in a dataset, split and featurize the data, fit a model to the train dataset,
@@ -107,6 +181,12 @@ class ModelPipeline:
         self.log = logging.getLogger('ATOM')
         self.run_mode = 'training'  # default, can be overridden later
         self.start_time = time.time()
+
+        # if model is NN, set the uncertainty to False.
+        # https://github.com/deepchem/deepchem/issues/2422
+        if self.params.model_type == 'NN':
+            self.params.uncertainty = False
+
         # Default dataset_name parameter from dataset_key
         if params.dataset_name is None:
             self.params.dataset_name = os.path.splitext(os.path.basename(self.params.dataset_key))[0]
@@ -151,8 +231,7 @@ class ModelPipeline:
             os.makedirs(self.params.output_dir, exist_ok=True)
         self.output_dir = self.params.output_dir
         if self.params.model_tarball_path is None:
-            self.params.model_tarball_path = os.path.join(self.params.result_dir, 
-                                                          '%s_model_%s.tar.gz' % (self.params.dataset_name, self.params.model_uuid))
+            self.params.model_tarball_path = os.path.join(str(self.params.result_dir), "{}_model_{}.tar.gz".format(self.params.dataset_name, self.params.model_uuid))
 
         # ****************************************************************************************
 
@@ -235,7 +314,8 @@ class ModelPipeline:
             uncertainty=self.params.uncertainty,
             time_generated=time.time(),
             save_results=self.params.save_results,
-            hyperparam_uuid=self.params.hyperparam_uuid
+            hyperparam_uuid=self.params.hyperparam_uuid,
+            ampl_version=ampl_version
         )
 
         splitting_metadata = self.data.get_split_metadata()
@@ -261,8 +341,13 @@ class ModelPipeline:
         # ****************************************************************************************
 
     def save_model_metadata(self, retries=5, sleep_sec=60):
-        """Inserts the model metadata into the model tracker DB, if self.params.save_results is True.
-        Otherwise, saves the model metadata to a .json file and sets the permissions.
+        """
+        Saves the data needed to reload the model in the model tracker DB or in a local tarball file.
+
+        Inserts the model metadata into the model tracker DB, if self.params.save_results is True.
+        Otherwise, saves the model metadata to a local .json file. Generates a gzipped tar archive
+        containing the metadata file, the transformer parameters and the model checkpoint files, and
+        saves it in the datastore or the filesystem according to the value of save_results.
 
         Args:
             retries (int): Number of times to retry saving to model tracker DB.
@@ -270,7 +355,7 @@ class ModelPipeline:
             sleep_sec (int): Number of seconds to sleep between retries, if saving to model tracker DB.
 
         Side effects:
-            Inserts the model metadata into the model zoo or writes out a metadata.json file
+            Saves the model metadata and parameters into the model tracker DB or a local tarball file.
         """
         if self.params.save_results:
             # Model tracker saves the model state in the datastore as well as saving the metadata
@@ -368,14 +453,14 @@ class ModelPipeline:
         If writing to disk, outputs to a JSON file <prefix>_model_metrics.json in the current output directory.
 
         Args:
-            model_metrics (dict or list): Either a dictionary containing the model performance metrics, or a 
+            model_metrics (dict or list): Either a dictionary containing the model performance metrics, or a
             list of dictionaries with metrics for each training label and subset.
 
             prefix: An optional prefix to include in the JSON filename, only used if writing to disk (i.e., if
             self.params.save_results is False).
-            
+
             retries (int): Number of retries to save to model tracker DB, if save_results is True.
-            
+
             sleep_sec (int): Number of seconds to sleep between retries.
 
         Side effects:
@@ -498,9 +583,9 @@ class ModelPipeline:
 
         # Save the metadata for the trained model
         self.create_model_metadata()
-        # Save the performance metrics for each training data subset, for the best and baseline epochs
+        # Save the performance metrics for each training data subset, for the best epoch
         training_metrics = []
-        for label in ['best', 'baseline']:
+        for label in ['best']:
             for subset in ['train', 'valid', 'test']:
                 training_dict = dict(
                     metrics_type='training',
@@ -563,31 +648,54 @@ class ModelPipeline:
         self.save_metrics(model_metrics, 'prediction_%s' % self.params.dataset_name)
 
     # ****************************************************************************************
-    def predict_on_dataframe(self, dset_df, is_featurized=False, contains_responses=False):
+    def calc_train_dset_pair_dis(self, metric="euclidean"):
+        """
+        Calculate the pairwise distance for training set compound feature vectors, needed for AD calculation.
+        """
+        
+        self.featurization = self.model_wrapper.featurization
+        self.load_featurize_data()
+        if len(self.data.train_valid_dsets) > 1:
+            # combine train and valid set for k-fold cv models
+            train_data = np.concatenate((self.data.train_valid_dsets[0][0].X, self.data.train_valid_dsets[0][1].X))
+        else:
+            train_data = self.data.train_valid_dsets[0][0].X
+        self.train_pair_dis = pairwise_distances(X=train_data, metric=metric)
+        self.train_pair_dis_metric = metric
+    
+    # ****************************************************************************************
+    def predict_on_dataframe(self, dset_df, is_featurized=False, contains_responses=False, AD_method=None, k=5, dist_metric="euclidean"):
         """Compute predicted responses from a pretrained model on a set of compounds listed in
-        a data frame. The data frame should contain, at minimum, a column of compound IDs; if
+        a data frame. the data frame should contain, at minimum, a column of compound IDs; if
         SMILES strings are needed to compute features, they should be provided as well.
 
         Args:
-            dset_df (DataFrame) : A data frame containing compound IDs (if the compounds are to be
+            dset_df (Dataframe): A data frame containing compound IDs (if the compounds are to be
             featurized using descriptors) and/or SMILES strings (if the compounds are to be
             featurized using ECFP fingerprints or graph convolution) and/or precomputed features.
             The column names for the compound ID and SMILES columns should match id_col and smiles_col,
             respectively, in the model parameters.
 
-            is_featurized (bool) : True if dset_df contains precomputed feature columns. If so,
+            is_featurized (bool): True if dset_df contains precomputed feature columns. If so,
             dset_df must contain *all* of the feature columns defined by the featurizer that was
             used when the model was trained.
 
             contains_responses (bool): True if dataframe contains response values
 
-        Returns:
-            result_df (DataFrame) : Data frame indexed by compound IDs containing a column of SMILES
+            AD_method (str): with default, Applicable domain (AD) index will not be calcualted, use 
+            z_score or local_density to choose the method to calculate AD index.
+
+            k (int): number of the neareast neighbors to evaluate the AD index, default is 5.
+
+            dist_metric (str): distance metrics, valid values are 'cityblock', 'cosine', 'euclidean', 'jaccard', 'manhattan'
+        returns:
+            result_df (dataframe): data frame indexed by compound ids containing a column of smiles
             strings, with additional columns containing the predicted values for each response variable.
             If the model was trained to predict uncertainties, the returned data frame will also
             include standard deviation columns (named <response_col>_std) for each response variable.
             The result data frame may not include all the compounds in the input dataset, because
             the featurizer may not be able to featurize all of them.
+
         """
 
         self.run_mode = 'prediction'
@@ -620,6 +728,27 @@ class ModelPipeline:
             for i, colname in enumerate(self.params.response_cols):
                 std_colname = 'std'
                 result_df[std_colname] = stds[:, i, 0]
+
+        if AD_method is not None:
+            if self.featurization.feat_type != "graphconv":
+                pred_data = copy.deepcopy(self.data.dataset.X)
+                self.run_mode = 'training'
+                self.load_featurize_data()
+                if len(self.data.train_valid_dsets) > 1:
+                    # combine train and valid set for k-fold CV models
+                    train_data = np.concatenate((self.data.train_valid_dsets[0][0].X, self.data.train_valid_dsets[0][1].X))
+                else:
+                    train_data = self.data.train_valid_dsets[0][0].X
+                if not hasattr(self, "train_pair_dis") or not hasattr(self, "train_pair_dis_metric") or self.train_pair_dis_metric != dist_metric:
+                    self.calc_train_dset_pair_dis(metric=dist_metric)
+
+                if AD_method == "local_density":
+                    result_df["AD_index"] = calc_AD_kmean_local_density(train_data, pred_data, k, train_dset_pair_distance=self.train_pair_dis, dist_metric=dist_metric)
+                else:
+                    result_df["AD_index"] = calc_AD_kmean_dist(train_data, pred_data, k, train_dset_pair_distance=self.train_pair_dis, dist_metric=dist_metric)
+            else:
+                self.log.warning("GraphConv features are not plain vectors, AD index cannot be calculated.")
+
         '''
         if contains_responses:
             for i, colname in enumerate(self.params.response_cols):
@@ -638,16 +767,23 @@ class ModelPipeline:
         return result_df
 
     # ****************************************************************************************
-    def predict_on_smiles(self, smiles, verbose=False):
+    def predict_on_smiles(self, smiles, verbose=False, AD_method=None, k=5, dist_metric="euclidean"):
         """Compute predicted responses from a pretrained model on a set of compounds given as a list of SMILES strings.
 
         Args:
-            smiles (list) : A list containting valid SMILES strings
+            smiles (list): A list containting valid SMILES strings
 
             verbose (boolean): A switch for disabling informational messages
 
+            AD_method (str): with default, Applicable domain (AD) index will not be calcualted, use 
+            z_score or local_density to choose the method to calculate AD index.
+
+            k (int): number of the neareast neighbors to evaluate the AD index, default is 5.
+
+            dist_metric (str): distance metrics, valid values are 'cityblock', 'cosine', 'euclidean', 'jaccard', 'manhattan'
+
         Returns:
-            res (DataFrame) : Data frame indexed by compound IDs containing a column of SMILES
+            res (DataFrame): Data frame indexed by compound IDs containing a column of SMILES
             strings, with additional columns containing the predicted values for each response variable.
             If the model was trained to predict uncertainties, the returned data frame will also
             include standard deviation columns (named <response_col>_std) for each response variable.
@@ -658,7 +794,7 @@ class ModelPipeline:
         if not verbose:
             os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1'
             logger = logging.getLogger('ATOM')
-            logger.setLevel(50)
+            logger.setLevel(logging.CRITICAL)
             sys.stdout = io.StringIO()
             import warnings
             warnings.simplefilter("ignore")
@@ -671,14 +807,14 @@ class ModelPipeline:
         df = pd.DataFrame({'compound_id': np.linspace(0, len(smiles) - 1, len(smiles), dtype=int),
                         self.params.smiles_col: smiles,
                         task: np.zeros(len(smiles))})
-        res = self.predict_on_dataframe(df)
+        res = self.predict_on_dataframe(df, AD_method=AD_method, k=k, dist_metric=dist_metric)
 
         sys.stdout = sys.__stdout__
 
         return res
 
     # ****************************************************************************************
-    def predict_full_dataset(self, dset_df, is_featurized=False, contains_responses=False, dset_params=None):
+    def predict_full_dataset(self, dset_df, is_featurized=False, contains_responses=False, dset_params=None, AD_method=None, k=5, dist_metric="euclidean"):
         """
         Compute predicted responses from a pretrained model on a set of compounds listed in
         a data frame. The data frame should contain, at minimum, a column of compound IDs; if
@@ -690,24 +826,31 @@ class ModelPipeline:
         and includes class probabilities in the output for classifier models.
 
         Args:
-            dset_df (DataFrame) : A data frame containing compound IDs (if the compounds are to be
+            dset_df (DataFrame): A data frame containing compound IDs (if the compounds are to be
             featurized using descriptors) and/or SMILES strings (if the compounds are to be
             featurized using ECFP fingerprints or graph convolution) and/or precomputed features.
             The column names for the compound ID and SMILES columns should match id_col and smiles_col,
             respectively, in the model parameters.
 
-            is_featurized (bool) : True if dset_df contains precomputed feature columns. If so,
+            is_featurized (bool): True if dset_df contains precomputed feature columns. If so,
             dset_df must contain *all* of the feature columns defined by the featurizer that was
             used when the model was trained.
 
             contains_responses (bool): True if dataframe contains response values
 
             dset_params (Namespace):  Parameters used to interpret dataset, including id_col, smiles_col,
-            and optionally, response_cols. If not provided, id_col, smiles_col and response_cols are 
+            and optionally, response_cols. If not provided, id_col, smiles_col and response_cols are
             assumed to be same as in the pretrained model.
 
+            AD_method (str): with default, Applicable domain (AD) index will not be calcualted, use 
+            z_score or local_density to choose the method to calculate AD index.
+
+            k (int): number of the neareast neighbors to evaluate the AD index, default is 5.
+
+            dist_metric (str): distance metrics, valid values are 'cityblock', 'cosine', 'euclidean', 'jaccard', 'manhattan'
+
         Returns:
-            result_df (DataFrame) : Data frame indexed by compound IDs containing a column of SMILES
+            result_df (DataFrame): Data frame indexed by compound IDs containing a column of SMILES
             strings, with additional columns containing the predicted values for each response variable.
             If the model was trained to predict uncertainties, the returned data frame will also
             include standard deviation columns (named <response_col>_std) for each response variable.
@@ -728,7 +871,7 @@ class ModelPipeline:
                 for i, col in enumerate(dset_params.response_cols):
                     coldict[col] = self.params.response_cols[i]
             dset_df = dset_df.rename(columns=coldict)
-                        
+
         self.data = model_datasets.create_minimal_dataset(self.params, self.featurization, contains_responses)
 
         if not self.data.get_dataset_tasks(dset_df):
@@ -739,7 +882,7 @@ class ModelPipeline:
 
         # Get the predictions and standard deviations, if calculated, as numpy arrays
         preds, stds = self.model_wrapper.generate_predictions(self.data.dataset)
-        result_df = pd.DataFrame({self.params.id_col: self.data.attr.index.values, 
+        result_df = pd.DataFrame({self.params.id_col: self.data.attr.index.values,
                                   self.params.smiles_col: self.data.attr[self.params.smiles_col].values})
 
         if contains_responses:
@@ -761,6 +904,26 @@ class ModelPipeline:
             for i, colname in enumerate(self.params.response_cols):
                 std_colname = '%s_std' % colname
                 result_df[std_colname] = stds[:,i,0]
+
+        if AD_method is not None:
+            if self.featurization.feat_type != "graphconv":
+                pred_data = copy.deepcopy(self.data.dataset.X)
+                self.run_mode = 'training'
+                self.load_featurize_data()
+                if len(self.data.train_valid_dsets) > 1:
+                    # combine train and valid set for k-fold CV models
+                    train_data = np.concatenate((self.data.train_valid_dsets[0][0].X, self.data.train_valid_dsets[0][1].X))
+                else:
+                    train_data = self.data.train_valid_dsets[0][0].X
+                if not hasattr(self, "train_pair_dis") or not hasattr(self, "train_pair_dis_metric") or self.train_pair_dis_metric != dist_metric:
+                    self.calc_train_dset_pair_dis(metric=dist_metric)
+
+                if AD_method == "local_density":
+                    result_df["AD_index"] = calc_AD_kmean_local_density(train_data, pred_data, k, train_dset_pair_distance=self.train_pair_dis, dist_metric=dist_metric)
+                else:
+                    result_df["AD_index"] = calc_AD_kmean_dist(train_data, pred_data, k, train_dset_pair_distance=self.train_pair_dis, dist_metric=dist_metric)
+            else:
+                self.log.warning("GraphConv features are not plain vectors, AD index cannot be calculated.")
 
         return result_df
 
@@ -974,13 +1137,13 @@ def create_prediction_pipeline(params, model_uuid, collection_name=None, featuri
     where the ground truth is not known, given a pretrained model in the model tracker database.
 
     Args:
-        params (Namespace or dict) : A parsed parameters namespace, containing parameters describing how input
+        params (Namespace or dict): A parsed parameters namespace, containing parameters describing how input
         datasets should be processed. If a dictionary is passed, it will be parsed to fill in default values
         and convert it to a Namespace object.
 
-        model_uuid (str) : The UUID of a trained model.
+        model_uuid (str): The UUID of a trained model.
 
-        collection_name (str) : The collection where the model is stored in the model tracker DB.
+        collection_name (str): The collection where the model is stored in the model tracker DB.
 
         featurization (Featurization): An optional featurization object to be used for featurizing the input data.
         If none is provided, one will be created based on the stored model parameters.
@@ -989,7 +1152,7 @@ def create_prediction_pipeline(params, model_uuid, collection_name=None, featuri
         original bucket no longer exists.
 
     Returns:
-        pipeline (ModelPipeline) : A pipeline object to be used for making predictions.
+        pipeline (ModelPipeline): A pipeline object to be used for making predictions.
     """
     mlmt_client = dsf.initialize_model_tracker()
     ds_client = dsf.config_client()
@@ -1077,16 +1240,17 @@ def create_prediction_pipeline(params, model_uuid, collection_name=None, featuri
 
 
 # ****************************************************************************************
-def create_prediction_pipeline_from_file(params, reload_dir, model_path=None, model_type='best_model', featurization=None):
+def create_prediction_pipeline_from_file(params, reload_dir, model_path=None, model_type='best_model', featurization=None,
+                                         verbose=True):
     """
     Create a ModelPipeline object to be used for running blind predictions on datasets, given a pretrained model stored
     in the filesystem. The model may be stored either as a gzipped tar archive or as a directory.
 
     Args:
-        params (Namespace) : A parsed parameters namespace, containing parameters describing how input
+        params (Namespace): A parsed parameters namespace, containing parameters describing how input
         datasets should be processed.
 
-        reload_dir (str) : The path to the parent directory containing the various model subdirectories 
+        reload_dir (str): The path to the parent directory containing the various model subdirectories
           (e.g.: '/home/cdsw/model/delaney-processed/delaney-processed/pxc50_NN_graphconv_scaffold_regression/').
         If reload_dir is None, then model_path must be specified. If both are specified, then the tar archive given
         by model_path will be unpacked into reload_dir, possibly overwriting existing files in that directory.
@@ -1101,7 +1265,7 @@ def create_prediction_pipeline_from_file(params, reload_dir, model_path=None, mo
         If none is provided, one will be created based on the stored model parameters.
 
     Returns:
-        pipeline (ModelPipeline) : A pipeline object to be used for making predictions.
+        pipeline (ModelPipeline): A pipeline object to be used for making predictions.
     """
 
     # Unpack the model tar archive if one is specified
@@ -1135,23 +1299,25 @@ def create_prediction_pipeline_from_file(params, reload_dir, model_path=None, mo
 
     # Override selected model training data parameters with parameters for current dataset
 
-    model_params.id_col = params.id_col
-    model_params.smiles_col = params.smiles_col
     model_params.save_results = False
-    model_params.result_dir = params.result_dir
-    model_params.system = params.system
     model_params.output_dir = reload_dir
+    if params is not None:
+        model_params.id_col = params.id_col
+        model_params.smiles_col = params.smiles_col
+        model_params.result_dir = params.result_dir
+        model_params.system = params.system
+        verbose = params.verbose
 
-    # Allow using computed_descriptors featurizer for a model trained with the descriptors featurizer, and vice versa
-    if (model_params.featurizer == 'descriptors' and params.featurizer == 'computed_descriptors') or (
-            model_params.featurizer == 'computed_descriptors' and params.featurizer == 'descriptors'):
-        model_params.featurizer = params.featurizer
+        # Allow using computed_descriptors featurizer for a model trained with the descriptors featurizer, and vice versa
+        if (model_params.featurizer == 'descriptors' and params.featurizer == 'computed_descriptors') or (
+                model_params.featurizer == 'computed_descriptors' and params.featurizer == 'descriptors'):
+            model_params.featurizer = params.featurizer
 
-    # Allow descriptor featurizer to use a different descriptor table than was used for the training data.
-    # This could be needed e.g. when a model was trained with GSK compounds and tested with ChEMBL data.
-    model_params.descriptor_key = params.descriptor_key
-    model_params.descriptor_bucket = params.descriptor_bucket
-    model_params.descriptor_oid = params.descriptor_oid
+        # Allow descriptor featurizer to use a different descriptor table than was used for the training data.
+        # This could be needed e.g. when a model was trained with GSK compounds and tested with ChEMBL data.
+        model_params.descriptor_key = params.descriptor_key
+        model_params.descriptor_bucket = params.descriptor_bucket
+        model_params.descriptor_oid = params.descriptor_oid
 
     # If the caller didn't provide a featurization object, create one for this model
     if featurization is None:
@@ -1164,7 +1330,7 @@ def create_prediction_pipeline_from_file(params, reload_dir, model_path=None, mo
     # Create the ModelWrapper object.
     pipeline.model_wrapper = model_wrapper.create_model_wrapper(pipeline.params, featurization)
 
-    if params.verbose:
+    if verbose:
         pipeline.log.setLevel(logging.DEBUG)
     else:
         pipeline.log.setLevel(logging.CRITICAL)
@@ -1184,9 +1350,9 @@ def load_from_tracker(model_uuid, collection_name=None, client=None, verbose=Fal
     """Create a ModelPipeline object using the metadata in the  model tracker.
 
     Args:
-        model_uuid (str) : The UUID of a trained model.
+        model_uuid (str): The UUID of a trained model.
 
-        collection_name (str) : The collection where the model is stored in the model tracker DB.
+        collection_name (str): The collection where the model is stored in the model tracker DB.
 
         client : Ignored, for backward compatibility only
 
@@ -1197,7 +1363,7 @@ def load_from_tracker(model_uuid, collection_name=None, client=None, verbose=Fal
 
     Returns:
         tuple of:
-            pipeline (ModelPipeline) : A pipeline object to be used for making predictions.
+            pipeline (ModelPipeline): A pipeline object to be used for making predictions.
 
             pparams (Namespace): Parsed parameter namespace from the requested model.
     """
@@ -1205,7 +1371,7 @@ def load_from_tracker(model_uuid, collection_name=None, client=None, verbose=Fal
     if not verbose:
         os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1'
         logger = logging.getLogger('ATOM')
-        logger.setLevel(50)
+        logger.setLevel(logging.CRITICAL)
         sys.stdout = io.StringIO()
         import warnings
         warnings.simplefilter("ignore")
@@ -1242,9 +1408,9 @@ def ensemble_predict(model_uuids, collections, dset_df, labels=None, dset_params
     the predicted responses into one prediction per compound.
 
     Args:
-        model_uuids (iterable of str) : Sequence of UUIDs of trained models.
+        model_uuids (iterable of str): Sequence of UUIDs of trained models.
 
-        collections (str or iterable of str) : The collection(s) where the models are stored in the
+        collections (str or iterable of str): The collection(s) where the models are stored in the
         model tracker DB. If a single string, the same collection is assumed to contain all the models.
         Otherwise, collections should be of the same length as model_uuids.
 
@@ -1263,7 +1429,7 @@ def ensemble_predict(model_uuids, collections, dset_df, labels=None, dset_params
         aggregate (str): Method to be used to combine predictions.
 
     Returns:
-        pred_df (DataFrame) : Table with predicted responses from each model, plus the ensemble prediction.
+        pred_df (DataFrame): Table with predicted responses from each model, plus the ensemble prediction.
 
     """
 
@@ -1381,7 +1547,7 @@ def ensemble_predict(model_uuids, collections, dset_df, labels=None, dset_params
 
 
 # ****************************************************************************************
-def retrain_model(model_uuid, collection_name=None, mt_client=None, verbose=True):
+def retrain_model(model_uuid, collection_name=None, result_dir=None, mt_client=None, verbose=True):
     """Obtain model parameters from the metadata in the model tracker, given the model_uuid,
     and train a new model using exactly the same parameters (except for result_dir). Returns
     the resulting ModelPipeline object. The pipeline object can then be used as input for
@@ -1389,23 +1555,35 @@ def retrain_model(model_uuid, collection_name=None, mt_client=None, verbose=True
     in the model tracker; or to make predictions on new data.
 
     Args:
-        model_uuid (str) : The UUID of a trained model.
+        model_uuid (str): The UUID of a trained model.
 
-        collection_name (str) : The collection where the model is stored in the model tracker DB.
+        collection_name (str): The collection where the model is stored in the model tracker DB.
+
+        result_dir (str): The directory of model results when the model tracker is not available.
 
         mt_client : Ignored
 
         verbose (bool): A switch for disabling informational messages
 
     Returns:
-        pipeline (ModelPipeline) : A pipeline object containing data from the model training.
+        pipeline (ModelPipeline): A pipeline object containing data from the model training.
     """
-    mlmt_client = dsf.initialize_model_tracker()
 
-    print("Loading model %s from collection %s" % (model_uuid, collection_name))
-    metadata_dict = trkr.get_metadata_by_uuid(model_uuid, collection_name=collection_name)
-    if not metadata_dict:
-        raise Exception("No model found with UUID %s in collection %s" % (model_uuid, collection_name))
+    if not result_dir:
+        mlmt_client = dsf.initialize_model_tracker()
+
+        print("Loading model %s from collection %s" % (model_uuid, collection_name))
+        metadata_dict = trkr.get_metadata_by_uuid(model_uuid, collection_name=collection_name)
+        if not metadata_dict:
+            raise Exception("No model found with UUID %s in collection %s" % (model_uuid, collection_name))
+    else:
+        for dirpath, dirnames, filenames in os.walk(result_dir):
+            if model_uuid in dirnames:
+                model_dir = os.path.join(dirpath, model_uuid)
+                break
+
+        with open(os.path.join(model_dir, 'model_metadata.json')) as f:
+            metadata_dict = json.load(f)
 
     print("Got metadata for model UUID %s" % model_uuid)
 
@@ -1414,7 +1592,7 @@ def retrain_model(model_uuid, collection_name=None, mt_client=None, verbose=True
 
     model_pparams.result_dir = tempfile.mkdtemp()
     # TODO: This is a hack; possibly the datastore parameter isn't being stored in the metadata?
-    model_pparams.datastore = True
+    model_pparams.datastore = True if not result_dir else False
     pipe = ModelPipeline(model_pparams)
     pipe.train_model()
 

@@ -276,8 +276,8 @@ def dict_to_list(inp_dictionary,replace_spaces=False):
     temp_list_to_command_line = []
 
     # Special case handling for arguments that are False or True by default
-    default_false = ['previously_split','use_shortlist','datastore', 'save_results','verbose', 'hyperparam', 'split_only', 'rerun']
-    default_true = ['transformers','previously_featurized','uncertainty']
+    default_false = ['previously_split','use_shortlist','datastore', 'save_results','verbose', 'hyperparam', 'split_only'] 
+    default_true = ['transformers','previously_featurized','uncertainty', 'rerun']
     for key, value in inp_dictionary.items():
         if key in default_false:
             true_options = ['True','true','ture','TRUE','Ture']
@@ -469,6 +469,10 @@ def get_parser():
         '--descriptor_type', dest='descriptor_type', default='moe',
         help='Type of descriptors being used as features, e.g. moe, dragon7, used when featurizer = "descriptors". '
              'Sets the subclass within featurizer.py')
+    parser.add_argument(
+        '--moe_threads', dest='moe_threads', type=int, default=-1,
+        help='Number of threads to use for computing MOE descriptors; default is 2*(num_cores - 1); '
+             'should not exceed number of MOE licenses you have.')
 
     # **********************************************************************************************************
     # model_building_parameters: ecfp
@@ -504,12 +508,12 @@ def get_parser():
     parser.add_argument(
         '--previously_featurized', dest='previously_featurized', action='store_false',
         help='Boolean flag for loading in previously featurized data files. If set to True, the method'
-             'get_featurized_data within model_datasets will attempt to load the featurized dataset' 
+             'get_featurized_data within model_datasets will attempt to load the featurized dataset'
              'associated with the given dataset_oid parameter')
     parser.set_defaults(previously_featurized=True)
     parser.add_argument(
         '--uncertainty', dest='uncertainty', action='store_false',
-        help='Boolean flag for computing uncertainty estimates for regression model predictions. Will also change the' 
+        help='Boolean flag for computing uncertainty estimates for regression model predictions. Will also change the'
              'default values for dropouts if set to True.')
     parser.set_defaults(uncertainty=True)
     parser.add_argument(
@@ -533,17 +537,23 @@ def get_parser():
     # model_building_parameters: neural_nets
     parser.add_argument(
         '--baseline_epoch', '-b', dest='baseline_epoch', type=int, default=30,
-        help='Baseline epoch at which to evaluate performance for DNN models')
+        help='Deprecated: Baseline epoch at which to evaluate performance for DNN models')
     parser.add_argument(
         '--batch_size', dest='batch_size', type=int, required=False, default=50,
         help='Sets the model batch size within model_wrapper')
+    parser.add_argument(
+        '--early_stopping_patience', dest='early_stopping_patience', type=int, default=30,
+        help='Number of epochs to continue training before giving up trying for better validation set score')
+    parser.add_argument(
+        '--early_stopping_min_improvement', dest='early_stopping_min_improvement', type=float, default=0.0,
+        help='Minimum amount by which validation set score must improve to set a new best epoch')
 
     temp_bias_init_consts_string = [key + ':' + value + ',' for key, value in bias_init_consts_options.items()]
     separator = " "
     bias_init_consts_help_string = \
-        ('Comma-separated list of initial bias parameters per layer for dense NN models with conditional values. ' 
-         'Defaults to [1.0]*len(layer_sizes). Must be same length as layer_sizes. Can be input as a space-separated ' 
-         'list of comma-separated lists for hyperparameters (e.g. \'1.0,1.0 0.9,0.9 0.8,0.9\'). Default behavior is' 
+        ('Comma-separated list of initial bias parameters per layer for dense NN models with conditional values. '
+         'Defaults to [1.0]*len(layer_sizes). Must be same length as layer_sizes. Can be input as a space-separated '
+         'list of comma-separated lists for hyperparameters (e.g. \'1.0,1.0 0.9,0.9 0.8,0.9\'). Default behavior is'
          ' set within __init__ method of DCNNModelWrapper.  '
          + separator.join(temp_bias_init_consts_string)).rstrip(',')
     parser.add_argument(
@@ -553,9 +563,9 @@ def get_parser():
     temp_dropout_string = [key + ':' + value + ',' for key, value in dropout_options.items()]
     separator = " "
     dropout_help_string = \
-        ('Comma-separated list of dropout rates per layer for NN models with default values conditional on featurizer.' 
-         ' Default behavior is controlled in model_wrapper.py. Must be same length as layer_sizes. Can be input as ' 
-         'a space-separated list of comma-separated lists for hyperparameters (e.g. \'0.4,0.4 0.2,0.2 0.3,0.3\'). ' 
+        ('Comma-separated list of dropout rates per layer for NN models with default values conditional on featurizer.'
+         ' Default behavior is controlled in model_wrapper.py. Must be same length as layer_sizes. Can be input as '
+         'a space-separated list of comma-separated lists for hyperparameters (e.g. \'0.4,0.4 0.2,0.2 0.3,0.3\'). '
          'Default behavior is set within __init__ method of DCNNModelWrapper. Defaults: '
          + separator.join(temp_dropout_string)).rstrip(',')
     parser.add_argument(
@@ -565,9 +575,9 @@ def get_parser():
     temp_layer_size_string = [key + ':' + value + ',' for key,value in layer_size_options.items()]
     separator = " "
     layer_size_help_string = \
-        ('Comma-separated list of layer sizes for NN models with default values conditional on featurizer. Must be' 
-         ' same length as layer_sizes. Can be input as a space-separated list of comma-separated lists for ' 
-         'hyperparameters (e.g. \'64,16 200,100 1000,500\'). Default behavior is set within __init__ method of ' 
+        ('Comma-separated list of layer sizes for NN models with default values conditional on featurizer. Must be'
+         ' same length as layer_sizes. Can be input as a space-separated list of comma-separated lists for '
+         'hyperparameters (e.g. \'64,16 200,100 1000,500\'). Default behavior is set within __init__ method of '
          'DCNNModelWrapper. Defaults: '
          + separator.join(temp_layer_size_string)).rstrip(',')
     parser.add_argument(
@@ -576,27 +586,27 @@ def get_parser():
 
     parser.add_argument(
         '--learning_rate', dest='learning_rate', required=False, default='0.0005',
-        help='Learning rate for dense NN models. Input as comma separated floats for hyperparameters ' 
+        help='Learning rate for dense NN models. Input as comma separated floats for hyperparameters '
              '(e.g. \'0.0005,0.0004,0.0003\')')
     parser.add_argument(
         '--max_epochs', dest='max_epochs', type=int, default=30,
         help='Maximum number of training epochs to run for DNN models')
     parser.add_argument(
         '--weight_decay_penalty', dest='weight_decay_penalty', required=False, default='0.0001',
-        help='weight_decay_penalty: float. The magnitude of the weight decay penalty to use. ' 
-             'Can be input as a comma separated list of strings for hyperparameter search ' 
+        help='weight_decay_penalty: float. The magnitude of the weight decay penalty to use. '
+             'Can be input as a comma separated list of strings for hyperparameter search '
              '(e.g. \'0.0001,0.0002,0.0003\')')
     parser.add_argument(
         '--weight_decay_penalty_type', dest='weight_decay_penalty_type', default='l2', type=str,
-        help='weight_decay_penalty_type: str. The type of penalty to use for weight decay, either "l1" or "l2". ' 
+        help='weight_decay_penalty_type: str. The type of penalty to use for weight decay, either "l1" or "l2". '
              'Can be input as a comma separated list for hyperparameter search (e.g. \'l1,l2\')')
 
     temp_weight_init_stddevs_string = [key + ':' + value + ',' for key, value in weight_init_stddevs_options.items()]
     separator = " "
     weight_init_stddevs_help_string = \
-        ('Comma-separated list of standard deviations per layer for initializing weights in dense NN models with ' 
-         'conditional values. Must be same length as layer_sizes. Can be input as a space-separated list of ' 
-         'comma-separated lists for hyperparameters (e.g. \'0.001,0.001 0.002,0.002 0.03,003\'). Default behavior is ' 
+        ('Comma-separated list of standard deviations per layer for initializing weights in dense NN models with '
+         'conditional values. Must be same length as layer_sizes. Can be input as a space-separated list of '
+         'comma-separated lists for hyperparameters (e.g. \'0.001,0.001 0.002,0.002 0.03,003\'). Default behavior is '
          'set within __init__ method of DCNNModelWrapper. Defaults: '
          + separator.join(temp_weight_init_stddevs_string)).rstrip(',')
     parser.add_argument(
@@ -627,11 +637,11 @@ def get_parser():
     # model_building_parameters: splitting
     parser.add_argument(
         '--base_splitter', dest='base_splitter', default='scaffold', type=str,
-        help='Type of splitter to use for train/validation split if temporal split used for test set. May be random,' 
+        help='Type of splitter to use for train/validation split if temporal split used for test set. May be random,'
              ' scaffold, or ave_min. The allowable choices are set in splitter.py')
     parser.add_argument(
         '--butina_cutoff', dest='butina_cutoff', type=float, default=0.18,
-        help='cutoff Tanimoto similarity for clustering in Butina splitter. TODO: will be implemented when DeepChem' 
+        help='cutoff Tanimoto similarity for clustering in Butina splitter. TODO: will be implemented when DeepChem'
              ' updates their butina splitter. ')
     parser.add_argument(
         '--cutoff_date', dest='cutoff_date', type=str, default=None,
@@ -649,19 +659,19 @@ def get_parser():
     parser.add_argument(
         '--split_strategy', dest='split_strategy', choices=['train_valid_test', 'k_fold_cv'],
         default='train_valid_test',
-        help='Choice of splitting type between "k_fold_cv" for k fold cross validation and "train_valid_test" for a ' 
+        help='Choice of splitting type between "k_fold_cv" for k fold cross validation and "train_valid_test" for a '
              'normal train/valid/test split. If split_test_frac or split_valid_frac are not set, "train_valid_test" '
              'sets are split according to the splitting type default.')
     parser.add_argument(
         '--split_test_frac', dest='split_test_frac', type=float, default=0.1,
-        help='Fraction of data to put in held-out test set for train_valid_test split strategy.' 
+        help='Fraction of data to put in held-out test set for train_valid_test split strategy.'
              ' TODO: Behavior of split_test_frac is dependent on split_valid_frac and DeepChem')
     parser.add_argument(
         '--split_uuid', dest='split_uuid', default=None,
         help='UUID for csv file containing train, validation, and test split information. Specific to LLNL datastore')
     parser.add_argument(
         '--split_valid_frac', dest='split_valid_frac', type=float, default=0.1,
-        help='Fraction of data to put in the validation set for train_valid_test split strategy.' 
+        help='Fraction of data to put in the validation set for train_valid_test split strategy.'
              ' TODO: Behavior of split_valid_frac is dependent on split_test_frac and DeepChem')
     parser.add_argument(
         '--splitter', '-s', dest='splitter', default='scaffold', type=str,
@@ -682,11 +692,11 @@ def get_parser():
         help='Datastore bucket where the transformer is stored. Specific to LLNL datastore system.')
     parser.add_argument(
         '--transformer_key', dest='transformer_key', type=str, default=None,
-        help='Path to a saved transformer (stored as tuple, e.g. (transform_features, transform_respose)). ' 
+        help='Path to a saved transformer (stored as tuple, e.g. (transform_features, transform_respose)). '
              'Specific to LLNL datastore system.')
     parser.add_argument(
         '--transformer_oid', dest='transformer_oid', default=None,
-        help='Dataset oid of the transformer saved in the datastore. Specific to LLNL datastore system. ' 
+        help='Dataset oid of the transformer saved in the datastore. Specific to LLNL datastore system. '
              'TODO: May be redundant with transformer_key')
     parser.add_argument(
         '--transformers', dest='transformers', action='store_false',
@@ -720,27 +730,27 @@ def get_parser():
     # model_building_parameters: XGBoost
     parser.add_argument(
         '--xgb_colsample_bytree', dest='xgb_colsample_bytree', default='1.0',
-        help='Subsample ratio of columns when constructing each tree. Can be input as a comma separated list for' 
+        help='Subsample ratio of columns when constructing each tree. Can be input as a comma separated list for'
              ' hyperparameter search (e.g. \'0.8,0.9,1.0\')')
     parser.add_argument(
         '--xgb_gamma', dest='xgb_gamma', default='0.0',
-        help='Minimum loss reduction required to make a further partition on a leaf node of the tree. Can be input' 
+        help='Minimum loss reduction required to make a further partition on a leaf node of the tree. Can be input'
              ' as a comma separated list for hyperparameter search (e.g. \'0.0,0.1,0.2\')')
     parser.add_argument(
         '--xgb_learning_rate', dest='xgb_learning_rate', default='0.1',
-        help='Boosting learning rate (xgb\'s \"eta\"). Can be input as a comma separated list for hyperparameter' 
+        help='Boosting learning rate (xgb\'s \"eta\"). Can be input as a comma separated list for hyperparameter'
              ' search (e.g. \'0.1,0.01,0.001\')')
     parser.add_argument(
         '--xgb_max_depth', dest='xgb_max_depth', default='6',
-        help='Maximum tree depth for base learners. Can be input as a comma separated list for hyperparameter' 
+        help='Maximum tree depth for base learners. Can be input as a comma separated list for hyperparameter'
              ' search (e.g. \'4,5,6\')')
     parser.add_argument(
         '--xgb_min_child_weight', dest='xgb_min_child_weight', default='1.0',
-        help='Minimum sum of instance weight(hessian) needed in a child. Can be input as a comma separated list' 
+        help='Minimum sum of instance weight(hessian) needed in a child. Can be input as a comma separated list'
              ' for hyperparameter search (e.g. \'1.0,1.1,1.2\')')
     parser.add_argument(
         '--xgb_n_estimators', dest='xgb_n_estimators', default='100',
-        help='Number of estimators to use in xgboost models. Can be input as a comma separated list for ' 
+        help='Number of estimators to use in xgboost models. Can be input as a comma separated list for '
              'hyperparameter search (e.g. \'100,200,300\')')
     parser.add_argument(
         '--xgb_subsample', dest='xgb_subsample', default='1.0',
@@ -754,11 +764,11 @@ def get_parser():
         help='MongoDB collection where models will be saved.  Specific to LLNL model tracker system.')
     parser.add_argument(
         '--data_owner', dest='data_owner', default='gsk',
-        help='Option for setting group permissions for created files. Options specific to LLNL system. Options' 
+        help='Option for setting group permissions for created files. Options specific to LLNL system. Options'
              ': [\'username\', \'data_owner_group\', \'gsk\', \'public\']')
     parser.add_argument(
         '--data_owner_group', dest='data_owner_group', default='gsk_craa',
-        help='When data_owner is set to data_owner_group, this is the option for custom group name of created files. ' 
+        help='When data_owner is set to data_owner_group, this is the option for custom group name of created files. '
              'Specific to LLNL model_tracker system.')
     parser.add_argument(
         '--model_bucket', dest='model_bucket', type=str, default=None,
@@ -770,7 +780,7 @@ def get_parser():
         help='OID of the model dataset inserted into the datastore')
     parser.add_argument(
         '--model_filter', dest='model_filter', default=None,
-        help='Path to the model filter configuration file. Is loaded and stored as a dictionary. ' 
+        help='Path to the model filter configuration file. Is loaded and stored as a dictionary. '
              'Specific to LLNL model tracker system.')
     parser.add_argument(
         '--model_uuid', dest='model_uuid', type=str, default=None,
@@ -778,13 +788,13 @@ def get_parser():
     output_dir_default = None
     parser.add_argument(
         '--output_dir', dest='output_dir', required=False, default=output_dir_default,
-        help='File location where the model output will be saved. Defauts to <result_dir>/. ' 
+        help='File location where the model output will be saved. Defauts to <result_dir>/. '
              'TODO: redundant, should be removed in a later build.')
     parser.add_argument(
         '--result_dir', '-r', dest='result_dir', default=None, required=False,
         help='Parent of directory where result files will be written')
     parser.add_argument(
-        '--model_tarball_path', dest='model_tarball_path', default=None, 
+        '--model_tarball_path', dest='model_tarball_path', default=None,
         help='Filesystem path where model tarball will be written')
 
     # **********************************************************************************************************
@@ -798,7 +808,7 @@ def get_parser():
     # miscellaneous_parameters
     parser.add_argument(
         '--config_file', dest='config_file', required=False, type=str, default=None,
-        help='Full path to the optional configuration file. The configuration file is a set of parameters' 
+        help='Full path to the optional configuration file. The configuration file is a set of parameters'
              ' in .json file format. TODO: Does not send a warning if set concurrently with other parameters.')
     parser.add_argument(
         '--num_model_tasks', dest='num_model_tasks', type=int, required=False, default=1,
@@ -808,9 +818,9 @@ def get_parser():
     # hyperparameters
     parser.add_argument(
         '--dropout_list', dest='dropout_list', required=False, default=None,
-        help='Comma-separated list of dropout rates for permutation of NN layers (e.g. \'0.0,0.4,0.6\'). Used within' 
-             'permutate_NNlayer_combo_params to return combinations from layer_nums, node_nums, dropout_list and ' 
-             'max_final_layer_size. dropout_list is used to set the allowable permutations of dropouts. For ' 
+        help='Comma-separated list of dropout rates for permutation of NN layers (e.g. \'0.0,0.4,0.6\'). Used within'
+             'permutate_NNlayer_combo_params to return combinations from layer_nums, node_nums, dropout_list and '
+             'max_final_layer_size. dropout_list is used to set the allowable permutations of dropouts. For '
              'hyperparameters only.')
     parser.add_argument(
         '--hyperparam', dest='hyperparam', required=False, action='store_true',
@@ -827,7 +837,9 @@ def get_parser():
              'hyperparameters only.')
     parser.add_argument(
         '--lc_account', dest='lc_account', required=False, default='baasic',
-        help='SLURM account to charge hyperparameter batch runs to')
+        help='SLURM account to charge hyperparameter batch runs to.'
+             'This will be replaced by the slurm_account option. If lc_account and slurm_account are both set, slurm_account will be used.'
+             'If set to None then this parameter will not be used.')
     parser.add_argument(
         '--max_final_layer_size', dest='max_final_layer_size', required=False, default=32,
         help='The max number of nodes in the last layer within layer_sizes and dropouts in hyperparameter search; '
@@ -848,14 +860,19 @@ def get_parser():
             help='Scaling factor for constraining network size based on number of parameters in the network for '
                  'hyperparam search')
     parser.add_argument(
-        '--python_path', dest='python_path', required=False, default='python', help='Path to desired python version')
+        '--python_path', dest='python_path', required=False, 
+        # default to the version of python used to run this script
+        default=sys.executable, 
+        help='Path to desired python version')
     parser.add_argument(
-            '--rerun', dest= 'rerun', required=False, action='store_true',
+            '--rerun', dest= 'rerun', required=False, action='store_false',
             help='If False, check model tracker to see if a model with that particular param combination has '
                  'already been built')
-    parser.set_defaults(rerun=False)
+    parser.set_defaults(rerun=True)
     parser.add_argument(
-        '--script_dir', dest='script_dir', required=False, default='.',
+        '--script_dir', dest='script_dir', required=False, 
+        # use location of this file to generate script dir
+        default=os.path.abspath(os.path.join(__file__, '../..')),
         help='Path where pipeline file you want to run hyperparam search from is located')
 
     parser.add_argument(
@@ -873,14 +890,72 @@ def get_parser():
     parser.add_argument('--use_shortlist', dest='use_shortlist', action='store_true',
                         help='Boolean flag for use a list of assays in the hyperparam search')
     parser.set_defaults(use_shortlist=False)
+
+    parser.add_argument(
+        '--slurm_account', dest='slurm_account', required=False, default=None,
+        help='SLURM account to charge hyperparameter batch runs to.'
+             'This will replace the lc_account option. If lc_account and slurm_account are both set, slurm_account will be used.'
+             'If set to None then this parameter will not be used.')
+    parser.add_argument(
+        '--slurm_export', dest='slurm_export', required=False, default='ALL',
+        help='SLURM environment variables propagated for hyperparameter search batch jobs.'
+             'If set to None then this parameter will not be used.')
+    parser.add_argument(
+        '--slurm_nodes', dest='slurm_nodes', required=False, default=1,
+        help='Number of nodes for hyperparameter search batch jobs.'
+             'If set to None then this parameter will not be used.')
+    parser.add_argument(
+        '--slurm_options', dest='slurm_options', required=False, default=None,
+        help='Additional SLURM options for hyperparameter search batch jobs.'
+             'Example: \'--option1=value1 --option2=value2\''
+             'If set to None then this parameter will not be used.')
     parser.add_argument(
         '--slurm_partition', dest='slurm_partition', required=False, default='pbatch',
-        help='SLURM partition to run hyperparameter batch jobs on')
+        help='SLURM partition to run hyperparameter batch jobs on.'
+             'If set to None then this parameter will not be used.')
     parser.add_argument(
         '--slurm_time_limit', dest='slurm_time_limit', required=False, default=1440,
-        help='Time limit in minutes for hyperparameter search batch jobs')
+        help='Time limit in minutes for hyperparameter search batch jobs.'
+             'If set to None then this parameter will not be used.')
 
-
+    # HyperOptSearch specific parameters
+    # NN model
+    parser.add_argument(
+        '--lr', dest='lr', required=False, default=None,
+        help='learing rate shown in HyperOpt domain format, e.g. --lr=uniform|0.00001,0.001')
+    parser.add_argument(
+        '--ls', dest='ls', required=False, default=None,
+        help='layer sizes shown in HyperOpt domain format, e.g. --ls=choice|2|8,16,32,64,128,256,512')
+    parser.add_argument(
+        '--ls_ratio', dest='ls_ratio', required=False, default=None,
+        help='layer size ratios (layer size / previous layer size) shown in HyperOpt domain format, the number of layers is not needed here, taken from ls, e.g. --ls_ratio=uniform|0.1,0.9')
+    parser.add_argument(
+        '--dp', dest='dp', required=False, default=None,
+        help='dropouts shown in HyperOpt domain format, e.g. --dp=uniform|3|0,0.4')
+    # RF model
+    parser.add_argument(
+        '--rfe', dest='rfe', required=False, default=None,
+        help='rf_estimators shown in HyperOpt domain format, e.g. --rfe=uniformint|64,512')
+    parser.add_argument(
+        '--rfd', dest='rfd', required=False, default=None,
+        help='rf_max_depth shown in HyperOpt domain format, e.g. --rfd=uniformint|64,512')
+    parser.add_argument(
+        '--rff', dest='rff', required=False, default=None,
+        help='rf_max_features shown in HyperOpt domain format, e.g. --rff=uniformint|64,512')
+    # XGBoost model
+    parser.add_argument(
+        '--xgbg', dest='xgbg', required=False, default=None,
+        help='xgb_gamma shown in HyperOpt domain format, e.g. --xgbg=uniform|0,0.4')
+    parser.add_argument(
+        '--xgbl', dest='xgbl', required=False, default=None,
+        help='xgb_learning_rate shown in HyperOpt domain format, e.g. --xgbl=loguniform|-6.9,-2.3')
+    # checkpoint
+    parser.add_argument(
+        '--hp_checkpoint_save', dest='hp_checkpoint_save', required=False, default=None,
+        help='binary file to save a checkpoint of the HPO trial project, which can be use to continue the HPO serach later. e.g. --hp_checkpoint_save=/path/to/file/checkpoint.pkl')
+    parser.add_argument(
+        '--hp_checkpoint_load', dest='hp_checkpoint_load', required=False, default=None,
+        help='binary file to load a checkpoint of a previous HPO trial project, to continue the HPO serach. e.g. --hp_checkpoint_load=/path/to/file/checkpoint.pkl')
 
 
     return parser
@@ -909,7 +984,7 @@ def postprocess_args(parsed_args):
     If there is a single item in the list (no commas), the repsonse is kept as a StringType, unless it is in
     response_cols, which is passed as a list
 
-    Setting conditional options for descriptor_key. Current only descriptor_type option is 'moe'
+    Setting conditional options for descriptor_key.
 
     Args:
         parsed_args (argparse.Namespace): Raw parsed arguments.
@@ -983,7 +1058,7 @@ def postprocess_args(parsed_args):
                     else:
                         newlist.append([float(x.strip()) for x in temp_split])
                     # Once a new list of lists is generated, pass to parsed_args
-                    if len(newlist) == 1:
+                    if len(newlist) == 1 and item not in ["layer_sizes", "dropouts", "bias_init_consts", "weight_init_stddevs"]:
                         parsed_args.__dict__[item] = newlist[0]
                         #newlist is a list of lists, need to extract down to the lowest layer, as necessary
                         if len(newlist[0]) == 1 and item not in keep_as_list:
@@ -1022,6 +1097,14 @@ def postprocess_args(parsed_args):
                 (parsed_args.bias_init_consts is not None and len(parsed_args.bias_init_consts) != nlayers)):
                 raise Exception("layer_sizes, dropouts, weight_init_stddevs and bias_init_consts arguments must be the "
                                 "same length")
+
+    # check to see if result_dir and dataset_key are relative paths
+    # if so, make them relative to script_dir
+    # We may also want to check if the dataset file in its relative path exists, if it exists, there is no need to add the script_dir. So it is compatible with the 1.0.1 code.
+    if (not parsed_args.dataset_key is None) and (not os.path.isabs(parsed_args.dataset_key)) and (not os.path.isfile(parsed_args.dataset_key)):
+        parsed_args.dataset_key = \
+            os.path.abspath(os.path.join(parsed_args.script_dir, parsed_args.dataset_key))
+
     return parsed_args
 
 #***********************************************************************************************************
@@ -1030,6 +1113,7 @@ def prune_defaults(params, keep_params={}):
 
     Args:
         params (argparse.Namespace): Raw parsed arguments.
+
         keep_params (list): List of parameters to keep
 
     Returns:

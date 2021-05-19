@@ -40,6 +40,21 @@ def plot_dataset_dist_distr(dataset, feat_type, dist_metric, task_name, **metric
     """
     Generate a density plot showing the distribution of distances between dataset feature
     vectors, using the specified feature type and distance metric.
+
+    Args:
+        dataset (deepchem.Dataset): A dataset object. At minimum, it should contain a 2D numpy array 'X' of feature vectors.
+
+        feat_type (str): Type of features ('ECFP' or 'descriptors').
+
+        dist_metric (str): Name of metric to be used to compute distances; can be anything supported by scipy.spatial.distance.pdist.
+
+        task_name (str): Abbreviated name to describe dataset in plot title.
+
+        metric_kwargs: Additional arguments to pass to metric.
+
+    Returns:
+        np.ndarray: Distance matrix.
+
     """
     log = logging.getLogger('ATOM')
     num_cmpds = dataset.X.shape[0]
@@ -67,11 +82,42 @@ def plot_dataset_dist_distr(dataset, feat_type, dist_metric, task_name, **metric
     return dists
 
 #------------------------------------------------------------------------------------------------------------------
-def diversity_plots(dset_key, datastore=True, bucket='gsk_ml', title_prefix=None, ecfp_radius=4, out_dir=None, 
+def diversity_plots(dset_key, datastore=True, bucket='public', title_prefix=None, ecfp_radius=4, umap_file=None, out_dir=None,
                     id_col='compound_id', smiles_col='rdkit_smiles', is_base_smiles=False, response_col=None, max_for_mcs=300):
     """
     Plot visualizations of diversity for an arbitrary table of compounds. At minimum, the file should contain
-    columns for a compound ID and a SMILES string.
+    columns for a compound ID and a SMILES string. Produces a clustered heatmap display of Tanimoto distances between
+    compounds along with a 2D UMAP projection plot based on ECFP fingerprints, with points colored according to the response
+    variable.
+
+    Args:
+        dset_key (str): Datastore key or filepath for dataset.
+
+        datastore (bool): Whether to load dataset from datastore or from filesystem.
+
+        bucket (str): Name of datastore bucket containing dataset.
+
+        title_prefix (str): Prefix for plot titles.
+
+        ecfp_radius (int): Radius for ECFP fingerprint calculation.
+
+        umap_file (str, optional): Path to file to write UMAP coordinates to.
+
+        out_dir (str, optional):  Output directory for plots and tables. If provided, plots will be output as PDF files rather
+            than in the current notebook, and some additional CSV files will be generated.
+
+        id_col (str): Column in dataset containing compound IDs.
+
+        smiles_col (str): Column in dataset containing SMILES strings.
+
+        is_base_smiles (bool): True if SMILES strings do not need to be salt-stripped and standardized.
+
+        response_col (str): Column in dataset containing response values.
+
+        max_for_mcs (int): Maximum dataset size for plots based on MCS distance. If the number of compounds is less than this
+            value, an additional cluster heatmap and UMAP projection plot will be produced based on maximum common substructure
+            distance.
+
     """
     # Load table of compound names, IDs and SMILES strings
     if datastore:
@@ -105,9 +151,13 @@ def diversity_plots(dset_key, datastore=True, bucket='gsk_ml', title_prefix=None
     responses = None
     if response_col is not None:
         responses = cmpd_df[response_col].values
-        if set(responses) == set([0,1]):
+        uniq_responses = set(responses)
+        if uniq_responses == set([0,1]):
             response_type = 'binary'
             colorpal =  {0 : 'forestgreen', 1 : 'red'}
+        elif len(uniq_responses) <= 10:
+            response_type = 'categorical'
+            colorpal = sns.color_palette('husl', n_colors=len(uniq_responses))
         else:
             response_type = 'continuous'
             colorpal = sns.blend_palette(['red', 'green', 'blue'], 12, as_cmap=True)
@@ -190,6 +240,11 @@ def diversity_plots(dset_key, datastore=True, bucket='gsk_ml', title_prefix=None
     reps = mapper.fit_transform(tani_dist)
     rep_df = pd.DataFrame.from_records(reps, columns=['x', 'y'])
     rep_df['compound_id'] = compound_ids
+    if responses is not None:
+        rep_df['response'] = responses
+    if umap_file is not None:
+        rep_df.to_csv(umap_file, index=False)
+        print("Wrote UMAP mapping to %s" % umap_file)
     if out_dir is not None:
         pdf_path = '%s/%s_tani_umap_proj.pdf' % (out_dir, file_prefix)
         pdf = PdfPages(pdf_path)
@@ -197,7 +252,6 @@ def diversity_plots(dset_key, datastore=True, bucket='gsk_ml', title_prefix=None
     if responses is None:
         sns.scatterplot(x='x', y='y', data=rep_df, ax=ax)
     else:
-        rep_df['response'] = responses
         sns.scatterplot(x='x', y='y', hue='response', palette=colorpal,
                         data=rep_df, ax=ax)
     ax.set_title("%s, 2D projection based on Tanimoto distance" % title_prefix)
@@ -219,7 +273,12 @@ def diversity_plots(dset_key, datastore=True, bucket='gsk_ml', title_prefix=None
 
 
 #------------------------------------------------------------------------------------------------------------------
-def sa200_diversity_plots(ecfp_radius=6):
+# Specialized functions for particular datasets. Many of them depend on GSK datasets that we no longer have
+# access to, or to files on a no-longer-used LLNL development system, so they have been turned into private functions,
+# for historical reference only.
+#------------------------------------------------------------------------------------------------------------------
+
+def _sa200_diversity_plots(ecfp_radius=6):
     """
     Plot visualizations of diversity for the 208 compounds selected for phenotypic assays.
     """
@@ -231,7 +290,7 @@ def sa200_diversity_plots(ecfp_radius=6):
                     smiles_col='canonical_smiles')
 
 #------------------------------------------------------------------------------------------------------------------
-def bsep_diversity_plots(ecfp_radius=6):
+def _bsep_diversity_plots(ecfp_radius=6):
     """
     Plot visualizations of diversity for the compounds in the BSEP PIC50 dataset.
     """
@@ -239,11 +298,11 @@ def bsep_diversity_plots(ecfp_radius=6):
     out_dir = '/usr/local/data/bsep'
     os.makedirs(out_dir, exist_ok=True)
     title_prefix = 'ABCB11_Bile_Salt_Export_Pump_BSEP_membrane_vesicles_Imaging_PIC50 compound set'
-    diversity_plots(dset_key, datastore=True, bucket='gsk_ml', title_prefix=title_prefix, out_dir=out_dir, ecfp_radius=ecfp_radius)
+    diversity_plots(dset_key, datastore=True, bucket='gsk_papers', title_prefix=title_prefix, out_dir=out_dir, ecfp_radius=ecfp_radius)
 
 
 #------------------------------------------------------------------------------------------------------------------
-def obach_diversity_plots(ecfp_radius=6):
+def _obach_diversity_plots(ecfp_radius=6):
     """
     Plot visualizations of diversity for the compounds in the Obach, Lombardo et al PK dataset
     """
@@ -316,7 +375,7 @@ def obach_diversity_plots(ecfp_radius=6):
 
 
 #------------------------------------------------------------------------------------------------------------------
-def solubility_diversity_plots(ecfp_radius=6):
+def _solubility_diversity_plots(ecfp_radius=6):
     """
     Plot visualizations of diversity for the compounds in the Delaney and GSK aqueous solubility datasets
     """
@@ -333,7 +392,7 @@ def solubility_diversity_plots(ecfp_radius=6):
     diversity_plots(cmpd_file, file_prefix, title_prefix, out_dir=out_dir, ecfp_radius=ecfp_radius, id_col='compound_id')
 
 #------------------------------------------------------------------------------------------------------------------
-def compare_solubility_datasets(ecfp_radius=6):
+def _compare_solubility_datasets(ecfp_radius=6):
     """
     Plot projections of Delaney and GSK solubility datasets using the same UMAP projectors.
     """
@@ -418,7 +477,7 @@ def compare_solubility_datasets(ecfp_radius=6):
 
 
 #------------------------------------------------------------------------------------------------------------------
-def compare_obach_gsk_aq_sol(ecfp_radius=6):
+def _compare_obach_gsk_aq_sol(ecfp_radius=6):
     """
     Plot projections of Obach and GSK solubility datasets using the same UMAP projectors.
     """
@@ -484,7 +543,7 @@ def compare_obach_gsk_aq_sol(ecfp_radius=6):
     pdf.close()
 
 #------------------------------------------------------------------------------------------------------------------
-def liability_dset_diversity(bucket='gsk_ml', feat_type='descriptors', dist_metric='cosine', **metric_kwargs):
+def _liability_dset_diversity(bucket='public', feat_type='descriptors', dist_metric='cosine', **metric_kwargs):
     """
     Load datasets from datastore, featurize them, and plot distributions of their inter-compound
     distances.
@@ -547,77 +606,80 @@ def liability_dset_diversity(bucket='gsk_ml', feat_type='descriptors', dist_metr
             continue
         plot_dataset_dist_distr(model_dataset.dataset, feat_type, dist_metric, task_name, **metric_kwargs)
 
-    # ------------------------------------------------------------------------------------------------------------------
-    def get_dset_diversity(dset_key, ds_client, bucket='gsk_ml', feat_type='descriptors', dist_metric='cosine',
-                           **metric_kwargs):
-        """
-        Load datasets from datastore, featurize them, and plot distributions of their inter-compound
-        distances.
-        """
-        log = logging.getLogger('ATOM')
-    
-        dset_df = dsf.retrieve_dataset_by_datasetkey(dset_key, bucket, ds_client)
-    
-        if feat_type == 'descriptors':
-            params = parse.wrapper(dict(
-                dataset_key=dset_key,
-                bucket=bucket,
-                descriptor_key='/ds/projdata/gsk_data/GSK_Descriptors/GSK_2D_3D_MOE_Descriptors_By_Variant_ID_With_Base_RDKit_SMILES.feather',
-                descriptor_type='moe',
-                featurizer='descriptors',
-                system='twintron-blue',
-                datastore=True,
-                transformers=True))
-        elif feat_type == 'ECFP':
-            params = parse.wrapper(dict(
-                dataset_key=dset_key,
-                bucket=bucket,
-                featurizer='ECFP',
-                system='twintron-blue',
-                datastore=True,
-                ecfp_radius=2,
-                ecfp_size=1024,
-                transformers=True))
-        else:
-            log.error("Feature type %s not supported" % feat_type)
-            return
-        metadata = dsf.get_keyval(dataset_key=dset_key, bucket=bucket)
-        if 'id_col' in metadata.keys():
-            params.id_col = metadata['id_col']
-        if 'param' in metadata.keys():
-            params.response_cols = [metadata['param']]
-        elif 'response_col' in metadata.keys():
-            params.response_cols = [metadata['response_col']]
-        elif 'response_cols' in metadata.keys():
-            params.response_cols = metadata['response_cols']
-    
-        if 'smiles_col' in metadata.keys():
-            params.smiles_col = metadata['smiles_col']
-    
-        if 'class_number' in metadata.keys():
-            params.class_number = metadata['class_number']
-        params.dataset_name = dset_key.split('/')[-1].rstrip('.csv')
-    
-        log.warning("Featurizing data with %s featurizer" % feat_type)
-        featurization = feat.create_featurization(params)
-        model_dataset = md.MinimalDataset(params, featurization)
-        model_dataset.get_featurized_data(dset_df)
-        num_cmpds = model_dataset.dataset.X.shape[0]
-        if num_cmpds > 50000:
-            log.warning("Too many compounds to compute distance matrix: %d" % num_cmpds)
-            return
-        # plot_dataset_dist_distr(model_dataset.dataset, feat_type, dist_metric, params.response_cols, **metric_kwargs)
-        dists = cd.calc_dist_diskdataset('descriptors', dist_metric, model_dataset.dataset, calc_type='all')
-        import scipy
-        dists = scipy.spatial.distance.squareform(dists)
-        res_dir = '/ds/projdata/gsk_data/model_analysis/'
-        plt_dir = '%s/Plots' % res_dir
-        file_prefix = dset_key.split('/')[-1].rstrip('.csv')
-        mcs_linkage = linkage(dists, method='complete')
-        pdf_path = '%s/%s_mcs_clustermap.pdf' % (plt_dir, file_prefix)
-        pdf = PdfPages(pdf_path)
-        g = sns.clustermap(dists, row_linkage=mcs_linkage, col_linkage=mcs_linkage, figsize=(12, 12), cmap='plasma')
-        if plt_dir is not None:
-            pdf.savefig(g.fig)
-            pdf.close()
-        return dists
+# ------------------------------------------------------------------------------------------------------------------
+def _get_dset_diversity(dset_key, ds_client, bucket='public', feat_type='descriptors', dist_metric='cosine',
+                       **metric_kwargs):
+    """
+    Load datasets from datastore, featurize them, and plot distributions of their inter-compound
+    distances.
+
+    TODO: Update this function so that it works on local files as well as datastore datasets. Remove the dependency on
+    precomputed GSK compound descriptors, and use computed descriptors instead.
+    """
+    log = logging.getLogger('ATOM')
+
+    dset_df = dsf.retrieve_dataset_by_datasetkey(dset_key, bucket, ds_client)
+
+    if feat_type == 'descriptors':
+        params = parse.wrapper(dict(
+            dataset_key=dset_key,
+            bucket=bucket,
+            descriptor_key='/ds/projdata/gsk_data/GSK_Descriptors/GSK_2D_3D_MOE_Descriptors_By_Variant_ID_With_Base_RDKit_SMILES.feather',
+            descriptor_type='moe',
+            featurizer='descriptors',
+            system='twintron-blue',
+            datastore=True,
+            transformers=True))
+    elif feat_type == 'ECFP':
+        params = parse.wrapper(dict(
+            dataset_key=dset_key,
+            bucket=bucket,
+            featurizer='ECFP',
+            system='twintron-blue',
+            datastore=True,
+            ecfp_radius=2,
+            ecfp_size=1024,
+            transformers=True))
+    else:
+        log.error("Feature type %s not supported" % feat_type)
+        return
+    metadata = dsf.get_keyval(dataset_key=dset_key, bucket=bucket)
+    if 'id_col' in metadata.keys():
+        params.id_col = metadata['id_col']
+    if 'param' in metadata.keys():
+        params.response_cols = [metadata['param']]
+    elif 'response_col' in metadata.keys():
+        params.response_cols = [metadata['response_col']]
+    elif 'response_cols' in metadata.keys():
+        params.response_cols = metadata['response_cols']
+
+    if 'smiles_col' in metadata.keys():
+        params.smiles_col = metadata['smiles_col']
+
+    if 'class_number' in metadata.keys():
+        params.class_number = metadata['class_number']
+    params.dataset_name = dset_key.split('/')[-1].rstrip('.csv')
+
+    log.warning("Featurizing data with %s featurizer" % feat_type)
+    featurization = feat.create_featurization(params)
+    model_dataset = md.MinimalDataset(params, featurization)
+    model_dataset.get_featurized_data(dset_df)
+    num_cmpds = model_dataset.dataset.X.shape[0]
+    if num_cmpds > 50000:
+        log.warning("Too many compounds to compute distance matrix: %d" % num_cmpds)
+        return
+    # plot_dataset_dist_distr(model_dataset.dataset, feat_type, dist_metric, params.response_cols, **metric_kwargs)
+    dists = cd.calc_dist_diskdataset('descriptors', dist_metric, model_dataset.dataset, calc_type='all')
+    import scipy
+    dists = scipy.spatial.distance.squareform(dists)
+    res_dir = '/ds/projdata/gsk_data/model_analysis/'
+    plt_dir = '%s/Plots' % res_dir
+    file_prefix = dset_key.split('/')[-1].rstrip('.csv')
+    mcs_linkage = linkage(dists, method='complete')
+    pdf_path = '%s/%s_mcs_clustermap.pdf' % (plt_dir, file_prefix)
+    pdf = PdfPages(pdf_path)
+    g = sns.clustermap(dists, row_linkage=mcs_linkage, col_linkage=mcs_linkage, figsize=(12, 12), cmap='plasma')
+    if plt_dir is not None:
+        pdf.savefig(g.fig)
+        pdf.close()
+    return dists

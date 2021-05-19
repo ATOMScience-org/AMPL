@@ -11,7 +11,7 @@ import deepchem as dc
 import numpy as np
 import tensorflow as tf
 from sklearn.metrics import roc_auc_score, confusion_matrix, average_precision_score, precision_score, recall_score
-from sklearn.metrics import accuracy_score, matthews_corrcoef, cohen_kappa_score, log_loss
+from sklearn.metrics import accuracy_score, matthews_corrcoef, cohen_kappa_score, log_loss, balanced_accuracy_score
 from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
 
 from atomsci.ddm.pipeline import transformations as trans
@@ -23,6 +23,7 @@ def rms_error(y_real, y_pred):
 
     Args:
         y_real (np.array): Array of ground truth values
+
         y_pred (np.array): Array of predicted values
 
     Returns:
@@ -38,6 +39,7 @@ def negative_predictive_value(y_real, y_pred):
 
     Args:
         y_real (np.array): Array of ground truth values
+
         y_pred (np.array): Array of predicted values
 
     Returns:
@@ -55,8 +57,8 @@ def negative_predictive_value(y_real, y_pred):
 
 # params.model_choice_score_type must be a key in one of the dictionaries below:
 regr_score_func = dict(r2 = r2_score, mae = mean_absolute_error, rmse = rms_error)
-classif_score_func = dict(roc_auc = roc_auc_score, precision = precision_score, ppv = precision_score, recall = recall_score, 
-                          npv = negative_predictive_value, cross_entropy = log_loss, accuracy = accuracy_score,
+classif_score_func = dict(roc_auc = roc_auc_score, precision = precision_score, ppv = precision_score, recall = recall_score,
+                          npv = negative_predictive_value, cross_entropy = log_loss, accuracy = accuracy_score, bal_accuracy = balanced_accuracy_score,
                           avg_precision = average_precision_score, mcc = matthews_corrcoef, kappa = cohen_kappa_score)
 
 # The following score types are loss functions, meaning the result must be sign flipped so we can maximize it in model selection
@@ -103,7 +105,6 @@ def create_perf_data(prediction_type, model_dataset, transformers, subset, **kwa
     else:
         split_strategy = model_dataset.params.split_strategy
     if prediction_type == 'regression':
-        #if subset in ['test', 'full'] or split_strategy == 'train_valid_test':
         if subset == 'full' or split_strategy == 'train_valid_test':
             # Called simple because no need to track compound IDs across multiple training folds
             return SimpleRegressionPerfData(model_dataset, transformers, subset, **kwargs)
@@ -112,7 +113,6 @@ def create_perf_data(prediction_type, model_dataset, transformers, subset, **kwa
         else:
             raise ValueError('Unknown split_strategy %s' % split_strategy)
     elif prediction_type == 'classification':
-        #if subset in ['test', 'full'] or split_strategy == 'train_valid_test':
         if subset == 'full' or split_strategy == 'train_valid_test':
             return SimpleClassificationPerfData(model_dataset, transformers, subset, **kwargs)
         elif split_strategy == 'k_fold_cv':
@@ -556,6 +556,7 @@ class ClassificationPerfData(PerfData):
         if self.num_classes == 2:
             npvs = []
         accuracies = []
+        bal_accs = []
         kappas = []
         matthews_ccs = []
         confusion_matrices = []
@@ -584,6 +585,7 @@ class ClassificationPerfData(PerfData):
 
             cross_entropies.append(log_loss(task_real_vals, task_class_probs))
             accuracies.append(accuracy_score(task_real_classes, task_pred_classes))
+            bal_accs.append(balanced_accuracy_score(task_real_classes, task_pred_classes))
             kappas.append(float(cohen_kappa_score(task_real_classes, task_pred_classes)))
             matthews_ccs.append(float(matthews_corrcoef(task_real_classes, task_pred_classes)))
             confusion_matrices.append(confusion_matrix(task_real_classes, task_pred_classes).tolist())
@@ -616,6 +618,10 @@ class ClassificationPerfData(PerfData):
         pred_results['accuracy_score'] = float(np.mean(accuracies))
         if self.num_tasks > 1:
             pred_results['task_accuracies'] = accuracies
+
+        pred_results['bal_accuracy'] = float(np.mean(bal_accs))
+        if self.num_tasks > 1:
+            pred_results['task_bal_accuracies'] = bal_accs
 
         pred_results['kappa'] = float(np.mean(kappas))
         if self.num_tasks > 1:
@@ -720,7 +726,7 @@ class KFoldRegressionPerfData(RegressionPerfData):
 
         """
         self.subset = subset
-        if self.subset in ('train', 'valid'):
+        if self.subset in ('train', 'valid', 'train_valid'):
             dataset = model_dataset.combined_training_data()
         elif self.subset == 'test':
             dataset = model_dataset.test_dset
@@ -821,7 +827,7 @@ class KFoldRegressionPerfData(RegressionPerfData):
 
         """
         ids = sorted(self.pred_vals.keys())
-        if self.subset in ['train', 'test']:
+        if self.subset in ['train', 'test', 'train_valid']:
             rawvals = np.concatenate([self.pred_vals[id].mean(axis=0, keepdims=True).reshape((1,-1)) for id in ids])
             vals = dc.trans.undo_transforms(rawvals, self.transformers)
             if self.folds > 1:
@@ -967,7 +973,7 @@ class KFoldClassificationPerfData(ClassificationPerfData):
         """
 
         self.subset = subset
-        if self.subset in ('train', 'valid'):
+        if self.subset in ('train', 'valid', 'train_valid'):
             dataset = model_dataset.combined_training_data()
         elif self.subset == 'test':
             dataset = model_dataset.test_dset
@@ -1063,9 +1069,9 @@ class KFoldClassificationPerfData(ClassificationPerfData):
     # class KFoldClassificationPerfData
     def get_pred_values(self):
         """Returns the predicted values accumulated over training, with any transformations undone.  If self.subset 
-        is 'train' or 'test', the function will return the means and standard deviations of the class probabilities over 
-        the training folds for each compound, for each task.  Otherwise, returns a single set of predicted probabilites for each 
-        validation set compound. For all subsets, returns the compound IDs and the most probable classes for each task. 
+        is 'train', 'train_valid' or 'test', the function will return the means and standard deviations of the class probabilities 
+        over the training folds for each compound, for each task.  Otherwise, returns a single set of predicted probabilites for 
+        each validation set compound. For all subsets, returns the compound IDs and the most probable classes for each task. 
         
         Returns:
             ids (list): list of compound IDs.
@@ -1079,7 +1085,7 @@ class KFoldClassificationPerfData(ClassificationPerfData):
 
         """
         ids = sorted(self.pred_vals.keys())
-        if self.subset in ['train', 'test']:
+        if self.subset in ['train', 'test', 'train_valid']:
             #class_probs = np.concatenate([dc.trans.undo_transforms(self.pred_vals[id], self.transformers).mean(axis=0, keepdims=True)
             #                       for id in ids], axis=0)
             #prob_stds = np.concatenate([dc.trans.undo_transforms(self.pred_vals[id], self.transformers).std(axis=0, keepdims=True)

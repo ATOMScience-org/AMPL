@@ -10,7 +10,11 @@ AMPL is an open-source, modular, extensible software pipeline for building and s
 
 > The ATOM Modeling PipeLine (AMPL) extends the functionality of DeepChem and supports an array of machine learning and molecular featurization tools. AMPL is an end-to-end data-driven modeling pipeline to generate machine learning models that can predict key safety and pharmacokinetic-relevant parameters. AMPL has been benchmarked on a large collection of pharmaceutical datasets covering a wide range of parameters.
 
-A pre-print of a manuscript describing this project is available through [ArXiv](http://arxiv.org/abs/1911.05211). readthedocs are available as well [here](https://ampl.readthedocs.io/en/latest/pipeline.html).
+An [article describing the AMPL project](https://pubs.acs.org/doi/abs/10.1021/acs.jcim.9b01053) 
+was published in JCIM. For those without access to JCIM, a preprint of the article is available on 
+[ArXiv](http://arxiv.org/abs/1911.05211). 
+
+Documentation in readthedocs format is available [here](https://ampl.readthedocs.io/en/latest/pipeline.html).
 &nbsp;  
 
 ## Public release
@@ -22,6 +26,8 @@ A pre-print of a manuscript describing this project is available through [ArXiv]
 - [Getting started](#Getting-started)
   - [Prerequisites](#Prerequisites)
   - [Install](#Install)
+  - [Install with Docker](#Install-docker)
+  - [AMPL usage survey](#AMPL-usage-survey)
 - [Examples](#Example-AMPL-usage)
 - [Tests](#Tests)
 - [AMPL Features](#AMPL-Features)
@@ -35,7 +41,7 @@ A pre-print of a manuscript describing this project is available through [ArXiv]
 
 ## Useful links
 - [Pipeline parameters (options)](atomsci/ddm/docs/PARAMETERS.md)
-- [Library documentation](atomsci/ddm/docs/build/html/index.html)  
+- [Library documentation](https://ampl.readthedocs.io/en/latest/index.html)  
 &nbsp;  
 &nbsp;  
 
@@ -81,8 +87,10 @@ conda activate atomsci
 
 cd ..
 
-./build.sh && ./install.sh
+./build.sh && ./install.sh system
 ```
+
+- The `install.sh system` command installs AMPL directly in the conda environment. If `install.sh` alone is used, then AMPL is installed in the `$HOME/.local` directory.
 
 - After this process, you will have an `atomsci` conda environment with all dependencies installed. The name of the AMPL package is `atomsci-ampl` and is installed in the `install.sh` script to the environment with conda's `pip`.
 &nbsp;  
@@ -90,8 +98,33 @@ cd ..
 #### More installation information
 - More details on installation can be found in [Advanced installation](#Advanced-installation).  
 &nbsp;  
-&nbsp;  
 
+<a name="Install-docker"></a>
+### Install with Docker
+- Download and install Docker Desktop.
+  - https://www.docker.com/get-started
+- Create a workspace folder to mount with Docker environment and transfer files. 
+- Get the Docker image and run it.
+  ```
+  docker pull paulsonak/atomsci-ampl
+  docker run -it -p 8888:8888 -v </local_workspace_folder>:</directory_in_docker> paulsonak/atomsci-ampl
+  #inside docker environment
+  jupyter-notebook --ip=0.0.0.0 --allow-root --port=8888 &
+  # -OR-
+  jupyter-lab --ip=0.0.0.0 --allow-root --port=8888 &
+  ```
+- Visit the provided URL in your browser, ie
+  - http://d33b0faf6bc9:8888/?token=656b8597498b18db2213b1ec9a00e9d738dfe112bbe7566d
+  - Replace the `d33b0faf6bc9` with `localhost`
+  - If this doesn't work, exit the container and change port from 8888 to some other number such as 7777 or 8899 (in all 3 places it's written), then rerun both commands
+- Be sure to save any work you want to be permanent in your workspace folder. If the container is shut down, you'll lose anything not in that folder.
+&nbsp; 
+
+<a name="AMPL-usage-survey"></a>
+### AMPL usage survey 
+- The ATOM team would like to hear your experiences in using the AMPL software. The team actively uses feedback to develop the best possible drug discovery modeling pipeline. Click [here](https://docs.google.com/forms/d/e/1FAIpQLSdM7mRXsvRr4MXUIoWgh9hQSmAOFgwXD3nLA4sLpNygec6hzA/viewform?usp=sf_link) to access the survey link. The survey typically takes 5 minutes to complete. Thank you for providing your feedback. 
+&nbsp;
+&nbsp;
 
 ---
 <a name="Example-AMPL-usage"></a>
@@ -220,7 +253,63 @@ python model_pipeline.py --config_file test.json
 &nbsp;  
 
 ### Hyperparameter optimization
-Hyperparameter optimization for AMPL model fitting is available to run on SLURM clusters. Examples of running hyperparameter optimization will be added.  
+Hyperparameter optimization for AMPL model fitting is available to run on SLURM clusters or with [HyperOpt](https://hyperopt.github.io/hyperopt/) (Bayesian Optimization). To run Bayesian Optimization, the following steps can be followed.
+
+1. (Optional) Install HyperOpt with `pip install hyperopt`
+2. Pre-split your dataset with computed_descriptors if you want to use Mordred/MOE/RDKit descriptors.
+3. In the config JSON file, set the following parameters.
+   
+   - "hyperparam": "True"
+   - "search_type": "hyperopt"
+   - "descriptor_type": "mordred_filtered,rdkit_raw" (use comma to separate multiple values)
+   - "model_type": "RF|20" (the number after | is the number of evaluations of Bayesian Optimization)
+   - "featurizer": "ecfp,computed_descriptors" (use comma if you want to try multiple featurizers, note the RF and graphconv are not compatible)
+   - "result_dir": "/path/to/save/the/final/results,/temp/path/to/save/models/during/optimization" (Two paths separated by a comma)
+  
+   RF model specific parameters:
+   - "rfe": "uniformint|8,512", (RF number of estimators)
+   - "rfd": "uniformint|8,512", (RF max depth of the decision tree)
+   - "rff": "uniformint|8,200", (RF max number of features)
+  
+    Use the following schemes to define the searching domains
+    
+    method|parameter1,parameter2...
+    
+    method: supported searching schemes in HyperOpt include: choice, uniform, loguniform, uniformint, see https://github.com/hyperopt/hyperopt/wiki/FMin for details.
+    
+    parameters:
+      - choice: all values to search from, separated by comma, e.g. choice|0.0001,0.0005,0.0002,0.001
+      - uniform: low and high bound of the interval to serach, e.g. uniform|0.00001,0.001
+      - loguniform: low and high bound (in natural log) of the interval to serach, e.g. uniform|-13.8,-6.9
+      - uniformint: low and high bound of the interval as integers, e.g. uniforming|8,256
+  
+    NN model specific parameters:
+     - "lr": "loguniform|-13.8,-6.9", (learning rate)
+     - "ls": "uniformint|3|8,512", (layer_sizes)
+        - The number between two bars (|) is the number of layers, namely 3 layers, each one with 8~512 nodes
+        - Note that the number of layers (number between two |) can not be changed during optimization, if you want to try different number of layers, just run several optimizations. 
+     - "dp": "uniform|3|0,0.4", (dropouts)
+        - 3 layers, each one has a dropout range from 0 to 0.4
+        - Note that the number of layers (number between two |) can not be changed during optimization, if you want to try different number of layers, just run several optimizations. 
+    
+    XGBoost model specific parameters:
+     - "xgbg": "uniform|0,0.4", (xgb_gamma, Minimum loss reduction required to make a further partition on a leaf node of the tree)
+     - "xgbl": "loguniform|-6.9,-2.3", (xgb_learning_rate, Boosting learning rate (xgboost's "eta"))
+
+4. Run hyperparameter search in batch mode or submit a slurm job.
+
+    ```
+    python hyperparam_search_wrapper.py --config_file filename.json
+    ```
+    
+5. Save a checkpoint to continue it later.
+    
+    To save a checkpoint file of the hyperparameter search job, you want to set the following two parameters.
+    - "hp_checkpoint_save": "/path/to/the/checkpoint/file.pkl"
+    - "hp_checkpoint_load": "/path/to/the/checkpoint/file.pkl"
+    
+    If the "hp_checkpoint_load" is provided, the hyperparameter search will continue from the checkpoint. 
+
 &nbsp;  
 &nbsp;  
 

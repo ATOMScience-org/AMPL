@@ -27,12 +27,24 @@ matplotlib.rc('axes', labelsize=12)
 #------------------------------------------------------------------------------------------------------------------------
 def plot_pred_vs_actual(MP, epoch_label='best', threshold=None, error_bars=False, pdf_dir=None):
     """
-    Plot predicted vs actual values from regression model for the specified dataset subset (train, 
-    valid, test or full) for the dataset in ModelPipeline MP.  If threshold is given, draw dashed lines
-    in both directions (e.g. to indicate an activity threshold). If pdf_dir is given, output the
-    plots to PDF files in the given directory; otherwise they are drawn on the current output device. If 
-    uncertainty estimates are included in the model predictions and error_bars is True, error bars will be 
-    drawn at +- 1 SD from predicted y values.
+    Plot predicted vs actual values from a trained regression model for each split subset (train,
+    valid, and test).
+
+    Args:
+        MP (`ModelPipeline`): Pipeline object for a model that was trained in the current Python session.
+
+        epoch_label (str): Label for training epoch to draw predicted values from. Currently 'best' is the only allowed value.
+
+        threshold (float): Threshold activity value to mark on plot with dashed lines.
+
+        error_bars (bool): If true and if uncertainty estimates are included in the model predictions, draw error bars
+            at +- 1 SD from the predicted y values.
+
+        pdf_dir (str): If given, output the plots to a PDF file in the given directory.
+
+    Returns:
+        None
+
     """
     params = MP.params
     # For now restrict this to regression models. 
@@ -97,27 +109,40 @@ def plot_pred_vs_actual(MP, epoch_label='best', threshold=None, error_bars=False
 #------------------------------------------------------------------------------------------------------------------------
 def plot_perf_vs_epoch(MP, pdf_dir=None):
     """
-    Plot the current NN model's standard performance metric (r2_score or roc_auc_score) vs epoch number for the training and 
-    validation subsets. If the model was trained with k-fold CV, plot error bars or shading out to += 1 SD from the mean
-    score metric values. Also plot the validation set score used for ranking training epochs and other hyperparameters 
+    Plot the current NN model's standard performance metric (r2_score or roc_auc_score) vs epoch number for the training,
+    validation and test subsets. If the model was trained with k-fold CV, plot shading for the validation set out to += 1 SD from the mean
+    score metric values, and plot the training and test set metrics from the final model retraining rather than the cross-validation
+    phase. Make a second plot showing the validation set model choice score used for ranking training epochs and other hyperparameters
     against epoch number.
+
+    Args:
+        MP (`ModelPipeline`): Pipeline object for a model that was trained in the current Python session.
+
+        pdf_dir (str): If given, output the plots to a PDF file in the given directory.
+
+    Returns:
+        None
+
     """
     wrapper = MP.model_wrapper
     if 'train_epoch_perfs' not in wrapper.__dict__:
         raise ValueError("plot_perf_vs_epoch() can only be called for NN models")
-    num_epochs = MP.params.max_epochs
-    subset_perf = dict(training = wrapper.train_epoch_perfs[:num_epochs], validation = wrapper.valid_epoch_perfs[:num_epochs], 
-                       test = wrapper.test_epoch_perfs[:num_epochs])
-    subset_std = dict(training = wrapper.train_epoch_perf_stds[:num_epochs], validation = wrapper.valid_epoch_perf_stds[:num_epochs],
-                       test = wrapper.test_epoch_perf_stds[:num_epochs])
+    num_epochs = wrapper.num_epochs_trained
+    best_epoch = wrapper.best_epoch
     num_folds = len(MP.data.train_valid_dsets)
+    if num_folds > 1:
+        subset_perf = dict(training = wrapper.train_epoch_perfs[:best_epoch+1], validation = wrapper.valid_epoch_perfs[:num_epochs], 
+                        test = wrapper.test_epoch_perfs[:best_epoch+1])
+        subset_std = dict(training = wrapper.train_epoch_perf_stds[:best_epoch+1], validation = wrapper.valid_epoch_perf_stds[:num_epochs],
+                        test = wrapper.test_epoch_perf_stds[:best_epoch+1])
+    else:
+        subset_perf = dict(training = wrapper.train_epoch_perfs[:num_epochs], validation = wrapper.valid_epoch_perfs[:num_epochs], 
+                        test = wrapper.test_epoch_perfs[:num_epochs])
+        subset_std = dict(training = wrapper.train_epoch_perf_stds[:num_epochs], validation = wrapper.valid_epoch_perf_stds[:num_epochs],
+                        test = wrapper.test_epoch_perf_stds[:num_epochs])
     model_scores = wrapper.model_choice_scores[:num_epochs]
     model_score_type = MP.params.model_choice_score_type
-    best_epoch = wrapper.best_epoch
-    baseline_epoch = MP.params.baseline_epoch
 
-
-    epoch = list(range(num_epochs))
     if MP.params.prediction_type == 'regression':
         perf_label = 'R-squared'
     else:
@@ -133,9 +158,10 @@ def plot_perf_vs_epoch(MP, pdf_dir=None):
             MP.params.dataset_name, perf_label, MP.params.model_type,  MP.params.prediction_type,
             MP.params.featurizer,  MP.params.splitter,  best_epoch)
     for subset in ['training', 'validation', 'test']:
+        epoch = list(range(len(subset_perf[subset])))
         ax.plot(epoch, subset_perf[subset], color=subset_colors[subset], label=subset)
-        # Add shading to show variance across folds
-        if num_folds > 1:
+        # Add shading to show variance across folds during cross-validation
+        if (num_folds > 1) and (subset == 'validation'):
             ax.fill_between(epoch, subset_perf[subset] + subset_std[subset], subset_perf[subset] - subset_std[subset],
                             alpha=0.3, facecolor=subset_shades[subset], linewidth=0)
     plt.axvline(best_epoch, color='forestgreen', linestyle='--')
@@ -151,6 +177,7 @@ def plot_perf_vs_epoch(MP, pdf_dir=None):
     title = '%s dataset\n%s vs epoch for %s %s model on %s features with %s split\nBest validation set performance at epoch %d' % (
             MP.params.dataset_name, model_score_type, MP.params.model_type,  MP.params.prediction_type,
             MP.params.featurizer,  MP.params.splitter,  best_epoch)
+    epoch = list(range(num_epochs))
     ax.plot(epoch, model_scores, color=subset_colors['validation'])
     plt.axvline(best_epoch, color='red', linestyle='--')
     ax.set_xlabel('Epoch')
@@ -168,10 +195,26 @@ def plot_perf_vs_epoch(MP, pdf_dir=None):
 
 
 #------------------------------------------------------------------------------------------------------------------------
-def get_perf_curve_data(MP, epoch_label, curve_type='ROC'):
+def _get_perf_curve_data(MP, epoch_label, curve_type='ROC'):
     """
     Common code for ROC and precision-recall curves. Returns true classes and active class probabilities
     for each training/test data subset.
+
+    Args:
+        MP (`ModelPipeline`): Pipeline object for a model that was trained in the current Python session.
+
+        epoch_label (str): Label for training epoch to draw predicted values from. Currently 'best' is the only allowed value.
+
+        threshold (float): Threshold activity value to mark on plot with dashed lines.
+
+        error_bars (bool): If true and if uncertainty estimates are included in the model predictions, draw error bars
+            at +- 1 SD from the predicted y values.
+
+        pdf_dir (str): If given, output the plots to a PDF file in the given directory.
+
+    Returns:
+        None
+
     """
     if MP.params.prediction_type != 'classification':
         MP.log.error("Can only plot %s curve for classification models" % curve_type)
@@ -204,9 +247,20 @@ def get_perf_curve_data(MP, epoch_label, curve_type='ROC'):
 def plot_ROC_curve(MP, epoch_label='best', pdf_dir=None):
     """
     Plot ROC curves for a classification model.
+
+    Args:
+        MP (`ModelPipeline`): Pipeline object for a model that was trained in the current Python session.
+
+        epoch_label (str): Label for training epoch to draw predicted values from. Currently 'best' is the only allowed value.
+
+        pdf_dir (str): If given, output the plots to a PDF file in the given directory.
+
+    Returns:
+        None
+
     """
     params = MP.params
-    curve_data = get_perf_curve_data(MP, epoch_label, 'ROC')
+    curve_data = _get_perf_curve_data(MP, epoch_label, 'ROC')
     if len(curve_data) == 0:
         return
     if MP.run_mode == 'training':
@@ -248,9 +302,20 @@ def plot_ROC_curve(MP, epoch_label='best', pdf_dir=None):
 def plot_prec_recall_curve(MP, epoch_label='best', pdf_dir=None):
     """
     Plot precision-recall curves for a classification model.
+
+    Args:
+        MP (`ModelPipeline`): Pipeline object for a model that was trained in the current Python session.
+
+        epoch_label (str): Label for training epoch to draw predicted values from. Currently 'best' is the only allowed value.
+
+        pdf_dir (str): If given, output the plots to a PDF file in the given directory.
+
+    Returns:
+        None
+
     """
     params = MP.params
-    curve_data = get_perf_curve_data(MP, epoch_label, 'precision-recall')
+    curve_data = _get_perf_curve_data(MP, epoch_label, 'precision-recall')
     if len(curve_data) == 0:
         return
     if MP.run_mode == 'training':
@@ -293,12 +358,43 @@ def plot_umap_feature_projections(MP, ndim=2, num_neighbors=20, min_dist=0.1,
                                   dist_metric='euclidean', dist_metric_kwds={}, 
                                   target_weight=0, random_seed=17, pdf_dir=None):
     """
-    Take numeric features (descriptors, fingerprints, etc.) input to a model, project them to
-    2 or 3 dimensions, and draw a scatterplot of the projected coordinates, with markers shape-coded
-    to indicate whether the associated compound was in the training, validation or test set. For classification
-    models, also use the marker shape to indicate whether the compound's class was correctly predicted, and use
-    color to indicate whether the true class was active or inactive. For regression models, use the marker color
-    to indicate the discrepancy between the predicted and actual values.
+    Projects features of a model's input dataset using UMAP to 2D or 3D coordinates and draws a scatterplot.
+    Shape-codes plot markers to indicate whether the associated compound was in the training, validation or
+    test set. For classification models, also uses the marker shape to indicate whether the compound's class was correctly
+    predicted, and uses color to indicate whether the true class was active or inactive. For regression models, uses
+    the marker color to indicate the discrepancy between the predicted and actual values.
+
+    Args:
+        MP (`ModelPipeline`): Pipeline object for a model that was trained in the current Python session.
+
+        ndim (int): Number of dimensions (2 or 3) to project features into.
+
+        num_neighbors (int): Number of nearest neighbors used by UMAP for manifold approximation.
+            Larger values give a more global view of the data, while smaller values preserve more local detail.
+
+        min_dist (float): Parameter used by UMAP to set minimum distance between projected points.
+
+        fit_to_train (bool): If true (the default), fit the UMAP projection to the training set feature vectors only.
+            Otherwise, fit it to the entire dataset.
+
+        dist_metric (str): Name of metric to use for initial distance matrix computation. Check UMAP documentation
+            for supported values. The metric should be appropriate for the type of features used in the model (fingerprints
+            or descriptors); note that `jaccard` is equivalent to Tanimoto distance for ECFP fingerprints.
+
+        dist_metric_kwds (dict): Additional key-value pairs used to parameterize dist_metric; see the UMAP documentation.
+            In particular, dist_metric_kwds['p'] specifies the power/exponent for the Minkowski metric.
+
+        target_weight (float): Weighting factor determining balance between activities and feature values in determining topology
+            of projected points. A weight of zero prioritizes the feature vectors; weight = 1 prioritizes the activity values,
+            so that compounds with the same activity tend to be clustered together.
+
+        random_seed (int): Seed for random number generator.
+
+        pdf_dir (str): If given, output the plot to a PDF file in the given directory.
+
+    Returns:
+        None
+
     """
     if (ndim != 2) and (ndim != 3):
       MP.log.error('Only 2D and 3D visualizations are supported by plot_umap_feature_projections()')
@@ -472,6 +568,27 @@ def plot_umap_train_set_neighbors(MP, num_neighbors=20, min_dist=0.1,
     Project features of whole dataset to 2 dimensions, without regard to response values. Plot training & validation set
     or training and test set compounds, color- and symbol-coded according to actual classification and split set.
     The plot does not take predicted values into account at all. Does not work with regression data.
+
+    Args:
+        MP (`ModelPipeline`): Pipeline object for a model that was trained in the current Python session.
+
+        num_neighbors (int): Number of nearest neighbors used by UMAP for manifold approximation.
+            Larger values give a more global view of the data, while smaller values preserve more local detail.
+
+        min_dist (float): Parameter used by UMAP to set minimum distance between projected points.
+
+        dist_metric (str): Name of metric to use for initial distance matrix computation. Check UMAP documentation
+            for supported values. The metric should be appropriate for the type of features used in the model (fingerprints
+            or descriptors); note that `jaccard` is equivalent to Tanimoto distance for ECFP fingerprints.
+
+        dist_metric_kwds (dict): Additional key-value pairs used to parameterize dist_metric; see the UMAP documentation.
+            In particular, dist_metric_kwds['p'] specifies the power/exponent for the Minkowski metric.
+
+        random_seed (int): Seed for random number generator.
+
+        pdf_dir (str): If given, output the plot to a PDF file in the given directory.
+
+
     """
     ndim = 2
     params = MP.params

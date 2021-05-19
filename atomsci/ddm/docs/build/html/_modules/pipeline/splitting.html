@@ -1,48 +1,53 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
+  <meta charset="utf-8" />
   
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>pipeline.splitting &mdash; ATOM Data-Driven Modeling Pipeline 1.0 documentation</title>
-  
-
-  
-  
-  
+  <title>pipeline.splitting &mdash; ATOM Data-Driven Modeling Pipeline 1.1 documentation</title>
   
 
   
-
-  
-  
-    
-
-  
-
   <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    <link rel="index" title="Index" href="../../genindex.html" />
-    <link rel="search" title="Search" href="../../search.html" /> 
 
   
-  <script src="../../_static/js/modernizr.min.js"></script>
+  
 
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
-
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search">
+        <div class="wy-side-nav-search" >
           
 
           
@@ -54,6 +59,10 @@
 
           
             
+            
+              <div class="version">
+                1.1
+              </div>
             
           
 
@@ -69,6 +78,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -76,11 +86,23 @@
               
             
             
-              <!-- Local TOC -->
-              <div class="local-toc"></div>
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/getting_started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/tests.html">Tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/running_ampl.html">Running AMPL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/advanced_ampl_usage.html">Advanced AMPL Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/advanced_installation.html">Advanced Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/advanced_testing.html">Advanced Testing</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">atomsci</a></li>
+</ul>
+
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -115,11 +137,13 @@
 
 
 
+
+
 <div role="navigation" aria-label="breadcrumbs navigation">
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../../index.html">Docs</a> &raquo;</li>
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
         
           <li><a href="../index.html">Module code</a> &raquo;</li>
         
@@ -142,8 +166,8 @@
 <span></span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Encapsulates everything that depends on how datasets are split: the splitting itself, training, validation,</span>
 <span class="sd">testing, generation of predicted values and performance metrics.</span>
-
 <span class="sd">&quot;&quot;&quot;</span>
+
 <span class="kn">import</span> <span class="nn">pdb</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">os</span>
@@ -151,13 +175,20 @@
 <span class="kn">import</span> <span class="nn">deepchem</span> <span class="k">as</span> <span class="nn">dc</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
-<span class="kn">from</span> <span class="nn">deepchem.data</span> <span class="k">import</span> <span class="n">DiskDataset</span>
-<span class="kn">from</span> <span class="nn">atomsci.ddm.pipeline.ave_splitter</span> <span class="k">import</span> <span class="n">AVEMinSplitter</span>
+<span class="kn">from</span> <span class="nn">deepchem.data</span> <span class="kn">import</span> <span class="n">DiskDataset</span>
+<span class="kn">from</span> <span class="nn">atomsci.ddm.pipeline.ave_splitter</span> <span class="kn">import</span> <span class="n">AVEMinSplitter</span>
+<span class="kn">from</span> <span class="nn">atomsci.ddm.pipeline.temporal_splitter</span> <span class="kn">import</span> <span class="n">TemporalSplitter</span>
 <span class="kn">import</span> <span class="nn">collections</span>
 
 <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="nb">format</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%(asctime)-15s</span><span class="s1"> </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">)</span>
 <span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;ATOM&#39;</span><span class="p">)</span>
 
+<span class="c1"># List of splitter types that require SMILES strings as compound IDs</span>
+<span class="n">smiles_splits</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;scaffold&#39;</span><span class="p">,</span> <span class="s1">&#39;butina&#39;</span><span class="p">,</span> <span class="s1">&#39;fingerprint&#39;</span><span class="p">]</span>
+
+<span class="c1"># List of model parameters related to splitting. Make sure to update this list if we add more parameters.</span>
+<span class="n">split_params</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;splitter&#39;</span><span class="p">,</span> <span class="s1">&#39;split_strategy&#39;</span><span class="p">,</span> <span class="s1">&#39;split_valid_frac&#39;</span><span class="p">,</span> <span class="s1">&#39;split_test_frac&#39;</span><span class="p">,</span> <span class="s1">&#39;butina_cutoff&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;num_folds&#39;</span><span class="p">,</span> <span class="s1">&#39;base_splitter&#39;</span><span class="p">,</span> <span class="s1">&#39;cutoff_date&#39;</span><span class="p">,</span> <span class="s1">&#39;date_col&#39;</span><span class="p">,</span> <span class="s1">&#39;previously_split&#39;</span><span class="p">]</span>
 
 <div class="viewcode-block" id="create_splitting"><a class="viewcode-back" href="../../pipeline.html#pipeline.splitting.create_splitting">[docs]</a><span class="k">def</span> <span class="nf">create_splitting</span><span class="p">(</span><span class="n">params</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Factory function to create appropriate type of Splitting object, based on dataset parameters</span>
@@ -195,7 +226,7 @@
 <span class="sd">        subset (DiskDataset): A subset of the deepchem dataset as determined by the ids in attr_df</span>
 <span class="sd">        </span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">id_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&#39;indices&#39;</span> <span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">ids</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)},</span> <span class="n">index</span><span class="o">=</span><span class="n">dataset</span><span class="o">.</span><span class="n">ids</span><span class="p">)</span>
+    <span class="n">id_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&#39;indices&#39;</span> <span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">ids</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)},</span> <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">dataset</span><span class="o">.</span><span class="n">ids</span><span class="p">])</span>
     <span class="n">match_df</span> <span class="o">=</span> <span class="n">id_df</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">attr_df</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;inner&#39;</span><span class="p">)</span>
     <span class="n">subset</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">match_df</span><span class="o">.</span><span class="n">indices</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">subset</span></div>
@@ -215,8 +246,8 @@
 <span class="sd">        </span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1">#TODO: Need to test</span>
-    <span class="n">id_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&#39;indices&#39;</span> <span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">ids</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)},</span> <span class="n">index</span><span class="o">=</span><span class="n">dataset</span><span class="o">.</span><span class="n">ids</span><span class="p">)</span>
-    <span class="n">sel_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="n">id_list</span><span class="p">)</span>
+    <span class="n">id_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&#39;indices&#39;</span> <span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">ids</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)},</span> <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">dataset</span><span class="o">.</span><span class="n">ids</span><span class="p">])</span>
+    <span class="n">sel_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">id_list</span><span class="p">])</span>
     <span class="n">match_df</span> <span class="o">=</span> <span class="n">id_df</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sel_df</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;inner&#39;</span><span class="p">)</span>
     <span class="n">subset</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">match_df</span><span class="o">.</span><span class="n">indices</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">subset</span></div>
@@ -236,7 +267,7 @@
 <span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1">#TODO: Need to test</span>
-    <span class="n">id_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="n">dataset</span><span class="o">.</span><span class="n">ids</span><span class="p">)</span>
+    <span class="n">id_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">dataset</span><span class="o">.</span><span class="n">ids</span><span class="p">])</span>
     <span class="n">subattr_df</span> <span class="o">=</span> <span class="n">id_df</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">attr_df</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;inner&#39;</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">subattr_df</span></div>
 
@@ -258,7 +289,7 @@
 <span class="sd">        strings in attr_df to the ids in the dataset</span>
 <span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">id_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="n">dataset</span><span class="o">.</span><span class="n">ids</span><span class="p">)</span>
+    <span class="n">id_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">dataset</span><span class="o">.</span><span class="n">ids</span><span class="p">])</span>
     <span class="n">subattr_df</span> <span class="o">=</span> <span class="n">id_df</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">attr_df</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;inner&#39;</span><span class="p">,</span> <span class="n">left_index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">right_on</span><span class="o">=</span><span class="n">smiles_col</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">subattr_df</span></div>
 
@@ -279,7 +310,7 @@
 <span class="sd">        of the attr_df. False if there are no duplicates</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">dupes</span> <span class="o">=</span> <span class="p">[(</span><span class="n">item</span><span class="p">,</span> <span class="n">count</span><span class="p">)</span> <span class="k">for</span> <span class="n">item</span><span class="p">,</span> <span class="n">count</span> <span class="ow">in</span> <span class="n">collections</span><span class="o">.</span><span class="n">Counter</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">ids</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">count</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="n">dupes</span> <span class="o">=</span> <span class="p">[(</span><span class="n">item</span><span class="p">,</span> <span class="n">count</span><span class="p">)</span> <span class="k">for</span> <span class="n">item</span><span class="p">,</span> <span class="n">count</span> <span class="ow">in</span> <span class="n">collections</span><span class="o">.</span><span class="n">Counter</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">dataset</span><span class="o">.</span><span class="n">ids</span><span class="p">])</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">count</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">]</span>
     <span class="n">dupe_attr</span> <span class="o">=</span> <span class="p">[(</span><span class="n">item</span><span class="p">,</span> <span class="n">count</span><span class="p">)</span> <span class="k">for</span> <span class="n">item</span><span class="p">,</span> <span class="n">count</span> <span class="ow">in</span> <span class="n">collections</span><span class="o">.</span><span class="n">Counter</span><span class="p">(</span><span class="n">attr_df</span><span class="p">[</span><span class="n">smiles_col</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">count</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">]</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="n">dupes</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="n">dupe_attr</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
@@ -302,7 +333,7 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Constructor, also serves as a factory method for creating the associated DeepChem splitter object</span>
 <span class="sd">        </span>
 <span class="sd">        Args:</span>
@@ -335,11 +366,28 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">splitter</span> <span class="o">=</span> <span class="n">dc</span><span class="o">.</span><span class="n">splits</span><span class="o">.</span><span class="n">RandomStratifiedSplitter</span><span class="p">()</span>
         <span class="k">elif</span> <span class="n">params</span><span class="o">.</span><span class="n">splitter</span> <span class="o">==</span> <span class="s1">&#39;butina&#39;</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">splitter</span> <span class="o">=</span> <span class="n">dc</span><span class="o">.</span><span class="n">splits</span><span class="o">.</span><span class="n">ButinaSplitter</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="n">params</span><span class="o">.</span><span class="n">splitter</span> <span class="o">==</span> <span class="s1">&#39;fingerprint&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">splitter</span> <span class="o">=</span> <span class="n">dc</span><span class="o">.</span><span class="n">splits</span><span class="o">.</span><span class="n">FingerprintSplitter</span><span class="p">()</span>
         <span class="k">elif</span> <span class="n">params</span><span class="o">.</span><span class="n">splitter</span> <span class="o">==</span> <span class="s1">&#39;ave_min&#39;</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">featurizer</span> <span class="o">==</span> <span class="s1">&#39;ecfp&#39;</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">splitter</span> <span class="o">=</span> <span class="n">AVEMinSplitter</span><span class="p">(</span><span class="n">metric</span><span class="o">=</span><span class="s1">&#39;jaccard&#39;</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">splitter</span> <span class="o">=</span> <span class="n">AVEMinSplitter</span><span class="p">(</span><span class="n">metric</span><span class="o">=</span><span class="s1">&#39;euclidean&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">params</span><span class="o">.</span><span class="n">splitter</span> <span class="o">==</span> <span class="s1">&#39;temporal&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">base_splitter</span> <span class="o">==</span> <span class="s1">&#39;ave_min&#39;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">featurizer</span> <span class="o">==</span> <span class="s1">&#39;ecfp&#39;</span><span class="p">:</span>
+                    <span class="n">metric</span> <span class="o">=</span> <span class="s1">&#39;jaccard&#39;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">metric</span> <span class="o">=</span> <span class="s1">&#39;euclidean&#39;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">metric</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">base_splitter</span> <span class="ow">in</span> <span class="n">smiles_splits</span><span class="p">:</span>
+                <span class="n">id_col</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">smiles_col</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">id_col</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">id_col</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">splitter</span> <span class="o">=</span> <span class="n">TemporalSplitter</span><span class="p">(</span><span class="n">cutoff_date</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">cutoff_date</span><span class="p">,</span>
+                    <span class="n">date_col</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">date_col</span><span class="p">,</span>
+                    <span class="n">base_splitter</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">base_splitter</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="n">metric</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Unknown splitting method </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">params</span><span class="o">.</span><span class="n">splitter</span><span class="p">)</span>
 
@@ -372,8 +420,7 @@
 <span class="sd">            using scaffold or butina splits</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1">#TODO: Will need to add butina</span>
-        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">split</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;scaffold&#39;</span><span class="p">,</span> <span class="s1">&#39;butina&#39;</span><span class="p">])</span></div></div>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">split</span> <span class="ow">in</span> <span class="n">smiles_splits</span><span class="p">)</span> <span class="ow">or</span> <span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">split</span> <span class="o">==</span> <span class="s1">&#39;temporal&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">base_splitter</span> <span class="ow">in</span> <span class="n">smiles_splits</span><span class="p">))</span></div></div>
 
 
 <span class="c1"># ****************************************************************************************</span>
@@ -392,7 +439,7 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Initialization method for KFoldSplitting.</span>
 
 <span class="sd">        Sets the following attributes for KFoldSplitting:</span>
@@ -475,7 +522,7 @@
             <span class="c1"># TODO: Splitter.train_test_split() doesn&#39;t provide a way to pass the cutoff parameter</span>
             <span class="c1"># through to the ButinaSplitter.split() function. Simple fix would be to reimplement</span>
             <span class="c1"># train_test_split() here (it&#39;s not a complicated function). For now, allow cutoff to default.</span>
-            <span class="c1">#train_cv, test = self.splitter.train_test_split(dataset, cutoff=self.params.cutoff)</span>
+            <span class="c1">#train_cv, test = self.splitter.train_test_split(dataset, cutoff=self.params.butina_cutoff)</span>
             <span class="n">train_cv</span><span class="p">,</span> <span class="n">test</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">splitter</span><span class="o">.</span><span class="n">train_valid_test_split</span><span class="p">(</span><span class="n">dataset</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">splitter</span> <span class="o">=</span> <span class="n">dc</span><span class="o">.</span><span class="n">splits</span><span class="o">.</span><span class="n">ScaffoldSplitter</span><span class="p">()</span>
             <span class="n">train_cv_pairs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">splitter</span><span class="o">.</span><span class="n">k_fold_split</span><span class="p">(</span><span class="n">train_cv</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_folds</span><span class="p">)</span>
@@ -522,7 +569,7 @@
 <span class="sd">        Set in __init__:</span>
 <span class="sd">            params (Namespace object): contains all parameter information</span>
 
-<span class="sd">            split (str): Type of splitter in [&#39;index&#39;,&#39;random&#39;,&#39;scaffold&#39;,&#39;butina&#39;,&#39;ave_min&#39;,&#39;stratified&#39;]</span>
+<span class="sd">            split (str): Type of splitter in [&#39;index&#39;,&#39;random&#39;,&#39;scaffold&#39;,&#39;butina&#39;,&#39;ave_min&#39;,&#39;temporal&#39;,&#39;stratified&#39;]</span>
 
 <span class="sd">            splitter (Deepchem split object): A splitting object of the subtype specified by split</span>
 
@@ -530,13 +577,13 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Initialization method for TrainValidTestSplitting.</span>
 
 <span class="sd">        Sets the following attributes for TrainValidTestSplitting:</span>
 <span class="sd">            params (Namespace object): contains all parameter information</span>
 
-<span class="sd">            split (str): Type of splitter in [&#39;index&#39;,&#39;random&#39;,&#39;scaffold&#39;,&#39;butina&#39;,&#39;ave_min&#39;,&#39;stratified&#39;]</span>
+<span class="sd">            split (str): Type of splitter in [&#39;index&#39;,&#39;random&#39;,&#39;scaffold&#39;,&#39;butina&#39;,&#39;ave_min&#39;,&#39;temporal&#39;,&#39;stratified&#39;]</span>
 
 <span class="sd">            splitter (Deepchem split object): A splitting object of the subtype specified by split</span>
 
@@ -576,6 +623,8 @@
 <span class="sd">        For butina split, test size is not user defined, and depends on available clusters that qualify for placement in the test set</span>
 <span class="sd">            train_frac = 1.0 - self.params.split_valid_frac</span>
 <span class="sd">        </span>
+<span class="sd">        For temporal split, test size is also not user defined, and depends on number of compounds with dates after cutoff date.</span>
+<span class="sd">            train_frac = 1.0 - self.params.split_valid_frac</span>
 <span class="sd">        Args:</span>
 <span class="sd">            dataset (deepchem Dataset): full featurized dataset</span>
 
@@ -601,20 +650,17 @@
 <span class="sd">            Exception if there are duplicate ids or smiles strings in the dataset or the attr_df</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">check_if_dupe_smiles_dataset</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">attr_df</span><span class="p">,</span> <span class="n">smiles_col</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Duplicate ids or smiles in the dataset&quot;</span><span class="p">)</span>
-            
         <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Splitting data by </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">splitter</span><span class="p">)</span>
 
-
-
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">needs_smiles</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">check_if_dupe_smiles_dataset</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">attr_df</span><span class="p">,</span> <span class="n">smiles_col</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Duplicate ids or smiles in the dataset&quot;</span><span class="p">)</span>
             <span class="c1"># Some DeepChem splitters require compound IDs in dataset to be SMILES strings. Swap in the</span>
             <span class="c1"># SMILES strings now; we&#39;ll reverse this later.</span>
             <span class="n">dataset</span> <span class="o">=</span> <span class="n">DiskDataset</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="n">dataset</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">ids</span><span class="o">=</span><span class="n">attr_df</span><span class="p">[</span><span class="n">smiles_col</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">split</span> <span class="o">==</span> <span class="s1">&#39;butina&#39;</span><span class="p">:</span>
-            <span class="c1">#train_valid, test = self.splitter.train_test_split(dataset, cutoff=self.params.cutoff)</span>
+            <span class="c1">#train_valid, test = self.splitter.train_test_split(dataset, cutoff=self.params.butina_cutoff)</span>
             <span class="c1"># Can&#39;t use train_test_split with Butina because Butina splits into train and valid sets only.</span>
             <span class="n">train_valid</span><span class="p">,</span> <span class="n">test</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">splitter</span><span class="o">.</span><span class="n">train_valid_test_split</span><span class="p">(</span><span class="n">dataset</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">splitter</span> <span class="o">=</span> <span class="n">dc</span><span class="o">.</span><span class="n">splits</span><span class="o">.</span><span class="n">ScaffoldSplitter</span><span class="p">()</span>
@@ -636,6 +682,11 @@
                                                                    <span class="n">frac_test</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
             <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Results of 3-way split: </span><span class="si">%d</span><span class="s2"> training, </span><span class="si">%d</span><span class="s2"> validation, </span><span class="si">%d</span><span class="s2"> test compounds&quot;</span> <span class="o">%</span> <span class="p">(</span>
                      <span class="n">train</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">valid</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">test</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">split</span> <span class="o">==</span> <span class="s1">&#39;temporal&#39;</span><span class="p">:</span>
+            <span class="c1"># TemporalSplitter requires that we pass attr_df so it can get the dates for each compound</span>
+            <span class="n">train_frac</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">split_valid_frac</span>
+            <span class="n">train</span><span class="p">,</span> <span class="n">valid</span><span class="p">,</span> <span class="n">test</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">splitter</span><span class="o">.</span><span class="n">train_valid_test_split</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">attr_df</span><span class="p">,</span>
+                                <span class="n">frac_train</span><span class="o">=</span><span class="n">train_frac</span><span class="p">,</span> <span class="n">frac_valid</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">split_valid_frac</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">train_frac</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">split_valid_frac</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">split_test_frac</span>
             <span class="n">train</span><span class="p">,</span> <span class="n">valid</span><span class="p">,</span> <span class="n">test</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">splitter</span><span class="o">.</span><span class="n">train_valid_test_split</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> 
@@ -671,20 +722,25 @@
            
           </div>
           <footer>
-  
 
   <hr/>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2019, ATOM DDM Team.
+        &#169; Copyright 2021, ATOM DDM Team.
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
-
         </div>
       </div>
 
@@ -693,34 +749,16 @@
   </div>
   
 
-
-  
-
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'../../',
-            VERSION:'1.0',
-            LANGUAGE:'None',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="../../_static/jquery.js"></script>
-      <script type="text/javascript" src="../../_static/underscore.js"></script>
-      <script type="text/javascript" src="../../_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-
-  
-
-  <script type="text/javascript" src="../../_static/js/theme.js"></script>
-
   <script type="text/javascript">
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
+  </script>
+
+  
+  
+    
+   
 
 </body>
 </html>

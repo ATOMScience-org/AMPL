@@ -21,6 +21,7 @@ The AMPL pipeline contains many parameters and options to fit models and make pr
 - [Model Metadata](#Model-Metadata)
 - [Miscellaneous](#Miscellaneous)
 - [Hyperparameter Optimization](#Hyperparameter-Optimization)
+  - [Bayesian Optimization](#Bayesian-Optimization)
 
 
 <a name="Training-Dataset-Parameters"></a>
@@ -37,7 +38,7 @@ The AMPL pipeline contains many parameters and options to fit models and make pr
   
 |||
 |-|-|
-|*Description:*|Datastore key (LLNL system) or file path for dataset.|
+|*Description:*|Datastore key (LLNL system) or file path for dataset. Paths are relative to script\_dir.|
   
 - **dataset\_name**  
   
@@ -636,10 +637,6 @@ The AMPL pipeline contains many parameters and options to fit models and make pr
 <a name="Model-Saving"></a>
 # Model Saving  
 
----
-
-##   
-
 - **collection\_name**  
   
 |||
@@ -767,7 +764,8 @@ The AMPL pipeline contains many parameters and options to fit models and make pr
   
 |||
 |-|-|
-|*Description:*|SLURM account to charge hyperparameter batch runs to. Specific to LLNL system.|
+|*Description:*|SLURM account to charge hyperparameter batch runs to. This will be replaced by the slurm\_account option. If lc\_account and slurm\_account are both set, slurm\_account will be used. If set to None then this parameter will not be used.|
+|*Default:*|baasic|
   
 - **max\_final\_layer\_size**  
   
@@ -809,8 +807,8 @@ The AMPL pipeline contains many parameters and options to fit models and make pr
   
 |||
 |-|-|
-|*Description:*|If False, check model tracker to see if a model with that particular param combination has already been built. Specific to hyperparameter search|
-|*Default:*|FALSE|
+|*Description:*| After parameter combos have been generated, `rerun=False` will check the model tracker to see if a model with a particular param combination has already been built. If it’s been built, do not create a new model or submit a slurm job. If `rerun=True`, the check will be skipped completely and a slurm job will be submitted regardless of whether a model has previously been built with these parameters. Specific to hyperparameter search.|
+|*Default:*|TRUE|
 |*Type:*|Bool|
   
 - **script\_dir**  
@@ -832,13 +830,50 @@ The AMPL pipeline contains many parameters and options to fit models and make pr
 |||
 |-|-|
 |*Description:*|CSV file of assays of interest. Specific to LLNL model tracker system.|
+
+- **slurm\_account**  
+  
+|||
+|-|-|
+|*Description:*|SLURM account to charge hyperparameter batch runs to. This will replace the lc\_account option. If lc\_account and slurm\_account are both set, slurm\_account will be used. If set to None then this parameter will not be used.|
+|*Default:*|None|
+  
+- **slurm\_export**  
+  
+|||
+|-|-|
+|*Description:*|SLURM environment variables propagated for hyperparameter search batch jobs. If set to None then this parameter will not be used.|
+|*Default:*|ALL|
+  
+- **slurm\_nodes**  
+  
+|||
+|-|-|
+|*Description:*|Number of nodes for hyperparameter search batch jobs. If set to None then this parameter will not be used.|
+|*Default:*|1|
+|*Type:*|int|
+  
+- **slurm\_options**  
+  
+|||
+|-|-|
+|*Description:*|Additional SLURM options for hyperparameter search batch jobs. Example: '--option1=value1 --option2=value2'. If set to None then this parameter will not be used.|
+|*Default:*|None|
   
 - **slurm\_partition**  
   
 |||
 |-|-|
-|*Description:*|SLURM partition to urn hyperparameter batch runs on. Specific to LLNL model tracker system.|
+|*Description:*|SLURM partition to run hyperparameter batch runs on. If set to None then this parameter will not be used.|
 |*Default:*|pbatch|
+  
+- **slurm\_time\_limit**  
+  
+|||
+|-|-|
+|*Description:*|Time limit in minutes for hyperparameter search batch jobs.|
+|*Default:*|1440|
+|*Type:*|int|
   
 - **split\_only**  
   
@@ -856,3 +891,75 @@ The AMPL pipeline contains many parameters and options to fit models and make pr
 |*Default:*|FALSE|
 |*Type:*|Bool|
   
+<a name="bayesian-optimization"></a>
+## Bayesian Optimization  
+
+- **lr**  
+  
+|||
+|-|-|
+|*Description:*|Learning rate searching domain in Bayesian Optimization. The format is `scheme\|parameters`, e.g. `choice\|0.0001,0.0005,0.0002,0.001`. See https://github.com/ATOMconsortium/AMPL#hyperparameter-optimization|
+|*Default:*|None|
+
+- **dp**  
+  
+|||
+|-|-|
+|*Description:*|Dropouts searching domain in Bayesian Optimization. The format is `scheme\|num_layers\|parameters`, e.g. `uniform\|3\|0,0.4`, Note that the number of layers (number between two \|) can not be changed during optimization, if you want to try different number of layers, just run several optimizations.
+|*Default:*|None|
+
+- **ls**  
+  
+|||
+|-|-|
+|*Description:*|Layer sizes searching domain in Bayesian Optimization. The format is `scheme\|num_layers\|parameters`, e.g. `uniformint\|3\|8,512`, Note that the number of layers (number between two \|) can not be changed during optimization, if you want to try different number of layers, just run several optimizations.
+|*Default:*|None|
+
+- **rfe**  
+  
+|||
+|-|-|
+|*Description:*|Number of estimators searching domain of RF models in Bayesian Optimization. The format is `scheme\|parameters`, e.g. `uniformint\|8,512`.
+|*Default:*|None|
+
+- **rfd**  
+  
+|||
+|-|-|
+|*Description:*|Max depth of the decision tree searching domain of RF models in Bayesian Optimization. The format is `scheme\|parameters`, e.g. `uniformint\|8,512`.
+|*Default:*|None|
+
+- **rff**  
+  
+|||
+|-|-|
+|*Description:*|Max number of features searching domain of RF models in Bayesian Optimization. The format is `scheme\|parameters`, e.g. `uniformint\|8,200`.
+|*Default:*|None|
+
+- **xgbg**  
+  
+|||
+|-|-|
+|*Description:*|xgb_gamma (Minimum loss reduction required to make a further partition on a leaf node of the tree) searching domain of XGBoost models in Bayesian Optimization. The format is `scheme\|parameters`, e.g. `uniform\|0,0.4`.
+|*Default:*|None|
+
+- **xgbl**  
+  
+|||
+|-|-|
+|*Description:*|xgb_learning_rate (Boosting learning rate) searching domain of XGBoost models in Bayesian Optimization. The format is `scheme\|parameters`, e.g. `loguniform\|-6.9,-2.3`.
+|*Default:*|None|
+
+- **hp_checkpoint_save**  
+  
+|||
+|-|-|
+|*Description:*|binary file to save a checkpoint of the HPO trial project, which can be use to continue the HPO serach later.
+|*Default:*|None|c
+
+- **hp_checkpoint_load**  
+  
+|||
+|-|-|
+|*Description:*|binary file to load a checkpoint of a previous HPO trial project, to continue the HPO serach.
+|*Default:*|None|
