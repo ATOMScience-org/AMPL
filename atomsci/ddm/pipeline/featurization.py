@@ -53,7 +53,41 @@ import collections
 logging.basicConfig(format='%(asctime)-15s %(message)s')
 log = logging.getLogger('ATOM')
 
+def convert_df_to_numpy(df, tasks):
+    """Transforms a dataframe containing deepchem input into numpy arrays
+    
+    Returns tasks and an np.Array w that denotes missing labels.
 
+    Args:
+        df (DataFrame): Input DataFrame
+        tasks (list): A list of columns that is contained in df.
+
+    Returns:
+        np.Array, np.Array: labels y and weights w to denote missing labels
+
+    """
+    n_samples = df.shape[0]
+    n_tasks = len(tasks)
+
+    y = np.hstack(
+        [np.reshape(np.array(df[task].values), (n_samples, 1)) for task in tasks])
+
+    w = np.ones((n_samples, n_tasks))
+    missing = np.zeros_like(y).astype(int)
+
+    for ind in range(n_samples):
+        for task in range(n_tasks):
+            if y[ind, task] == "":
+                missing[ind, task] = 1
+
+    # Set missing data to have weight zero
+    for ind in range(n_samples):
+        for task in range(n_tasks):
+            if missing[ind, task]:
+                y[ind, task] = 0.
+                w[ind, task] = 0.
+
+    return y.astype(float), w.astype(float)
 
 # ****************************************************************************************
 def make_weights(vals):
@@ -732,7 +766,7 @@ class DynamicFeaturization(Featurization):
             ##JEA: will set weights to 0 for missing values
             ##JEA: Featurize task results iff they exist.
             dset_df=dset_df.replace(np.nan, "", regex=True)
-            vals, w = dl.convert_df_to_numpy(dset_df, params.response_cols) #, self.id_field)
+            vals, w = convert_df_to_numpy(dset_df, params.response_cols) #, self.id_field)
             # Filter out examples where featurization failed.
             vals, w = (vals[is_valid], w[is_valid])
         else:
