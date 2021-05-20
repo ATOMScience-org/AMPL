@@ -26,7 +26,7 @@ import copy
 from atomsci.ddm.utils import datastore_functions as dsf
 
 import pkg_resources
-if 'site-packages' in dsf.__file__: # install_dev.sh points to github directory
+if ('site-packages' in dsf.__file__) or ('dist-packages' in dsf.__file__): # install_dev.sh points to github directory
     import subprocess
     import json
     data = subprocess.check_output(["pip", "list", "--format", "json"])
@@ -38,7 +38,7 @@ else:
             os.path.dirname(pkg_resources.resource_filename('atomsci', '')),
             'VERSION')
     except:
-        VERSION_fn = dsf.__file__.rsplit('/', maxsplit=4)[0]+'/VERSION'
+        VERSION_fn = dsf.__file__.rsplit('/', maxsplit=3)[0]+'/VERSION'
 
     f=open(VERSION_fn, 'r')
     ampl_version = f.read().strip()
