@@ -70,7 +70,7 @@ strict-rfc3339==0.7
 swagger-spec-validator==2.7.3
 tensorboard==1.14.0
 tensorflow-estimator==1.14.0
-tensorflow-gpu==1.14.0
+tensorflow-gpu==2.4.0
 termcolor==1.1.0
 toml==0.10.2
 torch==1.7.0
