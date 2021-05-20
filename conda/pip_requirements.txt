@@ -73,6 +73,7 @@ tensorflow-estimator==1.14.0
 tensorflow-gpu==1.14.0
 termcolor==1.1.0
 toml==0.10.2
+torch==1.7.0
 tqdm==4.56.1
 traitlets==4.3.3
 typing-extensions==3.7.4.3
