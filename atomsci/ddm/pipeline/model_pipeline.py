@@ -38,7 +38,7 @@ else:
             os.path.dirname(pkg_resources.resource_filename('atomsci', '')),
             'VERSION')
     except:
-        VERSION_fn = dsf.__file__.rsplit('/', maxsplit=3)[0]+'/VERSION'
+        VERSION_fn = dsf.__file__.rsplit('/', maxsplit=4)[0]+'/VERSION'
 
     f=open(VERSION_fn, 'r')
     ampl_version = f.read().strip()
