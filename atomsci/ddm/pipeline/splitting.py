@@ -344,7 +344,7 @@ class KFoldSplitting(Splitting):
         if self.needs_smiles():
             # Some DeepChem splitters require compound IDs in dataset to be SMILES strings. Swap in the
             # SMILES strings now; we'll reverse this later.
-            dataset = DiskDataset.from_numpy(dataset.X, dataset.y, ids=attr_df[smiles_col].values, verbose=False)
+            dataset = DiskDataset.from_numpy(dataset.X, dataset.y, ids=attr_df[smiles_col].values)
 
         # Under k-fold CV, the training/validation splits are determined by num_folds; only the test set fraction
         # is directly specified through command line parameters. If we use Butina splitting, we can't control
@@ -374,16 +374,16 @@ class KFoldSplitting(Splitting):
             # dataset objects with actual compound IDs.
             for train, valid in train_cv_pairs:
                 train_attr = select_attrs_by_dset_smiles(train, attr_df, smiles_col)
-                train = DiskDataset.from_numpy(train.X, train.y, ids=train_attr.index.values, verbose=False)
+                train = DiskDataset.from_numpy(train.X, train.y, ids=train_attr.index.values)
 
                 valid_attr = select_attrs_by_dset_smiles(valid, attr_df, smiles_col)
-                valid = DiskDataset.from_numpy(valid.X, valid.y, ids=valid_attr.index.values, verbose=False)
+                valid = DiskDataset.from_numpy(valid.X, valid.y, ids=valid_attr.index.values)
 
                 train_valid_dsets.append((train, valid))
                 train_valid_attr.append((train_attr, valid_attr))
 
             test_attr = select_attrs_by_dset_smiles(test, attr_df, smiles_col)
-            test = DiskDataset.from_numpy(test.X, test.y, ids=test_attr.index.values, verbose=False)
+            test = DiskDataset.from_numpy(test.X, test.y, ids=test_attr.index.values)
         else:
             # Otherwise just subset the ID-to-SMILES maps.
             for train, valid in train_cv_pairs:
@@ -492,7 +492,7 @@ class TrainValidTestSplitting(Splitting):
                 raise Exception("Duplicate ids or smiles in the dataset")
             # Some DeepChem splitters require compound IDs in dataset to be SMILES strings. Swap in the
             # SMILES strings now; we'll reverse this later.
-            dataset = DiskDataset.from_numpy(dataset.X, dataset.y, ids=attr_df[smiles_col].values, verbose=False)
+            dataset = DiskDataset.from_numpy(dataset.X, dataset.y, ids=attr_df[smiles_col].values)
 
         if self.split == 'butina':
             #train_valid, test = self.splitter.train_test_split(dataset, cutoff=self.params.butina_cutoff)
@@ -533,13 +533,13 @@ class TrainValidTestSplitting(Splitting):
             # Now that DeepChem splitters have done their work, replace the SMILES strings in the split 
             # dataset objects with actual compound IDs.
             train_attr = select_attrs_by_dset_smiles(train, attr_df, smiles_col)
-            train = DiskDataset.from_numpy(train.X, train.y, ids=train_attr.index.values, verbose=False)
+            train = DiskDataset.from_numpy(train.X, train.y, ids=train_attr.index.values)
 
             valid_attr = select_attrs_by_dset_smiles(valid, attr_df, smiles_col)
-            valid = DiskDataset.from_numpy(valid.X, valid.y, ids=valid_attr.index.values, verbose=False)
+            valid = DiskDataset.from_numpy(valid.X, valid.y, ids=valid_attr.index.values)
 
             test_attr = select_attrs_by_dset_smiles(test, attr_df, smiles_col)
-            test = DiskDataset.from_numpy(test.X, test.y, ids=test_attr.index.values, verbose=False)
+            test = DiskDataset.from_numpy(test.X, test.y, ids=test_attr.index.values)
         else:
             # Otherwise just subset the ID-to-SMILES maps.
             train_attr = select_attrs_by_dset_ids(train, attr_df)
