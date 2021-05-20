@@ -363,7 +363,7 @@ class ModelDataset(object):
                 if self.params.prediction_type=='classification':
                     w = w.astype(np.float32)
 
-                self.dataset = DiskDataset.from_numpy(features, self.vals, ids=ids, w=w)
+                self.dataset = DiskDataset.from_numpy(features, self.vals, ids=ids, w=w, verbose=False)
                 self.log.info("Using prefeaturized data; number of features = " + str(self.n_features))
                 return
             except Exception as e:
@@ -379,7 +379,7 @@ class ModelDataset(object):
         print("number of features: " + str(self.n_features))
            
         # Create the DeepChem dataset       
-        self.dataset = DiskDataset.from_numpy(features, self.vals, ids=ids, w=w)
+        self.dataset = DiskDataset.from_numpy(features, self.vals, ids=ids, w=w, verbose=False)
         # Checking for minimum number of rows
         if len(self.dataset) < self.params.min_compound_number:
             self.log.warning("Dataset of length %i is shorter than the required length %i" % (len(self.dataset), self.params.min_compound_number))
@@ -616,7 +616,7 @@ class ModelDataset(object):
             combined_y = np.concatenate((train.y, valid.y), axis=0)
             combined_w = np.concatenate((train.w, valid.w), axis=0)
             combined_ids = np.concatenate((train.ids, valid.ids))
-            self.combined_train_valid_data = DiskDataset.from_numpy(combined_X, combined_y, w=combined_w, ids=combined_ids)
+            self.combined_train_valid_data = DiskDataset.from_numpy(combined_X, combined_y, w=combined_w, ids=combined_ids, verbose=False)
         return self.combined_train_valid_data
 
     # ****************************************************************************************
@@ -810,9 +810,9 @@ class MinimalDataset(ModelDataset):
 
         if self.params.splitter == 'scaffold':
             self.dataset = DiskDataset.from_numpy(features, self.vals, 
-                                                  ids=dset_df[params.smiles_col].values)
+                                                  ids=dset_df[params.smiles_col].values, verbose=False)
         else:
-            self.dataset = DiskDataset.from_numpy(features, self.vals, ids=ids)
+            self.dataset = DiskDataset.from_numpy(features, self.vals, ids=ids, verbose=False)
 
     # ****************************************************************************************
     def save_featurized_data(self, featurized_dset_df):
