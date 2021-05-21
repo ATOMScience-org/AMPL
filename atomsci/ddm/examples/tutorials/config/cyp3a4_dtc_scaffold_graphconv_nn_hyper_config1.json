@@ -1,0 +1,33 @@
+{
+"hyperparam": "True",
+"lc_account": "baasic",
+"slurm_partition": "pbatch",
+"search_type": "user_specified",
+"script_dir": "script_dir": "/content/AMPL/atomsci/ddm",
+"dataset_key" : "cyp3a4_dtc_base_smiles_all.csv",
+"datastore": "False",
+"uncertainty": "False",
+"splitter": "scaffold",
+"split_valid_frac": "0.15",
+"split_test_frac": "0.15",
+"previously_split": "True",
+"split_uuid": "dcef8098-8e9b-40fa-81ca-8f37f336354e",
+"prediction_type": "regression",
+"response_cols" : "PIC50",
+"id_col": "compound_id",
+"smiles_col" : "base_rdkit_smiles",
+"result_dir": "cyp3a4_models",
+"system": "LC",
+"transformers": "True",
+"model_type": "NN",
+"featurizer": "graphconv",
+"descriptor_type": "graphconv",
+"learning_rate": "0.0007",
+"layer_sizes": "64,64,32 64,64,64 64,64,128 64,64,256 128,128,64 128,128,128 128,128,256 256,256,128 256,256
+,64 256,256,256",
+"dropouts" : "0.0,0.0,0.0 0.0,0.0,0.0 0.0,0.0,0.0 0.0,0.0,0.0 0.0,0.0,0.0 0.0,0.0,0.0 0.0,0.0,0.0 0.0,0.0,0.
+0 0.0,0.0,0.0 0.0,0.0,0.0",
+"save_results": "False",
+"max_epochs": "100",
+"verbose": "True"
+}
