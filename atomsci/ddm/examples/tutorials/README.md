@@ -33,43 +33,43 @@ This COLAB notebook will use AMPL for Data cleaning, EDA and clustering of HTR3A
 This COLAB notebook will use AMPL for Data curation of HTR3A protein data from Drug Target Commons (DTC)
 
 ### Curating, merging and visualizing two datasets 
-* [Tutorial-05:](https://github.com/ravichas/AMPL-Tutorial/blob/master/05_EDA_Curate_Merge_Visualize.ipynb) (**Time: ~ 4 minutes**)
+* [Tutorial-05:](05_EDA_Curate_Merge_Visualize.ipynb) (**Time: ~ 4 minutes**)
 This COLAB notebook will use AMPL to upload datasets (small-molecule activity data from ChEMBL), clean, merge and do some basic Exploratory Data Analysis. 
-* [Tutorial-06:](https://github.com/ravichas/AMPL-Tutorial/blob/master/06_Combine_Datasets.ipynb) (**Time: ~ 4 minutes**)
+* [Tutorial-06:](06_Combine_Datasets.ipynb) (**Time: ~ 4 minutes**)
 This COLAB notebook with use AMPL to merge HTR3A binding data from two different data sources, DTC and ExCAPE-DB.
 
 ### Exploratory Data Analysis (EDA) Notebooks
-* [Tutorial-07:](https://github.com/ravichas/AMPL-Tutorial/blob/master/07_EDA_With_Harmonization.ipynb) (**Time: ~ 4 minutes**). The notebook uses HTR3A as the protein target. The notebook accomplishes the following tasks:
+* [Tutorial-07:](07_EDA_With_Harmonization.ipynb) (**Time: ~ 4 minutes**). The notebook uses HTR3A as the protein target. The notebook accomplishes the following tasks:
    * Uses AMPL software
    * Reads in data from three database sources: ChEMBL, Excape-DB and DTC 
    * Cleans, standardizes and analyzes the data
    * Merges and harmonizes to create a dataset
-* [Tutorial-08:](https://github.com/ravichas/AMPL-Tutorial/blob/master/08_AMPL_EDA_Part2.ipynb) Exploratory Data Analysis-Regression 
-* [Tutorial-09:](https://github.com/ravichas/AMPL-Tutorial/blob/master/09_AMPL_EDA_Part2_Classification.ipynb) Exploratory Data Analysis-Regression 
+* [Tutorial-08:](08_AMPL_EDA_Part2.ipynb) Exploratory Data Analysis-Regression 
+* [Tutorial-09:](09_AMPL_EDA_Part2_Classification.ipynb) Exploratory Data Analysis-Regression 
 
 ## 2. Model training and tuning:
 
 ### Random Forest modeling to predict solubility
-* [Tutorial-10:](https://github.com/ravichas/AMPL-Tutorial/blob/master/10_Delaney_Solubility_Prediction.ipynb) (**Time: ~ 2 minutes**): Simple supervised learning example.
+* [Tutorial-10:](10_Delaney_Solubility_Prediction.ipynb) (**Time: ~ 2 minutes**): Simple supervised learning example.
 AMPL will read the public data (117 chemical compounds), curate, fit a Random Forest model to predict solubility and test the model. For additional information on the dataset, please check this publication,https://pubmed.ncbi.nlm.nih.gov/15154768/
 ![Delaney](https://github.com/ravichas/AMPL-Tutorial/blob/master/Img/Delaney.PNG)
 
 ### Graph Convolution modeling to predict SCN5A binding affinities 
-* [Tutorial-11:](https://github.com/ravichas/AMPL-Tutorial/blob/master/11_CHEMBL26_SCN5A_IC50_prediction.ipynb) (**Mode: AMPL_GPU; Time: ~ 18 minutes**): 
+* [Tutorial-11:](11_CHEMBL26_SCN5A_IC50_prediction.ipynb) (**Mode: AMPL_GPU; Time: ~ 18 minutes**): 
 This COLAB notebook will use AMPL for predicting binding affinities -pIC50 values- of ligands that could bind to human **Sodium channel protein type 5 subunit alpha** protein (Gene: SCN5A) using Graph Convolutional Network Model. ChEMBL database is the data source of binding affinities (pIC50)
 ![Test Image 1](https://github.com/ravichas/AMPL-Tutorial/blob/master/Img/SCN5A.PNG)
 
 ## 3. Hyper-parameter Optimization (HPO), Uncertainty Quantification (UQ), and using metrics for analyzing model performance. 
 
 This notebook also explores AMPL functions for saving and loading prebuild AMPL models for analysis. 
-* [Tutorial-12](https://github.com/ravichas/AMPL-Tutorial/blob/master/12_AMPL_HPO_demo.ipynb) Hyper-parameter Optimization [(HPO)](https://en.wikipedia.org/wiki/Hyperparameter_optimization) and Uncertainty Quantification [(UQ)](https://en.wikipedia.org/wiki/Uncertainty_quantification).
-* [Tutorial-13](https://github.com/ravichas/AMPL-Tutorial/blob/master/13_AMPL_HPO_Part2.ipynb) Notebook includes HPO Grid Search on three different modeling methods (Random Forest, NN and XGBoost).
+* [Tutorial-12](12_AMPL_HPO_demo.ipynb) Hyper-parameter Optimization [(HPO)](https://en.wikipedia.org/wiki/Hyperparameter_optimization) and Uncertainty Quantification [(UQ)](https://en.wikipedia.org/wiki/Uncertainty_quantification).
+* [Tutorial-13](13_AMPL_HPO_Part2.ipynb) Notebook includes HPO Grid Search on three different modeling methods (Random Forest, NN and XGBoost).
 
 ## 4. Creating high-quality models 
-* [Tutorial-12](https://github.com/ravichas/AMPL-Tutorial/blob/master/08_AMPL_EDA_Part2.ipynb) Notebook provides the framework for visualizing the results of HPO results and use them to identify best models. 
+* [Tutorial-12](08_AMPL_EDA_Part2.ipynb) Notebook provides the framework for visualizing the results of HPO results and use them to identify best models. 
 
 ## 5. Model Inference: 
-* [Tutorial-14:](https://github.com/ravichas/AMPL-Tutorial/blob/master/14_BSEP_modeling.ipynb) This notebook creates an AMPL (RF) model using BSEP dataset (reference: https://pubmed.ncbi.nlm.nih.gov/33502191/), and makes predictions (inference) on an external sample test dataset.   
+* [Tutorial-14:](14_BSEP_modeling.ipynb) This notebook creates an AMPL (RF) model using BSEP dataset (reference: https://pubmed.ncbi.nlm.nih.gov/33502191/), and makes predictions (inference) on an external sample test dataset.   
  
 
 ## Supporting links
