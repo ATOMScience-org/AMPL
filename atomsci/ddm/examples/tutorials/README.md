@@ -55,18 +55,18 @@ AMPL will read the public data (117 chemical compounds), curate, fit a Random Fo
 ![Delaney](https://github.com/ravichas/AMPL-Tutorial/blob/master/Img/Delaney.PNG)
 
 ### Graph Convolution modeling to predict SCN5A binding affinities 
-* [Tutorial-11:](11_CHEMBL26_SCN5A_IC50_prediction.ipynb) (**Mode: AMPL_GPU; Time: ~ 18 minutes**): 
+* [Tutorial-11:](11_CHEMBL26_SCN5A_IC50_prediction.ipynb) (**Time: ~ 18 minutes**): 
 This COLAB notebook will use AMPL for predicting binding affinities -pIC50 values- of ligands that could bind to human **Sodium channel protein type 5 subunit alpha** protein (Gene: SCN5A) using Graph Convolutional Network Model. ChEMBL database is the data source of binding affinities (pIC50)
 ![Test Image 1](https://github.com/ravichas/AMPL-Tutorial/blob/master/Img/SCN5A.PNG)
 
 ## 3. Hyper-parameter Optimization (HPO), Uncertainty Quantification (UQ), and using metrics for analyzing model performance. 
 
 This notebook also explores AMPL functions for saving and loading prebuild AMPL models for analysis. 
-* [Tutorial-12](12_AMPL_HPO_demo.ipynb) Hyper-parameter Optimization [(HPO)](https://en.wikipedia.org/wiki/Hyperparameter_optimization) and Uncertainty Quantification [(UQ)](https://en.wikipedia.org/wiki/Uncertainty_quantification).
+* [Tutorial-12](12_AMPL_HPO_demo.ipynb) (**Time: ~ 30 minutes**) Hyper-parameter Optimization [(HPO)](https://en.wikipedia.org/wiki/Hyperparameter_optimization) and Uncertainty Quantification [(UQ)](https://en.wikipedia.org/wiki/Uncertainty_quantification).
 * [Tutorial-13](13_AMPL_HPO_Part2.ipynb) Notebook includes HPO Grid Search on three different modeling methods (Random Forest, NN and XGBoost).
 
 ## 4. Creating high-quality models 
-* [Tutorial-12](08_AMPL_EDA_Part2.ipynb) Notebook provides the framework for visualizing the results of HPO results and use them to identify best models. 
+* Please refer to [08_AMPL_EDA_Part2.ipynb](08_AMPL_EDA_Part2.ipynb) and [09_AMPL_EDA_Part2_Classification.ipynb](09_AMPL_EDA_Part2_Classification.ipynb) that describe helpful hints for visualizing HPO results and methods to identify best performing models.
 
 ## 5. Model Inference: 
 * [Tutorial-14:](14_BSEP_modeling.ipynb) This notebook creates an AMPL (RF) model using BSEP dataset (reference: https://pubmed.ncbi.nlm.nih.gov/33502191/), and makes predictions (inference) on an external sample test dataset.   
