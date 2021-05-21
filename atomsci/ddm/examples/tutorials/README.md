@@ -19,17 +19,17 @@ Click [here](https://github.com/ravichas/AMPL-Tutorial/blob/master/supp_md/READM
 
 
 ### Explore HTR3A binding data from ExCAPE-DB
-* [Tutorial-01:](https://github.com/ravichas/AMPL-Tutorial/blob/master/01_Exploring_Target_Activity_ExcapeDB.ipynb) (**Time: ~ 3 minutes**)
+* [Tutorial-01:](01_Exploring_Target_Activity_ExcapeDB.ipynb) (**Time: ~ 3 minutes**)
 This COLAB notebook will use AMPL for data cleaning, EDA and clustering on ExCAPE-DB (https://solr.ideaconsult.net/search/excape/) data for HTR3A protein 
 
-* [Tutorial-02:](https://github.com/ravichas/AMPL-Tutorial/blob/master/02_Explore_Data_ExcapeDB_curation.ipynb) (**Time: ~ 6 minutes**)
+* [Tutorial-02:](02_Explore_Data_ExcapeDB_curation.ipynb) (**Time: ~ 6 minutes**)
 This COLAB notebook will use AMPL for data curation of HTR3A protein data from ExCAPE-DB (https://solr.ideaconsult.net/search/excape/) Data 
 
 ### Explore HTR3A binding data from Drug Target Commons database
 
-* [Tutorial-03:](https://github.com/ravichas/AMPL-Tutorial/blob/master/03_Explore_Data_DTC.ipynb) (**Time: ~ 4 minutes**)
+* [Tutorial-03:](03_Explore_Data_DTC.ipynb) (**Time: ~ 4 minutes**)
 This COLAB notebook will use AMPL for Data cleaning, EDA and clustering of HTR3A protein data from Drug Target Commons (DTC)  
-* [Tutorial-04:](https://github.com/ravichas/AMPL-Tutorial/blob/master/04_Explore_Data_DTC_Curate.ipynb) (**Time: ~ 10 minutes**)
+* [Tutorial-04:](04_Explore_Data_DTC_Curate.ipynb) (**Time: ~ 10 minutes**)
 This COLAB notebook will use AMPL for Data curation of HTR3A protein data from Drug Target Commons (DTC)
 
 ### Curating, merging and visualizing two datasets 
