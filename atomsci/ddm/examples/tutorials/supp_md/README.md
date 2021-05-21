@@ -20,7 +20,7 @@ If your data came from one datasource or you have a custom data, then you can sk
 ### Data ingestion, merging, curation and featurization
 
 Here are the key steps of AMPL data curation (reading binding data (ex. DTC), extracting SMILES from PubChem, creating standardized SMILES, merging multiple assay values after dealing with high variant values; for details, look at the tutorial notebooks from this section):
-![Test Image 1](https://github.com/ravichas/AMPL-Tutorial/blob/master/Img/AMPL_data_curation_steps.png)
+![Test Image 1](Img/AMPL_data_curation_steps.png)
 
 
  
