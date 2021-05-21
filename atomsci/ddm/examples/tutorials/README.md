@@ -4,7 +4,10 @@ The ATOM Modeling PipeLine (AMPL; https://github.com/ATOMconsortium/AMPL) is an 
 
 This page contains a collection of AMPL-COLAB tutorial notebooks. 
 
-<span style="color: green">Please note that if you have trouble opening up any of the following notebooks. Please go to, https://nbviewer.jupyter.org/, and paste the notebook link to view the contents.</span>
+```diff
++ Please note that if you have trouble opening up any of the following notebooks. Please go to, https://nbviewer.jupyter.org/, and paste the notebook link to view the contents.
+```
+
 
 ## 0. Basic Google COLAB Introduction (Works best with Google Chrome)
 * [Tutorial-00:](00_BasicCOLAB_Tutorial.ipynb) Basic COLAB tutorial. For all the COLAB tutorials, click on the tutorial link, and then click on "Open in Colab" baner. You can open and run the notebook from the browser. If you want to save your edits to the notebook, you need to save a copy in your Google Drive. Usually, Google COLAB saves the notebook files under the "My Drive > Colab Notebooks" folder
