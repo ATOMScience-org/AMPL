@@ -5,7 +5,7 @@ The ATOM Modeling PipeLine (AMPL; https://github.com/ATOMconsortium/AMPL) is an 
 This page contains a collection of AMPL-COLAB tutorial notebooks. 
 
 ```diff
-+ Please note that if you have trouble opening up any of the following notebooks. Please go to, https://nbviewer.jupyter.org/, and paste the notebook link to view the contents.
++ Please note that if you have trouble opening up any of the following notebooks, please go to, https://nbviewer.jupyter.org/, and paste the notebook link to view the contents.
 ```
 
 
