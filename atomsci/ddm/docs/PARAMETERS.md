@@ -801,7 +801,7 @@ The AMPL pipeline contains many parameters and options to fit models and make pr
 |||
 |-|-|
 |*Description:*|Path to desired python version|
-|*Default:*|python|
+|*Default:*|This defaults to the Python instllation used to parse the JSON file. This is done by using sys.executable|
   
 - **rerun**  
   

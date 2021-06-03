@@ -17,6 +17,7 @@ import logging
 import argparse
 from rdkit import Chem
 from rdkit.Chem import AllChem, Draw
+from rdkit.DataManip.Metric.rdMetricMatrixCalc import GetTanimotoDistMat
 
 from atomsci.ddm.utils import struct_utils
 from atomsci.ddm.pipeline import dist_metrics as dm
@@ -79,6 +80,45 @@ def plot_dataset_dist_distr(dataset, feat_type, dist_metric, task_name, **metric
     ax.set_ylabel('Density')
     ax.set_title("%s dataset\nDistribution of %s distances between %s feature vectors" % (
                   task_name, dist_metric, feat_type))
+    return dists
+
+#------------------------------------------------------------------------------------------------------------------
+def plot_tani_dist_distr(df, smiles_col, df_name, ndist_max = ndist_max, **metric_kwargs):
+    """
+    Generate a density plot showing the distribution of distances between 
+    ecfp feature vectors, using the tanimoto metric.
+    """
+    # log = logging.getLogger('ATOM')
+    num_cmpds = len(df)
+    if num_cmpds > 50000:
+        log.warning("Dataset has %d compounds, too big to calculate distance matrix" % num_cmpds)
+        return
+
+    # log.warning("Starting distance matrix calculation for %d compounds" % num_cmpds)
+    feat_type = 'ecfp'
+    dist_metric = 'tanimoto'
+    smiles_arr1 = df[smiles_col].values
+    mols1 = [Chem.MolFromSmiles(s) for s in smiles_arr1]
+    fprints1 = [AllChem.GetMorganFingerprintAsBitVect(mol, 2, 1024) for mol in mols1]
+    dists = GetTanimotoDistMat(fprints1)
+
+    # log.warning("Finished calculation of %d distances" % len(dists))
+
+    if len(dists) > ndist_max:
+        # Sample a subset of the distances so KDE doesn't take so long
+        dist_sample = np.random.choice(dists, size=ndist_max)
+    else:
+        dist_sample = dists
+
+    dist_pdf = gaussian_kde(dist_sample)
+    x_plt = np.linspace(min(dist_sample), max(dist_sample), 500)
+    y_plt = dist_pdf(x_plt)
+    fig, ax = plt.subplots(figsize=(8.0,8.0))
+    ax.plot(x_plt, y_plt)
+    ax.set_xlabel('%s distance' % dist_metric)
+    ax.set_ylabel('Density')
+    ax.set_title("%s dataset\nDistribution of %s distances between %s feature vectors" % (
+                  df_name, dist_metric, feat_type))
     return dists
 
 #------------------------------------------------------------------------------------------------------------------

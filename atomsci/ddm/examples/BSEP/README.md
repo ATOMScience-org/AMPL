@@ -5,7 +5,7 @@ Kevin S. McLoughlin, Claire G. Jeong, Thomas D. Sweitzer, Amanda J. Minnich,
 Margaret J. Tse, Brian J. Bennion, Jonathan E. Allen, Stacie Calad-Thomson, Thomas S. Rush, and James M. Brase.
 "Machine Learning Models to Predict Inhibition of the Bile Salt Export Pump".
 
-A preprint of the paper is available at [ArXiv](http://arxiv.org/abs/2002.12541).
+A preprint of the paper is available at [J Chem Inf Model](https://pubmed.ncbi.nlm.nih.gov/33502191/).
 
 To run the models:
 
