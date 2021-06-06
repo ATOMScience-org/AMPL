@@ -129,7 +129,7 @@ cd ..
 ---
 <a name="AMPL-tutorials"></a>
 ## AMPL tutorials
- Please follow the link, [`atomsci/ddm/examples/tutorials`](https://github.com/ATOMconsortium/AMPL/tree/Tutorials/atomsci/ddm/examples/tutorials), to access a collection of AMPL tutorial COLAB (Jupyter) notebooks. The tutorial notebooks give an exhaustive coverage of AMPL features. The AMPL team has prepared the tutorials to help beginners understand the basics to advanced AMPL features, and as a reference for advanced AMPL users. 
+ Please follow the link, [`atomsci/ddm/examples/tutorials`](https://github.com/ATOMconsortium/AMPL/tree/Tutorials/atomsci/ddm/examples/tutorials), to access a collection of AMPL tutorial COLAB (Jupyter) notebooks. The tutorial notebooks give an exhaustive coverage of AMPL features. The AMPL team has prepared the tutorials to help beginners understand the basics to advanced AMPL features, and a reference for advanced AMPL users. 
 &nbsp;  
 &nbsp;  
 
