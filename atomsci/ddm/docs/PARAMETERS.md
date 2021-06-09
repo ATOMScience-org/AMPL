@@ -239,7 +239,7 @@ The AMPL pipeline contains many parameters and options to fit models and make pr
   
 |||
 |-|-|
-|*Description:*|Type of model to fit (NN, RF, or xgboost). The model\_type sets the model subclass in model\_wrapper. Can be input as a comma separated list for hyperparameter search (e.g. 'NN','RF')|
+|*Description:*|Type of model to fit (NN, RF, or xgboost). The model\_type sets the model subclass in model\_wrapper. Can be input as a comma separated list for hyperparameter search (e.g. 'NN','RF','xgboost')|
 |*Type:*|str|
   
 - **prediction\_type**  
