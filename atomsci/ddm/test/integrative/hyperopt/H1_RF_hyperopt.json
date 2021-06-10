@@ -23,5 +23,7 @@
     "rfe": "uniformint|8,512",
     "rfd": "uniformint|8,512",
     "rff": "uniformint|8,200",
-    "result_dir": "./output,./tmp"
+    "result_dir": "./output,./tmp",
+    "script_dir": "/usr/WS1/he6/code/ATOM/AMPL1.2_fork/atomsci/ddm",
+    "python_path": "/g/g19/he6/.conda/envs/dc23/bin/python"
 }

@@ -1,0 +1,30 @@
+description:
+    name: Test_Maestro
+    description: Trains all RFs, runs tests, creates outputs.
+
+batch:
+    type: slurm
+    bank: baasic
+    queue: pbatch
+    host: surface
+
+env:
+    variables:
+        JSON_FILE: nn_ecfp.json
+
+study:
+    - name: train
+      description: trains the model
+      run:
+          cmd: |
+            $(COMMAND)
+          depends: [] 
+          nodes: 1
+          procs: 1
+          walltime: "5:00:00"
+
+global.parameters:
+    COMMENT:
+        values  : ['these are ignored b/c custom_gen, but kept for documentation', '', '']
+        label   : IGNORED.%%
+

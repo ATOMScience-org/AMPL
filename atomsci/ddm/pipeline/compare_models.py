@@ -984,6 +984,34 @@ def get_filesystem_perf_results(result_dir, pred_type='classification'):
     perf_df = perf_df.sort_values(sort_by, ascending=False)
     return perf_df
 
+def get_filesystem_models(result_dir, pred_type):
+
+    """
+    Identify all models in result_dir and create perf_result table with 'tarball_path' column containing a path
+    to each tarball.
+    """
+    perf_df = get_filesystem_perf_results(result_dir, pred_type)
+    if pred_type == 'regression':
+        metric = 'valid_r2_score'
+    else:
+        metric = 'valid_roc_auc_score'
+    #best_df = perf_df.sort_values(by=metric, ascending=False).drop_duplicates(subset='dataset_key').copy()
+    perf_df['dataset_names'] = perf_df['dataset_key'].apply(lambda f: os.path.splitext(os.path.basename(f))[0])
+    perf_df['tarball_names'] = perf_df.apply(lambda x: '%s_model_%s.tar.gz' % (x['dataset_names'], x['model_uuid']), axis=1)
+    tarball_names = set(perf_df['tarball_names'].values)
+
+    all_filenames = []
+    for dirpath, dirnames, filenames in os.walk(result_dir):
+        for fn in filenames:
+            if fn in tarball_names:
+                all_filenames.append((fn, os.path.join(dirpath, fn)))
+
+    found_files_df = pd.DataFrame({'tarball_names':[f[0] for f in all_filenames],
+                                    'tarball_paths':[f[1] for f in all_filenames]})
+    perf_df = perf_df.merge(found_files_df, on='tarball_names', how='outer')
+
+    return perf_df
+
 #------------------------------------------------------------------------------------------------------------------
 def copy_best_filesystem_models(result_dir, dest_dir, pred_type, force_update=False):
 
