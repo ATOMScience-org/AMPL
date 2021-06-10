@@ -78,6 +78,7 @@ This notebook also explores AMPL functions for saving and loading prebuild AMPL 
  
 ## AMPL Workshops
 * [June 05, 2021](https://github.com/ATOMconsortium/AMPL/blob/master/atomsci/ddm/examples/tutorials/AMPL_FNL_Workshop_06052021.ipynb) Protein Target-focussed Binding Data Curation, Exploratory Data Analysis and Featurization using AMPL. The workshop is part of the NCI Data Science Learning Exchange Hands-on Tutorial series. 
+* For use with GCP or other pre-installed AMPL environments: https://github.com/ATOMconsortium/AMPL/blob/master/atomsci/ddm/examples/tutorials/GCP_AMPL_FNL_Workshop_06052021.ipynb
 
 ## Supporting links
 
