@@ -14,11 +14,17 @@ import logging
 import json
 import shutil
 import tarfile
+import tempfile
 
 from collections import OrderedDict
 from atomsci.ddm.utils import datastore_functions as dsf
 from atomsci.ddm.pipeline import model_tracker as trkr
 import atomsci.ddm.pipeline.model_pipeline as mp
+import atomsci.ddm.pipeline.parameter_parser as parse
+import atomsci.ddm.pipeline.model_wrapper as mw
+import atomsci.ddm.pipeline.featurization as feat
+
+from tensorflow.python.keras.utils.layer_utils import count_params
 
 logger = logging.getLogger('ATOM')
 mlmt_supported = True
@@ -2110,3 +2116,47 @@ def _aggregate_predictions(datasets, bucket, col_names, result_dir):
                             results.append(result_df)
                     results_df = pd.concat(results).reset_index(drop=True)
                     results_df.to_csv(os.path.join(result_dir, 'predictions_%s_%s_%s_%s.csv' % (dset_key, model_type, split_type, featurizer)), index=False)
+
+def num_trainable_parameters_from_file(tar_path):
+    """Return number of trainable paramters from tarfile
+
+    Given a tar file for a DeepChem model this will return the number of trainable parameters
+
+    Args:
+        tar_path (str): Path to a DeepChem model
+
+    Returns:
+        int: Number of trainable parameters.
+
+    Raises:
+        ValueError: If the model is not a DeepChem neural network model
+    """
+    reload_dir = tempfile.mkdtemp()
+    model_fp = tarfile.open(tar_path, mode='r:gz')
+    model_fp.extractall(path=reload_dir)
+    model_fp.close()
+
+    config_file_path = os.path.join(reload_dir, 'model_metadata.json')
+    with open(config_file_path) as f:
+        config = json.loads(f.read())
+
+    # Parse the saved model metadata to obtain the parameters used to train the model
+    model_params = parse.wrapper(config)
+
+    # Is this an NN model
+    if not model_params.model_type == 'NN':
+        raise ValueError('Saved model is not a neural network. Recieved %s'%model_params.model_type)
+
+    model_params.save_results = False
+    model_params.output_dir = reload_dir
+
+    featurization = feat.create_featurization(model_params)
+
+    print("Featurization = %s" % str(featurization))
+    # Create a ModelPipeline object
+    pipeline = mp.ModelPipeline(model_params)
+
+    # Create the ModelWrapper object.
+    pipeline.model_wrapper = mw.create_model_wrapper(pipeline.params, featurization)
+
+    return count_params(pipeline.model_wrapper.model.model.trainable_weights)
