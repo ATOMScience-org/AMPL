@@ -173,7 +173,7 @@ The AMPL pipeline contains many parameters and options to fit models and make pr
   
 |||
 |-|-|
-|*Description:*|dataset\_oid for the descriptor file in the datastore|
+|*Description:*|dataset\_oid for the descriptor file in the datastore. Specific to LLNL datastore system.|
   
 - **descriptor\_spec\_bucket**  
   
@@ -193,8 +193,9 @@ The AMPL pipeline contains many parameters and options to fit models and make pr
   
 |||
 |-|-|
-|*Description:*|Type of descriptors being used as features, e.g. moe, dragon7, used when featurizer = "descriptors". Sets the subclass within featurizer.py|
+|*Description:*|Type of descriptors being used as features, e.g. moe, dragon7, used when featurizer = "computed_descriptors". Sets the subclass within featurizer.py|
 |*Default:*|moe|
+|*Options:*|'moe', 'mordred_filtered', and 'rdkit_raw' are recommended. See atomsci/ddm/data/descriptor_sets_sources_by_descr_type.csv for more.|
   
 ---
 
@@ -239,7 +240,7 @@ The AMPL pipeline contains many parameters and options to fit models and make pr
   
 |||
 |-|-|
-|*Description:*|Type of model to fit (NN, RF, or xgboost). The model\_type sets the model subclass in model\_wrapper. Can be input as a comma separated list for hyperparameter search (e.g. 'NN','RF')|
+|*Description:*|Type of model to fit (NN, RF, or xgboost). The model\_type sets the model subclass in model\_wrapper. Can be input as a comma separated list for hyperparameter search (e.g. 'NN','RF','xgboost')|
 |*Type:*|str|
   
 - **prediction\_type**  
@@ -582,7 +583,7 @@ The AMPL pipeline contains many parameters and options to fit models and make pr
 
 <a name="XGBoost"></a>
 ## XGBoost  
-
+- Currently, only `xgb_gamma` and `xgb_learning_rate` are supported for hyperparameter optimization.
 - **xgb\_colsample\_bytree**  
   
 |||
