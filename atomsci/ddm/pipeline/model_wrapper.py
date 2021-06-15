@@ -1726,7 +1726,10 @@ class HybridModelWrapper(ModelWrapper):
         checkpoint_file = os.path.join(reload_dir, f"{self.params.dataset_name}_model_{self.params.model_uuid}.pt")
         if os.path.isfile(checkpoint_file):
             checkpoint = torch.load(checkpoint_file)
+            self.best_epoch = checkpoint["epoch"]
             self.model = torch.nn.Sequential(checkpoint["model_dict"]).to(self.dev)
+            self.model.load_state_dict(checkpoint['model_state_dict'])
+            self.model.eval()
         else:
             raise Exception(f"Checkpoint file doesn't exist in the reload_dir {reload_dir}")
         
@@ -1802,12 +1805,6 @@ class HybridModelWrapper(ModelWrapper):
 
         if subset == 'full':
             return self.get_full_dataset_perf_data(self.data)
-        if epoch_label == 'best':
-            epoch = self.best_epoch
-            model_dir = self.best_model_dir
-        else:
-            raise ValueError("Unknown epoch_label '%s'" % epoch_label)
-
         if subset == 'train':
             return self.train_perf_data[epoch]
         elif subset == 'valid':
