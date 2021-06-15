@@ -1,0 +1,3 @@
+bucket,dataset_key,collection,response_cols
+public,test/test_datasets/H1_std.csv,test,pKi_mean
+public,test/test_datasets/aurka_chembl_base_smiles_union.csv,test,pIC50
