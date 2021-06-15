@@ -568,8 +568,11 @@ class ModelPipeline:
         """
 
         self.run_mode = 'training'
-        if self.params.model_type == "hybrid" and self.params.featurizer in ["graphconv"]:
-            raise Exception("Hybrid model doesn't support GraphConv featurizer now.")
+        if self.params.model_type == "hybrid":
+            if self.params.featurizer in ["graphconv"]:
+                raise Exception("Hybrid model doesn't support GraphConv featurizer now.")
+            if len(self.params.response_cols) < 2:
+                raise Exception("The dataset of a hybrid model should have two response columns, one for activities, one for concentrations.")
         if featurization is None:
             featurization = feat.create_featurization(self.params)
         self.featurization = featurization
