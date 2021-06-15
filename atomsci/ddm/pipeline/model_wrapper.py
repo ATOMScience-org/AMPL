@@ -17,6 +17,10 @@ if dc.__version__.startswith('2.1'):
     from deepchem.models.tensorgraph.fcnet import MultitaskRegressor, MultitaskClassifier
 else:
     from deepchem.models.fcnet import MultitaskRegressor, MultitaskClassifier
+from collections import OrderedDict
+import torch
+from torch.utils.data import TensorDataset
+from torch.utils.data import DataLoader
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import RandomForestRegressor
 
@@ -31,6 +35,7 @@ import yaml
 import glob
 from datetime import datetime
 import time
+import socket
 from packaging import version
 
 from atomsci.ddm.utils import datastore_functions as dsf
@@ -117,6 +122,8 @@ def create_model_wrapper(params, featurizer, ds_client=None):
                              from pip: pip install xgboost==0.90")
         else:
             return DCxgboostModelWrapper(params, featurizer, ds_client)
+    elif params.model_type == 'hybrid':
+        return HybridModelWrapper(params, featurizer, ds_client)
     else:
         raise ValueError("Unknown model_type %s" % params.model_type)
 
@@ -236,9 +243,10 @@ class ModelWrapper(object):
         if self.params.prediction_type=='regression' and self.params.transformers==True:
             # self.transformers = [
             #    dc.trans.NormalizationTransformer(transform_y=True, dataset=model_dataset.dataset)]
-            self.transformers = [ 
-                trans.NormalizationTransformerMissingData(transform_y=True, dataset=model_dataset.dataset)
-            ]
+            if self.params.model_type != "hybrid":
+                self.transformers = [trans.NormalizationTransformerMissingData(transform_y=True, dataset=model_dataset.dataset)]
+            else:
+                self.transformers = [trans.NormalizationTransformerHybrid(transform_y=True, dataset=model_dataset.dataset)]
 
         # Set up transformers for features, if needed
         self.transformers_x = trans.create_feature_transformers(self.params, model_dataset)
@@ -342,7 +350,11 @@ class ModelWrapper(object):
         # We pass transformed=False to indicate that the preds and uncertainties we get from
         # generate_predictions are already untransformed, so that perf_data.get_prediction_results()
         # doesn't untransform them again.
-        perf_data = perf.create_perf_data(self.params.prediction_type, model_dataset, self.transformers, 'test', transformed=False)
+        if hasattr(self.transformers[0], "ishybrid"):
+            # indicate that we are training a hybrid model
+            perf_data = perf.create_perf_data("hybrid", model_dataset, self.transformers, 'test', is_ki=self.params.is_ki, ki_convert_ratio=self.params.ki_convert_ratio, transformed=False)
+        else:
+            perf_data = perf.create_perf_data(self.params.prediction_type, model_dataset, self.transformers, 'test', transformed=False)
         test_dset = model_dataset.test_dset
         test_preds, test_stds = self.generate_predictions(test_dset)
         _ = perf_data.accumulate_preds(test_preds, test_dset.ids, test_stds)
@@ -381,7 +393,11 @@ class ModelWrapper(object):
         # We pass transformed=False to indicate that the preds and uncertainties we get from
         # generate_predictions are already untransformed, so that perf_data.get_prediction_results()
         # doesn't untransform them again.
-        perf_data = perf.create_perf_data(self.params.prediction_type, model_dataset, self.transformers, 'full', transformed=False)
+        if hasattr(self.transformers[0], "ishybrid"):
+            # indicate that we are training a hybrid model
+            perf_data = perf.create_perf_data("hybrid", model_dataset, self.transformers, 'full', is_ki=self.params.is_ki, ki_convert_ratio=self.params.ki_convert_ratio, transformed=False)
+        else:
+            perf_data = perf.create_perf_data(self.params.prediction_type, model_dataset, self.transformers, 'full', transformed=False)
         full_preds, full_stds = self.generate_predictions(model_dataset.dataset)
         _ = perf_data.accumulate_preds(full_preds, model_dataset.dataset.ids, full_stds)
         return perf_data
@@ -563,7 +579,7 @@ class DCNNModelWrapper(ModelWrapper):
             if self.params.layer_sizes is None:
                 if self.params.featurizer == 'ecfp':
                     self.params.layer_sizes = [1000, 500]
-                elif self.params.featurizer == 'descriptors':
+                elif self.params.featurizer in ['descriptors', 'computed_descriptors']:
                     self.params.layer_sizes = [200, 100]
                 else:
                     # Shouldn't happen
@@ -1294,6 +1310,598 @@ class DCNNModelWrapper(ModelWrapper):
             shutil.rmtree(dest_dir)
         os.mkdir(dest_dir)
         
+# ****************************************************************************************
+class HybridModelWrapper(ModelWrapper):
+    """A wrapper for hybrid models, contains methods to load in a dataset, split and featurize the data, fit a model to the train dataset,
+    generate predictions for an input dataset, and generate performance metrics for these predictions.
+
+    Attributes:
+        Set in __init__
+            params (argparse.Namespace): The argparse.Namespace parameter object that contains all parameter information
+            featurziation (Featurization object): The featurization object created outside of model_wrapper
+
+            log (log): The logger
+
+            output_dir (str): The parent path of the model directory
+
+            transformers (list): Initialized as an empty list, stores the transformers on the response col
+
+            transformers_x (list): Initialized as an empty list, stores the transformers on the featurizers
+
+            model_dir (str): The subdirectory under output_dir that contains the model. Created in setup_model_dirs.
+
+            best_model_dir (str): The subdirectory under output_dir that contains the best model. Created in setup_model_dirs
+
+            model: The PyTorch NN sequential model.
+        Created in train:
+            data (ModelDataset): contains the dataset, set in pipeline
+
+            best_epoch (int): Initialized as None, keeps track of the epoch with the best validation score
+
+            train_perf_data (np.array of PerfData): Initialized as an empty array, 
+                contains the predictions and performance of the training dataset
+
+            valid_perf_data (np.array of PerfData): Initialized as an empty array,
+                contains the predictions and performance of the validation dataset
+
+            train_epoch_perfs (np.array of dicts): Initialized as an empty array,
+                contains a list of dictionaries of predicted values and metrics on the training dataset
+
+            valid_epoch_perfs (np.array of dicts): Initialized as an empty array,
+                contains a list of dictionaries of predicted values and metrics on the validation dataset
+
+    """
+
+    def __init__(self, params, featurizer, ds_client):
+        """Initializes HybridModelWrapper object.
+
+        Args:
+            params (Namespace object): contains all parameter information.
+
+            featurizer (Featurizer object): initialized outside of model_wrapper
+
+        Side effects:
+            params (argparse.Namespace): The argparse.Namespace parameter object that contains all parameter information
+
+            featurziation (Featurization object): The featurization object created outside of model_wrapper
+
+            log (log): The logger
+
+            output_dir (str): The parent path of the model directory
+
+            transforsamers (list): Initialized as an empty list, stores the transformers on the response col
+
+            transformers_x (list): Initialized as an empty list, stores the transformers on the featurizers
+
+            model: dc.models.TorchModel
+        """
+        super().__init__(params, featurizer, ds_client)
+        if self.params.layer_sizes is None:
+            if self.params.featurizer == 'ecfp':
+                self.params.layer_sizes = [1000, 500]
+            elif self.params.featurizer in ['descriptors', 'computed_descriptors']:
+                self.params.layer_sizes = [200, 100]
+            else:
+                # Shouldn't happen
+                self.log.warning("You need to define default layer sizes for featurizer %s" %
+                                    self.params.featurizer)
+                self.params.layer_sizes = [1000, 500]
+
+        if self.params.dropouts is None:
+            self.params.dropouts = [0.4] * len(self.params.layer_sizes)
+
+        n_features = self.get_num_features()
+        if socket.gethostname()[:3] == "sur":
+            self.dev = torch.device("cpu")
+        else:
+            self.dev = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+
+        if self.params.prediction_type == 'regression':
+            model_dict = OrderedDict([
+                ("layer1", torch.nn.Linear(n_features, self.params.layer_sizes[0]).to(self.dev)),
+                ("dp1", torch.nn.Dropout(p=self.params.dropouts[0]).to(self.dev)),
+                ("relu1", torch.nn.ReLU().to(self.dev))
+            ])
+            
+            if len(self.params.layer_sizes) > 1:
+                for i in range(1, len(self.params.layer_sizes)):
+                    model_dict[f"layer{i+1}"] = torch.nn.Linear(self.params.layer_sizes[i-1], self.params.layer_sizes[i]).to(self.dev)
+                    model_dict[f"dp{i+1}"] = torch.nn.Dropout(p=self.params.dropouts[i]).to(self.dev)
+                    model_dict[f"relu{i+1}"] = torch.nn.ReLU().to(self.dev)
+            
+            model_dict["last_layer"] = torch.nn.Linear(self.params.layer_sizes[-1], 1).to(self.dev)
+            
+            self.model_dict = model_dict
+            self.model = torch.nn.Sequential(model_dict).to(self.dev)
+        else:
+            raise Exception("Hybrid model only support regression prediction.")
+
+    def _predict_binding(self, activity, conc):
+        """
+        Predict measurements of fractional binding/inhibition of target receptors by a compound with the given activity,
+        in -Log scale, at the specified concentration in nM. If the given activity is pKi, a ratio to convert Ki into IC50
+        is needed. It can be the ratio of concentration and Kd of the radioligand in a competitive binding assay, or the concentration
+        of the substrate and Michaelis constant (Km) of enzymatic inhibition assay.
+        """
+        
+        if self.params.is_ki:
+            if self.params.ki_convert_ratio is None:
+                raise Exception("Ki converting ratio is missing. Cannot convert Ki into IC50")
+            Ki = 10**(9-activity)
+            IC50 = Ki * (1 + self.params.ki_convert_ratio)
+        else:
+            IC50 = 10**(9-activity)
+        pred_frac = 1.0/(1.0 + IC50/conc)
+        
+        return pred_frac
+
+    def _l2_loss(self, yp, yr):
+        """
+        Da's loss function, based on L2 terms for both pKi and percent binding values
+        This function is not appropriate for model fitting, but can be used for R^2 calculation.
+        """
+        yreal = yr.numpy()
+        pos_ki = np.where(np.isnan(yreal[:,1]))[0]
+        pos_bind = np.where(~np.isnan(yreal[:,1]))[0]
+        loss_ki = torch.sum((yp[pos_ki, 0] - yr[pos_ki, 0]) ** 2)
+        if len(pos_bind[0]) == 0:
+            return loss_ki, torch.tensor(0.0, dtype=torch.float32)
+        # convert Ki to % binding
+        y_stds = self.transformers[0].y_stds
+        y_means = self.transformers[0].y_means
+        if self.params.is_ki:
+            bind_pred = self._predict_binding(y_means + y_stds * yp[pos_bind, 0], conc=yr[pos_bind, 1])
+        else:
+            bind_pred = self._predict_binding(y_means + y_stds * yp[pos_bind, 0], conc=yr[pos_bind, 1])
+        # calculate the loss_bind
+        loss_bind = torch.sum((bind_pred - yr[pos_bind, 0]) ** 2)
+        return loss_ki, loss_bind
+
+    def _poisson_hybrid_loss(self, yp, yr):
+        """
+        Hybrid loss function based on L2 losses for deviations of predicted and measured pKi values
+        and Poisson losses for predicted vs measured binding values. The idea is to choose loss terms
+        that when minimized maximize the likelihood.
+
+        Note that we compute both pKi and binding loss terms for compounds that have both kinds of data, since they are
+        independent measurements. Therefore, pos_ki and pos_bind index sets may overlap.
+        """
+
+        # Get indices of non-missing pKi values
+        yreal = yr.numpy()
+        pos_ki = np.where(np.isnan(yreal[:,1]))[0]
+        # Get indices of non-missing binding values
+        pos_bind = np.where(~np.isnan(yreal[:,1]))[0]
+
+        # Compute L2 loss for pKi predictions
+        loss_ki = torch.sum((yp[pos_ki, 0] - yr[pos_ki, 0]) ** 2)
+        #convert the ki prediction back to Ki scale
+        y_stds = self.transformers[0].y_stds
+        y_means = self.transformers[0].y_means
+        # Compute fraction bound to *radioligand* (not drug) from predicted pKi
+        if self.params.is_ki:
+            rl_bind_pred = 1 - self._predict_binding(y_means + y_stds * yp[pos_bind, 0], conc=yr[pos_bind, 1])
+        else:
+            rl_bind_pred = 1 - self._predict_binding(y_means + y_stds * yp[pos_bind, 0], conc=yr[pos_bind, 1])
+        rl_bind_real = 1 - yr[pos_bind, 0]
+        # Compute Poisson loss for radioligand binding
+        loss_bind = torch.sum(rl_bind_pred - rl_bind_real * torch.log(rl_bind_pred))
+
+        if np.isnan(loss_ki.item()):
+            raise Exception("Ki loss is NaN")
+        if np.isnan(loss_bind.item()):
+            raise Exception("Binding loss is NaN")
+        return loss_ki, loss_bind
+
+    def _loss_batch(self, loss_func, xb, yb, opt=None):
+        """
+        Compute loss_func for the batch xb, yb. If opt is provided, perform a training
+        step on the model weights.
+        """
+
+        loss_ki, loss_bind = self.loss_func(self.model(xb), yb)
+        loss = loss_ki + loss_bind
+        
+        if opt is not None:
+            loss.backward()
+            opt.step()   
+            opt.zero_grad()
+
+        return loss_ki.item(), loss_bind.item(), len(xb)
+
+    class SubsetData(object):
+        """
+        Container for DataLoader object and attributes of a dataset subset
+        """
+        def __init__(self, ds, dl, n_ki, n_bind):
+            self.ds = ds
+            self.dl = dl
+            self.n_ki = n_ki
+            self.n_bind = n_bind
+    
+    def _tensorize(self, x):
+            return torch.tensor(x, dtype=torch.float32)
+
+    def _load_hybrid_data(self, data):
+        """
+        Convert the DeepChem dataset into the SubsetData for hybrid model.
+        """
+        self.train_valid_dsets = []
+        test_dset = data.test_dset
+        num_folds = len(data.train_valid_dsets)
+
+        for k in range(num_folds):
+            train_dset, valid_dset = data.train_valid_dsets[k]
+            # datasets were normalized in previous steps
+            x_train, y_train, x_valid, y_valid = map(
+                self._tensorize, (train_dset.X, train_dset.y, valid_dset.X, valid_dset.y)
+            )
+            # train
+            train_ki_pos = np.where(np.isnan(y_train[:,1].numpy()))[0]
+            train_bind_pos = np.where(~np.isnan(y_train[:,1].numpy()))[0]
+            
+            # valid
+            valid_ki_pos = np.where(np.isnan(y_valid[:,1].numpy()))[0]
+            valid_bind_pos = np.where(~np.isnan(y_valid[:,1].numpy()))[0]
+            
+            train_ds = TensorDataset(x_train, y_train)
+            train_dl = DataLoader(train_ds, batch_size=self.params.batch_size, shuffle=True, pin_memory=True)
+            train_data = self.SubsetData(train_ds, 
+                                        train_dl, 
+                                        len(train_ki_pos), 
+                                        len(train_bind_pos))
+
+            valid_ds = TensorDataset(x_valid, y_valid)
+            valid_dl = DataLoader(valid_ds, batch_size=self.params.batch_size * 2, pin_memory=True)
+            valid_data = self.SubsetData(valid_ds, 
+                                        valid_dl, 
+                                        len(valid_ki_pos), 
+                                        len(valid_bind_pos))
+
+            self.train_valid_dsets.append((train_data, valid_data))
+
+        x_test, y_test = map(
+            self._tensorize, (test_dset.X, test_dset.y)
+        )
+        test_ki_pos = np.where(np.isnan(y_test[:,1].numpy()))[0]
+        test_bind_pos = np.where(~np.isnan(y_test[:,1].numpy()))[0]
+
+        test_ds = TensorDataset(x_test, y_test)
+        test_dl = DataLoader(test_ds, batch_size=self.params.batch_size * 2, pin_memory=True)
+        test_data = self.SubsetData(test_ds, 
+                                    test_dl, 
+                                    len(test_ki_pos), 
+                                    len(test_bind_pos))
+
+        self.test_data = test_data
+    
+    def save_model(self, checkpoint_file, model, opt, epoch, model_dict):
+        """
+        Save a model to a checkpoint file.
+        Include epoch, model_dict in checkpoint dict.
+        """
+        checkpoint = dict(
+            epoch=epoch,
+            model_state_dict=model.state_dict(),
+            opt_state_dict=opt.state_dict(),
+            model_dict=model_dict
+            )
+        
+        torch.save(checkpoint, checkpoint_file)
+
+    def train(self, pipeline):
+        self.best_epoch = 0
+        self.best_valid_score = None
+        self.train_epoch_perfs = np.zeros(self.params.max_epochs)
+        self.valid_epoch_perfs = np.zeros(self.params.max_epochs)
+        self.test_epoch_perfs = np.zeros(self.params.max_epochs)
+        self.train_epoch_perf_stds = np.zeros(self.params.max_epochs)
+        self.valid_epoch_perf_stds = np.zeros(self.params.max_epochs)
+        self.test_epoch_perf_stds = np.zeros(self.params.max_epochs)
+        self.model_choice_scores = np.zeros(self.params.max_epochs)
+        self.early_stopping_min_improvement = self.params.early_stopping_min_improvement
+        self.early_stopping_patience = self.params.early_stopping_patience
+
+        if self.params.loss_func.lower() == "poisson":
+            self.loss_func = self._poisson_hybrid_loss
+        else:
+            self.loss_func = self._l2_loss
+
+        # load hybrid data
+        self._load_hybrid_data(pipeline.data)
+
+        checkpoint_file = os.path.join(self.model_dir, f"{self.params.dataset_name}_model_{self.params.model_uuid}.pt")
+
+        opt = torch.optim.Adam(self.model.parameters(), lr=self.params.learning_rate)
+        self.train_perf_data = []
+        self.valid_perf_data = []
+        self.test_perf_data = []
+        for ei in range(self.params.max_epochs):
+            self.train_perf_data.append(perf.create_perf_data("hybrid", pipeline.data, self.transformers, 'train', is_ki=self.params.is_ki, ki_convert_ratio=self.params.ki_convert_ratio))
+            self.valid_perf_data.append(perf.create_perf_data("hybrid", pipeline.data, self.transformers, 'valid', is_ki=self.params.is_ki, ki_convert_ratio=self.params.ki_convert_ratio))
+            self.test_perf_data.append(perf.create_perf_data("hybrid", pipeline.data, self.transformers, 'test', is_ki=self.params.is_ki, ki_convert_ratio=self.params.ki_convert_ratio))
+
+        test_data = self.test_data
+
+        time_limit = int(self.params.slurm_time_limit)
+        training_start = time.time()
+
+        train_dset, valid_dset = pipeline.data.train_valid_dsets[0]
+        if len(pipeline.data.train_valid_dsets) > 1:
+            raise Exception("Currently the hybrid model  doesn't support K-fold cross validation splitting.")
+        test_dset = pipeline.data.test_dset
+        train_data, valid_data = self.train_valid_dsets[0]
+        for ei in range(self.params.max_epochs):
+            if llnl_utils.is_lc_system() and (ei > 0):
+                # If we're running on an LC system, check that we have enough time to complete another epoch
+                # before the current job finishes, by extrapolating from the time elapsed so far.
+
+                now = time.time() 
+                elapsed_time = now - pipeline.start_time
+                training_time = now - training_start
+                time_remaining = time_limit * 60 - elapsed_time
+                time_needed = training_time/ei
+
+                if time_needed > 0.9 * time_remaining:
+                    self.log.warn("Projected time to finish one more epoch exceeds time left in job; cutting training to %d epochs" %
+                                    ei)
+                    self.params.max_epochs = ei
+                    break
+
+            # Train the model for one epoch. We turn off automatic checkpointing, so the last checkpoint
+            # saved will be the one we created intentionally when we reached a new best validation score.
+            train_loss_ep = 0
+            self.model.train()
+            for i, (xb, yb) in enumerate(train_data.dl):
+                xb = xb.to(self.dev)
+                yb = yb.to(self.dev)
+                train_loss_ki, train_loss_bind, train_count = self._loss_batch(self.loss_func, xb, yb, opt)
+                train_loss_ep += (train_loss_ki + train_loss_bind)
+            train_loss_ep /= (train_data.n_ki + train_data.n_bind)
+
+            # validation set
+            with torch.no_grad():
+                valid_loss_ep = 0
+                for xb, yb in valid_data.dl:
+                    xb = xb.to(self.dev)
+                    yb = yb.to(self.dev)
+                    valid_loss_ki, valid_loss_bind, valid_count = self._loss_batch(self.loss_func, xb, yb)
+                    valid_loss_ep += (valid_loss_ki + valid_loss_bind)
+                valid_loss_ep /= (valid_data.n_ki + valid_data.n_bind)
+
+            train_pred, _ = self.generate_predictions(train_dset)
+            valid_pred, _ = self.generate_predictions(valid_dset)
+            test_pred, _ = self.generate_predictions(test_dset)
+
+            train_perf = self.train_perf_data[ei].accumulate_preds(train_pred, train_dset.ids)
+            valid_perf = self.valid_perf_data[ei].accumulate_preds(valid_pred, valid_dset.ids)
+            test_perf = self.test_perf_data[ei].accumulate_preds(test_pred, test_dset.ids)
+            self.log.info("Epoch %d: training %s = %.3f, training loss = %.3f, validation %s = %.3f, validation loss = %.3f, test %s = %.3f" % (
+                          ei, pipeline.metric_type, train_perf, train_loss_ep, pipeline.metric_type, valid_perf, valid_loss_ep,
+                          pipeline.metric_type, test_perf))
+
+            # Compute performance metrics for each subset, and check if we've reached a new best validation set score
+
+            self.train_epoch_perfs[ei], _ = self.train_perf_data[ei].compute_perf_metrics()
+            self.valid_epoch_perfs[ei], _ = self.valid_perf_data[ei].compute_perf_metrics()
+            self.test_epoch_perfs[ei], _ = self.test_perf_data[ei].compute_perf_metrics()
+            valid_score = self.valid_perf_data[ei].model_choice_score(self.params.model_choice_score_type)
+            self.model_choice_scores[ei] = valid_score
+            self.num_epochs_trained = ei + 1
+            if self.best_valid_score is None:
+                self.save_model(checkpoint_file, self.model, opt, ei, self.model_dict)
+                self.best_valid_score = valid_score
+                self.best_epoch = ei
+            elif valid_score - self.best_valid_score > self.early_stopping_min_improvement:
+                # Save a new checkpoint
+                self.save_model(checkpoint_file, self.model, opt, ei, self.model_dict)
+                self.best_valid_score = valid_score
+                self.best_epoch = ei
+            elif ei - self.best_epoch > self.early_stopping_patience:
+                self.log.info(f"No improvement after {self.early_stopping_patience} epochs, stopping training")
+                break
+
+        # Revert to last checkpoint
+        checkpoint = torch.load(checkpoint_file)
+        self.model.load_state_dict(checkpoint['model_state_dict'])
+        opt.load_state_dict(checkpoint['opt_state_dict'])
+
+        # copy the best model checkpoint file
+        self._clean_up_excess_files(self.best_model_dir)
+        shutil.copy2(checkpoint_file, self.best_model_dir)
+        self.log.info(f"Best model from epoch {self.best_epoch} saved to {self.model_dir}")
+
+    # ****************************************************************************************
+    def reload_model(self, reload_dir):
+        """Loads a saved neural net model from the specified directory.
+
+        Args:
+            reload_dir (str): Directory where saved model is located.
+            model_dataset (ModelDataset Object): contains the current full dataset
+
+        Side effects:
+            Resets the value of model, transformers, and transformers_x
+        """
+        
+        checkpoint_file = os.path.join(reload_dir, f"{self.params.dataset_name}_model_{self.params.model_uuid}.pt")
+        if os.path.isfile(checkpoint_file):
+            checkpoint = torch.load(checkpoint_file)
+            self.model = torch.nn.Sequential(checkpoint["model_dict"]).to(self.dev)
+        else:
+            raise Exception(f"Checkpoint file doesn't exist in the reload_dir {reload_dir}")
+        
+        # Load transformers if they would have been saved with the model
+        if trans.transformers_needed(self.params) and (self.params.transformer_key is not None):
+            self.log.info("Reloading transformers from file %s" % self.params.transformer_key)
+            if self.params.save_results:
+                self.transformers, self.transformers_x = dsf.retrieve_dataset_by_datasetkey(
+                    dataset_key = self.params.transformer_key,
+                    bucket = self.params.transformer_bucket,
+                    client = self.ds_client )
+            else:
+                self.transformers, self.transformers_x = pickle.load(open( self.params.transformer_key, 'rb' ))
+
+
+    # ****************************************************************************************
+    def get_pred_results(self, subset, epoch_label=None):
+        """Returns predicted values and metrics from a training, validation or test subset
+        of the current dataset, or the full dataset. subset may be 'train', 'valid', 'test'
+        accordingly.  epoch_label indicates the training epoch we want results for; currently the
+        only option for this is 'best'.  Results are returned as a dictionary of parameter, value pairs.
+
+        Args:
+            subset (str): Label for the current subset of the dataset (choices ['train','valid','test','full'])
+
+            epoch_label (str): Label for the training epoch we want results for (choices ['best'])
+
+        Returns:
+            dict: A dictionary of parameter/ value pairs of the prediction values and results of the dataset subset
+
+        Raises:
+            ValueError: if epoch_label not in ['best']
+
+            ValueError: If subset not in ['train','valid','test','full']
+        """
+        if subset == 'full':
+            return self.get_full_dataset_pred_results(self.data)
+        if epoch_label == 'best':
+            epoch = self.best_epoch
+            model_dir = self.best_model_dir
+        else:
+            raise ValueError("Unknown epoch_label '%s'" % epoch_label)
+        if subset == 'train':
+            return self.get_train_valid_pred_results(self.train_perf_data[epoch])
+        elif subset == 'valid':
+            return self.get_train_valid_pred_results(self.valid_perf_data[epoch])
+        elif subset == 'test':
+            return self.get_train_valid_pred_results(self.test_perf_data[epoch])
+        else:
+            raise ValueError("Unknown dataset subset '%s'" % subset)
+
+    # ****************************************************************************************
+    def get_perf_data(self, subset, epoch_label=None):
+        """Returns predicted values and metrics from a training, validation or test subset
+        of the current dataset, or the full dataset. subset may be 'train', 'valid', 'test' or 'full',
+        epoch_label indicates the training epoch we want results for; currently the
+        only option for this is 'best'. Results are returned as a PerfData object of the appropriate class 
+        for the model's split strategy and prediction type.
+
+        Args:
+            subset (str): Label for the current subset of the dataset (choices ['train','valid','test','full'])
+
+            epoch_label (str): Label for the training epoch we want results for (choices ['best'])
+
+        Returns:
+            PerfData object: Performance object pulled from the appropriate subset
+
+        Raises:
+            ValueError: if epoch_label not in ['best']
+
+            ValueError: If subset not in ['train','valid','test','full']
+        """
+
+        if subset == 'full':
+            return self.get_full_dataset_perf_data(self.data)
+        if epoch_label == 'best':
+            epoch = self.best_epoch
+            model_dir = self.best_model_dir
+        else:
+            raise ValueError("Unknown epoch_label '%s'" % epoch_label)
+
+        if subset == 'train':
+            return self.train_perf_data[epoch]
+        elif subset == 'valid':
+            return self.valid_perf_data[epoch]
+        elif subset == 'test':
+            #return self.get_test_perf_data(model_dir, self.data)
+            return self.test_perf_data[epoch]
+        else:
+            raise ValueError("Unknown dataset subset '%s'" % subset)
+
+    # ****************************************************************************************
+    def generate_predictions(self, dataset):
+        """Generates predictions for specified dataset with current model, as well as standard deviations
+        if params.uncertainty=True
+
+        Args:
+            dataset: the deepchem DiskDataset to generate predictions for
+
+        Returns:
+            (pred, std): tuple of predictions for compounds and standard deviation estimates, if requested.
+            Each element of tuple is a numpy array of shape (ncmpds, ntasks, nclasses), where nclasses = 1 for regression
+            models.
+        """
+        pred, std = None, None
+        self.log.info("Predicting values for current model")
+
+        x_data, y_data = map(
+            self._tensorize, (dataset.X, dataset.y)
+        )
+        has_conc = len(y_data.shape) > 1 and y_data.shape[1] > 1 and np.nan_to_num(y_data[:,1]).max() > 0
+        data_ki_pos = np.where(np.isnan(y_data[:,1].numpy()))[0] if has_conc else np.where(y_data[:,0].numpy())[0]
+        data_bind_pos = np.where(~np.isnan(y_data[:,1].numpy()))[0] if has_conc else np.array([])
+
+        data_ds = TensorDataset(x_data, y_data)
+        data_dl = DataLoader(data_ds, batch_size=self.params.batch_size * 2, pin_memory=True)
+        data_data = self.SubsetData(data_ds, 
+                                    data_dl, 
+                                    len(data_ki_pos), 
+                                    len(data_bind_pos))
+        pred = []
+        real = []
+        for xb, yb in data_dl:
+            xb = xb.to(self.dev)
+            yb = yb.to(self.dev)
+            yp = self.model(xb)
+            for i in range(len(yb)):
+                real.append(yb.numpy()[i])
+                pred.append(yp.detach().numpy()[i])
+        real = np.array(real)
+        pred = np.array(pred)
+
+        if self.params.transformers and self.transformers is not None:
+            if has_conc:
+                pred = np.concatenate((pred, real[:, [1]]), axis=1)
+                pred = self.transformers[0].untransform(pred, isreal=False)
+                pred_bind_pos = np.where(~np.isnan(pred[:, 1]))[0]
+                pred[pred_bind_pos, 0] = self._predict_binding(pred[pred_bind_pos, 0], pred[pred_bind_pos, 1])
+            else:
+                pred = self.transformers[0].untransform(pred, isreal=False)
+        else:
+            if has_conc:
+                pred = np.concatenate((pred, real[:, [1]]), axis=1)
+        return pred, std
+
+    # ****************************************************************************************
+    def get_model_specific_metadata(self):
+        """Returns a dictionary of parameter settings for this ModelWrapper object that are specific
+        to hybrid models.
+
+        Returns:
+            model_spec_metdata (dict): A dictionary of the parameter sets for the HybridModelWrapper object.
+                Parameters are saved under the key 'hybrid_specific' as a subdictionary.
+        """
+        nn_metadata = dict(
+                    best_epoch = self.best_epoch,
+                    max_epochs = self.params.max_epochs,
+                    batch_size = self.params.batch_size,
+                    layer_sizes = self.params.layer_sizes,
+                    dropouts = self.params.dropouts,
+                    learning_rate = self.params.learning_rate,
+        )
+        model_spec_metadata = dict(hybrid_specific = nn_metadata)
+        return model_spec_metadata
+
+    # ****************************************************************************************
+    def _clean_up_excess_files(self, dest_dir):
+        """
+        Function to clean up extra model files left behind in the training process.
+        Does not apply to Hybrid model.
+        """
+        if os.path.exists(dest_dir):
+            shutil.rmtree(dest_dir)
+        os.mkdir(dest_dir)
+
 # ****************************************************************************************
 class DCRFModelWrapper(ModelWrapper):
     """Contains methods to load in a dataset, split and featurize the data, fit a model to the train dataset,

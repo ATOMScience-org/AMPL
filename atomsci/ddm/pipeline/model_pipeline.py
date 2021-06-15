@@ -568,6 +568,8 @@ class ModelPipeline:
         """
 
         self.run_mode = 'training'
+        if self.params.model_type == "hybrid" and self.params.featurizer in ["graphconv"]:
+            raise Exception("Hybrid model doesn't support GraphConv featurizer now.")
         if featurization is None:
             featurization = feat.create_featurization(self.params)
         self.featurization = featurization
@@ -718,20 +720,26 @@ class ModelPipeline:
 
         # Including the response_val name in the output makes it difficult to do looped plotting.
         # We can talk about best way to handle this.
-
-        if contains_responses:
+        if self.params.model_type != "hybrid":
+            if contains_responses:
+                for i, colname in enumerate(self.params.response_cols):
+                    result_df["actual"] = self.data.vals[:, i]
             for i, colname in enumerate(self.params.response_cols):
-                result_df["actual"] = self.data.vals[:, i]
-        for i, colname in enumerate(self.params.response_cols):
-            if self.params.prediction_type == 'regression':
-                result_df["pred"] = preds[:, i, 0]
-            else:
-                class_probs = preds[:, i, :]
-                result_df["pred"] = np.argmax(class_probs, axis=1)
-        if self.params.uncertainty and self.params.prediction_type == 'regression':
-            for i, colname in enumerate(self.params.response_cols):
-                std_colname = 'std'
-                result_df[std_colname] = stds[:, i, 0]
+                if self.params.prediction_type == 'regression':
+                    result_df["pred"] = preds[:, i, 0]
+                else:
+                    class_probs = preds[:, i, :]
+                    result_df["pred"] = np.argmax(class_probs, axis=1)
+            if self.params.uncertainty and self.params.prediction_type == 'regression':
+                for i, colname in enumerate(self.params.response_cols):
+                    std_colname = 'std'
+                    result_df[std_colname] = stds[:, i, 0]
+        else:
+            # hybrid model should handled differently
+            if contains_responses:
+                result_df["actual_activity"] = self.data.vals[:, 0]
+                result_df["concentration"] = self.data.vals[:, 1]
+            result_df["pred_activity"] = preds[:, 0]
 
         if AD_method is not None:
             if self.featurization.feat_type != "graphconv":
@@ -889,25 +897,32 @@ class ModelPipeline:
         result_df = pd.DataFrame({self.params.id_col: self.data.attr.index.values,
                                   self.params.smiles_col: self.data.attr[self.params.smiles_col].values})
 
-        if contains_responses:
+        if self.params.model_type != "hybrid":
+            if contains_responses:
+                for i, colname in enumerate(self.params.response_cols):
+                    result_df["%s_actual" % colname] = self.data.vals[:,i]
             for i, colname in enumerate(self.params.response_cols):
-                result_df["%s_actual" % colname] = self.data.vals[:,i]
-        for i, colname in enumerate(self.params.response_cols):
-            if self.params.prediction_type == 'regression':
-                result_df["%s_pred" % colname] = preds[:,i,0]
-            else:
-                class_probs = preds[:,i,:]
-                nclass = preds.shape[2]
-                if nclass == 2:
-                    result_df["%s_prob" % colname] = class_probs[:,1]
+                if self.params.prediction_type == 'regression':
+                    result_df["%s_pred" % colname] = preds[:,i,0]
                 else:
-                    for k in range(nclass):
-                        result_df["%s_prob_%d" % (colname, k)] = class_probs[:,k]
-                result_df["%s_pred" % colname] = np.argmax(class_probs, axis=1)
-        if self.params.uncertainty and self.params.prediction_type == 'regression':
-            for i, colname in enumerate(self.params.response_cols):
-                std_colname = '%s_std' % colname
-                result_df[std_colname] = stds[:,i,0]
+                    class_probs = preds[:,i,:]
+                    nclass = preds.shape[2]
+                    if nclass == 2:
+                        result_df["%s_prob" % colname] = class_probs[:,1]
+                    else:
+                        for k in range(nclass):
+                            result_df["%s_prob_%d" % (colname, k)] = class_probs[:,k]
+                    result_df["%s_pred" % colname] = np.argmax(class_probs, axis=1)
+            if self.params.uncertainty and self.params.prediction_type == 'regression':
+                for i, colname in enumerate(self.params.response_cols):
+                    std_colname = '%s_std' % colname
+                    result_df[std_colname] = stds[:,i,0]
+        else:
+            # hybrid model should handled differently
+            if contains_responses:
+                result_df["actual_activity"] = self.data.vals[:, 0]
+                result_df["concentration"] = self.data.vals[:, 1]
+            result_df["pred_activity"] = preds[:, 0]
 
         if AD_method is not None:
             if self.featurization.feat_type != "graphconv":

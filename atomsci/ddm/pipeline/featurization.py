@@ -732,6 +732,11 @@ class DynamicFeaturization(Featurization):
             ##JEA: will set weights to 0 for missing values
             ##JEA: Featurize task results iff they exist.
             dset_df=dset_df.replace(np.nan, "", regex=True)
+            if params.model_type == "hybrid":
+                if params.response_cols[0] not in dset_df.columns.values:
+                    dset_df[params.response_cols[0]] = [0] * len(dset_df)
+                if params.response_cols[1] not in dset_df.columns.values:
+                    dset_df[params.response_cols[1]] = [0] * len(dset_df)
             vals, w = dl.convert_df_to_numpy(dset_df, params.response_cols) #, self.id_field)
             # Filter out examples where featurization failed.
             vals, w = (vals[is_valid], w[is_valid])
@@ -1109,6 +1114,11 @@ class DescriptorFeaturization(PersistentFeaturization):
                                                                    verbose=False)
         features = features.astype(float)
         ids = merged_dset_df[model_dataset.params.id_col]
+        if model_dataset.params.model_type == "hybrid":
+            if model_dataset.params.response_cols[0] not in merged_dset_df.columns.values:
+                merged_dset_df[model_dataset.params.response_cols[0]] = [0] * len(merged_dset_df)
+            if model_dataset.params.response_cols[1] not in merged_dset_df.columns.values:
+                merged_dset_df[model_dataset.params.response_cols[1]] = [0] * len(merged_dset_df)
         vals = merged_dset_df[model_dataset.params.response_cols].values
         attr = get_dataset_attributes(merged_dset_df, model_dataset.params)
 
@@ -1482,6 +1492,11 @@ class ComputedDescriptorFeaturization(DescriptorFeaturization):
             dset_cols.append(params.date_col)
         if model_dataset.contains_responses:
             dset_cols += params.response_cols
+            if params.model_type == "hybrid":
+                if params.response_cols[0] not in dset_df.columns.values:
+                    dset_df[params.response_cols[0]] = [0] * len(dset_df)
+                if params.response_cols[1] not in dset_df.columns.values:
+                    dset_df[params.response_cols[1]] = [0] * len(dset_df)
         input_df = dset_df[dset_cols]
 
         # Identify which SMILES strings in the dataset need to have descriptors calculated for them and
@@ -1557,8 +1572,17 @@ class ComputedDescriptorFeaturization(DescriptorFeaturization):
         nrows = len(ids)
         ncols = len(params.response_cols)
         if model_dataset.contains_responses:
-            vals = merged_dset_df[params.response_cols].values
-            vals, weights = make_weights(vals)
+            if params.model_type != "hybrid":
+                vals = merged_dset_df[params.response_cols].values
+                vals, weights = make_weights(vals)
+            else:
+                # in model prediction, we may only have conc column, so we need to add a pseudo activity column in that case.
+                if params.response_cols[0] not in merged_dset_df.columns.values:
+                    merged_dset_df[params.response_cols[0]] = [0]*len(merged_dset_df)
+                if params.response_cols[1] not in merged_dset_df.columns.values:
+                    merged_dset_df[params.response_cols[1]] = [0]*len(merged_dset_df)
+                vals = merged_dset_df[params.response_cols].values
+                weights = np.ones_like(vals)
         else:
             vals = np.zeros((nrows,ncols))
             weights = np.ones_like(vals)

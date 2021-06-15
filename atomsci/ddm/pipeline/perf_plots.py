@@ -77,30 +77,69 @@ def plot_pred_vs_actual(MP, epoch_label='best', threshold=None, error_bars=False
             r2_scores = pred_results['task_r2_scores']
         else:
             r2_scores = [r2]
-        for t in range(MP.params.num_model_tasks):
-            fig, ax = plt.subplots(figsize=(12.0,12.0))
+        if MP.params.model_type != "hybrid":
+            for t in range(MP.params.num_model_tasks):
+                fig, ax = plt.subplots(figsize=(12.0,12.0))
+                title = '%s\n%s split %s model on %s features\n%s subset predicted vs actual %s, R^2 = %.3f' % (
+                        dataset_name, splitter, model_type, featurizer, subset, tasks[t], r2_scores[t])
+                # Force axes to have same scale
+                ymin = min(min(y_actual[:,t]), min(y_pred[:,t]))
+                ymax = max(max(y_actual[:,t]), max(y_pred[:,t]))
+                ax.set_xlim(ymin, ymax)
+                ax.set_ylim(ymin, ymax)
+                if error_bars and y_std is not None:
+                    # Draw error bars
+                    ax.errorbar(y_actual[:,t], y_pred[:,t], y_std[:,t], c='blue', marker='o', alpha=0.4, linestyle='')
+                else:
+                    plt.scatter(y_actual[:,t], y_pred[:,t], s=9, c='blue', marker='o', alpha=0.4)
+                ax.set_xlabel('Observed value')
+                ax.set_ylabel('Predicted value')
+                # Draw an identity line
+                ax.plot([ymin,ymax], [ymin,ymax], c='forestgreen', linestyle='--')
+                if threshold is not None:
+                    plt.axvline(threshold, color='r', linestyle='--')
+                    plt.axhline(threshold, color='r', linestyle='--')
+                ax.set_title(title, fontdict={'fontsize' : 10})
+                if pdf_dir is not None:
+                    pdf.savefig(fig)
+        else:
+            fig, ax = plt.subplots(1,2, figsize=(20.0,10.0))
             title = '%s\n%s split %s model on %s features\n%s subset predicted vs actual %s, R^2 = %.3f' % (
-                     dataset_name, splitter, model_type, featurizer, subset, tasks[t], r2_scores[t])
-            # Force axes to have same scale
-            ymin = min(min(y_actual[:,t]), min(y_pred[:,t]))
-            ymax = max(max(y_actual[:,t]), max(y_pred[:,t]))
-            ax.set_xlim(ymin, ymax)
-            ax.set_ylim(ymin, ymax)
-            if error_bars and y_std is not None:
-                # Draw error bars
-                ax.errorbar(y_actual[:,t], y_pred[:,t], y_std[:,t], c='blue', marker='o', alpha=0.4, linestyle='')
-            else:
-                plt.scatter(y_actual[:,t], y_pred[:,t], s=9, c='blue', marker='o', alpha=0.4)
-            ax.set_xlabel('Observed value')
-            ax.set_ylabel('Predicted value')
-            # Draw an identity line
-            ax.plot([ymin,ymax], [ymin,ymax], c='forestgreen', linestyle='--')
+                    dataset_name, splitter, model_type, featurizer, subset, "Ki/XC50", r2_scores[0])
+            pos_ki = np.where(np.isnan(y_actual[:, 1]))[0]
+            pos_bind = np.where(~np.isnan(y_actual[:, 1]))[0]
+            y_pred_ki = y_pred[pos_ki, 0]
+            y_real_ki = y_actual[pos_ki, 0]
+            y_pred_bind = y_pred[pos_bind, 0]
+            y_real_bind = y_actual[pos_bind, 0]
+            ki_ymin = min(min(y_real_ki), min(y_pred_ki)) - 0.5
+            ki_ymax = max(max(y_real_ki), max(y_pred_ki)) + 0.5
+            ax[0].set_xlim(ki_ymin, ki_ymax)
+            ax[0].set_ylim(ki_ymin, ki_ymax)
+            ax[0].scatter(y_real_ki, y_pred_ki, s=9, c='blue', marker='o', alpha=0.4)
+            ax[0].set_xlabel('Observed value')
+            ax[0].set_ylabel('Predicted value')
+            ax[0].plot([ki_ymin,ki_ymax], [ki_ymin,ki_ymax], c='forestgreen', linestyle='--')
             if threshold is not None:
-                plt.axvline(threshold, color='r', linestyle='--')
-                plt.axhline(threshold, color='r', linestyle='--')
-            ax.set_title(title, fontdict={'fontsize' : 10})
-            if pdf_dir is not None:
-                pdf.savefig(fig)
+                ax[0].axvline(threshold, color='r', linestyle='--')
+                ax[0].axhline(threshold, color='r', linestyle='--')
+            ax[0].set_title(title, fontdict={'fontsize' : 10})
+            
+            title = '%s\n%s split %s model on %s features\n%s subset predicted vs actual %s, R^2 = %.3f' % (
+                    dataset_name, splitter, model_type, featurizer, subset, "Binding/Inhibition", r2_scores[1])
+            bind_ymin = min(min(y_real_bind), min(y_pred_bind)) - 0.1
+            bind_ymax = max(max(y_real_bind), max(y_pred_bind)) + 0.1
+            ax[1].set_xlim(bind_ymin, bind_ymax)
+            ax[1].set_ylim(bind_ymin, bind_ymax)
+            ax[1].scatter(y_real_bind, y_pred_bind, s=9, c='blue', marker='o', alpha=0.4)
+            ax[1].set_xlabel('Observed value')
+            ax[1].set_ylabel('Predicted value')
+            ax[1].plot([bind_ymin,bind_ymax], [bind_ymin,bind_ymax], c='forestgreen', linestyle='--')
+            if threshold is not None:
+                ax[1].axvline(threshold, color='r', linestyle='--')
+                ax[1].axhline(threshold, color='r', linestyle='--')
+            ax[1].set_title(title, fontdict={'fontsize' : 10})
+
     if pdf_dir is not None:
         pdf.close()
         MP.log.info("Wrote plot to %s" % pdf_path)

@@ -18,7 +18,8 @@ convert_to_float_list = {'dropouts','weight_init_stddevs','bias_init_consts','le
                          'xgb_gamma',
                          "xgb_min_child_weight",
                          "xgb_subsample",
-                         "xgb_colsample_bytree"
+                         "xgb_colsample_bytree",
+                         "ki_convert_ratio"
                          }
 convert_to_int_list = {'layer_sizes','rf_max_features','rf_estimators', 'rf_max_depth',
                        'umap_dim', 'umap_neighbors', 'layer_nums', 'node_nums',
@@ -276,7 +277,7 @@ def dict_to_list(inp_dictionary,replace_spaces=False):
     temp_list_to_command_line = []
 
     # Special case handling for arguments that are False or True by default
-    default_false = ['previously_split','use_shortlist','datastore', 'save_results','verbose', 'hyperparam', 'split_only'] 
+    default_false = ['previously_split','use_shortlist','datastore', 'save_results','verbose', 'hyperparam', 'split_only', 'is_ki'] 
     default_true = ['transformers','previously_featurized','uncertainty', 'rerun']
     for key, value in inp_dictionary.items():
         if key in default_false:
@@ -612,6 +613,24 @@ def get_parser():
     parser.add_argument(
         '--weight_init_stddevs', dest='weight_init_stddevs', required=False, default=None,
         help=weight_init_stddevs_help_string)
+
+    # **********************************************************************************************************
+    # model_building_parameters: hybrid
+    parser.add_argument(
+        '--is_ki', dest='is_ki', required=False, action='store_true',
+        help='True/False flag for noting whether the dose-response activity is Ki or XC50')
+    parser.set_defaults(is_ki=False)
+
+    parser.add_argument(
+        '--ki_convert_ratio', dest='ki_convert_ratio', default=None,
+        help='To convert Ki into IC50, a ratio is needed. It can be the ratio of [S]/Km'
+             ' for enzymatic inhibition assays, [S] is the concentration of substrate'
+             'Km is the Michaelis constant. It can also be [S]/Kd for radioligand competitive'
+             ' binding, [S] is the concentration of the radioligand, Kd is its dissociation constant.')
+
+    parser.add_argument(
+        '--loss_func', dest='loss_func', default='poisson', type=str,
+        help='The loss function used in the hybrid model training, currently support poisson and l2')
 
     # **********************************************************************************************************
     # model_building_parameters: random_forest
