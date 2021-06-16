@@ -1805,6 +1805,10 @@ class HybridModelWrapper(ModelWrapper):
 
         if subset == 'full':
             return self.get_full_dataset_perf_data(self.data)
+        if epoch_label == 'best':
+            epoch = self.best_epoch
+        else:
+            raise ValueError("Unknown epoch_label '%s'" % epoch_label)
         if subset == 'train':
             return self.train_perf_data[epoch]
         elif subset == 'valid':

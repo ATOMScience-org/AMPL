@@ -742,7 +742,7 @@ class ModelPipeline:
             if contains_responses:
                 result_df["actual_activity"] = self.data.vals[:, 0]
                 result_df["concentration"] = self.data.vals[:, 1]
-            result_df["pred_activity"] = preds[:, 0]
+            result_df["pred"] = preds[:, 0]
 
         if AD_method is not None:
             if self.featurization.feat_type != "graphconv":
@@ -925,7 +925,7 @@ class ModelPipeline:
             if contains_responses:
                 result_df["actual_activity"] = self.data.vals[:, 0]
                 result_df["concentration"] = self.data.vals[:, 1]
-            result_df["pred_activity"] = preds[:, 0]
+            result_df["pred"] = preds[:, 0]
 
         if AD_method is not None:
             if self.featurization.feat_type != "graphconv":
