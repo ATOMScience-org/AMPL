@@ -6,7 +6,7 @@
     "prediction_type": "regression",
     "dataset_key": "test/test_datasets/H1_std.csv",
     "id_col": "compound_id",
-    "smiles_col": "rdkit_smiles",
+    "smiles_col": "base_rdkit_smiles",
     "response_cols": "pKi_mean",
     "split_uuid": "002251a2-83f8-4511-acf5-e8bbc5f86677",
     "previously_split": "True",

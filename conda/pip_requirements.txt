@@ -36,6 +36,7 @@ lazy-object-proxy==1.5.2
 llvmlite==0.35.0
 Markdown==3.3.3
 MolVS==0.1.1
+maestrowf==1.1.8
 monotonic==1.5
 mordred==1.2.0
 msgpack==1.0.2

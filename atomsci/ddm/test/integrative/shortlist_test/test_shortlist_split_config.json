@@ -1,0 +1,15 @@
+{
+    "hyperparam": "True",
+    "split_only": "True",
+    "use_shortlist": "True",
+    "shortlist_key": "test_shortlist.csv",
+    "result_dir": "./shortlist_test",
+    "save_results": "False",
+    "datastore": "False",
+    "system": "LC",
+    "id_col": "compound_id",
+    "smiles_col": "base_rdkit_smiles",
+    "collection_name": "test",
+    "featurizer":"computed_descriptors",
+    "descriptor_type":"rdkit_raw"
+}
