@@ -63,14 +63,14 @@ def run_command(shell_script, python_path, script_dir, params):
 
 def gen_maestro_command(python_path, script_dir, params):
     """
-    Function to submit jobs on a slurm system
+    Generates a string that can be fed into a command line.
     Args:
         shell_script: Name of shell script to run
         python_path: Path to python version
         script_dir: Directory where script lives
         params: parameters in dictionary format
     Returns:
-        None
+        str: Formatted command in the form of a string
 
     """
     params_str = parse.to_str(params)
@@ -1640,11 +1640,13 @@ def parse_params(param_list):
                    'datastore',
                    'save_results',
                    'previously_featurized',
+                   'previously_split',
                    'prediction_type',
                    'descriptor_key',
                    'descriptor_type',
                    'split_valid_frac',
                    'split_test_frac',
+                   'split_uuid',
                    'bucket',
                    'lc_account',
                    'slurm_account',
