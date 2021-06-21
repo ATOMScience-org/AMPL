@@ -495,6 +495,9 @@ class HyperparameterSearch(object):
 
         """
         # Creates the assay list with additional options for use_shortlist
+        print("shortlist", self.params.use_shortlist)
+        print("previously_split", self.params.previously_split)
+        print("split_uuid", self.params.split_uuid)
         if not self.params.use_shortlist:
             if type(self.params.splitter) == str:
                 splitters = [self.params.splitter]
@@ -1632,6 +1635,10 @@ def parse_params(param_list):
         argparse.Namespace
     """
     params = parse.wrapper(param_list)
+    print("param_list", param_list)
+    print("parse_params shortlist", params.use_shortlist)
+    print("parse_params previously_split", params.previously_split)
+    print("parse_params split_uuid", params.split_uuid)
     keep_params = {'prediction_type',
                    'model_type',
                    'featurizer',
@@ -1640,11 +1647,13 @@ def parse_params(param_list):
                    'datastore',
                    'save_results',
                    'previously_featurized',
+                   'previously_split',
                    'prediction_type',
                    'descriptor_key',
                    'descriptor_type',
                    'split_valid_frac',
                    'split_test_frac',
+                   'split_uuid',
                    'bucket',
                    'lc_account',
                    'slurm_account',
