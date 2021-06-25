@@ -58,7 +58,7 @@ DB
 * Install AMPL 
 * Download the tar file, `MultipleSourceCurn.tar.gz`
 * Untar/unzip the file using `tar -xzvf MultipleSourceCurn.tar.gz`
-* It will create a MultipleSourceCurn folder with two sub-folders, `DB` and `sourceCuration`
+* It will create a `MultipleSourceCurn` folder with two sub-folders, `DB` and `sourceCuration`
    * `DB` folder files, due to large size, will not be included in the tarball 
    * Users have to download data from the data sources of their interest, such as DTC, ExCAPE-DB. Downloading the whole DTC and ExCAPE-DB files are straightforward. Please see below for details. Please note that extracting the whole DB from ChEMBL needs some effort. Please check ChEMBL database link shown below for details:
       * https://chembl.gitbook.io/chembl-interface-documentation/frequently-asked-questions/chembl-download-questions
