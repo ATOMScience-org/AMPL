@@ -15,6 +15,7 @@ import numpy as np
 import logging
 import itertools
 from numpy.core.numeric import NaN
+from collections.abc import Iterable, Iterator
 import pandas as pd
 import uuid
 
@@ -1149,7 +1150,7 @@ class GridSearch(HyperparameterSearch):
 
         new_dict = {}
         for key, value in params_dict.items():
-            assert isinstance(value, collections.Iterable)
+            assert isinstance(value, Iterable)
             if key == 'layers':
                 new_dict[key] = value
             elif type(value[0]) != str:
@@ -1195,7 +1196,7 @@ class RandomSearch(HyperparameterSearch):
             return None
         new_dict = {}
         for key, value in params_dict.items():
-            assert isinstance(value, collections.Iterable)
+            assert isinstance(value, Iterable)
             if key == 'layers':
                 new_dict[key] = value
             elif type(value[0]) != str:
@@ -1242,7 +1243,7 @@ class GeometricSearch(HyperparameterSearch):
 
         new_dict = {}
         for key, value in params_dict.items():
-            assert isinstance(value, collections.Iterable)
+            assert isinstance(value, Iterable)
             if key == 'layers':
                 new_dict[key] = value
             elif type(value[0]) != str:
@@ -1289,7 +1290,7 @@ class UserSpecifiedSearch(HyperparameterSearch):
             return None
         new_dict = {}
         for key, value in params_dict.items():
-            assert isinstance(value, collections.Iterable)
+            assert isinstance(value, Iterable)
             if key == 'layers':
                 new_dict[key] = value
             elif key in self.convert_to_int:

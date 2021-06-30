@@ -11,6 +11,8 @@ import numpy as np
 import pandas as pd
 import umap
 
+import pdb
+
 import deepchem as dc
 from deepchem.trans.transformers import Transformer, NormalizationTransformer
 from sklearn.preprocessing import RobustScaler
@@ -166,9 +168,9 @@ class UMAPTransformer(Transformer):
         return super(UMAPTransformer, self).transform(dataset, parallel=parallel)
 
     # ****************************************************************************************
-    def transform_array(self, X, y, w):
+    def transform_array(self, X, y, w, ids):
         X = self.mapper.transform(self.scaler.transform(self.imputer.transform(X)))
-        return (X, y, w)
+        return (X, y, w, ids)
 
     # ****************************************************************************************
     def untransform(self, z):
@@ -217,9 +219,9 @@ class NormalizationTransformerMissingData(NormalizationTransformer):
                 dataset=dataset)
 
     def transform(self, dataset, parallel=False):
-        return dataset.transform(lambda X, y, w: self.transform_array(X, y, w))
+        return dataset.transform(self)
 
-    def transform_array(self, X, y, w):
+    def transform_array(self, X, y, w, ids):
         """Transform the data in a set of (X, y, w) arrays."""
         if self.transform_X:
             zero_std_pos = np.where(self.X_stds == 0)
@@ -234,5 +236,5 @@ class NormalizationTransformerMissingData(NormalizationTransformer):
                 y = np.nan_to_num((y - self.y_means) / self.y_stds)
             else:
                 y = np.nan_to_num(y / self.y_stds)
-        return (X, y, w)
+        return (X, y, w, ids)
 
