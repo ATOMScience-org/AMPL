@@ -20,7 +20,7 @@ Users with some effort can easily -need Python programming- plug in other input 
 	* Python codes: `custom_data_curation.py`, `target_data_curation.py`
 	* Main driver input and configuration files: `runme.sh`, `config_parser.ini`
 	* Data input: `chembl_gene_list.txt`, `dtc_gene_list.txt`, `excape_gene_list.txt` 
-	* Output folders: `CuratedData`, `DiagPlot`
+	* Output folders: `CuratedData`, `DiagPlot` (** user creates them before running the code**)
 
 Here is the tree structure of the `MultipleSourceCurn.tar.gz` file:  
 ```     
