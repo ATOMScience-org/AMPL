@@ -56,7 +56,7 @@ DB
 
 ### Instructions for running the script:
 * Install AMPL 
-* Create a folder to hold MultipleSourceCurn scripts. We call this folder, **MultiplesourceCurn**
+* Create a folder to hold MultipleSourceCurn scripts. We call this folder, ```MultiplesourceCurn```
 * Within **MultiplsesourceCurn** create two sub-folders called **DB** and **sourceCuration**
 * Untar/unzip the file using `tar -xzvf MultipleSourceCurn.tar.gz`
 * It will create a `MultipleSourceCurn` folder with two sub-folders, `DB` and `sourceCuration`
