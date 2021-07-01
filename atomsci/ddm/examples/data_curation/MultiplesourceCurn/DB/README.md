@@ -1,1 +1,1 @@
-Download and place data downloaded from a single/multiple sources (ex., ChEMBL)
+Place here the downloaded data from a single/multiple sources (ex., ChEMBL)
