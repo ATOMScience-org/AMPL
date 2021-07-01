@@ -12,17 +12,17 @@ Users with some effort can easily -need Python programming- plug in other input 
 ## Software/hardware requirements: 
 
 * AMPL installation. Please check AMPL GitHub page for installation, https://github.com/ATOMconsortium/AMPL 
-* Memory requirement tips: ~ 80 GB for three targets CASP9, KCNH2, and CYP3A4 and ~ 52 minutes (see Test Run section for details)
+* Memory requirement tips: ~ 80 GB for three target (CASP9, KCNH2, and CYP3A4) data collected from three databases, ChEMBL, DTC and ExCAPE-DB. The run took ~ 52 minutes (see Test Run section for details) for completion.
 
-### File structure details of the `MultipleSourceCurn.tar.gz` (archive file in compressed format)
+### Software file structure 
 * `DB` folder: All database related input files
 * `sourceCuration` Folder: 
 	* Python codes: `custom_data_curation.py`, `target_data_curation.py`
 	* Main driver input and configuration files: `runme.sh`, `config_parser.ini`
 	* Data input: `chembl_gene_list.txt`, `dtc_gene_list.txt`, `excape_gene_list.txt` 
-	* Output folders: `CuratedData`, `DiagPlot` (**user creates them before running the code**)
+	* Output folders: `CuratedData`, `DiagPlot` (```user creates them before running the code```)
 
-Here is the tree structure of the `MultipleSourceCurn.tar.gz` file:  
+Here is the tree structure of the `MultipleSourceCurn` directory:  
 ```     
 MultipleSourceCurn/
 ├── [4.0K]  DB                                 # (EMPTY FOLDER, a place-holder for database files) 
@@ -38,7 +38,7 @@ MultipleSourceCurn/
     └── [ 20K]  target_data_curation.py        # Python script file 
 ```
 
-Due to the large DB directory size (~ 22 GB), its contents are not included in the `MultipleSourceCurn.tar.gz` file. 
+Due to the large DB directory size (~ 22 GB), its contents are not included in DB folder. 
 After downloading `MultipleSourceCurn.tar.gz`, use `tar -xzvf MutipleSourceCurn.tar.gz`, to untar/unzip the 
 file. This will create `MultipleSourceCurn` folder. Please download the concerned files and place them under the 
 DB folder. Make sure the filenames match the tags (activity_csv and/or smiles_csv and/or activity_summary) listed in the 
