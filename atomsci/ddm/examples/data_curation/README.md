@@ -11,11 +11,12 @@ Users with some effort can easily -need Python programming- plug in other input 
 
 ## Software/hardware requirements: 
 
-* AMPL installation. Please check AMPL GitHub page for installation, https://github.com/ATOMconsortium/AMPL 
-* Memory requirement tips: ~ 80 GB for three target (CASP9, KCNH2, and CYP3A4) data collected from three databases, ChEMBL, DTC and ExCAPE-DB. The run took ~ 52 minutes (see Test Run section for details) for completion.
+* AMPL installation. Please check AMPL GitHub page for installation, https://github.com/ATOMconsortium/AMPL
+* At least one database (ex. DTC or Excape or ChEMBL) input file placed under `DB` (see below for details) folder  
+* Memory requirement tips: ~ 80 GB for three target (CASP9, KCNH2, and CYP3A4) data collected from three sources, ChEMBL, DTC and ExCAPE-DB. The run took ~ 52 minutes (see Test Run section for details) for completion.
 
 ### Software file structure 
-* `DB` folder: All database related input files
+* `DB` folder: To hold database related input files
 * `sourceCuration` Folder: 
 	* Python codes: `custom_data_curation.py`, `target_data_curation.py`
 	* Main driver input and configuration files: `runme.sh`, `config_parser.ini`
@@ -24,7 +25,7 @@ Users with some effort can easily -need Python programming- plug in other input 
 
 Here is the tree structure of the `MultipleSourceCurn` directory:  
 ```     
-MultipleSourceCurn/
+MultipleSourceCurn/                            # A directory to hold all the project related files
 ├── [4.0K]  DB                                 # (EMPTY FOLDER, a place-holder for database files) 
 └── [4.0K]  sourceCuration                     # Directory that contains the Python script, input/output files and configuration file
     ├── [4.0K]  CuratedData                    # output directory: Curated Data of all datasets 
@@ -38,11 +39,7 @@ MultipleSourceCurn/
     └── [ 20K]  target_data_curation.py        # Python script file 
 ```
 
-Due to the large DB directory size (~ 22 GB), its contents are not included in DB folder. 
-After downloading `MultipleSourceCurn.tar.gz`, use `tar -xzvf MutipleSourceCurn.tar.gz`, to untar/unzip the 
-file. This will create `MultipleSourceCurn` folder. Please download the concerned files and place them under the 
-DB folder. Make sure the filenames match the tags (activity_csv and/or smiles_csv and/or activity_summary) listed in the 
-`config_parser.ini` file.
+Due to the large DB directory size (~ 22 GB), its contents are not included in DB folder. Please create two folders, sourceCuration and DB. In this tutorial, we have these folders under `MultiplesourceCurn`.Please download the concerned files from this directory and place them under the appropriate folders. Make sure the filenames match the tags (activity_csv and/or smiles_csv and/or activity_summary) listed in the `config_parser.ini` file.
 ```
 Contents of `DB` folder:
 
@@ -55,16 +52,13 @@ DB
 ```
 
 ### Instructions for running the script:
-* Install AMPL 
-* Create a folder to hold MultipleSourceCurn scripts. We call this folder, ```MultiplesourceCurn```
+* Install AMPL. Note AMPL is a conda-based software. Please refer to this link, https://github.com/ATOMconsortium/AMPL#Install, for details. 
+* Create a folder to hold MultipleSourceCurn scripts. We call this folder, ```MultiplesourceCurn```.
 * Within **MultiplsesourceCurn** create two sub-folders called **DB** and **sourceCuration**
-* Untar/unzip the file using `tar -xzvf MultipleSourceCurn.tar.gz`
-* It will create a `MultipleSourceCurn` folder with two sub-folders, `DB` and `sourceCuration`
-   * `DB` folder files, due to large size, will not be included in the tarball 
-   * Users have to download data from the data sources of their interest, such as DTC, ExCAPE-DB. Downloading the whole DTC and ExCAPE-DB files are straightforward. Please see below for details. Please note that extracting the whole DB from ChEMBL needs some effort. Please check ChEMBL database link shown below for details:
+* `DB` folder should hold atleast one datasource input file. Users have to download data from the data sources of their interest, such as DTC, ExCAPE-DB. Downloading the whole database files for DTC and ExCAPE-DB is straightforward. Please see the last section of this document for details. Please note that extracting the whole DB from ChEMBL needs some effort. Please check ChEMBL database links shown below for details:
       * https://chembl.gitbook.io/chembl-interface-documentation/frequently-asked-questions/chembl-download-questions
       * https://ftp.ebi.ac.uk/pub/databases/chembl/ChEMBLdb/latest/
-* Once the concerned database files are placed in the DB folder 
+* Once the concerned database file(s) are placed in the DB folder 
 * Open a terminal and activate atomsci package using the following command, `conda activate atomsci`
 * Change directory to `MultipleSourceCurn/sourceCuration` and do the following things: 
   - Edit the configuration file, `config_parser.ini` to set the absolute path to `DB` folders. Also the configuration `end_points` section could be expanded to include `Ki,Kd,IC50,AC50,EC50`
@@ -78,8 +72,8 @@ DB
 
 ## DB directory details: 
 
-* **CuratedData** : Directory location where combined model ready dataset and rejected compounds will be stored
-* **DiagPlot**  : Location for diagnostic data plots (pdf format)
+* **CuratedData** (*User creates them under sourceCuration subfolder*) : Directory location where the combined/curated machine-learning model-ready datasets and rejected compounds will be stored
+* **DiagPlot** (*User creates them under sourceCuration subfolder*)  : Location for diagnostic data plots (pdf format)
     * currently will contain just distribution of activity values for final set
 
 ## Test run: 
