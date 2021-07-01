@@ -92,7 +92,7 @@ user    50m9.502s
 sys     0m59.148s
 ```
 
-## Guidelines on how to extract data (the contents of the `DB` database folder) from the databases
+## Guidelines on how to extract data (the contents of the `DB` database folder) from the database sources
 
 ### ExCAPE-DB
 
