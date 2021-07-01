@@ -823,7 +823,7 @@ The AMPL pipeline contains many parameters and options to fit models and make pr
   
 |||
 |-|-|
-|*Description:*|Type of hyperparameter search to do. Options = [grid, random, geometric, and user\_specified]|
+|*Description:*|Type of hyperparameter search to do. Options = [grid, random, geometric, hyperopt and user\_specified]|
 |*Default:*|grid|
   
 - **shortlist\_key**  
