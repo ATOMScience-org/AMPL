@@ -341,7 +341,7 @@ class KFoldSplitting(Splitting):
         """
         dataset_dup = False
         if check_if_dupe_smiles_dataset(dataset, attr_df, smiles_col):
-            print("Duplicate ids or smiles in the dataset, deduplicate first")
+            log.info("Duplicate ids or smiles in the dataset, will deduplicate first and assign all records per compound ID to same partition")
             dataset_dup = True
             dataset_ori = copy.deepcopy(dataset)
             id_df = pd.DataFrame({'indices' : np.arange(len(dataset.ids), dtype=np.int32), "compound_id": [str(e) for e in dataset.ids]})
@@ -509,7 +509,7 @@ class TrainValidTestSplitting(Splitting):
 
         dataset_dup = False
         if check_if_dupe_smiles_dataset(dataset, attr_df, smiles_col):
-            print("Duplicate ids or smiles in the dataset, deduplicate first")
+            log.info("Duplicate ids or smiles in the dataset, will deduplicate first and assign all records per compound ID to same partition")
             dataset_dup = True
             dataset_ori = copy.deepcopy(dataset)
             id_df = pd.DataFrame({'indices' : np.arange(len(dataset.ids), dtype=np.int32), "compound_id": [str(e) for e in dataset.ids]})
