@@ -848,7 +848,7 @@ def get_filesystem_perf_results(result_dir, pred_type='classification'):
     best_epoch_list = []
     model_score_type_list = []
     feature_transform_type_list = []
-
+    
     subsets = ['train', 'valid', 'test']
 
     if pred_type == 'regression':
@@ -862,21 +862,24 @@ def get_filesystem_perf_results(result_dir, pred_type='classification'):
         for metric in metrics:
             score_dict[subset][metric] = []
     score_dict['valid']['model_choice_score'] = []
-
-
+       
     # Navigate the results directory tree
     model_list = []
     metrics_list = []
+    path_list = []
     for dirpath, dirnames, filenames in os.walk(result_dir):
         if ('model_metadata.json' in filenames) and ('model_metrics.json' in filenames):
             meta_path = os.path.join(dirpath, 'model_metadata.json')
             with open(meta_path, 'r') as meta_fp:
                 meta_dict = json.load(meta_fp)
-            model_list.append(meta_dict)
-            metrics_path = os.path.join(dirpath, 'model_metrics.json')
-            with open(metrics_path, 'r') as metrics_fp:
-                metrics_dicts = json.load(metrics_fp)
-            metrics_list.append(metrics_dicts)
+            if meta_dict['model_parameters']['prediction_type']==pred_type:
+                model_list.append(meta_dict)
+                metrics_path = os.path.join(dirpath, 'model_metrics.json')
+                with open(metrics_path, 'r') as metrics_fp:
+                    metrics_dicts = json.load(metrics_fp)
+                metrics_list.append(metrics_dicts)
+                model_path = dirpath.rsplit('/',maxsplit=3)[0]
+                path_list.append(model_path)
 
     print("Found data for %d models under %s" % (len(model_list), result_dir))
 
@@ -957,6 +960,7 @@ def get_filesystem_perf_results(result_dir, pred_type='classification'):
 
     perf_df = pd.DataFrame(dict(
                     model_uuid=model_uuid_list,
+                    model_path = path_list,
                     ampl_version=ampl_version_list,
                     model_type=model_type_list,
                     dataset_key=dataset_key_list,
