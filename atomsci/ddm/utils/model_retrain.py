@@ -135,7 +135,8 @@ def train_model_from_tracker(model_uuid, output_dir):
             config['datastore']=True
     except:
         pass
-    
+    # fix weird old parameters
+    if config[]
     # Parse parameters
     params = parse.wrapper(config)
     params.result_dir = output_dir
