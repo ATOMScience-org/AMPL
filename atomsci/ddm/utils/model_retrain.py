@@ -106,7 +106,7 @@ def train_model_from_tar(input, output):
     return train_model(metadata_path, output)
 
 def train_model_from_tracker(model_uuid, output_dir):
-    """ Retrain a model saved in the model tracker
+    """ Retrain a model saved in the model tracker, but save it to output_dir and don't insert it into the model tracker
 
     Args:
         model_uuid (str): model tracker model_uuid file
@@ -114,7 +114,7 @@ def train_model_from_tracker(model_uuid, output_dir):
         output_dir (str): path to output directory
 
     Returns:
-        None
+        the model pipeline object with trained model
     """
     
     if not mlmt_supported:
@@ -128,6 +128,14 @@ def train_model_from_tracker(model_uuid, output_dir):
     # get metadata from tracker
     config = mt.get_metadata_by_uuid(model_uuid)
     
+    # check if datastore dataset
+    try:
+        result = dsf.retrieve_dataset_by_datasetkey(config['training_dataset']['dataset_key'], bucket=config['training_dataset']['bucket'])
+        if result is not None:
+            config['datastore']=True
+    except:
+        pass
+    
     # Parse parameters
     params = parse.wrapper(config)
     params.result_dir = output_dir
@@ -138,6 +146,7 @@ def train_model_from_tracker(model_uuid, output_dir):
     params.split_uuid = config['splitting_parameters']['split_uuid']
     # specify collection
     params.collection_name = collection_name
+
     logger.debug("model params %s" % str(params))
 
     # Create model pipeline
