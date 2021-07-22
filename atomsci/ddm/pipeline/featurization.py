@@ -52,6 +52,7 @@ import collections
 
 logging.basicConfig(format='%(asctime)-15s %(message)s')
 log = logging.getLogger('ATOM')
+log.setLevel(logging.DEBUG)
 
 
 
@@ -427,7 +428,7 @@ def compute_all_moe_descriptors(smiles_df, params):
     """
 
     # TODO: Get MOE_PATH from params
-    moe_path = os.environ.get('MOE_PATH', '/usr/workspace/atom/moe2018/bin')
+    moe_path = os.environ.get('MOE_PATH', '/usr/workspace/atom/moe2020_site/moe2020_site/bin')
     if not os.path.exists(moe_path):
         raise Exception("MOE is not available, or MOE_PATH environment variable needs to be set.")
     moe_root = os.path.abspath('%s/..' % moe_path)
@@ -732,7 +733,7 @@ class DynamicFeaturization(Featurization):
             ##JEA: will set weights to 0 for missing values
             ##JEA: Featurize task results iff they exist.
             dset_df=dset_df.replace(np.nan, "", regex=True)
-            vals, w = dl.convert_df_to_numpy(dset_df, params.response_cols) #, self.id_field)
+            vals, w = dl._convert_df_to_numpy(dset_df, params.response_cols) #, self.id_field)
             # Filter out examples where featurization failed.
             vals, w = (vals[is_valid], w[is_valid])
         else:

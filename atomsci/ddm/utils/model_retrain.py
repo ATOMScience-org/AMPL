@@ -45,13 +45,15 @@ except (ModuleNotFoundError, ImportError):
     
 
 
-def train_model(input, output):
+def train_model(input, output, dskey=''):
     """ Retrain a model saved in a model_metadata.json file
 
     Args:
         input (str): path to model_metadata.json file
 
         output (str): path to output directory
+
+        dskey (str): new dataset key if file location has changed
 
     Returns:
         None
@@ -62,6 +64,10 @@ def train_model(input, output):
     with open(input) as f:
         config = json.loads(f.read())
 
+    # set a new dataset key if necessary
+    if not dskey == '':
+        config['dataset_key'] = dskey
+
     # Parse parameters
     params = parse.wrapper(config)
     params.result_dir = output
@@ -70,9 +76,8 @@ def train_model(input, output):
     # use the same split
     params.previously_split = True
     params.split_uuid = config['splitting_parameters']['split_uuid']
+
     # specify collection
-    
-    
     logger.debug("model params %s" % str(params))
 
     # Create model pipeline
@@ -83,13 +88,15 @@ def train_model(input, output):
 
     return model
 
-def train_model_from_tar(input, output):
+def train_model_from_tar(input, output, dskey=''):
     """ Retrain a model saved in a tar.gz file
 
     Args:
         input (str): path to a tar.gz file
 
         output (str): path to output directory
+
+        dskey (str): new dataset key if file location has changed
 
     Returns:
         None
@@ -103,7 +110,7 @@ def train_model_from_tar(input, output):
     # make metadata path
     metadata_path = os.path.join(tmpdir, 'model_metadata.json')
 
-    return train_model(metadata_path, output)
+    return train_model(metadata_path, output, dskey=dskey)
 
 def train_model_from_tracker(model_uuid, output_dir):
     """ Retrain a model saved in the model tracker, but save it to output_dir and don't insert it into the model tracker
@@ -169,6 +176,7 @@ def main(argv):
     parser = argparse.ArgumentParser()
     parser.add_argument('-i', '--input', required=True, help='input directory, file or model_uuid')
     parser.add_argument('-o', '--output', help='output result directory')
+    parser.add_argument('-dk', '--dataset_key', default='', help='Sometimes dataset keys get moved. Specify new location of dataset. Only works when passing in one model at time.')
 
     args = parser.parse_args()
 
@@ -184,9 +192,9 @@ def main(argv):
         for path in Path(input).rglob('model_metadata.json'):
             train_model(path.absolute(), output)
     elif input.endswith('.json'):
-        train_model(input, output)
+        train_model(input, output, dskey=args.dataset_key)
     elif input.endswith('.tar.gz'):
-        train_model_from_tar(input, output)
+        train_model_from_tar(input, output, dskey=args.dataset_key)
     else:
         try:
             train_model_from_tracker(input, output)
