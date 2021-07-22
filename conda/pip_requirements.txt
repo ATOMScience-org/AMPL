@@ -29,6 +29,7 @@ iniconfig==1.1.1
 ipykernel==5.5.0
 ipython-genutils==0.2.0
 ipython==7.16.1
+Jinja2==3.0.1
 jedi==0.18.0
 jsonpointer==2.0
 jsonref==0.2
