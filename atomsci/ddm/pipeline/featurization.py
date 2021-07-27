@@ -43,10 +43,10 @@ except (ImportError, AttributeError, ModuleNotFoundError):
 
 # Ignore failure to import Gomez-Bombarelli autoencoder package (doesn't work in some
 # LC environments that don't have Keras installed)
-try:
-    from mol_vae_features import MoleculeVAEFeaturizer
-except ImportError:
-    pass
+#try:
+#    from mol_vae_features import MoleculeVAEFeaturizer
+#except ImportError:
+#    pass
 
 import collections
 
@@ -733,12 +733,7 @@ class DynamicFeaturization(Featurization):
             ##JEA: will set weights to 0 for missing values
             ##JEA: Featurize task results iff they exist.
             dset_df=dset_df.replace(np.nan, "", regex=True)
-            if params.model_type == "hybrid":
-                if params.response_cols[0] not in dset_df.columns.values:
-                    dset_df[params.response_cols[0]] = [0] * len(dset_df)
-                if params.response_cols[1] not in dset_df.columns.values:
-                    dset_df[params.response_cols[1]] = [0] * len(dset_df)
-            vals, w = dl.convert_df_to_numpy(dset_df, params.response_cols) #, self.id_field)
+            vals, w = dl._convert_df_to_numpy(dset_df, params.response_cols) #, self.id_field)
             # Filter out examples where featurization failed.
             vals, w = (vals[is_valid], w[is_valid])
         else:
@@ -1115,11 +1110,6 @@ class DescriptorFeaturization(PersistentFeaturization):
                                                                    verbose=False)
         features = features.astype(float)
         ids = merged_dset_df[model_dataset.params.id_col]
-        if model_dataset.params.model_type == "hybrid":
-            if model_dataset.params.response_cols[0] not in merged_dset_df.columns.values:
-                merged_dset_df[model_dataset.params.response_cols[0]] = [0] * len(merged_dset_df)
-            if model_dataset.params.response_cols[1] not in merged_dset_df.columns.values:
-                merged_dset_df[model_dataset.params.response_cols[1]] = [0] * len(merged_dset_df)
         vals = merged_dset_df[model_dataset.params.response_cols].values
         attr = get_dataset_attributes(merged_dset_df, model_dataset.params)
 
@@ -1263,7 +1253,7 @@ class DescriptorFeaturization(PersistentFeaturization):
         if model_dataset.contains_responses:
             dset_cols += params.response_cols
         merged_dset_df = dset_df[dset_cols].merge(
-                self.precomp_descr_table, how='inner', left_on=params.id_col, right_on=self.desc_id_col)
+                self.precomp_descr_table, how='left', left_on=params.id_col, right_on=self.desc_id_col)
 
         model_dataset.save_featurized_data(merged_dset_df)
 
@@ -1493,35 +1483,32 @@ class ComputedDescriptorFeaturization(DescriptorFeaturization):
             dset_cols.append(params.date_col)
         if model_dataset.contains_responses:
             dset_cols += params.response_cols
-            if params.model_type == "hybrid":
-                if params.response_cols[0] not in dset_df.columns.values:
-                    dset_df[params.response_cols[0]] = [0] * len(dset_df)
-                if params.response_cols[1] not in dset_df.columns.values:
-                    dset_df[params.response_cols[1]] = [0] * len(dset_df)
-        input_df = dset_df[dset_cols]
+        keep_df = dset_df[dset_cols]
+
+        # Make a table with duplicate SMILES removed. Later we'll join the descriptors back to the original
+        # table.
+        input_df = keep_df.drop_duplicates(subset=params.smiles_col)[[params.id_col, params.smiles_col]]
 
         # Identify which SMILES strings in the dataset need to have descriptors calculated for them and
         # which already have them precomputed
-        dset_smiles = dset_df[params.smiles_col].values
+        dset_smiles = set(input_df[params.smiles_col].values)
         if use_precomputed:
-            calc_smiles = list(set(dset_smiles) - set(self.precomp_descr_table[self.desc_smiles_col].values))
-            precomp_smiles = list(set(dset_smiles) - set(calc_smiles))
+            calc_smiles = dset_smiles - set(self.precomp_descr_table[self.desc_smiles_col].values)
+            precomp_smiles = dset_smiles - calc_smiles
         else:
             calc_smiles = dset_smiles
-            precomp_smiles = []
+            precomp_smiles = set()
 
         # Compute descriptors for the compounds that need them
         if len(calc_smiles) > 0:
             calc_smiles_df = input_df[input_df[params.smiles_col].isin(calc_smiles)]
             calc_desc_df, is_valid = self.compute_descriptors(calc_smiles_df, params)
-            calc_merged_df = calc_smiles_df[is_valid].reset_index(drop=True)
+            calc_smiles_feat_df = calc_smiles_df[is_valid].reset_index(drop=True)[[params.smiles_col]]
             for col in descr_cols:
-                calc_merged_df[col] = calc_desc_df[col]
-            # Get rid of any extra columns
-            calc_merged_df = calc_merged_df[dset_cols+descr_cols]
+                calc_smiles_feat_df[col] = calc_desc_df[col]
 
             if len(precomp_smiles) == 0:
-                merged_dset_df = calc_merged_df
+                uniq_smiles_feat_df = calc_smiles_feat_df
 
             # Add the newly computed descriptors to the precomputed table
             if self.precomp_descr_table.empty:
@@ -1531,31 +1518,31 @@ class ComputedDescriptorFeaturization(DescriptorFeaturization):
 
         # Merge descriptors from the precomputed table for the remaining compounds
         if len(precomp_smiles) > 0:
-            precomp_smiles_df = input_df[input_df[params.smiles_col].isin(precomp_smiles)]
-            precomp_merged_df = precomp_smiles_df.merge(self.precomp_descr_table, how='inner',
-                                                        left_on=params.smiles_col,
-                                                        right_on=self.desc_smiles_col,
-                                                        suffixes=('', '_y'))
+            precomp_smiles_feat_df = self.precomp_descr_table[self.precomp_descr_table[self.desc_smiles_col].isin(
+                                                                                                    precomp_smiles)].copy()
+            if not (params.smiles_col in precomp_smiles_feat_df.columns.values):
+                precomp_smiles_feat_df = precomp_smiles_feat_df.rename(columns={self.desc_smiles_col : params.smiles_col})
+
             # Remove duplicate SMILES matches
-            precomp_merged_df = precomp_merged_df.drop_duplicates(subset=[params.smiles_col])
+            precomp_smiles_feat_df = precomp_smiles_feat_df.drop_duplicates(subset=[params.smiles_col])
 
             # Get rid of any extra columns
-            precomp_merged_df = precomp_merged_df[dset_cols+descr_cols]
+            precomp_smiles_feat_df = precomp_smiles_feat_df[[params.smiles_col]+descr_cols]
 
             if len(calc_smiles) == 0:
-                merged_dset_df = precomp_merged_df
+                uniq_smiles_feat_df = precomp_smiles_feat_df
 
         # Combine the computed and precomputed data frames, if we had both
         if len(precomp_smiles) > 0 and len(calc_smiles) > 0:
-            merged_dset_df = pd.concat([calc_merged_df, precomp_merged_df], ignore_index=True)
+            uniq_smiles_feat_df = pd.concat([calc_smiles_feat_df, precomp_smiles_feat_df], ignore_index=True)
 
-        # TODO (ksm): Replace nan feature values with averages over non-missing rows, so that scaling and centering
-        # works as it should.
+        # Merge descriptors with input data on SMILES strings.
+        merged_dset_df = keep_df.merge(uniq_smiles_feat_df, how='left', on=params.smiles_col)
 
         # Shuffle the order of rows, so that compounds with precomputed descriptors are intermixed with those having
         # newly computed descriptors. This avoids bias later when doing scaffold splits; otherwise test set will be
         # biased toward non-precomputed compounds.
-        merged_dset_df = merged_dset_df.sample(n=merged_dset_df.shape[0])
+        merged_dset_df = merged_dset_df.sample(frac=1.0)
 
         # Save the featurized dataset
         model_dataset.save_featurized_data(merged_dset_df)
@@ -1573,17 +1560,8 @@ class ComputedDescriptorFeaturization(DescriptorFeaturization):
         nrows = len(ids)
         ncols = len(params.response_cols)
         if model_dataset.contains_responses:
-            if params.model_type != "hybrid":
-                vals = merged_dset_df[params.response_cols].values
-                vals, weights = make_weights(vals)
-            else:
-                # in model prediction, we may only have conc column, so we need to add a pseudo activity column in that case.
-                if params.response_cols[0] not in merged_dset_df.columns.values:
-                    merged_dset_df[params.response_cols[0]] = [0]*len(merged_dset_df)
-                if params.response_cols[1] not in merged_dset_df.columns.values:
-                    merged_dset_df[params.response_cols[1]] = [0]*len(merged_dset_df)
-                vals = merged_dset_df[params.response_cols].values
-                weights = np.ones_like(vals)
+            vals = merged_dset_df[params.response_cols].values
+            vals, weights = make_weights(vals)
         else:
             vals = np.zeros((nrows,ncols))
             weights = np.ones_like(vals)
@@ -1655,6 +1633,8 @@ class ComputedDescriptorFeaturization(DescriptorFeaturization):
             # Add scaling by a_count if descr_scaled is True
             if descr_scaled:
                 ret_df = self.scale_moe_descriptors(desc_df, params.descriptor_type)
+            else:
+                ret_df = desc_df
 
         else:
             raise ValueError('Unsupported descriptor_type %s' % params.descriptor_type)
