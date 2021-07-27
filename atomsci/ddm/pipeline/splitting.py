@@ -387,10 +387,10 @@ class KFoldSplitting(Splitting):
                     train = select_dset_by_id_list(dataset_ori, train.ids)
                     valid = select_dset_by_id_list(dataset_ori, valid.ids)
                 train_attr = select_attrs_by_dset_smiles(train, attr_df, smiles_col)
-                train = DiskDataset.from_numpy(train.X, train.y, ids=train_attr.index.values, verbose=False)
+                train = DiskDataset.from_numpy(train.X, train.y, ids=train_attr.index.values)
 
                 valid_attr = select_attrs_by_dset_smiles(valid, attr_df, smiles_col)
-                valid = DiskDataset.from_numpy(valid.X, valid.y, ids=valid_attr.index.values, verbose=False)
+                valid = DiskDataset.from_numpy(valid.X, valid.y, ids=valid_attr.index.values)
 
                 train_valid_dsets.append((train, valid))
                 train_valid_attr.append((train_attr, valid_attr))
@@ -398,7 +398,7 @@ class KFoldSplitting(Splitting):
             if dataset_dup:
                 test = select_dset_by_id_list(dataset_ori, test.ids)
             test_attr = select_attrs_by_dset_smiles(test, attr_df, smiles_col)
-            test = DiskDataset.from_numpy(test.X, test.y, ids=test_attr.index.values, verbose=False)
+            test = DiskDataset.from_numpy(test.X, test.y, ids=test_attr.index.values)
         else:
             # Otherwise just subset the ID-to-SMILES maps.
             for train, valid in train_cv_pairs:
@@ -567,13 +567,13 @@ class TrainValidTestSplitting(Splitting):
             # Now that DeepChem splitters have done their work, replace the SMILES strings in the split 
             # dataset objects with actual compound IDs.
             train_attr = select_attrs_by_dset_smiles(train, attr_df, smiles_col)
-            train = DiskDataset.from_numpy(train.X, train.y, ids=train_attr.index.values, verbose=False)
+            train = DiskDataset.from_numpy(train.X, train.y, ids=train_attr.index.values)
 
             valid_attr = select_attrs_by_dset_smiles(valid, attr_df, smiles_col)
-            valid = DiskDataset.from_numpy(valid.X, valid.y, ids=valid_attr.index.values, verbose=False)
+            valid = DiskDataset.from_numpy(valid.X, valid.y, ids=valid_attr.index.values)
 
             test_attr = select_attrs_by_dset_smiles(test, attr_df, smiles_col)
-            test = DiskDataset.from_numpy(test.X, test.y, ids=test_attr.index.values, verbose=False)
+            test = DiskDataset.from_numpy(test.X, test.y, ids=test_attr.index.values)
         else:
             # Otherwise just subset the ID-to-SMILES maps.
             train_attr = select_attrs_by_dset_ids(train, attr_df)
