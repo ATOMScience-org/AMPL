@@ -1205,6 +1205,8 @@ class DescriptorFeaturization(PersistentFeaturization):
                 if smiles_col in self.precomp_descr_table.columns.values:
                     self.desc_smiles_col = smiles_col
                     break
+        if self.desc_smiles_col is None:
+            raise Exception(f"No SMILES column found for descriptor table {self.descriptor_key}")
 
 
     # ****************************************************************************************
@@ -1451,6 +1453,7 @@ class ComputedDescriptorFeaturization(DescriptorFeaturization):
         # Try to load a precomputed descriptor table, and check that it's useful to us
         if params.descriptor_key is not None and self.precomp_descr_table.empty:
             self.load_descriptor_table(params)
+        if not self.precomp_descr_table.empty:
             if self.desc_smiles_col is None or self.desc_id_col is None:
                 log.warning("Precomputed descriptor table %s lacks a SMILES column and/or an ID column." % params.descriptor_key)
                 log.warning("Will compute all descriptors on the fly.")
@@ -1511,34 +1514,38 @@ class ComputedDescriptorFeaturization(DescriptorFeaturization):
                 uniq_smiles_feat_df = calc_smiles_feat_df
 
             # Add the newly computed descriptors to the precomputed table
+            new_desc_df = calc_desc_df.rename(columns={params.smiles_col : self.desc_smiles_col,
+                                                       params.id_col : self.desc_id_col})
             if self.precomp_descr_table.empty:
-                self.precomp_descr_table = calc_desc_df
+                self.precomp_descr_table = new_desc_df
             else:
-                self.precomp_descr_table = pd.concat([self.precomp_descr_table, calc_desc_df], ignore_index=True)
+                self.precomp_descr_table = pd.concat([self.precomp_descr_table, new_desc_df], ignore_index=True)
 
         # Merge descriptors from the precomputed table for the remaining compounds
         if len(precomp_smiles) > 0:
             precomp_smiles_feat_df = self.precomp_descr_table[self.precomp_descr_table[self.desc_smiles_col].isin(
                                                                                                     precomp_smiles)].copy()
-            if not (params.smiles_col in precomp_smiles_feat_df.columns.values):
-                precomp_smiles_feat_df = precomp_smiles_feat_df.rename(columns={self.desc_smiles_col : params.smiles_col})
+            if (params.smiles_col in precomp_smiles_feat_df.columns.values):
+                psf_df = precomp_smiles_feat_df
+            else:
+                psf_df = precomp_smiles_feat_df.rename(columns={self.desc_smiles_col : params.smiles_col})
 
             # Remove duplicate SMILES matches
-            precomp_smiles_feat_df = precomp_smiles_feat_df.drop_duplicates(subset=[params.smiles_col])
+            psf_df = psf_df.drop_duplicates(subset=params.smiles_col)
 
             # Get rid of any extra columns
-            precomp_smiles_feat_df = precomp_smiles_feat_df[[params.smiles_col]+descr_cols]
+            psf_df = psf_df[[params.smiles_col]+descr_cols]
 
             if len(calc_smiles) == 0:
-                uniq_smiles_feat_df = precomp_smiles_feat_df
+                uniq_smiles_feat_df = psf_df
 
         # Combine the computed and precomputed data frames, if we had both
         if len(precomp_smiles) > 0 and len(calc_smiles) > 0:
-            uniq_smiles_feat_df = pd.concat([calc_smiles_feat_df, precomp_smiles_feat_df], ignore_index=True)
+            uniq_smiles_feat_df = pd.concat([calc_smiles_feat_df, psf_df], ignore_index=True)
 
         # Merge descriptors with input data on SMILES strings.
         merged_dset_df = keep_df.merge(uniq_smiles_feat_df, how='left', on=params.smiles_col)
-
+        
         # Shuffle the order of rows, so that compounds with precomputed descriptors are intermixed with those having
         # newly computed descriptors. This avoids bias later when doing scaffold splits; otherwise test set will be
         # biased toward non-precomputed compounds.
