@@ -279,9 +279,9 @@ class NormalizationTransformerHybrid(NormalizationTransformer):
                 dataset=dataset)
 
     def transform(self, dataset, parallel=False):
-        return dataset.transform(lambda X, y, w: self.transform_array(X, y, w))
+        return dataset.transform(self)
 
-    def transform_array(self, X, y, w):
+    def transform_array(self, X, y, w, ids):
         """Transform the data in a set of (X, y, w) arrays."""
         if self.transform_X:
             zero_std_pos = np.where(self.X_stds == 0)
@@ -300,7 +300,7 @@ class NormalizationTransformerHybrid(NormalizationTransformer):
             else:
                 y[ki_pos, 0] = y[ki_pos, 0] / self.y_stds
                 y[bind_pos, 0] = np.minimum(0.999, np.maximum(0.001, y[bind_pos, 0]))
-        return (X, y, w)
+        return (X, y, w, ids)
 
     def untransform(self, z, isreal=True):
         if self.transform_X:
