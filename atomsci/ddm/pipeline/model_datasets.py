@@ -520,6 +520,7 @@ class ModelDataset(object):
         folds += [0] * ntest
 
         split_df = pd.DataFrame(dict(cmpd_id=ids, subset=subsets, fold=folds))
+        split_df = split_df.drop_duplicates(subset='cmpd_id')
         return split_df
 
     # ****************************************************************************************
