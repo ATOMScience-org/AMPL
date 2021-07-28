@@ -351,9 +351,9 @@ class KFoldSplitting(Splitting):
         if self.needs_smiles():
             # Some DeepChem splitters require compound IDs in dataset to be SMILES strings. Swap in the
             # SMILES strings now; we'll reverse this later.
-            dataset = DiskDataset.from_numpy(dataset.X, dataset.y, ids=attr_df.drop_duplicates(subset=smiles_col)[smiles_col].values, verbose=False)
+            dataset = DiskDataset.from_numpy(dataset.X, dataset.y, ids=attr_df.drop_duplicates(subset=smiles_col)[smiles_col].values)
             if dataset_dup:
-                dataset_ori = DiskDataset.from_numpy(dataset_ori.X, dataset_ori.y, ids=attr_df[smiles_col].values, verbose=False)
+                dataset_ori = DiskDataset.from_numpy(dataset_ori.X, dataset_ori.y, ids=attr_df[smiles_col].values)
 
         # Under k-fold CV, the training/validation splits are determined by num_folds; only the test set fraction
         # is directly specified through command line parameters. If we use Butina splitting, we can't control
@@ -519,9 +519,9 @@ class TrainValidTestSplitting(Splitting):
         if self.needs_smiles():
             # Some DeepChem splitters require compound IDs in dataset to be SMILES strings. Swap in the
             # SMILES strings now; we'll reverse this later.
-            dataset = DiskDataset.from_numpy(dataset.X, dataset.y, ids=attr_df.drop_duplicates(subset=smiles_col)[smiles_col].values, verbose=False)
+            dataset = DiskDataset.from_numpy(dataset.X, dataset.y, ids=attr_df.drop_duplicates(subset=smiles_col)[smiles_col].values)
             if dataset_dup:
-                dataset_ori = DiskDataset.from_numpy(dataset_ori.X, dataset_ori.y, ids=attr_df[smiles_col].values, verbose=False)
+                dataset_ori = DiskDataset.from_numpy(dataset_ori.X, dataset_ori.y, ids=attr_df[smiles_col].values)
 
         if self.split == 'butina':
             #train_valid, test = self.splitter.train_test_split(dataset, cutoff=self.params.butina_cutoff)
