@@ -26,8 +26,12 @@ import time
 
 import tarfile
 import logging
+import pandas as pd
+
+logging.basicConfig()
 
 logger = logging.getLogger(__name__)
+#logger.setLevel(logging.DEBUG)
 
 import atomsci.ddm.pipeline.model_pipeline as mp
 import atomsci.ddm.pipeline.parameter_parser as parse
@@ -35,12 +39,17 @@ import atomsci.ddm.utils.curate_data as curate_data
 import atomsci.ddm.utils.struct_utils as struct_utils
 import atomsci.ddm.pipeline.model_tracker as mt
 import atomsci.ddm.utils.datastore_functions as dsf
+from atomsci.ddm.pipeline import compare_models as cmp
+from atomsci.clients import MLMTClient
+
+import resource
+resource.setrlimit(resource.RLIMIT_NOFILE, (65536, 65536))
 
 mlmt_supported = True
 try:
     from atomsci.clients import MLMTClient
 except (ModuleNotFoundError, ImportError):
-    logger.debug("Model tracker client not supported in your environment; will save models in filesystem only.")
+    logger.warning("Model tracker client not supported in your environment; will save models in filesystem only.")
     mlmt_supported = False
     
 
@@ -125,7 +134,7 @@ def train_model_from_tracker(model_uuid, output_dir):
     """
     
     if not mlmt_supported:
-        print("Model tracker not supported in your environment; can load models from filesystem only.")
+        logger.debug("Model tracker not supported in your environment; can load models from filesystem only.")
         return None
 
     mlmt_client = dsf.initialize_model_tracker()
@@ -143,7 +152,7 @@ def train_model_from_tracker(model_uuid, output_dir):
     except:
         pass
     # fix weird old parameters
-    if config[]
+    #if config[]
     # Parse parameters
     params = parse.wrapper(config)
     params.result_dir = output_dir
@@ -165,6 +174,68 @@ def train_model_from_tracker(model_uuid, output_dir):
 
     return model
 
+def train_models_from_dataset_keys(input, output):
+    """ Retrain a list of models from an input file
+
+    Args:
+        input (str): path to an Excel or csv file
+
+        output (str): path to output directory
+
+    Returns:
+        None
+    """
+    df = pd.DataFrame()
+    # parse the input file
+    logger.debug("Parsing %s file." % input)
+
+    try:
+        df = pd.read_excel(input)
+    except:
+        try:
+            df = pd.read_csv(input)
+        except:
+            Exception('Unable to parse input %s. Only Excel or csv file is accepted.' % input)
+
+    # extract the public bucket, then dataset keys
+    public_list = df.loc[df['bucket'] == 'public']
+    dataset_keys = public_list['dataset_key'].tolist()
+    logger.debug('Found %d public dataset keys' % len(dataset_keys))
+
+    client = MLMTClient()
+    collections = client.get_collection_names()
+    bucket = 'public'
+
+    # find the collections 
+    colls_w_dset = []
+    for dset in dataset_keys:
+        for coll in collections:
+            datasets = cmp.get_collection_datasets(coll)
+            if (dset, bucket) in datasets:
+                colls_w_dset.append(coll)
+    
+    logger.debug('Found the dataset_keys in %d collections' % len(colls_w_dset))
+
+    pred_type = 'regression'
+    metric_type = 'r2_score'
+    
+    try:
+        # find the best models
+        best_mods = cmp.get_best_models_info(col_names=colls_w_dset, bucket=bucket, pred_type=pred_type, 
+                                     result_dir=None, PK_pipeline=False, output_dir=output,
+                                     shortlist_key=None, input_dset_keys=dataset_keys, save_results=False, subset='valid',
+                                     metric_type=metric_type, selection_type='max', other_filters={})
+
+        # retrain with uuid
+        for model_uuid in best_mods.model_uuid.sort_values():
+            try:
+                logger.debug('Training %s in %s' % (model_uuid, output))
+                train_model_from_tracker(model_uuid, output)
+            except:
+                Exception(f'Error for model_uuid {model_uuid}')
+                pass
+    except Exception as e:
+        Exception(f'Error: %s' % str(e) )
 
 #----------------
 # main
@@ -187,16 +258,22 @@ def main(argv):
     if not (output and output.strip()):
         output = tempfile.mkdtemp()
 
+    # 1 check if it's a directory
     if os.path.isdir(input):
-    # loop
+        # loop
         for path in Path(input).rglob('model_metadata.json'):
             train_model(path.absolute(), output)
-    elif input.endswith('.json'):
-        train_model(input, output, dskey=args.dataset_key)
-    elif input.endswith('.tar.gz'):
-        train_model_from_tar(input, output, dskey=args.dataset_key)
+    elif os.path.isfile(input):
+        # 2 if it's a file, check if it's a json or tar.gz or file that contains list of dataset keys
+        if input.endswith('.json'):
+            train_model(input, output, dskey=args.dataset_key)
+        elif input.endswith('.tar.gz'):
+            train_model_from_tar(input, output, dskey=args.dataset_key)
+        else:
+            train_models_from_dataset_keys(input, output)
     else:
         try:
+            # 3 try to process 'input' as uuid
             train_model_from_tracker(input, output)
         except:
             Exception('Unrecognized input %s'%input)
