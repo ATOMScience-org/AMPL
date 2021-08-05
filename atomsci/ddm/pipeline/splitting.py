@@ -200,7 +200,7 @@ class Splitting(object):
         elif params.splitter == 'stratified':
             self.splitter = dc.splits.RandomStratifiedSplitter()
         elif params.splitter == 'butina':
-            self.splitter = dc.splits.ButinaSplitter()
+            self.splitter = dc.splits.ButinaSplitter(cutoff=params.butina_cutoff)
         elif params.splitter == 'fingerprint':
             self.splitter = dc.splits.FingerprintSplitter()
         elif params.splitter == 'ave_min':
@@ -354,10 +354,6 @@ class KFoldSplitting(Splitting):
         # Use DeepChem train_test_split() to select held-out test set; then use k_fold_split on the
         # training set to split it into training/validation folds.
         if self.split == 'butina':
-            # TODO: Splitter.train_test_split() doesn't provide a way to pass the cutoff parameter
-            # through to the ButinaSplitter.split() function. Simple fix would be to reimplement
-            # train_test_split() here (it's not a complicated function). For now, allow cutoff to default.
-            #train_cv, test = self.splitter.train_test_split(dataset, cutoff=self.params.butina_cutoff)
             train_cv, test, _ = self.splitter.train_valid_test_split(dataset)
             self.splitter = dc.splits.ScaffoldSplitter()
             train_cv_pairs = self.splitter.k_fold_split(train_cv, self.num_folds)
@@ -495,7 +491,6 @@ class TrainValidTestSplitting(Splitting):
             dataset = DiskDataset.from_numpy(dataset.X, dataset.y, ids=attr_df[smiles_col].values)
 
         if self.split == 'butina':
-            #train_valid, test = self.splitter.train_test_split(dataset, cutoff=self.params.butina_cutoff)
             # Can't use train_test_split with Butina because Butina splits into train and valid sets only.
             train_valid, test, _ = self.splitter.train_valid_test_split(dataset)
             self.splitter = dc.splits.ScaffoldSplitter()
@@ -520,7 +515,7 @@ class TrainValidTestSplitting(Splitting):
         elif self.split == 'temporal':
             # TemporalSplitter requires that we pass attr_df so it can get the dates for each compound
             train_frac = 1.0 - self.params.split_valid_frac
-            train, valid, test = self.splitter.train_valid_test_split(dataset, attr_df,
+            train, valid, test = self.splitter.train_valid_test_split(dataset, attr_df=attr_df,
                                 frac_train=train_frac, frac_valid=self.params.split_valid_frac)
         else:
             train_frac = 1.0 - self.params.split_valid_frac - self.params.split_test_frac

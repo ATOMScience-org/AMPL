@@ -485,7 +485,7 @@ class AVEMinSplitter(Splitter):
             self.split_sim_pool = None
             self.calc_bias_pool = None
 
-    def split(self, dataset, frac_train=0.8, frac_valid=0.2, frac_test=0.0, log_every_n=None, verbose=True):
+    def split(self, dataset, frac_train=0.8, frac_valid=0.2, frac_test=0.0, seed=None, log_every_n=None):
         """
         Split dataset into training and validation sets that minimize the AVE bias. A test set is not generated;
         to do a 3-way split, call this function twice.
@@ -499,9 +499,9 @@ class AVEMinSplitter(Splitter):
 
             frac_test (float): Ignored; included only for compatibility with the DeepChem Splitter API
 
-            log_every_n (int or None): Ignored
+            seed (int): Ignored
 
-            verbose (bool): Ignored
+            log_every_n (int or None): Ignored
 
         Returns:
             tuple: Lists of indices of compounds assigned to the training and validation/test sets. 
