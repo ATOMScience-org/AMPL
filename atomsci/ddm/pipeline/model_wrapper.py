@@ -1677,7 +1677,7 @@ class DCxgboostModelWrapper(ModelWrapper):
 #                                           tree_method = 'gpu_hist',
                                           seed=0
                                          )
-        self.model = dc.models.xgboost_models.XGBoostModel(xgb_model, model_dir=self.best_model_dir)
+        self.model = dc.models.GBDTModel(xgb_model, model_dir=self.best_model_dir)
 
     # ****************************************************************************************
     def train(self, pipeline):
@@ -1828,7 +1828,7 @@ class DCxgboostModelWrapper(ModelWrapper):
             else:
                 self.transformers, self.transformers_x = pickle.load(open(self.params.transformer_key, 'rb'))
 
-        self.model = dc.models.xgboost_models.XGBoostModel(xgb_model, model_dir=self.best_model_dir)
+        self.model = dc.models.GBDTModel(xgb_model, model_dir=self.best_model_dir)
         self.model.reload()
 
     # ****************************************************************************************
