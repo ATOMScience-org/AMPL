@@ -659,9 +659,8 @@ def get_parser():
         help='Type of splitter to use for train/validation split if temporal split used for test set. May be random,'
              ' scaffold, or ave_min. The allowable choices are set in splitter.py')
     parser.add_argument(
-        '--butina_cutoff', dest='butina_cutoff', type=float, default=0.18,
-        help='cutoff Tanimoto similarity for clustering in Butina splitter. TODO: will be implemented when DeepChem'
-             ' updates their butina splitter. ')
+        '--butina_cutoff', dest='butina_cutoff', type=float, default=0.6,
+        help='cutoff Tanimoto similarity for clustering in Butina splitter.')
     parser.add_argument(
         '--cutoff_date', dest='cutoff_date', type=str, default=None,
         help='Cutoff date for test set compounds in temporal splitter. TODO: needs some formatting guidelines.')
