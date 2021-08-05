@@ -41,12 +41,13 @@ try:
 except (ImportError, AttributeError, ModuleNotFoundError):
     feather_supported = False
 
-# Ignore failure to import Gomez-Bombarelli autoencoder package (doesn't work in some
-# LC environments that don't have Keras installed)
-try:
-    from mol_vae_features import MoleculeVAEFeaturizer
-except ImportError:
-    pass
+# TODO: Commented out for now, because Gomez-Bombarelli autoencoder package doesn't work 
+# with the version of Keras that is part of TensorFlow 2.5. Eventually we'll replace this
+# with the JT-VAE and/or Wasserstein autoencoders.
+#try:
+#    from mol_vae_features import MoleculeVAEFeaturizer
+#except ImportError:
+#    pass
 
 import collections
 
@@ -653,9 +654,10 @@ class DynamicFeaturization(Featurization):
             self.featurizer_obj = dc.feat.CircularFingerprint(size=params.ecfp_size, radius=params.ecfp_radius)
         elif self.feat_type == 'graphconv':
             self.featurizer_obj = dc.feat.ConvMolFeaturizer()
-        #TODO: potentially make generic
-        elif self.feat_type == 'molvae':
-            self.featurizer_obj = MoleculeVAEFeaturizer(params.mol_vae_model_file)
+        #TODO: MoleculeVAEFeaturizer is not working currently. Will be replaced by JT-VAE and cWAE
+        # featurizers eventually.
+        #elif self.feat_type == 'molvae':
+        #    self.featurizer_obj = MoleculeVAEFeaturizer(params.mol_vae_model_file)
         else:
             raise ValueError("Unknown featurization type %s" % self.feat_type)
 
