@@ -13,6 +13,7 @@ The AMPL pipeline contains many parameters and options to fit models and make pr
   - [Mordred](#Mordred)
   - [Neural Networks](#Neural-Networks)
   - [Random Forests](#Random-Forests)
+  - [Hybrid model](#Hybrid-model)
   - [Splitting](#Splitting)
   - [Transformers](#Transformers)
   - [UMAP](#UMAP)
@@ -173,7 +174,7 @@ The AMPL pipeline contains many parameters and options to fit models and make pr
   
 |||
 |-|-|
-|*Description:*|dataset\_oid for the descriptor file in the datastore|
+|*Description:*|dataset\_oid for the descriptor file in the datastore. Specific to LLNL datastore system.|
   
 - **descriptor\_spec\_bucket**  
   
@@ -193,8 +194,9 @@ The AMPL pipeline contains many parameters and options to fit models and make pr
   
 |||
 |-|-|
-|*Description:*|Type of descriptors being used as features, e.g. moe, dragon7, used when featurizer = "descriptors". Sets the subclass within featurizer.py|
+|*Description:*|Type of descriptors being used as features, e.g. moe, dragon7, used when featurizer = "computed_descriptors". Sets the subclass within featurizer.py|
 |*Default:*|moe|
+|*Options:*|'moe', 'mordred_filtered', and 'rdkit_raw' are recommended. See atomsci/ddm/data/descriptor_sets_sources_by_descr_type.csv for more.|
   
 ---
 
@@ -239,7 +241,7 @@ The AMPL pipeline contains many parameters and options to fit models and make pr
   
 |||
 |-|-|
-|*Description:*|Type of model to fit (NN, RF, or xgboost). The model\_type sets the model subclass in model\_wrapper. Can be input as a comma separated list for hyperparameter search (e.g. 'NN','RF')|
+|*Description:*|Type of model to fit (NN, RF, or xgboost). The model\_type sets the model subclass in model\_wrapper. Can be input as a comma separated list for hyperparameter search (e.g. 'NN','RF','xgboost')|
 |*Type:*|str|
   
 - **prediction\_type**  
@@ -400,6 +402,32 @@ The AMPL pipeline contains many parameters and options to fit models and make pr
 |-|-|
 |*Description:*|Max number of features to split random forest nodes. Hyperparameter searching requires 3 inputs: start, end, step when used with search\_type geometric or grid (example: '16,32,4') or can be input as a list of possible values for search\_type user\_specified (example: '16,20,24,28,32')|
 |*Default:*|32|
+  
+---
+
+<a name="Hybrid-model"></a>
+## Hybrid model  
+
+- **is\_ki**  
+  
+|||
+|-|-|
+|*Description:*|True/False flag for noting whether the dose-response activity is Ki or XC50, if it is **True**, the following **ki_convert_ratio** is also needed to convert Ki into IC50 and to single concentration activity.|
+|*Default:*|False|
+  
+- **ki\_convert\_ratio**  
+  
+|||
+|-|-|
+|*Description:*|To convert Ki into IC50, a ratio is needed. It can be the ratio of \[S\]/Km for enzymatic inhibition assays, \[S\] is the concentration of substrate Km is the Michaelis constant. It can also be \[S\]/Kd for radioligand competitive binding, \[S\] is the concentration of the radioligand, Kd is its dissociation constant. The \[S\] and Kd/Km should have the same unit so that the ratio is unitless.|
+|*Default:*|None|
+  
+- **loss\_func**  
+  
+|||
+|-|-|
+|*Description:*|The loss function used in the hybrid model training, currently support poisson and l2|
+|*Default:*|poisson|
   
 ---
 
@@ -582,7 +610,7 @@ The AMPL pipeline contains many parameters and options to fit models and make pr
 
 <a name="XGBoost"></a>
 ## XGBoost  
-
+- Currently, only `xgb_gamma` and `xgb_learning_rate` are supported for hyperparameter optimization.
 - **xgb\_colsample\_bytree**  
   
 |||
