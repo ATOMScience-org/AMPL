@@ -83,6 +83,7 @@ This notebook also explores AMPL functions for saving and loading prebuild AMPL 
 * [Aug, 2021]
     - Notebook1: https://nbviewer.jupyter.org/github/ATOMconsortium/AMPL/blob/master/atomsci/ddm/examples/tutorials/AMPL_FNL_Wrshp2_1.ipynb
     - Notebook2: https://nbviewer.jupyter.org/github/ATOMconsortium/AMPL/blob/master/atomsci/ddm/examples/tutorials/AMPL_FNL_Wrshp2_2.ipynb
+    - Notebook3: https://nbviewer.jupyter.org/github/ATOMconsortium/AMPL/blob/master/atomsci/ddm/examples/tutorials/AMPL_FNL_Wrshp2_3.ipynb
 
 ## Supporting links
 
