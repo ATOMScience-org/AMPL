@@ -174,13 +174,15 @@ def train_model_from_tracker(model_uuid, output_dir):
 
     return model
 
-def train_models_from_dataset_keys(input, output):
+def train_models_from_dataset_keys(input, output, pred_type='regression'):
     """ Retrain a list of models from an input file
 
     Args:
-        input (str): path to an Excel or csv file
+        input (str): path to an Excel or csv file. the required columns are 'dataset_key' and 'bucket' (public, private_file or Filesystem).
 
         output (str): path to output directory
+
+        pred_type (str, optional): set the model prediction type. if not, uses the default 'regression'
 
     Returns:
         None
@@ -216,7 +218,7 @@ def train_models_from_dataset_keys(input, output):
     
     logger.debug('Found the dataset_keys in %d collections' % len(colls_w_dset))
 
-    pred_type = 'regression'
+    logger.debug("Train the model using prediction type %s." % pred_type)
     metric_type = 'r2_score'
     
     try:
@@ -248,6 +250,7 @@ def main(argv):
     parser.add_argument('-i', '--input', required=True, help='input directory, file or model_uuid')
     parser.add_argument('-o', '--output', help='output result directory')
     parser.add_argument('-dk', '--dataset_key', default='', help='Sometimes dataset keys get moved. Specify new location of dataset. Only works when passing in one model at time.')
+    parser.add_argument('-pd_type', '--pred_type', default='regression', help='Specify the prediction type used for model retrain. The default is set to regression.')
 
     args = parser.parse_args()
 
@@ -270,7 +273,7 @@ def main(argv):
         elif input.endswith('.tar.gz'):
             train_model_from_tar(input, output, dskey=args.dataset_key)
         else:
-            train_models_from_dataset_keys(input, output)
+            train_models_from_dataset_keys(input, output, pred_type=args.pred_type)
     else:
         try:
             # 3 try to process 'input' as uuid
