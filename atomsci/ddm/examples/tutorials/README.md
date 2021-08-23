@@ -76,6 +76,13 @@ This notebook also explores AMPL functions for saving and loading prebuild AMPL 
 ## 5. Model Inference: 
 * [Tutorial-14:](14_BSEP_modeling.ipynb) This notebook creates an AMPL (RF) model using BSEP dataset (reference: https://pubmed.ncbi.nlm.nih.gov/33502191/), and makes predictions (inference) on an external sample test dataset.   
  
+## AMPL Workshops
+* [June 05, 2021]
+     - Notebook: Protein Target-focussed Binding Data Curation, Exploratory Data Analysis and Featurization using AMPL. The workshop is part of the NCI Data Science Learning Exchange Hands-on Tutorial series. (https://github.com/ATOMconsortium/AMPL/blob/master/atomsci/ddm/examples/tutorials/AMPL_FNL_Workshop_06052021.ipynb)  
+     - For use with GCP or other pre-installed AMPL environments: https://github.com/ATOMconsortium/AMPL/blob/master/atomsci/ddm/examples/tutorials/GCP_AMPL_FNL_Workshop_06052021.ipynb
+* [Aug, 2021]
+    - Notebook1: https://nbviewer.jupyter.org/github/ATOMconsortium/AMPL/blob/master/atomsci/ddm/examples/tutorials/AMPL_FNL_Wrshp2_1.ipynb
+    - Notebook2: https://nbviewer.jupyter.org/github/ATOMconsortium/AMPL/blob/master/atomsci/ddm/examples/tutorials/AMPL_FNL_Wrshp2_2.ipynb
 
 ## Supporting links
 

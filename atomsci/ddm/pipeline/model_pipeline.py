@@ -109,6 +109,35 @@ def calc_AD_kmean_local_density(train_dset, pred_dset, k, train_dset_pair_distan
         pred_kmean_dis_local_density[i] = pred_km_dis / ave_nei_dis
     return pred_kmean_dis_local_density
 
+# ---------------------------------------------
+def build_tarball_name(dataset_name, model_uuid, result_dir=''):
+    """ format for building model tarball names
+    Creates the file name for a model tarball from dataset key and model_uuid
+    with optional result_dir.
+
+    Args:
+        dataset_name (str): The dataset_name used to train this model
+        model_uuid (str): The model_uuid assigned to this model
+        result_dir (str): Optional directory for this model
+
+    Returns:
+        The path or filename of the tarball for this model
+    """
+    model_tarball_path = os.path.join(str(result_dir), "{}_model_{}.tar.gz".format(dataset_name, model_uuid))
+    return model_tarball_path
+
+def build_dataset_name(dataset_key):
+    """ Returns dataset_name when given dataset_key
+    Returns the dataset_name when given a dataset_key. Assumes that the dataset_name is a path
+    and ends with an extension
+
+    Args:
+        dataset_key (str): A dataset_key
+
+    Returns:
+        The dataset_name which is the base name stripped of extensions
+    """
+    return os.path.splitext(os.path.basename(dataset_key))[0]
 
 # ******************************************************************************************************************************
 
@@ -193,7 +222,7 @@ class ModelPipeline:
 
         # Default dataset_name parameter from dataset_key
         if params.dataset_name is None:
-            self.params.dataset_name = os.path.splitext(os.path.basename(self.params.dataset_key))[0]
+            self.params.dataset_name = build_dataset_name(self.params.dataset_key)
 
         self.ds_client = None
         if params.datastore:
@@ -235,7 +264,7 @@ class ModelPipeline:
             os.makedirs(self.params.output_dir, exist_ok=True)
         self.output_dir = self.params.output_dir
         if self.params.model_tarball_path is None:
-            self.params.model_tarball_path = os.path.join(str(self.params.result_dir), "{}_model_{}.tar.gz".format(self.params.dataset_name, self.params.model_uuid))
+            self.params.model_tarball_path = build_tarball_name(self.params.dataset_name, self.params.model_uuid, self.params.result_dir)
 
         # ****************************************************************************************
 
@@ -568,6 +597,11 @@ class ModelPipeline:
         """
 
         self.run_mode = 'training'
+        if self.params.model_type == "hybrid":
+            if self.params.featurizer in ["graphconv"]:
+                raise Exception("Hybrid model doesn't support GraphConv featurizer now.")
+            if len(self.params.response_cols) < 2:
+                raise Exception("The dataset of a hybrid model should have two response columns, one for activities, one for concentrations.")
         if featurization is None:
             featurization = feat.create_featurization(self.params)
         self.featurization = featurization
@@ -718,20 +752,26 @@ class ModelPipeline:
 
         # Including the response_val name in the output makes it difficult to do looped plotting.
         # We can talk about best way to handle this.
-
-        if contains_responses:
+        if self.params.model_type != "hybrid":
+            if contains_responses:
+                for i, colname in enumerate(self.params.response_cols):
+                    result_df["actual"] = self.data.vals[:, i]
             for i, colname in enumerate(self.params.response_cols):
-                result_df["actual"] = self.data.vals[:, i]
-        for i, colname in enumerate(self.params.response_cols):
-            if self.params.prediction_type == 'regression':
-                result_df["pred"] = preds[:, i, 0]
-            else:
-                class_probs = preds[:, i, :]
-                result_df["pred"] = np.argmax(class_probs, axis=1)
-        if self.params.uncertainty and self.params.prediction_type == 'regression':
-            for i, colname in enumerate(self.params.response_cols):
-                std_colname = 'std'
-                result_df[std_colname] = stds[:, i, 0]
+                if self.params.prediction_type == 'regression':
+                    result_df["pred"] = preds[:, i, 0]
+                else:
+                    class_probs = preds[:, i, :]
+                    result_df["pred"] = np.argmax(class_probs, axis=1)
+            if self.params.uncertainty and self.params.prediction_type == 'regression':
+                for i, colname in enumerate(self.params.response_cols):
+                    std_colname = 'std'
+                    result_df[std_colname] = stds[:, i, 0]
+        else:
+            # hybrid model should handled differently
+            if contains_responses:
+                result_df["actual_activity"] = self.data.vals[:, 0]
+                result_df["concentration"] = self.data.vals[:, 1]
+            result_df["pred"] = preds[:, 0]
 
         if AD_method is not None:
             if self.featurization.feat_type != "graphconv":
@@ -889,25 +929,32 @@ class ModelPipeline:
         result_df = pd.DataFrame({self.params.id_col: self.data.attr.index.values,
                                   self.params.smiles_col: self.data.attr[self.params.smiles_col].values})
 
-        if contains_responses:
+        if self.params.model_type != "hybrid":
+            if contains_responses:
+                for i, colname in enumerate(self.params.response_cols):
+                    result_df["%s_actual" % colname] = self.data.vals[:,i]
             for i, colname in enumerate(self.params.response_cols):
-                result_df["%s_actual" % colname] = self.data.vals[:,i]
-        for i, colname in enumerate(self.params.response_cols):
-            if self.params.prediction_type == 'regression':
-                result_df["%s_pred" % colname] = preds[:,i,0]
-            else:
-                class_probs = preds[:,i,:]
-                nclass = preds.shape[2]
-                if nclass == 2:
-                    result_df["%s_prob" % colname] = class_probs[:,1]
+                if self.params.prediction_type == 'regression':
+                    result_df["%s_pred" % colname] = preds[:,i,0]
                 else:
-                    for k in range(nclass):
-                        result_df["%s_prob_%d" % (colname, k)] = class_probs[:,k]
-                result_df["%s_pred" % colname] = np.argmax(class_probs, axis=1)
-        if self.params.uncertainty and self.params.prediction_type == 'regression':
-            for i, colname in enumerate(self.params.response_cols):
-                std_colname = '%s_std' % colname
-                result_df[std_colname] = stds[:,i,0]
+                    class_probs = preds[:,i,:]
+                    nclass = preds.shape[2]
+                    if nclass == 2:
+                        result_df["%s_prob" % colname] = class_probs[:,1]
+                    else:
+                        for k in range(nclass):
+                            result_df["%s_prob_%d" % (colname, k)] = class_probs[:,k]
+                    result_df["%s_pred" % colname] = np.argmax(class_probs, axis=1)
+            if self.params.uncertainty and self.params.prediction_type == 'regression':
+                for i, colname in enumerate(self.params.response_cols):
+                    std_colname = '%s_std' % colname
+                    result_df[std_colname] = stds[:,i,0]
+        else:
+            # hybrid model should handled differently
+            if contains_responses:
+                result_df["actual_activity"] = self.data.vals[:, 0]
+                result_df["concentration"] = self.data.vals[:, 1]
+            result_df["pred"] = preds[:, 0]
 
         if AD_method is not None:
             if self.featurization.feat_type != "graphconv":
