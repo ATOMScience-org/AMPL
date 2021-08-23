@@ -93,7 +93,7 @@ def create_featurization(params):
 
     """
     #TODO: Change molvae to generic autoencoder
-    if params.featurizer in ('ecfp', 'graphconv', 'molvae'):
+    if params.featurizer in ('ecfp', 'graphconv', 'mol_graph', 'molvae'):
         return DynamicFeaturization(params)
     elif params.featurizer in ('descriptors'):
         return DescriptorFeaturization(params)
@@ -654,6 +654,9 @@ class DynamicFeaturization(Featurization):
             self.featurizer_obj = dc.feat.CircularFingerprint(size=params.ecfp_size, radius=params.ecfp_radius)
         elif self.feat_type == 'graphconv':
             self.featurizer_obj = dc.feat.ConvMolFeaturizer()
+        elif self.feat_type == 'mol_graph':
+            # Used by AttentiveFP model; can be used by other torch_geometric models also
+            self.featurizer_obj = dc.feat.MolGraphConvFeaturizer(use_edges=True, use_chirality=True, use_partial_charge=False)
         #TODO: MoleculeVAEFeaturizer is not working currently. Will be replaced by JT-VAE and cWAE
         # featurizers eventually.
         #elif self.feat_type == 'molvae':
