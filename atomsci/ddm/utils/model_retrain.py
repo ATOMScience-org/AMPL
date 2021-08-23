@@ -219,7 +219,11 @@ def train_models_from_dataset_keys(input, output, pred_type='regression'):
     logger.debug('Found the dataset_keys in %d collections' % len(colls_w_dset))
 
     logger.debug("Train the model using prediction type %s." % pred_type)
+
     metric_type = 'r2_score'
+    
+    if (pred_type == 'classification'):
+        metric_type = 'roc_auc_score'
     
     try:
         # find the best models
