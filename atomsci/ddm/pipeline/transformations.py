@@ -238,3 +238,91 @@ class NormalizationTransformerMissingData(NormalizationTransformer):
                 y = np.nan_to_num(y / self.y_stds)
         return (X, y, w, ids)
 
+# ****************************************************************************************
+
+class NormalizationTransformerHybrid(NormalizationTransformer):
+    """
+    Test extension to check for missing data
+    """
+    def __init__(self,
+                 transform_X=False,
+                 transform_y=False,
+                 transform_w=False,
+                 dataset=None,
+                 move_mean=True) :
+
+        if transform_X :
+            X_means, X_stds = dataset.get_statistics(X_stats=True, y_stats=False)
+            self.X_means = X_means
+            self.X_stds = X_stds
+        elif transform_y:
+            ki_pos = np.where(np.isnan(dataset.y[:,1]))[0]
+            bind_pos = np.where(~np.isnan(dataset.y[:,1]))[0]
+            y_means = dataset.y[ki_pos, 0].mean()
+            y_stds = dataset.y[ki_pos, 0].std()
+            self.y_means = y_means
+            # Control for pathological case with no variance.
+            self.y_stds = y_stds
+            self.move_mean = move_mean
+            self.dataset = dataset
+            # check the single dose data range
+            y_mean_bind = dataset.y[bind_pos, 0].mean()
+            if y_mean_bind > 2:
+                raise Exception("The single-dose values have a mean value over 2, they are probably NOT in the fraction format, but a percentage format. Make sure the single-dose values are in fraction format.")
+        self.ishybrid = True # used to distinguish this special transformer.
+
+       ## skip the NormalizationTransformer initialization and go to base class
+        super(NormalizationTransformer, self).__init__(
+                transform_X=transform_X,
+                transform_y=transform_y,
+                transform_w=transform_w,
+                dataset=dataset)
+
+    def transform(self, dataset, parallel=False):
+        return dataset.transform(self)
+
+    def transform_array(self, X, y, w, ids):
+        """Transform the data in a set of (X, y, w) arrays."""
+        if self.transform_X:
+            zero_std_pos = np.where(self.X_stds == 0)
+            X_weight = np.ones_like(self.X_stds)
+            X_weight[zero_std_pos] = 0
+            if not hasattr(self, 'move_mean') or self.move_mean:
+                X = np.nan_to_num((X - self.X_means) * X_weight / self.X_stds)
+            else:
+                X = np.nan_to_num(X * X_weight / self.X_stds)
+        if self.transform_y:
+            ki_pos = np.where(np.isnan(y[:,1]))[0]
+            bind_pos = np.where(~np.isnan(y[:,1]))[0]
+            if not hasattr(self, 'move_mean') or self.move_mean:
+                y[ki_pos, 0] = (y[ki_pos, 0] - self.y_means) / self.y_stds
+                y[bind_pos, 0] = np.minimum(0.999, np.maximum(0.001, y[bind_pos, 0]))
+            else:
+                y[ki_pos, 0] = y[ki_pos, 0] / self.y_stds
+                y[bind_pos, 0] = np.minimum(0.999, np.maximum(0.001, y[bind_pos, 0]))
+        return (X, y, w, ids)
+
+    def untransform(self, z, isreal=True):
+        if self.transform_X:
+            if not hasattr(self, 'move_mean') or self.move_mean:
+                return z * self.X_stds + self.X_means
+            else:
+                return z * self.X_stds
+        elif self.transform_y:
+            y_stds = self.y_stds
+            y_means = self.y_means
+            y = z.copy()
+            if len(z.shape) > 1 and z.shape[1] > 1:
+                ki_pos = np.where(np.isnan(z[:,1]))[0]
+                bind_pos = np.where(~np.isnan(z[:,1]))[0]
+                y[ki_pos, 0] = z[ki_pos, 0] * y_stds + y_means
+                if isreal:
+                    y[bind_pos, 0] = z[bind_pos, 0]
+                else:
+                    # note that in prediction, all posistions are predicted as pKi, then bind positions get converted.
+                    y[bind_pos, 0] = z[bind_pos, 0] * y_stds + y_means
+            else:
+                # no conc column, treat all rows as ki/IC50
+                y[:, 0] = z[:, 0] * y_stds + y_means
+
+            return y

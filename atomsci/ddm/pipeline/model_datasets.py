@@ -347,7 +347,7 @@ class ModelDataset(object):
                 vals: The response col after featurization (np.array)
                 attr: A pd.dataframe containing the compound ids and smiles
         """
-
+        
         if self.params.previously_featurized:
             try:
                 self.log.debug("Attempting to load featurized dataset")
@@ -359,7 +359,12 @@ class ModelDataset(object):
                 self.n_features = self.featurization.get_feature_count()
                 self.log.debug("Creating deepchem dataset")
                 
-                self.vals, w = feat.make_weights(self.vals)
+                # don't do make_weights which convert all NaN rows into 0 for hybrid model
+                if self.params.model_type != "hybrid":
+                    self.vals, w = feat.make_weights(self.vals)
+                else:
+                    w = np.ones_like(self.vals)
+
                 if self.params.prediction_type=='classification':
                     w = w.astype(np.float32)
 
@@ -515,6 +520,7 @@ class ModelDataset(object):
         folds += [0] * ntest
 
         split_df = pd.DataFrame(dict(cmpd_id=ids, subset=subsets, fold=folds))
+        split_df = split_df.drop_duplicates(subset='cmpd_id')
         return split_df
 
     # ****************************************************************************************
