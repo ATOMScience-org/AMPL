@@ -56,7 +56,6 @@ def predict_from_tracker_model(model_uuid, collection, input_df, id_col='compoun
     pipe = mp.create_prediction_pipeline(pred_params, model_uuid, collection)
     pred_df = pipe.predict_full_dataset(input_df, contains_responses=has_responses, is_featurized=is_featurized,
                                         dset_params=pred_params, AD_method=AD_method, k=k, dist_metric=dist_metric)
-    pred_df = pred_df.sort_values(by=id_col)
     return pred_df
 
 # =====================================================================================================
@@ -108,7 +107,6 @@ def predict_from_model_file(model_path, input_df, id_col='compound_id', smiles_c
     pipe = mp.create_prediction_pipeline_from_file(pred_params, reload_dir=None, model_path=model_path)
     pred_df = pipe.predict_full_dataset(input_df, contains_responses=has_responses, is_featurized=is_featurized,
                                         dset_params=pred_params, AD_method=AD_method, k=k, dist_metric=dist_metric)
-    pred_df = pred_df.sort_values(by=id_col)
     return pred_df
 
 # =====================================================================================================
@@ -133,7 +131,6 @@ def _prepare_input_data(input_df, id_col, smiles_col, response_col, conc_col, do
         if input_df.shape[0] == 0:
             raise ValueError("No valid SMILES strings to predict on.")
         nlost = orig_ncmpds - input_df.shape[0]
-        input_df = input_df.sort_values(by=id_col)
         if nlost > 0:
             print("Could not parse %d SMILES strings; will predict on the remainder." % nlost)
         std_smiles_col = 'standardized_smiles'

@@ -674,111 +674,14 @@ class ModelPipeline:
     
     # ****************************************************************************************
     def predict_on_dataframe(self, dset_df, is_featurized=False, contains_responses=False, AD_method=None, k=5, dist_metric="euclidean"):
-        """Compute predicted responses from a pretrained model on a set of compounds listed in
-        a data frame. the data frame should contain, at minimum, a column of compound IDs; if
-        SMILES strings are needed to compute features, they should be provided as well.
-
-        Args:
-            dset_df (Dataframe): A data frame containing compound IDs (if the compounds are to be
-            featurized using descriptors) and/or SMILES strings (if the compounds are to be
-            featurized using ECFP fingerprints or graph convolution) and/or precomputed features.
-            The column names for the compound ID and SMILES columns should match id_col and smiles_col,
-            respectively, in the model parameters.
-
-            is_featurized (bool): True if dset_df contains precomputed feature columns. If so,
-            dset_df must contain *all* of the feature columns defined by the featurizer that was
-            used when the model was trained.
-
-            contains_responses (bool): True if dataframe contains response values
-
-            AD_method (str): with default, Applicable domain (AD) index will not be calcualted, use 
-            z_score or local_density to choose the method to calculate AD index.
-
-            k (int): number of the neareast neighbors to evaluate the AD index, default is 5.
-
-            dist_metric (str): distance metrics, valid values are 'cityblock', 'cosine', 'euclidean', 'jaccard', 'manhattan'
-        returns:
-            result_df (dataframe): data frame indexed by compound ids containing a column of smiles
-            strings, with additional columns containing the predicted values for each response variable.
-            If the model was trained to predict uncertainties, the returned data frame will also
-            include standard deviation columns (named <response_col>_std) for each response variable.
-            The result data frame may not include all the compounds in the input dataset, because
-            the featurizer may not be able to featurize all of them.
-
+        """DEPRECATED
+        Call predict_full_dataset instead.
         """
+        self.log.warning("predict_on_dataframe is deprecated. Please call predict_full_dataset instead.")
+        result_df = self.predict_full_dataset(dset_df, is_featurized=is_featurized, 
+                contains_responses=contains_responses, AD_method=AD_method, k=k,
+                dist_metric=dist_metric)
 
-        self.run_mode = 'prediction'
-        self.featurization = self.model_wrapper.featurization
-        self.data = model_datasets.create_minimal_dataset(self.params, self.featurization, contains_responses)
-
-        if not self.data.get_dataset_tasks(dset_df):
-            # Shouldn't happen - response_cols should already be set in saved model parameters
-            raise Exception("response_cols missing from model params")
-        self.data.get_featurized_data(dset_df, is_featurized)
-        self.data.dataset = self.model_wrapper.transform_dataset(self.data.dataset)
-
-        # Get the predictions and standard deviations, if calculated, as numpy arrays
-        preds, stds = self.model_wrapper.generate_predictions(self.data.dataset)
-        result_df = self.data.attr.copy()
-
-        # Including the response_val name in the output makes it difficult to do looped plotting.
-        # We can talk about best way to handle this.
-        if self.params.model_type != "hybrid":
-            if contains_responses:
-                for i, colname in enumerate(self.params.response_cols):
-                    result_df["actual"] = self.data.vals[:, i]
-            for i, colname in enumerate(self.params.response_cols):
-                if self.params.prediction_type == 'regression':
-                    result_df["pred"] = preds[:, i, 0]
-                else:
-                    class_probs = preds[:, i, :]
-                    result_df["pred"] = np.argmax(class_probs, axis=1)
-            if self.params.uncertainty and self.params.prediction_type == 'regression':
-                for i, colname in enumerate(self.params.response_cols):
-                    std_colname = 'std'
-                    result_df[std_colname] = stds[:, i, 0]
-        else:
-            # hybrid model should handled differently
-            if contains_responses:
-                result_df["actual_activity"] = self.data.vals[:, 0]
-                result_df["concentration"] = self.data.vals[:, 1]
-            result_df["pred"] = preds[:, 0]
-
-        if AD_method is not None:
-            if self.featurization.feat_type != "graphconv":
-                pred_data = copy.deepcopy(self.data.dataset.X)
-                self.run_mode = 'training'
-                self.load_featurize_data()
-                if len(self.data.train_valid_dsets) > 1:
-                    # combine train and valid set for k-fold CV models
-                    train_data = np.concatenate((self.data.train_valid_dsets[0][0].X, self.data.train_valid_dsets[0][1].X))
-                else:
-                    train_data = self.data.train_valid_dsets[0][0].X
-                if not hasattr(self, "train_pair_dis") or not hasattr(self, "train_pair_dis_metric") or self.train_pair_dis_metric != dist_metric:
-                    self.calc_train_dset_pair_dis(metric=dist_metric)
-
-                if AD_method == "local_density":
-                    result_df["AD_index"] = calc_AD_kmean_local_density(train_data, pred_data, k, train_dset_pair_distance=self.train_pair_dis, dist_metric=dist_metric)
-                else:
-                    result_df["AD_index"] = calc_AD_kmean_dist(train_data, pred_data, k, train_dset_pair_distance=self.train_pair_dis, dist_metric=dist_metric)
-            else:
-                self.log.warning("GraphConv features are not plain vectors, AD index cannot be calculated.")
-
-        '''
-        if contains_responses:
-            for i, colname in enumerate(self.params.response_cols):
-                result_df["%s_actual" % colname] = self.data.vals[:,i]
-        for i, colname in enumerate(self.params.response_cols):
-            if self.params.prediction_type == 'regression':
-                result_df["%s_pred" % colname] = preds[:,i,0]
-            else:
-                class_probs = preds[:,i,:]
-                result_df["%s_pred" % colname] = np.argmax(class_probs, axis=1)
-        if self.params.uncertainty and self.params.prediction_type == 'regression':
-            for i, colname in enumerate(self.params.response_cols):
-                std_colname = '%s_std' % colname
-                result_df[std_colname] = stds[:,i,0]
-        '''
         return result_df
 
     # ****************************************************************************************
@@ -822,7 +725,7 @@ class ModelPipeline:
         df = pd.DataFrame({'compound_id': np.linspace(0, len(smiles) - 1, len(smiles), dtype=int),
                         self.params.smiles_col: smiles,
                         task: np.zeros(len(smiles))})
-        res = self.predict_on_dataframe(df, AD_method=AD_method, k=k, dist_metric=dist_metric)
+        res = self.predict_full_dataset(df, AD_method=AD_method, k=k, dist_metric=dist_metric)
 
         sys.stdout = sys.__stdout__
 
@@ -887,6 +790,12 @@ class ModelPipeline:
                     coldict[col] = self.params.response_cols[i]
             dset_df = dset_df.rename(columns=coldict)
 
+        # assign unique ids to each row
+        old_ids = dset_df[self.params.id_col].values
+        new_ids = list(range(len(dset_df)))
+        id_map = dict([(i, id) for i, id in zip(new_ids, old_ids)])
+        dset_df[self.params.id_col] = new_ids
+
         self.data = model_datasets.create_minimal_dataset(self.params, self.featurization, contains_responses)
 
         if not self.data.get_dataset_tasks(dset_df):
@@ -946,6 +855,15 @@ class ModelPipeline:
                     result_df["AD_index"] = calc_AD_kmean_dist(train_data, pred_data, k, train_dset_pair_distance=self.train_pair_dis, dist_metric=dist_metric)
             else:
                 self.log.warning("GraphConv features are not plain vectors, AD index cannot be calculated.")
+
+        # insert any missing ids
+        missing_ids = set(new_ids).difference(result_df[self.params.id_col])
+        for mi in missing_ids:
+            result_df.append({self.params.id_col:mi})
+        # sort in ascending order, recovering the original order
+        result_df.sort_values(by=[self.params.id_col], ascending=True, inplace=True)
+        # map back to original id values
+        result_df[self.params.id_col] = result_df[self.params.id_col].map(id_map)
 
         return result_df
 
