@@ -347,7 +347,7 @@ class ModelDataset(object):
                 vals: The response col after featurization (np.array)
                 attr: A pd.dataframe containing the compound ids and smiles
         """
-
+        
         if self.params.previously_featurized:
             try:
                 self.log.debug("Attempting to load featurized dataset")
@@ -359,11 +359,16 @@ class ModelDataset(object):
                 self.n_features = self.featurization.get_feature_count()
                 self.log.debug("Creating deepchem dataset")
                 
-                self.vals, w = feat.make_weights(self.vals)
+                # don't do make_weights which convert all NaN rows into 0 for hybrid model
+                if self.params.model_type != "hybrid":
+                    self.vals, w = feat.make_weights(self.vals)
+                else:
+                    w = np.ones_like(self.vals)
+
                 if self.params.prediction_type=='classification':
                     w = w.astype(np.float32)
 
-                self.dataset = DiskDataset.from_numpy(features, self.vals, ids=ids, w=w, verbose=False)
+                self.dataset = DiskDataset.from_numpy(features, self.vals, ids=ids, w=w)
                 self.log.info("Using prefeaturized data; number of features = " + str(self.n_features))
                 return
             except Exception as e:
@@ -379,7 +384,7 @@ class ModelDataset(object):
         print("number of features: " + str(self.n_features))
            
         # Create the DeepChem dataset       
-        self.dataset = DiskDataset.from_numpy(features, self.vals, ids=ids, w=w, verbose=False)
+        self.dataset = DiskDataset.from_numpy(features, self.vals, ids=ids, w=w)
         # Checking for minimum number of rows
         if len(self.dataset) < self.params.min_compound_number:
             self.log.warning("Dataset of length %i is shorter than the required length %i" % (len(self.dataset), self.params.min_compound_number))
@@ -515,6 +520,7 @@ class ModelDataset(object):
         folds += [0] * ntest
 
         split_df = pd.DataFrame(dict(cmpd_id=ids, subset=subsets, fold=folds))
+        split_df = split_df.drop_duplicates(subset='cmpd_id')
         return split_df
 
     # ****************************************************************************************
@@ -616,7 +622,7 @@ class ModelDataset(object):
             combined_y = np.concatenate((train.y, valid.y), axis=0)
             combined_w = np.concatenate((train.w, valid.w), axis=0)
             combined_ids = np.concatenate((train.ids, valid.ids))
-            self.combined_train_valid_data = DiskDataset.from_numpy(combined_X, combined_y, w=combined_w, ids=combined_ids, verbose=False)
+            self.combined_train_valid_data = DiskDataset.from_numpy(combined_X, combined_y, w=combined_w, ids=combined_ids)
         return self.combined_train_valid_data
 
     # ****************************************************************************************
@@ -810,9 +816,9 @@ class MinimalDataset(ModelDataset):
 
         if self.params.splitter == 'scaffold':
             self.dataset = DiskDataset.from_numpy(features, self.vals, 
-                                                  ids=dset_df[params.smiles_col].values, verbose=False)
+                                                  ids=dset_df[params.smiles_col].values)
         else:
-            self.dataset = DiskDataset.from_numpy(features, self.vals, ids=ids, verbose=False)
+            self.dataset = DiskDataset.from_numpy(features, self.vals, ids=ids)
 
     # ****************************************************************************************
     def save_featurized_data(self, featurized_dset_df):

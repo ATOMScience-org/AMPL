@@ -41,17 +41,19 @@ try:
 except (ImportError, AttributeError, ModuleNotFoundError):
     feather_supported = False
 
-# Ignore failure to import Gomez-Bombarelli autoencoder package (doesn't work in some
-# LC environments that don't have Keras installed)
-try:
-    from mol_vae_features import MoleculeVAEFeaturizer
-except ImportError:
-    pass
+# TODO: Commented out for now, because Gomez-Bombarelli autoencoder package doesn't work 
+# with the version of Keras that is part of TensorFlow 2.5. Eventually we'll replace this
+# with the JT-VAE and/or Wasserstein autoencoders.
+#try:
+#    from mol_vae_features import MoleculeVAEFeaturizer
+#except ImportError:
+#    pass
 
 import collections
 
 logging.basicConfig(format='%(asctime)-15s %(message)s')
 log = logging.getLogger('ATOM')
+log.setLevel(logging.DEBUG)
 
 
 
@@ -427,7 +429,7 @@ def compute_all_moe_descriptors(smiles_df, params):
     """
 
     # TODO: Get MOE_PATH from params
-    moe_path = os.environ.get('MOE_PATH', '/usr/workspace/atom/moe2018/bin')
+    moe_path = os.environ.get('MOE_PATH', '/usr/workspace/atom/moe2020_site/moe2020_site/bin')
     if not os.path.exists(moe_path):
         raise Exception("MOE is not available, or MOE_PATH environment variable needs to be set.")
     moe_root = os.path.abspath('%s/..' % moe_path)
@@ -652,9 +654,10 @@ class DynamicFeaturization(Featurization):
             self.featurizer_obj = dc.feat.CircularFingerprint(size=params.ecfp_size, radius=params.ecfp_radius)
         elif self.feat_type == 'graphconv':
             self.featurizer_obj = dc.feat.ConvMolFeaturizer()
-        #TODO: potentially make generic
-        elif self.feat_type == 'molvae':
-            self.featurizer_obj = MoleculeVAEFeaturizer(params.mol_vae_model_file)
+        #TODO: MoleculeVAEFeaturizer is not working currently. Will be replaced by JT-VAE and cWAE
+        # featurizers eventually.
+        #elif self.feat_type == 'molvae':
+        #    self.featurizer_obj = MoleculeVAEFeaturizer(params.mol_vae_model_file)
         else:
             raise ValueError("Unknown featurization type %s" % self.feat_type)
 
@@ -732,7 +735,7 @@ class DynamicFeaturization(Featurization):
             ##JEA: will set weights to 0 for missing values
             ##JEA: Featurize task results iff they exist.
             dset_df=dset_df.replace(np.nan, "", regex=True)
-            vals, w = dl.convert_df_to_numpy(dset_df, params.response_cols) #, self.id_field)
+            vals, w = dl._convert_df_to_numpy(dset_df, params.response_cols) #, self.id_field)
             # Filter out examples where featurization failed.
             vals, w = (vals[is_valid], w[is_valid])
         else:
@@ -1204,6 +1207,8 @@ class DescriptorFeaturization(PersistentFeaturization):
                 if smiles_col in self.precomp_descr_table.columns.values:
                     self.desc_smiles_col = smiles_col
                     break
+        if self.desc_smiles_col is None:
+            raise Exception(f"No SMILES column found for descriptor table {self.descriptor_key}")
 
 
     # ****************************************************************************************
@@ -1252,7 +1257,7 @@ class DescriptorFeaturization(PersistentFeaturization):
         if model_dataset.contains_responses:
             dset_cols += params.response_cols
         merged_dset_df = dset_df[dset_cols].merge(
-                self.precomp_descr_table, how='inner', left_on=params.id_col, right_on=self.desc_id_col)
+                self.precomp_descr_table, how='left', left_on=params.id_col, right_on=self.desc_id_col)
 
         model_dataset.save_featurized_data(merged_dset_df)
 
@@ -1450,6 +1455,7 @@ class ComputedDescriptorFeaturization(DescriptorFeaturization):
         # Try to load a precomputed descriptor table, and check that it's useful to us
         if params.descriptor_key is not None and self.precomp_descr_table.empty:
             self.load_descriptor_table(params)
+        if not self.precomp_descr_table.empty:
             if self.desc_smiles_col is None or self.desc_id_col is None:
                 log.warning("Precomputed descriptor table %s lacks a SMILES column and/or an ID column." % params.descriptor_key)
                 log.warning("Will compute all descriptors on the fly.")
@@ -1482,64 +1488,70 @@ class ComputedDescriptorFeaturization(DescriptorFeaturization):
             dset_cols.append(params.date_col)
         if model_dataset.contains_responses:
             dset_cols += params.response_cols
-        input_df = dset_df[dset_cols]
+        keep_df = dset_df[dset_cols]
+
+        # Make a table with duplicate SMILES removed. Later we'll join the descriptors back to the original
+        # table.
+        input_df = keep_df.drop_duplicates(subset=params.smiles_col)[[params.id_col, params.smiles_col]]
 
         # Identify which SMILES strings in the dataset need to have descriptors calculated for them and
         # which already have them precomputed
-        dset_smiles = dset_df[params.smiles_col].values
+        dset_smiles = set(input_df[params.smiles_col].values)
         if use_precomputed:
-            calc_smiles = list(set(dset_smiles) - set(self.precomp_descr_table[self.desc_smiles_col].values))
-            precomp_smiles = list(set(dset_smiles) - set(calc_smiles))
+            calc_smiles = dset_smiles - set(self.precomp_descr_table[self.desc_smiles_col].values)
+            precomp_smiles = dset_smiles - calc_smiles
         else:
             calc_smiles = dset_smiles
-            precomp_smiles = []
+            precomp_smiles = set()
 
         # Compute descriptors for the compounds that need them
         if len(calc_smiles) > 0:
             calc_smiles_df = input_df[input_df[params.smiles_col].isin(calc_smiles)]
             calc_desc_df, is_valid = self.compute_descriptors(calc_smiles_df, params)
-            calc_merged_df = calc_smiles_df[is_valid].reset_index(drop=True)
+            calc_smiles_feat_df = calc_smiles_df[is_valid].reset_index(drop=True)[[params.smiles_col]]
             for col in descr_cols:
-                calc_merged_df[col] = calc_desc_df[col]
-            # Get rid of any extra columns
-            calc_merged_df = calc_merged_df[dset_cols+descr_cols]
+                calc_smiles_feat_df[col] = calc_desc_df[col]
 
             if len(precomp_smiles) == 0:
-                merged_dset_df = calc_merged_df
+                uniq_smiles_feat_df = calc_smiles_feat_df
 
             # Add the newly computed descriptors to the precomputed table
+            new_desc_df = calc_desc_df.rename(columns={params.smiles_col : self.desc_smiles_col,
+                                                       params.id_col : self.desc_id_col})
             if self.precomp_descr_table.empty:
-                self.precomp_descr_table = calc_desc_df
+                self.precomp_descr_table = new_desc_df
             else:
-                self.precomp_descr_table = pd.concat([self.precomp_descr_table, calc_desc_df], ignore_index=True)
+                self.precomp_descr_table = pd.concat([self.precomp_descr_table, new_desc_df], ignore_index=True)
 
         # Merge descriptors from the precomputed table for the remaining compounds
         if len(precomp_smiles) > 0:
-            precomp_smiles_df = input_df[input_df[params.smiles_col].isin(precomp_smiles)]
-            precomp_merged_df = precomp_smiles_df.merge(self.precomp_descr_table, how='inner',
-                                                        left_on=params.smiles_col,
-                                                        right_on=self.desc_smiles_col,
-                                                        suffixes=('', '_y'))
+            precomp_smiles_feat_df = self.precomp_descr_table[self.precomp_descr_table[self.desc_smiles_col].isin(
+                                                                                                    precomp_smiles)].copy()
+            if (params.smiles_col in precomp_smiles_feat_df.columns.values):
+                psf_df = precomp_smiles_feat_df
+            else:
+                psf_df = precomp_smiles_feat_df.rename(columns={self.desc_smiles_col : params.smiles_col})
+
             # Remove duplicate SMILES matches
-            precomp_merged_df = precomp_merged_df.drop_duplicates(subset=[params.smiles_col])
+            psf_df = psf_df.drop_duplicates(subset=params.smiles_col)
 
             # Get rid of any extra columns
-            precomp_merged_df = precomp_merged_df[dset_cols+descr_cols]
+            psf_df = psf_df[[params.smiles_col]+descr_cols]
 
             if len(calc_smiles) == 0:
-                merged_dset_df = precomp_merged_df
+                uniq_smiles_feat_df = psf_df
 
         # Combine the computed and precomputed data frames, if we had both
         if len(precomp_smiles) > 0 and len(calc_smiles) > 0:
-            merged_dset_df = pd.concat([calc_merged_df, precomp_merged_df], ignore_index=True)
+            uniq_smiles_feat_df = pd.concat([calc_smiles_feat_df, psf_df], ignore_index=True)
 
-        # TODO (ksm): Replace nan feature values with averages over non-missing rows, so that scaling and centering
-        # works as it should.
-
+        # Merge descriptors with input data on SMILES strings.
+        merged_dset_df = keep_df.merge(uniq_smiles_feat_df, how='left', on=params.smiles_col)
+        
         # Shuffle the order of rows, so that compounds with precomputed descriptors are intermixed with those having
         # newly computed descriptors. This avoids bias later when doing scaffold splits; otherwise test set will be
         # biased toward non-precomputed compounds.
-        merged_dset_df = merged_dset_df.sample(n=merged_dset_df.shape[0])
+        merged_dset_df = merged_dset_df.sample(frac=1.0)
 
         # Save the featurized dataset
         model_dataset.save_featurized_data(merged_dset_df)
@@ -1630,6 +1642,8 @@ class ComputedDescriptorFeaturization(DescriptorFeaturization):
             # Add scaling by a_count if descr_scaled is True
             if descr_scaled:
                 ret_df = self.scale_moe_descriptors(desc_df, params.descriptor_type)
+            else:
+                ret_df = desc_df
 
         else:
             raise ValueError('Unsupported descriptor_type %s' % params.descriptor_type)

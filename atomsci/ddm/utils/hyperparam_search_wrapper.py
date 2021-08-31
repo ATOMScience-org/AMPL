@@ -15,6 +15,7 @@ import numpy as np
 import logging
 import itertools
 from numpy.core.numeric import NaN
+from collections.abc import Iterable, Iterator
 import pandas as pd
 import uuid
 
@@ -61,6 +62,22 @@ def run_command(shell_script, python_path, script_dir, params):
     print(slurm_command)
     os.system(slurm_command)
 
+def gen_maestro_command(python_path, script_dir, params):
+    """
+    Generates a string that can be fed into a command line.
+    Args:
+        shell_script: Name of shell script to run
+        python_path: Path to python version
+        script_dir: Directory where script lives
+        params: parameters in dictionary format
+    Returns:
+        str: Formatted command in the form of a string
+
+    """
+    params_str = parse.to_str(params)
+    slurm_command = '{0} {1}/pipeline/model_pipeline.py {2}'.format(python_path, script_dir, params_str)
+
+    return slurm_command
 
 def run_cmd(cmd):
     """
@@ -226,7 +243,7 @@ class HyperparameterSearch(object):
     """
     The class for generating and running all hyperparameter combinations based on the input params given
     """
-    def __init__(self, params, hyperparam_uuid=None):
+    def __init__(self, params):
         """
 
         Args:
@@ -257,10 +274,10 @@ class HyperparameterSearch(object):
                                                                                            params.node_nums,
                                                                                            params.dropout_list,
                                                                                            params.max_final_layer_size)
-        if hyperparam_uuid is None:
+        if params.hyperparam_uuid is None:
             self.hyperparam_uuid = str(uuid.uuid4())
         else:
-            self.hyperparam_uuid = hyperparam_uuid
+            self.hyperparam_uuid = params.hyperparam_uuid
         self.hyperparams = {}
         self.new_params = {}
         self.layers = {}
@@ -910,14 +927,16 @@ class HyperparameterSearch(object):
                         continue
         return assays
 
-    def submit_jobs(self, retry_time=60):
+    def build_jobs(self):
         """
-        Reformats parameters as necessary and then calls run_command in a loop to submit a job for each param combo
+        Builds jobs.
+        Reformats parameters as necessary
 
         Returns:
             None
 
         """
+        result_assay_params = []
         for assay, bucket, response_cols, collection, splitter, split_uuid in self.assays:
             # Writes the series of command line arguments for scripts without a hyperparameter combo
             assay_params = copy.deepcopy(self.new_params)
@@ -936,44 +955,65 @@ class HyperparameterSearch(object):
                 print(e)
                 print(traceback.print_exc())
                 continue
+            # creates output directory
             base_result_dir = os.path.join(assay_params['result_dir'], assay_params['dataset_name'])
+
             if not self.param_combos:
-                if assay_params['model_type'] == 'NN' and assay_params['featurizer'] != 'graphconv':
-                    if assay_params['dataset_key'] in self.num_rows:
-                        num_params = get_num_params(assay_params)
-                        if num_params*self.params.nn_size_scale_factor >= self.num_rows[assay_params['dataset_key']]:
-                            continue
-                if not self.params.rerun and self.already_run(assay_params):
-                    continue
                 assay_params['result_dir'] = os.path.join(base_result_dir, str(uuid.uuid4()))
-                self.log.info(assay_params)
-                self.out_file.write(str(assay_params))
-                run_command(self.shell_script, self.params.python_path, self.params.script_dir, assay_params)
+                result_assay_params.append(assay_params)
             else:
                 for combo in self.param_combos:
                     # For a temporary parameter list, appends and modifies parameters for each hyperparameter combo.
+                    combo_params = copy.deepcopy(assay_params)
                     for key, value in combo.items():
                         if key == 'layers':
                             for k, v in value.items():
-                                assay_params[k] = v
+                                combo_params[k] = v
                         else:
-                            assay_params[key] = value
-                    if assay_params['model_type'] == 'NN' and assay_params['featurizer'] != 'graphconv':
-                        if assay_params['dataset_key'] in self.num_rows:
-                            num_params = get_num_params(assay_params)
-                            if num_params*self.params.nn_size_scale_factor >= self.num_rows[assay_params['dataset_key']]:
-                                continue
-                    if not self.params.rerun and self.already_run(assay_params):
+                            combo_params[key] = value
+
+                    combo_params['result_dir'] = os.path.join(base_result_dir, str(uuid.uuid4()))
+                    result_assay_params.append(combo_params)
+
+        return result_assay_params
+
+    def filter_jobs(self, job_list):
+        """
+        Removes jobs that should not be run
+
+        Returns:
+            None
+        """
+        result_list = []
+        for assay_params in job_list:
+            if assay_params['model_type'] == 'NN' and assay_params['featurizer'] != 'graphconv':
+                if assay_params['dataset_key'] in self.num_rows:
+                    num_params = get_num_params(assay_params)
+                    if num_params*self.params.nn_size_scale_factor >= self.num_rows[assay_params['dataset_key']]:
                         continue
-                    i = int(run_cmd('squeue | grep $(whoami) | wc -l').decode("utf-8"))
-                    while i >= self.params.max_jobs:
-                        print("%d jobs in queue, sleeping" % i)
-                        time.sleep(retry_time)
-                        i = int(run_cmd('squeue | grep $(whoami) | wc -l').decode("utf-8"))
-                    assay_params['result_dir'] = os.path.join(base_result_dir, str(uuid.uuid4()))
-                    self.log.info(assay_params)
-                    self.out_file.write(str(assay_params))
-                    run_command(self.shell_script, self.params.python_path, self.params.script_dir, assay_params)
+            if not self.params.rerun and self.already_run(assay_params):
+                continue
+
+            result_list.append(assay_params)
+
+        return result_list
+
+    def submit_jobs(self, job_list, retry_time=60):
+        """
+        Reformats parameters as necessary and then calls run_command in a loop to submit a job for each param combo
+
+        Returns:
+            None
+        """
+        for assay_params in job_list:
+            i = int(run_cmd('squeue | grep $(whoami) | wc -l').decode("utf-8"))
+            while i >= self.params.max_jobs:
+                print("%d jobs in queue, sleeping" % i)
+                time.sleep(retry_time)
+                i = int(run_cmd('squeue | grep $(whoami) | wc -l').decode("utf-8"))
+            self.log.info(assay_params)
+            self.out_file.write(str(assay_params))
+            run_command(self.shell_script, self.params.python_path, self.params.script_dir, assay_params)
 
     def already_run(self, assay_params, retry_time=10):
         """
@@ -1028,13 +1068,53 @@ class HyperparameterSearch(object):
             None
 
         """
-        print("Generating param combos")
+        job_list = self.generate_searches()
+        print("Submitting jobs")
+        self.submit_jobs(job_list)
+
+    def generate_searches(self):
+        """Generate a list of training jobs
+
+        Generates a list of model training jobs that spans
+        the hyperparameter search space. This function
+        filters out jobs that are redundant by calling filter_jobs
+
+        Args:
+            None
+
+        Returns:
+            list(tuple): A list of tuples that contain assay parameters
+        """
+
+        print("Generating param combos") 
         self.generate_param_combos()
         print("Generating assay list")
         self.generate_assay_list()
-        print("Submitting jobs")
-        self.submit_jobs()
+        print("build_ jobs")
+        job_list = self.build_jobs()
+        print("filter redundant jobs")
+        job_list = self.filter_jobs(job_list)
 
+        return job_list
+
+    def generate_maestro_commands(self):
+        """Generates commands that can be used by maestro
+
+        Generates a list of commands that can be put directly into
+        the shell to run model training.
+
+        Args:
+            None
+
+        Returns:
+            list: A list of shell commands
+        """
+
+        job_list = self.generate_searches()
+        commands = []
+        for assay_params in job_list:
+            commands.append(gen_maestro_command(self.params.python_path, self.params.script_dir, assay_params))
+        return commands
 
 class GridSearch(HyperparameterSearch):
     """
@@ -1053,9 +1133,6 @@ class GridSearch(HyperparameterSearch):
     def generate_assay_list(self):
         super().generate_assay_list()
 
-    def submit_jobs(self):
-        super().submit_jobs()
-
     def generate_combo(self, params_dict):
         """
         Method to generate all combinations from a given set of key-value pairs
@@ -1073,7 +1150,7 @@ class GridSearch(HyperparameterSearch):
 
         new_dict = {}
         for key, value in params_dict.items():
-            assert isinstance(value, collections.Iterable)
+            assert isinstance(value, Iterable)
             if key == 'layers':
                 new_dict[key] = value
             elif type(value[0]) != str:
@@ -1085,7 +1162,6 @@ class GridSearch(HyperparameterSearch):
             else:
                 new_dict[key] = value
         return new_dict
-
 
 class RandomSearch(HyperparameterSearch):
     """
@@ -1104,9 +1180,6 @@ class RandomSearch(HyperparameterSearch):
     def generate_assay_list(self):
         super().generate_assay_list()
 
-    def submit_jobs(self):
-        super().submit_jobs()
-
     def generate_combo(self, params_dict):
         """
         Method to generate all combinations from a given set of key-value pairs
@@ -1123,7 +1196,7 @@ class RandomSearch(HyperparameterSearch):
             return None
         new_dict = {}
         for key, value in params_dict.items():
-            assert isinstance(value, collections.Iterable)
+            assert isinstance(value, Iterable)
             if key == 'layers':
                 new_dict[key] = value
             elif type(value[0]) != str:
@@ -1135,7 +1208,6 @@ class RandomSearch(HyperparameterSearch):
             else:
                 new_dict[key] = value
         return new_dict
-
 
 class GeometricSearch(HyperparameterSearch):
     """
@@ -1154,9 +1226,6 @@ class GeometricSearch(HyperparameterSearch):
     def generate_assay_list(self):
         super().generate_assay_list()
 
-    def submit_jobs(self):
-        super().submit_jobs()
-
     def generate_combo(self, params_dict):
         """
         Method to generate all combinations from a given set of key-value pairs
@@ -1174,11 +1243,11 @@ class GeometricSearch(HyperparameterSearch):
 
         new_dict = {}
         for key, value in params_dict.items():
-            assert isinstance(value, collections.Iterable)
+            assert isinstance(value, Iterable)
             if key == 'layers':
                 new_dict[key] = value
             elif type(value[0]) != str:
-                tmp_list = list(np.geomspace(value[0], value[1], value[2]))
+                tmp_list = list(np.geomspace(value[0], value[1], int(value[2])))
                 if key in self.convert_to_int:
                     new_dict[key] = [int(x) for x in tmp_list]
                 else:
@@ -1204,9 +1273,6 @@ class UserSpecifiedSearch(HyperparameterSearch):
     def generate_assay_list(self):
         super().generate_assay_list()
 
-    def submit_jobs(self):
-        super().submit_jobs()
-
     def generate_combo(self, params_dict):
         """
         Method to generate all combinations from a given set of key-value pairs
@@ -1224,7 +1290,7 @@ class UserSpecifiedSearch(HyperparameterSearch):
             return None
         new_dict = {}
         for key, value in params_dict.items():
-            assert isinstance(value, collections.Iterable)
+            assert isinstance(value, Iterable)
             if key == 'layers':
                 new_dict[key] = value
             elif key in self.convert_to_int:
@@ -1553,23 +1619,35 @@ class HyperOptSearch():
             shutil.copy2(best_model, os.path.join(self.final_dir,
                                               f"best_{self.params.prediction_type}_{bmodel_prefix}_{self.params.model_type}_{fd}_{bmodel_uuid}.tar.gz"))
 
+def parse_params(param_list):
+    """Parse paramters
 
-def main():
-    """Entry point when script is run"""
-    print(sys.argv[1:])
-    params = parse.wrapper(sys.argv[1:])
+    Parses parameters using parameter_parser.wrapper and 
+    filters out unnecessary parameters. Returns what an
+    argparse.Namespace
+
+    Args:
+        *any_arg: any single input of a str, dict, argparse.Namespace, or list
+
+    Returns:
+        argparse.Namespace
+    """
+    params = parse.wrapper(param_list)
     keep_params = {'prediction_type',
                    'model_type',
                    'featurizer',
+                   'hyperparam_uuid',
                    'splitter',
                    'datastore',
                    'save_results',
                    'previously_featurized',
+                   'previously_split',
                    'prediction_type',
                    'descriptor_key',
                    'descriptor_type',
                    'split_valid_frac',
                    'split_test_frac',
+                   'split_uuid',
                    'bucket',
                    'lc_account',
                    'slurm_account',
@@ -1583,6 +1661,23 @@ def main():
         keep_params = keep_params | {'lr', 'learning_rate','ls', 'layer_sizes','ls_ratio','dp', 'dropouts','rfe', 'rf_estimators','rfd', 'rf_max_depth','rff', 'rf_max_features','xgbg', 'xgb_gamma','xgbl', 'xgb_learning_rate', 'hp_checkpoint_load', 'hp_checkpoint_save'}
 
     params.__dict__ = parse.prune_defaults(params, keep_params=keep_params)
+
+    return params
+
+def build_search(params):
+    """ Builds HyperparamterSearch object
+
+        Looks at params.search_type and builds a HyperparamSearch object
+        of the correct flavor. Will exit if the search_type is not
+        recognized.
+
+    Args:
+        params (Namespace): Namespace returned by 
+            atomsci.ddm.pipeline.parameter_parser.wrapper()
+
+    Returns:
+        HyperparameterSearch
+    """
     if params.search_type == 'grid':
         hs = GridSearch(params)
     elif params.search_type == 'random':
@@ -1596,6 +1691,23 @@ def main():
     else:
         print("Incorrect search type specified")
         sys.exit(1)
+
+    return hs
+
+def main():
+    """Entry point when script is run
+    
+    Args:
+        None
+
+    Returns:
+        None
+    
+    """
+
+    params = parse_params(sys.argv[1:])
+    hs = build_search(params)
+
     if params.split_only and params.datastore:
         hs.generate_split_shortlist()
     elif params.split_only and not params.datastore:

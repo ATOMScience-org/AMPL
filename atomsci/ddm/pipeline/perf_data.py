@@ -119,6 +119,8 @@ def create_perf_data(prediction_type, model_dataset, transformers, subset, **kwa
             return KFoldClassificationPerfData(model_dataset, transformers, subset, **kwargs)
         else:
             raise ValueError('Unknown split_strategy %s' % split_strategy)
+    elif prediction_type == "hybrid":
+        return SimpleHybridPerfData(model_dataset, transformers, subset, **kwargs)
     else:
         raise ValueError('Unknown prediction type %s' % prediction_type)
 
@@ -380,6 +382,222 @@ class RegressionPerfData(PerfData):
             # FCNet models generate predictions with an extra dimension, possibly for the number of
             # classes, which is always 1 for regression models.
             predicted_vals = predicted_vals.reshape((ncmpds,ntasks))
+        return predicted_vals
+
+    # ****************************************************************************************
+
+# ****************************************************************************************
+class HybridPerfData(PerfData):
+    """Class with methods for accumulating regression model prediction data over multiple
+    cross-validation folds and computing performance metrics after all folds have been run.
+    Abstract class with concrete subclasses for different split strategies.
+    
+    Attributes:
+        set in __init__
+            num_tasks (int): Set to None, the number of tasks
+
+            num_cmpds (int): Set to None, the number of compounds
+
+    """
+    # ****************************************************************************************
+    # class HybridPerfData
+    def __init__(self, model_dataset, subset):
+        """Initialize any attributes that are common to all HybridPerfData subclasses.
+        
+        Side effects:
+            num_tasks (int) is set as a HybridPerfData attribute
+
+            num_cmps (int) is set as a HybridPerfData attribute
+
+        """
+        # The code below is to document the atributes that methods in this class expect the
+        # subclasses to define. Subclasses don't actually call this superclass method.
+        self.num_tasks = 2
+        self.num_cmpds = None
+        self.perf_metrics = []
+        self.model_score = None
+        self.weights = None
+
+    # ****************************************************************************************
+    def accumulate_preds(self, predicted_vals, ids, pred_stds=None):
+        """
+        Raises:
+            NotImplementedError: The method is implemented by subclasses
+        """
+        raise NotImplementedError
+
+    # ****************************************************************************************
+    def get_pred_values(self):
+        """
+        Raises:
+            NotImplementedError: The method is implemented by subclasses
+        """
+        raise NotImplementedError
+
+    # ****************************************************************************************
+    def compute_perf_metrics(self, per_task=False):
+        """
+        Raises:
+            NotImplementedError: The method is implemented by subclasses
+        """
+        raise NotImplementedError
+
+
+    # ****************************************************************************************
+    # class HybridPerfData
+    def model_choice_score(self, score_type='r2'):
+        """Computes a score function based on the accumulated predicted values, to be used for selecting
+        the best training epoch and other hyperparameters.
+        
+        Args:
+            score_type (str): The name of the scoring metric to be used, e.g. 'r2', 'mae', 'rmse'
+        
+        Returns:
+            score (float): A score function value. For multitask models, this will be averaged
+                           over tasks.
+
+        """
+        ids, pred_vals, stds = self.get_pred_values()
+        real_vals = self.get_real_values(ids)
+        weights = self.get_weights(ids)
+        scores = []
+        
+        pos_ki = np.where(np.isnan(real_vals[:, 1]))[0]
+        pos_bind = np.where(~np.isnan(real_vals[:, 1]))[0]
+
+        # score for pKi/IC50
+        nzrows = np.where(weights[:, 0] != 0)[0]
+        rowki = np.intersect1d(nzrows, pos_ki)
+        rowbind = np.intersect1d(nzrows, pos_bind)
+        ki_real_vals = np.squeeze(real_vals[rowki,0])
+        ki_pred_vals = np.squeeze(pred_vals[rowki,0])
+        bind_real_vals = np.squeeze(real_vals[rowbind,0])
+        bind_pred_vals = np.squeeze(pred_vals[rowbind,0])
+        if len(rowki) > 0:
+            scores.append(regr_score_func[score_type](ki_real_vals, ki_pred_vals))
+            if len(rowbind) > 0:
+                scores.append(regr_score_func[score_type](bind_real_vals, bind_pred_vals))
+            else:
+                # if all values are dose response activities, use the r2_score above.
+                scores.append(scores[0])
+        elif len(rowbind) > 0:
+            # all values are single concentration activities.
+            scores.append(regr_score_func[score_type](bind_real_vals, bind_pred_vals))
+            scores.append(scores[0])
+
+        self.model_score = float(np.mean(scores))
+        if score_type in loss_funcs:
+            self.model_score = -self.model_score
+        return self.model_score
+
+
+    # ****************************************************************************************
+    # class HybridPerfData
+    def get_prediction_results(self):
+        """Returns a dictionary of performance metrics for a regression model.
+        The dictionary values should contain only primitive Python types, so that it can
+        be easily JSONified.
+        
+        Args:
+            per_task (bool): True if calculating per-task metrics, False otherwise.
+        
+        Returns:
+            pred_results (dict): dictionary of performance metrics for a regression model.
+
+        """
+        pred_results = {}
+
+        # Get the mean and SD of R^2 scores over folds. If only single fold training was done, the SD will be None.
+        r2_means, r2_stds = self.compute_perf_metrics(per_task=True)
+        pred_results['r2_score'] = float(np.mean(r2_means))
+        if r2_stds is not None:
+            pred_results['r2_std'] = float(np.sqrt(np.mean(r2_stds ** 2)))
+        if self.num_tasks > 1:
+            pred_results['task_r2_scores'] = r2_means.tolist()
+            if r2_stds is not None:
+                pred_results['task_r2_stds'] = r2_stds.tolist()
+
+        # Compute some other performance metrics. We do these differently than R^2, in that we compute the
+        # metrics from the average predicted values, rather than computing them separately for each fold
+        # and then averaging the metrics. If people start asking for SDs of MAE and RMSE scores over folds,
+        # we'll change the code to compute all metrics the same way.
+
+        (ids, pred_vals, pred_stds) = self.get_pred_values()
+        real_vals = self.get_real_values(ids)
+        weights = self.get_weights(ids)
+        mae_scores = []
+        rms_scores = []
+        response_means = []
+        response_stds = []
+        
+        pos_ki = np.where(np.isnan(real_vals[:, 1]))[0]
+        pos_bind = np.where(~np.isnan(real_vals[:, 1]))[0]
+
+        # score for pKi/IC50
+        nzrows = np.where(weights[:, 0] != 0)[0]
+        rowki = np.intersect1d(nzrows, pos_ki)
+        rowbind = np.intersect1d(nzrows, pos_bind)
+        ki_real_vals = np.squeeze(real_vals[rowki,0])
+        ki_pred_vals = np.squeeze(pred_vals[rowki,0])
+        bind_real_vals = np.squeeze(real_vals[rowbind,0])
+        bind_pred_vals = np.squeeze(pred_vals[rowbind,0])
+        if len(rowki) > 0:
+            mae_scores.append(regr_score_func['mae'](ki_real_vals, ki_pred_vals))
+            rms_scores.append(regr_score_func['rmse'](ki_real_vals, ki_pred_vals))
+            if len(rowbind) > 0:
+                mae_scores.append(regr_score_func['mae'](bind_real_vals, bind_pred_vals))
+                rms_scores.append(regr_score_func['rmse'](bind_real_vals, bind_pred_vals))
+            else:
+                # if all values are dose response activities, use the r2_score above.
+                mae_scores.append(mae_scores[0])
+                rms_scores.append(rms_scores[0])
+        elif len(rowbind) > 0:
+            # all values are single concentration activities.
+            mae_scores.append(regr_score_func['mae'](bind_real_vals, bind_pred_vals))
+            rms_scores.append(regr_score_func['rmse'](bind_real_vals, bind_pred_vals))
+            mae_scores.append(mae_scores[0])
+            rms_scores.append(rms_scores[0])
+
+        response_means.append(ki_real_vals.mean().tolist())
+        response_stds.append(ki_real_vals.std().tolist())
+        response_means.append(bind_real_vals.mean().tolist())
+        response_stds.append(bind_real_vals.std().tolist())
+
+        pred_results['mae_score'] = float(np.mean(mae_scores))
+        if self.num_tasks > 1:
+            pred_results['task_mae_scores'] = mae_scores
+        pred_results['rms_score'] = float(np.mean(rms_scores))
+        if self.num_tasks > 1:
+            pred_results['task_rms_scores'] = rms_scores
+
+        # Add model choice score if one was computed
+        if self.model_score is not None:
+            pred_results['model_choice_score'] = self.model_score
+
+        pred_results['num_compounds'] = self.num_cmpds
+        pred_results['mean_response_vals'] = response_means
+        pred_results['std_response_vals'] = response_stds
+
+        return pred_results
+
+    # ****************************************************************************************
+    # class HybridPerfData
+    def _reshape_preds(self, predicted_vals):
+        """Reshape an array of regression model predictions to a standard (ncmpds, ntasks)
+        format. Checks that the task dimension matches what we expect for the dataset.
+
+        Args:
+            predicted_vals (np.array): array of regression model predictions.
+        
+        Returns:
+            predicted_vals (np.array): reshaped array
+            
+        Raises:
+            ValueError: if the dimensions of the predicted value do not match the dimensions of num_tasks for
+            RegressionPerfData
+
+        """
+        # hybrid model is highly specific, there is no need to reshape
         return predicted_vals
 
     # ****************************************************************************************
@@ -1621,3 +1839,242 @@ class SimpleClassificationPerfData(ClassificationPerfData):
             return (roc_auc_scores.mean(), None)
 
 
+# ****************************************************************************************
+class SimpleHybridPerfData(HybridPerfData):
+    """Class with methods for accumulating hybrid model prediction data from training,
+    validation or test sets and computing performance metrics.
+    
+    Attributes:
+        Set in __init__:
+            subset (str): Label of the type of subset of dataset for tracking predictions
+
+            num_cmps (int): The number of compounds in the dataset
+
+            num_tasks (int): The number of tasks in the dataset
+
+            pred-vals (dict): The dictionary of prediction results
+
+            folds (int): Initialized at zero, flag for determining which k-fold is being assessed
+
+            transformers (list of Transformer objects): from input arguments
+
+            real_vals (dict): The dictionary containing the origin response column values
+    
+    """
+
+    # ****************************************************************************************
+    # class SimpleHybridPerfData
+    def __init__(self, model_dataset, transformers, subset, is_ki, ki_convert_ratio=None, transformed=True):
+        """ Initialize any attributes that are common to all SimpleRegressionPerfData subclasses
+
+        Args:
+            model_dataset (ModelDataset object): contains the dataset and related methods
+
+            transformers (list of transformer objects): contains the list of transformers used to transform the dataset
+
+            subset (str): Label in ['train', 'valid', 'test', 'full'], indicating the type of subset of dataset for
+            tracking predictions
+
+            is_ki: whether the dose-response activity is Ki or IC50, it will decide how to convert them into single
+            concentration activities.
+
+            ki_convert_ratio: If the given activity is pKi, a ratio to convert Ki into IC50 is needed. It can be the 
+            ratio of concentration and Kd of the radioligand in a competitive binding assay, or the concentration
+            of the substrate and Michaelis constant (Km) of enzymatic inhibition assay.
+
+            transformed (bool): True if values to be passed to accumulate preds function are transformed values
+            
+        Raises: 
+            ValueError: if subset not in ['train','valid','test','full'], subset not supported
+            
+        Side effects:
+            Sets the following attributes of SimpleRegressionPerfData:
+                subset (str): Label of the type of subset of dataset for tracking predictions
+
+                num_cmps (int): The number of compounds in the dataset
+
+                num_tasks (int): The number of tasks in the dataset
+
+                pred_vals (dict): The dictionary of prediction results
+
+                transformers (list of Transformer objects): from input arguments
+
+                real_vals (dict): The dictionary containing the origin response column values
+
+        """
+        self.subset = subset
+        if subset == 'train':
+            dataset = model_dataset.train_valid_dsets[0][0]
+        elif subset == 'valid':
+            dataset = model_dataset.train_valid_dsets[0][1]
+        elif subset == 'test':
+            dataset = model_dataset.test_dset
+        elif subset == 'full':
+            dataset = model_dataset.dataset
+        else:
+            raise ValueError('Unknown dataset subset type "%s"' % subset)
+        self.num_cmpds = dataset.y.shape[0]
+        self.num_tasks = dataset.y.shape[1]
+        self.weights = dataset.w
+        self.ids = dataset.ids
+        self.pred_vals = None
+        self.pred_stds = None
+        self.perf_metrics = []
+        self.model_score = None
+        self.is_ki = is_ki
+        self.ki_convert_ratio = ki_convert_ratio
+        if transformed:
+            # Predictions passed to accumulate_preds() will be transformed
+            self.transformers = transformers
+            self.real_vals = dataset.y
+        else:
+            self.real_vals = transformers[0].untransform(dataset.y)
+            self.transformers = []
+
+    # ****************************************************************************************
+    # class SimpleHybridPerfData
+    def accumulate_preds(self, predicted_vals, ids, pred_stds=None):
+        """Add training, validation or test set predictions to the data structure
+        where we keep track of them.
+        
+        Args:
+            predicted_vals (np.array): Array of predicted values
+
+            ids (list): List of the compound ids of the dataset
+
+            pred_stds (np.array): Optional np.array of the prediction standard deviations
+            
+        Side effects:
+            Reshapes the predicted values and the standard deviations (if they are given)
+
+        """
+
+        self.pred_vals = self._reshape_preds(predicted_vals)
+        if pred_stds is not None:
+            self.pred_stds = self._reshape_preds(pred_stds)
+        # pred_vals = self.transformers[0].untransform(self.pred_vals, isreal=False)
+        pred_vals = self.pred_vals
+        real_vals = self.get_real_values(ids)
+        weights = self.get_weights(ids)
+        scores = []
+        pos_ki = np.where(np.isnan(real_vals[:, 1]))[0]
+        pos_bind = np.where(~np.isnan(real_vals[:, 1]))[0]
+
+        # score for pKi/IC50
+        nzrows = np.where(weights[:, 0] != 0)[0]
+        rowki = np.intersect1d(nzrows, pos_ki)
+        rowbind = np.intersect1d(nzrows, pos_bind)
+        ki_real_vals = np.squeeze(real_vals[rowki,0])
+        ki_pred_vals = np.squeeze(pred_vals[rowki,0])
+        bind_real_vals = np.squeeze(real_vals[rowbind,0])
+        bind_pred_vals = np.squeeze(pred_vals[rowbind,0])
+        if len(rowki) > 0:
+            scores.append(r2_score(ki_real_vals, ki_pred_vals))
+            if len(rowbind) > 0:
+                scores.append(r2_score(bind_real_vals, bind_pred_vals))
+            else:
+                # if all values are dose response activities, use the r2_score above.
+                scores.append(scores[0])
+        elif len(rowbind) > 0:
+            # all values are single concentration activities.
+            scores.append(r2_score(bind_real_vals, bind_pred_vals))
+            scores.append(scores[0])
+
+        self.perf_metrics.append(np.array(scores))
+        return float(np.mean(scores))
+
+    # ****************************************************************************************
+    # class SimpleHybridPerfData
+    def _predict_binding(self, activity, conc):
+        """
+        Predict measurements of fractional binding/inhibition of target receptors by a compound with the given activity,
+        in -Log scale, at the specified concentration in nM. If the given activity is pKi, a ratio to convert Ki into IC50
+        is needed. It can be the ratio of concentration and Kd of the radioligand in a competitive binding assay, or the concentration
+        of the substrate and Michaelis constant (Km) of enzymatic inhibition assay.
+        """
+        
+        if self.is_ki:
+            if self.ki_convert_ratio is None:
+                raise Exception("Ki converting ratio is missing. Cannot convert Ki into IC50")
+            Ki = 10**(9-activity)
+            IC50 = Ki * (1 + self.ki_convert_ratio)
+        else:
+            IC50 = 10**(9-activity)
+        pred_frac = 1.0/(1.0 + IC50/conc)
+        
+        return pred_frac
+
+    # ****************************************************************************************
+    # class SimpleHybridPerfData
+    def get_pred_values(self):
+        """Returns the predicted values accumulated over training, with any transformations undone.  Returns
+        a tuple (ids, values, stds), where ids is the list of compound IDs, values is a (ncmpds, ntasks) array
+        of predictions, and stds is always None for this class.
+        
+        Returns:
+            Tuple (ids, vals, stds)
+                ids (list): Contains the dataset compound ids
+
+                vals (np.array): Contains (ncmpds, ntasks) array of prediction
+
+                stds (np.array): Contains (ncmpds, ntasks) array of prediction standard deviations
+        """
+        vals = self.pred_vals
+        # pos_bind = np.where(~np.isnan(self.real_vals[:,1]))[0]
+        # vals[pos_bind, 0] = self._predict_binding(vals[pos_bind, 0], self.real_vals[pos_bind, 1])
+        stds = None
+        
+        return (self.ids, vals, stds)
+
+
+    # ****************************************************************************************
+    # class SimpleHybridPerfData
+    def get_real_values(self, ids=None):
+        """Returns the real dataset response values, with any transformations undone, as an (ncmpds, ntasks) array
+        with compounds in the same ID order as in the return from get_pred_values().
+        
+        Args:
+            ids: Ignored for this class
+
+        Returns:
+            np.array: Containing the real dataset response values with transformations undone.
+
+        """
+        return self.transformers[0].untransform(self.real_vals)
+
+
+    # ****************************************************************************************
+    # class SimpleHybridPerfData
+    def get_weights(self, ids=None):
+        """Returns the dataset response weights as an (ncmpds, ntasks) array
+        
+        Args:
+            ids: Ignored for this class
+
+        Returns:
+            np.array: Containing the dataset response weights
+
+        """
+        return self.weights
+
+
+    # ****************************************************************************************
+    # class SimpleHybridPerfData
+    def compute_perf_metrics(self, per_task=False):
+        """Returns the R-squared metrics for each task or averaged over tasks based on the accumulated values
+        
+        Args:
+            per_task (bool): True if calculating per-task metrics, False otherwise.
+        
+        Returns:
+            A tuple (r2_score, std): 
+                r2_score (np.array): An array of scores for each task, if per_task is True.
+                Otherwise, it is a float containing the average R^2 score over tasks.
+
+                std: Always None for this class.
+        """
+        r2_scores = self.perf_metrics[0]
+        if per_task or self.num_tasks == 1:
+            return (r2_scores, None)
+        else:
+            return (r2_scores.mean(), None)

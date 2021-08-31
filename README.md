@@ -28,7 +28,7 @@ Documentation in readthedocs format is available [here](https://ampl.readthedocs
   - [Install](#Install)
   - [Install with Docker](#Install-docker)
   - [AMPL usage survey](#AMPL-usage-survey)
-- [Examples](#Example-AMPL-usage)
+- [Tutorials](#AMPL-tutorials)
 - [Tests](#Tests)
 - [AMPL Features](#AMPL-Features)
 - [Running AMPL](#Running-AMPL)
@@ -127,9 +127,9 @@ cd ..
 &nbsp;
 
 ---
-<a name="Example-AMPL-usage"></a>
-## Example AMPL usage
-An example Jupyter notebook is available to get you started: [`atomsci/ddm/Delaney_Example.ipynb`](https://github.com/ATOMconsortium/AMPL/blob/master/atomsci/ddm/Delaney_Example.ipynb)
+<a name="AMPL-tutorials"></a>
+## AMPL tutorials
+ Please follow the link, [`atomsci/ddm/examples/tutorials`](https://github.com/ATOMconsortium/AMPL/tree/Tutorials/atomsci/ddm/examples/tutorials), to access a collection of AMPL tutorial COLAB (Jupyter) notebooks. The tutorial notebooks give an exhaustive coverage of AMPL features. The AMPL team has prepared the tutorials to help beginners understand the basics to advanced AMPL features, and a reference for advanced AMPL users. 
 &nbsp;  
 &nbsp;  
 
