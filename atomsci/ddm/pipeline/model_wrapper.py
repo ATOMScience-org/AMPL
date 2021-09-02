@@ -253,30 +253,44 @@ class ModelWrapper(object):
 
         if len(self.transformers) > 0 or len(self.transformers_x) > 0:
 
-            if self.params.save_results:
-                # Save tuple of response and feature transformer lists in datastore
-                self.params.transformer_key = 'transformers_' + self.params.model_uuid + '.pkl'
-                try:
-                    fileupload = dsf.upload_pickle_to_DS(data = (self.transformers, self.transformers_x),
-                                    bucket = self.params.transformer_bucket,
-                                    filename = os.path.basename(self.params.transformer_key),
-                                    title = "Saved transformers for dataset %s" % model_dataset.dataset_name,
-                                    description = "Saved transformers for dataset %s" % model_dataset.dataset_name,
-                                    tags = ['transformers', 'pickled', self.params.featurizer.lower(), model_dataset.dataset_name],
-                                    key_values = {'file_category': 'transformers'},
-                                    client = self.ds_client,
-                                    dataset_key = self.params.transformer_key,
-                                    override_check = True,
-                                    return_metadata=True)
-                    self.params.transformer_oid = fileupload['dataset_oid']
+            # Transformers are no longer saved as separate datastore objects; they are included in the model tarball
+            self.params.transformer_key = os.path.join(self.output_dir, 'transformers.pkl')
+            pickle.dump((self.transformers, self.transformers_x), open(self.params.transformer_key, 'wb'))
+            self.log.info("Wrote transformers to %s" % self.params.transformer_key)
+            self.params.transformer_oid = ""
+            self.params.transformer_bucket = ""
 
-                except Exception as e:
-                    self.log.warning("Error when trying to save transformers to datastore:\n%s" % str(e))
+        # ****************************************************************************************
+
+    def reload_transformers(self):
+        """
+        Load response and feature transformers from datastore objects or files. Before AMPL v1.2 these
+        were persisted as separate datastore objects when the model tracker was used; subsequently they
+        are included in model tarballs, which should have been unpacked before this function gets called.
+        """
+
+        # Try local path first to check for transformers unpacked from model tarball
+        if not trans.transformers_needed(self.params):
+            return
+        local_path = f"{self.output_dir}/transformers.pkl"
+        if os.path.exists(local_path):
+            self.log.info(f"Reloading transformers from model tarball {local_path}")
+            self.transformers, self.transformers_x = pickle.load(open(local_path, 'rb'))
+        else:
+            if self.params.transformer_key is not None:
+                if self.params.save_results:
+                    self.log.info(f"Reloading transformers from datastore key {self.params.transformer_key}")
+                    self.transformers, self.transformers_x = dsf.retrieve_dataset_by_datasetkey(
+                        dataset_key = self.params.transformer_key,
+                        bucket = self.params.transformer_bucket,
+                        client = self.ds_client )
+                else:
+                    self.log.info(f"Reloading transformers from file {self.params.transformer_key}")
+                    self.transformers, self.transformers_x = pickle.load(open( self.params.transformer_key, 'rb' ))
             else:
-                self.params.transformer_key = os.path.join(self.output_dir, 'transformers.pkl')
-                pickle.dump((self.transformers, self.transformers_x), open(self.params.transformer_key, 'wb'))
-                self.log.info("Wrote transformers to %s" % self.params.transformer_key)
-                self.params.transformer_bucket = self.params.bucket
+                # Shouldn't happen
+                raise Exception("Transformers needed to reload model, but no transformer_key specified.")
+
 
         # ****************************************************************************************
 
@@ -1120,16 +1134,8 @@ class DCNNModelWrapper(ModelWrapper):
         dc_restore(self.model, checkpoint=checkpoint)
 
 
-        # Load transformers if they would have been saved with the model
-        if trans.transformers_needed(self.params) and (self.params.transformer_key is not None):
-            self.log.info("Reloading transformers from file %s" % self.params.transformer_key)
-            if self.params.save_results:
-                self.transformers, self.transformers_x = dsf.retrieve_dataset_by_datasetkey(
-                    dataset_key = self.params.transformer_key,
-                    bucket = self.params.transformer_bucket,
-                    client = self.ds_client )
-            else:
-                self.transformers, self.transformers_x = pickle.load(open( self.params.transformer_key, 'rb' ))
+        # Restore the transformers from the datastore or filesystem
+        self.reload_transformers()
 
 
     # ****************************************************************************************
@@ -1733,16 +1739,8 @@ class HybridModelWrapper(ModelWrapper):
         else:
             raise Exception(f"Checkpoint file doesn't exist in the reload_dir {reload_dir}")
         
-        # Load transformers if they would have been saved with the model
-        if trans.transformers_needed(self.params) and (self.params.transformer_key is not None):
-            self.log.info("Reloading transformers from file %s" % self.params.transformer_key)
-            if self.params.save_results:
-                self.transformers, self.transformers_x = dsf.retrieve_dataset_by_datasetkey(
-                    dataset_key = self.params.transformer_key,
-                    bucket = self.params.transformer_bucket,
-                    client = self.ds_client )
-            else:
-                self.transformers, self.transformers_x = pickle.load(open( self.params.transformer_key, 'rb' ))
+        # Restore the transformers from the datastore or filesystem
+        self.reload_transformers()
 
 
     # ****************************************************************************************
@@ -2052,15 +2050,8 @@ class DCRFModelWrapper(ModelWrapper):
                                               max_depth=self.params.rf_max_depth,
                                               n_jobs=-1)
 
-        # Load transformers if they would have been saved with the model
-        if trans.transformers_needed(self.params) and (self.params.transformer_key is not None):
-            self.log.info("Reloading transformers from file %s" % self.params.transformer_key)
-            if self.params.save_results:
-                self.transformers, self.transformers_x = dsf.retrieve_dataset_by_datasetkey(dataset_key = self.params.transformer_key,
-                               bucket = self.params.transformer_bucket,
-                               client= self.ds_client )
-            else:
-                self.transformers, self.transformers_x = pickle.load(open( self.params.transformer_key, 'rb' ))
+        # Restore the transformers from the datastore or filesystem
+        self.reload_transformers()
         self.model = dc.models.sklearn_models.SklearnModel(rf_model, model_dir=reload_dir)
         self.model.reload()
 
@@ -2427,16 +2418,8 @@ class DCxgboostModelWrapper(ModelWrapper):
 #                                           tree_method = 'gpu_hist',
                                          )
 
-        # Load transformers if they would have been saved with the model
-        if trans.transformers_needed(self.params) and (self.params.transformer_key is not None):
-            self.log.warning("Reloading transformers from file %s" % self.params.transformer_key)
-            if self.params.save_results:
-                self.transformers, self.transformers_x = dsf.retrieve_dataset_by_datasetkey(
-                    dataset_key=self.params.transformer_key,
-                    bucket=self.params.transformer_bucket,
-                    client=self.ds_client)
-            else:
-                self.transformers, self.transformers_x = pickle.load(open(self.params.transformer_key, 'rb'))
+        # Restore the transformers from the datastore or filesystem
+        self.reload_transformers()
 
         self.model = dc.models.GBDTModel(xgb_model, model_dir=self.best_model_dir)
         self.model.reload()
