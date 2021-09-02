@@ -109,6 +109,36 @@ def calc_AD_kmean_local_density(train_dset, pred_dset, k, train_dset_pair_distan
         pred_kmean_dis_local_density[i] = pred_km_dis / ave_nei_dis
     return pred_kmean_dis_local_density
 
+# ---------------------------------------------
+def build_tarball_name(dataset_name, model_uuid, result_dir=''):
+    """ format for building model tarball names
+    Creates the file name for a model tarball from dataset key and model_uuid
+    with optional result_dir.
+
+    Args:
+        dataset_name (str): The dataset_name used to train this model
+        model_uuid (str): The model_uuid assigned to this model
+        result_dir (str): Optional directory for this model
+
+    Returns:
+        The path or filename of the tarball for this model
+    """
+    model_tarball_path = os.path.join(str(result_dir), "{}_model_{}.tar.gz".format(dataset_name, model_uuid))
+    return model_tarball_path
+
+# ---------------------------------------------
+def build_dataset_name(dataset_key):
+    """ Returns dataset_name when given dataset_key
+    Returns the dataset_name when given a dataset_key. Assumes that the dataset_name is a path
+    and ends with an extension
+
+    Args:
+        dataset_key (str): A dataset_key
+
+    Returns:
+        The dataset_name which is the base name stripped of extensions
+    """
+    return os.path.splitext(os.path.basename(dataset_key))[0]
 
 # ******************************************************************************************************************************
 
@@ -193,7 +223,7 @@ class ModelPipeline:
 
         # Default dataset_name parameter from dataset_key
         if params.dataset_name is None:
-            self.params.dataset_name = os.path.splitext(os.path.basename(self.params.dataset_key))[0]
+            self.params.dataset_name = build_dataset_name(self.params.dataset_key)
 
         self.ds_client = None
         if params.datastore:
@@ -235,7 +265,7 @@ class ModelPipeline:
             os.makedirs(self.params.output_dir, exist_ok=True)
         self.output_dir = self.params.output_dir
         if self.params.model_tarball_path is None:
-            self.params.model_tarball_path = os.path.join(str(self.params.result_dir), "{}_model_{}.tar.gz".format(self.params.dataset_name, self.params.model_uuid))
+            self.params.model_tarball_path = build_tarball_name(self.params.dataset_name, self.params.model_uuid, self.params.result_dir)
 
         # ****************************************************************************************
 
@@ -342,8 +372,7 @@ class ModelPipeline:
 
         self.model_metadata = model_metadata
 
-        # ****************************************************************************************
-
+    # ****************************************************************************************
     def save_model_metadata(self, retries=5, sleep_sec=60):
         """
         Saves the data needed to reload the model in the model tracker DB or in a local tarball file.
@@ -361,49 +390,39 @@ class ModelPipeline:
         Side effects:
             Saves the model metadata and parameters into the model tracker DB or a local tarball file.
         """
+
+        # Dump the model parameters and metadata to a JSON file
+        out_file = os.path.join(self.output_dir, 'model_metadata.json')
+        with open(out_file, 'w') as out:
+            json.dump(self.model_metadata, out, sort_keys=True, indent=4, separators=(',', ': '))
+            out.write("\n")
+
         if self.params.save_results:
-            # Model tracker saves the model state in the datastore as well as saving the metadata
+            # Model tracker saves the model state and metadata in the datastore as well as saving the metadata
             # in the model zoo.
             retry = True
             i = 0
             while retry:
                 if i < retries:
+                    # TODO: Try to distinguish unrecoverable exceptions (e.g., model tracker is down) from ones for
+                    # which retrying is worthwhile.
                     try:
                         trkr.save_model(self, collection_name=self.params.collection_name)
                         # Best model needs to be reloaded for predictions, so does not work to remove best_model_dir
                         retry = False
                     except:
-                        self.log.warning("Need to sleep and retry saving model")
-                        time.sleep(sleep_sec)
-                        i += 1
+                        raise
+                        #self.log.warning("Need to sleep and retry saving model")
+                        #time.sleep(sleep_sec)
+                        #i += 1
                 else:
-                    out_file = os.path.join(self.output_dir, 'model_metadata.json')
-                    with open(out_file, 'w') as out:
-                        json.dump(self.model_metadata, out, sort_keys=True, indent=4, separators=(',', ': '))
-                        out.write("\n")
-                    self.log.warning('Had to write model metadata to file %s because tracker failed' % out_file)
                     retry = False
         else:
-            # If save_results is false, save the model metadata to a JSON file
-            out_file = os.path.join(self.output_dir, 'model_metadata.json')
-            with open(out_file, 'w') as out:
-                json.dump(self.model_metadata, out, sort_keys=True, indent=4, separators=(',', ': '))
-                out.write("\n")
-            self.log.warning('Wrote model metadata to file %s' % out_file)
-        self.model_wrapper._clean_up_excess_files(self.model_wrapper.model_dir)
-        if not self.params.save_results:
+            # If not using the model tracker, save the model state and metadata in a tarball in the filesystem
             trkr.save_model_tarball(self.output_dir, self.params.model_tarball_path)
-        '''
-        for root, dirs, files in os.walk(self.params.result_dir):
-            for d in dirs:
-                model_datasets.set_group_permissions(self.params.system, os.path.join(root, d), self.params.data_owner,
-                                                     self.params.data_owner_group)
-            for f in files:
-                model_datasets.set_group_permissions(self.params.system, os.path.join(root, f), self.params.data_owner,
-                                                     self.params.data_owner_group)
-        '''
-        # ****************************************************************************************
+        self.model_wrapper._clean_up_excess_files(self.model_wrapper.model_dir)
 
+    # ****************************************************************************************
     def create_prediction_metadata(self, prediction_results):
         """Initializes a data structure to hold performance metrics from a model run on a new dataset,
         to be stored in the model tracker DB. Note that this isn't used
@@ -451,8 +470,8 @@ class ModelPipeline:
     # ****************************************************************************************
 
     def save_metrics(self, model_metrics, prefix=None, retries=5, sleep_sec=60):
-        """Saves the given model_metrics dictionary either to the model tracker database, or
-        to a JSON file on disk.
+        """Saves the given model_metrics dictionary to a JSON file on disk, and also to the model tracker 
+        database if we're using it.
 
         If writing to disk, outputs to a JSON file <prefix>_model_metrics.json in the current output directory.
 
@@ -460,8 +479,7 @@ class ModelPipeline:
             model_metrics (dict or list): Either a dictionary containing the model performance metrics, or a
             list of dictionaries with metrics for each training label and subset.
 
-            prefix: An optional prefix to include in the JSON filename, only used if writing to disk (i.e., if
-            self.params.save_results is False).
+            prefix (str): An optional prefix to include in the JSON filename
 
             retries (int): Number of retries to save to model tracker DB, if save_results is True.
 
@@ -470,55 +488,41 @@ class ModelPipeline:
         Side effects:
             Saves the model_metrics dictionary to the model tracker database, or writes out a .json file
         """
-        if self.params.save_results:
-            if type(model_metrics) == list:
-                for metrics in model_metrics:
-                    self.save_metrics(metrics, retries=retries, sleep_sec=sleep_sec)
-                return
 
-            retry = True
-            i = 0
-            while retry:
-                if i < retries:
-                    try:
-                        self.mlmt_client.save_metrics(collection_name=self.params.collection_name,
-                                                      model_uuid=model_metrics['model_uuid'],
-                                                      model_metrics=model_metrics)
-                        retry = False
-                    except:
-                        raise
-                        # TODO: uncomment when debugged
-                        #self.log.warning("Need to sleep and retry saving metrics")
-                        #time.sleep(sleep_sec)
-                        #i += 1
-                else:
-                    if prefix is None:
-                        out_file = os.path.join(self.output_dir, 'model_metrics.json')
-                    else:
-                        out_file = os.path.join(self.output_dir, '%s_model_metrics.json' % prefix)
-                    with open(out_file, 'w') as out:
-                        json.dump(model_metrics, out, sort_keys=True, indent=4, separators=(',', ': '))
-                        out.write("\n")
-                    self.log.warning('Had to write model metrics to file %s because tracker failed' % out_file)
-                    retry = False
+        # First save the metrics to disk
+        if prefix is None:
+            out_file = os.path.join(self.output_dir, 'model_metrics.json')
         else:
-            if prefix is None:
-                out_file = os.path.join(self.output_dir, 'model_metrics.json')
-            else:
-                out_file = os.path.join(self.output_dir, '%s_model_metrics.json' % prefix)
-            with open(out_file, 'w') as out:
-                json.dump(model_metrics, out, sort_keys=True, indent=4, separators=(',', ': '))
-                out.write("\n")
-            self.log.warning('Wrote model metrics to file %s' % out_file)
-            '''
-            for root, dirs, files in os.walk(self.params.result_dir):
-                for d in dirs:
-                    model_datasets.set_group_permissions(self.params.system, os.path.join(root, d),
-                                                         self.params.data_owner, self.params.data_owner_group)
-                for f in files:
-                    model_datasets.set_group_permissions(self.params.system, os.path.join(root, f),
-                                                         self.params.data_owner, self.params.data_owner_group)
-            '''
+            out_file = os.path.join(self.output_dir, '%s_model_metrics.json' % prefix)
+        with open(out_file, 'w') as out:
+            json.dump(model_metrics, out, sort_keys=True, indent=4, separators=(',', ': '))
+            out.write("\n")
+
+        if self.params.save_results:
+            if type(model_metrics) != list:
+                model_metrics = [model_metrics]
+            for metrics in model_metrics:
+                retry = True
+                i = 0
+                while retry:
+                    if i < retries:
+                        try:
+                            self.mlmt_client.save_metrics(collection_name=self.params.collection_name,
+                                                        model_uuid=metrics['model_uuid'],
+                                                        model_metrics=metrics)
+                            retry = False
+                        except:
+                            raise
+                            # TODO: uncomment when debugged
+                            # TODO: Need to distinguish between "temporary" exceptions that justify
+                            # retries and longer-term exceptions indicating that the model tracker server
+                            # is down.
+                            #self.log.warning("Need to sleep and retry saving metrics")
+                            #time.sleep(sleep_sec)
+                            #i += 1
+                    else:
+                        retry = False
+
     # ****************************************************************************************
 
     def split_dataset(self, featurization=None):
@@ -590,7 +594,7 @@ class ModelPipeline:
 
         self.model_wrapper.train(self)
 
-        # Save the metadata for the trained model
+        # Create the metadata for the trained model
         self.create_model_metadata()
         # Save the performance metrics for each training data subset, for the best epoch
         training_metrics = []
@@ -602,8 +606,6 @@ class ModelPipeline:
                     subset=subset)
                 training_dict['prediction_results'] = self.model_wrapper.get_pred_results(subset, label)
                 training_metrics.append(training_dict)
-        self.model_metadata['training_metrics'] = training_metrics
-        self.save_model_metadata()
 
         # Save the model metrics separately
         for training_dict in training_metrics:
@@ -611,6 +613,10 @@ class ModelPipeline:
             training_dict['time_run'] = time.time()
             training_dict['input_dataset'] = self.model_metadata['training_dataset']
         self.save_metrics(training_metrics)
+
+        # Save the model metadata in the model tracker or the filesystem
+        self.model_metadata['training_metrics'] = training_metrics
+        self.save_model_metadata()
 
 
     # ****************************************************************************************
@@ -1043,15 +1049,11 @@ def regenerate_results(result_dir, params=None, metadata_dict=None, shared_featu
 
     pipeline.model_wrapper = model_wrapper.create_model_wrapper(pipeline.params, featurization,
                                                                 pipeline.ds_client)
-    # Get the tarball containing the saved model from the datastore, and extract it into model_dir.
-    model_dataset_oid = metadata_dict['model_parameters']['model_dataset_oid']
-    # TODO: Should we catch exceptions from retrieve_dataset_by_dataset_oid, or let them propagate?
-    model_dir = dsf.retrieve_dataset_by_dataset_oid(model_dataset_oid, client=ds_client, return_metadata=False,
-                                                    nrows=None, print_metadata=False, sep=False,
-                                                    tarpath=pipeline.model_wrapper.model_dir)
+    # Get the tarball containing the saved model from the datastore, and extract it into model_dir (old format)
+    # or output_dir (new format) according to the format of the tarball contents.
 
-    # pipeline.log.info("Extracted model tarball to %s" % model_dir)
-    print("Extracted model tarball to %s" % model_dir)
+    extract_dir = trkr.extract_datastore_model_tarball(model_uuid, model_params.model_bucket, model_params.output_dir, 
+                                         pipeline.model_wrapper.model_dir)
 
     # If that worked, reload the saved model training state
 
@@ -1063,11 +1065,7 @@ def regenerate_results(result_dir, params=None, metadata_dict=None, shared_featu
     result_dict['splitter'] = model_params.splitter
     if 'descriptor_type' in model_params:
         result_dict['descriptor_type'] = model_params.descriptor_type
-    '''
-    # Return the pipeline to the calling function, if run as a generator
-    if generator:
-        yield pipeline
-    '''
+
     return result_dict
 
 
@@ -1121,12 +1119,12 @@ def create_prediction_pipeline(params, model_uuid, collection_name=None, featuri
     model_params.result_dir = params.result_dir
     model_params.system = params.system
 
+
     # Check that buckets where model tarball and transformers were saved still exist. If not, try alt_bucket.
-    trans_bucket_differs = (model_params.transformer_bucket != model_params.model_bucket)
     model_bucket_meta = ds_client.ds_buckets.get_buckets(buckets=[model_params.model_bucket]).result()
     if len(model_bucket_meta) == 0:
         model_params.model_bucket = alt_bucket
-    if trans_bucket_differs:
+    if (model_params.transformer_bucket != model_params.model_bucket):
         trans_bucket_meta = ds_client.ds_buckets.get_buckets(buckets=[model_params.transformer_bucket]).result()
         if len(trans_bucket_meta) == 0:
             model_params.transformer_bucket = alt_bucket
@@ -1165,15 +1163,16 @@ def create_prediction_pipeline(params, model_uuid, collection_name=None, featuri
     else:
         pipeline.log.setLevel(logging.CRITICAL)
 
-    # Get the tarball containing the saved model from the datastore, and extract it into model_dir.
-    model_dataset_key = 'model_%s_tarball' % model_uuid
-    model_dir = dsf.retrieve_dataset_by_datasetkey(model_dataset_key, bucket=model_params.model_bucket,
-                                                   client=ds_client, return_metadata=False,
-                                                   nrows=None, print_metadata=False, sep=False,
-                                                   tarpath=pipeline.model_wrapper.model_dir)
-    pipeline.log.info("Extracted model tarball to %s" % model_dir)
+    # Get the tarball containing the saved model from the datastore, and extract it into model_dir or output_dir,
+    # depending on what style of tarball it is (old or new respectively)
+    extract_dir = trkr.extract_datastore_model_tarball(model_uuid, model_params.model_bucket, model_params.output_dir, 
+                                         pipeline.model_wrapper.model_dir)
 
-    # If that worked, reload the saved model training state
+    if extract_dir == model_params.output_dir:
+        # Model came from new style tarball
+        pipeline.model_wrapper.model_dir = os.path.join(model_params.output_dir, 'best_model')
+
+    # Reload the saved model training state
     pipeline.model_wrapper.reload_model(pipeline.model_wrapper.model_dir)
 
     return pipeline
@@ -1287,7 +1286,11 @@ def create_prediction_pipeline_from_file(params, reload_dir, model_path=None, mo
 # ****************************************************************************************
 
 def load_from_tracker(model_uuid, collection_name=None, client=None, verbose=False, alt_bucket='CRADA'):
-    """Create a ModelPipeline object using the metadata in the  model tracker.
+    """
+    DEPRECATED. Use the function create_prediction_pipeline() directly, or use the higher-level function
+    predict_from_model.predict_from_tracker_model().
+
+    Create a ModelPipeline object using the metadata in the  model tracker.
 
     Args:
         model_uuid (str): The UUID of a trained model.

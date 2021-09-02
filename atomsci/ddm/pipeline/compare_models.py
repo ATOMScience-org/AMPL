@@ -854,7 +854,7 @@ def get_filesystem_perf_results(result_dir, pred_type='classification'):
     best_epoch_list = []
     model_score_type_list = []
     feature_transform_type_list = []
-
+    
     subsets = ['train', 'valid', 'test']
 
     if pred_type == 'regression':
@@ -868,30 +868,41 @@ def get_filesystem_perf_results(result_dir, pred_type='classification'):
         for metric in metrics:
             score_dict[subset][metric] = []
     score_dict['valid']['model_choice_score'] = []
-
-
+       
     # Navigate the results directory tree
     model_list = []
     metrics_list = []
+    tar_list = []
     for dirpath, dirnames, filenames in os.walk(result_dir):
+        # collect all tars for later
+        tar_list = tar_list + [os.path.join(dirpath, f) for f in filenames if f.endswith('.tar.gz')]
         if ('model_metadata.json' in filenames) and ('model_metrics.json' in filenames):
             meta_path = os.path.join(dirpath, 'model_metadata.json')
             with open(meta_path, 'r') as meta_fp:
                 meta_dict = json.load(meta_fp)
-            model_list.append(meta_dict)
-            metrics_path = os.path.join(dirpath, 'model_metrics.json')
-            with open(metrics_path, 'r') as metrics_fp:
-                metrics_dicts = json.load(metrics_fp)
-            metrics_list.append(metrics_dicts)
+            if meta_dict['model_parameters']['prediction_type']==pred_type:
+                model_list.append(meta_dict)
+                metrics_path = os.path.join(dirpath, 'model_metrics.json')
+                with open(metrics_path, 'r') as metrics_fp:
+                    metrics_dicts = json.load(metrics_fp)
+                metrics_list.append(metrics_dicts)
 
     print("Found data for %d models under %s" % (len(model_list), result_dir))
 
+    # build dictonary of tarball names
+    tar_dict = {os.path.basename(tf):tf for tf in tar_list}
+    path_list = []
     for metadata_dict, metrics_dicts in zip(model_list, metrics_list):
         model_uuid = metadata_dict['model_uuid']
-        #print("Got metadata for model UUID %s" % model_uuid)
+        dataset_key = metadata_dict['training_dataset']['dataset_key']
+        dataset_name = mp.build_tarball_name(mp.build_dataset_name(dataset_key), model_uuid)
+        if dataset_name in tar_dict:
+            path_list.append(tar_dict[dataset_name])
+        else:
+            # unable to find saved tar file
+            path_list.append('')
 
         # Get list of training run metrics for this model
-        #print("Got %d metrics dicts for model %s" % (len(metrics_dicts), model_uuid))
         if len(metrics_dicts) < 3:
             print("Got no or incomplete metrics for model %s, skipping..." % model_uuid)
             continue
@@ -963,6 +974,7 @@ def get_filesystem_perf_results(result_dir, pred_type='classification'):
 
     perf_df = pd.DataFrame(dict(
                     model_uuid=model_uuid_list,
+                    model_path = path_list,
                     ampl_version=ampl_version_list,
                     model_type=model_type_list,
                     dataset_key=dataset_key_list,
