@@ -3,7 +3,6 @@ Module to interface model pipeline to model tracker service.
 """
 
 import os
-import subprocess
 import tempfile
 import sys
 import pandas as pd
@@ -23,9 +22,6 @@ try:
 except (ModuleNotFoundError, ImportError):
     logger.debug("Model tracker client not supported in your environment; will save models in filesystem only.")
     mlmt_supported = False
-
-class UnableToTarException(Exception):
-    pass
 
 class DatastoreInsertionException(Exception):
     pass
@@ -48,7 +44,7 @@ def save_model(pipeline, collection_name='model_tracker', log=True):
         use_personal_client (bool): True if personal client should be used (i.e. for testing), default False
 
     Returns:
-        None if insertion was successful, raises UnableToTarException, DatastoreInsertionException, MLMTClientInstantiationException
+        None if insertion was successful, raises DatastoreInsertionException, MLMTClientInstantiationException
         or MongoInsertionException otherwise
     """
     
@@ -56,7 +52,7 @@ def save_model(pipeline, collection_name='model_tracker', log=True):
         raise Exception('pipeline cannot be None.')
 
     if not mlmt_supported:
-        print("Model tracker not supported in your environment; can save models in filesystem only.")
+        logger.error("Model tracker not supported in your environment; can save models in filesystem only.")
         return
 
     # ModelPipeline.create_model_metadata() should be called before the call to save_model.
@@ -66,30 +62,19 @@ def save_model(pipeline, collection_name='model_tracker', log=True):
     if model_uuid is None:
         raise ValueError("model_uuid is missing from pipeline metadata.")
 
-    #### Part 1: Save the model tarball ####
+    #### Part 1: Save the model tarball in the datastore ####
     model = pipeline.model_wrapper
-    # best_model_dir is an absolute path.
-    directory_to_tar = model.best_model_dir
     # Put tar file in a temporary directory that will automatically be destroyed when we're done
     with tempfile.TemporaryDirectory() as tmp_dir:
-        tar_file = os.path.join(tmp_dir, 'model_{model_uuid}.tar.gz'.format(model_uuid=model_uuid))
-        tar_flags = 'czf'
-        # Change directory to model_dir so that paths in tarball are relative to model_dir.
-        tar_command = 'tar -{tar_flags} {tar_file} -C {directory_to_tar} .'.format(tar_flags=tar_flags, tar_file=tar_file,
-                                                                                   directory_to_tar=directory_to_tar)
-        try:
-            subprocess.check_output(tar_command.split())
-        except subprocess.CalledProcessError as e:
-            pipeline.log.error('Command to create model tarball returned status {return_code}'.format(return_code=e.returncode))
-            pipeline.log.error('Command was: "{cmd}"'.format(cmd=e.cmd))
-            pipeline.log.error('Output was: "{output}"'.format(output=e.output))
-            pipeline.log.error('stderr was: "{stderr}"'.format(stderr=e.stderr))
-            raise UnableToTarException('Unable to tar {directory_to_tar}.'.format(directory_to_tar=directory_to_tar))
-        title = '{model_uuid} model tarball'.format(model_uuid=model_uuid)
+        tarball_path = os.path.join(tmp_dir, f"model_{model_uuid}.tar.gz")
+        save_model_tarball(pipeline.params.output_dir, tarball_path)
+
+        title = f"{model_uuid} model tarball"
+        ds_key = f"model_{model_uuid}_tarball"
         uploaded_results = dsf.upload_file_to_DS(
             bucket=pipeline.params.model_bucket, title=title, description=title, tags=[],
             key_values={'model_uuid' : model_uuid, 'file_category': 'ml_model'}, filepath=tmp_dir,
-            filename=tar_file, dataset_key='model_' + model_uuid + '_tarball', client=pipeline.ds_client,
+            filename=tarball_path, dataset_key=ds_key, client=pipeline.ds_client,
             return_metadata=True)
         if uploaded_results is None:
             raise DatastoreInsertionException('Unable to upload title={title} to datastore.'.format(title=title))
@@ -99,13 +84,13 @@ def save_model(pipeline, collection_name='model_tracker', log=True):
     metadata_dict['model_parameters']['model_dataset_oid'] = model_dataset_oid
 
 
-    #### Part 2: Save the model metadata ####
+    #### Part 2: Save the model metadata in the model tracker ####
     mlmt_client = dsf.initialize_model_tracker()
     mlmt_client.save_metadata(collection_name=collection_name,
                                     model_uuid=metadata_dict['model_uuid'],
                                     model_metadata=metadata_dict)
     if log:
-        print('Successfully inserted into the database with model_uuid %s.' % model_uuid)
+        logger.info('Successfully inserted into the database with model_uuid %s.' % model_uuid)
 
 # *********************************************************************************************************************************
 def get_full_metadata(filter_dict, collection_name=None):
@@ -120,7 +105,7 @@ def get_full_metadata(filter_dict, collection_name=None):
         A list of matching full model metadata (including training run metrics) dictionaries. Raises MongoQueryException if the query fails.
     """
     if not mlmt_supported:
-        print("Model tracker not supported in your environment; can load models from filesystem only.")
+        logger.error("Model tracker not supported in your environment; can load models from filesystem only.")
         return None
 
     if filter_dict is None:
@@ -155,7 +140,7 @@ def get_metadata_by_uuid(model_uuid, collection_name=None):
     """
 
     if not mlmt_supported:
-        print("Model tracker not supported in your environment; can load models from filesystem only.")
+        logger.error("Model tracker not supported in your environment; can load models from filesystem only.")
         return None
 
     mlmt_client = dsf.initialize_model_tracker()
@@ -187,7 +172,7 @@ def get_full_metadata_by_uuid(model_uuid, collection_name=None):
     """
 
     if not mlmt_supported:
-        print("Model tracker not supported in your environment; can load models from filesystem only.")
+        logger.error("Model tracker not supported in your environment; can load models from filesystem only.")
         return None
 
     mlmt_client = dsf.initialize_model_tracker()
@@ -214,7 +199,7 @@ def get_model_collection_by_uuid(model_uuid, mlmt_client=None):
     """
 
     if not mlmt_supported:
-        print("Model tracker not supported in your environment; can load models from filesystem only.")
+        logger.error("Model tracker not supported in your environment; can load models from filesystem only.")
         return None
 
     mlmt_client = dsf.initialize_model_tracker()
@@ -238,7 +223,7 @@ def get_model_training_data_by_uuid(uuid):
         a tuple of datafraes containint training data, validation data, and test data including the compound ID, RDKIT SMILES, and response value
     """
     if not mlmt_supported:
-        print("Model tracker not supported in your environment; can load models from filesystem only.")
+        logger.error("Model tracker not supported in your environment; can load models from filesystem only.")
         return None
 
     model_meta = get_metadata_by_uuid(uuid)
@@ -267,15 +252,62 @@ def get_model_training_data_by_uuid(uuid):
 def save_model_tarball(output_dir, model_tarball_path):
     """
     Save the model parameters, metadata and transformers as a portable gzipped tar archive.
-    """
-    tarball = tarfile.open(model_tarball_path, mode='w:gz')
-    for filename in ['best_model', 'model_metadata.json']:
-        tarball.add('%s/%s' % (output_dir, filename), arcname='./%s' % filename)
-    if os.path.exists("%s/transformers.pkl" % output_dir):
-        tarball.add('%s/transformers.pkl' % output_dir, arcname='./transformers.pkl')
-    tarball.close()
-    print('Wrote model tarball to %s' % model_tarball_path)
 
+    Args:
+        output_dir (str): Output directory from model training
+
+        model_tarball_path (str): Path of tarball file to be created
+
+    Returns:
+        None
+    """
+    with tarfile.open(model_tarball_path, mode='w:gz') as tarball:
+        for filename in ['best_model', 'model_metadata.json', 'model_metrics.json']:
+            tarball.add(f"{output_dir}/{filename}", arcname=f"./{filename}")
+        if os.path.exists(f"{output_dir}/transformers.pkl"):
+            tarball.add(f"{output_dir}/transformers.pkl", arcname='./transformers.pkl')
+    logger.info(f"Wrote model tarball to {model_tarball_path}")
+
+
+# *********************************************************************************************************************************
+def extract_datastore_model_tarball(model_uuid, model_bucket, output_dir, model_dir):
+    """
+    Load a model tarball saved in the datastore and check the format. If it is a new style tarball (containing
+    the model metadata and transformers along with the model state), unpack it into output_dir. Otherwise
+    it contains the model state only; unpack it into model_dir.
+
+    Args:
+        model_uuid (str): UUID of model to be retrieved
+
+        model_bucket (str): Datastore bucket containing model tarball file
+
+        output_dir (str): Output directory to unpack tarball into if it's in the new format
+
+        model_dir (str): Output directory to unpack tarball into if it's in the old format
+
+    Returns:
+        extract_dir (str): The directory (output_dir or model_dir) the tarball was extracted into.
+    """
+
+    ds_client = dsf.config_client()
+    model_dataset_key = 'model_%s_tarball' % model_uuid
+
+    # Look at the tarball contents and figure out which format it's in. If it already has the metadata.json
+    # and transformers, extract it into output_dir; otherwise into model_dir.
+    with ds_client.open_bucket_dataset(model_bucket, model_dataset_key, mode='b') as dstore_fp:
+        with tarfile.open(fileobj=dstore_fp, mode='r:gz') as tfile:
+            tar_contents = tfile.getnames()
+    if './model_metadata.json' in tar_contents:
+        extract_dir = output_dir
+    else:
+        extract_dir = model_dir
+    os.makedirs(extract_dir, exist_ok=True)
+
+    with ds_client.open_bucket_dataset(model_bucket, model_dataset_key, mode='b') as dstore_fp:
+        with tarfile.open(fileobj=dstore_fp, mode='r:gz') as tfile:
+            tfile.extractall(path=extract_dir)
+    logger.info(f"Extracted model tarball contents to {extract_dir}")
+    return extract_dir
 
 # *********************************************************************************************************************************
 def export_model(model_uuid, collection, model_dir, alt_bucket='CRADA'):
@@ -298,13 +330,16 @@ def export_model(model_uuid, collection, model_dir, alt_bucket='CRADA'):
         none
     """
     if not mlmt_supported:
-        print("Model tracker not supported in your environment; can load models from filesystem only.")
+        logger.info("Model tracker not supported in your environment; can load models from filesystem only.")
         return
 
     ds_client = dsf.config_client()
     metadata_dict = get_metadata_by_uuid(model_uuid, collection_name=collection)
 
-    # Get the tarball containing the saved model from the datastore, and extract it into model_dir.
+    output_dir = model_dir
+    model_dir = f"{output_dir}/best_model"
+
+    # Convert metadata if it's in the old camelcase format (shouldn't exist anymore)
     if 'ModelMetadata' in metadata_dict:
         # Convert old style metadata
         metadata_dict = convert_metadata(metadata_dict)
@@ -314,7 +349,6 @@ def export_model(model_uuid, collection, model_dir, alt_bucket='CRADA'):
     else:
         raise Exception("Bad metadata for model UUID %s" % model_uuid)
 
-    os.makedirs(model_dir, exist_ok=True)
 
     model_params = parse.wrapper(metadata_dict)
 
@@ -333,47 +367,53 @@ def export_model(model_uuid, collection, model_dir, alt_bucket='CRADA'):
         if len(model_bucket_meta) == 0:
             model_params.transformer_bucket = alt_bucket
 
-    # Unpack the model state tarball into a subdirectory of the new archive
-    model_dataset_key = 'model_%s_tarball' % model_uuid
-    extract_dir = dsf.retrieve_dataset_by_datasetkey(model_dataset_key, model_params.model_bucket,
-                                                    client=ds_client, return_metadata=False,
-                                                    nrows=None, print_metadata=False, sep=False,
-                                                    tarpath='%s/best_model' % model_dir)
+    # Get the tarball containing the saved model from the datastore, and extract it into output_dir or model_dir.
+    extract_dir = extract_datastore_model_tarball(model_uuid, model_params.model_bucket, output_dir, model_dir)
 
-    # Download the transformers pickle file if there is one
-    if trans.transformers_needed(model_params):
-        try:
-            if model_params.transformer_key is None:
-                transformer_key = 'transformers_%s.pkl' % model_uuid
-            else:
-                transformer_key = model_params.transformer_key
-            trans_fp = ds_client.open_bucket_dataset(model_params.transformer_bucket, transformer_key, mode='b')
-            trans_data = trans_fp.read()
-            trans_fp.close()
-            trans_path = "%s/transformers.pkl" % model_dir
-            trans_out = open(trans_path, mode='wb')
-            trans_out.write(trans_data)
-            trans_out.close()
-            del model_parameters['transformer_oid']
-            model_parameters['transformer_key'] = 'transformers.pkl'
+    if extract_dir == model_dir:
+        # Download the transformers pickle file if there is one
+        if trans.transformers_needed(model_params):
+            try:
+                if model_params.transformer_key is None:
+                    transformer_key = 'transformers_%s.pkl' % model_uuid
+                else:
+                    transformer_key = model_params.transformer_key
+                trans_fp = ds_client.open_bucket_dataset(model_params.transformer_bucket, transformer_key, mode='b')
+                trans_data = trans_fp.read()
+                trans_fp.close()
+                trans_path = "%s/transformers.pkl" % output_dir
+                trans_out = open(trans_path, mode='wb')
+                trans_out.write(trans_data)
+                trans_out.close()
+                del model_parameters['transformer_oid']
+                model_parameters['transformer_key'] = 'transformers.pkl'
+        
+            except:
+                logger.info("Transformers expected but not found in datastore in bucket %s with key\n%s" 
+                             % (model_params.transformer_bucket, transformer_key))
+                raise
     
-        except:
-            print("Transformers expected but not found in datastore in bucket %s with key\n%s" % (model_params.transformer_bucket,
-                    transformer_key))
-            raise
-
-    # Save the metadata params
-    model_parameters['save_results'] = False
-    meta_path = "%s/model_metadata.json" % model_dir
-    with open(meta_path, 'w') as meta_out:
-        json.dump(metadata_dict, meta_out, indent=4)
+        # Save the metadata params
+        model_parameters['save_results'] = False
+        meta_path = f"{output_dir}/model_metadata.json"
+        with open(meta_path, 'w') as meta_out:
+            json.dump(metadata_dict, meta_out, indent=4)
+    
+        # Save the metrics to model_metrics.json
+        if 'training_metrics' in metadata_dict:
+            model_metrics = metadata_dict['training_metrics']
+            metrics_path = f"{output_dir}/model_metrics.json"
+            with open(metrics_path, 'w') as metrics_out:
+                json.dump(model_metrics, metrics_out, indent=4)
+        else:
+            logger.info(f"No metrics saved for model {model_uuid}")
 
     # Create a new tarball containing both the metadata and the parameters from the retrieved model tarball
-    new_tarpath = "%s.tar.gz" % model_dir
+    new_tarpath = "%s.tar.gz" % output_dir
     tarball = tarfile.open(new_tarpath, mode='w:gz')
-    tarball.add(model_dir, arcname='.')
+    tarball.add(output_dir, arcname='.')
     tarball.close()
-    print("Wrote model files to %s" % new_tarpath)
+    logger.info("Wrote model files to %s" % new_tarpath)
 
 
 # *********************************************************************************************************************************
