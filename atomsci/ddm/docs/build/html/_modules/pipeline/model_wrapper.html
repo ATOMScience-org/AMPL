@@ -7,12 +7,14 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>pipeline.model_wrapper &mdash; ATOM Data-Driven Modeling Pipeline 1.1 documentation</title>
+  <title>pipeline.model_wrapper &mdash; ATOM Data-Driven Modeling Pipeline 1.2.0 documentation</title>
   
 
   
   <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
 
   
   
@@ -29,6 +31,7 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
         <script src="../../_static/jquery.js"></script>
         <script src="../../_static/underscore.js"></script>
         <script src="../../_static/doctools.js"></script>
@@ -61,7 +64,7 @@
             
             
               <div class="version">
-                1.1
+                1.2.0
               </div>
             
           
@@ -182,6 +185,10 @@
     <span class="kn">from</span> <span class="nn">deepchem.models.tensorgraph.fcnet</span> <span class="kn">import</span> <span class="n">MultitaskRegressor</span><span class="p">,</span> <span class="n">MultitaskClassifier</span>
 <span class="k">else</span><span class="p">:</span>
     <span class="kn">from</span> <span class="nn">deepchem.models.fcnet</span> <span class="kn">import</span> <span class="n">MultitaskRegressor</span><span class="p">,</span> <span class="n">MultitaskClassifier</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
+<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">from</span> <span class="nn">torch.utils.data</span> <span class="kn">import</span> <span class="n">TensorDataset</span>
+<span class="kn">from</span> <span class="nn">torch.utils.data</span> <span class="kn">import</span> <span class="n">DataLoader</span>
 <span class="kn">from</span> <span class="nn">sklearn.ensemble</span> <span class="kn">import</span> <span class="n">RandomForestClassifier</span>
 <span class="kn">from</span> <span class="nn">sklearn.ensemble</span> <span class="kn">import</span> <span class="n">RandomForestRegressor</span>
 
@@ -196,6 +203,7 @@
 <span class="kn">import</span> <span class="nn">glob</span>
 <span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
 <span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">socket</span>
 <span class="kn">from</span> <span class="nn">packaging</span> <span class="kn">import</span> <span class="n">version</span>
 
 <span class="kn">from</span> <span class="nn">atomsci.ddm.utils</span> <span class="kn">import</span> <span class="n">datastore_functions</span> <span class="k">as</span> <span class="n">dsf</span>
@@ -282,6 +290,8 @@
 <span class="s2">                             from pip: pip install xgboost==0.90&quot;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">DCxgboostModelWrapper</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">featurizer</span><span class="p">,</span> <span class="n">ds_client</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">params</span><span class="o">.</span><span class="n">model_type</span> <span class="o">==</span> <span class="s1">&#39;hybrid&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">HybridModelWrapper</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">featurizer</span><span class="p">,</span> <span class="n">ds_client</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unknown model_type </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">params</span><span class="o">.</span><span class="n">model_type</span><span class="p">)</span></div>
 
@@ -401,39 +411,54 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">prediction_type</span><span class="o">==</span><span class="s1">&#39;regression&#39;</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">transformers</span><span class="o">==</span><span class="kc">True</span><span class="p">:</span>
             <span class="c1"># self.transformers = [</span>
             <span class="c1">#    dc.trans.NormalizationTransformer(transform_y=True, dataset=model_dataset.dataset)]</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">transformers</span> <span class="o">=</span> <span class="p">[</span> 
-                <span class="n">trans</span><span class="o">.</span><span class="n">NormalizationTransformerMissingData</span><span class="p">(</span><span class="n">transform_y</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">dataset</span><span class="o">=</span><span class="n">model_dataset</span><span class="o">.</span><span class="n">dataset</span><span class="p">)</span>
-            <span class="p">]</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">model_type</span> <span class="o">!=</span> <span class="s2">&quot;hybrid&quot;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">transformers</span> <span class="o">=</span> <span class="p">[</span><span class="n">trans</span><span class="o">.</span><span class="n">NormalizationTransformerMissingData</span><span class="p">(</span><span class="n">transform_y</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">dataset</span><span class="o">=</span><span class="n">model_dataset</span><span class="o">.</span><span class="n">dataset</span><span class="p">)]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">transformers</span> <span class="o">=</span> <span class="p">[</span><span class="n">trans</span><span class="o">.</span><span class="n">NormalizationTransformerHybrid</span><span class="p">(</span><span class="n">transform_y</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">dataset</span><span class="o">=</span><span class="n">model_dataset</span><span class="o">.</span><span class="n">dataset</span><span class="p">)]</span>
 
         <span class="c1"># Set up transformers for features, if needed</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">transformers_x</span> <span class="o">=</span> <span class="n">trans</span><span class="o">.</span><span class="n">create_feature_transformers</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">,</span> <span class="n">model_dataset</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">transformers</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">transformers_x</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
 
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">save_results</span><span class="p">:</span>
-                <span class="c1"># Save tuple of response and feature transformer lists in datastore</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">transformer_key</span> <span class="o">=</span> <span class="s1">&#39;transformers_&#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">model_uuid</span> <span class="o">+</span> <span class="s1">&#39;.pkl&#39;</span>
-                <span class="k">try</span><span class="p">:</span>
-                    <span class="n">fileupload</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">upload_pickle_to_DS</span><span class="p">(</span><span class="n">data</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">transformers</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformers_x</span><span class="p">),</span>
-                                    <span class="n">bucket</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">transformer_bucket</span><span class="p">,</span>
-                                    <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">transformer_key</span><span class="p">),</span>
-                                    <span class="n">title</span> <span class="o">=</span> <span class="s2">&quot;Saved transformers for dataset </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">model_dataset</span><span class="o">.</span><span class="n">dataset_name</span><span class="p">,</span>
-                                    <span class="n">description</span> <span class="o">=</span> <span class="s2">&quot;Saved transformers for dataset </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">model_dataset</span><span class="o">.</span><span class="n">dataset_name</span><span class="p">,</span>
-                                    <span class="n">tags</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;transformers&#39;</span><span class="p">,</span> <span class="s1">&#39;pickled&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">featurizer</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span> <span class="n">model_dataset</span><span class="o">.</span><span class="n">dataset_name</span><span class="p">],</span>
-                                    <span class="n">key_values</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;file_category&#39;</span><span class="p">:</span> <span class="s1">&#39;transformers&#39;</span><span class="p">},</span>
-                                    <span class="n">client</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ds_client</span><span class="p">,</span>
-                                    <span class="n">dataset_key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">transformer_key</span><span class="p">,</span>
-                                    <span class="n">override_check</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-                                    <span class="n">return_metadata</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">transformer_oid</span> <span class="o">=</span> <span class="n">fileupload</span><span class="p">[</span><span class="s1">&#39;dataset_oid&#39;</span><span class="p">]</span>
+            <span class="c1"># Transformers are no longer saved as separate datastore objects; they are included in the model tarball</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">transformer_key</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output_dir</span><span class="p">,</span> <span class="s1">&#39;transformers.pkl&#39;</span><span class="p">)</span>
+            <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">transformers</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformers_x</span><span class="p">),</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">transformer_key</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Wrote transformers to </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">transformer_key</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">transformer_oid</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">transformer_bucket</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span></div>
 
-                <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Error when trying to save transformers to datastore:</span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+        <span class="c1"># ****************************************************************************************</span>
+
+<div class="viewcode-block" id="ModelWrapper.reload_transformers"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.ModelWrapper.reload_transformers">[docs]</a>    <span class="k">def</span> <span class="nf">reload_transformers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Load response and feature transformers from datastore objects or files. Before AMPL v1.2 these</span>
+<span class="sd">        were persisted as separate datastore objects when the model tracker was used; subsequently they</span>
+<span class="sd">        are included in model tarballs, which should have been unpacked before this function gets called.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># Try local path first to check for transformers unpacked from model tarball</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">trans</span><span class="o">.</span><span class="n">transformers_needed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">):</span>
+            <span class="k">return</span>
+        <span class="n">local_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">output_dir</span><span class="si">}</span><span class="s2">/transformers.pkl&quot;</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">local_path</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Reloading transformers from model tarball </span><span class="si">{</span><span class="n">local_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">transformers</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformers_x</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">local_path</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">transformer_key</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">save_results</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Reloading transformers from datastore key </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">transformer_key</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">transformers</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformers_x</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">retrieve_dataset_by_datasetkey</span><span class="p">(</span>
+                        <span class="n">dataset_key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">transformer_key</span><span class="p">,</span>
+                        <span class="n">bucket</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">transformer_bucket</span><span class="p">,</span>
+                        <span class="n">client</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ds_client</span> <span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Reloading transformers from file </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">transformer_key</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">transformers</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformers_x</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">transformer_key</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span> <span class="p">))</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">transformer_key</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output_dir</span><span class="p">,</span> <span class="s1">&#39;transformers.pkl&#39;</span><span class="p">)</span>
-                <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">transformers</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformers_x</span><span class="p">),</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">transformer_key</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">))</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Wrote transformers to </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">transformer_key</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">transformer_bucket</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">bucket</span></div>
+                <span class="c1"># Shouldn&#39;t happen</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Transformers needed to reload model, but no transformer_key specified.&quot;</span><span class="p">)</span></div>
+
 
         <span class="c1"># ****************************************************************************************</span>
 
@@ -507,7 +532,11 @@
         <span class="c1"># We pass transformed=False to indicate that the preds and uncertainties we get from</span>
         <span class="c1"># generate_predictions are already untransformed, so that perf_data.get_prediction_results()</span>
         <span class="c1"># doesn&#39;t untransform them again.</span>
-        <span class="n">perf_data</span> <span class="o">=</span> <span class="n">perf</span><span class="o">.</span><span class="n">create_perf_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">prediction_type</span><span class="p">,</span> <span class="n">model_dataset</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformers</span><span class="p">,</span> <span class="s1">&#39;test&#39;</span><span class="p">,</span> <span class="n">transformed</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">transformers</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;ishybrid&quot;</span><span class="p">):</span>
+            <span class="c1"># indicate that we are training a hybrid model</span>
+            <span class="n">perf_data</span> <span class="o">=</span> <span class="n">perf</span><span class="o">.</span><span class="n">create_perf_data</span><span class="p">(</span><span class="s2">&quot;hybrid&quot;</span><span class="p">,</span> <span class="n">model_dataset</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformers</span><span class="p">,</span> <span class="s1">&#39;test&#39;</span><span class="p">,</span> <span class="n">is_ki</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">is_ki</span><span class="p">,</span> <span class="n">ki_convert_ratio</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">ki_convert_ratio</span><span class="p">,</span> <span class="n">transformed</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">perf_data</span> <span class="o">=</span> <span class="n">perf</span><span class="o">.</span><span class="n">create_perf_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">prediction_type</span><span class="p">,</span> <span class="n">model_dataset</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformers</span><span class="p">,</span> <span class="s1">&#39;test&#39;</span><span class="p">,</span> <span class="n">transformed</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="n">test_dset</span> <span class="o">=</span> <span class="n">model_dataset</span><span class="o">.</span><span class="n">test_dset</span>
         <span class="n">test_preds</span><span class="p">,</span> <span class="n">test_stds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">generate_predictions</span><span class="p">(</span><span class="n">test_dset</span><span class="p">)</span>
         <span class="n">_</span> <span class="o">=</span> <span class="n">perf_data</span><span class="o">.</span><span class="n">accumulate_preds</span><span class="p">(</span><span class="n">test_preds</span><span class="p">,</span> <span class="n">test_dset</span><span class="o">.</span><span class="n">ids</span><span class="p">,</span> <span class="n">test_stds</span><span class="p">)</span>
@@ -546,7 +575,11 @@
         <span class="c1"># We pass transformed=False to indicate that the preds and uncertainties we get from</span>
         <span class="c1"># generate_predictions are already untransformed, so that perf_data.get_prediction_results()</span>
         <span class="c1"># doesn&#39;t untransform them again.</span>
-        <span class="n">perf_data</span> <span class="o">=</span> <span class="n">perf</span><span class="o">.</span><span class="n">create_perf_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">prediction_type</span><span class="p">,</span> <span class="n">model_dataset</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformers</span><span class="p">,</span> <span class="s1">&#39;full&#39;</span><span class="p">,</span> <span class="n">transformed</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">transformers</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;ishybrid&quot;</span><span class="p">):</span>
+            <span class="c1"># indicate that we are training a hybrid model</span>
+            <span class="n">perf_data</span> <span class="o">=</span> <span class="n">perf</span><span class="o">.</span><span class="n">create_perf_data</span><span class="p">(</span><span class="s2">&quot;hybrid&quot;</span><span class="p">,</span> <span class="n">model_dataset</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformers</span><span class="p">,</span> <span class="s1">&#39;full&#39;</span><span class="p">,</span> <span class="n">is_ki</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">is_ki</span><span class="p">,</span> <span class="n">ki_convert_ratio</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">ki_convert_ratio</span><span class="p">,</span> <span class="n">transformed</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">perf_data</span> <span class="o">=</span> <span class="n">perf</span><span class="o">.</span><span class="n">create_perf_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">prediction_type</span><span class="p">,</span> <span class="n">model_dataset</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformers</span><span class="p">,</span> <span class="s1">&#39;full&#39;</span><span class="p">,</span> <span class="n">transformed</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="n">full_preds</span><span class="p">,</span> <span class="n">full_stds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">generate_predictions</span><span class="p">(</span><span class="n">model_dataset</span><span class="o">.</span><span class="n">dataset</span><span class="p">)</span>
         <span class="n">_</span> <span class="o">=</span> <span class="n">perf_data</span><span class="o">.</span><span class="n">accumulate_preds</span><span class="p">(</span><span class="n">full_preds</span><span class="p">,</span> <span class="n">model_dataset</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">ids</span><span class="p">,</span> <span class="n">full_stds</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">perf_data</span></div>
@@ -728,7 +761,7 @@
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">layer_sizes</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">featurizer</span> <span class="o">==</span> <span class="s1">&#39;ecfp&#39;</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">layer_sizes</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">500</span><span class="p">]</span>
-                <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">featurizer</span> <span class="o">==</span> <span class="s1">&#39;descriptors&#39;</span><span class="p">:</span>
+                <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">featurizer</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;descriptors&#39;</span><span class="p">,</span> <span class="s1">&#39;computed_descriptors&#39;</span><span class="p">]:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">layer_sizes</span> <span class="o">=</span> <span class="p">[</span><span class="mi">200</span><span class="p">,</span> <span class="mi">100</span><span class="p">]</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="c1"># Shouldn&#39;t happen</span>
@@ -1269,16 +1302,8 @@
         <span class="n">dc_restore</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="n">checkpoint</span><span class="o">=</span><span class="n">checkpoint</span><span class="p">)</span>
 
 
-        <span class="c1"># Load transformers if they would have been saved with the model</span>
-        <span class="k">if</span> <span class="n">trans</span><span class="o">.</span><span class="n">transformers_needed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">transformer_key</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Reloading transformers from file </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">transformer_key</span><span class="p">)</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">save_results</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">transformers</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformers_x</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">retrieve_dataset_by_datasetkey</span><span class="p">(</span>
-                    <span class="n">dataset_key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">transformer_key</span><span class="p">,</span>
-                    <span class="n">bucket</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">transformer_bucket</span><span class="p">,</span>
-                    <span class="n">client</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ds_client</span> <span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">transformers</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformers_x</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">transformer_key</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span> <span class="p">))</span></div>
+        <span class="c1"># Restore the transformers from the datastore or filesystem</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reload_transformers</span><span class="p">()</span></div>
 
 
     <span class="c1"># ****************************************************************************************</span>
@@ -1460,6 +1485,592 @@
         <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">dest_dir</span><span class="p">)</span></div>
         
 <span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="HybridModelWrapper"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.HybridModelWrapper">[docs]</a><span class="k">class</span> <span class="nc">HybridModelWrapper</span><span class="p">(</span><span class="n">ModelWrapper</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A wrapper for hybrid models, contains methods to load in a dataset, split and featurize the data, fit a model to the train dataset,</span>
+<span class="sd">    generate predictions for an input dataset, and generate performance metrics for these predictions.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        Set in __init__</span>
+<span class="sd">            params (argparse.Namespace): The argparse.Namespace parameter object that contains all parameter information</span>
+<span class="sd">            featurziation (Featurization object): The featurization object created outside of model_wrapper</span>
+
+<span class="sd">            log (log): The logger</span>
+
+<span class="sd">            output_dir (str): The parent path of the model directory</span>
+
+<span class="sd">            transformers (list): Initialized as an empty list, stores the transformers on the response col</span>
+
+<span class="sd">            transformers_x (list): Initialized as an empty list, stores the transformers on the featurizers</span>
+
+<span class="sd">            model_dir (str): The subdirectory under output_dir that contains the model. Created in setup_model_dirs.</span>
+
+<span class="sd">            best_model_dir (str): The subdirectory under output_dir that contains the best model. Created in setup_model_dirs</span>
+
+<span class="sd">            model: The PyTorch NN sequential model.</span>
+<span class="sd">        Created in train:</span>
+<span class="sd">            data (ModelDataset): contains the dataset, set in pipeline</span>
+
+<span class="sd">            best_epoch (int): Initialized as None, keeps track of the epoch with the best validation score</span>
+
+<span class="sd">            train_perf_data (np.array of PerfData): Initialized as an empty array, </span>
+<span class="sd">                contains the predictions and performance of the training dataset</span>
+
+<span class="sd">            valid_perf_data (np.array of PerfData): Initialized as an empty array,</span>
+<span class="sd">                contains the predictions and performance of the validation dataset</span>
+
+<span class="sd">            train_epoch_perfs (np.array of dicts): Initialized as an empty array,</span>
+<span class="sd">                contains a list of dictionaries of predicted values and metrics on the training dataset</span>
+
+<span class="sd">            valid_epoch_perfs (np.array of dicts): Initialized as an empty array,</span>
+<span class="sd">                contains a list of dictionaries of predicted values and metrics on the validation dataset</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">featurizer</span><span class="p">,</span> <span class="n">ds_client</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initializes HybridModelWrapper object.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            params (Namespace object): contains all parameter information.</span>
+
+<span class="sd">            featurizer (Featurizer object): initialized outside of model_wrapper</span>
+
+<span class="sd">        Side effects:</span>
+<span class="sd">            params (argparse.Namespace): The argparse.Namespace parameter object that contains all parameter information</span>
+
+<span class="sd">            featurziation (Featurization object): The featurization object created outside of model_wrapper</span>
+
+<span class="sd">            log (log): The logger</span>
+
+<span class="sd">            output_dir (str): The parent path of the model directory</span>
+
+<span class="sd">            transforsamers (list): Initialized as an empty list, stores the transformers on the response col</span>
+
+<span class="sd">            transformers_x (list): Initialized as an empty list, stores the transformers on the featurizers</span>
+
+<span class="sd">            model: dc.models.TorchModel</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">featurizer</span><span class="p">,</span> <span class="n">ds_client</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">layer_sizes</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">featurizer</span> <span class="o">==</span> <span class="s1">&#39;ecfp&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">layer_sizes</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">500</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">featurizer</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;descriptors&#39;</span><span class="p">,</span> <span class="s1">&#39;computed_descriptors&#39;</span><span class="p">]:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">layer_sizes</span> <span class="o">=</span> <span class="p">[</span><span class="mi">200</span><span class="p">,</span> <span class="mi">100</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># Shouldn&#39;t happen</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;You need to define default layer sizes for featurizer </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span>
+                                    <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">featurizer</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">layer_sizes</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">500</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">dropouts</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">dropouts</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.4</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">layer_sizes</span><span class="p">)</span>
+
+        <span class="n">n_features</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_num_features</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">socket</span><span class="o">.</span><span class="n">gethostname</span><span class="p">()[:</span><span class="mi">3</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;sur&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dev</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s2">&quot;cpu&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dev</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s2">&quot;cuda&quot;</span><span class="p">)</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s2">&quot;cpu&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">prediction_type</span> <span class="o">==</span> <span class="s1">&#39;regression&#39;</span><span class="p">:</span>
+            <span class="n">model_dict</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">([</span>
+                <span class="p">(</span><span class="s2">&quot;layer1&quot;</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">n_features</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">layer_sizes</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dev</span><span class="p">)),</span>
+                <span class="p">(</span><span class="s2">&quot;dp1&quot;</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Dropout</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">dropouts</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dev</span><span class="p">)),</span>
+                <span class="p">(</span><span class="s2">&quot;relu1&quot;</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">()</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dev</span><span class="p">))</span>
+            <span class="p">])</span>
+            
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">layer_sizes</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">layer_sizes</span><span class="p">)):</span>
+                    <span class="n">model_dict</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;layer</span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">layer_sizes</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">layer_sizes</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dev</span><span class="p">)</span>
+                    <span class="n">model_dict</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;dp</span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Dropout</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">dropouts</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dev</span><span class="p">)</span>
+                    <span class="n">model_dict</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;relu</span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">()</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dev</span><span class="p">)</span>
+            
+            <span class="n">model_dict</span><span class="p">[</span><span class="s2">&quot;last_layer&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">layer_sizes</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dev</span><span class="p">)</span>
+            
+            <span class="bp">self</span><span class="o">.</span><span class="n">model_dict</span> <span class="o">=</span> <span class="n">model_dict</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span><span class="n">model_dict</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dev</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Hybrid model only support regression prediction.&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_predict_binding</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">activity</span><span class="p">,</span> <span class="n">conc</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Predict measurements of fractional binding/inhibition of target receptors by a compound with the given activity,</span>
+<span class="sd">        in -Log scale, at the specified concentration in nM. If the given activity is pKi, a ratio to convert Ki into IC50</span>
+<span class="sd">        is needed. It can be the ratio of concentration and Kd of the radioligand in a competitive binding assay, or the concentration</span>
+<span class="sd">        of the substrate and Michaelis constant (Km) of enzymatic inhibition assay.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">is_ki</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">ki_convert_ratio</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Ki converting ratio is missing. Cannot convert Ki into IC50&quot;</span><span class="p">)</span>
+            <span class="n">Ki</span> <span class="o">=</span> <span class="mi">10</span><span class="o">**</span><span class="p">(</span><span class="mi">9</span><span class="o">-</span><span class="n">activity</span><span class="p">)</span>
+            <span class="n">IC50</span> <span class="o">=</span> <span class="n">Ki</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">ki_convert_ratio</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">IC50</span> <span class="o">=</span> <span class="mi">10</span><span class="o">**</span><span class="p">(</span><span class="mi">9</span><span class="o">-</span><span class="n">activity</span><span class="p">)</span>
+        <span class="n">pred_frac</span> <span class="o">=</span> <span class="mf">1.0</span><span class="o">/</span><span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="n">IC50</span><span class="o">/</span><span class="n">conc</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">pred_frac</span>
+
+    <span class="k">def</span> <span class="nf">_l2_loss</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">yp</span><span class="p">,</span> <span class="n">yr</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Da&#39;s loss function, based on L2 terms for both pKi and percent binding values</span>
+<span class="sd">        This function is not appropriate for model fitting, but can be used for R^2 calculation.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">yreal</span> <span class="o">=</span> <span class="n">yr</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+        <span class="n">pos_ki</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">yreal</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]))[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">pos_bind</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">yreal</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]))[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">loss_ki</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">yp</span><span class="p">[</span><span class="n">pos_ki</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">yr</span><span class="p">[</span><span class="n">pos_ki</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pos_bind</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">loss_ki</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="c1"># convert Ki to % binding</span>
+        <span class="n">y_stds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformers</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">y_stds</span>
+        <span class="n">y_means</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformers</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">y_means</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">is_ki</span><span class="p">:</span>
+            <span class="n">bind_pred</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_predict_binding</span><span class="p">(</span><span class="n">y_means</span> <span class="o">+</span> <span class="n">y_stds</span> <span class="o">*</span> <span class="n">yp</span><span class="p">[</span><span class="n">pos_bind</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">conc</span><span class="o">=</span><span class="n">yr</span><span class="p">[</span><span class="n">pos_bind</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">bind_pred</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_predict_binding</span><span class="p">(</span><span class="n">y_means</span> <span class="o">+</span> <span class="n">y_stds</span> <span class="o">*</span> <span class="n">yp</span><span class="p">[</span><span class="n">pos_bind</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">conc</span><span class="o">=</span><span class="n">yr</span><span class="p">[</span><span class="n">pos_bind</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+        <span class="c1"># calculate the loss_bind</span>
+        <span class="n">loss_bind</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">bind_pred</span> <span class="o">-</span> <span class="n">yr</span><span class="p">[</span><span class="n">pos_bind</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">loss_ki</span><span class="p">,</span> <span class="n">loss_bind</span>
+
+    <span class="k">def</span> <span class="nf">_poisson_hybrid_loss</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">yp</span><span class="p">,</span> <span class="n">yr</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Hybrid loss function based on L2 losses for deviations of predicted and measured pKi values</span>
+<span class="sd">        and Poisson losses for predicted vs measured binding values. The idea is to choose loss terms</span>
+<span class="sd">        that when minimized maximize the likelihood.</span>
+
+<span class="sd">        Note that we compute both pKi and binding loss terms for compounds that have both kinds of data, since they are</span>
+<span class="sd">        independent measurements. Therefore, pos_ki and pos_bind index sets may overlap.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># Get indices of non-missing pKi values</span>
+        <span class="n">yreal</span> <span class="o">=</span> <span class="n">yr</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+        <span class="n">pos_ki</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">yreal</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]))[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="c1"># Get indices of non-missing binding values</span>
+        <span class="n">pos_bind</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">yreal</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]))[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="c1"># Compute L2 loss for pKi predictions</span>
+        <span class="n">loss_ki</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">yp</span><span class="p">[</span><span class="n">pos_ki</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">yr</span><span class="p">[</span><span class="n">pos_ki</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="c1">#convert the ki prediction back to Ki scale</span>
+        <span class="n">y_stds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformers</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">y_stds</span>
+        <span class="n">y_means</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformers</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">y_means</span>
+        <span class="c1"># Compute fraction bound to *radioligand* (not drug) from predicted pKi</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">is_ki</span><span class="p">:</span>
+            <span class="n">rl_bind_pred</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_predict_binding</span><span class="p">(</span><span class="n">y_means</span> <span class="o">+</span> <span class="n">y_stds</span> <span class="o">*</span> <span class="n">yp</span><span class="p">[</span><span class="n">pos_bind</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">conc</span><span class="o">=</span><span class="n">yr</span><span class="p">[</span><span class="n">pos_bind</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">rl_bind_pred</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_predict_binding</span><span class="p">(</span><span class="n">y_means</span> <span class="o">+</span> <span class="n">y_stds</span> <span class="o">*</span> <span class="n">yp</span><span class="p">[</span><span class="n">pos_bind</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">conc</span><span class="o">=</span><span class="n">yr</span><span class="p">[</span><span class="n">pos_bind</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+        <span class="n">rl_bind_real</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">yr</span><span class="p">[</span><span class="n">pos_bind</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="c1"># Compute Poisson loss for radioligand binding</span>
+        <span class="n">loss_bind</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">rl_bind_pred</span> <span class="o">-</span> <span class="n">rl_bind_real</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">rl_bind_pred</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">loss_ki</span><span class="o">.</span><span class="n">item</span><span class="p">()):</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Ki loss is NaN&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">loss_bind</span><span class="o">.</span><span class="n">item</span><span class="p">()):</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Binding loss is NaN&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">loss_ki</span><span class="p">,</span> <span class="n">loss_bind</span>
+
+    <span class="k">def</span> <span class="nf">_loss_batch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">loss_func</span><span class="p">,</span> <span class="n">xb</span><span class="p">,</span> <span class="n">yb</span><span class="p">,</span> <span class="n">opt</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute loss_func for the batch xb, yb. If opt is provided, perform a training</span>
+<span class="sd">        step on the model weights.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">loss_ki</span><span class="p">,</span> <span class="n">loss_bind</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss_func</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">(</span><span class="n">xb</span><span class="p">),</span> <span class="n">yb</span><span class="p">)</span>
+        <span class="n">loss</span> <span class="o">=</span> <span class="n">loss_ki</span> <span class="o">+</span> <span class="n">loss_bind</span>
+        
+        <span class="k">if</span> <span class="n">opt</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+            <span class="n">opt</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>   
+            <span class="n">opt</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">loss_ki</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span> <span class="n">loss_bind</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span> <span class="nb">len</span><span class="p">(</span><span class="n">xb</span><span class="p">)</span>
+
+<div class="viewcode-block" id="HybridModelWrapper.SubsetData"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.HybridModelWrapper.SubsetData">[docs]</a>    <span class="k">class</span> <span class="nc">SubsetData</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Container for DataLoader object and attributes of a dataset subset</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ds</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">n_ki</span><span class="p">,</span> <span class="n">n_bind</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ds</span> <span class="o">=</span> <span class="n">ds</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dl</span> <span class="o">=</span> <span class="n">dl</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">n_ki</span> <span class="o">=</span> <span class="n">n_ki</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">n_bind</span> <span class="o">=</span> <span class="n">n_bind</span></div>
+    
+    <span class="k">def</span> <span class="nf">_tensorize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_load_hybrid_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Convert the DeepChem dataset into the SubsetData for hybrid model.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">train_valid_dsets</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">test_dset</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">test_dset</span>
+        <span class="n">num_folds</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">train_valid_dsets</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_folds</span><span class="p">):</span>
+            <span class="n">train_dset</span><span class="p">,</span> <span class="n">valid_dset</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">train_valid_dsets</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+            <span class="c1"># datasets were normalized in previous steps</span>
+            <span class="n">x_train</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> <span class="n">x_valid</span><span class="p">,</span> <span class="n">y_valid</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_tensorize</span><span class="p">,</span> <span class="p">(</span><span class="n">train_dset</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="n">train_dset</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">valid_dset</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="n">valid_dset</span><span class="o">.</span><span class="n">y</span><span class="p">)</span>
+            <span class="p">)</span>
+            <span class="c1"># train</span>
+            <span class="n">train_ki_pos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">y_train</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">numpy</span><span class="p">()))[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">train_bind_pos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">y_train</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">numpy</span><span class="p">()))[</span><span class="mi">0</span><span class="p">]</span>
+            
+            <span class="c1"># valid</span>
+            <span class="n">valid_ki_pos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">y_valid</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">numpy</span><span class="p">()))[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">valid_bind_pos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">y_valid</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">numpy</span><span class="p">()))[</span><span class="mi">0</span><span class="p">]</span>
+            
+            <span class="n">train_ds</span> <span class="o">=</span> <span class="n">TensorDataset</span><span class="p">(</span><span class="n">x_train</span><span class="p">,</span> <span class="n">y_train</span><span class="p">)</span>
+            <span class="n">train_dl</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span><span class="n">train_ds</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">pin_memory</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">train_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SubsetData</span><span class="p">(</span><span class="n">train_ds</span><span class="p">,</span> 
+                                        <span class="n">train_dl</span><span class="p">,</span> 
+                                        <span class="nb">len</span><span class="p">(</span><span class="n">train_ki_pos</span><span class="p">),</span> 
+                                        <span class="nb">len</span><span class="p">(</span><span class="n">train_bind_pos</span><span class="p">))</span>
+
+            <span class="n">valid_ds</span> <span class="o">=</span> <span class="n">TensorDataset</span><span class="p">(</span><span class="n">x_valid</span><span class="p">,</span> <span class="n">y_valid</span><span class="p">)</span>
+            <span class="n">valid_dl</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span><span class="n">valid_ds</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">batch_size</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span> <span class="n">pin_memory</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">valid_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SubsetData</span><span class="p">(</span><span class="n">valid_ds</span><span class="p">,</span> 
+                                        <span class="n">valid_dl</span><span class="p">,</span> 
+                                        <span class="nb">len</span><span class="p">(</span><span class="n">valid_ki_pos</span><span class="p">),</span> 
+                                        <span class="nb">len</span><span class="p">(</span><span class="n">valid_bind_pos</span><span class="p">))</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">train_valid_dsets</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">train_data</span><span class="p">,</span> <span class="n">valid_data</span><span class="p">))</span>
+
+        <span class="n">x_test</span><span class="p">,</span> <span class="n">y_test</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_tensorize</span><span class="p">,</span> <span class="p">(</span><span class="n">test_dset</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="n">test_dset</span><span class="o">.</span><span class="n">y</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">test_ki_pos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">y_test</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">numpy</span><span class="p">()))[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">test_bind_pos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">y_test</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">numpy</span><span class="p">()))[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="n">test_ds</span> <span class="o">=</span> <span class="n">TensorDataset</span><span class="p">(</span><span class="n">x_test</span><span class="p">,</span> <span class="n">y_test</span><span class="p">)</span>
+        <span class="n">test_dl</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span><span class="n">test_ds</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">batch_size</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span> <span class="n">pin_memory</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">test_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SubsetData</span><span class="p">(</span><span class="n">test_ds</span><span class="p">,</span> 
+                                    <span class="n">test_dl</span><span class="p">,</span> 
+                                    <span class="nb">len</span><span class="p">(</span><span class="n">test_ki_pos</span><span class="p">),</span> 
+                                    <span class="nb">len</span><span class="p">(</span><span class="n">test_bind_pos</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">test_data</span> <span class="o">=</span> <span class="n">test_data</span>
+    
+<div class="viewcode-block" id="HybridModelWrapper.save_model"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.HybridModelWrapper.save_model">[docs]</a>    <span class="k">def</span> <span class="nf">save_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">checkpoint_file</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">opt</span><span class="p">,</span> <span class="n">epoch</span><span class="p">,</span> <span class="n">model_dict</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Save a model to a checkpoint file.</span>
+<span class="sd">        Include epoch, model_dict in checkpoint dict.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">checkpoint</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+            <span class="n">epoch</span><span class="o">=</span><span class="n">epoch</span><span class="p">,</span>
+            <span class="n">model_state_dict</span><span class="o">=</span><span class="n">model</span><span class="o">.</span><span class="n">state_dict</span><span class="p">(),</span>
+            <span class="n">opt_state_dict</span><span class="o">=</span><span class="n">opt</span><span class="o">.</span><span class="n">state_dict</span><span class="p">(),</span>
+            <span class="n">model_dict</span><span class="o">=</span><span class="n">model_dict</span>
+            <span class="p">)</span>
+        
+        <span class="n">torch</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">checkpoint</span><span class="p">,</span> <span class="n">checkpoint_file</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="HybridModelWrapper.train"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.HybridModelWrapper.train">[docs]</a>    <span class="k">def</span> <span class="nf">train</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pipeline</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">best_epoch</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">best_valid_score</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">train_epoch_perfs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">max_epochs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">valid_epoch_perfs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">max_epochs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">test_epoch_perfs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">max_epochs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">train_epoch_perf_stds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">max_epochs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">valid_epoch_perf_stds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">max_epochs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">test_epoch_perf_stds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">max_epochs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model_choice_scores</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">max_epochs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">early_stopping_min_improvement</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">early_stopping_min_improvement</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">early_stopping_patience</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">early_stopping_patience</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">loss_func</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;poisson&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">loss_func</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_poisson_hybrid_loss</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">loss_func</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_l2_loss</span>
+
+        <span class="c1"># load hybrid data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_load_hybrid_data</span><span class="p">(</span><span class="n">pipeline</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+
+        <span class="n">checkpoint_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model_dir</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">dataset_name</span><span class="si">}</span><span class="s2">_model_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">model_uuid</span><span class="si">}</span><span class="s2">.pt&quot;</span><span class="p">)</span>
+
+        <span class="n">opt</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">Adam</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">learning_rate</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">train_perf_data</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">valid_perf_data</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">test_perf_data</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">ei</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">max_epochs</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">train_perf_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">perf</span><span class="o">.</span><span class="n">create_perf_data</span><span class="p">(</span><span class="s2">&quot;hybrid&quot;</span><span class="p">,</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformers</span><span class="p">,</span> <span class="s1">&#39;train&#39;</span><span class="p">,</span> <span class="n">is_ki</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">is_ki</span><span class="p">,</span> <span class="n">ki_convert_ratio</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">ki_convert_ratio</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">valid_perf_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">perf</span><span class="o">.</span><span class="n">create_perf_data</span><span class="p">(</span><span class="s2">&quot;hybrid&quot;</span><span class="p">,</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformers</span><span class="p">,</span> <span class="s1">&#39;valid&#39;</span><span class="p">,</span> <span class="n">is_ki</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">is_ki</span><span class="p">,</span> <span class="n">ki_convert_ratio</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">ki_convert_ratio</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">test_perf_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">perf</span><span class="o">.</span><span class="n">create_perf_data</span><span class="p">(</span><span class="s2">&quot;hybrid&quot;</span><span class="p">,</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformers</span><span class="p">,</span> <span class="s1">&#39;test&#39;</span><span class="p">,</span> <span class="n">is_ki</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">is_ki</span><span class="p">,</span> <span class="n">ki_convert_ratio</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">ki_convert_ratio</span><span class="p">))</span>
+
+        <span class="n">test_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">test_data</span>
+
+        <span class="n">time_limit</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">slurm_time_limit</span><span class="p">)</span>
+        <span class="n">training_start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+        <span class="n">train_dset</span><span class="p">,</span> <span class="n">valid_dset</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">train_valid_dsets</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pipeline</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">train_valid_dsets</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Currently the hybrid model  doesn&#39;t support K-fold cross validation splitting.&quot;</span><span class="p">)</span>
+        <span class="n">test_dset</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">test_dset</span>
+        <span class="n">train_data</span><span class="p">,</span> <span class="n">valid_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">train_valid_dsets</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">ei</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">max_epochs</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">llnl_utils</span><span class="o">.</span><span class="n">is_lc_system</span><span class="p">()</span> <span class="ow">and</span> <span class="p">(</span><span class="n">ei</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">):</span>
+                <span class="c1"># If we&#39;re running on an LC system, check that we have enough time to complete another epoch</span>
+                <span class="c1"># before the current job finishes, by extrapolating from the time elapsed so far.</span>
+
+                <span class="n">now</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> 
+                <span class="n">elapsed_time</span> <span class="o">=</span> <span class="n">now</span> <span class="o">-</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">start_time</span>
+                <span class="n">training_time</span> <span class="o">=</span> <span class="n">now</span> <span class="o">-</span> <span class="n">training_start</span>
+                <span class="n">time_remaining</span> <span class="o">=</span> <span class="n">time_limit</span> <span class="o">*</span> <span class="mi">60</span> <span class="o">-</span> <span class="n">elapsed_time</span>
+                <span class="n">time_needed</span> <span class="o">=</span> <span class="n">training_time</span><span class="o">/</span><span class="n">ei</span>
+
+                <span class="k">if</span> <span class="n">time_needed</span> <span class="o">&gt;</span> <span class="mf">0.9</span> <span class="o">*</span> <span class="n">time_remaining</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Projected time to finish one more epoch exceeds time left in job; cutting training to </span><span class="si">%d</span><span class="s2"> epochs&quot;</span> <span class="o">%</span>
+                                    <span class="n">ei</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">max_epochs</span> <span class="o">=</span> <span class="n">ei</span>
+                    <span class="k">break</span>
+
+            <span class="c1"># Train the model for one epoch. We turn off automatic checkpointing, so the last checkpoint</span>
+            <span class="c1"># saved will be the one we created intentionally when we reached a new best validation score.</span>
+            <span class="n">train_loss_ep</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">xb</span><span class="p">,</span> <span class="n">yb</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">train_data</span><span class="o">.</span><span class="n">dl</span><span class="p">):</span>
+                <span class="n">xb</span> <span class="o">=</span> <span class="n">xb</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dev</span><span class="p">)</span>
+                <span class="n">yb</span> <span class="o">=</span> <span class="n">yb</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dev</span><span class="p">)</span>
+                <span class="n">train_loss_ki</span><span class="p">,</span> <span class="n">train_loss_bind</span><span class="p">,</span> <span class="n">train_count</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loss_batch</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">loss_func</span><span class="p">,</span> <span class="n">xb</span><span class="p">,</span> <span class="n">yb</span><span class="p">,</span> <span class="n">opt</span><span class="p">)</span>
+                <span class="n">train_loss_ep</span> <span class="o">+=</span> <span class="p">(</span><span class="n">train_loss_ki</span> <span class="o">+</span> <span class="n">train_loss_bind</span><span class="p">)</span>
+            <span class="n">train_loss_ep</span> <span class="o">/=</span> <span class="p">(</span><span class="n">train_data</span><span class="o">.</span><span class="n">n_ki</span> <span class="o">+</span> <span class="n">train_data</span><span class="o">.</span><span class="n">n_bind</span><span class="p">)</span>
+
+            <span class="c1"># validation set</span>
+            <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+                <span class="n">valid_loss_ep</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="k">for</span> <span class="n">xb</span><span class="p">,</span> <span class="n">yb</span> <span class="ow">in</span> <span class="n">valid_data</span><span class="o">.</span><span class="n">dl</span><span class="p">:</span>
+                    <span class="n">xb</span> <span class="o">=</span> <span class="n">xb</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dev</span><span class="p">)</span>
+                    <span class="n">yb</span> <span class="o">=</span> <span class="n">yb</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dev</span><span class="p">)</span>
+                    <span class="n">valid_loss_ki</span><span class="p">,</span> <span class="n">valid_loss_bind</span><span class="p">,</span> <span class="n">valid_count</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loss_batch</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">loss_func</span><span class="p">,</span> <span class="n">xb</span><span class="p">,</span> <span class="n">yb</span><span class="p">)</span>
+                    <span class="n">valid_loss_ep</span> <span class="o">+=</span> <span class="p">(</span><span class="n">valid_loss_ki</span> <span class="o">+</span> <span class="n">valid_loss_bind</span><span class="p">)</span>
+                <span class="n">valid_loss_ep</span> <span class="o">/=</span> <span class="p">(</span><span class="n">valid_data</span><span class="o">.</span><span class="n">n_ki</span> <span class="o">+</span> <span class="n">valid_data</span><span class="o">.</span><span class="n">n_bind</span><span class="p">)</span>
+
+            <span class="n">train_pred</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">generate_predictions</span><span class="p">(</span><span class="n">train_dset</span><span class="p">)</span>
+            <span class="n">valid_pred</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">generate_predictions</span><span class="p">(</span><span class="n">valid_dset</span><span class="p">)</span>
+            <span class="n">test_pred</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">generate_predictions</span><span class="p">(</span><span class="n">test_dset</span><span class="p">)</span>
+
+            <span class="n">train_perf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">train_perf_data</span><span class="p">[</span><span class="n">ei</span><span class="p">]</span><span class="o">.</span><span class="n">accumulate_preds</span><span class="p">(</span><span class="n">train_pred</span><span class="p">,</span> <span class="n">train_dset</span><span class="o">.</span><span class="n">ids</span><span class="p">)</span>
+            <span class="n">valid_perf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">valid_perf_data</span><span class="p">[</span><span class="n">ei</span><span class="p">]</span><span class="o">.</span><span class="n">accumulate_preds</span><span class="p">(</span><span class="n">valid_pred</span><span class="p">,</span> <span class="n">valid_dset</span><span class="o">.</span><span class="n">ids</span><span class="p">)</span>
+            <span class="n">test_perf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">test_perf_data</span><span class="p">[</span><span class="n">ei</span><span class="p">]</span><span class="o">.</span><span class="n">accumulate_preds</span><span class="p">(</span><span class="n">test_pred</span><span class="p">,</span> <span class="n">test_dset</span><span class="o">.</span><span class="n">ids</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Epoch </span><span class="si">%d</span><span class="s2">: training </span><span class="si">%s</span><span class="s2"> = </span><span class="si">%.3f</span><span class="s2">, training loss = </span><span class="si">%.3f</span><span class="s2">, validation </span><span class="si">%s</span><span class="s2"> = </span><span class="si">%.3f</span><span class="s2">, validation loss = </span><span class="si">%.3f</span><span class="s2">, test </span><span class="si">%s</span><span class="s2"> = </span><span class="si">%.3f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span>
+                          <span class="n">ei</span><span class="p">,</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">metric_type</span><span class="p">,</span> <span class="n">train_perf</span><span class="p">,</span> <span class="n">train_loss_ep</span><span class="p">,</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">metric_type</span><span class="p">,</span> <span class="n">valid_perf</span><span class="p">,</span> <span class="n">valid_loss_ep</span><span class="p">,</span>
+                          <span class="n">pipeline</span><span class="o">.</span><span class="n">metric_type</span><span class="p">,</span> <span class="n">test_perf</span><span class="p">))</span>
+
+            <span class="c1"># Compute performance metrics for each subset, and check if we&#39;ve reached a new best validation set score</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">train_epoch_perfs</span><span class="p">[</span><span class="n">ei</span><span class="p">],</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">train_perf_data</span><span class="p">[</span><span class="n">ei</span><span class="p">]</span><span class="o">.</span><span class="n">compute_perf_metrics</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">valid_epoch_perfs</span><span class="p">[</span><span class="n">ei</span><span class="p">],</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">valid_perf_data</span><span class="p">[</span><span class="n">ei</span><span class="p">]</span><span class="o">.</span><span class="n">compute_perf_metrics</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">test_epoch_perfs</span><span class="p">[</span><span class="n">ei</span><span class="p">],</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">test_perf_data</span><span class="p">[</span><span class="n">ei</span><span class="p">]</span><span class="o">.</span><span class="n">compute_perf_metrics</span><span class="p">()</span>
+            <span class="n">valid_score</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">valid_perf_data</span><span class="p">[</span><span class="n">ei</span><span class="p">]</span><span class="o">.</span><span class="n">model_choice_score</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">model_choice_score_type</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">model_choice_scores</span><span class="p">[</span><span class="n">ei</span><span class="p">]</span> <span class="o">=</span> <span class="n">valid_score</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">num_epochs_trained</span> <span class="o">=</span> <span class="n">ei</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">best_valid_score</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">save_model</span><span class="p">(</span><span class="n">checkpoint_file</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="n">opt</span><span class="p">,</span> <span class="n">ei</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_dict</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">best_valid_score</span> <span class="o">=</span> <span class="n">valid_score</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">best_epoch</span> <span class="o">=</span> <span class="n">ei</span>
+            <span class="k">elif</span> <span class="n">valid_score</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">best_valid_score</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">early_stopping_min_improvement</span><span class="p">:</span>
+                <span class="c1"># Save a new checkpoint</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">save_model</span><span class="p">(</span><span class="n">checkpoint_file</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="n">opt</span><span class="p">,</span> <span class="n">ei</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_dict</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">best_valid_score</span> <span class="o">=</span> <span class="n">valid_score</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">best_epoch</span> <span class="o">=</span> <span class="n">ei</span>
+            <span class="k">elif</span> <span class="n">ei</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">best_epoch</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">early_stopping_patience</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No improvement after </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">early_stopping_patience</span><span class="si">}</span><span class="s2"> epochs, stopping training&quot;</span><span class="p">)</span>
+                <span class="k">break</span>
+
+        <span class="c1"># Revert to last checkpoint</span>
+        <span class="n">checkpoint</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">checkpoint_file</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">checkpoint</span><span class="p">[</span><span class="s1">&#39;model_state_dict&#39;</span><span class="p">])</span>
+        <span class="n">opt</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">checkpoint</span><span class="p">[</span><span class="s1">&#39;opt_state_dict&#39;</span><span class="p">])</span>
+
+        <span class="c1"># copy the best model checkpoint file</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_clean_up_excess_files</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">best_model_dir</span><span class="p">)</span>
+        <span class="n">shutil</span><span class="o">.</span><span class="n">copy2</span><span class="p">(</span><span class="n">checkpoint_file</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">best_model_dir</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Best model from epoch </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">best_epoch</span><span class="si">}</span><span class="s2"> saved to </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">model_dir</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+    <span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="HybridModelWrapper.reload_model"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.HybridModelWrapper.reload_model">[docs]</a>    <span class="k">def</span> <span class="nf">reload_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reload_dir</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Loads a saved neural net model from the specified directory.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            reload_dir (str): Directory where saved model is located.</span>
+<span class="sd">            model_dataset (ModelDataset Object): contains the current full dataset</span>
+
+<span class="sd">        Side effects:</span>
+<span class="sd">            Resets the value of model, transformers, and transformers_x</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">checkpoint_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">reload_dir</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">dataset_name</span><span class="si">}</span><span class="s2">_model_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">model_uuid</span><span class="si">}</span><span class="s2">.pt&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">checkpoint_file</span><span class="p">):</span>
+            <span class="n">checkpoint</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">checkpoint_file</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">best_epoch</span> <span class="o">=</span> <span class="n">checkpoint</span><span class="p">[</span><span class="s2">&quot;epoch&quot;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span><span class="n">checkpoint</span><span class="p">[</span><span class="s2">&quot;model_dict&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dev</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">checkpoint</span><span class="p">[</span><span class="s1">&#39;model_state_dict&#39;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Checkpoint file doesn&#39;t exist in the reload_dir </span><span class="si">{</span><span class="n">reload_dir</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># Restore the transformers from the datastore or filesystem</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reload_transformers</span><span class="p">()</span></div>
+
+
+    <span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="HybridModelWrapper.get_pred_results"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.HybridModelWrapper.get_pred_results">[docs]</a>    <span class="k">def</span> <span class="nf">get_pred_results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subset</span><span class="p">,</span> <span class="n">epoch_label</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns predicted values and metrics from a training, validation or test subset</span>
+<span class="sd">        of the current dataset, or the full dataset. subset may be &#39;train&#39;, &#39;valid&#39;, &#39;test&#39;</span>
+<span class="sd">        accordingly.  epoch_label indicates the training epoch we want results for; currently the</span>
+<span class="sd">        only option for this is &#39;best&#39;.  Results are returned as a dictionary of parameter, value pairs.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            subset (str): Label for the current subset of the dataset (choices [&#39;train&#39;,&#39;valid&#39;,&#39;test&#39;,&#39;full&#39;])</span>
+
+<span class="sd">            epoch_label (str): Label for the training epoch we want results for (choices [&#39;best&#39;])</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            dict: A dictionary of parameter/ value pairs of the prediction values and results of the dataset subset</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: if epoch_label not in [&#39;best&#39;]</span>
+
+<span class="sd">            ValueError: If subset not in [&#39;train&#39;,&#39;valid&#39;,&#39;test&#39;,&#39;full&#39;]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">subset</span> <span class="o">==</span> <span class="s1">&#39;full&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_full_dataset_pred_results</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">epoch_label</span> <span class="o">==</span> <span class="s1">&#39;best&#39;</span><span class="p">:</span>
+            <span class="n">epoch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">best_epoch</span>
+            <span class="n">model_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">best_model_dir</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unknown epoch_label &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">epoch_label</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">subset</span> <span class="o">==</span> <span class="s1">&#39;train&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_train_valid_pred_results</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">train_perf_data</span><span class="p">[</span><span class="n">epoch</span><span class="p">])</span>
+        <span class="k">elif</span> <span class="n">subset</span> <span class="o">==</span> <span class="s1">&#39;valid&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_train_valid_pred_results</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">valid_perf_data</span><span class="p">[</span><span class="n">epoch</span><span class="p">])</span>
+        <span class="k">elif</span> <span class="n">subset</span> <span class="o">==</span> <span class="s1">&#39;test&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_train_valid_pred_results</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">test_perf_data</span><span class="p">[</span><span class="n">epoch</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unknown dataset subset &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">subset</span><span class="p">)</span></div>
+
+    <span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="HybridModelWrapper.get_perf_data"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.HybridModelWrapper.get_perf_data">[docs]</a>    <span class="k">def</span> <span class="nf">get_perf_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subset</span><span class="p">,</span> <span class="n">epoch_label</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns predicted values and metrics from a training, validation or test subset</span>
+<span class="sd">        of the current dataset, or the full dataset. subset may be &#39;train&#39;, &#39;valid&#39;, &#39;test&#39; or &#39;full&#39;,</span>
+<span class="sd">        epoch_label indicates the training epoch we want results for; currently the</span>
+<span class="sd">        only option for this is &#39;best&#39;. Results are returned as a PerfData object of the appropriate class </span>
+<span class="sd">        for the model&#39;s split strategy and prediction type.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            subset (str): Label for the current subset of the dataset (choices [&#39;train&#39;,&#39;valid&#39;,&#39;test&#39;,&#39;full&#39;])</span>
+
+<span class="sd">            epoch_label (str): Label for the training epoch we want results for (choices [&#39;best&#39;])</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            PerfData object: Performance object pulled from the appropriate subset</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: if epoch_label not in [&#39;best&#39;]</span>
+
+<span class="sd">            ValueError: If subset not in [&#39;train&#39;,&#39;valid&#39;,&#39;test&#39;,&#39;full&#39;]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">subset</span> <span class="o">==</span> <span class="s1">&#39;full&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_full_dataset_perf_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">epoch_label</span> <span class="o">==</span> <span class="s1">&#39;best&#39;</span><span class="p">:</span>
+            <span class="n">epoch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">best_epoch</span>
+            <span class="n">model_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">best_model_dir</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unknown epoch_label &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">epoch_label</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">subset</span> <span class="o">==</span> <span class="s1">&#39;train&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">train_perf_data</span><span class="p">[</span><span class="n">epoch</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">subset</span> <span class="o">==</span> <span class="s1">&#39;valid&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">valid_perf_data</span><span class="p">[</span><span class="n">epoch</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">subset</span> <span class="o">==</span> <span class="s1">&#39;test&#39;</span><span class="p">:</span>
+            <span class="c1">#return self.get_test_perf_data(model_dir, self.data)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">test_perf_data</span><span class="p">[</span><span class="n">epoch</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unknown dataset subset &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">subset</span><span class="p">)</span></div>
+
+    <span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="HybridModelWrapper.generate_predictions"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.HybridModelWrapper.generate_predictions">[docs]</a>    <span class="k">def</span> <span class="nf">generate_predictions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Generates predictions for specified dataset with current model, as well as standard deviations</span>
+<span class="sd">        if params.uncertainty=True</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dataset: the deepchem DiskDataset to generate predictions for</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            (pred, std): tuple of predictions for compounds and standard deviation estimates, if requested.</span>
+<span class="sd">            Each element of tuple is a numpy array of shape (ncmpds, ntasks, nclasses), where nclasses = 1 for regression</span>
+<span class="sd">            models.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pred</span><span class="p">,</span> <span class="n">std</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Predicting values for current model&quot;</span><span class="p">)</span>
+
+        <span class="n">x_data</span><span class="p">,</span> <span class="n">y_data</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_tensorize</span><span class="p">,</span> <span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="n">dataset</span><span class="o">.</span><span class="n">y</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">has_conc</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">y_data</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">y_data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">nan_to_num</span><span class="p">(</span><span class="n">y_data</span><span class="p">[:,</span><span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span>
+        <span class="n">data_ki_pos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">y_data</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">numpy</span><span class="p">()))[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">has_conc</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">y_data</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">numpy</span><span class="p">())[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">data_bind_pos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">y_data</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">numpy</span><span class="p">()))[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">has_conc</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span>
+
+        <span class="n">data_ds</span> <span class="o">=</span> <span class="n">TensorDataset</span><span class="p">(</span><span class="n">x_data</span><span class="p">,</span> <span class="n">y_data</span><span class="p">)</span>
+        <span class="n">data_dl</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span><span class="n">data_ds</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">batch_size</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span> <span class="n">pin_memory</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">data_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SubsetData</span><span class="p">(</span><span class="n">data_ds</span><span class="p">,</span> 
+                                    <span class="n">data_dl</span><span class="p">,</span> 
+                                    <span class="nb">len</span><span class="p">(</span><span class="n">data_ki_pos</span><span class="p">),</span> 
+                                    <span class="nb">len</span><span class="p">(</span><span class="n">data_bind_pos</span><span class="p">))</span>
+        <span class="n">pred</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">real</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">xb</span><span class="p">,</span> <span class="n">yb</span> <span class="ow">in</span> <span class="n">data_dl</span><span class="p">:</span>
+            <span class="n">xb</span> <span class="o">=</span> <span class="n">xb</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dev</span><span class="p">)</span>
+            <span class="n">yb</span> <span class="o">=</span> <span class="n">yb</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dev</span><span class="p">)</span>
+            <span class="n">yp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">(</span><span class="n">xb</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">yb</span><span class="p">)):</span>
+                <span class="n">real</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">yb</span><span class="o">.</span><span class="n">numpy</span><span class="p">()[</span><span class="n">i</span><span class="p">])</span>
+                <span class="n">pred</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">yp</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()[</span><span class="n">i</span><span class="p">])</span>
+        <span class="n">real</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">real</span><span class="p">)</span>
+        <span class="n">pred</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">pred</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">transformers</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformers</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">has_conc</span><span class="p">:</span>
+                <span class="n">pred</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">pred</span><span class="p">,</span> <span class="n">real</span><span class="p">[:,</span> <span class="p">[</span><span class="mi">1</span><span class="p">]]),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+                <span class="n">pred</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformers</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">untransform</span><span class="p">(</span><span class="n">pred</span><span class="p">,</span> <span class="n">isreal</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                <span class="n">pred_bind_pos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">pred</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]))[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">pred</span><span class="p">[</span><span class="n">pred_bind_pos</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_predict_binding</span><span class="p">(</span><span class="n">pred</span><span class="p">[</span><span class="n">pred_bind_pos</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">pred</span><span class="p">[</span><span class="n">pred_bind_pos</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">pred</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformers</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">untransform</span><span class="p">(</span><span class="n">pred</span><span class="p">,</span> <span class="n">isreal</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">has_conc</span><span class="p">:</span>
+                <span class="n">pred</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">pred</span><span class="p">,</span> <span class="n">real</span><span class="p">[:,</span> <span class="p">[</span><span class="mi">1</span><span class="p">]]),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">pred</span><span class="p">,</span> <span class="n">std</span></div>
+
+    <span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="HybridModelWrapper.get_model_specific_metadata"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.HybridModelWrapper.get_model_specific_metadata">[docs]</a>    <span class="k">def</span> <span class="nf">get_model_specific_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns a dictionary of parameter settings for this ModelWrapper object that are specific</span>
+<span class="sd">        to hybrid models.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            model_spec_metdata (dict): A dictionary of the parameter sets for the HybridModelWrapper object.</span>
+<span class="sd">                Parameters are saved under the key &#39;hybrid_specific&#39; as a subdictionary.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">nn_metadata</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+                    <span class="n">best_epoch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">best_epoch</span><span class="p">,</span>
+                    <span class="n">max_epochs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">max_epochs</span><span class="p">,</span>
+                    <span class="n">batch_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span>
+                    <span class="n">layer_sizes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">layer_sizes</span><span class="p">,</span>
+                    <span class="n">dropouts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">dropouts</span><span class="p">,</span>
+                    <span class="n">learning_rate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">learning_rate</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">model_spec_metadata</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">hybrid_specific</span> <span class="o">=</span> <span class="n">nn_metadata</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">model_spec_metadata</span></div>
+
+    <span class="c1"># ****************************************************************************************</span>
+    <span class="k">def</span> <span class="nf">_clean_up_excess_files</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dest_dir</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Function to clean up extra model files left behind in the training process.</span>
+<span class="sd">        Does not apply to Hybrid model.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">dest_dir</span><span class="p">):</span>
+            <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">dest_dir</span><span class="p">)</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">dest_dir</span><span class="p">)</span></div>
+
+<span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="DCRFModelWrapper"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.DCRFModelWrapper">[docs]</a><span class="k">class</span> <span class="nc">DCRFModelWrapper</span><span class="p">(</span><span class="n">ModelWrapper</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Contains methods to load in a dataset, split and featurize the data, fit a model to the train dataset,</span>
 <span class="sd">    generate predictions for an input dataset, and generate performance metrics for these predictions.</span>
@@ -1607,15 +2218,8 @@
                                               <span class="n">max_depth</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">rf_max_depth</span><span class="p">,</span>
                                               <span class="n">n_jobs</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
 
-        <span class="c1"># Load transformers if they would have been saved with the model</span>
-        <span class="k">if</span> <span class="n">trans</span><span class="o">.</span><span class="n">transformers_needed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">transformer_key</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Reloading transformers from file </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">transformer_key</span><span class="p">)</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">save_results</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">transformers</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformers_x</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">retrieve_dataset_by_datasetkey</span><span class="p">(</span><span class="n">dataset_key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">transformer_key</span><span class="p">,</span>
-                               <span class="n">bucket</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">transformer_bucket</span><span class="p">,</span>
-                               <span class="n">client</span><span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ds_client</span> <span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">transformers</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformers_x</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">transformer_key</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span> <span class="p">))</span>
+        <span class="c1"># Restore the transformers from the datastore or filesystem</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reload_transformers</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">dc</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">sklearn_models</span><span class="o">.</span><span class="n">SklearnModel</span><span class="p">(</span><span class="n">rf_model</span><span class="p">,</span> <span class="n">model_dir</span><span class="o">=</span><span class="n">reload_dir</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">reload</span><span class="p">()</span></div>
 
@@ -1842,7 +2446,7 @@
 <span class="c1">#                                           tree_method = &#39;gpu_hist&#39;,</span>
                                           <span class="n">seed</span><span class="o">=</span><span class="mi">0</span>
                                          <span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">dc</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">xgboost_models</span><span class="o">.</span><span class="n">XGBoostModel</span><span class="p">(</span><span class="n">xgb_model</span><span class="p">,</span> <span class="n">model_dir</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">best_model_dir</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">dc</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">GBDTModel</span><span class="p">(</span><span class="n">xgb_model</span><span class="p">,</span> <span class="n">model_dir</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">best_model_dir</span><span class="p">)</span>
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="DCxgboostModelWrapper.train"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.DCxgboostModelWrapper.train">[docs]</a>    <span class="k">def</span> <span class="nf">train</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pipeline</span><span class="p">):</span>
@@ -1982,18 +2586,10 @@
 <span class="c1">#                                           tree_method = &#39;gpu_hist&#39;,</span>
                                          <span class="p">)</span>
 
-        <span class="c1"># Load transformers if they would have been saved with the model</span>
-        <span class="k">if</span> <span class="n">trans</span><span class="o">.</span><span class="n">transformers_needed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">transformer_key</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Reloading transformers from file </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">transformer_key</span><span class="p">)</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">save_results</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">transformers</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformers_x</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">retrieve_dataset_by_datasetkey</span><span class="p">(</span>
-                    <span class="n">dataset_key</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">transformer_key</span><span class="p">,</span>
-                    <span class="n">bucket</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">transformer_bucket</span><span class="p">,</span>
-                    <span class="n">client</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ds_client</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">transformers</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformers_x</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">transformer_key</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">))</span>
+        <span class="c1"># Restore the transformers from the datastore or filesystem</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reload_transformers</span><span class="p">()</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">dc</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">xgboost_models</span><span class="o">.</span><span class="n">XGBoostModel</span><span class="p">(</span><span class="n">xgb_model</span><span class="p">,</span> <span class="n">model_dir</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">best_model_dir</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">dc</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">GBDTModel</span><span class="p">(</span><span class="n">xgb_model</span><span class="p">,</span> <span class="n">model_dir</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">best_model_dir</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">reload</span><span class="p">()</span></div>
 
     <span class="c1"># ****************************************************************************************</span>

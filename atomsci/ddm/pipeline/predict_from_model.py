@@ -10,7 +10,7 @@ from atomsci.ddm.utils.struct_utils import base_smiles_from_smiles
 
 # =====================================================================================================
 def predict_from_tracker_model(model_uuid, collection, input_df, id_col='compound_id', smiles_col='rdkit_smiles',
-                     response_col=None, is_featurized=False, dont_standardize=False, AD_method=None, k=5, dist_metric="euclidean"):
+                     response_col=None, conc_col=None, is_featurized=False, dont_standardize=False, AD_method=None, k=5, dist_metric="euclidean"):
     """
     Loads a pretrained model from the model tracker database and runs predictions on compounds in an input
     data frame.
@@ -30,6 +30,9 @@ def predict_from_tracker_model(model_uuid, collection, input_df, id_col='compoun
         response_col (str): Name of an optional column containing actual response values; if it is provided, 
         the actual values will be included in the returned data frame to make it easier for you to assess performance.
 
+        conc_col (str): Name of an optional column containing the concentration for single concentration activity (% binding) 
+        prediction in hybrid models.
+
         dont_standardize (bool): By default, SMILES strings are salt-stripped and standardized using RDKit; 
         if you have already done this, or don't want them to be standardized, set dont_standardize to True.
 
@@ -47,18 +50,17 @@ def predict_from_tracker_model(model_uuid, collection, input_df, id_col='compoun
         not the response_col passed to this function; e.g. if the original model response_col was 'pIC50',
         the returned data frame will contain columns 'pIC50_actual', 'pIC50_pred' and 'pIC50_std'.
     """
-    input_df, pred_params = _prepare_input_data(input_df, id_col, smiles_col, response_col, dont_standardize)
+    input_df, pred_params = _prepare_input_data(input_df, id_col, smiles_col, response_col, conc_col, dont_standardize)
     has_responses = ('response_cols' in pred_params)
     pred_params = parse.wrapper(pred_params)
     pipe = mp.create_prediction_pipeline(pred_params, model_uuid, collection)
     pred_df = pipe.predict_full_dataset(input_df, contains_responses=has_responses, is_featurized=is_featurized,
                                         dset_params=pred_params, AD_method=AD_method, k=k, dist_metric=dist_metric)
-    pred_df = pred_df.sort_values(by=id_col)
     return pred_df
 
 # =====================================================================================================
 def predict_from_model_file(model_path, input_df, id_col='compound_id', smiles_col='rdkit_smiles',
-                     response_col=None, is_featurized=False, dont_standardize=False, AD_method=None, k=5, dist_metric="euclidean"):
+                     response_col=None, conc_col=None, is_featurized=False, dont_standardize=False, AD_method=None, k=5, dist_metric="euclidean"):
     """
     Loads a pretrained model from a model tarball file and runs predictions on compounds in an input
     data frame.
@@ -76,6 +78,9 @@ def predict_from_model_file(model_path, input_df, id_col='compound_id', smiles_c
         response_col (str): Name of an optional column containing actual response values; if it is provided, 
         the actual values will be included in the returned data frame to make it easier for you to assess performance.
 
+        conc_col (str): Name of an optional column containing the concentration for single concentration activity (% binding) 
+        prediction in hybrid models.
+
         dont_standardize (bool): By default, SMILES strings are salt-stripped and standardized using RDKit; 
         if you have already done this, or don't want them to be standardized, set dont_standardize to True.
 
@@ -94,7 +99,7 @@ def predict_from_model_file(model_path, input_df, id_col='compound_id', smiles_c
         the returned data frame will contain columns 'pIC50_actual', 'pIC50_pred' and 'pIC50_std'.
     """
 
-    input_df, pred_params = _prepare_input_data(input_df, id_col, smiles_col, response_col, dont_standardize)
+    input_df, pred_params = _prepare_input_data(input_df, id_col, smiles_col, response_col, conc_col, dont_standardize)
 
     has_responses = ('response_cols' in pred_params)
     pred_params = parse.wrapper(pred_params)
@@ -102,11 +107,10 @@ def predict_from_model_file(model_path, input_df, id_col='compound_id', smiles_c
     pipe = mp.create_prediction_pipeline_from_file(pred_params, reload_dir=None, model_path=model_path)
     pred_df = pipe.predict_full_dataset(input_df, contains_responses=has_responses, is_featurized=is_featurized,
                                         dset_params=pred_params, AD_method=AD_method, k=k, dist_metric=dist_metric)
-    pred_df = pred_df.sort_values(by=id_col)
     return pred_df
 
 # =====================================================================================================
-def _prepare_input_data(input_df, id_col, smiles_col, response_col, dont_standardize):
+def _prepare_input_data(input_df, id_col, smiles_col, response_col, conc_col, dont_standardize):
     """
     Prepare input data frame for running predictions
     """
@@ -127,7 +131,6 @@ def _prepare_input_data(input_df, id_col, smiles_col, response_col, dont_standar
         if input_df.shape[0] == 0:
             raise ValueError("No valid SMILES strings to predict on.")
         nlost = orig_ncmpds - input_df.shape[0]
-        input_df = input_df.sort_values(by=id_col)
         if nlost > 0:
             print("Could not parse %d SMILES strings; will predict on the remainder." % nlost)
         std_smiles_col = 'standardized_smiles'
@@ -138,7 +141,11 @@ def _prepare_input_data(input_df, id_col, smiles_col, response_col, dont_standar
         'id_col': id_col,
         'smiles_col': std_smiles_col
     }
-    if (response_col is not None) and (response_col in input_df.columns.values.tolist()):
+    if (response_col is not None) and (response_col in input_df.columns.values):
         pred_params['response_cols'] = response_col
+        if conc_col is not None and conc_col in input_df.columns.values:
+            pred_params['response_cols'] += "," + conc_col
+    elif conc_col is not None and conc_col in input_df.columns.values:
+        pred_params['response_cols'] = "ACTIVITY," + conc_col
 
     return input_df, pred_params

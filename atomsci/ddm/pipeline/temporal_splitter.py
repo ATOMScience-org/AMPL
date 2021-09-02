@@ -69,7 +69,7 @@ class TemporalSplitter(Splitter):
         elif base_splitter == 'ave_min':
             self.base_splitter = AVEMinSplitter(metric=metric)
 
-    def split(self, dataset, attr_df, frac_train=0.8, frac_valid=0.2, frac_test=0.0, log_every_n=None):
+    def split(self, dataset, attr_df, frac_train=0.8, frac_valid=0.2, frac_test=0.0, seed=None, log_every_n=None):
         """
         Split the dataset into training, validation and test sets. Assigns compounds with dates after self.cutoff_date
         to the test set.  Splits the remaining compounds into training and validation sets using self.base_splitter
@@ -88,6 +88,8 @@ class TemporalSplitter(Splitter):
 
             frac_test (float): Ignored, included only for compatibility with DeepChem Splitter API. Test set assignments
                 are based on date values only.
+
+            seed (int): Ignored, included only for compatibility with DeepChem Splitter API.
 
             log_every_n (int): Ignored, included only for compatibility with DeepChem Splitter API.
 
@@ -110,11 +112,15 @@ class TemporalSplitter(Splitter):
 
     def train_valid_test_split(self,
                                dataset,
-                               attr_df,
+                               train_dir=None,
+                               valid_dir=None,
+                               test_dir=None,
                                frac_train=.8,
                                frac_valid=.2,
                                frac_test=np.nan,
-                               verbose=True):
+                               seed=None,
+                               log_every_n=None,
+                               attr_df=None):
         """
         Splits dataset into training, validation and test sets.
         Overrides base deepchem.Splitter method to allow passing attr_df.
@@ -132,12 +138,23 @@ class TemporalSplitter(Splitter):
             frac_test (float): Ignored, included only for compatibility with DeepChem Splitter API. Test set assignments
                 are based on date values only.
 
-            verbose (bool): Ignored, included only for compatibility with DeepChem Splitter API.
+            train_dir (None): Ignored, included only for compatibility with DeepChem Splitter API.
+
+            valid_dir (None): Ignored, included only for compatibility with DeepChem Splitter API.
+
+            test_dir (None): Ignored, included only for compatibility with DeepChem Splitter API.
+
+            seed (None): Ignored, included only for compatibility with DeepChem Splitter API.
+
+            log_every_n (None): Ignored, included only for compatibility with DeepChem Splitter API.
 
         Returns:
             tuple: Deepchem.Dataset objects for the training, validation and test subsets.
 
         """
+        if attr_df is None:
+            raise ValueError("TemporalSplitter.train_valid_test_split requires attr_df argument")
+
         train_inds, valid_inds, test_inds = self.split(
             dataset, attr_df, frac_train=frac_train,
             frac_valid=frac_valid, frac_test=frac_test)

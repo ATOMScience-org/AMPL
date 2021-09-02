@@ -7,12 +7,14 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>pipeline.compare_models &mdash; ATOM Data-Driven Modeling Pipeline 1.1 documentation</title>
+  <title>pipeline.compare_models &mdash; ATOM Data-Driven Modeling Pipeline 1.2.0 documentation</title>
   
 
   
   <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
 
   
   
@@ -29,6 +31,7 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
         <script src="../../_static/jquery.js"></script>
         <script src="../../_static/underscore.js"></script>
         <script src="../../_static/doctools.js"></script>
@@ -61,7 +64,7 @@
             
             
               <div class="version">
-                1.1
+                1.2.0
               </div>
             
           
@@ -179,11 +182,17 @@
 <span class="kn">import</span> <span class="nn">json</span>
 <span class="kn">import</span> <span class="nn">shutil</span>
 <span class="kn">import</span> <span class="nn">tarfile</span>
+<span class="kn">import</span> <span class="nn">tempfile</span>
 
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
 <span class="kn">from</span> <span class="nn">atomsci.ddm.utils</span> <span class="kn">import</span> <span class="n">datastore_functions</span> <span class="k">as</span> <span class="n">dsf</span>
 <span class="kn">from</span> <span class="nn">atomsci.ddm.pipeline</span> <span class="kn">import</span> <span class="n">model_tracker</span> <span class="k">as</span> <span class="n">trkr</span>
 <span class="kn">import</span> <span class="nn">atomsci.ddm.pipeline.model_pipeline</span> <span class="k">as</span> <span class="nn">mp</span>
+<span class="kn">import</span> <span class="nn">atomsci.ddm.pipeline.parameter_parser</span> <span class="k">as</span> <span class="nn">parse</span>
+<span class="kn">import</span> <span class="nn">atomsci.ddm.pipeline.model_wrapper</span> <span class="k">as</span> <span class="nn">mw</span>
+<span class="kn">import</span> <span class="nn">atomsci.ddm.pipeline.featurization</span> <span class="k">as</span> <span class="nn">feat</span>
+
+<span class="kn">from</span> <span class="nn">tensorflow.python.keras.utils.layer_utils</span> <span class="kn">import</span> <span class="n">count_params</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;ATOM&#39;</span><span class="p">)</span>
 <span class="n">mlmt_supported</span> <span class="o">=</span> <span class="kc">True</span>
@@ -1013,7 +1022,7 @@
     <span class="n">best_epoch_list</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">model_score_type_list</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">feature_transform_type_list</span> <span class="o">=</span> <span class="p">[]</span>
-
+    
     <span class="n">subsets</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;train&#39;</span><span class="p">,</span> <span class="s1">&#39;valid&#39;</span><span class="p">,</span> <span class="s1">&#39;test&#39;</span><span class="p">]</span>
 
     <span class="k">if</span> <span class="n">pred_type</span> <span class="o">==</span> <span class="s1">&#39;regression&#39;</span><span class="p">:</span>
@@ -1027,30 +1036,41 @@
         <span class="k">for</span> <span class="n">metric</span> <span class="ow">in</span> <span class="n">metrics</span><span class="p">:</span>
             <span class="n">score_dict</span><span class="p">[</span><span class="n">subset</span><span class="p">][</span><span class="n">metric</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">score_dict</span><span class="p">[</span><span class="s1">&#39;valid&#39;</span><span class="p">][</span><span class="s1">&#39;model_choice_score&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-
-
+       
     <span class="c1"># Navigate the results directory tree</span>
     <span class="n">model_list</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">metrics_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">tar_list</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">dirpath</span><span class="p">,</span> <span class="n">dirnames</span><span class="p">,</span> <span class="n">filenames</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">result_dir</span><span class="p">):</span>
+        <span class="c1"># collect all tars for later</span>
+        <span class="n">tar_list</span> <span class="o">=</span> <span class="n">tar_list</span> <span class="o">+</span> <span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirpath</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">filenames</span> <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.tar.gz&#39;</span><span class="p">)]</span>
         <span class="k">if</span> <span class="p">(</span><span class="s1">&#39;model_metadata.json&#39;</span> <span class="ow">in</span> <span class="n">filenames</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="s1">&#39;model_metrics.json&#39;</span> <span class="ow">in</span> <span class="n">filenames</span><span class="p">):</span>
             <span class="n">meta_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirpath</span><span class="p">,</span> <span class="s1">&#39;model_metadata.json&#39;</span><span class="p">)</span>
             <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">meta_path</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">meta_fp</span><span class="p">:</span>
                 <span class="n">meta_dict</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">meta_fp</span><span class="p">)</span>
-            <span class="n">model_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">meta_dict</span><span class="p">)</span>
-            <span class="n">metrics_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirpath</span><span class="p">,</span> <span class="s1">&#39;model_metrics.json&#39;</span><span class="p">)</span>
-            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">metrics_path</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">metrics_fp</span><span class="p">:</span>
-                <span class="n">metrics_dicts</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">metrics_fp</span><span class="p">)</span>
-            <span class="n">metrics_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">metrics_dicts</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">meta_dict</span><span class="p">[</span><span class="s1">&#39;model_parameters&#39;</span><span class="p">][</span><span class="s1">&#39;prediction_type&#39;</span><span class="p">]</span><span class="o">==</span><span class="n">pred_type</span><span class="p">:</span>
+                <span class="n">model_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">meta_dict</span><span class="p">)</span>
+                <span class="n">metrics_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirpath</span><span class="p">,</span> <span class="s1">&#39;model_metrics.json&#39;</span><span class="p">)</span>
+                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">metrics_path</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">metrics_fp</span><span class="p">:</span>
+                    <span class="n">metrics_dicts</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">metrics_fp</span><span class="p">)</span>
+                <span class="n">metrics_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">metrics_dicts</span><span class="p">)</span>
 
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Found data for </span><span class="si">%d</span><span class="s2"> models under </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">model_list</span><span class="p">),</span> <span class="n">result_dir</span><span class="p">))</span>
 
+    <span class="c1"># build dictonary of tarball names</span>
+    <span class="n">tar_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">tf</span><span class="p">):</span><span class="n">tf</span> <span class="k">for</span> <span class="n">tf</span> <span class="ow">in</span> <span class="n">tar_list</span><span class="p">}</span>
+    <span class="n">path_list</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">metadata_dict</span><span class="p">,</span> <span class="n">metrics_dicts</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">model_list</span><span class="p">,</span> <span class="n">metrics_list</span><span class="p">):</span>
         <span class="n">model_uuid</span> <span class="o">=</span> <span class="n">metadata_dict</span><span class="p">[</span><span class="s1">&#39;model_uuid&#39;</span><span class="p">]</span>
-        <span class="c1">#print(&quot;Got metadata for model UUID %s&quot; % model_uuid)</span>
+        <span class="n">dataset_key</span> <span class="o">=</span> <span class="n">metadata_dict</span><span class="p">[</span><span class="s1">&#39;training_dataset&#39;</span><span class="p">][</span><span class="s1">&#39;dataset_key&#39;</span><span class="p">]</span>
+        <span class="n">dataset_name</span> <span class="o">=</span> <span class="n">mp</span><span class="o">.</span><span class="n">build_tarball_name</span><span class="p">(</span><span class="n">mp</span><span class="o">.</span><span class="n">build_dataset_name</span><span class="p">(</span><span class="n">dataset_key</span><span class="p">),</span> <span class="n">model_uuid</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">dataset_name</span> <span class="ow">in</span> <span class="n">tar_dict</span><span class="p">:</span>
+            <span class="n">path_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tar_dict</span><span class="p">[</span><span class="n">dataset_name</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># unable to find saved tar file</span>
+            <span class="n">path_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
 
         <span class="c1"># Get list of training run metrics for this model</span>
-        <span class="c1">#print(&quot;Got %d metrics dicts for model %s&quot; % (len(metrics_dicts), model_uuid))</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">metrics_dicts</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Got no or incomplete metrics for model </span><span class="si">%s</span><span class="s2">, skipping...&quot;</span> <span class="o">%</span> <span class="n">model_uuid</span><span class="p">)</span>
             <span class="k">continue</span>
@@ -1122,6 +1142,7 @@
 
     <span class="n">perf_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span>
                     <span class="n">model_uuid</span><span class="o">=</span><span class="n">model_uuid_list</span><span class="p">,</span>
+                    <span class="n">model_path</span> <span class="o">=</span> <span class="n">path_list</span><span class="p">,</span>
                     <span class="n">ampl_version</span><span class="o">=</span><span class="n">ampl_version_list</span><span class="p">,</span>
                     <span class="n">model_type</span><span class="o">=</span><span class="n">model_type_list</span><span class="p">,</span>
                     <span class="n">dataset_key</span><span class="o">=</span><span class="n">dataset_key_list</span><span class="p">,</span>
@@ -1147,6 +1168,34 @@
             <span class="n">perf_df</span><span class="p">[</span><span class="n">metric_col</span><span class="p">]</span> <span class="o">=</span> <span class="n">score_dict</span><span class="p">[</span><span class="n">subset</span><span class="p">][</span><span class="n">metric</span><span class="p">]</span>
     <span class="n">sort_by</span> <span class="o">=</span> <span class="s1">&#39;model_choice_score&#39;</span>
     <span class="n">perf_df</span> <span class="o">=</span> <span class="n">perf_df</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">sort_by</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">perf_df</span></div>
+
+<div class="viewcode-block" id="get_filesystem_models"><a class="viewcode-back" href="../../pipeline.html#pipeline.compare_models.get_filesystem_models">[docs]</a><span class="k">def</span> <span class="nf">get_filesystem_models</span><span class="p">(</span><span class="n">result_dir</span><span class="p">,</span> <span class="n">pred_type</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Identify all models in result_dir and create perf_result table with &#39;tarball_path&#39; column containing a path</span>
+<span class="sd">    to each tarball.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">perf_df</span> <span class="o">=</span> <span class="n">get_filesystem_perf_results</span><span class="p">(</span><span class="n">result_dir</span><span class="p">,</span> <span class="n">pred_type</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">pred_type</span> <span class="o">==</span> <span class="s1">&#39;regression&#39;</span><span class="p">:</span>
+        <span class="n">metric</span> <span class="o">=</span> <span class="s1">&#39;valid_r2_score&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">metric</span> <span class="o">=</span> <span class="s1">&#39;valid_roc_auc_score&#39;</span>
+    <span class="c1">#best_df = perf_df.sort_values(by=metric, ascending=False).drop_duplicates(subset=&#39;dataset_key&#39;).copy()</span>
+    <span class="n">perf_df</span><span class="p">[</span><span class="s1">&#39;dataset_names&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">perf_df</span><span class="p">[</span><span class="s1">&#39;dataset_key&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">f</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">f</span><span class="p">))[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">perf_df</span><span class="p">[</span><span class="s1">&#39;tarball_names&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">perf_df</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_model_</span><span class="si">%s</span><span class="s1">.tar.gz&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="s1">&#39;dataset_names&#39;</span><span class="p">],</span> <span class="n">x</span><span class="p">[</span><span class="s1">&#39;model_uuid&#39;</span><span class="p">]),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">tarball_names</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">perf_df</span><span class="p">[</span><span class="s1">&#39;tarball_names&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+
+    <span class="n">all_filenames</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">dirpath</span><span class="p">,</span> <span class="n">dirnames</span><span class="p">,</span> <span class="n">filenames</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">result_dir</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">fn</span> <span class="ow">in</span> <span class="n">filenames</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">fn</span> <span class="ow">in</span> <span class="n">tarball_names</span><span class="p">:</span>
+                <span class="n">all_filenames</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">fn</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirpath</span><span class="p">,</span> <span class="n">fn</span><span class="p">)))</span>
+
+    <span class="n">found_files_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&#39;tarball_names&#39;</span><span class="p">:[</span><span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">all_filenames</span><span class="p">],</span>
+                                    <span class="s1">&#39;tarball_paths&#39;</span><span class="p">:[</span><span class="n">f</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">all_filenames</span><span class="p">]})</span>
+    <span class="n">perf_df</span> <span class="o">=</span> <span class="n">perf_df</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">found_files_df</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="s1">&#39;tarball_names&#39;</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;outer&#39;</span><span class="p">)</span>
+
     <span class="k">return</span> <span class="n">perf_df</span></div>
 
 <span class="c1">#------------------------------------------------------------------------------------------------------------------</span>
@@ -2247,6 +2296,50 @@
                             <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">result_df</span><span class="p">)</span>
                     <span class="n">results_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">results</span><span class="p">)</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
                     <span class="n">results_df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">result_dir</span><span class="p">,</span> <span class="s1">&#39;predictions_</span><span class="si">%s</span><span class="s1">_</span><span class="si">%s</span><span class="s1">_</span><span class="si">%s</span><span class="s1">_</span><span class="si">%s</span><span class="s1">.csv&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dset_key</span><span class="p">,</span> <span class="n">model_type</span><span class="p">,</span> <span class="n">split_type</span><span class="p">,</span> <span class="n">featurizer</span><span class="p">)),</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<div class="viewcode-block" id="num_trainable_parameters_from_file"><a class="viewcode-back" href="../../pipeline.html#pipeline.compare_models.num_trainable_parameters_from_file">[docs]</a><span class="k">def</span> <span class="nf">num_trainable_parameters_from_file</span><span class="p">(</span><span class="n">tar_path</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return number of trainable paramters from tarfile</span>
+
+<span class="sd">    Given a tar file for a DeepChem model this will return the number of trainable parameters</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        tar_path (str): Path to a DeepChem model</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        int: Number of trainable parameters.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        ValueError: If the model is not a DeepChem neural network model</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">reload_dir</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">()</span>
+    <span class="n">model_fp</span> <span class="o">=</span> <span class="n">tarfile</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">tar_path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;r:gz&#39;</span><span class="p">)</span>
+    <span class="n">model_fp</span><span class="o">.</span><span class="n">extractall</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">reload_dir</span><span class="p">)</span>
+    <span class="n">model_fp</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="n">config_file_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">reload_dir</span><span class="p">,</span> <span class="s1">&#39;model_metadata.json&#39;</span><span class="p">)</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">config_file_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">config</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+
+    <span class="c1"># Parse the saved model metadata to obtain the parameters used to train the model</span>
+    <span class="n">model_params</span> <span class="o">=</span> <span class="n">parse</span><span class="o">.</span><span class="n">wrapper</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+
+    <span class="c1"># Is this an NN model</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">model_params</span><span class="o">.</span><span class="n">model_type</span> <span class="o">==</span> <span class="s1">&#39;NN&#39;</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Saved model is not a neural network. Recieved </span><span class="si">%s</span><span class="s1">&#39;</span><span class="o">%</span><span class="n">model_params</span><span class="o">.</span><span class="n">model_type</span><span class="p">)</span>
+
+    <span class="n">model_params</span><span class="o">.</span><span class="n">save_results</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">model_params</span><span class="o">.</span><span class="n">output_dir</span> <span class="o">=</span> <span class="n">reload_dir</span>
+
+    <span class="n">featurization</span> <span class="o">=</span> <span class="n">feat</span><span class="o">.</span><span class="n">create_featurization</span><span class="p">(</span><span class="n">model_params</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Featurization = </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">featurization</span><span class="p">))</span>
+    <span class="c1"># Create a ModelPipeline object</span>
+    <span class="n">pipeline</span> <span class="o">=</span> <span class="n">mp</span><span class="o">.</span><span class="n">ModelPipeline</span><span class="p">(</span><span class="n">model_params</span><span class="p">)</span>
+
+    <span class="c1"># Create the ModelWrapper object.</span>
+    <span class="n">pipeline</span><span class="o">.</span><span class="n">model_wrapper</span> <span class="o">=</span> <span class="n">mw</span><span class="o">.</span><span class="n">create_model_wrapper</span><span class="p">(</span><span class="n">pipeline</span><span class="o">.</span><span class="n">params</span><span class="p">,</span> <span class="n">featurization</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">count_params</span><span class="p">(</span><span class="n">pipeline</span><span class="o">.</span><span class="n">model_wrapper</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">trainable_weights</span><span class="p">)</span></div>
 </pre></div>
 
            </div>

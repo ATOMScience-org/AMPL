@@ -7,12 +7,14 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>pipeline.parameter_parser &mdash; ATOM Data-Driven Modeling Pipeline 1.1 documentation</title>
+  <title>pipeline.parameter_parser &mdash; ATOM Data-Driven Modeling Pipeline 1.2.0 documentation</title>
   
 
   
   <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
 
   
   
@@ -29,6 +31,7 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
         <script src="../../_static/jquery.js"></script>
         <script src="../../_static/underscore.js"></script>
         <script src="../../_static/doctools.js"></script>
@@ -61,7 +64,7 @@
             
             
               <div class="version">
-                1.1
+                1.2.0
               </div>
             
           
@@ -183,7 +186,8 @@
                          <span class="s1">&#39;xgb_gamma&#39;</span><span class="p">,</span>
                          <span class="s2">&quot;xgb_min_child_weight&quot;</span><span class="p">,</span>
                          <span class="s2">&quot;xgb_subsample&quot;</span><span class="p">,</span>
-                         <span class="s2">&quot;xgb_colsample_bytree&quot;</span>
+                         <span class="s2">&quot;xgb_colsample_bytree&quot;</span><span class="p">,</span>
+                         <span class="s2">&quot;ki_convert_ratio&quot;</span>
                          <span class="p">}</span>
 <span class="n">convert_to_int_list</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;layer_sizes&#39;</span><span class="p">,</span><span class="s1">&#39;rf_max_features&#39;</span><span class="p">,</span><span class="s1">&#39;rf_estimators&#39;</span><span class="p">,</span> <span class="s1">&#39;rf_max_depth&#39;</span><span class="p">,</span>
                        <span class="s1">&#39;umap_dim&#39;</span><span class="p">,</span> <span class="s1">&#39;umap_neighbors&#39;</span><span class="p">,</span> <span class="s1">&#39;layer_nums&#39;</span><span class="p">,</span> <span class="s1">&#39;node_nums&#39;</span><span class="p">,</span>
@@ -441,7 +445,7 @@
     <span class="n">temp_list_to_command_line</span> <span class="o">=</span> <span class="p">[]</span>
 
     <span class="c1"># Special case handling for arguments that are False or True by default</span>
-    <span class="n">default_false</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;previously_split&#39;</span><span class="p">,</span><span class="s1">&#39;use_shortlist&#39;</span><span class="p">,</span><span class="s1">&#39;datastore&#39;</span><span class="p">,</span> <span class="s1">&#39;save_results&#39;</span><span class="p">,</span><span class="s1">&#39;verbose&#39;</span><span class="p">,</span> <span class="s1">&#39;hyperparam&#39;</span><span class="p">,</span> <span class="s1">&#39;split_only&#39;</span><span class="p">]</span> 
+    <span class="n">default_false</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;previously_split&#39;</span><span class="p">,</span><span class="s1">&#39;use_shortlist&#39;</span><span class="p">,</span><span class="s1">&#39;datastore&#39;</span><span class="p">,</span> <span class="s1">&#39;save_results&#39;</span><span class="p">,</span><span class="s1">&#39;verbose&#39;</span><span class="p">,</span> <span class="s1">&#39;hyperparam&#39;</span><span class="p">,</span> <span class="s1">&#39;split_only&#39;</span><span class="p">,</span> <span class="s1">&#39;is_ki&#39;</span><span class="p">]</span> 
     <span class="n">default_true</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;transformers&#39;</span><span class="p">,</span><span class="s1">&#39;previously_featurized&#39;</span><span class="p">,</span><span class="s1">&#39;uncertainty&#39;</span><span class="p">,</span> <span class="s1">&#39;rerun&#39;</span><span class="p">]</span>
     <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">inp_dictionary</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
         <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">default_false</span><span class="p">:</span>
@@ -779,6 +783,24 @@
         <span class="n">help</span><span class="o">=</span><span class="n">weight_init_stddevs_help_string</span><span class="p">)</span>
 
     <span class="c1"># **********************************************************************************************************</span>
+    <span class="c1"># model_building_parameters: hybrid</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--is_ki&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;is_ki&#39;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;True/False flag for noting whether the dose-response activity is Ki or XC50&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">is_ki</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--ki_convert_ratio&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;ki_convert_ratio&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;To convert Ki into IC50, a ratio is needed. It can be the ratio of [S]/Km&#39;</span>
+             <span class="s1">&#39; for enzymatic inhibition assays, [S] is the concentration of substrate&#39;</span>
+             <span class="s1">&#39;Km is the Michaelis constant. It can also be [S]/Kd for radioligand competitive&#39;</span>
+             <span class="s1">&#39; binding, [S] is the concentration of the radioligand, Kd is its dissociation constant.&#39;</span><span class="p">)</span>
+
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--loss_func&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;loss_func&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;poisson&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;The loss function used in the hybrid model training, currently support poisson and l2&#39;</span><span class="p">)</span>
+
+    <span class="c1"># **********************************************************************************************************</span>
     <span class="c1"># model_building_parameters: random_forest</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
         <span class="s1">&#39;--rf_estimators&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;rf_estimators&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;500&#39;</span><span class="p">,</span>
@@ -805,9 +827,8 @@
         <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Type of splitter to use for train/validation split if temporal split used for test set. May be random,&#39;</span>
              <span class="s1">&#39; scaffold, or ave_min. The allowable choices are set in splitter.py&#39;</span><span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
-        <span class="s1">&#39;--butina_cutoff&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;butina_cutoff&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mf">0.18</span><span class="p">,</span>
-        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;cutoff Tanimoto similarity for clustering in Butina splitter. TODO: will be implemented when DeepChem&#39;</span>
-             <span class="s1">&#39; updates their butina splitter. &#39;</span><span class="p">)</span>
+        <span class="s1">&#39;--butina_cutoff&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;butina_cutoff&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mf">0.6</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;cutoff Tanimoto similarity for clustering in Butina splitter.&#39;</span><span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
         <span class="s1">&#39;--cutoff_date&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;cutoff_date&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Cutoff date for test set compounds in temporal splitter. TODO: needs some formatting guidelines.&#39;</span><span class="p">)</span>
@@ -1265,9 +1286,12 @@
 
     <span class="c1"># check to see if result_dir and dataset_key are relative paths</span>
     <span class="c1"># if so, make them relative to script_dir</span>
-    <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">parsed_args</span><span class="o">.</span><span class="n">dataset_key</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isabs</span><span class="p">(</span><span class="n">parsed_args</span><span class="o">.</span><span class="n">dataset_key</span><span class="p">)):</span>
-        <span class="n">parsed_args</span><span class="o">.</span><span class="n">dataset_key</span> <span class="o">=</span> \
-            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">parsed_args</span><span class="o">.</span><span class="n">script_dir</span><span class="p">,</span> <span class="n">parsed_args</span><span class="o">.</span><span class="n">dataset_key</span><span class="p">))</span>
+    <span class="c1"># We may also want to check if the dataset file in its relative path exists, if it exists, there is no need to add the script_dir. So it is compatible with the 1.0.1 code.</span>
+    <span class="c1"># update to allow for datastore</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">parsed_args</span><span class="o">.</span><span class="n">datastore</span><span class="p">:</span>
+        <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">parsed_args</span><span class="o">.</span><span class="n">dataset_key</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isabs</span><span class="p">(</span><span class="n">parsed_args</span><span class="o">.</span><span class="n">dataset_key</span><span class="p">))</span> <span class="ow">and</span> <span class="p">(</span><span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">parsed_args</span><span class="o">.</span><span class="n">dataset_key</span><span class="p">)):</span>
+            <span class="n">parsed_args</span><span class="o">.</span><span class="n">dataset_key</span> <span class="o">=</span> \
+                <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">parsed_args</span><span class="o">.</span><span class="n">script_dir</span><span class="p">,</span> <span class="n">parsed_args</span><span class="o">.</span><span class="n">dataset_key</span><span class="p">))</span>
 
     <span class="k">return</span> <span class="n">parsed_args</span></div>
 

@@ -25,17 +25,21 @@ import copy
 
 from atomsci.ddm.utils import datastore_functions as dsf
 
-if 'site-packages' in dsf.__file__: # install_dev.sh points to github directory
+import pkg_resources
+if ('site-packages' in dsf.__file__) or ('dist-packages' in dsf.__file__): # install_dev.sh points to github directory
     import subprocess
     import json
     data = subprocess.check_output(["pip", "list", "--format", "json"])
     parsed_results = json.loads(data)
     ampl_version=next(item for item in parsed_results if item["name"] == "atomsci-ampl")['version']
-else: # install.sh points to installation directory
-    import pkg_resources
-    VERSION_fn = os.path.join(
-        os.path.dirname(pkg_resources.resource_filename('atomsci', '')),
-        'VERSION')
+else:
+    try:
+        VERSION_fn = os.path.join(
+            os.path.dirname(pkg_resources.resource_filename('atomsci', '')),
+            'VERSION')
+    except:
+        VERSION_fn = dsf.__file__.rsplit('/', maxsplit=4)[0]+'/VERSION'
+
     f=open(VERSION_fn, 'r')
     ampl_version = f.read().strip()
     f.close()
@@ -122,6 +126,7 @@ def build_tarball_name(dataset_name, model_uuid, result_dir=''):
     model_tarball_path = os.path.join(str(result_dir), "{}_model_{}.tar.gz".format(dataset_name, model_uuid))
     return model_tarball_path
 
+# ---------------------------------------------
 def build_dataset_name(dataset_key):
     """ Returns dataset_name when given dataset_key
     Returns the dataset_name when given a dataset_key. Assumes that the dataset_name is a path
@@ -367,8 +372,7 @@ class ModelPipeline:
 
         self.model_metadata = model_metadata
 
-        # ****************************************************************************************
-
+    # ****************************************************************************************
     def save_model_metadata(self, retries=5, sleep_sec=60):
         """
         Saves the data needed to reload the model in the model tracker DB or in a local tarball file.
@@ -386,49 +390,39 @@ class ModelPipeline:
         Side effects:
             Saves the model metadata and parameters into the model tracker DB or a local tarball file.
         """
+
+        # Dump the model parameters and metadata to a JSON file
+        out_file = os.path.join(self.output_dir, 'model_metadata.json')
+        with open(out_file, 'w') as out:
+            json.dump(self.model_metadata, out, sort_keys=True, indent=4, separators=(',', ': '))
+            out.write("\n")
+
         if self.params.save_results:
-            # Model tracker saves the model state in the datastore as well as saving the metadata
+            # Model tracker saves the model state and metadata in the datastore as well as saving the metadata
             # in the model zoo.
             retry = True
             i = 0
             while retry:
                 if i < retries:
+                    # TODO: Try to distinguish unrecoverable exceptions (e.g., model tracker is down) from ones for
+                    # which retrying is worthwhile.
                     try:
                         trkr.save_model(self, collection_name=self.params.collection_name)
                         # Best model needs to be reloaded for predictions, so does not work to remove best_model_dir
                         retry = False
                     except:
-                        self.log.warning("Need to sleep and retry saving model")
-                        time.sleep(sleep_sec)
-                        i += 1
+                        raise
+                        #self.log.warning("Need to sleep and retry saving model")
+                        #time.sleep(sleep_sec)
+                        #i += 1
                 else:
-                    out_file = os.path.join(self.output_dir, 'model_metadata.json')
-                    with open(out_file, 'w') as out:
-                        json.dump(self.model_metadata, out, sort_keys=True, indent=4, separators=(',', ': '))
-                        out.write("\n")
-                    self.log.warning('Had to write model metadata to file %s because tracker failed' % out_file)
                     retry = False
         else:
-            # If save_results is false, save the model metadata to a JSON file
-            out_file = os.path.join(self.output_dir, 'model_metadata.json')
-            with open(out_file, 'w') as out:
-                json.dump(self.model_metadata, out, sort_keys=True, indent=4, separators=(',', ': '))
-                out.write("\n")
-            self.log.warning('Wrote model metadata to file %s' % out_file)
-        self.model_wrapper._clean_up_excess_files(self.model_wrapper.model_dir)
-        if not self.params.save_results:
+            # If not using the model tracker, save the model state and metadata in a tarball in the filesystem
             trkr.save_model_tarball(self.output_dir, self.params.model_tarball_path)
-        '''
-        for root, dirs, files in os.walk(self.params.result_dir):
-            for d in dirs:
-                model_datasets.set_group_permissions(self.params.system, os.path.join(root, d), self.params.data_owner,
-                                                     self.params.data_owner_group)
-            for f in files:
-                model_datasets.set_group_permissions(self.params.system, os.path.join(root, f), self.params.data_owner,
-                                                     self.params.data_owner_group)
-        '''
-        # ****************************************************************************************
+        self.model_wrapper._clean_up_excess_files(self.model_wrapper.model_dir)
 
+    # ****************************************************************************************
     def create_prediction_metadata(self, prediction_results):
         """Initializes a data structure to hold performance metrics from a model run on a new dataset,
         to be stored in the model tracker DB. Note that this isn't used
@@ -476,8 +470,8 @@ class ModelPipeline:
     # ****************************************************************************************
 
     def save_metrics(self, model_metrics, prefix=None, retries=5, sleep_sec=60):
-        """Saves the given model_metrics dictionary either to the model tracker database, or
-        to a JSON file on disk.
+        """Saves the given model_metrics dictionary to a JSON file on disk, and also to the model tracker 
+        database if we're using it.
 
         If writing to disk, outputs to a JSON file <prefix>_model_metrics.json in the current output directory.
 
@@ -485,8 +479,7 @@ class ModelPipeline:
             model_metrics (dict or list): Either a dictionary containing the model performance metrics, or a
             list of dictionaries with metrics for each training label and subset.
 
-            prefix: An optional prefix to include in the JSON filename, only used if writing to disk (i.e., if
-            self.params.save_results is False).
+            prefix (str): An optional prefix to include in the JSON filename
 
             retries (int): Number of retries to save to model tracker DB, if save_results is True.
 
@@ -495,55 +488,41 @@ class ModelPipeline:
         Side effects:
             Saves the model_metrics dictionary to the model tracker database, or writes out a .json file
         """
-        if self.params.save_results:
-            if type(model_metrics) == list:
-                for metrics in model_metrics:
-                    self.save_metrics(metrics, retries=retries, sleep_sec=sleep_sec)
-                return
 
-            retry = True
-            i = 0
-            while retry:
-                if i < retries:
-                    try:
-                        self.mlmt_client.save_metrics(collection_name=self.params.collection_name,
-                                                      model_uuid=model_metrics['model_uuid'],
-                                                      model_metrics=model_metrics)
-                        retry = False
-                    except:
-                        raise
-                        # TODO: uncomment when debugged
-                        #self.log.warning("Need to sleep and retry saving metrics")
-                        #time.sleep(sleep_sec)
-                        #i += 1
-                else:
-                    if prefix is None:
-                        out_file = os.path.join(self.output_dir, 'model_metrics.json')
-                    else:
-                        out_file = os.path.join(self.output_dir, '%s_model_metrics.json' % prefix)
-                    with open(out_file, 'w') as out:
-                        json.dump(model_metrics, out, sort_keys=True, indent=4, separators=(',', ': '))
-                        out.write("\n")
-                    self.log.warning('Had to write model metrics to file %s because tracker failed' % out_file)
-                    retry = False
+        # First save the metrics to disk
+        if prefix is None:
+            out_file = os.path.join(self.output_dir, 'model_metrics.json')
         else:
-            if prefix is None:
-                out_file = os.path.join(self.output_dir, 'model_metrics.json')
-            else:
-                out_file = os.path.join(self.output_dir, '%s_model_metrics.json' % prefix)
-            with open(out_file, 'w') as out:
-                json.dump(model_metrics, out, sort_keys=True, indent=4, separators=(',', ': '))
-                out.write("\n")
-            self.log.warning('Wrote model metrics to file %s' % out_file)
-            '''
-            for root, dirs, files in os.walk(self.params.result_dir):
-                for d in dirs:
-                    model_datasets.set_group_permissions(self.params.system, os.path.join(root, d),
-                                                         self.params.data_owner, self.params.data_owner_group)
-                for f in files:
-                    model_datasets.set_group_permissions(self.params.system, os.path.join(root, f),
-                                                         self.params.data_owner, self.params.data_owner_group)
-            '''
+            out_file = os.path.join(self.output_dir, '%s_model_metrics.json' % prefix)
+        with open(out_file, 'w') as out:
+            json.dump(model_metrics, out, sort_keys=True, indent=4, separators=(',', ': '))
+            out.write("\n")
+
+        if self.params.save_results:
+            if type(model_metrics) != list:
+                model_metrics = [model_metrics]
+            for metrics in model_metrics:
+                retry = True
+                i = 0
+                while retry:
+                    if i < retries:
+                        try:
+                            self.mlmt_client.save_metrics(collection_name=self.params.collection_name,
+                                                        model_uuid=metrics['model_uuid'],
+                                                        model_metrics=metrics)
+                            retry = False
+                        except:
+                            raise
+                            # TODO: uncomment when debugged
+                            # TODO: Need to distinguish between "temporary" exceptions that justify
+                            # retries and longer-term exceptions indicating that the model tracker server
+                            # is down.
+                            #self.log.warning("Need to sleep and retry saving metrics")
+                            #time.sleep(sleep_sec)
+                            #i += 1
+                    else:
+                        retry = False
+
     # ****************************************************************************************
 
     def split_dataset(self, featurization=None):
@@ -593,6 +572,11 @@ class ModelPipeline:
         """
 
         self.run_mode = 'training'
+        if self.params.model_type == "hybrid":
+            if self.params.featurizer in ["graphconv"]:
+                raise Exception("Hybrid model doesn't support GraphConv featurizer now.")
+            if len(self.params.response_cols) < 2:
+                raise Exception("The dataset of a hybrid model should have two response columns, one for activities, one for concentrations.")
         if featurization is None:
             featurization = feat.create_featurization(self.params)
         self.featurization = featurization
@@ -610,7 +594,7 @@ class ModelPipeline:
 
         self.model_wrapper.train(self)
 
-        # Save the metadata for the trained model
+        # Create the metadata for the trained model
         self.create_model_metadata()
         # Save the performance metrics for each training data subset, for the best epoch
         training_metrics = []
@@ -622,8 +606,6 @@ class ModelPipeline:
                     subset=subset)
                 training_dict['prediction_results'] = self.model_wrapper.get_pred_results(subset, label)
                 training_metrics.append(training_dict)
-        self.model_metadata['training_metrics'] = training_metrics
-        self.save_model_metadata()
 
         # Save the model metrics separately
         for training_dict in training_metrics:
@@ -631,6 +613,10 @@ class ModelPipeline:
             training_dict['time_run'] = time.time()
             training_dict['input_dataset'] = self.model_metadata['training_dataset']
         self.save_metrics(training_metrics)
+
+        # Save the model metadata in the model tracker or the filesystem
+        self.model_metadata['training_metrics'] = training_metrics
+        self.save_model_metadata()
 
 
     # ****************************************************************************************
@@ -694,105 +680,14 @@ class ModelPipeline:
     
     # ****************************************************************************************
     def predict_on_dataframe(self, dset_df, is_featurized=False, contains_responses=False, AD_method=None, k=5, dist_metric="euclidean"):
-        """Compute predicted responses from a pretrained model on a set of compounds listed in
-        a data frame. the data frame should contain, at minimum, a column of compound IDs; if
-        SMILES strings are needed to compute features, they should be provided as well.
-
-        Args:
-            dset_df (Dataframe): A data frame containing compound IDs (if the compounds are to be
-            featurized using descriptors) and/or SMILES strings (if the compounds are to be
-            featurized using ECFP fingerprints or graph convolution) and/or precomputed features.
-            The column names for the compound ID and SMILES columns should match id_col and smiles_col,
-            respectively, in the model parameters.
-
-            is_featurized (bool): True if dset_df contains precomputed feature columns. If so,
-            dset_df must contain *all* of the feature columns defined by the featurizer that was
-            used when the model was trained.
-
-            contains_responses (bool): True if dataframe contains response values
-
-            AD_method (str): with default, Applicable domain (AD) index will not be calcualted, use 
-            z_score or local_density to choose the method to calculate AD index.
-
-            k (int): number of the neareast neighbors to evaluate the AD index, default is 5.
-
-            dist_metric (str): distance metrics, valid values are 'cityblock', 'cosine', 'euclidean', 'jaccard', 'manhattan'
-        returns:
-            result_df (dataframe): data frame indexed by compound ids containing a column of smiles
-            strings, with additional columns containing the predicted values for each response variable.
-            If the model was trained to predict uncertainties, the returned data frame will also
-            include standard deviation columns (named <response_col>_std) for each response variable.
-            The result data frame may not include all the compounds in the input dataset, because
-            the featurizer may not be able to featurize all of them.
-
+        """DEPRECATED
+        Call predict_full_dataset instead.
         """
+        self.log.warning("predict_on_dataframe is deprecated. Please call predict_full_dataset instead.")
+        result_df = self.predict_full_dataset(dset_df, is_featurized=is_featurized, 
+                contains_responses=contains_responses, AD_method=AD_method, k=k,
+                dist_metric=dist_metric)
 
-        self.run_mode = 'prediction'
-        self.featurization = self.model_wrapper.featurization
-        self.data = model_datasets.create_minimal_dataset(self.params, self.featurization, contains_responses)
-
-        if not self.data.get_dataset_tasks(dset_df):
-            # Shouldn't happen - response_cols should already be set in saved model parameters
-            raise Exception("response_cols missing from model params")
-        self.data.get_featurized_data(dset_df, is_featurized)
-        self.data.dataset = self.model_wrapper.transform_dataset(self.data.dataset)
-
-        # Get the predictions and standard deviations, if calculated, as numpy arrays
-        preds, stds = self.model_wrapper.generate_predictions(self.data.dataset)
-        result_df = self.data.attr.copy()
-
-        # Including the response_val name in the output makes it difficult to do looped plotting.
-        # We can talk about best way to handle this.
-
-        if contains_responses:
-            for i, colname in enumerate(self.params.response_cols):
-                result_df["actual"] = self.data.vals[:, i]
-        for i, colname in enumerate(self.params.response_cols):
-            if self.params.prediction_type == 'regression':
-                result_df["pred"] = preds[:, i, 0]
-            else:
-                class_probs = preds[:, i, :]
-                result_df["pred"] = np.argmax(class_probs, axis=1)
-        if self.params.uncertainty and self.params.prediction_type == 'regression':
-            for i, colname in enumerate(self.params.response_cols):
-                std_colname = 'std'
-                result_df[std_colname] = stds[:, i, 0]
-
-        if AD_method is not None:
-            if self.featurization.feat_type != "graphconv":
-                pred_data = copy.deepcopy(self.data.dataset.X)
-                self.run_mode = 'training'
-                self.load_featurize_data()
-                if len(self.data.train_valid_dsets) > 1:
-                    # combine train and valid set for k-fold CV models
-                    train_data = np.concatenate((self.data.train_valid_dsets[0][0].X, self.data.train_valid_dsets[0][1].X))
-                else:
-                    train_data = self.data.train_valid_dsets[0][0].X
-                if not hasattr(self, "train_pair_dis") or not hasattr(self, "train_pair_dis_metric") or self.train_pair_dis_metric != dist_metric:
-                    self.calc_train_dset_pair_dis(metric=dist_metric)
-
-                if AD_method == "local_density":
-                    result_df["AD_index"] = calc_AD_kmean_local_density(train_data, pred_data, k, train_dset_pair_distance=self.train_pair_dis, dist_metric=dist_metric)
-                else:
-                    result_df["AD_index"] = calc_AD_kmean_dist(train_data, pred_data, k, train_dset_pair_distance=self.train_pair_dis, dist_metric=dist_metric)
-            else:
-                self.log.warning("GraphConv features are not plain vectors, AD index cannot be calculated.")
-
-        '''
-        if contains_responses:
-            for i, colname in enumerate(self.params.response_cols):
-                result_df["%s_actual" % colname] = self.data.vals[:,i]
-        for i, colname in enumerate(self.params.response_cols):
-            if self.params.prediction_type == 'regression':
-                result_df["%s_pred" % colname] = preds[:,i,0]
-            else:
-                class_probs = preds[:,i,:]
-                result_df["%s_pred" % colname] = np.argmax(class_probs, axis=1)
-        if self.params.uncertainty and self.params.prediction_type == 'regression':
-            for i, colname in enumerate(self.params.response_cols):
-                std_colname = '%s_std' % colname
-                result_df[std_colname] = stds[:,i,0]
-        '''
         return result_df
 
     # ****************************************************************************************
@@ -836,7 +731,7 @@ class ModelPipeline:
         df = pd.DataFrame({'compound_id': np.linspace(0, len(smiles) - 1, len(smiles), dtype=int),
                         self.params.smiles_col: smiles,
                         task: np.zeros(len(smiles))})
-        res = self.predict_on_dataframe(df, AD_method=AD_method, k=k, dist_metric=dist_metric)
+        res = self.predict_full_dataset(df, AD_method=AD_method, k=k, dist_metric=dist_metric)
 
         sys.stdout = sys.__stdout__
 
@@ -901,6 +796,12 @@ class ModelPipeline:
                     coldict[col] = self.params.response_cols[i]
             dset_df = dset_df.rename(columns=coldict)
 
+        # assign unique ids to each row
+        old_ids = dset_df[self.params.id_col].values
+        new_ids = list(range(len(dset_df)))
+        id_map = dict([(i, id) for i, id in zip(new_ids, old_ids)])
+        dset_df[self.params.id_col] = new_ids
+
         self.data = model_datasets.create_minimal_dataset(self.params, self.featurization, contains_responses)
 
         if not self.data.get_dataset_tasks(dset_df):
@@ -914,25 +815,32 @@ class ModelPipeline:
         result_df = pd.DataFrame({self.params.id_col: self.data.attr.index.values,
                                   self.params.smiles_col: self.data.attr[self.params.smiles_col].values})
 
-        if contains_responses:
+        if self.params.model_type != "hybrid":
+            if contains_responses:
+                for i, colname in enumerate(self.params.response_cols):
+                    result_df["%s_actual" % colname] = self.data.vals[:,i]
             for i, colname in enumerate(self.params.response_cols):
-                result_df["%s_actual" % colname] = self.data.vals[:,i]
-        for i, colname in enumerate(self.params.response_cols):
-            if self.params.prediction_type == 'regression':
-                result_df["%s_pred" % colname] = preds[:,i,0]
-            else:
-                class_probs = preds[:,i,:]
-                nclass = preds.shape[2]
-                if nclass == 2:
-                    result_df["%s_prob" % colname] = class_probs[:,1]
+                if self.params.prediction_type == 'regression':
+                    result_df["%s_pred" % colname] = preds[:,i,0]
                 else:
-                    for k in range(nclass):
-                        result_df["%s_prob_%d" % (colname, k)] = class_probs[:,k]
-                result_df["%s_pred" % colname] = np.argmax(class_probs, axis=1)
-        if self.params.uncertainty and self.params.prediction_type == 'regression':
-            for i, colname in enumerate(self.params.response_cols):
-                std_colname = '%s_std' % colname
-                result_df[std_colname] = stds[:,i,0]
+                    class_probs = preds[:,i,:]
+                    nclass = preds.shape[2]
+                    if nclass == 2:
+                        result_df["%s_prob" % colname] = class_probs[:,1]
+                    else:
+                        for k in range(nclass):
+                            result_df["%s_prob_%d" % (colname, k)] = class_probs[:,k]
+                    result_df["%s_pred" % colname] = np.argmax(class_probs, axis=1)
+            if self.params.uncertainty and self.params.prediction_type == 'regression':
+                for i, colname in enumerate(self.params.response_cols):
+                    std_colname = '%s_std' % colname
+                    result_df[std_colname] = stds[:,i,0]
+        else:
+            # hybrid model should handled differently
+            if contains_responses:
+                result_df["actual_activity"] = self.data.vals[:, 0]
+                result_df["concentration"] = self.data.vals[:, 1]
+            result_df["pred"] = preds[:, 0]
 
         if AD_method is not None:
             if self.featurization.feat_type != "graphconv":
@@ -953,6 +861,15 @@ class ModelPipeline:
                     result_df["AD_index"] = calc_AD_kmean_dist(train_data, pred_data, k, train_dset_pair_distance=self.train_pair_dis, dist_metric=dist_metric)
             else:
                 self.log.warning("GraphConv features are not plain vectors, AD index cannot be calculated.")
+
+        # insert any missing ids
+        missing_ids = set(new_ids).difference(result_df[self.params.id_col])
+        for mi in missing_ids:
+            result_df.append({self.params.id_col:mi})
+        # sort in ascending order, recovering the original order
+        result_df.sort_values(by=[self.params.id_col], ascending=True, inplace=True)
+        # map back to original id values
+        result_df[self.params.id_col] = result_df[self.params.id_col].map(id_map)
 
         return result_df
 
@@ -1132,15 +1049,11 @@ def regenerate_results(result_dir, params=None, metadata_dict=None, shared_featu
 
     pipeline.model_wrapper = model_wrapper.create_model_wrapper(pipeline.params, featurization,
                                                                 pipeline.ds_client)
-    # Get the tarball containing the saved model from the datastore, and extract it into model_dir.
-    model_dataset_oid = metadata_dict['model_parameters']['model_dataset_oid']
-    # TODO: Should we catch exceptions from retrieve_dataset_by_dataset_oid, or let them propagate?
-    model_dir = dsf.retrieve_dataset_by_dataset_oid(model_dataset_oid, client=ds_client, return_metadata=False,
-                                                    nrows=None, print_metadata=False, sep=False,
-                                                    tarpath=pipeline.model_wrapper.model_dir)
+    # Get the tarball containing the saved model from the datastore, and extract it into model_dir (old format)
+    # or output_dir (new format) according to the format of the tarball contents.
 
-    # pipeline.log.info("Extracted model tarball to %s" % model_dir)
-    print("Extracted model tarball to %s" % model_dir)
+    extract_dir = trkr.extract_datastore_model_tarball(model_uuid, model_params.model_bucket, model_params.output_dir, 
+                                         pipeline.model_wrapper.model_dir)
 
     # If that worked, reload the saved model training state
 
@@ -1152,11 +1065,7 @@ def regenerate_results(result_dir, params=None, metadata_dict=None, shared_featu
     result_dict['splitter'] = model_params.splitter
     if 'descriptor_type' in model_params:
         result_dict['descriptor_type'] = model_params.descriptor_type
-    '''
-    # Return the pipeline to the calling function, if run as a generator
-    if generator:
-        yield pipeline
-    '''
+
     return result_dict
 
 
@@ -1210,12 +1119,12 @@ def create_prediction_pipeline(params, model_uuid, collection_name=None, featuri
     model_params.result_dir = params.result_dir
     model_params.system = params.system
 
+
     # Check that buckets where model tarball and transformers were saved still exist. If not, try alt_bucket.
-    trans_bucket_differs = (model_params.transformer_bucket != model_params.model_bucket)
     model_bucket_meta = ds_client.ds_buckets.get_buckets(buckets=[model_params.model_bucket]).result()
     if len(model_bucket_meta) == 0:
         model_params.model_bucket = alt_bucket
-    if trans_bucket_differs:
+    if (model_params.transformer_bucket != model_params.model_bucket):
         trans_bucket_meta = ds_client.ds_buckets.get_buckets(buckets=[model_params.transformer_bucket]).result()
         if len(trans_bucket_meta) == 0:
             model_params.transformer_bucket = alt_bucket
@@ -1254,15 +1163,16 @@ def create_prediction_pipeline(params, model_uuid, collection_name=None, featuri
     else:
         pipeline.log.setLevel(logging.CRITICAL)
 
-    # Get the tarball containing the saved model from the datastore, and extract it into model_dir.
-    model_dataset_key = 'model_%s_tarball' % model_uuid
-    model_dir = dsf.retrieve_dataset_by_datasetkey(model_dataset_key, bucket=model_params.model_bucket,
-                                                   client=ds_client, return_metadata=False,
-                                                   nrows=None, print_metadata=False, sep=False,
-                                                   tarpath=pipeline.model_wrapper.model_dir)
-    pipeline.log.info("Extracted model tarball to %s" % model_dir)
+    # Get the tarball containing the saved model from the datastore, and extract it into model_dir or output_dir,
+    # depending on what style of tarball it is (old or new respectively)
+    extract_dir = trkr.extract_datastore_model_tarball(model_uuid, model_params.model_bucket, model_params.output_dir, 
+                                         pipeline.model_wrapper.model_dir)
 
-    # If that worked, reload the saved model training state
+    if extract_dir == model_params.output_dir:
+        # Model came from new style tarball
+        pipeline.model_wrapper.model_dir = os.path.join(model_params.output_dir, 'best_model')
+
+    # Reload the saved model training state
     pipeline.model_wrapper.reload_model(pipeline.model_wrapper.model_dir)
 
     return pipeline
@@ -1376,7 +1286,11 @@ def create_prediction_pipeline_from_file(params, reload_dir, model_path=None, mo
 # ****************************************************************************************
 
 def load_from_tracker(model_uuid, collection_name=None, client=None, verbose=False, alt_bucket='CRADA'):
-    """Create a ModelPipeline object using the metadata in the  model tracker.
+    """
+    DEPRECATED. Use the function create_prediction_pipeline() directly, or use the higher-level function
+    predict_from_model.predict_from_tracker_model().
+
+    Create a ModelPipeline object using the metadata in the  model tracker.
 
     Args:
         model_uuid (str): The UUID of a trained model.
