@@ -7,12 +7,14 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>pipeline.ave_splitter &mdash; ATOM Data-Driven Modeling Pipeline 1.1 documentation</title>
+  <title>pipeline.ave_splitter &mdash; ATOM Data-Driven Modeling Pipeline 1.2.0 documentation</title>
   
 
   
   <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
 
   
   
@@ -29,6 +31,7 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
         <script src="../../_static/jquery.js"></script>
         <script src="../../_static/underscore.js"></script>
         <script src="../../_static/doctools.js"></script>
@@ -61,7 +64,7 @@
             
             
               <div class="version">
-                1.1
+                1.2.0
               </div>
             
           
@@ -650,7 +653,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">split_sim_pool</span> <span class="o">=</span> <span class="kc">None</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">calc_bias_pool</span> <span class="o">=</span> <span class="kc">None</span>
 
-<div class="viewcode-block" id="AVEMinSplitter.split"><a class="viewcode-back" href="../../pipeline.html#pipeline.ave_splitter.AVEMinSplitter.split">[docs]</a>    <span class="k">def</span> <span class="nf">split</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="p">,</span> <span class="n">frac_train</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">frac_valid</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">frac_test</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">log_every_n</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="AVEMinSplitter.split"><a class="viewcode-back" href="../../pipeline.html#pipeline.ave_splitter.AVEMinSplitter.split">[docs]</a>    <span class="k">def</span> <span class="nf">split</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="p">,</span> <span class="n">frac_train</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">frac_valid</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">frac_test</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">log_every_n</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Split dataset into training and validation sets that minimize the AVE bias. A test set is not generated;</span>
 <span class="sd">        to do a 3-way split, call this function twice.</span>
@@ -664,9 +667,9 @@
 
 <span class="sd">            frac_test (float): Ignored; included only for compatibility with the DeepChem Splitter API</span>
 
-<span class="sd">            log_every_n (int or None): Ignored</span>
+<span class="sd">            seed (int): Ignored</span>
 
-<span class="sd">            verbose (bool): Ignored</span>
+<span class="sd">            log_every_n (int or None): Ignored</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            tuple: Lists of indices of compounds assigned to the training and validation/test sets. </span>

@@ -7,12 +7,14 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>utils.model_retrain &mdash; ATOM Data-Driven Modeling Pipeline 1.1 documentation</title>
+  <title>utils.model_retrain &mdash; ATOM Data-Driven Modeling Pipeline 1.2.0 documentation</title>
   
 
   
   <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
 
   
   
@@ -29,6 +31,7 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
         <script src="../../_static/jquery.js"></script>
         <script src="../../_static/underscore.js"></script>
         <script src="../../_static/doctools.js"></script>
@@ -61,7 +64,7 @@
             
             
               <div class="version">
-                1.1
+                1.2.0
               </div>
             
           
@@ -191,21 +194,43 @@
 
 <span class="kn">import</span> <span class="nn">tarfile</span>
 <span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+
+<span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">()</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="c1">#logger.setLevel(logging.DEBUG)</span>
 
 <span class="kn">import</span> <span class="nn">atomsci.ddm.pipeline.model_pipeline</span> <span class="k">as</span> <span class="nn">mp</span>
 <span class="kn">import</span> <span class="nn">atomsci.ddm.pipeline.parameter_parser</span> <span class="k">as</span> <span class="nn">parse</span>
 <span class="kn">import</span> <span class="nn">atomsci.ddm.utils.curate_data</span> <span class="k">as</span> <span class="nn">curate_data</span>
 <span class="kn">import</span> <span class="nn">atomsci.ddm.utils.struct_utils</span> <span class="k">as</span> <span class="nn">struct_utils</span>
+<span class="kn">import</span> <span class="nn">atomsci.ddm.pipeline.model_tracker</span> <span class="k">as</span> <span class="nn">mt</span>
+<span class="kn">import</span> <span class="nn">atomsci.ddm.utils.datastore_functions</span> <span class="k">as</span> <span class="nn">dsf</span>
+<span class="kn">from</span> <span class="nn">atomsci.ddm.pipeline</span> <span class="kn">import</span> <span class="n">compare_models</span> <span class="k">as</span> <span class="n">cmp</span>
+<span class="kn">from</span> <span class="nn">atomsci.clients</span> <span class="kn">import</span> <span class="n">MLMTClient</span>
 
-<div class="viewcode-block" id="train_model"><a class="viewcode-back" href="../../utils.html#utils.model_retrain.train_model">[docs]</a><span class="k">def</span> <span class="nf">train_model</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">output</span><span class="p">):</span>
+<span class="kn">import</span> <span class="nn">resource</span>
+<span class="n">resource</span><span class="o">.</span><span class="n">setrlimit</span><span class="p">(</span><span class="n">resource</span><span class="o">.</span><span class="n">RLIMIT_NOFILE</span><span class="p">,</span> <span class="p">(</span><span class="mi">65536</span><span class="p">,</span> <span class="mi">65536</span><span class="p">))</span>
+
+<span class="n">mlmt_supported</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">atomsci.clients</span> <span class="kn">import</span> <span class="n">MLMTClient</span>
+<span class="k">except</span> <span class="p">(</span><span class="ne">ModuleNotFoundError</span><span class="p">,</span> <span class="ne">ImportError</span><span class="p">):</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Model tracker client not supported in your environment; will save models in filesystem only.&quot;</span><span class="p">)</span>
+    <span class="n">mlmt_supported</span> <span class="o">=</span> <span class="kc">False</span>
+    
+
+
+<div class="viewcode-block" id="train_model"><a class="viewcode-back" href="../../utils.html#utils.model_retrain.train_model">[docs]</a><span class="k">def</span> <span class="nf">train_model</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">dskey</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Retrain a model saved in a model_metadata.json file</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        input (str): path to model_metadata.json file</span>
 
 <span class="sd">        output (str): path to output directory</span>
+
+<span class="sd">        dskey (str): new dataset key if file location has changed</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        None</span>
@@ -216,6 +241,10 @@
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
         <span class="n">config</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
 
+    <span class="c1"># set a new dataset key if necessary</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">dskey</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+        <span class="n">config</span><span class="p">[</span><span class="s1">&#39;dataset_key&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">dskey</span>
+
     <span class="c1"># Parse parameters</span>
     <span class="n">params</span> <span class="o">=</span> <span class="n">parse</span><span class="o">.</span><span class="n">wrapper</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
     <span class="n">params</span><span class="o">.</span><span class="n">result_dir</span> <span class="o">=</span> <span class="n">output</span>
@@ -225,6 +254,7 @@
     <span class="n">params</span><span class="o">.</span><span class="n">previously_split</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="n">params</span><span class="o">.</span><span class="n">split_uuid</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;splitting_parameters&#39;</span><span class="p">][</span><span class="s1">&#39;split_uuid&#39;</span><span class="p">]</span>
 
+    <span class="c1"># specify collection</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;model params </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">params</span><span class="p">))</span>
 
     <span class="c1"># Create model pipeline</span>
@@ -235,13 +265,15 @@
 
     <span class="k">return</span> <span class="n">model</span></div>
 
-<div class="viewcode-block" id="train_model_from_tar"><a class="viewcode-back" href="../../utils.html#utils.model_retrain.train_model_from_tar">[docs]</a><span class="k">def</span> <span class="nf">train_model_from_tar</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">output</span><span class="p">):</span>
+<div class="viewcode-block" id="train_model_from_tar"><a class="viewcode-back" href="../../utils.html#utils.model_retrain.train_model_from_tar">[docs]</a><span class="k">def</span> <span class="nf">train_model_from_tar</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">dskey</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Retrain a model saved in a tar.gz file</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        input (str): path to a tar.gz file</span>
 
 <span class="sd">        output (str): path to output directory</span>
+
+<span class="sd">        dskey (str): new dataset key if file location has changed</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        None</span>
@@ -255,8 +287,129 @@
     <span class="c1"># make metadata path</span>
     <span class="n">metadata_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmpdir</span><span class="p">,</span> <span class="s1">&#39;model_metadata.json&#39;</span><span class="p">)</span>
 
-    <span class="k">return</span> <span class="n">train_model</span><span class="p">(</span><span class="n">metadata_path</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">train_model</span><span class="p">(</span><span class="n">metadata_path</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">dskey</span><span class="o">=</span><span class="n">dskey</span><span class="p">)</span></div>
 
+<div class="viewcode-block" id="train_model_from_tracker"><a class="viewcode-back" href="../../utils.html#utils.model_retrain.train_model_from_tracker">[docs]</a><span class="k">def</span> <span class="nf">train_model_from_tracker</span><span class="p">(</span><span class="n">model_uuid</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Retrain a model saved in the model tracker, but save it to output_dir and don&#39;t insert it into the model tracker</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        model_uuid (str): model tracker model_uuid file</span>
+
+<span class="sd">        output_dir (str): path to output directory</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        the model pipeline object with trained model</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">mlmt_supported</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Model tracker not supported in your environment; can load models from filesystem only.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="n">mlmt_client</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">initialize_model_tracker</span><span class="p">()</span>
+    
+    <span class="n">collection_name</span> <span class="o">=</span> <span class="n">mt</span><span class="o">.</span><span class="n">get_model_collection_by_uuid</span><span class="p">(</span><span class="n">model_uuid</span><span class="p">,</span> <span class="n">mlmt_client</span><span class="o">=</span><span class="n">mlmt_client</span><span class="p">)</span>
+        
+    <span class="c1"># get metadata from tracker</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">mt</span><span class="o">.</span><span class="n">get_metadata_by_uuid</span><span class="p">(</span><span class="n">model_uuid</span><span class="p">)</span>
+    
+    <span class="c1"># check if datastore dataset</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">retrieve_dataset_by_datasetkey</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;training_dataset&#39;</span><span class="p">][</span><span class="s1">&#39;dataset_key&#39;</span><span class="p">],</span> <span class="n">bucket</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;training_dataset&#39;</span><span class="p">][</span><span class="s1">&#39;bucket&#39;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">result</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">config</span><span class="p">[</span><span class="s1">&#39;datastore&#39;</span><span class="p">]</span><span class="o">=</span><span class="kc">True</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="c1"># fix weird old parameters</span>
+    <span class="c1">#if config[]</span>
+    <span class="c1"># Parse parameters</span>
+    <span class="n">params</span> <span class="o">=</span> <span class="n">parse</span><span class="o">.</span><span class="n">wrapper</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+    <span class="n">params</span><span class="o">.</span><span class="n">result_dir</span> <span class="o">=</span> <span class="n">output_dir</span>
+    <span class="c1"># otherwise this will have the same uuid as the source model</span>
+    <span class="n">params</span><span class="o">.</span><span class="n">model_uuid</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="c1"># use the same split</span>
+    <span class="n">params</span><span class="o">.</span><span class="n">previously_split</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">params</span><span class="o">.</span><span class="n">split_uuid</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;splitting_parameters&#39;</span><span class="p">][</span><span class="s1">&#39;split_uuid&#39;</span><span class="p">]</span>
+    <span class="c1"># specify collection</span>
+    <span class="n">params</span><span class="o">.</span><span class="n">collection_name</span> <span class="o">=</span> <span class="n">collection_name</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;model params </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">params</span><span class="p">))</span>
+
+    <span class="c1"># Create model pipeline</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">mp</span><span class="o">.</span><span class="n">ModelPipeline</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+
+    <span class="c1"># Train model</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">train_model</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">model</span></div>
+
+<div class="viewcode-block" id="train_models_from_dataset_keys"><a class="viewcode-back" href="../../utils.html#utils.model_retrain.train_models_from_dataset_keys">[docs]</a><span class="k">def</span> <span class="nf">train_models_from_dataset_keys</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">pred_type</span><span class="o">=</span><span class="s1">&#39;regression&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Retrain a list of models from an input file</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        input (str): path to an Excel or csv file. the required columns are &#39;dataset_key&#39; and &#39;bucket&#39; (public, private_file or Filesystem).</span>
+
+<span class="sd">        output (str): path to output directory</span>
+
+<span class="sd">        pred_type (str, optional): set the model prediction type. if not, uses the default &#39;regression&#39;</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+    <span class="c1"># parse the input file</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Parsing </span><span class="si">%s</span><span class="s2"> file.&quot;</span> <span class="o">%</span> <span class="nb">input</span><span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_excel</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;Unable to parse input </span><span class="si">%s</span><span class="s1">. Only Excel or csv file is accepted.&#39;</span> <span class="o">%</span> <span class="nb">input</span><span class="p">)</span>
+
+    <span class="c1"># extract the public bucket, then dataset keys</span>
+    <span class="n">public_list</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;bucket&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;public&#39;</span><span class="p">]</span>
+    <span class="n">dataset_keys</span> <span class="o">=</span> <span class="n">public_list</span><span class="p">[</span><span class="s1">&#39;dataset_key&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Found </span><span class="si">%d</span><span class="s1"> public dataset keys&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">dataset_keys</span><span class="p">))</span>
+
+    <span class="n">client</span> <span class="o">=</span> <span class="n">MLMTClient</span><span class="p">()</span>
+    <span class="n">collections</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_collection_names</span><span class="p">()</span>
+    <span class="n">bucket</span> <span class="o">=</span> <span class="s1">&#39;public&#39;</span>
+
+    <span class="c1"># find the collections </span>
+    <span class="n">colls_w_dset</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">dset</span> <span class="ow">in</span> <span class="n">dataset_keys</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">coll</span> <span class="ow">in</span> <span class="n">collections</span><span class="p">:</span>
+            <span class="n">datasets</span> <span class="o">=</span> <span class="n">cmp</span><span class="o">.</span><span class="n">get_collection_datasets</span><span class="p">(</span><span class="n">coll</span><span class="p">)</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">dset</span><span class="p">,</span> <span class="n">bucket</span><span class="p">)</span> <span class="ow">in</span> <span class="n">datasets</span><span class="p">:</span>
+                <span class="n">colls_w_dset</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">coll</span><span class="p">)</span>
+    
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Found the dataset_keys in </span><span class="si">%d</span><span class="s1"> collections&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">colls_w_dset</span><span class="p">))</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Train the model using prediction type </span><span class="si">%s</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="n">pred_type</span><span class="p">)</span>
+
+    <span class="n">metric_type</span> <span class="o">=</span> <span class="s1">&#39;r2_score&#39;</span>
+    
+    <span class="k">if</span> <span class="p">(</span><span class="n">pred_type</span> <span class="o">==</span> <span class="s1">&#39;classification&#39;</span><span class="p">):</span>
+        <span class="n">metric_type</span> <span class="o">=</span> <span class="s1">&#39;roc_auc_score&#39;</span>
+    
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># find the best models</span>
+        <span class="n">best_mods</span> <span class="o">=</span> <span class="n">cmp</span><span class="o">.</span><span class="n">get_best_models_info</span><span class="p">(</span><span class="n">col_names</span><span class="o">=</span><span class="n">colls_w_dset</span><span class="p">,</span> <span class="n">bucket</span><span class="o">=</span><span class="n">bucket</span><span class="p">,</span> <span class="n">pred_type</span><span class="o">=</span><span class="n">pred_type</span><span class="p">,</span> 
+                                     <span class="n">result_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">PK_pipeline</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">output_dir</span><span class="o">=</span><span class="n">output</span><span class="p">,</span>
+                                     <span class="n">shortlist_key</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">input_dset_keys</span><span class="o">=</span><span class="n">dataset_keys</span><span class="p">,</span> <span class="n">save_results</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">subset</span><span class="o">=</span><span class="s1">&#39;valid&#39;</span><span class="p">,</span>
+                                     <span class="n">metric_type</span><span class="o">=</span><span class="n">metric_type</span><span class="p">,</span> <span class="n">selection_type</span><span class="o">=</span><span class="s1">&#39;max&#39;</span><span class="p">,</span> <span class="n">other_filters</span><span class="o">=</span><span class="p">{})</span>
+
+        <span class="c1"># retrain with uuid</span>
+        <span class="k">for</span> <span class="n">model_uuid</span> <span class="ow">in</span> <span class="n">best_mods</span><span class="o">.</span><span class="n">model_uuid</span><span class="o">.</span><span class="n">sort_values</span><span class="p">():</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Training </span><span class="si">%s</span><span class="s1"> in </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">model_uuid</span><span class="p">,</span> <span class="n">output</span><span class="p">))</span>
+                <span class="n">train_model_from_tracker</span><span class="p">(</span><span class="n">model_uuid</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Error for model_uuid </span><span class="si">{</span><span class="n">model_uuid</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="k">pass</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Error: %s&#39;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="p">)</span></div>
 
 <span class="c1">#----------------</span>
 <span class="c1"># main</span>
@@ -266,8 +419,10 @@
 
     <span class="c1"># input file/dir (required)</span>
     <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">()</span>
-    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-i&#39;</span><span class="p">,</span> <span class="s1">&#39;--input&#39;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;input directory/file&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-i&#39;</span><span class="p">,</span> <span class="s1">&#39;--input&#39;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;input directory, file or model_uuid&#39;</span><span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-o&#39;</span><span class="p">,</span> <span class="s1">&#39;--output&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;output result directory&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-dk&#39;</span><span class="p">,</span> <span class="s1">&#39;--dataset_key&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Sometimes dataset keys get moved. Specify new location of dataset. Only works when passing in one model at time.&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-pd_type&#39;</span><span class="p">,</span> <span class="s1">&#39;--pred_type&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;regression&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Specify the prediction type used for model retrain. The default is set to regression.&#39;</span><span class="p">)</span>
 
     <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
 
@@ -278,16 +433,25 @@
     <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">output</span> <span class="ow">and</span> <span class="n">output</span><span class="o">.</span><span class="n">strip</span><span class="p">()):</span>
         <span class="n">output</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">()</span>
 
+    <span class="c1"># 1 check if it&#39;s a directory</span>
     <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="nb">input</span><span class="p">):</span>
-    <span class="c1"># loop</span>
+        <span class="c1"># loop</span>
         <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">Path</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span><span class="o">.</span><span class="n">rglob</span><span class="p">(</span><span class="s1">&#39;model_metadata.json&#39;</span><span class="p">):</span>
             <span class="n">train_model</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">absolute</span><span class="p">(),</span> <span class="n">output</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="nb">input</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.json&#39;</span><span class="p">):</span>
-        <span class="n">train_model</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="nb">input</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.tar.gz&#39;</span><span class="p">):</span>
-        <span class="n">train_model_from_tar</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="nb">input</span><span class="p">):</span>
+        <span class="c1"># 2 if it&#39;s a file, check if it&#39;s a json or tar.gz or file that contains list of dataset keys</span>
+        <span class="k">if</span> <span class="nb">input</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.json&#39;</span><span class="p">):</span>
+            <span class="n">train_model</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">dskey</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">dataset_key</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">input</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.tar.gz&#39;</span><span class="p">):</span>
+            <span class="n">train_model_from_tar</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">dskey</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">dataset_key</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">train_models_from_dataset_keys</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">pred_type</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">pred_type</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;Unrecoganized input </span><span class="si">%s</span><span class="s1">&#39;</span><span class="o">%</span><span class="nb">input</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># 3 try to process &#39;input&#39; as uuid</span>
+            <span class="n">train_model_from_tracker</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;Unrecognized input </span><span class="si">%s</span><span class="s1">&#39;</span><span class="o">%</span><span class="nb">input</span><span class="p">)</span>
 
     <span class="n">elapsed_time_secs</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Execution took: </span><span class="si">%s</span><span class="s2"> secs&quot;</span> <span class="o">%</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="nb">round</span><span class="p">(</span><span class="n">elapsed_time_secs</span><span class="p">)))</span></div>

@@ -65,11 +65,16 @@ def run_command(shell_script, python_path, script_dir, params):
 def gen_maestro_command(python_path, script_dir, params):
     """
     Generates a string that can be fed into a command line.
+
     Args:
         shell_script: Name of shell script to run
+
         python_path: Path to python version
+
         script_dir: Directory where script lives
+
         params: parameters in dictionary format
+
     Returns:
         str: Formatted command in the form of a string
 
@@ -161,12 +166,16 @@ def permutate_NNlayer_combo_params(layer_nums, node_nums, dropout_list, max_fina
     to generate combos of layer_sizes(str) and dropouts(str) params from the layer_nums (list), node_nums (list), dropout_list (list).
 
     The permutation will make the NN funnel shaped, so that the next layer can only be smaller or of the same size of the current layer.
+
     Example:
+
     permutate_NNlayer_combo_params([2], [4,8,16], [0], 16)
     returns [[16, 4], [16, 8], [8,4]] [[0,0],[0,0],[0,0]]
 
     If there are duplicates of the same size, it will create consecutive layers of the same size.
+
     Example:
+
     permutate_NNlayer_combo_params([2], [4,8,8], [0], 16)
     returns [[8, 8], [8, 4]] [[0,0],[0,0]]
 
@@ -247,7 +256,6 @@ class HyperparameterSearch(object):
         """
 
         Args:
-
             params: The input hyperparameter parameters
 
             hyperparam_uuid: Optional, UUID for hyperparameter run if you want to group this run with a previous run.
@@ -598,8 +606,11 @@ class HyperparameterSearch(object):
 
         Args:
             dataset_key: key for dataset to split
+
             bucket: datastore-specific user group bucket
+
             splitter: Type of splitter to use to split the dataset
+
             split_combo: tuple of form (split_valid_frac, split_test_frac)
 
         Returns:
@@ -1324,26 +1335,40 @@ class HyperOptSearch():
     To use HyperOptSearch, modify the config json file as follows:
 
         serach_type: use "hyperopt"
+
         result_dir: use two directories (recommended), separated by comma, 1st one will be used to save the best model tarball, 2nd one will be used to store all models during the process.  e.g. "result_dir": "/path/of/the/final/dir,/path/of/the/temp/dir"
+
         model_type: RF or NN, also add max number of HyperOptSearch evaluations, e.g. "model_type": "RF|100".  If no max number provide, the default 100 will be used.  #For NN models only
+
         lr: specify learning rate searching method and related parameters as the following scheme.
             method|parameter1,parameter2...
+
             method: supported searching schemes in HyperOpt include: choice, uniform, loguniform, and uniformint, see https://github.com/hyperopt/hyperopt/wiki/FMin for details.
+
             parameters:
                 choice: all values to search from, separated by comma, e.g. choice|0.0001,0.0005,0.0002,0.001
+
                 uniform: low and high bound of the interval to serach, e.g. uniform|0.00001,0.001
+
                 loguniform: low and high bound (in natural log) of the interval to serach, e.g. loguniform|-13.8,-6.9
+
                 uniformint: low and high bound of the interval to serach, e.g. uniformint|8,256
+
         ls: similar as learning_rate, specify number of layers and size of each one.
+
             method|num_layers|parameter1,parameter2...
             e.g. choice|2|8,16,32,64,128,256,512  #this will generate a two-layer config, each layer takes size from the list "8,16,32,64,128,256,512"
             e.g. uniformint|3|8,512  #this will generate a three-layer config, each layer takes size from the uniform interval [8,512]
+
         dp: similar as layer_sizes, just make sure dropouts and layer_sizes should have the same number of layers.
+
             e.g. uniform|3|0,0.4   #this will generate a three-layer config, each layer takes size from the uniform interval [0,0.4]
 
         #For RF models only
         rfe: rf_estimator, same structure as the learning rate above, e.g. uniformint|64,512  #take integer values from a uniform interval [64,512]
+
         rfd: rf_max_depth, e.g. uniformint|8,256
+
         rff: rf_max_feature, e.g. uniformint|8,128
     """
     def __init__(self, params):

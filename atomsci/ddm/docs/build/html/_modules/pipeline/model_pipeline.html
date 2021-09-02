@@ -7,12 +7,14 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>pipeline.model_pipeline &mdash; ATOM Data-Driven Modeling Pipeline 1.1 documentation</title>
+  <title>pipeline.model_pipeline &mdash; ATOM Data-Driven Modeling Pipeline 1.2.0 documentation</title>
   
 
   
   <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
 
   
   
@@ -29,6 +31,7 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
         <script src="../../_static/jquery.js"></script>
         <script src="../../_static/underscore.js"></script>
         <script src="../../_static/doctools.js"></script>
@@ -61,7 +64,7 @@
             
             
               <div class="version">
-                1.1
+                1.2.0
               </div>
             
           
@@ -190,17 +193,21 @@
 
 <span class="kn">from</span> <span class="nn">atomsci.ddm.utils</span> <span class="kn">import</span> <span class="n">datastore_functions</span> <span class="k">as</span> <span class="n">dsf</span>
 
-<span class="k">if</span> <span class="s1">&#39;site-packages&#39;</span> <span class="ow">in</span> <span class="n">dsf</span><span class="o">.</span><span class="vm">__file__</span><span class="p">:</span> <span class="c1"># install_dev.sh points to github directory</span>
+<span class="kn">import</span> <span class="nn">pkg_resources</span>
+<span class="k">if</span> <span class="p">(</span><span class="s1">&#39;site-packages&#39;</span> <span class="ow">in</span> <span class="n">dsf</span><span class="o">.</span><span class="vm">__file__</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="s1">&#39;dist-packages&#39;</span> <span class="ow">in</span> <span class="n">dsf</span><span class="o">.</span><span class="vm">__file__</span><span class="p">):</span> <span class="c1"># install_dev.sh points to github directory</span>
     <span class="kn">import</span> <span class="nn">subprocess</span>
     <span class="kn">import</span> <span class="nn">json</span>
     <span class="n">data</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">check_output</span><span class="p">([</span><span class="s2">&quot;pip&quot;</span><span class="p">,</span> <span class="s2">&quot;list&quot;</span><span class="p">,</span> <span class="s2">&quot;--format&quot;</span><span class="p">,</span> <span class="s2">&quot;json&quot;</span><span class="p">])</span>
     <span class="n">parsed_results</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
     <span class="n">ampl_version</span><span class="o">=</span><span class="nb">next</span><span class="p">(</span><span class="n">item</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">parsed_results</span> <span class="k">if</span> <span class="n">item</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;atomsci-ampl&quot;</span><span class="p">)[</span><span class="s1">&#39;version&#39;</span><span class="p">]</span>
-<span class="k">else</span><span class="p">:</span> <span class="c1"># install.sh points to installation directory</span>
-    <span class="kn">import</span> <span class="nn">pkg_resources</span>
-    <span class="n">VERSION_fn</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
-        <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">pkg_resources</span><span class="o">.</span><span class="n">resource_filename</span><span class="p">(</span><span class="s1">&#39;atomsci&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)),</span>
-        <span class="s1">&#39;VERSION&#39;</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">VERSION_fn</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">pkg_resources</span><span class="o">.</span><span class="n">resource_filename</span><span class="p">(</span><span class="s1">&#39;atomsci&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)),</span>
+            <span class="s1">&#39;VERSION&#39;</span><span class="p">)</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="n">VERSION_fn</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="vm">__file__</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">,</span> <span class="n">maxsplit</span><span class="o">=</span><span class="mi">4</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="s1">&#39;/VERSION&#39;</span>
+
     <span class="n">f</span><span class="o">=</span><span class="nb">open</span><span class="p">(</span><span class="n">VERSION_fn</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
     <span class="n">ampl_version</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
     <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
@@ -270,6 +277,36 @@
         <span class="n">pred_kmean_dis_local_density</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">pred_km_dis</span> <span class="o">/</span> <span class="n">ave_nei_dis</span>
     <span class="k">return</span> <span class="n">pred_kmean_dis_local_density</span></div>
 
+<span class="c1"># ---------------------------------------------</span>
+<div class="viewcode-block" id="build_tarball_name"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_pipeline.build_tarball_name">[docs]</a><span class="k">def</span> <span class="nf">build_tarball_name</span><span class="p">(</span><span class="n">dataset_name</span><span class="p">,</span> <span class="n">model_uuid</span><span class="p">,</span> <span class="n">result_dir</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; format for building model tarball names</span>
+<span class="sd">    Creates the file name for a model tarball from dataset key and model_uuid</span>
+<span class="sd">    with optional result_dir.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        dataset_name (str): The dataset_name used to train this model</span>
+<span class="sd">        model_uuid (str): The model_uuid assigned to this model</span>
+<span class="sd">        result_dir (str): Optional directory for this model</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        The path or filename of the tarball for this model</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">model_tarball_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">result_dir</span><span class="p">),</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">_model_</span><span class="si">{}</span><span class="s2">.tar.gz&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dataset_name</span><span class="p">,</span> <span class="n">model_uuid</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">model_tarball_path</span></div>
+
+<span class="c1"># ---------------------------------------------</span>
+<div class="viewcode-block" id="build_dataset_name"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_pipeline.build_dataset_name">[docs]</a><span class="k">def</span> <span class="nf">build_dataset_name</span><span class="p">(</span><span class="n">dataset_key</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Returns dataset_name when given dataset_key</span>
+<span class="sd">    Returns the dataset_name when given a dataset_key. Assumes that the dataset_name is a path</span>
+<span class="sd">    and ends with an extension</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        dataset_key (str): A dataset_key</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        The dataset_name which is the base name stripped of extensions</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">dataset_key</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span></div>
 
 <span class="c1"># ******************************************************************************************************************************</span>
 
@@ -354,7 +391,7 @@
 
         <span class="c1"># Default dataset_name parameter from dataset_key</span>
         <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">dataset_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">dataset_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">dataset_key</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">dataset_name</span> <span class="o">=</span> <span class="n">build_dataset_name</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">dataset_key</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">ds_client</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">datastore</span><span class="p">:</span>
@@ -396,7 +433,7 @@
             <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">output_dir</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">output_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">output_dir</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">model_tarball_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">model_tarball_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">result_dir</span><span class="p">),</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">_model_</span><span class="si">{}</span><span class="s2">.tar.gz&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">dataset_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">model_uuid</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">model_tarball_path</span> <span class="o">=</span> <span class="n">build_tarball_name</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">dataset_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">model_uuid</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">result_dir</span><span class="p">)</span>
 
         <span class="c1"># ****************************************************************************************</span>
 
@@ -503,8 +540,7 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">model_metadata</span> <span class="o">=</span> <span class="n">model_metadata</span></div>
 
-        <span class="c1"># ****************************************************************************************</span>
-
+    <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="ModelPipeline.save_model_metadata"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_pipeline.ModelPipeline.save_model_metadata">[docs]</a>    <span class="k">def</span> <span class="nf">save_model_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">retries</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">sleep_sec</span><span class="o">=</span><span class="mi">60</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Saves the data needed to reload the model in the model tracker DB or in a local tarball file.</span>
@@ -522,49 +558,39 @@
 <span class="sd">        Side effects:</span>
 <span class="sd">            Saves the model metadata and parameters into the model tracker DB or a local tarball file.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># Dump the model parameters and metadata to a JSON file</span>
+        <span class="n">out_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output_dir</span><span class="p">,</span> <span class="s1">&#39;model_metadata.json&#39;</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">out_file</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">out</span><span class="p">:</span>
+            <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model_metadata</span><span class="p">,</span> <span class="n">out</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">separators</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">,</span> <span class="s1">&#39;: &#39;</span><span class="p">))</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">save_results</span><span class="p">:</span>
-            <span class="c1"># Model tracker saves the model state in the datastore as well as saving the metadata</span>
+            <span class="c1"># Model tracker saves the model state and metadata in the datastore as well as saving the metadata</span>
             <span class="c1"># in the model zoo.</span>
             <span class="n">retry</span> <span class="o">=</span> <span class="kc">True</span>
             <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
             <span class="k">while</span> <span class="n">retry</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">retries</span><span class="p">:</span>
+                    <span class="c1"># TODO: Try to distinguish unrecoverable exceptions (e.g., model tracker is down) from ones for</span>
+                    <span class="c1"># which retrying is worthwhile.</span>
                     <span class="k">try</span><span class="p">:</span>
                         <span class="n">trkr</span><span class="o">.</span><span class="n">save_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">collection_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">collection_name</span><span class="p">)</span>
                         <span class="c1"># Best model needs to be reloaded for predictions, so does not work to remove best_model_dir</span>
                         <span class="n">retry</span> <span class="o">=</span> <span class="kc">False</span>
                     <span class="k">except</span><span class="p">:</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Need to sleep and retry saving model&quot;</span><span class="p">)</span>
-                        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">sleep_sec</span><span class="p">)</span>
-                        <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+                        <span class="k">raise</span>
+                        <span class="c1">#self.log.warning(&quot;Need to sleep and retry saving model&quot;)</span>
+                        <span class="c1">#time.sleep(sleep_sec)</span>
+                        <span class="c1">#i += 1</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">out_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output_dir</span><span class="p">,</span> <span class="s1">&#39;model_metadata.json&#39;</span><span class="p">)</span>
-                    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">out_file</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">out</span><span class="p">:</span>
-                        <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model_metadata</span><span class="p">,</span> <span class="n">out</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">separators</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">,</span> <span class="s1">&#39;: &#39;</span><span class="p">))</span>
-                        <span class="n">out</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Had to write model metadata to file </span><span class="si">%s</span><span class="s1"> because tracker failed&#39;</span> <span class="o">%</span> <span class="n">out_file</span><span class="p">)</span>
                     <span class="n">retry</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="c1"># If save_results is false, save the model metadata to a JSON file</span>
-            <span class="n">out_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output_dir</span><span class="p">,</span> <span class="s1">&#39;model_metadata.json&#39;</span><span class="p">)</span>
-            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">out_file</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">out</span><span class="p">:</span>
-                <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model_metadata</span><span class="p">,</span> <span class="n">out</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">separators</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">,</span> <span class="s1">&#39;: &#39;</span><span class="p">))</span>
-                <span class="n">out</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Wrote model metadata to file </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">out_file</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">model_wrapper</span><span class="o">.</span><span class="n">_clean_up_excess_files</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model_wrapper</span><span class="o">.</span><span class="n">model_dir</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">save_results</span><span class="p">:</span>
+            <span class="c1"># If not using the model tracker, save the model state and metadata in a tarball in the filesystem</span>
             <span class="n">trkr</span><span class="o">.</span><span class="n">save_model_tarball</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output_dir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">model_tarball_path</span><span class="p">)</span>
-        <span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">        for root, dirs, files in os.walk(self.params.result_dir):</span>
-<span class="sd">            for d in dirs:</span>
-<span class="sd">                model_datasets.set_group_permissions(self.params.system, os.path.join(root, d), self.params.data_owner,</span>
-<span class="sd">                                                     self.params.data_owner_group)</span>
-<span class="sd">            for f in files:</span>
-<span class="sd">                model_datasets.set_group_permissions(self.params.system, os.path.join(root, f), self.params.data_owner,</span>
-<span class="sd">                                                     self.params.data_owner_group)</span>
-<span class="sd">        &#39;&#39;&#39;</span></div>
-        <span class="c1"># ****************************************************************************************</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model_wrapper</span><span class="o">.</span><span class="n">_clean_up_excess_files</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model_wrapper</span><span class="o">.</span><span class="n">model_dir</span><span class="p">)</span></div>
 
+    <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="ModelPipeline.create_prediction_metadata"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_pipeline.ModelPipeline.create_prediction_metadata">[docs]</a>    <span class="k">def</span> <span class="nf">create_prediction_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prediction_results</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Initializes a data structure to hold performance metrics from a model run on a new dataset,</span>
 <span class="sd">        to be stored in the model tracker DB. Note that this isn&#39;t used</span>
@@ -612,8 +638,8 @@
     <span class="c1"># ****************************************************************************************</span>
 
 <div class="viewcode-block" id="ModelPipeline.save_metrics"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_pipeline.ModelPipeline.save_metrics">[docs]</a>    <span class="k">def</span> <span class="nf">save_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_metrics</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">retries</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">sleep_sec</span><span class="o">=</span><span class="mi">60</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Saves the given model_metrics dictionary either to the model tracker database, or</span>
-<span class="sd">        to a JSON file on disk.</span>
+        <span class="sd">&quot;&quot;&quot;Saves the given model_metrics dictionary to a JSON file on disk, and also to the model tracker </span>
+<span class="sd">        database if we&#39;re using it.</span>
 
 <span class="sd">        If writing to disk, outputs to a JSON file &lt;prefix&gt;_model_metrics.json in the current output directory.</span>
 
@@ -621,8 +647,7 @@
 <span class="sd">            model_metrics (dict or list): Either a dictionary containing the model performance metrics, or a</span>
 <span class="sd">            list of dictionaries with metrics for each training label and subset.</span>
 
-<span class="sd">            prefix: An optional prefix to include in the JSON filename, only used if writing to disk (i.e., if</span>
-<span class="sd">            self.params.save_results is False).</span>
+<span class="sd">            prefix (str): An optional prefix to include in the JSON filename</span>
 
 <span class="sd">            retries (int): Number of retries to save to model tracker DB, if save_results is True.</span>
 
@@ -631,55 +656,41 @@
 <span class="sd">        Side effects:</span>
 <span class="sd">            Saves the model_metrics dictionary to the model tracker database, or writes out a .json file</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">save_results</span><span class="p">:</span>
-            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">model_metrics</span><span class="p">)</span> <span class="o">==</span> <span class="nb">list</span><span class="p">:</span>
-                <span class="k">for</span> <span class="n">metrics</span> <span class="ow">in</span> <span class="n">model_metrics</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">save_metrics</span><span class="p">(</span><span class="n">metrics</span><span class="p">,</span> <span class="n">retries</span><span class="o">=</span><span class="n">retries</span><span class="p">,</span> <span class="n">sleep_sec</span><span class="o">=</span><span class="n">sleep_sec</span><span class="p">)</span>
-                <span class="k">return</span>
 
-            <span class="n">retry</span> <span class="o">=</span> <span class="kc">True</span>
-            <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
-            <span class="k">while</span> <span class="n">retry</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">retries</span><span class="p">:</span>
-                    <span class="k">try</span><span class="p">:</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">mlmt_client</span><span class="o">.</span><span class="n">save_metrics</span><span class="p">(</span><span class="n">collection_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">collection_name</span><span class="p">,</span>
-                                                      <span class="n">model_uuid</span><span class="o">=</span><span class="n">model_metrics</span><span class="p">[</span><span class="s1">&#39;model_uuid&#39;</span><span class="p">],</span>
-                                                      <span class="n">model_metrics</span><span class="o">=</span><span class="n">model_metrics</span><span class="p">)</span>
-                        <span class="n">retry</span> <span class="o">=</span> <span class="kc">False</span>
-                    <span class="k">except</span><span class="p">:</span>
-                        <span class="k">raise</span>
-                        <span class="c1"># TODO: uncomment when debugged</span>
-                        <span class="c1">#self.log.warning(&quot;Need to sleep and retry saving metrics&quot;)</span>
-                        <span class="c1">#time.sleep(sleep_sec)</span>
-                        <span class="c1">#i += 1</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="k">if</span> <span class="n">prefix</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                        <span class="n">out_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output_dir</span><span class="p">,</span> <span class="s1">&#39;model_metrics.json&#39;</span><span class="p">)</span>
-                    <span class="k">else</span><span class="p">:</span>
-                        <span class="n">out_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output_dir</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_model_metrics.json&#39;</span> <span class="o">%</span> <span class="n">prefix</span><span class="p">)</span>
-                    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">out_file</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">out</span><span class="p">:</span>
-                        <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">model_metrics</span><span class="p">,</span> <span class="n">out</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">separators</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">,</span> <span class="s1">&#39;: &#39;</span><span class="p">))</span>
-                        <span class="n">out</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Had to write model metrics to file </span><span class="si">%s</span><span class="s1"> because tracker failed&#39;</span> <span class="o">%</span> <span class="n">out_file</span><span class="p">)</span>
-                    <span class="n">retry</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="c1"># First save the metrics to disk</span>
+        <span class="k">if</span> <span class="n">prefix</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">out_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output_dir</span><span class="p">,</span> <span class="s1">&#39;model_metrics.json&#39;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">prefix</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">out_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output_dir</span><span class="p">,</span> <span class="s1">&#39;model_metrics.json&#39;</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">out_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output_dir</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_model_metrics.json&#39;</span> <span class="o">%</span> <span class="n">prefix</span><span class="p">)</span>
-            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">out_file</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">out</span><span class="p">:</span>
-                <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">model_metrics</span><span class="p">,</span> <span class="n">out</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">separators</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">,</span> <span class="s1">&#39;: &#39;</span><span class="p">))</span>
-                <span class="n">out</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Wrote model metrics to file </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">out_file</span><span class="p">)</span>
-            <span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">            for root, dirs, files in os.walk(self.params.result_dir):</span>
-<span class="sd">                for d in dirs:</span>
-<span class="sd">                    model_datasets.set_group_permissions(self.params.system, os.path.join(root, d),</span>
-<span class="sd">                                                         self.params.data_owner, self.params.data_owner_group)</span>
-<span class="sd">                for f in files:</span>
-<span class="sd">                    model_datasets.set_group_permissions(self.params.system, os.path.join(root, f),</span>
-<span class="sd">                                                         self.params.data_owner, self.params.data_owner_group)</span>
-<span class="sd">            &#39;&#39;&#39;</span></div>
+            <span class="n">out_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output_dir</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_model_metrics.json&#39;</span> <span class="o">%</span> <span class="n">prefix</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">out_file</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">out</span><span class="p">:</span>
+            <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">model_metrics</span><span class="p">,</span> <span class="n">out</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">separators</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">,</span> <span class="s1">&#39;: &#39;</span><span class="p">))</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">save_results</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">model_metrics</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">list</span><span class="p">:</span>
+                <span class="n">model_metrics</span> <span class="o">=</span> <span class="p">[</span><span class="n">model_metrics</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">metrics</span> <span class="ow">in</span> <span class="n">model_metrics</span><span class="p">:</span>
+                <span class="n">retry</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="k">while</span> <span class="n">retry</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">retries</span><span class="p">:</span>
+                        <span class="k">try</span><span class="p">:</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">mlmt_client</span><span class="o">.</span><span class="n">save_metrics</span><span class="p">(</span><span class="n">collection_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">collection_name</span><span class="p">,</span>
+                                                        <span class="n">model_uuid</span><span class="o">=</span><span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;model_uuid&#39;</span><span class="p">],</span>
+                                                        <span class="n">model_metrics</span><span class="o">=</span><span class="n">metrics</span><span class="p">)</span>
+                            <span class="n">retry</span> <span class="o">=</span> <span class="kc">False</span>
+                        <span class="k">except</span><span class="p">:</span>
+                            <span class="k">raise</span>
+                            <span class="c1"># TODO: uncomment when debugged</span>
+                            <span class="c1"># TODO: Need to distinguish between &quot;temporary&quot; exceptions that justify</span>
+                            <span class="c1"># retries and longer-term exceptions indicating that the model tracker server</span>
+                            <span class="c1"># is down.</span>
+                            <span class="c1">#self.log.warning(&quot;Need to sleep and retry saving metrics&quot;)</span>
+                            <span class="c1">#time.sleep(sleep_sec)</span>
+                            <span class="c1">#i += 1</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">retry</span> <span class="o">=</span> <span class="kc">False</span></div>
+
     <span class="c1"># ****************************************************************************************</span>
 
 <div class="viewcode-block" id="ModelPipeline.split_dataset"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_pipeline.ModelPipeline.split_dataset">[docs]</a>    <span class="k">def</span> <span class="nf">split_dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">featurization</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -729,6 +740,11 @@
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">run_mode</span> <span class="o">=</span> <span class="s1">&#39;training&#39;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">model_type</span> <span class="o">==</span> <span class="s2">&quot;hybrid&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">featurizer</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;graphconv&quot;</span><span class="p">]:</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Hybrid model doesn&#39;t support GraphConv featurizer now.&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">response_cols</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;The dataset of a hybrid model should have two response columns, one for activities, one for concentrations.&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">featurization</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">featurization</span> <span class="o">=</span> <span class="n">feat</span><span class="o">.</span><span class="n">create_featurization</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">featurization</span> <span class="o">=</span> <span class="n">featurization</span>
@@ -746,7 +762,7 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">model_wrapper</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 
-        <span class="c1"># Save the metadata for the trained model</span>
+        <span class="c1"># Create the metadata for the trained model</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">create_model_metadata</span><span class="p">()</span>
         <span class="c1"># Save the performance metrics for each training data subset, for the best epoch</span>
         <span class="n">training_metrics</span> <span class="o">=</span> <span class="p">[]</span>
@@ -758,15 +774,17 @@
                     <span class="n">subset</span><span class="o">=</span><span class="n">subset</span><span class="p">)</span>
                 <span class="n">training_dict</span><span class="p">[</span><span class="s1">&#39;prediction_results&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_wrapper</span><span class="o">.</span><span class="n">get_pred_results</span><span class="p">(</span><span class="n">subset</span><span class="p">,</span> <span class="n">label</span><span class="p">)</span>
                 <span class="n">training_metrics</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">training_dict</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">model_metadata</span><span class="p">[</span><span class="s1">&#39;training_metrics&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">training_metrics</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">save_model_metadata</span><span class="p">()</span>
 
         <span class="c1"># Save the model metrics separately</span>
         <span class="k">for</span> <span class="n">training_dict</span> <span class="ow">in</span> <span class="n">training_metrics</span><span class="p">:</span>
             <span class="n">training_dict</span><span class="p">[</span><span class="s1">&#39;model_uuid&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">model_uuid</span>
             <span class="n">training_dict</span><span class="p">[</span><span class="s1">&#39;time_run&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
             <span class="n">training_dict</span><span class="p">[</span><span class="s1">&#39;input_dataset&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_metadata</span><span class="p">[</span><span class="s1">&#39;training_dataset&#39;</span><span class="p">]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">save_metrics</span><span class="p">(</span><span class="n">training_metrics</span><span class="p">)</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">save_metrics</span><span class="p">(</span><span class="n">training_metrics</span><span class="p">)</span>
+
+        <span class="c1"># Save the model metadata in the model tracker or the filesystem</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model_metadata</span><span class="p">[</span><span class="s1">&#39;training_metrics&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">training_metrics</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">save_model_metadata</span><span class="p">()</span></div>
 
 
     <span class="c1"># ****************************************************************************************</span>
@@ -830,105 +848,14 @@
     
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="ModelPipeline.predict_on_dataframe"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_pipeline.ModelPipeline.predict_on_dataframe">[docs]</a>    <span class="k">def</span> <span class="nf">predict_on_dataframe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dset_df</span><span class="p">,</span> <span class="n">is_featurized</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">contains_responses</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">AD_method</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">dist_metric</span><span class="o">=</span><span class="s2">&quot;euclidean&quot;</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Compute predicted responses from a pretrained model on a set of compounds listed in</span>
-<span class="sd">        a data frame. the data frame should contain, at minimum, a column of compound IDs; if</span>
-<span class="sd">        SMILES strings are needed to compute features, they should be provided as well.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            dset_df (Dataframe): A data frame containing compound IDs (if the compounds are to be</span>
-<span class="sd">            featurized using descriptors) and/or SMILES strings (if the compounds are to be</span>
-<span class="sd">            featurized using ECFP fingerprints or graph convolution) and/or precomputed features.</span>
-<span class="sd">            The column names for the compound ID and SMILES columns should match id_col and smiles_col,</span>
-<span class="sd">            respectively, in the model parameters.</span>
-
-<span class="sd">            is_featurized (bool): True if dset_df contains precomputed feature columns. If so,</span>
-<span class="sd">            dset_df must contain *all* of the feature columns defined by the featurizer that was</span>
-<span class="sd">            used when the model was trained.</span>
-
-<span class="sd">            contains_responses (bool): True if dataframe contains response values</span>
-
-<span class="sd">            AD_method (str): with default, Applicable domain (AD) index will not be calcualted, use </span>
-<span class="sd">            z_score or local_density to choose the method to calculate AD index.</span>
-
-<span class="sd">            k (int): number of the neareast neighbors to evaluate the AD index, default is 5.</span>
-
-<span class="sd">            dist_metric (str): distance metrics, valid values are &#39;cityblock&#39;, &#39;cosine&#39;, &#39;euclidean&#39;, &#39;jaccard&#39;, &#39;manhattan&#39;</span>
-<span class="sd">        returns:</span>
-<span class="sd">            result_df (dataframe): data frame indexed by compound ids containing a column of smiles</span>
-<span class="sd">            strings, with additional columns containing the predicted values for each response variable.</span>
-<span class="sd">            If the model was trained to predict uncertainties, the returned data frame will also</span>
-<span class="sd">            include standard deviation columns (named &lt;response_col&gt;_std) for each response variable.</span>
-<span class="sd">            The result data frame may not include all the compounds in the input dataset, because</span>
-<span class="sd">            the featurizer may not be able to featurize all of them.</span>
-
+        <span class="sd">&quot;&quot;&quot;DEPRECATED</span>
+<span class="sd">        Call predict_full_dataset instead.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;predict_on_dataframe is deprecated. Please call predict_full_dataset instead.&quot;</span><span class="p">)</span>
+        <span class="n">result_df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">predict_full_dataset</span><span class="p">(</span><span class="n">dset_df</span><span class="p">,</span> <span class="n">is_featurized</span><span class="o">=</span><span class="n">is_featurized</span><span class="p">,</span> 
+                <span class="n">contains_responses</span><span class="o">=</span><span class="n">contains_responses</span><span class="p">,</span> <span class="n">AD_method</span><span class="o">=</span><span class="n">AD_method</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="n">k</span><span class="p">,</span>
+                <span class="n">dist_metric</span><span class="o">=</span><span class="n">dist_metric</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">run_mode</span> <span class="o">=</span> <span class="s1">&#39;prediction&#39;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">featurization</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_wrapper</span><span class="o">.</span><span class="n">featurization</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">model_datasets</span><span class="o">.</span><span class="n">create_minimal_dataset</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">featurization</span><span class="p">,</span> <span class="n">contains_responses</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">get_dataset_tasks</span><span class="p">(</span><span class="n">dset_df</span><span class="p">):</span>
-            <span class="c1"># Shouldn&#39;t happen - response_cols should already be set in saved model parameters</span>
-            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;response_cols missing from model params&quot;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">get_featurized_data</span><span class="p">(</span><span class="n">dset_df</span><span class="p">,</span> <span class="n">is_featurized</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">dataset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_wrapper</span><span class="o">.</span><span class="n">transform_dataset</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">dataset</span><span class="p">)</span>
-
-        <span class="c1"># Get the predictions and standard deviations, if calculated, as numpy arrays</span>
-        <span class="n">preds</span><span class="p">,</span> <span class="n">stds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_wrapper</span><span class="o">.</span><span class="n">generate_predictions</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">dataset</span><span class="p">)</span>
-        <span class="n">result_df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">attr</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-
-        <span class="c1"># Including the response_val name in the output makes it difficult to do looped plotting.</span>
-        <span class="c1"># We can talk about best way to handle this.</span>
-
-        <span class="k">if</span> <span class="n">contains_responses</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">colname</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">response_cols</span><span class="p">):</span>
-                <span class="n">result_df</span><span class="p">[</span><span class="s2">&quot;actual&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">vals</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span>
-        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">colname</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">response_cols</span><span class="p">):</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">prediction_type</span> <span class="o">==</span> <span class="s1">&#39;regression&#39;</span><span class="p">:</span>
-                <span class="n">result_df</span><span class="p">[</span><span class="s2">&quot;pred&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">preds</span><span class="p">[:,</span> <span class="n">i</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">class_probs</span> <span class="o">=</span> <span class="n">preds</span><span class="p">[:,</span> <span class="n">i</span><span class="p">,</span> <span class="p">:]</span>
-                <span class="n">result_df</span><span class="p">[</span><span class="s2">&quot;pred&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">class_probs</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">uncertainty</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">prediction_type</span> <span class="o">==</span> <span class="s1">&#39;regression&#39;</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">colname</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">response_cols</span><span class="p">):</span>
-                <span class="n">std_colname</span> <span class="o">=</span> <span class="s1">&#39;std&#39;</span>
-                <span class="n">result_df</span><span class="p">[</span><span class="n">std_colname</span><span class="p">]</span> <span class="o">=</span> <span class="n">stds</span><span class="p">[:,</span> <span class="n">i</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
-
-        <span class="k">if</span> <span class="n">AD_method</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">featurization</span><span class="o">.</span><span class="n">feat_type</span> <span class="o">!=</span> <span class="s2">&quot;graphconv&quot;</span><span class="p">:</span>
-                <span class="n">pred_data</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">X</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">run_mode</span> <span class="o">=</span> <span class="s1">&#39;training&#39;</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">load_featurize_data</span><span class="p">()</span>
-                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">train_valid_dsets</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-                    <span class="c1"># combine train and valid set for k-fold CV models</span>
-                    <span class="n">train_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">train_valid_dsets</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">train_valid_dsets</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">X</span><span class="p">))</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">train_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">train_valid_dsets</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">X</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;train_pair_dis&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;train_pair_dis_metric&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">train_pair_dis_metric</span> <span class="o">!=</span> <span class="n">dist_metric</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">calc_train_dset_pair_dis</span><span class="p">(</span><span class="n">metric</span><span class="o">=</span><span class="n">dist_metric</span><span class="p">)</span>
-
-                <span class="k">if</span> <span class="n">AD_method</span> <span class="o">==</span> <span class="s2">&quot;local_density&quot;</span><span class="p">:</span>
-                    <span class="n">result_df</span><span class="p">[</span><span class="s2">&quot;AD_index&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">calc_AD_kmean_local_density</span><span class="p">(</span><span class="n">train_data</span><span class="p">,</span> <span class="n">pred_data</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">train_dset_pair_distance</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">train_pair_dis</span><span class="p">,</span> <span class="n">dist_metric</span><span class="o">=</span><span class="n">dist_metric</span><span class="p">)</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">result_df</span><span class="p">[</span><span class="s2">&quot;AD_index&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">calc_AD_kmean_dist</span><span class="p">(</span><span class="n">train_data</span><span class="p">,</span> <span class="n">pred_data</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">train_dset_pair_distance</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">train_pair_dis</span><span class="p">,</span> <span class="n">dist_metric</span><span class="o">=</span><span class="n">dist_metric</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;GraphConv features are not plain vectors, AD index cannot be calculated.&quot;</span><span class="p">)</span>
-
-        <span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">        if contains_responses:</span>
-<span class="sd">            for i, colname in enumerate(self.params.response_cols):</span>
-<span class="sd">                result_df[&quot;%s_actual&quot; % colname] = self.data.vals[:,i]</span>
-<span class="sd">        for i, colname in enumerate(self.params.response_cols):</span>
-<span class="sd">            if self.params.prediction_type == &#39;regression&#39;:</span>
-<span class="sd">                result_df[&quot;%s_pred&quot; % colname] = preds[:,i,0]</span>
-<span class="sd">            else:</span>
-<span class="sd">                class_probs = preds[:,i,:]</span>
-<span class="sd">                result_df[&quot;%s_pred&quot; % colname] = np.argmax(class_probs, axis=1)</span>
-<span class="sd">        if self.params.uncertainty and self.params.prediction_type == &#39;regression&#39;:</span>
-<span class="sd">            for i, colname in enumerate(self.params.response_cols):</span>
-<span class="sd">                std_colname = &#39;%s_std&#39; % colname</span>
-<span class="sd">                result_df[std_colname] = stds[:,i,0]</span>
-<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">return</span> <span class="n">result_df</span></div>
 
     <span class="c1"># ****************************************************************************************</span>
@@ -972,7 +899,7 @@
         <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&#39;compound_id&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">smiles</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">smiles</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">),</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">smiles_col</span><span class="p">:</span> <span class="n">smiles</span><span class="p">,</span>
                         <span class="n">task</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">smiles</span><span class="p">))})</span>
-        <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">predict_on_dataframe</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">AD_method</span><span class="o">=</span><span class="n">AD_method</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="n">k</span><span class="p">,</span> <span class="n">dist_metric</span><span class="o">=</span><span class="n">dist_metric</span><span class="p">)</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">predict_full_dataset</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">AD_method</span><span class="o">=</span><span class="n">AD_method</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="n">k</span><span class="p">,</span> <span class="n">dist_metric</span><span class="o">=</span><span class="n">dist_metric</span><span class="p">)</span>
 
         <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">__stdout__</span>
 
@@ -1037,6 +964,12 @@
                     <span class="n">coldict</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">response_cols</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
             <span class="n">dset_df</span> <span class="o">=</span> <span class="n">dset_df</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="n">coldict</span><span class="p">)</span>
 
+        <span class="c1"># assign unique ids to each row</span>
+        <span class="n">old_ids</span> <span class="o">=</span> <span class="n">dset_df</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">id_col</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+        <span class="n">new_ids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dset_df</span><span class="p">)))</span>
+        <span class="n">id_map</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">([(</span><span class="n">i</span><span class="p">,</span> <span class="nb">id</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="nb">id</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">new_ids</span><span class="p">,</span> <span class="n">old_ids</span><span class="p">)])</span>
+        <span class="n">dset_df</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">id_col</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_ids</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">model_datasets</span><span class="o">.</span><span class="n">create_minimal_dataset</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">featurization</span><span class="p">,</span> <span class="n">contains_responses</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">get_dataset_tasks</span><span class="p">(</span><span class="n">dset_df</span><span class="p">):</span>
@@ -1050,25 +983,32 @@
         <span class="n">result_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">id_col</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">attr</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span><span class="p">,</span>
                                   <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">smiles_col</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">attr</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">smiles_col</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">})</span>
 
-        <span class="k">if</span> <span class="n">contains_responses</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">model_type</span> <span class="o">!=</span> <span class="s2">&quot;hybrid&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">contains_responses</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">colname</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">response_cols</span><span class="p">):</span>
+                    <span class="n">result_df</span><span class="p">[</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">_actual&quot;</span> <span class="o">%</span> <span class="n">colname</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">vals</span><span class="p">[:,</span><span class="n">i</span><span class="p">]</span>
             <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">colname</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">response_cols</span><span class="p">):</span>
-                <span class="n">result_df</span><span class="p">[</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">_actual&quot;</span> <span class="o">%</span> <span class="n">colname</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">vals</span><span class="p">[:,</span><span class="n">i</span><span class="p">]</span>
-        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">colname</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">response_cols</span><span class="p">):</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">prediction_type</span> <span class="o">==</span> <span class="s1">&#39;regression&#39;</span><span class="p">:</span>
-                <span class="n">result_df</span><span class="p">[</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">_pred&quot;</span> <span class="o">%</span> <span class="n">colname</span><span class="p">]</span> <span class="o">=</span> <span class="n">preds</span><span class="p">[:,</span><span class="n">i</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">class_probs</span> <span class="o">=</span> <span class="n">preds</span><span class="p">[:,</span><span class="n">i</span><span class="p">,:]</span>
-                <span class="n">nclass</span> <span class="o">=</span> <span class="n">preds</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
-                <span class="k">if</span> <span class="n">nclass</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
-                    <span class="n">result_df</span><span class="p">[</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">_prob&quot;</span> <span class="o">%</span> <span class="n">colname</span><span class="p">]</span> <span class="o">=</span> <span class="n">class_probs</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">prediction_type</span> <span class="o">==</span> <span class="s1">&#39;regression&#39;</span><span class="p">:</span>
+                    <span class="n">result_df</span><span class="p">[</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">_pred&quot;</span> <span class="o">%</span> <span class="n">colname</span><span class="p">]</span> <span class="o">=</span> <span class="n">preds</span><span class="p">[:,</span><span class="n">i</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nclass</span><span class="p">):</span>
-                        <span class="n">result_df</span><span class="p">[</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">_prob_</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">colname</span><span class="p">,</span> <span class="n">k</span><span class="p">)]</span> <span class="o">=</span> <span class="n">class_probs</span><span class="p">[:,</span><span class="n">k</span><span class="p">]</span>
-                <span class="n">result_df</span><span class="p">[</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">_pred&quot;</span> <span class="o">%</span> <span class="n">colname</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">class_probs</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">uncertainty</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">prediction_type</span> <span class="o">==</span> <span class="s1">&#39;regression&#39;</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">colname</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">response_cols</span><span class="p">):</span>
-                <span class="n">std_colname</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_std&#39;</span> <span class="o">%</span> <span class="n">colname</span>
-                <span class="n">result_df</span><span class="p">[</span><span class="n">std_colname</span><span class="p">]</span> <span class="o">=</span> <span class="n">stds</span><span class="p">[:,</span><span class="n">i</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="n">class_probs</span> <span class="o">=</span> <span class="n">preds</span><span class="p">[:,</span><span class="n">i</span><span class="p">,:]</span>
+                    <span class="n">nclass</span> <span class="o">=</span> <span class="n">preds</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="n">nclass</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                        <span class="n">result_df</span><span class="p">[</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">_prob&quot;</span> <span class="o">%</span> <span class="n">colname</span><span class="p">]</span> <span class="o">=</span> <span class="n">class_probs</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nclass</span><span class="p">):</span>
+                            <span class="n">result_df</span><span class="p">[</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">_prob_</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">colname</span><span class="p">,</span> <span class="n">k</span><span class="p">)]</span> <span class="o">=</span> <span class="n">class_probs</span><span class="p">[:,</span><span class="n">k</span><span class="p">]</span>
+                    <span class="n">result_df</span><span class="p">[</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">_pred&quot;</span> <span class="o">%</span> <span class="n">colname</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">class_probs</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">uncertainty</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">prediction_type</span> <span class="o">==</span> <span class="s1">&#39;regression&#39;</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">colname</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">response_cols</span><span class="p">):</span>
+                    <span class="n">std_colname</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_std&#39;</span> <span class="o">%</span> <span class="n">colname</span>
+                    <span class="n">result_df</span><span class="p">[</span><span class="n">std_colname</span><span class="p">]</span> <span class="o">=</span> <span class="n">stds</span><span class="p">[:,</span><span class="n">i</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># hybrid model should handled differently</span>
+            <span class="k">if</span> <span class="n">contains_responses</span><span class="p">:</span>
+                <span class="n">result_df</span><span class="p">[</span><span class="s2">&quot;actual_activity&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">vals</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span>
+                <span class="n">result_df</span><span class="p">[</span><span class="s2">&quot;concentration&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">vals</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span>
+            <span class="n">result_df</span><span class="p">[</span><span class="s2">&quot;pred&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">preds</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span>
 
         <span class="k">if</span> <span class="n">AD_method</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">featurization</span><span class="o">.</span><span class="n">feat_type</span> <span class="o">!=</span> <span class="s2">&quot;graphconv&quot;</span><span class="p">:</span>
@@ -1089,6 +1029,15 @@
                     <span class="n">result_df</span><span class="p">[</span><span class="s2">&quot;AD_index&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">calc_AD_kmean_dist</span><span class="p">(</span><span class="n">train_data</span><span class="p">,</span> <span class="n">pred_data</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">train_dset_pair_distance</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">train_pair_dis</span><span class="p">,</span> <span class="n">dist_metric</span><span class="o">=</span><span class="n">dist_metric</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;GraphConv features are not plain vectors, AD index cannot be calculated.&quot;</span><span class="p">)</span>
+
+        <span class="c1"># insert any missing ids</span>
+        <span class="n">missing_ids</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">new_ids</span><span class="p">)</span><span class="o">.</span><span class="n">difference</span><span class="p">(</span><span class="n">result_df</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">id_col</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">mi</span> <span class="ow">in</span> <span class="n">missing_ids</span><span class="p">:</span>
+            <span class="n">result_df</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">id_col</span><span class="p">:</span><span class="n">mi</span><span class="p">})</span>
+        <span class="c1"># sort in ascending order, recovering the original order</span>
+        <span class="n">result_df</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">id_col</span><span class="p">],</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="c1"># map back to original id values</span>
+        <span class="n">result_df</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">id_col</span><span class="p">]</span> <span class="o">=</span> <span class="n">result_df</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">id_col</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">id_map</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">result_df</span></div></div>
 
@@ -1268,15 +1217,11 @@
 
     <span class="n">pipeline</span><span class="o">.</span><span class="n">model_wrapper</span> <span class="o">=</span> <span class="n">model_wrapper</span><span class="o">.</span><span class="n">create_model_wrapper</span><span class="p">(</span><span class="n">pipeline</span><span class="o">.</span><span class="n">params</span><span class="p">,</span> <span class="n">featurization</span><span class="p">,</span>
                                                                 <span class="n">pipeline</span><span class="o">.</span><span class="n">ds_client</span><span class="p">)</span>
-    <span class="c1"># Get the tarball containing the saved model from the datastore, and extract it into model_dir.</span>
-    <span class="n">model_dataset_oid</span> <span class="o">=</span> <span class="n">metadata_dict</span><span class="p">[</span><span class="s1">&#39;model_parameters&#39;</span><span class="p">][</span><span class="s1">&#39;model_dataset_oid&#39;</span><span class="p">]</span>
-    <span class="c1"># TODO: Should we catch exceptions from retrieve_dataset_by_dataset_oid, or let them propagate?</span>
-    <span class="n">model_dir</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">retrieve_dataset_by_dataset_oid</span><span class="p">(</span><span class="n">model_dataset_oid</span><span class="p">,</span> <span class="n">client</span><span class="o">=</span><span class="n">ds_client</span><span class="p">,</span> <span class="n">return_metadata</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                                                    <span class="n">nrows</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">print_metadata</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                                                    <span class="n">tarpath</span><span class="o">=</span><span class="n">pipeline</span><span class="o">.</span><span class="n">model_wrapper</span><span class="o">.</span><span class="n">model_dir</span><span class="p">)</span>
+    <span class="c1"># Get the tarball containing the saved model from the datastore, and extract it into model_dir (old format)</span>
+    <span class="c1"># or output_dir (new format) according to the format of the tarball contents.</span>
 
-    <span class="c1"># pipeline.log.info(&quot;Extracted model tarball to %s&quot; % model_dir)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Extracted model tarball to </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">model_dir</span><span class="p">)</span>
+    <span class="n">extract_dir</span> <span class="o">=</span> <span class="n">trkr</span><span class="o">.</span><span class="n">extract_datastore_model_tarball</span><span class="p">(</span><span class="n">model_uuid</span><span class="p">,</span> <span class="n">model_params</span><span class="o">.</span><span class="n">model_bucket</span><span class="p">,</span> <span class="n">model_params</span><span class="o">.</span><span class="n">output_dir</span><span class="p">,</span> 
+                                         <span class="n">pipeline</span><span class="o">.</span><span class="n">model_wrapper</span><span class="o">.</span><span class="n">model_dir</span><span class="p">)</span>
 
     <span class="c1"># If that worked, reload the saved model training state</span>
 
@@ -1288,11 +1233,7 @@
     <span class="n">result_dict</span><span class="p">[</span><span class="s1">&#39;splitter&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">model_params</span><span class="o">.</span><span class="n">splitter</span>
     <span class="k">if</span> <span class="s1">&#39;descriptor_type&#39;</span> <span class="ow">in</span> <span class="n">model_params</span><span class="p">:</span>
         <span class="n">result_dict</span><span class="p">[</span><span class="s1">&#39;descriptor_type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">model_params</span><span class="o">.</span><span class="n">descriptor_type</span>
-    <span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">    # Return the pipeline to the calling function, if run as a generator</span>
-<span class="sd">    if generator:</span>
-<span class="sd">        yield pipeline</span>
-<span class="sd">    &#39;&#39;&#39;</span>
+
     <span class="k">return</span> <span class="n">result_dict</span></div>
 
 
@@ -1346,12 +1287,12 @@
     <span class="n">model_params</span><span class="o">.</span><span class="n">result_dir</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">result_dir</span>
     <span class="n">model_params</span><span class="o">.</span><span class="n">system</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">system</span>
 
+
     <span class="c1"># Check that buckets where model tarball and transformers were saved still exist. If not, try alt_bucket.</span>
-    <span class="n">trans_bucket_differs</span> <span class="o">=</span> <span class="p">(</span><span class="n">model_params</span><span class="o">.</span><span class="n">transformer_bucket</span> <span class="o">!=</span> <span class="n">model_params</span><span class="o">.</span><span class="n">model_bucket</span><span class="p">)</span>
     <span class="n">model_bucket_meta</span> <span class="o">=</span> <span class="n">ds_client</span><span class="o">.</span><span class="n">ds_buckets</span><span class="o">.</span><span class="n">get_buckets</span><span class="p">(</span><span class="n">buckets</span><span class="o">=</span><span class="p">[</span><span class="n">model_params</span><span class="o">.</span><span class="n">model_bucket</span><span class="p">])</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">model_bucket_meta</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="n">model_params</span><span class="o">.</span><span class="n">model_bucket</span> <span class="o">=</span> <span class="n">alt_bucket</span>
-    <span class="k">if</span> <span class="n">trans_bucket_differs</span><span class="p">:</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">model_params</span><span class="o">.</span><span class="n">transformer_bucket</span> <span class="o">!=</span> <span class="n">model_params</span><span class="o">.</span><span class="n">model_bucket</span><span class="p">):</span>
         <span class="n">trans_bucket_meta</span> <span class="o">=</span> <span class="n">ds_client</span><span class="o">.</span><span class="n">ds_buckets</span><span class="o">.</span><span class="n">get_buckets</span><span class="p">(</span><span class="n">buckets</span><span class="o">=</span><span class="p">[</span><span class="n">model_params</span><span class="o">.</span><span class="n">transformer_bucket</span><span class="p">])</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">trans_bucket_meta</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">model_params</span><span class="o">.</span><span class="n">transformer_bucket</span> <span class="o">=</span> <span class="n">alt_bucket</span>
@@ -1390,15 +1331,16 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="n">pipeline</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">CRITICAL</span><span class="p">)</span>
 
-    <span class="c1"># Get the tarball containing the saved model from the datastore, and extract it into model_dir.</span>
-    <span class="n">model_dataset_key</span> <span class="o">=</span> <span class="s1">&#39;model_</span><span class="si">%s</span><span class="s1">_tarball&#39;</span> <span class="o">%</span> <span class="n">model_uuid</span>
-    <span class="n">model_dir</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">retrieve_dataset_by_datasetkey</span><span class="p">(</span><span class="n">model_dataset_key</span><span class="p">,</span> <span class="n">bucket</span><span class="o">=</span><span class="n">model_params</span><span class="o">.</span><span class="n">model_bucket</span><span class="p">,</span>
-                                                   <span class="n">client</span><span class="o">=</span><span class="n">ds_client</span><span class="p">,</span> <span class="n">return_metadata</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                                                   <span class="n">nrows</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">print_metadata</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                                                   <span class="n">tarpath</span><span class="o">=</span><span class="n">pipeline</span><span class="o">.</span><span class="n">model_wrapper</span><span class="o">.</span><span class="n">model_dir</span><span class="p">)</span>
-    <span class="n">pipeline</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Extracted model tarball to </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">model_dir</span><span class="p">)</span>
+    <span class="c1"># Get the tarball containing the saved model from the datastore, and extract it into model_dir or output_dir,</span>
+    <span class="c1"># depending on what style of tarball it is (old or new respectively)</span>
+    <span class="n">extract_dir</span> <span class="o">=</span> <span class="n">trkr</span><span class="o">.</span><span class="n">extract_datastore_model_tarball</span><span class="p">(</span><span class="n">model_uuid</span><span class="p">,</span> <span class="n">model_params</span><span class="o">.</span><span class="n">model_bucket</span><span class="p">,</span> <span class="n">model_params</span><span class="o">.</span><span class="n">output_dir</span><span class="p">,</span> 
+                                         <span class="n">pipeline</span><span class="o">.</span><span class="n">model_wrapper</span><span class="o">.</span><span class="n">model_dir</span><span class="p">)</span>
 
-    <span class="c1"># If that worked, reload the saved model training state</span>
+    <span class="k">if</span> <span class="n">extract_dir</span> <span class="o">==</span> <span class="n">model_params</span><span class="o">.</span><span class="n">output_dir</span><span class="p">:</span>
+        <span class="c1"># Model came from new style tarball</span>
+        <span class="n">pipeline</span><span class="o">.</span><span class="n">model_wrapper</span><span class="o">.</span><span class="n">model_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">model_params</span><span class="o">.</span><span class="n">output_dir</span><span class="p">,</span> <span class="s1">&#39;best_model&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Reload the saved model training state</span>
     <span class="n">pipeline</span><span class="o">.</span><span class="n">model_wrapper</span><span class="o">.</span><span class="n">reload_model</span><span class="p">(</span><span class="n">pipeline</span><span class="o">.</span><span class="n">model_wrapper</span><span class="o">.</span><span class="n">model_dir</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">pipeline</span></div>
@@ -1512,7 +1454,11 @@
 <span class="c1"># ****************************************************************************************</span>
 
 <div class="viewcode-block" id="load_from_tracker"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_pipeline.load_from_tracker">[docs]</a><span class="k">def</span> <span class="nf">load_from_tracker</span><span class="p">(</span><span class="n">model_uuid</span><span class="p">,</span> <span class="n">collection_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">client</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">alt_bucket</span><span class="o">=</span><span class="s1">&#39;CRADA&#39;</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Create a ModelPipeline object using the metadata in the  model tracker.</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    DEPRECATED. Use the function create_prediction_pipeline() directly, or use the higher-level function</span>
+<span class="sd">    predict_from_model.predict_from_tracker_model().</span>
+
+<span class="sd">    Create a ModelPipeline object using the metadata in the  model tracker.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        model_uuid (str): The UUID of a trained model.</span>

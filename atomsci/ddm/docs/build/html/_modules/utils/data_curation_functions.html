@@ -1,0 +1,1656 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>utils.data_curation_functions &mdash; ATOM Data-Driven Modeling Pipeline 1.2.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> ATOM Data-Driven Modeling Pipeline
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.2.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/getting_started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/tests.html">Tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/running_ampl.html">Running AMPL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/advanced_ampl_usage.html">Advanced AMPL Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/advanced_installation.html">Advanced Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/advanced_testing.html">Advanced Testing</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">atomsci</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">ATOM Data-Driven Modeling Pipeline</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>utils.data_curation_functions</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for utils.data_curation_functions</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">data_curation_functions.py</span>
+
+<span class="sd">Extract Kevin&#39;s functions for curation of public datasets</span>
+<span class="sd">Modify them to match Jonathan&#39;s curation methods in notebook</span>
+<span class="sd">01/30/2020</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">matplotlib_venn</span> <span class="kn">import</span> <span class="n">venn3</span>
+<span class="kn">import</span> <span class="nn">seaborn</span> <span class="k">as</span> <span class="nn">sns</span>
+<span class="kn">import</span> <span class="nn">pdb</span>
+
+<span class="kn">from</span> <span class="nn">atomsci.ddm.utils.struct_utils</span> <span class="kn">import</span> <span class="n">base_smiles_from_smiles</span>
+<span class="kn">import</span> <span class="nn">atomsci.ddm.utils.datastore_functions</span> <span class="k">as</span> <span class="nn">dsf</span>
+<span class="c1">#from atomsci.ddm.utils import datastore_functions as dsf</span>
+<span class="kn">from</span> <span class="nn">atomsci.ddm.utils</span> <span class="kn">import</span> <span class="n">curate_data</span> <span class="k">as</span> <span class="n">curate</span>
+<span class="kn">import</span> <span class="nn">atomsci.ddm.utils.struct_utils</span> <span class="k">as</span> <span class="nn">struct_utils</span>
+<span class="kn">import</span> <span class="nn">atomsci.ddm.utils.curate_data</span> <span class="k">as</span> <span class="nn">curate_data</span><span class="o">,</span> <span class="nn">imp</span>
+
+<div class="viewcode-block" id="set_data_root"><a class="viewcode-back" href="../../utils.html#utils.data_curation_functions.set_data_root">[docs]</a><span class="k">def</span> <span class="nf">set_data_root</span><span class="p">(</span><span class="nb">dir</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Set global variables for data directories</span>
+
+<span class="sd">    Creates paths for DTC and Excape given a root data directory. </span>
+<span class="sd">    Global variables &#39;data_root&#39; and &#39;data_dirs&#39;. &#39;data_root&#39; is the</span>
+<span class="sd">    root data directory. &#39;data_dirs&#39; is a dictionary that maps &#39;DTC&#39; and &#39;Excape&#39;</span>
+<span class="sd">    to directores calcuated from &#39;data_root&#39;</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        dir (str): root data directory containing folds &#39;dtc&#39; and &#39;excape&#39;</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        None</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">global</span> <span class="n">data_root</span><span class="p">,</span> <span class="n">data_dirs</span>
+    <span class="n">data_root</span> <span class="o">=</span> <span class="nb">dir</span>
+    <span class="c1">#data_dirs = dict(ChEMBL = &#39;%s/ChEMBL&#39; % data_root, DTC = &#39;%s/DTC&#39; % data_root, </span>
+    <span class="c1">#                 Excape = &#39;%s/Excape&#39; % data_root)</span>
+    <span class="n">data_dirs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">DTC</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">/dtc&#39;</span> <span class="o">%</span> <span class="n">data_root</span><span class="p">,</span> 
+                     <span class="n">Excape</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">/excape&#39;</span> <span class="o">%</span> <span class="n">data_root</span><span class="p">)</span></div>
+
+
+<span class="n">log_var_map</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;IC50&#39;</span><span class="p">:</span> <span class="s1">&#39;pIC50&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;AC50&#39;</span><span class="p">:</span> <span class="s1">&#39;pIC50&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Solubility&#39;</span><span class="p">:</span> <span class="s1">&#39;logSolubility&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;CL&#39;</span><span class="p">:</span> <span class="s1">&#39;logCL&#39;</span>
+<span class="p">}</span>
+
+<span class="n">pub_dsets</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+    <span class="n">CYP2D6</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">IC50</span><span class="o">=</span><span class="s1">&#39;cyp2d6&#39;</span><span class="p">),</span>
+    <span class="n">CYP3A4</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">IC50</span><span class="o">=</span><span class="s1">&#39;cyp3a4&#39;</span><span class="p">),</span>
+    <span class="n">JAK1</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">IC50</span><span class="o">=</span><span class="s2">&quot;jak1&quot;</span><span class="p">),</span>
+    <span class="n">JAK2</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">IC50</span><span class="o">=</span><span class="s2">&quot;jak2&quot;</span><span class="p">),</span>
+    <span class="n">JAK3</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">IC50</span><span class="o">=</span><span class="s2">&quot;jak3&quot;</span><span class="p">),</span>
+<span class="p">)</span>
+
+
+<span class="c1"># ----------------------------------------------------------------------------------------------------------------------</span>
+<span class="c1"># Generic functions for all datasets</span>
+<span class="c1"># ----------------------------------------------------------------------------------------------------------------------</span>
+
+<span class="c1"># Note: Functions freq_table and labeled_freq_table have been moved to ddm.utils.curate_data module.</span>
+
+<span class="c1"># ----------------------------------------------------------------------------------------------------------------------</span>
+<div class="viewcode-block" id="standardize_relations"><a class="viewcode-back" href="../../utils.html#utils.data_curation_functions.standardize_relations">[docs]</a><span class="k">def</span> <span class="nf">standardize_relations</span><span class="p">(</span><span class="n">dset_df</span><span class="p">,</span> <span class="n">db</span><span class="o">=</span><span class="s1">&#39;DTC&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Standardizes censoring operators</span>
+
+<span class="sd">    Standardize the censoring operators to =, &lt; or &gt;, and remove any rows whose operators</span>
+<span class="sd">    don&#39;t map to a standard one. There is a special case for db=&#39;ChEMBL&#39; that strips</span>
+<span class="sd">    the extra &quot;&#39;&quot;s around relationship symbols. Assumes relationship columns are </span>
+<span class="sd">    &#39;Standard Relation&#39; and &#39;standard_relation&#39; for ChEMBL and DTC respectively.</span>
+
+<span class="sd">    This function makes the following mappings: &quot;&gt;&quot; to &quot;&gt;&quot;, &quot;&gt;=&quot; to &quot;&gt;&quot;, &quot;&lt;&quot; to &quot;&lt;&quot;,</span>
+<span class="sd">    &quot;&lt;=&quot; to &quot;&lt;&quot;, and &quot;=&quot; to &quot;=&quot;. All other relations are removed from the DataFrame.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        dset_df (DataFrame): Input DataFrame. Must contain either &#39;Standard Relation&#39;</span>
+<span class="sd">            or &#39;standard_relation&#39;</span>
+
+<span class="sd">        db (str): Source database. Must be either &#39;DTC&#39; or &#39;ChEMBL&#39;</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        DataFrame: Dataframe with the standardized relationship sybmols</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">relation_cols</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">ChEMBL</span><span class="o">=</span><span class="s1">&#39;Standard Relation&#39;</span><span class="p">,</span> <span class="n">DTC</span><span class="o">=</span><span class="s1">&#39;standard_relation&#39;</span><span class="p">)</span>
+    <span class="n">rel_col</span> <span class="o">=</span> <span class="n">relation_cols</span><span class="p">[</span><span class="n">db</span><span class="p">]</span>
+
+    <span class="n">dset_df</span><span class="p">[</span><span class="n">rel_col</span><span class="p">]</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="s1">&#39;=&#39;</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">ops</span> <span class="o">=</span> <span class="n">dset_df</span><span class="p">[</span><span class="n">rel_col</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+    <span class="k">if</span> <span class="n">db</span> <span class="o">==</span> <span class="s1">&#39;ChEMBL&#39;</span><span class="p">:</span>
+        <span class="c1"># Remove annoying quotes around operators</span>
+        <span class="n">ops</span> <span class="o">=</span> <span class="p">[</span><span class="n">op</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s2">&quot;&#39;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s2">&quot;&#39;&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">op</span> <span class="ow">in</span> <span class="n">ops</span><span class="p">]</span>
+    <span class="n">op_dict</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;&gt;&quot;</span><span class="p">:</span> <span class="s2">&quot;&gt;&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;&gt;=&quot;</span><span class="p">:</span> <span class="s2">&quot;&gt;&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;&lt;&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;&lt;=&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;=&quot;</span><span class="p">:</span> <span class="s2">&quot;=&quot;</span>
+    <span class="p">}</span>
+    <span class="n">ops</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">op_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">op</span><span class="p">,</span> <span class="s2">&quot;@&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">op</span> <span class="ow">in</span> <span class="n">ops</span><span class="p">])</span>
+    <span class="n">dset_df</span><span class="p">[</span><span class="n">rel_col</span><span class="p">]</span> <span class="o">=</span> <span class="n">ops</span>
+    <span class="n">dset_df</span> <span class="o">=</span> <span class="n">dset_df</span><span class="p">[</span><span class="n">dset_df</span><span class="p">[</span><span class="n">rel_col</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;@&quot;</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">dset_df</span></div>
+
+<span class="c1"># ----------------------------------------------------------------------------------------------------------------------</span>
+<span class="c1"># DTC-specific curation functions</span>
+<span class="c1"># ----------------------------------------------------------------------------------------------------------------------</span>
+<div class="viewcode-block" id="upload_file_dtc_raw_data"><a class="viewcode-back" href="../../utils.html#utils.data_curation_functions.upload_file_dtc_raw_data">[docs]</a><span class="k">def</span> <span class="nf">upload_file_dtc_raw_data</span><span class="p">(</span><span class="n">dset_name</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">description</span><span class="p">,</span> <span class="n">tags</span><span class="p">,</span>
+                            <span class="n">functional_area</span><span class="p">,</span> 
+                           <span class="n">target</span><span class="p">,</span> <span class="n">target_type</span><span class="p">,</span> <span class="n">activity</span><span class="p">,</span> <span class="n">assay_category</span><span class="p">,</span><span class="n">file_path</span><span class="p">,</span>
+    		   <span class="n">data_origin</span><span class="o">=</span><span class="s1">&#39;journal&#39;</span><span class="p">,</span>  <span class="n">species</span><span class="o">=</span><span class="s1">&#39;human&#39;</span><span class="p">,</span>  
+                           <span class="n">force_update</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Uploads raw DTC data to the datastore</span>
+
+<span class="sd">    Upload a raw dataset to the datastore from the given DataFrame. </span>
+<span class="sd">    Returns the datastore OID of the uploaded dataset. The dataset is uploaded to the</span>
+<span class="sd">    public bucket and lists https://doi.org/10.1016/j.chembiol.2017.11.009&#39; as the doi.</span>
+<span class="sd">    This also assumes that the id_col is &#39;compound_id&#39;</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        dset_name (str): Name of the dataset. Should not include a file extension.</span>
+
+<span class="sd">        title (str): title of the file in (human friendly format)</span>
+
+<span class="sd">        description (str): long text box to describe file (background/use notes)</span>
+
+<span class="sd">        tags (list): Must be a list of strings.</span>
+
+<span class="sd">        functional_area (str): The functional area.</span>
+
+<span class="sd">        target (str): The target.</span>
+
+<span class="sd">        target_type (str): The target type of the dataset.</span>
+
+<span class="sd">        activity (str): The activity of the dataset.</span>
+
+<span class="sd">        assay_category (str): The assay category of the dataset.</span>
+
+<span class="sd">        file_path (str): The filepath of the dataset.</span>
+
+<span class="sd">        data_origin (str): The origin of the dataset e.g. journal.</span>
+
+<span class="sd">        species (str): The species of the dataset e.g. human, rat, dog.</span>
+
+<span class="sd">        force_update (bool): Overwrite existing datasets in the datastore.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str: datastore OID of the uploaded dataset.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">bucket</span> <span class="o">=</span> <span class="s1">&#39;public&#39;</span>
+    <span class="n">filename</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">.csv&#39;</span> <span class="o">%</span> <span class="n">dset_name</span>
+    <span class="n">dataset_key</span> <span class="o">=</span> <span class="s1">&#39;dskey_&#39;</span> <span class="o">+</span> <span class="n">filename</span>
+
+    <span class="n">kv</span> <span class="o">=</span> <span class="p">{</span> <span class="s1">&#39;file_category&#39;</span><span class="p">:</span> <span class="s1">&#39;experimental&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;activity&#39;</span><span class="p">:</span> <span class="n">activity</span><span class="p">,</span>
+        <span class="s1">&#39;assay_category&#39;</span><span class="p">:</span><span class="n">assay_category</span><span class="p">,</span> 
+        <span class="s1">&#39;assay_endpoint&#39;</span> <span class="p">:</span> <span class="s1">&#39;multiple values&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;curation_level&#39;</span><span class="p">:</span> <span class="s1">&#39;raw&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;data_origin&#39;</span> <span class="p">:</span> <span class="n">data_origin</span><span class="p">,</span>
+        <span class="s1">&#39;functional_area&#39;</span> <span class="p">:</span> <span class="n">functional_area</span><span class="p">,</span>
+        <span class="s1">&#39;matrix&#39;</span> <span class="p">:</span> <span class="s1">&#39;multiple values&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;journal_doi&#39;</span> <span class="p">:</span> <span class="s1">&#39;https://doi.org/10.1016/j.chembiol.2017.11.009&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;sample_type&#39;</span> <span class="p">:</span> <span class="s1">&#39;in_vitro&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;species&#39;</span> <span class="p">:</span> <span class="n">species</span><span class="p">,</span>
+        <span class="s1">&#39;target&#39;</span> <span class="p">:</span> <span class="n">target</span><span class="p">,</span> 
+        <span class="s1">&#39;target_type&#39;</span> <span class="p">:</span> <span class="n">target_type</span><span class="p">,</span>
+        <span class="s1">&#39;id_col&#39;</span> <span class="p">:</span> <span class="s1">&#39;compound_id&#39;</span>
+     <span class="p">}</span>
+
+    <span class="c1">#uploaded_file = dsf.upload_file_to_DS(bucket=bucket, filepath=file_path, filename=filename,     	title = title, description=description, tags=tags, key_values=kv, client=None, 			dataset_key=dataset_key, override_check=False, return_metadata=True)</span>
+
+    <span class="n">ds_client</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">config_client</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">force_update</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">dsf</span><span class="o">.</span><span class="n">dataset_key_exists</span><span class="p">(</span><span class="n">dataset_key</span><span class="p">,</span> <span class="n">bucket</span><span class="p">,</span> <span class="n">ds_client</span><span class="p">):</span>
+        <span class="c1">#uploaded_file = dsf.upload_df_to_DS(dset_df, bucket, filename=filename, title=title,</span>
+        <span class="c1">#                               description=description,</span>
+        <span class="c1">#                               tags=tags, key_values=kv, client=None, dataset_key=dataset_key,</span>
+        <span class="c1">#                               override_check=True, return_metadata=True)</span>
+        <span class="n">uploaded_file</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">upload_file_to_DS</span><span class="p">(</span><span class="n">bucket</span><span class="o">=</span><span class="n">bucket</span><span class="p">,</span> <span class="n">filepath</span><span class="o">=</span><span class="n">file_path</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span>
+            <span class="n">title</span> <span class="o">=</span> <span class="n">title</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">,</span> <span class="n">tags</span><span class="o">=</span><span class="n">tags</span><span class="p">,</span> <span class="n">key_values</span><span class="o">=</span><span class="n">kv</span><span class="p">,</span> <span class="n">client</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">dataset_key</span><span class="o">=</span><span class="n">dataset_key</span><span class="p">,</span> <span class="n">override_check</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">return_metadata</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Uploaded raw dataset with key </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">dataset_key</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">uploaded_file</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">retrieve_dataset_by_datasetkey</span><span class="p">(</span><span class="n">dataset_key</span><span class="p">,</span> <span class="n">bucket</span><span class="p">,</span> <span class="n">ds_client</span><span class="p">,</span> <span class="n">return_metadata</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Raw dataset </span><span class="si">%s</span><span class="s2"> is already in datastore, skipping upload.&quot;</span> <span class="o">%</span> <span class="n">dataset_key</span><span class="p">)</span>
+
+    <span class="n">raw_dset_oid</span> <span class="o">=</span> <span class="n">uploaded_file</span><span class="p">[</span><span class="s1">&#39;dataset_oid&#39;</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">raw_dset_oid</span></div>
+
+<div class="viewcode-block" id="filter_dtc_data"><a class="viewcode-back" href="../../utils.html#utils.data_curation_functions.filter_dtc_data">[docs]</a><span class="k">def</span> <span class="nf">filter_dtc_data</span><span class="p">(</span><span class="n">orig_df</span><span class="p">,</span><span class="n">geneNames</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Extracts and post processes JAK1, 2, and 3 datasets from DTC</span>
+
+<span class="sd">    This is specific to the DTC database.</span>
+<span class="sd">    Extract JAK1, 2 and 3 datasets from Drug Target Commons database, filtered for data usability.</span>
+<span class="sd">    filter criteria:</span>
+<span class="sd">       gene_names == JAK1 | JAK2 | JAK3</span>
+<span class="sd">       InChi key not missing</span>
+<span class="sd">       standard_type IC50</span>
+<span class="sd">       units NM</span>
+<span class="sd">       standard_relation mappable to =, &lt; or &gt;</span>
+<span class="sd">       wildtype_or_mutant != &#39;mutated&#39;</span>
+<span class="sd">       valid SMILES</span>
+<span class="sd">       maps to valid RDKit base SMILES</span>
+<span class="sd">       standard_value not missing</span>
+<span class="sd">       pIC50 &gt; 3</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        orig_df (DataFrame): Input DataFrame. Must contain the following columns: gene_names</span>
+<span class="sd">            standard_inchi_key, standard_type, standard_units, standard_value, compound_id,</span>
+<span class="sd">            wildtype_or_mutant.</span>
+
+<span class="sd">        geneNames (list): A list of gene names to filter out of orig_df e.g. [&#39;JAK1&#39;, &#39;JAK2&#39;].</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        DataFrame: The filtered rows of the orig_df</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">dset_df</span> <span class="o">=</span> <span class="n">orig_df</span><span class="p">[</span><span class="n">orig_df</span><span class="o">.</span><span class="n">gene_names</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">geneNames</span><span class="p">)</span> <span class="o">&amp;</span>
+                      <span class="o">~</span><span class="p">(</span><span class="n">orig_df</span><span class="o">.</span><span class="n">standard_inchi_key</span><span class="o">.</span><span class="n">isna</span><span class="p">())</span> <span class="o">&amp;</span>
+                      <span class="p">(</span><span class="n">orig_df</span><span class="o">.</span><span class="n">standard_type</span> <span class="o">==</span> <span class="s1">&#39;IC50&#39;</span><span class="p">)</span> <span class="o">&amp;</span>
+                      <span class="p">(</span><span class="n">orig_df</span><span class="o">.</span><span class="n">standard_units</span> <span class="o">==</span> <span class="s1">&#39;NM&#39;</span><span class="p">)</span> <span class="o">&amp;</span>
+                      <span class="o">~</span><span class="n">orig_df</span><span class="o">.</span><span class="n">standard_value</span><span class="o">.</span><span class="n">isna</span><span class="p">()</span> <span class="o">&amp;</span>
+                      <span class="o">~</span><span class="n">orig_df</span><span class="o">.</span><span class="n">compound_id</span><span class="o">.</span><span class="n">isna</span><span class="p">()</span> <span class="o">&amp;</span>
+                      <span class="p">(</span><span class="n">orig_df</span><span class="o">.</span><span class="n">wildtype_or_mutant</span> <span class="o">!=</span> <span class="s1">&#39;mutated&#39;</span><span class="p">)</span> <span class="p">]</span>
+    <span class="k">return</span> <span class="n">dset_df</span></div>
+
+<div class="viewcode-block" id="ic50topic50"><a class="viewcode-back" href="../../utils.html#utils.data_curation_functions.ic50topic50">[docs]</a><span class="k">def</span> <span class="nf">ic50topic50</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Calculates pIC50 from IC50</span>
+
+<span class="sd">    Calculates pIC50 from IC50</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        x (float): An IC50.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        float: The pIC50.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="k">return</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">((</span><span class="n">x</span><span class="o">/</span><span class="mf">1000000000.0</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="down_select"><a class="viewcode-back" href="../../utils.html#utils.data_curation_functions.down_select">[docs]</a><span class="k">def</span> <span class="nf">down_select</span><span class="p">(</span><span class="n">df</span><span class="p">,</span><span class="n">kv_lst</span><span class="p">)</span> <span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Filters rows given a set of values</span>
+
+<span class="sd">    Given a DataFrame and a list of tuples columns (k) to values (v), this function</span>
+<span class="sd">    filters out all rows where df[k] == v.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        df (DataFrame): An input DataFrame.</span>
+
+<span class="sd">        kv_list (list): A list of tuples of (column, value)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        DataFrame: Rows where all df[k] == v</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">kv_lst</span> <span class="p">:</span>
+        <span class="n">df</span><span class="o">=</span><span class="n">df</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">==</span><span class="n">v</span><span class="p">]</span> 
+    <span class="k">return</span> <span class="n">df</span></div>
+
+<div class="viewcode-block" id="get_smiles_dtc_data"><a class="viewcode-back" href="../../utils.html#utils.data_curation_functions.get_smiles_dtc_data">[docs]</a><span class="k">def</span> <span class="nf">get_smiles_dtc_data</span><span class="p">(</span><span class="n">nm_df</span><span class="p">,</span><span class="n">targ_lst</span><span class="p">,</span><span class="n">save_smiles_df</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns SMILES strings from DTC data</span>
+
+<span class="sd">    nm_df must be a DataFrame from DTC with the following columns: gene_names,</span>
+<span class="sd">    standard_type, standard_value, &#39;standard_inchi_key&#39;, and standard_relation.</span>
+
+<span class="sd">    This function selects all rows where nm_df[&#39;gene_names&#39;] is in targ_lst,</span>
+<span class="sd">    nm_df[&#39;standard_type&#39;]==&#39;IC50&#39;, nm_df[&#39;standard_relation&#39;]==&#39;=&#39;, and </span>
+<span class="sd">    &#39;standard_value&#39; &gt; 0.</span>
+
+<span class="sd">    Then pIC50 values are calculated and added to the &#39;PIC50&#39; column, and</span>
+<span class="sd">    smiles strings are merged in from save_smiles_df</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        nm_df (DataFrame): Input DataFrame.</span>
+
+<span class="sd">        targ_lst (list): A list of targets.</span>
+
+<span class="sd">        save_smiles_df (DataFrame): A DataFrame with the column &#39;standard_inchi_key&#39;</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list, list: A list of smiles and a list of inchi keys shared between targets.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">save_df</span><span class="o">=</span><span class="p">{}</span>
+    <span class="k">for</span> <span class="n">targ</span> <span class="ow">in</span> <span class="n">targ_lst</span> <span class="p">:</span>
+        <span class="n">lst1</span><span class="o">=</span> <span class="p">[</span> <span class="p">(</span><span class="s1">&#39;gene_names&#39;</span><span class="p">,</span><span class="n">targ</span><span class="p">),(</span><span class="s1">&#39;standard_type&#39;</span><span class="p">,</span><span class="s1">&#39;IC50&#39;</span><span class="p">),(</span><span class="s1">&#39;standard_relation&#39;</span><span class="p">,</span><span class="s1">&#39;=&#39;</span><span class="p">)</span> <span class="p">]</span>
+        <span class="n">lst1_tmp</span><span class="o">=</span> <span class="p">[</span> <span class="p">(</span><span class="s1">&#39;gene_names&#39;</span><span class="p">,</span><span class="n">targ</span><span class="p">),(</span><span class="s1">&#39;standard_type&#39;</span><span class="p">,</span><span class="s1">&#39;IC50&#39;</span><span class="p">)]</span>
+        <span class="n">jak1_df</span><span class="o">=</span><span class="n">down_select</span><span class="p">(</span><span class="n">nm_df</span><span class="p">,</span><span class="n">lst1</span><span class="p">)</span>
+        <span class="n">jak1_df_tmp</span><span class="o">=</span><span class="n">down_select</span><span class="p">(</span><span class="n">nm_df</span><span class="p">,</span><span class="n">lst1_tmp</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">targ</span><span class="p">,</span><span class="s2">&quot;distinct compounds = only&quot;</span><span class="p">,</span><span class="n">jak1_df</span><span class="p">[</span><span class="s1">&#39;standard_inchi_key&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">nunique</span><span class="p">())</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">targ</span><span class="p">,</span><span class="s2">&quot;distinct compounds &lt;,&gt;,=&quot;</span><span class="p">,</span><span class="n">jak1_df_tmp</span><span class="p">[</span><span class="s1">&#39;standard_inchi_key&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">nunique</span><span class="p">())</span>
+        <span class="c1">## we convert to log values so make sure there are no 0 values</span>
+        <span class="n">save_df</span><span class="p">[</span><span class="n">targ</span><span class="p">]</span><span class="o">=</span><span class="n">jak1_df_tmp</span><span class="p">[</span><span class="n">jak1_df_tmp</span><span class="p">[</span><span class="s1">&#39;standard_value&#39;</span><span class="p">]</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="n">prev_targ</span><span class="o">=</span><span class="n">targ_lst</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">shared_inchi_keys</span><span class="o">=</span><span class="n">save_df</span><span class="p">[</span><span class="n">prev_targ</span><span class="p">][</span><span class="s1">&#39;standard_inchi_key&#39;</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">it</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">targ_lst</span><span class="p">),</span><span class="mi">1</span><span class="p">)</span> <span class="p">:</span>
+        <span class="n">curr_targ</span><span class="o">=</span><span class="n">targ_lst</span><span class="p">[</span><span class="n">it</span><span class="p">]</span>
+        <span class="n">df</span><span class="o">=</span><span class="n">save_df</span><span class="p">[</span><span class="n">curr_targ</span><span class="p">]</span>
+        <span class="n">shared_inchi_keys</span><span class="o">=</span><span class="n">df</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;standard_inchi_key&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">shared_inchi_keys</span><span class="p">)][</span><span class="s1">&#39;standard_inchi_key&#39;</span><span class="p">]</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;num shared compounds&quot;</span><span class="p">,</span><span class="n">shared_inchi_keys</span><span class="o">.</span><span class="n">nunique</span><span class="p">())</span>
+    <span class="n">lst</span><span class="o">=</span><span class="p">[]</span>
+    <span class="k">for</span> <span class="n">targ</span> <span class="ow">in</span> <span class="n">targ_lst</span> <span class="p">:</span>
+        <span class="n">df</span><span class="o">=</span><span class="n">save_df</span><span class="p">[</span><span class="n">targ</span><span class="p">]</span>
+        <span class="c1">#print(aurka_df.shape,aurkb_df.shape, shared_inchi_keys.shape)</span>
+        <span class="n">lst</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;standard_inchi_key&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">shared_inchi_keys</span><span class="p">)])</span>
+        
+    <span class="n">shared_df</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">lst</span><span class="p">)</span>
+    <span class="c1"># Add pIC50 values</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Add pIC50 values.&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">shared_df</span><span class="p">[</span><span class="s1">&#39;standard_value&#39;</span><span class="p">])</span>
+    <span class="n">shared_df</span><span class="p">[</span><span class="s1">&#39;PIC50&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">shared_df</span><span class="p">[</span><span class="s1">&#39;standard_value&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">ic50topic50</span><span class="p">)</span>
+
+    <span class="c1"># Merge in SMILES strings</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Merge in SMILES strings.&#39;</span><span class="p">)</span>
+    <span class="n">smiles_lst</span><span class="o">=</span><span class="p">[]</span>
+    <span class="k">for</span> <span class="n">targ</span> <span class="ow">in</span> <span class="n">targ_lst</span> <span class="p">:</span>
+        <span class="n">df</span><span class="o">=</span><span class="n">save_df</span><span class="p">[</span><span class="n">targ</span><span class="p">]</span>
+        <span class="n">df</span><span class="p">[</span><span class="s1">&#39;PIC50&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;standard_value&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">ic50topic50</span><span class="p">)</span>
+        <span class="n">smiles_df</span><span class="o">=</span><span class="n">df</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">save_smiles_df</span><span class="p">,</span><span class="n">on</span><span class="o">=</span><span class="s1">&#39;standard_inchi_key&#39;</span><span class="p">,</span><span class="n">suffixes</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="o">+</span><span class="n">targ</span><span class="p">,</span><span class="s1">&#39;_&#39;</span><span class="p">))</span>
+        <span class="c1">#the file puts the SMILES string in quotes, which need to be removed</span>
+        <span class="n">smiles_df</span><span class="p">[</span><span class="s1">&#39;smiles&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">smiles_df</span><span class="p">[</span><span class="s1">&#39;smiles&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;&quot;&#39;</span><span class="p">,</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="n">smiles_df</span><span class="p">[</span><span class="s1">&#39;rdkit_smiles&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">smiles_df</span><span class="p">[</span><span class="s1">&#39;smiles&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">struct_utils</span><span class="o">.</span><span class="n">base_smiles_from_smiles</span><span class="p">)</span>
+        <span class="n">smiles_df</span><span class="p">[</span><span class="s1">&#39;smiles&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">smiles_df</span><span class="p">[</span><span class="s1">&#39;smiles&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;&quot;&#39;</span><span class="p">,</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">smiles_df</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">smiles_df</span><span class="p">[</span><span class="s1">&#39;standard_inchi_key&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">nunique</span><span class="p">())</span>
+        <span class="n">smiles_lst</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">smiles_df</span><span class="p">)</span>
+
+
+    <span class="k">return</span> <span class="n">smiles_lst</span><span class="p">,</span> <span class="n">shared_inchi_keys</span></div>
+
+<div class="viewcode-block" id="get_smiles_4dtc_data"><a class="viewcode-back" href="../../utils.html#utils.data_curation_functions.get_smiles_4dtc_data">[docs]</a><span class="k">def</span> <span class="nf">get_smiles_4dtc_data</span><span class="p">(</span><span class="n">nm_df</span><span class="p">,</span><span class="n">targ_lst</span><span class="p">,</span><span class="n">save_smiles_df</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns SMILES strings from DTC data</span>
+
+<span class="sd">    nm_df must be a DataFrame from DTC with the following columns: gene_names,</span>
+<span class="sd">    standard_type, standard_value, &#39;standard_inchi_key&#39;, and standard_relation.</span>
+
+<span class="sd">    This function selects all rows where nm_df[&#39;gene_names&#39;] is in targ_lst,</span>
+<span class="sd">    nm_df[&#39;standard_type&#39;]==&#39;IC50&#39;, nm_df[&#39;standard_relation&#39;]==&#39;=&#39;, and </span>
+<span class="sd">    &#39;standard_value&#39; &gt; 0.</span>
+
+<span class="sd">    Then pIC50 values are calculated and added to the &#39;PIC50&#39; column, and</span>
+<span class="sd">    smiles strings are merged in from save_smiles_df</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        nm_df (DataFrame): Input DataFrame.</span>
+
+<span class="sd">        targ_lst (list): A list of targets.</span>
+
+<span class="sd">        save_smiles_df (DataFrame): A DataFrame with the column &#39;standard_inchi_key&#39;</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list, list, str: A list of smiles. A list of inchi keys shared between targets.</span>
+<span class="sd">            And a description of the targets</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">save_df</span><span class="o">=</span><span class="p">{}</span>
+    <span class="n">description_str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span> 
+    <span class="k">for</span> <span class="n">targ</span> <span class="ow">in</span> <span class="n">targ_lst</span> <span class="p">:</span>
+        <span class="n">lst1</span><span class="o">=</span> <span class="p">[</span> <span class="p">(</span><span class="s1">&#39;gene_names&#39;</span><span class="p">,</span><span class="n">targ</span><span class="p">),(</span><span class="s1">&#39;standard_type&#39;</span><span class="p">,</span><span class="s1">&#39;IC50&#39;</span><span class="p">),(</span><span class="s1">&#39;standard_relation&#39;</span><span class="p">,</span><span class="s1">&#39;=&#39;</span><span class="p">)</span> <span class="p">]</span>
+        <span class="n">lst1_tmp</span><span class="o">=</span> <span class="p">[</span> <span class="p">(</span><span class="s1">&#39;gene_names&#39;</span><span class="p">,</span><span class="n">targ</span><span class="p">),(</span><span class="s1">&#39;standard_type&#39;</span><span class="p">,</span><span class="s1">&#39;IC50&#39;</span><span class="p">)]</span>
+        <span class="n">jak1_df</span><span class="o">=</span><span class="n">down_select</span><span class="p">(</span><span class="n">nm_df</span><span class="p">,</span><span class="n">lst1</span><span class="p">)</span>
+        <span class="n">jak1_df_tmp</span><span class="o">=</span><span class="n">down_select</span><span class="p">(</span><span class="n">nm_df</span><span class="p">,</span><span class="n">lst1_tmp</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">targ</span><span class="p">,</span><span class="s2">&quot;distinct compounds = only&quot;</span><span class="p">,</span><span class="n">jak1_df</span><span class="p">[</span><span class="s1">&#39;standard_inchi_key&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">nunique</span><span class="p">())</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">targ</span><span class="p">,</span><span class="s2">&quot;distinct compounds &lt;,&gt;,=&quot;</span><span class="p">,</span><span class="n">jak1_df_tmp</span><span class="p">[</span><span class="s1">&#39;standard_inchi_key&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">nunique</span><span class="p">())</span>
+        <span class="n">description</span> <span class="o">=</span> <span class="s1">&#39;&#39;&#39;</span>
+<span class="s1"># &#39;&#39;&#39;</span><span class="o">+</span><span class="n">targ</span><span class="o">+</span><span class="s2">&quot; distinct compounds = only: &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">jak1_df</span><span class="p">[</span><span class="s1">&#39;standard_inchi_key&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">nunique</span><span class="p">())</span><span class="o">+</span><span class="s1">&#39;&#39;&#39;</span>
+<span class="s1"># &#39;&#39;&#39;</span><span class="o">+</span><span class="n">targ</span><span class="o">+</span><span class="s2">&quot; distinct compounds &lt;,&gt;,=: &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">jak1_df_tmp</span><span class="p">[</span><span class="s1">&#39;standard_inchi_key&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">nunique</span><span class="p">())</span>
+        <span class="n">description_str</span> <span class="o">+=</span> <span class="n">description</span>
+            <span class="c1">#to ignore censored data</span>
+        <span class="c1">#save_df[targ]=jak1_df</span>
+        <span class="c1">#to include censored data</span>
+        <span class="n">save_df</span><span class="p">[</span><span class="n">targ</span><span class="p">]</span><span class="o">=</span><span class="n">jak1_df_tmp</span>
+
+    <span class="n">prev_targ</span><span class="o">=</span><span class="n">targ_lst</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">shared_inchi_keys</span><span class="o">=</span><span class="n">save_df</span><span class="p">[</span><span class="n">prev_targ</span><span class="p">][</span><span class="s1">&#39;standard_inchi_key&#39;</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">it</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">targ_lst</span><span class="p">),</span><span class="mi">1</span><span class="p">)</span> <span class="p">:</span>
+        <span class="n">curr_targ</span><span class="o">=</span><span class="n">targ_lst</span><span class="p">[</span><span class="n">it</span><span class="p">]</span>
+        <span class="n">df</span><span class="o">=</span><span class="n">save_df</span><span class="p">[</span><span class="n">curr_targ</span><span class="p">]</span>
+        <span class="n">shared_inchi_keys</span><span class="o">=</span><span class="n">df</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;standard_inchi_key&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">shared_inchi_keys</span><span class="p">)][</span><span class="s1">&#39;standard_inchi_key&#39;</span><span class="p">]</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;num shared compounds&quot;</span><span class="p">,</span><span class="n">shared_inchi_keys</span><span class="o">.</span><span class="n">nunique</span><span class="p">())</span>
+    <span class="n">lst</span><span class="o">=</span><span class="p">[]</span>
+    <span class="k">for</span> <span class="n">targ</span> <span class="ow">in</span> <span class="n">targ_lst</span> <span class="p">:</span>
+        <span class="n">df</span><span class="o">=</span><span class="n">save_df</span><span class="p">[</span><span class="n">targ</span><span class="p">]</span>
+        <span class="c1">#print(aurka_df.shape,aurkb_df.shape, shared_inchi_keys.shape)</span>
+        <span class="n">lst</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;standard_inchi_key&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">shared_inchi_keys</span><span class="p">)])</span>
+        
+    <span class="n">shared_df</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">lst</span><span class="p">)</span>
+    <span class="c1"># Add pIC50 values</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Add pIC50 values.&#39;</span><span class="p">)</span>
+    <span class="n">shared_df</span><span class="p">[</span><span class="s1">&#39;PIC50&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">shared_df</span><span class="p">[</span><span class="s1">&#39;standard_value&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">ic50topic50</span><span class="p">)</span>
+
+    <span class="c1"># Merge in SMILES strings</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Merge in SMILES strings.&#39;</span><span class="p">)</span>
+    <span class="n">smiles_lst</span><span class="o">=</span><span class="p">[]</span>
+    <span class="k">for</span> <span class="n">targ</span> <span class="ow">in</span> <span class="n">targ_lst</span> <span class="p">:</span>
+        <span class="n">df</span><span class="o">=</span><span class="n">save_df</span><span class="p">[</span><span class="n">targ</span><span class="p">]</span>
+        <span class="n">df</span><span class="p">[</span><span class="s1">&#39;PIC50&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;standard_value&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">ic50topic50</span><span class="p">)</span>
+        <span class="n">smiles_df</span><span class="o">=</span><span class="n">df</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">save_smiles_df</span><span class="p">,</span><span class="n">on</span><span class="o">=</span><span class="s1">&#39;standard_inchi_key&#39;</span><span class="p">,</span><span class="n">suffixes</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="o">+</span><span class="n">targ</span><span class="p">,</span><span class="s1">&#39;_&#39;</span><span class="p">))</span>
+        <span class="c1">#the file puts the SMILES string in quotes, which need to be removed</span>
+        <span class="n">smiles_df</span><span class="p">[</span><span class="s1">&#39;smiles&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">smiles_df</span><span class="p">[</span><span class="s1">&#39;smiles&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;&quot;&#39;</span><span class="p">,</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="n">smiles_df</span><span class="p">[</span><span class="s1">&#39;rdkit_smiles&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">smiles_df</span><span class="p">[</span><span class="s1">&#39;smiles&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">struct_utils</span><span class="o">.</span><span class="n">base_smiles_from_smiles</span><span class="p">)</span>
+        <span class="n">smiles_df</span><span class="p">[</span><span class="s1">&#39;smiles&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">smiles_df</span><span class="p">[</span><span class="s1">&#39;smiles&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;&quot;&#39;</span><span class="p">,</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Shape of dataframe:&quot;</span><span class="p">,</span> <span class="n">smiles_df</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Number of unique standard_inchi_key:&quot;</span><span class="p">,</span> <span class="n">smiles_df</span><span class="p">[</span><span class="s1">&#39;standard_inchi_key&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">nunique</span><span class="p">())</span>
+        <span class="n">smiles_lst</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">smiles_df</span><span class="p">)</span>
+
+
+    <span class="k">return</span> <span class="n">smiles_lst</span><span class="p">,</span> <span class="n">shared_inchi_keys</span><span class="p">,</span> <span class="n">description_str</span></div>
+
+<div class="viewcode-block" id="upload_df_dtc_smiles"><a class="viewcode-back" href="../../utils.html#utils.data_curation_functions.upload_df_dtc_smiles">[docs]</a><span class="k">def</span> <span class="nf">upload_df_dtc_smiles</span><span class="p">(</span><span class="n">dset_name</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">description</span><span class="p">,</span> <span class="n">tags</span><span class="p">,</span>
+                            <span class="n">functional_area</span><span class="p">,</span> 
+                           <span class="n">target</span><span class="p">,</span> <span class="n">target_type</span><span class="p">,</span> <span class="n">activity</span><span class="p">,</span> <span class="n">assay_category</span><span class="p">,</span><span class="n">smiles_df</span><span class="p">,</span><span class="n">orig_fileID</span><span class="p">,</span>
+    		   <span class="n">data_origin</span><span class="o">=</span><span class="s1">&#39;journal&#39;</span><span class="p">,</span>  <span class="n">species</span><span class="o">=</span><span class="s1">&#39;human&#39;</span><span class="p">,</span>  
+                           <span class="n">force_update</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Uploads DTC smiles data to the datastore</span>
+
+<span class="sd">    Upload a raw dataset to the datastore from the given DataFrame. </span>
+<span class="sd">    Returns the datastore OID of the uploaded dataset. The dataset is uploaded to the</span>
+<span class="sd">    public bucket and lists https://doi.org/10.1016/j.chembiol.2017.11.009&#39; as the doi.</span>
+<span class="sd">    This also assumes that the id_col is &#39;compound_id&#39;</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        dset_name (str): Name of the dataset. Should not include a file extension.</span>
+
+<span class="sd">        title (str): title of the file in (human friendly format)</span>
+
+<span class="sd">        description (str): long text box to describe file (background/use notes)</span>
+
+<span class="sd">        tags (list): Must be a list of strings.</span>
+
+<span class="sd">        functional_area (str): The functional area.</span>
+
+<span class="sd">        target (str): The target.</span>
+
+<span class="sd">        target_type (str): The target type of the dataset.</span>
+
+<span class="sd">        activity (str): The activity of the dataset.</span>
+
+<span class="sd">        assay_category (str): The assay category of the dataset.</span>
+
+<span class="sd">        smiles_df (DataFrame): DataFrame containing SMILES to be uploaded.</span>
+
+<span class="sd">        orig_fileID (str): Source file id used to generate smiles_df.</span>
+
+<span class="sd">        data_origin (str): The origin of the dataset e.g. journal.</span>
+
+<span class="sd">        species (str): The species of the dataset e.g. human, rat, dog.</span>
+
+<span class="sd">        force_update (bool): Overwrite existing datasets in the datastore.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str: datastore OID of the uploaded dataset.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">bucket</span> <span class="o">=</span> <span class="s1">&#39;public&#39;</span>
+    <span class="n">filename</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_dtc_smiles.csv&#39;</span> <span class="o">%</span> <span class="n">dset_name</span>
+    <span class="n">dataset_key</span> <span class="o">=</span> <span class="s1">&#39;dskey_&#39;</span> <span class="o">+</span> <span class="n">filename</span>
+
+    <span class="n">kv</span> <span class="o">=</span> <span class="p">{</span> <span class="s1">&#39;file_category&#39;</span><span class="p">:</span> <span class="s1">&#39;experimental&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;activity&#39;</span><span class="p">:</span> <span class="n">activity</span><span class="p">,</span>
+        <span class="s1">&#39;assay_category&#39;</span><span class="p">:</span> <span class="n">assay_category</span><span class="p">,</span>  <span class="c1">## seems like this should be called &#39;kinase_activity&#39;</span>
+        <span class="s1">&#39;assay_endpoint&#39;</span> <span class="p">:</span> <span class="s1">&#39;pic50&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;curation_level&#39;</span><span class="p">:</span> <span class="s1">&#39;raw&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;data_origin&#39;</span> <span class="p">:</span> <span class="n">data_origin</span><span class="p">,</span>
+        <span class="s1">&#39;functional_area&#39;</span> <span class="p">:</span> <span class="n">functional_area</span><span class="p">,</span>
+        <span class="s1">&#39;matrix&#39;</span> <span class="p">:</span> <span class="s1">&#39;multiple values&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;journal_doi&#39;</span> <span class="p">:</span> <span class="s1">&#39;https://doi.org/10.1016/j.chembiol.2017.11.009&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;sample_type&#39;</span> <span class="p">:</span> <span class="s1">&#39;in_vitro&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;species&#39;</span> <span class="p">:</span> <span class="n">species</span><span class="p">,</span>
+        <span class="s1">&#39;target&#39;</span> <span class="p">:</span> <span class="n">target</span><span class="p">,</span>
+        <span class="s1">&#39;target_type&#39;</span> <span class="p">:</span> <span class="n">target_type</span><span class="p">,</span>
+        <span class="s1">&#39;id_col&#39;</span> <span class="p">:</span> <span class="s1">&#39;compound_id&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;source_file_id&#39;</span> <span class="p">:</span> <span class="n">orig_fileID</span>
+
+     <span class="p">}</span>
+
+    <span class="c1">#uploaded_file = dsf.upload_file_to_DS(bucket=bucket, filepath=file_path, filename=filename,     	title = title, description=description, tags=tags, key_values=kv, client=None, 			dataset_key=dataset_key, override_check=False, return_metadata=True)</span>
+
+    <span class="n">ds_client</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">config_client</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">force_update</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">dsf</span><span class="o">.</span><span class="n">dataset_key_exists</span><span class="p">(</span><span class="n">dataset_key</span><span class="p">,</span> <span class="n">bucket</span><span class="p">,</span> <span class="n">ds_client</span><span class="p">):</span>
+        <span class="n">uploaded_file</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">upload_df_to_DS</span><span class="p">(</span><span class="n">bucket</span><span class="o">=</span><span class="n">bucket</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span><span class="n">df</span><span class="o">=</span><span class="n">smiles_df</span><span class="p">,</span> <span class="n">title</span> <span class="o">=</span> <span class="n">title</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">,</span> <span class="n">tags</span><span class="o">=</span><span class="n">tags</span><span class="p">,</span> <span class="n">key_values</span><span class="o">=</span><span class="n">kv</span><span class="p">,</span> <span class="n">client</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dataset_key</span><span class="o">=</span><span class="n">dataset_key</span><span class="p">,</span> <span class="n">override_check</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">return_metadata</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="c1">#uploaded_file = dsf.upload_file_to_DS(bucket=bucket, filepath=file_path, filename=filename,     	title = title, description=description, tags=tags, key_values=kv, client=None, 			dataset_key=dataset_key, override_check=False, return_metadata=True)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Uploaded raw dataset with key </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">dataset_key</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">uploaded_file</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">retrieve_dataset_by_datasetkey</span><span class="p">(</span><span class="n">dataset_key</span><span class="p">,</span> <span class="n">bucket</span><span class="p">,</span> <span class="n">ds_client</span><span class="p">,</span> <span class="n">return_metadata</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Raw dataset </span><span class="si">%s</span><span class="s2"> is already in datastore, skipping upload.&quot;</span> <span class="o">%</span> <span class="n">dataset_key</span><span class="p">)</span>
+
+    <span class="n">raw_dset_oid</span> <span class="o">=</span> <span class="n">uploaded_file</span><span class="p">[</span><span class="s1">&#39;dataset_oid&#39;</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">raw_dset_oid</span></div>
+
+<div class="viewcode-block" id="atom_curation"><a class="viewcode-back" href="../../utils.html#utils.data_curation_functions.atom_curation">[docs]</a><span class="k">def</span> <span class="nf">atom_curation</span><span class="p">(</span><span class="n">targ_lst</span><span class="p">,</span> <span class="n">smiles_lst</span><span class="p">,</span> <span class="n">shared_inchi_keys</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Apply ATOM standard &#39;curation&#39; step to &quot;shared_df&quot;</span>
+
+<span class="sd">    Apply ATOM standard &#39;curation&#39; step to &quot;shared_df&quot;: Average replicate assays, </span>
+<span class="sd">    remove duplicates and drop cases with large variance between replicates.</span>
+<span class="sd">    mleqonly</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        targ_lst (list): A list of targets.</span>
+
+<span class="sd">        smiles_lst (list): A list of DataFrames.</span>
+<span class="sd">            These DataFrames must contain the columns gene_names, standard_type,</span>
+<span class="sd">            standard_relation, standard_inchi_key, PIC50, and rdkit_smiles</span>
+
+<span class="sd">        shared_inchi_keys (list): A list of inchi keys used in this dataset.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list, list:A list of curated DataFrames and a list of the number of compounds</span>
+<span class="sd">            dropped during the curation process for each target.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">imp</span><span class="o">.</span><span class="n">reload</span><span class="p">(</span><span class="n">curate_data</span><span class="p">)</span>
+    <span class="n">tolerance</span><span class="o">=</span><span class="mi">10</span>
+    <span class="n">column</span><span class="o">=</span><span class="s1">&#39;PIC50&#39;</span><span class="p">;</span> <span class="c1">#&#39;standard_value&#39;</span>
+    <span class="n">list_bad_duplicates</span><span class="o">=</span><span class="s1">&#39;No&#39;</span>
+    <span class="n">max_std</span><span class="o">=</span><span class="mi">1</span>
+    <span class="n">curated_lst</span><span class="o">=</span><span class="p">[]</span>
+    <span class="n">num_dropped_lst</span><span class="o">=</span><span class="p">[]</span>
+    <span class="c1">#print(targ_lst)</span>
+    <span class="c1">#print(smiles_lst)</span>
+    <span class="k">for</span> <span class="n">it</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">targ_lst</span><span class="p">))</span> <span class="p">:</span>
+    	<span class="n">data</span><span class="o">=</span><span class="n">smiles_lst</span><span class="p">[</span><span class="n">it</span><span class="p">]</span>
+    	<span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">data</span><span class="o">.</span><span class="n">standard_relation</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;=&#39;</span><span class="p">]</span>
+    	<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;gene_names&quot;</span><span class="p">,</span><span class="n">data</span><span class="o">.</span><span class="n">gene_names</span><span class="o">.</span><span class="n">unique</span><span class="p">())</span>
+    	<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;standard_type&quot;</span><span class="p">,</span><span class="n">data</span><span class="o">.</span><span class="n">standard_type</span><span class="o">.</span><span class="n">unique</span><span class="p">())</span>
+    	<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;standard_relation&quot;</span><span class="p">,</span><span class="n">data</span><span class="o">.</span><span class="n">standard_relation</span><span class="o">.</span><span class="n">unique</span><span class="p">())</span>
+    	<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;before&quot;</span><span class="p">,</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    	<span class="n">curated_df</span><span class="o">=</span><span class="n">curate_data</span><span class="o">.</span><span class="n">average_and_remove_duplicates</span> <span class="p">(</span><span class="n">column</span><span class="p">,</span> <span class="n">tolerance</span><span class="p">,</span> <span class="n">list_bad_duplicates</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">max_std</span><span class="p">,</span> <span class="n">compound_id</span><span class="o">=</span><span class="s1">&#39;standard_inchi_key&#39;</span><span class="p">,</span><span class="n">smiles_col</span><span class="o">=</span><span class="s1">&#39;rdkit_smiles&#39;</span><span class="p">)</span>
+
+    	<span class="c1"># (Yaru) Remove inf in curated_df</span>
+    	<span class="n">curated_df</span> <span class="o">=</span> <span class="n">curated_df</span><span class="p">[</span><span class="o">~</span><span class="n">curated_df</span><span class="o">.</span><span class="n">isin</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">])</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="mi">1</span><span class="p">)]</span>
+    	<span class="c1"># (Yaru) Remove nan on rdkit_smiles</span>
+    	<span class="n">curated_df</span> <span class="o">=</span> <span class="n">curated_df</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;rdkit_smiles&#39;</span><span class="p">])</span>
+
+    	<span class="n">curated_lst</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">curated_df</span><span class="p">)</span>
+    	<span class="n">prev_cmpd_cnt</span><span class="o">=</span><span class="n">shared_inchi_keys</span><span class="o">.</span><span class="n">nunique</span><span class="p">()</span>
+    	<span class="n">num_dropped</span><span class="o">=</span><span class="n">prev_cmpd_cnt</span><span class="o">-</span><span class="n">curated_df</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    	<span class="n">num_dropped_lst</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">num_dropped</span><span class="p">)</span>
+    	<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;After&quot;</span><span class="p">,</span><span class="n">curated_df</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="s2">&quot;# of dropped compounds&quot;</span><span class="p">,</span><span class="n">num_dropped</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">curated_lst</span><span class="p">,</span><span class="n">num_dropped_lst</span></div>
+
+<div class="viewcode-block" id="upload_df_dtc_mleqonly"><a class="viewcode-back" href="../../utils.html#utils.data_curation_functions.upload_df_dtc_mleqonly">[docs]</a><span class="k">def</span> <span class="nf">upload_df_dtc_mleqonly</span><span class="p">(</span><span class="n">dset_name</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">description</span><span class="p">,</span> <span class="n">tags</span><span class="p">,</span>
+                            <span class="n">functional_area</span><span class="p">,</span> 
+                           <span class="n">target</span><span class="p">,</span> <span class="n">target_type</span><span class="p">,</span> <span class="n">activity</span><span class="p">,</span> <span class="n">assay_category</span><span class="p">,</span><span class="n">data_df</span><span class="p">,</span><span class="n">dtc_smiles_fileID</span><span class="p">,</span>
+    		   <span class="n">data_origin</span><span class="o">=</span><span class="s1">&#39;journal&#39;</span><span class="p">,</span>  <span class="n">species</span><span class="o">=</span><span class="s1">&#39;human&#39;</span><span class="p">,</span>  
+                           <span class="n">force_update</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Uploads DTC mleqonly data to the datastore</span>
+
+<span class="sd">    Upload mleqonly data to the datastore from the given DataFrame. The DataFrame</span>
+<span class="sd">    must contain the column &#39;rdkit_smiles&#39; and &#39;VALUE_NUM_mean&#39;. This function is </span>
+<span class="sd">    meant to upload data that has been aggregated using </span>
+<span class="sd">    atomsci.ddm.utils.curate_data.average_and_remove_duplicates.</span>
+<span class="sd">    Returns the datastore OID of the uploaded dataset. The dataset is uploaded to the</span>
+<span class="sd">    public bucket and lists https://doi.org/10.1016/j.chembiol.2017.11.009&#39; as the doi.</span>
+<span class="sd">    This also assumes that the id_col is &#39;compound_id&#39;.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        dset_name (str): Name of the dataset. Should not include a file extension.</span>
+
+<span class="sd">        title (str): title of the file in (human friendly format)</span>
+
+<span class="sd">        description (str): long text box to describe file (background/use notes)</span>
+
+<span class="sd">        tags (list): Must be a list of strings.</span>
+
+<span class="sd">        functional_area (str): The functional area.</span>
+
+<span class="sd">        target (str): The target.</span>
+
+<span class="sd">        target_type (str): The target type of the dataset.</span>
+
+<span class="sd">        activity (str): The activity of the dataset.</span>
+
+<span class="sd">        assay_category (str): The assay category of the dataset.</span>
+
+<span class="sd">        data_df (DataFrame): DataFrame to be uploaded.</span>
+
+<span class="sd">        dtc_smiles_fileID (str): Source file id used to generate data_df.</span>
+
+<span class="sd">        data_origin (str): The origin of the dataset e.g. journal.</span>
+
+<span class="sd">        species (str): The species of the dataset e.g. human, rat, dog.</span>
+
+<span class="sd">        force_update (bool): Overwrite existing datasets in the datastore.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str: datastore OID of the uploaded dataset.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">bucket</span> <span class="o">=</span> <span class="s1">&#39;public&#39;</span>
+    <span class="n">filename</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_dtc_mleqonly.csv&#39;</span> <span class="o">%</span> <span class="n">dset_name</span>
+    <span class="n">dataset_key</span> <span class="o">=</span> <span class="s1">&#39;dskey_&#39;</span> <span class="o">+</span> <span class="n">filename</span>
+
+    <span class="n">kv</span> <span class="o">=</span> <span class="p">{</span> <span class="s1">&#39;file_category&#39;</span><span class="p">:</span> <span class="s1">&#39;experimental&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;activity&#39;</span><span class="p">:</span> <span class="n">activity</span><span class="p">,</span>
+        <span class="s1">&#39;assay_category&#39;</span><span class="p">:</span> <span class="n">assay_category</span><span class="p">,</span>  <span class="c1">## seems like this should be called &#39;kinase_activity&#39;</span>
+        <span class="s1">&#39;assay_endpoint&#39;</span> <span class="p">:</span> <span class="s1">&#39;pic50&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;curation_level&#39;</span><span class="p">:</span> <span class="s1">&#39;ml_ready&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;data_origin&#39;</span> <span class="p">:</span> <span class="n">data_origin</span><span class="p">,</span>
+        <span class="s1">&#39;functional_area&#39;</span> <span class="p">:</span> <span class="n">functional_area</span><span class="p">,</span>
+        <span class="s1">&#39;matrix&#39;</span> <span class="p">:</span> <span class="s1">&#39;multiple values&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;journal_doi&#39;</span> <span class="p">:</span> <span class="s1">&#39;https://doi.org/10.1016/j.chembiol.2017.11.009&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;sample_type&#39;</span> <span class="p">:</span> <span class="s1">&#39;in_vitro&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;species&#39;</span> <span class="p">:</span> <span class="n">species</span><span class="p">,</span>
+        <span class="s1">&#39;target&#39;</span> <span class="p">:</span> <span class="n">target</span><span class="p">,</span>
+        <span class="s1">&#39;target_type&#39;</span> <span class="p">:</span> <span class="n">target_type</span><span class="p">,</span>
+        <span class="s1">&#39;id_col&#39;</span> <span class="p">:</span> <span class="s1">&#39;compound_id&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;response_col&#39;</span> <span class="p">:</span> <span class="s1">&#39;VALUE_NUM_mean&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;prediction_type&#39;</span> <span class="p">:</span> <span class="s1">&#39;regression&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;smiles_col&#39;</span> <span class="p">:</span> <span class="s1">&#39;rdkit_smiles&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;units&#39;</span> <span class="p">:</span> <span class="s1">&#39;unitless&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;source_file_id&#39;</span> <span class="p">:</span> <span class="n">dtc_smiles_fileID</span>
+     <span class="p">}</span>
+
+    <span class="c1">#uploaded_file = dsf.upload_file_to_DS(bucket=bucket, filepath=file_path, filename=filename,     	title = title, description=description, tags=tags, key_values=kv, client=None, 			dataset_key=dataset_key, override_check=False, return_metadata=True)</span>
+
+    <span class="n">ds_client</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">config_client</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">force_update</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">dsf</span><span class="o">.</span><span class="n">dataset_key_exists</span><span class="p">(</span><span class="n">dataset_key</span><span class="p">,</span> <span class="n">bucket</span><span class="p">,</span> <span class="n">ds_client</span><span class="p">):</span>
+        <span class="n">uploaded_file</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">upload_df_to_DS</span><span class="p">(</span><span class="n">bucket</span><span class="o">=</span><span class="n">bucket</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span><span class="n">df</span><span class="o">=</span><span class="n">data_df</span><span class="p">,</span> <span class="n">title</span> <span class="o">=</span> <span class="n">title</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">,</span> <span class="n">tags</span><span class="o">=</span><span class="n">tags</span><span class="p">,</span> <span class="n">key_values</span><span class="o">=</span><span class="n">kv</span><span class="p">,</span> <span class="n">client</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dataset_key</span><span class="o">=</span><span class="n">dataset_key</span><span class="p">,</span> <span class="n">override_check</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">return_metadata</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="c1">#uploaded_file = dsf.upload_file_to_DS(bucket=bucket, filepath=file_path, filename=filename,     	title = title, description=description, tags=tags, key_values=kv, client=None, 			dataset_key=dataset_key, override_check=False, return_metadata=True)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Uploaded raw dataset with key </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">dataset_key</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">uploaded_file</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">retrieve_dataset_by_datasetkey</span><span class="p">(</span><span class="n">dataset_key</span><span class="p">,</span> <span class="n">bucket</span><span class="p">,</span> <span class="n">ds_client</span><span class="p">,</span> <span class="n">return_metadata</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Raw dataset </span><span class="si">%s</span><span class="s2"> is already in datastore, skipping upload.&quot;</span> <span class="o">%</span> <span class="n">dataset_key</span><span class="p">)</span>
+
+    <span class="n">raw_dset_oid</span> <span class="o">=</span> <span class="n">uploaded_file</span><span class="p">[</span><span class="s1">&#39;dataset_oid&#39;</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">raw_dset_oid</span></div>
+
+<div class="viewcode-block" id="upload_df_dtc_mleqonly_class"><a class="viewcode-back" href="../../utils.html#utils.data_curation_functions.upload_df_dtc_mleqonly_class">[docs]</a><span class="k">def</span> <span class="nf">upload_df_dtc_mleqonly_class</span><span class="p">(</span><span class="n">dset_name</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">description</span><span class="p">,</span> <span class="n">tags</span><span class="p">,</span>
+                            <span class="n">functional_area</span><span class="p">,</span> 
+                           <span class="n">target</span><span class="p">,</span> <span class="n">target_type</span><span class="p">,</span> <span class="n">activity</span><span class="p">,</span> <span class="n">assay_category</span><span class="p">,</span><span class="n">data_df</span><span class="p">,</span><span class="n">dtc_mleqonly_fileID</span><span class="p">,</span>
+    		   <span class="n">data_origin</span><span class="o">=</span><span class="s1">&#39;journal&#39;</span><span class="p">,</span>  <span class="n">species</span><span class="o">=</span><span class="s1">&#39;human&#39;</span><span class="p">,</span>  
+                           <span class="n">force_update</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Uploads DTC mleqonly classification data to the datastore</span>
+
+<span class="sd">    Upload mleqonly classification data to the datastore from the given DataFrame. The DataFrame</span>
+<span class="sd">    must contain the column &#39;rdkit_smiles&#39; and &#39;binary_class&#39;. This function is </span>
+<span class="sd">    meant to upload data that has been aggregated using </span>
+<span class="sd">    atomsci.ddm.utils.curate_data.average_and_remove_duplicates and then thresholded to</span>
+<span class="sd">    make a binary classification dataset.</span>
+<span class="sd">    Returns the datastore OID of the uploaded dataset. The dataset is uploaded to the</span>
+<span class="sd">    public bucket and lists https://doi.org/10.1016/j.chembiol.2017.11.009&#39; as the doi.</span>
+<span class="sd">    This also assumes that the id_col is &#39;compound_id&#39;.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        dset_name (str): Name of the dataset. Should not include a file extension.</span>
+
+<span class="sd">        title (str): title of the file in (human friendly format)</span>
+
+<span class="sd">        description (str): long text box to describe file (background/use notes)</span>
+
+<span class="sd">        tags (list): Must be a list of strings.</span>
+
+<span class="sd">        functional_area (str): The functional area.</span>
+
+<span class="sd">        target (str): The target.</span>
+
+<span class="sd">        target_type (str): The target type of the dataset.</span>
+
+<span class="sd">        activity (str): The activity of the dataset.</span>
+
+<span class="sd">        assay_category (str): The assay category of the dataset.</span>
+
+<span class="sd">        data_df (DataFrame): DataFrame to be uploaded.</span>
+
+<span class="sd">        dtc_mleqonly_fileID (str): Source file id used to generate data_df.</span>
+
+<span class="sd">        data_origin (str): The origin of the dataset e.g. journal.</span>
+
+<span class="sd">        species (str): The species of the dataset e.g. human, rat, dog.</span>
+
+<span class="sd">        force_update (bool): Overwrite existing datasets in the datastore.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str: datastore OID of the uploaded dataset.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">bucket</span> <span class="o">=</span> <span class="s1">&#39;public&#39;</span>
+    <span class="n">filename</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_dtc_mleqonly_class.csv&#39;</span> <span class="o">%</span> <span class="n">dset_name</span>
+    <span class="n">dataset_key</span> <span class="o">=</span> <span class="s1">&#39;dskey_&#39;</span> <span class="o">+</span> <span class="n">filename</span>
+
+    <span class="n">kv</span> <span class="o">=</span> <span class="p">{</span> <span class="s1">&#39;file_category&#39;</span><span class="p">:</span> <span class="s1">&#39;experimental&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;activity&#39;</span><span class="p">:</span> <span class="n">activity</span><span class="p">,</span>
+        <span class="s1">&#39;assay_category&#39;</span><span class="p">:</span> <span class="n">assay_category</span><span class="p">,</span>  <span class="c1">## seems like this should be called &#39;kinase_activity&#39;</span>
+        <span class="s1">&#39;assay_endpoint&#39;</span> <span class="p">:</span> <span class="s1">&#39;pic50&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;curation_level&#39;</span><span class="p">:</span> <span class="s1">&#39;ml_ready&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;data_origin&#39;</span> <span class="p">:</span> <span class="n">data_origin</span><span class="p">,</span>
+        <span class="s1">&#39;functional_area&#39;</span> <span class="p">:</span> <span class="n">functional_area</span><span class="p">,</span>
+        <span class="s1">&#39;matrix&#39;</span> <span class="p">:</span> <span class="s1">&#39;multiple values&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;journal_doi&#39;</span> <span class="p">:</span> <span class="s1">&#39;https://doi.org/10.1016/j.chembiol.2017.11.009&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;sample_type&#39;</span> <span class="p">:</span> <span class="s1">&#39;in_vitro&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;species&#39;</span> <span class="p">:</span> <span class="n">species</span><span class="p">,</span>
+        <span class="s1">&#39;target&#39;</span> <span class="p">:</span> <span class="n">target</span><span class="p">,</span>
+        <span class="s1">&#39;target_type&#39;</span> <span class="p">:</span> <span class="n">target_type</span><span class="p">,</span>
+        <span class="s1">&#39;id_col&#39;</span> <span class="p">:</span> <span class="s1">&#39;compound_id&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;response_col&#39;</span> <span class="p">:</span> <span class="s1">&#39;binary_class&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;prediction_type&#39;</span> <span class="p">:</span> <span class="s1">&#39;classification&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;num_classes&#39;</span> <span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+    <span class="s1">&#39;class_names&#39;</span> <span class="p">:</span> <span class="p">[</span><span class="s1">&#39;inactive&#39;</span><span class="p">,</span><span class="s1">&#39;active&#39;</span><span class="p">],</span>
+        <span class="s1">&#39;smiles_col&#39;</span> <span class="p">:</span> <span class="s1">&#39;rdkit_smiles&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;units&#39;</span> <span class="p">:</span> <span class="s1">&#39;unitless&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;source_file_id&#39;</span> <span class="p">:</span> <span class="n">dtc_mleqonly_fileID</span>
+     <span class="p">}</span>
+    <span class="n">ds_client</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">config_client</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">force_update</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">dsf</span><span class="o">.</span><span class="n">dataset_key_exists</span><span class="p">(</span><span class="n">dataset_key</span><span class="p">,</span> <span class="n">bucket</span><span class="p">,</span> <span class="n">ds_client</span><span class="p">):</span>
+        <span class="n">uploaded_file</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">upload_df_to_DS</span><span class="p">(</span><span class="n">bucket</span><span class="o">=</span><span class="n">bucket</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span><span class="n">df</span><span class="o">=</span><span class="n">data_df</span><span class="p">,</span> <span class="n">title</span> <span class="o">=</span> <span class="n">title</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">,</span> <span class="n">tags</span><span class="o">=</span><span class="n">tags</span><span class="p">,</span> <span class="n">key_values</span><span class="o">=</span><span class="n">kv</span><span class="p">,</span> <span class="n">client</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dataset_key</span><span class="o">=</span><span class="n">dataset_key</span><span class="p">,</span> <span class="n">override_check</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">return_metadata</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Uploaded raw dataset with key </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">dataset_key</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">uploaded_file</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">retrieve_dataset_by_datasetkey</span><span class="p">(</span><span class="n">dataset_key</span><span class="p">,</span> <span class="n">bucket</span><span class="p">,</span> <span class="n">ds_client</span><span class="p">,</span> <span class="n">return_metadata</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Raw dataset </span><span class="si">%s</span><span class="s2"> is already in datastore, skipping upload.&quot;</span> <span class="o">%</span> <span class="n">dataset_key</span><span class="p">)</span>
+
+    <span class="n">raw_dset_oid</span> <span class="o">=</span> <span class="n">uploaded_file</span><span class="p">[</span><span class="s1">&#39;dataset_oid&#39;</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">raw_dset_oid</span></div>
+
+<div class="viewcode-block" id="upload_df_dtc_base_smiles_all"><a class="viewcode-back" href="../../utils.html#utils.data_curation_functions.upload_df_dtc_base_smiles_all">[docs]</a><span class="k">def</span> <span class="nf">upload_df_dtc_base_smiles_all</span><span class="p">(</span><span class="n">dset_name</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">description</span><span class="p">,</span> <span class="n">tags</span><span class="p">,</span>
+                            <span class="n">functional_area</span><span class="p">,</span>
+                           <span class="n">target</span><span class="p">,</span> <span class="n">target_type</span><span class="p">,</span> <span class="n">activity</span><span class="p">,</span> <span class="n">assay_category</span><span class="p">,</span><span class="n">data_df</span><span class="p">,</span><span class="n">dtc_mleqonly_fileID</span><span class="p">,</span>
+                           <span class="n">data_origin</span><span class="o">=</span><span class="s1">&#39;journal&#39;</span><span class="p">,</span>  <span class="n">species</span><span class="o">=</span><span class="s1">&#39;human&#39;</span><span class="p">,</span>
+                           <span class="n">force_update</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Uploads DTC base smiles data to the datastore</span>
+
+<span class="sd">    Uploads base SMILES string for the DTC dataset.</span>
+
+<span class="sd">    Returns the datastore OID of the uploaded dataset. The dataset is uploaded to the</span>
+<span class="sd">    public bucket and lists https://doi.org/10.1016/j.chembiol.2017.11.009&#39; as the doi.</span>
+<span class="sd">    This also assumes that the id_col is &#39;compound_id&#39;, the response column is set to PIC50,</span>
+<span class="sd">    and the SMILES are assumed to be in &#39;base_rdkit_smiles&#39;.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        dset_name (str): Name of the dataset. Should not include a file extension.</span>
+
+<span class="sd">        title (str): title of the file in (human friendly format)</span>
+
+<span class="sd">        description (str): long text box to describe file (background/use notes)</span>
+
+<span class="sd">        tags (list): Must be a list of strings.</span>
+
+<span class="sd">        functional_area (str): The functional area.</span>
+
+<span class="sd">        target (str): The target.</span>
+
+<span class="sd">        target_type (str): The target type of the dataset.</span>
+
+<span class="sd">        activity (str): The activity of the dataset.</span>
+
+<span class="sd">        assay_category (str): The assay category of the dataset.</span>
+
+<span class="sd">        data_df (DataFrame): DataFrame to be uploaded.</span>
+
+<span class="sd">        dtc_mleqonly_fileID (str): Source file id used to generate data_df.</span>
+
+<span class="sd">        data_origin (str): The origin of the dataset e.g. journal.</span>
+
+<span class="sd">        species (str): The species of the dataset e.g. human, rat, dog.</span>
+
+<span class="sd">        force_update (bool): Overwrite existing datasets in the datastore.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str: datastore OID of the uploaded dataset.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">bucket</span> <span class="o">=</span> <span class="s1">&#39;public&#39;</span>
+    <span class="n">filename</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_dtc_base_smiles_all.csv&#39;</span> <span class="o">%</span> <span class="n">dset_name</span>
+    <span class="n">dataset_key</span> <span class="o">=</span> <span class="s1">&#39;dskey_&#39;</span> <span class="o">+</span> <span class="n">filename</span>
+
+    <span class="n">kv</span> <span class="o">=</span> <span class="p">{</span> <span class="s1">&#39;file_category&#39;</span><span class="p">:</span> <span class="s1">&#39;experimental&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;activity&#39;</span><span class="p">:</span> <span class="n">activity</span><span class="p">,</span>
+        <span class="s1">&#39;assay_category&#39;</span><span class="p">:</span> <span class="n">assay_category</span><span class="p">,</span>  <span class="c1">## seems like this should be called &#39;kinase_activity&#39;</span>
+        <span class="s1">&#39;assay_endpoint&#39;</span> <span class="p">:</span> <span class="s1">&#39;pic50&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;curation_level&#39;</span><span class="p">:</span> <span class="s1">&#39;ml_ready&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;data_origin&#39;</span> <span class="p">:</span> <span class="n">data_origin</span><span class="p">,</span>
+        <span class="s1">&#39;functional_area&#39;</span> <span class="p">:</span> <span class="n">functional_area</span><span class="p">,</span>
+        <span class="s1">&#39;matrix&#39;</span> <span class="p">:</span> <span class="s1">&#39;multiple values&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;journal_doi&#39;</span> <span class="p">:</span> <span class="s1">&#39;https://doi.org/10.1016/j.chembiol.2017.11.009&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;sample_type&#39;</span> <span class="p">:</span> <span class="s1">&#39;in_vitro&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;species&#39;</span> <span class="p">:</span> <span class="n">species</span><span class="p">,</span>
+        <span class="s1">&#39;target&#39;</span> <span class="p">:</span> <span class="n">target</span><span class="p">,</span>
+        <span class="s1">&#39;target_type&#39;</span> <span class="p">:</span> <span class="n">target_type</span><span class="p">,</span>
+        <span class="s1">&#39;id_col&#39;</span> <span class="p">:</span> <span class="s1">&#39;compound_id&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;response_col&#39;</span> <span class="p">:</span> <span class="s1">&#39;PIC50&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;prediction_type&#39;</span> <span class="p">:</span> <span class="s1">&#39;regression&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;smiles_col&#39;</span> <span class="p">:</span> <span class="s1">&#39;base_rdkit_smiles&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;units&#39;</span> <span class="p">:</span> <span class="s1">&#39;unitless&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;source_file_id&#39;</span> <span class="p">:</span> <span class="n">dtc_mleqonly_fileID</span>
+     <span class="p">}</span>
+    <span class="n">ds_client</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">config_client</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">force_update</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">dsf</span><span class="o">.</span><span class="n">dataset_key_exists</span><span class="p">(</span><span class="n">dataset_key</span><span class="p">,</span> <span class="n">bucket</span><span class="p">,</span> <span class="n">ds_client</span><span class="p">):</span>
+        <span class="n">uploaded_file</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">upload_df_to_DS</span><span class="p">(</span><span class="n">bucket</span><span class="o">=</span><span class="n">bucket</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span><span class="n">df</span><span class="o">=</span><span class="n">data_df</span><span class="p">,</span> <span class="n">title</span> <span class="o">=</span> <span class="n">title</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">,</span> <span class="n">tags</span><span class="o">=</span><span class="n">tags</span><span class="p">,</span> <span class="n">key_values</span><span class="o">=</span><span class="n">kv</span><span class="p">,</span> <span class="n">client</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dataset_key</span><span class="o">=</span><span class="n">dataset_key</span><span class="p">,</span> <span class="n">override_check</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">return_metadata</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Uploaded raw dataset with key </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">dataset_key</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">uploaded_file</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">retrieve_dataset_by_datasetkey</span><span class="p">(</span><span class="n">dataset_key</span><span class="p">,</span> <span class="n">bucket</span><span class="p">,</span> <span class="n">ds_client</span><span class="p">,</span> <span class="n">return_metadata</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Raw dataset </span><span class="si">%s</span><span class="s2"> is already in datastore, skipping upload.&quot;</span> <span class="o">%</span> <span class="n">dataset_key</span><span class="p">)</span>
+
+    <span class="n">raw_dset_oid</span> <span class="o">=</span> <span class="n">uploaded_file</span><span class="p">[</span><span class="s1">&#39;dataset_oid&#39;</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">raw_dset_oid</span></div>
+
+<div class="viewcode-block" id="upload_file_dtc_smiles_regr_all"><a class="viewcode-back" href="../../utils.html#utils.data_curation_functions.upload_file_dtc_smiles_regr_all">[docs]</a><span class="k">def</span> <span class="nf">upload_file_dtc_smiles_regr_all</span><span class="p">(</span><span class="n">dset_name</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">description</span><span class="p">,</span> <span class="n">tags</span><span class="p">,</span>
+                            <span class="n">functional_area</span><span class="p">,</span> 
+                           <span class="n">target</span><span class="p">,</span> <span class="n">target_type</span><span class="p">,</span> <span class="n">activity</span><span class="p">,</span> <span class="n">assay_category</span><span class="p">,</span><span class="n">file_path</span><span class="p">,</span><span class="n">dtc_smiles_fileID</span><span class="p">,</span>
+    		<span class="n">smiles_column</span><span class="p">,</span>  <span class="n">data_origin</span><span class="o">=</span><span class="s1">&#39;journal&#39;</span><span class="p">,</span>  <span class="n">species</span><span class="o">=</span><span class="s1">&#39;human&#39;</span><span class="p">,</span>  
+                           <span class="n">force_update</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Uploads regression DTC data to the datastore</span>
+
+<span class="sd">    Uploads regression dataset for DTC dataset.</span>
+
+<span class="sd">    Returns the datastore OID of the uploaded dataset. The dataset is uploaded to the</span>
+<span class="sd">    public bucket and lists https://doi.org/10.1016/j.chembiol.2017.11.009&#39; as the doi.</span>
+<span class="sd">    This also assumes that the id_col is &#39;compound_id&#39;, the response column is set to PIC50.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        dset_name (str): Name of the dataset. Should not include a file extension.</span>
+
+<span class="sd">        title (str): title of the file in (human friendly format)</span>
+
+<span class="sd">        description (str): long text box to describe file (background/use notes)</span>
+
+<span class="sd">        tags (list): Must be a list of strings.</span>
+
+<span class="sd">        functional_area (str): The functional area.</span>
+
+<span class="sd">        target (str): The target.</span>
+
+<span class="sd">        target_type (str): The target type of the dataset.</span>
+
+<span class="sd">        activity (str): The activity of the dataset.</span>
+
+<span class="sd">        assay_category (str): The assay category of the dataset.</span>
+
+<span class="sd">        data_df (DataFrame): DataFrame to be uploaded.</span>
+
+<span class="sd">        dtc_smiles_fileID(str): Source file id used to generate data_df.</span>
+
+<span class="sd">        smiles_column (str): Column containing SMILES.</span>
+
+<span class="sd">        data_origin (str): The origin of the dataset e.g. journal.</span>
+
+<span class="sd">        species (str): The species of the dataset e.g. human, rat, dog.</span>
+
+<span class="sd">        force_update (bool): Overwrite existing datasets in the datastore.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str: datastore OID of the uploaded dataset.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">bucket</span> <span class="o">=</span> <span class="s1">&#39;public&#39;</span>
+    <span class="n">filename</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_dtc_smiles_regr_all.csv&#39;</span> <span class="o">%</span> <span class="n">dset_name</span>
+    <span class="n">dataset_key</span> <span class="o">=</span> <span class="s1">&#39;dskey_&#39;</span> <span class="o">+</span> <span class="n">filename</span>
+
+    <span class="n">kv</span> <span class="o">=</span> <span class="p">{</span> <span class="s1">&#39;file_category&#39;</span><span class="p">:</span> <span class="s1">&#39;experimental&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;activity&#39;</span><span class="p">:</span> <span class="n">activity</span><span class="p">,</span>
+        <span class="s1">&#39;assay_category&#39;</span><span class="p">:</span> <span class="n">assay_category</span><span class="p">,</span>  <span class="c1">## seems like this should be called &#39;kinase_activity&#39;</span>
+        <span class="s1">&#39;assay_endpoint&#39;</span> <span class="p">:</span> <span class="s1">&#39;pic50&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;curation_level&#39;</span><span class="p">:</span> <span class="s1">&#39;ml_ready&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;data_origin&#39;</span> <span class="p">:</span> <span class="n">data_origin</span><span class="p">,</span>
+        <span class="s1">&#39;functional_area&#39;</span> <span class="p">:</span> <span class="n">functional_area</span><span class="p">,</span>
+        <span class="s1">&#39;matrix&#39;</span> <span class="p">:</span> <span class="s1">&#39;multiple values&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;journal_doi&#39;</span> <span class="p">:</span> <span class="s1">&#39;https://doi.org/10.1016/j.chembiol.2017.11.009&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;sample_type&#39;</span> <span class="p">:</span> <span class="s1">&#39;in_vitro&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;species&#39;</span> <span class="p">:</span> <span class="n">species</span><span class="p">,</span>
+        <span class="s1">&#39;target&#39;</span> <span class="p">:</span> <span class="n">target</span><span class="p">,</span>
+        <span class="s1">&#39;target_type&#39;</span> <span class="p">:</span> <span class="n">target_type</span><span class="p">,</span>
+        <span class="s1">&#39;id_col&#39;</span> <span class="p">:</span> <span class="s1">&#39;compound_id&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;response_col&#39;</span> <span class="p">:</span> <span class="s1">&#39;PIC50&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;prediction_type&#39;</span> <span class="p">:</span> <span class="s1">&#39;regression&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;smiles_col&#39;</span> <span class="p">:</span> <span class="n">smiles_column</span><span class="p">,</span>
+        <span class="s1">&#39;units&#39;</span> <span class="p">:</span> <span class="s1">&#39;unitless&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;source_file_id&#39;</span> <span class="p">:</span> <span class="n">dtc_smiles_fileID</span>
+     <span class="p">}</span>
+
+    <span class="c1">#uploaded_file = dsf.upload_file_to_DS(bucket=bucket, filepath=file_path, filename=filename,     	title = title, description=description, tags=tags, key_values=kv, client=None, 			dataset_key=dataset_key, override_check=False, return_metadata=True)</span>
+
+    <span class="n">ds_client</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">config_client</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">force_update</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">dsf</span><span class="o">.</span><span class="n">dataset_key_exists</span><span class="p">(</span><span class="n">dataset_key</span><span class="p">,</span> <span class="n">bucket</span><span class="p">,</span> <span class="n">ds_client</span><span class="p">):</span>
+        <span class="c1">#uploaded_file = dsf.upload_df_to_DS(bucket=bucket, filename=filename,df=data_df, title = title, description=description, tags=tags, key_values=kv, client=None, dataset_key=dataset_key, override_check=False, return_metadata=True)</span>
+
+        <span class="n">uploaded_file</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">upload_file_to_DS</span><span class="p">(</span><span class="n">bucket</span><span class="o">=</span><span class="n">bucket</span><span class="p">,</span> <span class="n">filepath</span><span class="o">=</span><span class="n">file_path</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span>     	<span class="n">title</span> <span class="o">=</span> <span class="n">title</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">,</span> <span class="n">tags</span><span class="o">=</span><span class="n">tags</span><span class="p">,</span> <span class="n">key_values</span><span class="o">=</span><span class="n">kv</span><span class="p">,</span> <span class="n">client</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> 			<span class="n">dataset_key</span><span class="o">=</span><span class="n">dataset_key</span><span class="p">,</span> <span class="n">override_check</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">return_metadata</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Uploaded raw dataset with key </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">dataset_key</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">uploaded_file</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">retrieve_dataset_by_datasetkey</span><span class="p">(</span><span class="n">dataset_key</span><span class="p">,</span> <span class="n">bucket</span><span class="p">,</span> <span class="n">ds_client</span><span class="p">,</span> <span class="n">return_metadata</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Raw dataset </span><span class="si">%s</span><span class="s2"> is already in datastore, skipping upload.&quot;</span> <span class="o">%</span> <span class="n">dataset_key</span><span class="p">)</span>
+
+    <span class="n">raw_dset_oid</span> <span class="o">=</span> <span class="n">uploaded_file</span><span class="p">[</span><span class="s1">&#39;dataset_oid&#39;</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">raw_dset_oid</span></div>
+
+<div class="viewcode-block" id="upload_df_dtc_smiles_regr_all_class"><a class="viewcode-back" href="../../utils.html#utils.data_curation_functions.upload_df_dtc_smiles_regr_all_class">[docs]</a><span class="k">def</span> <span class="nf">upload_df_dtc_smiles_regr_all_class</span><span class="p">(</span><span class="n">dset_name</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">description</span><span class="p">,</span> <span class="n">tags</span><span class="p">,</span>
+                            <span class="n">functional_area</span><span class="p">,</span> 
+                           <span class="n">target</span><span class="p">,</span> <span class="n">target_type</span><span class="p">,</span> <span class="n">activity</span><span class="p">,</span> <span class="n">assay_category</span><span class="p">,</span><span class="n">data_df</span><span class="p">,</span><span class="n">dtc_smiles_regr_all_fileID</span><span class="p">,</span>
+    		   <span class="n">smiles_column</span><span class="p">,</span> <span class="n">data_origin</span><span class="o">=</span><span class="s1">&#39;journal&#39;</span><span class="p">,</span>  <span class="n">species</span><span class="o">=</span><span class="s1">&#39;human&#39;</span><span class="p">,</span>  
+                           <span class="n">force_update</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Uploads DTC classification data to the datastore</span>
+
+<span class="sd">    Uploads binary classiciation data for the DTC dataset. Classnames are assumed to</span>
+<span class="sd">    be &#39;active&#39; and &#39;inactive&#39;</span>
+
+<span class="sd">    Returns the datastore OID of the uploaded dataset. The dataset is uploaded to the</span>
+<span class="sd">    public bucket and lists https://doi.org/10.1016/j.chembiol.2017.11.009&#39; as the doi.</span>
+<span class="sd">    This also assumes that the id_col is &#39;compound_id&#39;, the response column is set to PIC50.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        dset_name (str): Name of the dataset. Should not include a file extension.</span>
+
+<span class="sd">        title (str): title of the file in (human friendly format)</span>
+
+<span class="sd">        description (str): long text box to describe file (background/use notes)</span>
+
+<span class="sd">        tags (list): Must be a list of strings.</span>
+
+<span class="sd">        functional_area (str): The functional area.</span>
+
+<span class="sd">        target (str): The target.</span>
+
+<span class="sd">        target_type (str): The target type of the dataset.</span>
+
+<span class="sd">        activity (str): The activity of the dataset.</span>
+
+<span class="sd">        assay_category (str): The assay category of the dataset.</span>
+
+<span class="sd">        data_df (DataFrame): DataFrame to be uploaded.</span>
+
+<span class="sd">        dtc_smiles_regr_all_fileID(str): Source file id used to generate data_df.</span>
+
+<span class="sd">        smiles_column (str): Column containing SMILES.</span>
+
+<span class="sd">        data_origin (str): The origin of the dataset e.g. journal.</span>
+
+<span class="sd">        species (str): The species of the dataset e.g. human, rat, dog.</span>
+
+<span class="sd">        force_update (bool): Overwrite existing datasets in the datastore.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str: datastore OID of the uploaded dataset.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">bucket</span> <span class="o">=</span> <span class="s1">&#39;public&#39;</span>
+    <span class="n">filename</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_dtc_smiles_regr_all_class.csv&#39;</span> <span class="o">%</span> <span class="n">dset_name</span>
+    <span class="n">dataset_key</span> <span class="o">=</span> <span class="s1">&#39;dskey_&#39;</span> <span class="o">+</span> <span class="n">filename</span>
+
+    <span class="n">kv</span> <span class="o">=</span> <span class="p">{</span> <span class="s1">&#39;file_category&#39;</span><span class="p">:</span> <span class="s1">&#39;experimental&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;activity&#39;</span><span class="p">:</span> <span class="n">activity</span><span class="p">,</span>
+        <span class="s1">&#39;assay_category&#39;</span><span class="p">:</span> <span class="n">assay_category</span><span class="p">,</span>  <span class="c1">## seems like this should be called &#39;kinase_activity&#39;</span>
+        <span class="s1">&#39;assay_endpoint&#39;</span> <span class="p">:</span> <span class="s1">&#39;pic50&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;curation_level&#39;</span><span class="p">:</span> <span class="s1">&#39;ml_ready&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;data_origin&#39;</span> <span class="p">:</span> <span class="n">data_origin</span><span class="p">,</span>
+        <span class="s1">&#39;functional_area&#39;</span> <span class="p">:</span> <span class="n">functional_area</span><span class="p">,</span>
+        <span class="s1">&#39;matrix&#39;</span> <span class="p">:</span> <span class="s1">&#39;multiple values&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;journal_doi&#39;</span> <span class="p">:</span> <span class="s1">&#39;https://doi.org/10.1016/j.chembiol.2017.11.009&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;sample_type&#39;</span> <span class="p">:</span> <span class="s1">&#39;in_vitro&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;species&#39;</span> <span class="p">:</span> <span class="n">species</span><span class="p">,</span>
+        <span class="s1">&#39;target&#39;</span> <span class="p">:</span> <span class="n">target</span><span class="p">,</span>
+        <span class="s1">&#39;target_type&#39;</span> <span class="p">:</span> <span class="n">target_type</span><span class="p">,</span>
+        <span class="s1">&#39;id_col&#39;</span> <span class="p">:</span> <span class="s1">&#39;compound_id&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;response_col&#39;</span> <span class="p">:</span> <span class="s1">&#39;PIC50&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;prediction_type&#39;</span> <span class="p">:</span> <span class="s1">&#39;classification&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;num_classes&#39;</span> <span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="s1">&#39;smiles_col&#39;</span> <span class="p">:</span> <span class="n">smiles_column</span><span class="p">,</span>
+    <span class="s1">&#39;class_names&#39;</span> <span class="p">:</span> <span class="p">[</span><span class="s1">&#39;inactive&#39;</span><span class="p">,</span><span class="s1">&#39;active&#39;</span><span class="p">],</span>
+        <span class="s1">&#39;units&#39;</span> <span class="p">:</span> <span class="s1">&#39;unitless&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;source_file_id&#39;</span> <span class="p">:</span> <span class="n">dtc_smiles_regr_all_fileID</span>
+     <span class="p">}</span>
+
+    <span class="c1">#uploaded_file = dsf.upload_file_to_DS(bucket=bucket, filepath=file_path, filename=filename,     	title = title, description=description, tags=tags, key_values=kv, client=None, 			dataset_key=dataset_key, override_check=False, return_metadata=True)</span>
+
+    <span class="n">ds_client</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">config_client</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">force_update</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">dsf</span><span class="o">.</span><span class="n">dataset_key_exists</span><span class="p">(</span><span class="n">dataset_key</span><span class="p">,</span> <span class="n">bucket</span><span class="p">,</span> <span class="n">ds_client</span><span class="p">):</span>
+        <span class="n">uploaded_file</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">upload_df_to_DS</span><span class="p">(</span><span class="n">bucket</span><span class="o">=</span><span class="n">bucket</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span><span class="n">df</span><span class="o">=</span><span class="n">data_df</span><span class="p">,</span> <span class="n">title</span> <span class="o">=</span> <span class="n">title</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">,</span> <span class="n">tags</span><span class="o">=</span><span class="n">tags</span><span class="p">,</span> <span class="n">key_values</span><span class="o">=</span><span class="n">kv</span><span class="p">,</span> <span class="n">client</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dataset_key</span><span class="o">=</span><span class="n">dataset_key</span><span class="p">,</span> <span class="n">override_check</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">return_metadata</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="c1">#uploaded_file = dsf.upload_file_to_DS(bucket=bucket, filepath=file_path, filename=filename,     	title = title, description=description, tags=tags, key_values=kv, client=None, 			dataset_key=dataset_key, override_check=False, return_metadata=True)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Uploaded raw dataset with key </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">dataset_key</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">uploaded_file</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">retrieve_dataset_by_datasetkey</span><span class="p">(</span><span class="n">dataset_key</span><span class="p">,</span> <span class="n">bucket</span><span class="p">,</span> <span class="n">ds_client</span><span class="p">,</span> <span class="n">return_metadata</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Raw dataset </span><span class="si">%s</span><span class="s2"> is already in datastore, skipping upload.&quot;</span> <span class="o">%</span> <span class="n">dataset_key</span><span class="p">)</span>
+
+    <span class="n">raw_dset_oid</span> <span class="o">=</span> <span class="n">uploaded_file</span><span class="p">[</span><span class="s1">&#39;dataset_oid&#39;</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">raw_dset_oid</span></div>
+
+<span class="c1"># ----------------------------------------------------------------------------------------------------------------------</span>
+<span class="c1"># Excape-specific curation functions</span>
+<span class="c1"># ----------------------------------------------------------------------------------------------------------------------</span>
+
+<div class="viewcode-block" id="upload_file_excape_raw_data"><a class="viewcode-back" href="../../utils.html#utils.data_curation_functions.upload_file_excape_raw_data">[docs]</a><span class="k">def</span> <span class="nf">upload_file_excape_raw_data</span><span class="p">(</span><span class="n">dset_name</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">description</span><span class="p">,</span> <span class="n">tags</span><span class="p">,</span>
+                            <span class="n">functional_area</span><span class="p">,</span> 
+                           <span class="n">target</span><span class="p">,</span> <span class="n">target_type</span><span class="p">,</span> <span class="n">activity</span><span class="p">,</span> <span class="n">assay_category</span><span class="p">,</span><span class="n">file_path</span><span class="p">,</span>
+    		   <span class="n">data_origin</span><span class="o">=</span><span class="s1">&#39;journal&#39;</span><span class="p">,</span>  <span class="n">species</span><span class="o">=</span><span class="s1">&#39;human&#39;</span><span class="p">,</span>  
+                           <span class="n">force_update</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Uploads raw Excape data to the datastore</span>
+
+<span class="sd">    Upload a raw dataset to the datastore from the given DataFrame. </span>
+<span class="sd">    Returns the datastore OID of the uploaded dataset. The dataset is uploaded to the</span>
+<span class="sd">    public bucket and lists https://dx.doi.org/10.1186%2Fs13321-017-0203-5 as the doi.</span>
+<span class="sd">    This also assumes that the id_col is &#39;Original_Entry_ID&#39;</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        dset_name (str): Name of the dataset. Should not include a file extension.</span>
+
+<span class="sd">        title (str): title of the file in (human friendly format)</span>
+
+<span class="sd">        description (str): long text box to describe file (background/use notes)</span>
+
+<span class="sd">        tags (list): Must be a list of strings.</span>
+
+<span class="sd">        functional_area (str): The functional area.</span>
+
+<span class="sd">        target (str): The target.</span>
+
+<span class="sd">        target_type (str): The target type of the dataset.</span>
+
+<span class="sd">        activity (str): The activity of the dataset.</span>
+
+<span class="sd">        assay_category (str): The assay category of the dataset.</span>
+
+<span class="sd">        file_path (str): The filepath of the dataset.</span>
+
+<span class="sd">        data_origin (str): The origin of the dataset e.g. journal.</span>
+
+<span class="sd">        species (str): The species of the dataset e.g. human, rat, dog.</span>
+
+<span class="sd">        force_update (bool): Overwrite existing datasets in the datastore.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str: datastore OID of the uploaded dataset.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">bucket</span> <span class="o">=</span> <span class="s1">&#39;public&#39;</span>
+    <span class="n">filename</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_excape.csv&#39;</span> <span class="o">%</span> <span class="n">dset_name</span>
+    <span class="n">dataset_key</span> <span class="o">=</span> <span class="s1">&#39;dskey_&#39;</span> <span class="o">+</span> <span class="n">filename</span>
+
+    <span class="n">kv</span> <span class="o">=</span> <span class="p">{</span> <span class="s1">&#39;file_category&#39;</span><span class="p">:</span> <span class="s1">&#39;experimental&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;activity&#39;</span><span class="p">:</span> <span class="n">activity</span><span class="p">,</span>
+        <span class="s1">&#39;assay_category&#39;</span><span class="p">:</span><span class="n">assay_category</span><span class="p">,</span> 
+        <span class="s1">&#39;assay_endpoint&#39;</span> <span class="p">:</span> <span class="s1">&#39;multiple values&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;curation_level&#39;</span><span class="p">:</span> <span class="s1">&#39;raw&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;data_origin&#39;</span> <span class="p">:</span> <span class="n">data_origin</span><span class="p">,</span>
+        <span class="s1">&#39;functional_area&#39;</span> <span class="p">:</span> <span class="n">functional_area</span><span class="p">,</span>
+        <span class="s1">&#39;matrix&#39;</span> <span class="p">:</span> <span class="s1">&#39;multiple values&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;journal_doi&#39;</span> <span class="p">:</span> <span class="s1">&#39;https://dx.doi.org/10.1186</span><span class="si">%2F</span><span class="s1">s13321-017-0203-5&#39;</span><span class="p">,</span> <span class="c1"># ExCAPE-DB</span>
+        <span class="s1">&#39;sample_type&#39;</span> <span class="p">:</span> <span class="s1">&#39;in_vitro&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;species&#39;</span> <span class="p">:</span> <span class="n">species</span><span class="p">,</span>
+        <span class="s1">&#39;target&#39;</span> <span class="p">:</span> <span class="n">target</span><span class="p">,</span> 
+        <span class="s1">&#39;target_type&#39;</span> <span class="p">:</span> <span class="n">target_type</span><span class="p">,</span>
+        <span class="s1">&#39;id_col&#39;</span> <span class="p">:</span> <span class="s1">&#39;Original_Entry_ID&#39;</span>
+     <span class="p">}</span>
+
+    <span class="c1">#uploaded_file = dsf.upload_file_to_DS(bucket=bucket, filepath=file_path, filename=filename,     	title = title, description=description, tags=tags, key_values=kv, client=None, 			dataset_key=dataset_key, override_check=False, return_metadata=True)</span>
+
+    <span class="n">ds_client</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">config_client</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">force_update</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">dsf</span><span class="o">.</span><span class="n">dataset_key_exists</span><span class="p">(</span><span class="n">dataset_key</span><span class="p">,</span> <span class="n">bucket</span><span class="p">,</span> <span class="n">ds_client</span><span class="p">):</span>
+        <span class="c1">#uploaded_file = dsf.upload_df_to_DS(dset_df, bucket, filename=filename, title=title,</span>
+        <span class="c1">#                               description=description,</span>
+        <span class="c1">#                               tags=tags, key_values=kv, client=None, dataset_key=dataset_key,</span>
+        <span class="c1">#                               override_check=True, return_metadata=True)</span>
+        <span class="n">uploaded_file</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">upload_file_to_DS</span><span class="p">(</span><span class="n">bucket</span><span class="o">=</span><span class="n">bucket</span><span class="p">,</span> <span class="n">filepath</span><span class="o">=</span><span class="n">file_path</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span>     	<span class="n">title</span> <span class="o">=</span> <span class="n">title</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">,</span> <span class="n">tags</span><span class="o">=</span><span class="n">tags</span><span class="p">,</span> <span class="n">key_values</span><span class="o">=</span><span class="n">kv</span><span class="p">,</span> <span class="n">client</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> 			<span class="n">dataset_key</span><span class="o">=</span><span class="n">dataset_key</span><span class="p">,</span> <span class="n">override_check</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">return_metadata</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Uploaded raw dataset with key </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">dataset_key</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">uploaded_file</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">retrieve_dataset_by_datasetkey</span><span class="p">(</span><span class="n">dataset_key</span><span class="p">,</span> <span class="n">bucket</span><span class="p">,</span> <span class="n">ds_client</span><span class="p">,</span> <span class="n">return_metadata</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Raw dataset </span><span class="si">%s</span><span class="s2"> is already in datastore, skipping upload.&quot;</span> <span class="o">%</span> <span class="n">dataset_key</span><span class="p">)</span>
+
+    <span class="n">raw_dset_oid</span> <span class="o">=</span> <span class="n">uploaded_file</span><span class="p">[</span><span class="s1">&#39;dataset_oid&#39;</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">raw_dset_oid</span></div>
+
+<div class="viewcode-block" id="get_smiles_excape_data"><a class="viewcode-back" href="../../utils.html#utils.data_curation_functions.get_smiles_excape_data">[docs]</a><span class="k">def</span> <span class="nf">get_smiles_excape_data</span><span class="p">(</span><span class="n">nm_df</span><span class="p">,</span><span class="n">targ_lst</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate base rdkit smiles</span>
+
+<span class="sd">    Divides up nm_df based on target and makes one DataFrame for each target.</span>
+
+<span class="sd">    Rows with NaN pXC50 values are dropped. Base rdkit SMILES are calculated</span>
+<span class="sd">    from the SMILES column using </span>
+<span class="sd">    atomsci.ddm.utils.struct_utils.base_rdkit_smiles_from_smiles. A new column,</span>
+<span class="sd">    &#39;rdkit_smiles, is added to each output DataFrame.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        nm_df (DataFrame): DataFrame for Excape database. Should contain the columns,</span>
+<span class="sd">            pXC50, SMILES, and Ambit_InchiKey</span>
+
+<span class="sd">        targ_lst (list): A list of targets to filter out of nm_df</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list, list: A list of DataFrames, one for each target, and a list of </span>
+<span class="sd">            all inchi keys used in the dataset.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Delete NaN</span>
+    <span class="n">nm_df</span> <span class="o">=</span> <span class="n">nm_df</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;pXC50&#39;</span><span class="p">])</span>
+
+    <span class="c1"># (Yaru) Use nm_df, which has removed nan&#39;s</span>
+    <span class="c1"># Don&#39;t need to retrieve SMILES, since already in excape file 	</span>
+    <span class="c1"># No filtering by censored</span>
+    <span class="n">save_df</span><span class="o">=</span><span class="p">{}</span>
+    <span class="n">targ</span> <span class="o">=</span> <span class="n">targ_lst</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">save_df</span><span class="p">[</span><span class="n">targ_lst</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="n">nm_df</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">targ</span><span class="p">,</span><span class="s2">&quot;distinct compounds = only&quot;</span><span class="p">,</span><span class="n">nm_df</span><span class="p">[</span><span class="s1">&#39;Ambit_InchiKey&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">nunique</span><span class="p">())</span>
+    <span class="n">shared_inchi_keys</span> <span class="o">=</span> <span class="n">nm_df</span><span class="p">[</span><span class="s1">&#39;Ambit_InchiKey&#39;</span><span class="p">]</span>
+
+    <span class="c1"># Merge in SMILES strings</span>
+    <span class="n">smiles_lst</span><span class="o">=</span><span class="p">[]</span>
+
+    <span class="n">save_df</span><span class="p">[</span><span class="n">targ_lst</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="n">nm_df</span>
+
+    <span class="k">for</span> <span class="n">targ</span> <span class="ow">in</span> <span class="n">targ_lst</span> <span class="p">:</span>
+        <span class="n">df</span><span class="o">=</span><span class="n">save_df</span><span class="p">[</span><span class="n">targ</span><span class="p">]</span>
+        <span class="n">smiles_df</span> <span class="o">=</span> <span class="n">df</span>
+        <span class="c1">#df[&#39;PIC50&#39;]=df[&#39;standard_value&#39;].apply(ic50topic50)</span>
+        <span class="c1">#smiles_df=df.merge(save_smiles_df,on=&#39;standard_inchi_key&#39;,suffixes=(&#39;_&#39;+targ,&#39;_&#39;))</span>
+        <span class="c1">#the file puts the SMILES string in quotes, which need to be removed</span>
+        <span class="c1">#smiles_df[&#39;smiles&#39;]=smiles_df[&#39;smiles&#39;].str.replace(&#39;&quot;&#39;,&#39;&#39;)</span>
+        <span class="n">smiles_df</span><span class="p">[</span><span class="s1">&#39;rdkit_smiles&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">smiles_df</span><span class="p">[</span><span class="s1">&#39;SMILES&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">struct_utils</span><span class="o">.</span><span class="n">base_smiles_from_smiles</span><span class="p">)</span>
+        <span class="c1">#smiles_df[&#39;smiles&#39;]=smiles_df[&#39;smiles&#39;].str.replace(&#39;&quot;&#39;,&#39;&#39;)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">smiles_df</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">smiles_df</span><span class="p">[</span><span class="s1">&#39;Ambit_InchiKey&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">nunique</span><span class="p">())</span>
+        <span class="n">smiles_lst</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">smiles_df</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">smiles_lst</span><span class="p">,</span> <span class="n">shared_inchi_keys</span></div>
+
+
+<div class="viewcode-block" id="upload_df_excape_smiles"><a class="viewcode-back" href="../../utils.html#utils.data_curation_functions.upload_df_excape_smiles">[docs]</a><span class="k">def</span> <span class="nf">upload_df_excape_smiles</span><span class="p">(</span><span class="n">dset_name</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">description</span><span class="p">,</span> <span class="n">tags</span><span class="p">,</span>
+                            <span class="n">functional_area</span><span class="p">,</span> 
+                           <span class="n">target</span><span class="p">,</span> <span class="n">target_type</span><span class="p">,</span> <span class="n">activity</span><span class="p">,</span> <span class="n">assay_category</span><span class="p">,</span><span class="n">smiles_df</span><span class="p">,</span><span class="n">orig_fileID</span><span class="p">,</span>
+    		   <span class="n">data_origin</span><span class="o">=</span><span class="s1">&#39;journal&#39;</span><span class="p">,</span>  <span class="n">species</span><span class="o">=</span><span class="s1">&#39;human&#39;</span><span class="p">,</span>  
+                           <span class="n">force_update</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Uploads Excape SMILES data to the datastore</span>
+
+<span class="sd">    Upload SMILES to the datastore from the given DataFrame. </span>
+<span class="sd">    Returns the datastore OID of the uploaded dataset. The dataset is uploaded to the</span>
+<span class="sd">    public bucket and lists https://dx.doi.org/10.1186%2Fs13321-017-0203-5 as the doi.</span>
+<span class="sd">    This also assumes that the id_col is &#39;Original_Entry_ID&#39;</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        dset_name (str): Name of the dataset. Should not include a file extension.</span>
+
+<span class="sd">        title (str): title of the file in (human friendly format)</span>
+
+<span class="sd">        description (str): long text box to describe file (background/use notes)</span>
+
+<span class="sd">        tags (list): Must be a list of strings.</span>
+
+<span class="sd">        functional_area (str): The functional area.</span>
+
+<span class="sd">        target (str): The target.</span>
+
+<span class="sd">        target_type (str): The target type of the dataset.</span>
+
+<span class="sd">        activity (str): The activity of the dataset.</span>
+
+<span class="sd">        assay_category (str): The assay category of the dataset.</span>
+
+<span class="sd">        smiles_df (DataFrame): DataFrame containing SMILES to be uploaded.</span>
+
+<span class="sd">        orig_fileID (str): Source file id used to generate smiles_df.</span>
+
+<span class="sd">        data_origin (str): The origin of the dataset e.g. journal.</span>
+
+<span class="sd">        species (str): The species of the dataset e.g. human, rat, dog.</span>
+
+<span class="sd">        force_update (bool): Overwrite existing datasets in the datastore.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str: datastore OID of the uploaded dataset.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">bucket</span> <span class="o">=</span> <span class="s1">&#39;public&#39;</span>
+    <span class="c1">#he6: this used to say _dtc_smiles.csv</span>
+    <span class="n">filename</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_excape_smiles.csv&#39;</span> <span class="o">%</span> <span class="n">dset_name</span>
+    <span class="n">dataset_key</span> <span class="o">=</span> <span class="s1">&#39;dskey_&#39;</span> <span class="o">+</span> <span class="n">filename</span>
+
+    <span class="n">kv</span> <span class="o">=</span> <span class="p">{</span> <span class="s1">&#39;file_category&#39;</span><span class="p">:</span> <span class="s1">&#39;experimental&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;activity&#39;</span><span class="p">:</span> <span class="n">activity</span><span class="p">,</span>
+        <span class="s1">&#39;assay_category&#39;</span><span class="p">:</span> <span class="n">assay_category</span><span class="p">,</span>  <span class="c1">## seems like this should be called &#39;kinase_activity&#39;</span>
+        <span class="s1">&#39;assay_endpoint&#39;</span> <span class="p">:</span> <span class="s1">&#39;pic50&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;curation_level&#39;</span><span class="p">:</span> <span class="s1">&#39;raw&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;data_origin&#39;</span> <span class="p">:</span> <span class="n">data_origin</span><span class="p">,</span>
+        <span class="s1">&#39;functional_area&#39;</span> <span class="p">:</span> <span class="n">functional_area</span><span class="p">,</span>
+        <span class="s1">&#39;matrix&#39;</span> <span class="p">:</span> <span class="s1">&#39;multiple values&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;journal_doi&#39;</span> <span class="p">:</span> <span class="s1">&#39;https://dx.doi.org/10.1186</span><span class="si">%2F</span><span class="s1">s13321-017-0203-5&#39;</span><span class="p">,</span> <span class="c1"># ExCAPE-DB</span>
+        <span class="s1">&#39;sample_type&#39;</span> <span class="p">:</span> <span class="s1">&#39;in_vitro&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;species&#39;</span> <span class="p">:</span> <span class="n">species</span><span class="p">,</span>
+        <span class="s1">&#39;target&#39;</span> <span class="p">:</span> <span class="n">target</span><span class="p">,</span>
+        <span class="s1">&#39;target_type&#39;</span> <span class="p">:</span> <span class="n">target_type</span><span class="p">,</span>
+        <span class="s1">&#39;id_col&#39;</span> <span class="p">:</span> <span class="s1">&#39;Original_Entry_ID&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;source_file_id&#39;</span> <span class="p">:</span> <span class="n">orig_fileID</span>
+
+     <span class="p">}</span>
+
+    <span class="c1">#uploaded_file = dsf.upload_file_to_DS(bucket=bucket, filepath=file_path, filename=filename,     	title = title, description=description, tags=tags, key_values=kv, client=None, 			dataset_key=dataset_key, override_check=False, return_metadata=True)</span>
+
+    <span class="n">ds_client</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">config_client</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">force_update</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">dsf</span><span class="o">.</span><span class="n">dataset_key_exists</span><span class="p">(</span><span class="n">dataset_key</span><span class="p">,</span> <span class="n">bucket</span><span class="p">,</span> <span class="n">ds_client</span><span class="p">):</span>
+        <span class="n">uploaded_file</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">upload_df_to_DS</span><span class="p">(</span><span class="n">bucket</span><span class="o">=</span><span class="n">bucket</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span><span class="n">df</span><span class="o">=</span><span class="n">smiles_df</span><span class="p">,</span> <span class="n">title</span> <span class="o">=</span> <span class="n">title</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">,</span> <span class="n">tags</span><span class="o">=</span><span class="n">tags</span><span class="p">,</span> <span class="n">key_values</span><span class="o">=</span><span class="n">kv</span><span class="p">,</span> <span class="n">client</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dataset_key</span><span class="o">=</span><span class="n">dataset_key</span><span class="p">,</span> <span class="n">override_check</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">return_metadata</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="c1">#uploaded_file = dsf.upload_file_to_DS(bucket=bucket, filepath=file_path, filename=filename,     	title = title, description=description, tags=tags, key_values=kv, client=None, 			dataset_key=dataset_key, override_check=False, return_metadata=True)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Uploaded raw dataset with key </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">dataset_key</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">uploaded_file</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">retrieve_dataset_by_datasetkey</span><span class="p">(</span><span class="n">dataset_key</span><span class="p">,</span> <span class="n">bucket</span><span class="p">,</span> <span class="n">ds_client</span><span class="p">,</span> <span class="n">return_metadata</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Raw dataset </span><span class="si">%s</span><span class="s2"> is already in datastore, skipping upload.&quot;</span> <span class="o">%</span> <span class="n">dataset_key</span><span class="p">)</span>
+
+    <span class="n">raw_dset_oid</span> <span class="o">=</span> <span class="n">uploaded_file</span><span class="p">[</span><span class="s1">&#39;dataset_oid&#39;</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">raw_dset_oid</span></div>
+
+<div class="viewcode-block" id="atom_curation_excape"><a class="viewcode-back" href="../../utils.html#utils.data_curation_functions.atom_curation_excape">[docs]</a><span class="k">def</span> <span class="nf">atom_curation_excape</span><span class="p">(</span><span class="n">targ_lst</span><span class="p">,</span> <span class="n">smiles_lst</span><span class="p">,</span> <span class="n">shared_inchi_keys</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Apply ATOM standard &#39;curation&#39; step</span>
+
+<span class="sd">    Apply ATOM standard &#39;curation&#39; step: Average replicate assays, </span>
+<span class="sd">    remove duplicates and drop cases with large variance between replicates.</span>
+<span class="sd">    Rows with NaN values in rdkit_smiles, VALUE_NUM_mean, and pXC50 are dropped</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        targ_lst (list): A list of targets.</span>
+
+<span class="sd">        smiles_lst (list): A of DataFrames.</span>
+<span class="sd">            These DataFrames must contain the columns gene_names, standard_type,</span>
+<span class="sd">            standard_relation, standard_inchi_key, pXC50, and rdkit_smiles</span>
+
+<span class="sd">        shared_inchi_keys (list): A list of inchi keys used in this dataset.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list:A list of curated DataFrames</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">imp</span><span class="o">.</span><span class="n">reload</span><span class="p">(</span><span class="n">curate_data</span><span class="p">)</span>
+    <span class="n">tolerance</span><span class="o">=</span><span class="mi">10</span>
+    <span class="n">column</span><span class="o">=</span><span class="s1">&#39;pXC50&#39;</span><span class="p">;</span> <span class="c1">#&#39;standard_value&#39;</span>
+    <span class="n">list_bad_duplicates</span><span class="o">=</span><span class="s1">&#39;No&#39;</span>
+    <span class="n">max_std</span><span class="o">=</span><span class="mi">1</span>
+    <span class="n">curated_lst</span><span class="o">=</span><span class="p">[]</span>
+    <span class="c1">#print(targ_lst)</span>
+    <span class="c1">#print(smiles_lst)</span>
+    <span class="k">for</span> <span class="n">it</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">targ_lst</span><span class="p">))</span> <span class="p">:</span>
+    	<span class="n">data</span><span class="o">=</span><span class="n">smiles_lst</span><span class="p">[</span><span class="n">it</span><span class="p">]</span>
+    	<span class="c1">#data = data[data.standard_relation.str.strip() == &#39;=&#39;]</span>
+    	<span class="c1">#print(&quot;gene_names&quot;,data.gene_names.unique())</span>
+    	<span class="c1">#print(&quot;standard_type&quot;,data.standard_type.unique())</span>
+    	<span class="c1">#print(&quot;standard_relation&quot;,data.standard_relation.unique())</span>
+    	<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;before&quot;</span><span class="p">,</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    	<span class="n">curated_df</span><span class="o">=</span><span class="n">curate_data</span><span class="o">.</span><span class="n">average_and_remove_duplicates</span> <span class="p">(</span><span class="n">column</span><span class="p">,</span> <span class="n">tolerance</span><span class="p">,</span> <span class="n">list_bad_duplicates</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">max_std</span><span class="p">,</span> <span class="n">compound_id</span><span class="o">=</span><span class="s1">&#39;standard_inchi_key&#39;</span><span class="p">,</span><span class="n">smiles_col</span><span class="o">=</span><span class="s1">&#39;rdkit_smiles&#39;</span><span class="p">)</span>
+
+    	<span class="c1"># (Yaru) Remove inf in curated_df</span>
+    	<span class="n">curated_df</span> <span class="o">=</span> <span class="n">curated_df</span><span class="p">[</span><span class="o">~</span><span class="n">curated_df</span><span class="o">.</span><span class="n">isin</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">])</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="mi">1</span><span class="p">)]</span>
+    	<span class="c1"># (Yaru) Remove nan on rdkit_smiles</span>
+    	<span class="n">curated_df</span> <span class="o">=</span> <span class="n">curated_df</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;rdkit_smiles&#39;</span><span class="p">])</span>
+    	<span class="n">curated_df</span> <span class="o">=</span> <span class="n">curated_df</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;VALUE_NUM_mean&#39;</span><span class="p">])</span>
+    	<span class="n">curated_df</span> <span class="o">=</span> <span class="n">curated_df</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;pXC50&#39;</span><span class="p">])</span>
+    	
+    	<span class="c1"># (Kevin)</span>
+    	<span class="c1"># Filter criteria:</span>
+    	<span class="c1">#   pXC50 not missing</span>
+    	<span class="c1">#   rdkit_smiles not blank</span>
+    	<span class="c1">#   pXC50 &gt; 3</span>
+    	<span class="c1">#dset_df = dset_df[dset_df.pXC50 &gt;= 3.0]</span>
+
+    	<span class="n">curated_lst</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">curated_df</span><span class="p">)</span>
+    	<span class="n">prev_cmpd_cnt</span><span class="o">=</span><span class="n">shared_inchi_keys</span><span class="o">.</span><span class="n">nunique</span><span class="p">()</span>
+    	<span class="n">num_dropped</span><span class="o">=</span><span class="n">prev_cmpd_cnt</span><span class="o">-</span><span class="n">curated_df</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    	<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;After&quot;</span><span class="p">,</span><span class="n">curated_df</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="s2">&quot;# of dropped compounds&quot;</span><span class="p">,</span><span class="n">num_dropped</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">curated_lst</span></div>
+
+
+<div class="viewcode-block" id="upload_df_excape_mleqonly"><a class="viewcode-back" href="../../utils.html#utils.data_curation_functions.upload_df_excape_mleqonly">[docs]</a><span class="k">def</span> <span class="nf">upload_df_excape_mleqonly</span><span class="p">(</span><span class="n">dset_name</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">description</span><span class="p">,</span> <span class="n">tags</span><span class="p">,</span>
+                            <span class="n">functional_area</span><span class="p">,</span> 
+                           <span class="n">target</span><span class="p">,</span> <span class="n">target_type</span><span class="p">,</span> <span class="n">activity</span><span class="p">,</span> <span class="n">assay_category</span><span class="p">,</span><span class="n">data_df</span><span class="p">,</span><span class="n">smiles_fileID</span><span class="p">,</span>
+    		   <span class="n">data_origin</span><span class="o">=</span><span class="s1">&#39;journal&#39;</span><span class="p">,</span>  <span class="n">species</span><span class="o">=</span><span class="s1">&#39;human&#39;</span><span class="p">,</span>  
+                           <span class="n">force_update</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Uploads Excape mleqonly data to the datastore</span>
+
+<span class="sd">    Upload mleqonly to the datastore from the given DataFrame. </span>
+<span class="sd">    Returns the datastore OID of the uploaded dataset. The dataset is uploaded to the</span>
+<span class="sd">    public bucket and lists https://dx.doi.org/10.1186%2Fs13321-017-0203-5 as the doi.</span>
+<span class="sd">    This also assumes that the id_col is &#39;Original_Entry_ID&#39;, smiles_col is &#39;rdkit_smiles&#39;</span>
+<span class="sd">    and response_col is &#39;VALUE_NUM_mean&#39;.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        dset_name (str): Name of the dataset. Should not include a file extension.</span>
+
+<span class="sd">        title (str): title of the file in (human friendly format)</span>
+
+<span class="sd">        description (str): long text box to describe file (background/use notes)</span>
+
+<span class="sd">        tags (list): Must be a list of strings.</span>
+
+<span class="sd">        functional_area (str): The functional area.</span>
+
+<span class="sd">        target (str): The target.</span>
+
+<span class="sd">        target_type (str): The target type of the dataset.</span>
+
+<span class="sd">        activity (str): The activity of the dataset.</span>
+
+<span class="sd">        assay_category (str): The assay category of the dataset.</span>
+
+<span class="sd">        data_df (DataFrame): DataFrame containing SMILES to be uploaded.</span>
+
+<span class="sd">        smiles_fileID (str): Source file id used to generate data_df.</span>
+
+<span class="sd">        data_origin (str): The origin of the dataset e.g. journal.</span>
+
+<span class="sd">        species (str): The species of the dataset e.g. human, rat, dog.</span>
+
+<span class="sd">        force_update (bool): Overwrite existing datasets in the datastore.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str: datastore OID of the uploaded dataset.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">bucket</span> <span class="o">=</span> <span class="s1">&#39;public&#39;</span>
+    <span class="c1">#he6: this used to say _dtc_mleqonly.csv</span>
+    <span class="n">filename</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_excape_mleqonly.csv&#39;</span> <span class="o">%</span> <span class="n">dset_name</span>
+    <span class="n">dataset_key</span> <span class="o">=</span> <span class="s1">&#39;dskey_&#39;</span> <span class="o">+</span> <span class="n">filename</span>
+
+    <span class="n">kv</span> <span class="o">=</span> <span class="p">{</span> <span class="s1">&#39;file_category&#39;</span><span class="p">:</span> <span class="s1">&#39;experimental&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;activity&#39;</span><span class="p">:</span> <span class="n">activity</span><span class="p">,</span>
+        <span class="s1">&#39;assay_category&#39;</span><span class="p">:</span> <span class="n">assay_category</span><span class="p">,</span>  <span class="c1">## seems like this should be called &#39;kinase_activity&#39;</span>
+        <span class="s1">&#39;assay_endpoint&#39;</span> <span class="p">:</span> <span class="s1">&#39;pic50&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;curation_level&#39;</span><span class="p">:</span> <span class="s1">&#39;ml_ready&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;data_origin&#39;</span> <span class="p">:</span> <span class="n">data_origin</span><span class="p">,</span>
+        <span class="s1">&#39;functional_area&#39;</span> <span class="p">:</span> <span class="n">functional_area</span><span class="p">,</span>
+        <span class="s1">&#39;matrix&#39;</span> <span class="p">:</span> <span class="s1">&#39;multiple values&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;journal_doi&#39;</span> <span class="p">:</span> <span class="s1">&#39;https://dx.doi.org/10.1186</span><span class="si">%2F</span><span class="s1">s13321-017-0203-5&#39;</span><span class="p">,</span> <span class="c1"># ExCAPE-DB</span>
+        <span class="s1">&#39;sample_type&#39;</span> <span class="p">:</span> <span class="s1">&#39;in_vitro&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;species&#39;</span> <span class="p">:</span> <span class="n">species</span><span class="p">,</span>
+        <span class="s1">&#39;target&#39;</span> <span class="p">:</span> <span class="n">target</span><span class="p">,</span>
+        <span class="s1">&#39;target_type&#39;</span> <span class="p">:</span> <span class="n">target_type</span><span class="p">,</span>
+        <span class="s1">&#39;id_col&#39;</span> <span class="p">:</span> <span class="s1">&#39;Original_Entry_ID&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;response_col&#39;</span> <span class="p">:</span> <span class="s1">&#39;VALUE_NUM_mean&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;prediction_type&#39;</span> <span class="p">:</span> <span class="s1">&#39;regression&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;smiles_col&#39;</span> <span class="p">:</span> <span class="s1">&#39;rdkit_smiles&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;units&#39;</span> <span class="p">:</span> <span class="s1">&#39;unitless&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;source_file_id&#39;</span> <span class="p">:</span> <span class="n">smiles_fileID</span>
+     <span class="p">}</span>
+
+    <span class="c1">#uploaded_file = dsf.upload_file_to_DS(bucket=bucket, filepath=file_path, filename=filename,     	title = title, description=description, tags=tags, key_values=kv, client=None, 			dataset_key=dataset_key, override_check=False, return_metadata=True)</span>
+
+    <span class="n">ds_client</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">config_client</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">force_update</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">dsf</span><span class="o">.</span><span class="n">dataset_key_exists</span><span class="p">(</span><span class="n">dataset_key</span><span class="p">,</span> <span class="n">bucket</span><span class="p">,</span> <span class="n">ds_client</span><span class="p">):</span>
+        <span class="n">uploaded_file</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">upload_df_to_DS</span><span class="p">(</span><span class="n">bucket</span><span class="o">=</span><span class="n">bucket</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span><span class="n">df</span><span class="o">=</span><span class="n">data_df</span><span class="p">,</span> <span class="n">title</span> <span class="o">=</span> <span class="n">title</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">,</span> <span class="n">tags</span><span class="o">=</span><span class="n">tags</span><span class="p">,</span> <span class="n">key_values</span><span class="o">=</span><span class="n">kv</span><span class="p">,</span> <span class="n">client</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dataset_key</span><span class="o">=</span><span class="n">dataset_key</span><span class="p">,</span> <span class="n">override_check</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">return_metadata</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="c1">#uploaded_file = dsf.upload_file_to_DS(bucket=bucket, filepath=file_path, filename=filename,     	title = title, description=description, tags=tags, key_values=kv, client=None, 			dataset_key=dataset_key, override_check=False, return_metadata=True)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Uploaded raw dataset with key </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">dataset_key</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">uploaded_file</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">retrieve_dataset_by_datasetkey</span><span class="p">(</span><span class="n">dataset_key</span><span class="p">,</span> <span class="n">bucket</span><span class="p">,</span> <span class="n">ds_client</span><span class="p">,</span> <span class="n">return_metadata</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Raw dataset </span><span class="si">%s</span><span class="s2"> is already in datastore, skipping upload.&quot;</span> <span class="o">%</span> <span class="n">dataset_key</span><span class="p">)</span>
+
+    <span class="n">raw_dset_oid</span> <span class="o">=</span> <span class="n">uploaded_file</span><span class="p">[</span><span class="s1">&#39;dataset_oid&#39;</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">raw_dset_oid</span></div>
+
+<div class="viewcode-block" id="upload_df_excape_mleqonly_class"><a class="viewcode-back" href="../../utils.html#utils.data_curation_functions.upload_df_excape_mleqonly_class">[docs]</a><span class="k">def</span> <span class="nf">upload_df_excape_mleqonly_class</span><span class="p">(</span><span class="n">dset_name</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">description</span><span class="p">,</span> <span class="n">tags</span><span class="p">,</span>
+                            <span class="n">functional_area</span><span class="p">,</span> 
+                           <span class="n">target</span><span class="p">,</span> <span class="n">target_type</span><span class="p">,</span> <span class="n">activity</span><span class="p">,</span> <span class="n">assay_category</span><span class="p">,</span><span class="n">data_df</span><span class="p">,</span><span class="n">mleqonly_fileID</span><span class="p">,</span>
+    		   <span class="n">data_origin</span><span class="o">=</span><span class="s1">&#39;journal&#39;</span><span class="p">,</span>  <span class="n">species</span><span class="o">=</span><span class="s1">&#39;human&#39;</span><span class="p">,</span>  
+                           <span class="n">force_update</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Uploads Excape mleqonly classification data to the datastore</span>
+
+<span class="sd">    data_df contains a binary classification dataset with &#39;active&#39; and &#39;incative&#39; classes.</span>
+
+<span class="sd">    Upload mleqonly classification to the datastore from the given DataFrame. </span>
+<span class="sd">    Returns the datastore OID of the uploaded dataset. The dataset is uploaded to the</span>
+<span class="sd">    public bucket and lists https://dx.doi.org/10.1186%2Fs13321-017-0203-5 as the doi.</span>
+<span class="sd">    This also assumes that the id_col is &#39;Original_Entry_ID&#39;, smiles_col is &#39;rdkit_smiles&#39;</span>
+<span class="sd">    and response_col is &#39;binary_class&#39;.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        dset_name (str): Name of the dataset. Should not include a file extension.</span>
+
+<span class="sd">        title (str): title of the file in (human friendly format)</span>
+
+<span class="sd">        description (str): long text box to describe file (background/use notes)</span>
+
+<span class="sd">        tags (list): Must be a list of strings.</span>
+
+<span class="sd">        functional_area (str): The functional area.</span>
+
+<span class="sd">        target (str): The target.</span>
+
+<span class="sd">        target_type (str): The target type of the dataset.</span>
+
+<span class="sd">        activity (str): The activity of the dataset.</span>
+
+<span class="sd">        assay_category (str): The assay category of the dataset.</span>
+
+<span class="sd">        data_df (DataFrame): DataFrame containing SMILES to be uploaded.</span>
+
+<span class="sd">        mleqonly_fileID (str): Source file id used to generate data_df.</span>
+
+<span class="sd">        data_origin (str): The origin of the dataset e.g. journal.</span>
+
+<span class="sd">        species (str): The species of the dataset e.g. human, rat, dog.</span>
+
+<span class="sd">        force_update (bool): Overwrite existing datasets in the datastore.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str: datastore OID of the uploaded dataset.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">bucket</span> <span class="o">=</span> <span class="s1">&#39;public&#39;</span>
+    <span class="c1">#he6: this used to say _dtc_mleqonly.csv</span>
+    <span class="n">filename</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_excape_mleqonly_class.csv&#39;</span> <span class="o">%</span> <span class="n">dset_name</span>
+    <span class="n">dataset_key</span> <span class="o">=</span> <span class="s1">&#39;dskey_&#39;</span> <span class="o">+</span> <span class="n">filename</span>
+
+    <span class="n">kv</span> <span class="o">=</span> <span class="p">{</span> <span class="s1">&#39;file_category&#39;</span><span class="p">:</span> <span class="s1">&#39;experimental&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;activity&#39;</span><span class="p">:</span> <span class="n">activity</span><span class="p">,</span>
+        <span class="s1">&#39;assay_category&#39;</span><span class="p">:</span> <span class="n">assay_category</span><span class="p">,</span>  <span class="c1">## seems like this should be called &#39;kinase_activity&#39;</span>
+        <span class="s1">&#39;assay_endpoint&#39;</span> <span class="p">:</span> <span class="s1">&#39;pic50&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;curation_level&#39;</span><span class="p">:</span> <span class="s1">&#39;ml_ready&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;data_origin&#39;</span> <span class="p">:</span> <span class="n">data_origin</span><span class="p">,</span>
+        <span class="s1">&#39;functional_area&#39;</span> <span class="p">:</span> <span class="n">functional_area</span><span class="p">,</span>
+        <span class="s1">&#39;matrix&#39;</span> <span class="p">:</span> <span class="s1">&#39;multiple values&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;journal_doi&#39;</span> <span class="p">:</span>  <span class="s1">&#39;https://dx.doi.org/10.1186</span><span class="si">%2F</span><span class="s1">s13321-017-0203-5&#39;</span><span class="p">,</span> <span class="c1"># ExCAPE-DB</span>
+        <span class="s1">&#39;sample_type&#39;</span> <span class="p">:</span> <span class="s1">&#39;in_vitro&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;species&#39;</span> <span class="p">:</span> <span class="n">species</span><span class="p">,</span>
+        <span class="s1">&#39;target&#39;</span> <span class="p">:</span> <span class="n">target</span><span class="p">,</span>
+        <span class="s1">&#39;target_type&#39;</span> <span class="p">:</span> <span class="n">target_type</span><span class="p">,</span>
+        <span class="s1">&#39;id_col&#39;</span> <span class="p">:</span> <span class="s1">&#39;compound_id&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;response_col&#39;</span> <span class="p">:</span> <span class="s1">&#39;binary_class&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;prediction_type&#39;</span> <span class="p">:</span> <span class="s1">&#39;classification&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;num_classes&#39;</span> <span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+    <span class="s1">&#39;class_names&#39;</span> <span class="p">:</span> <span class="p">[</span><span class="s1">&#39;inactive&#39;</span><span class="p">,</span><span class="s1">&#39;active&#39;</span><span class="p">],</span>
+        <span class="s1">&#39;smiles_col&#39;</span> <span class="p">:</span> <span class="s1">&#39;rdkit_smiles&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;units&#39;</span> <span class="p">:</span> <span class="s1">&#39;unitless&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;source_file_id&#39;</span> <span class="p">:</span> <span class="n">mleqonly_fileID</span>
+     <span class="p">}</span>
+
+    <span class="c1">#uploaded_file = dsf.upload_file_to_DS(bucket=bucket, filepath=file_path, filename=filename,     	title = title, description=description, tags=tags, key_values=kv, client=None, 			dataset_key=dataset_key, override_check=False, return_metadata=True)</span>
+
+    <span class="n">ds_client</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">config_client</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">force_update</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">dsf</span><span class="o">.</span><span class="n">dataset_key_exists</span><span class="p">(</span><span class="n">dataset_key</span><span class="p">,</span> <span class="n">bucket</span><span class="p">,</span> <span class="n">ds_client</span><span class="p">):</span>
+        <span class="n">uploaded_file</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">upload_df_to_DS</span><span class="p">(</span><span class="n">bucket</span><span class="o">=</span><span class="n">bucket</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span><span class="n">df</span><span class="o">=</span><span class="n">data_df</span><span class="p">,</span> <span class="n">title</span> <span class="o">=</span> <span class="n">title</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">,</span> <span class="n">tags</span><span class="o">=</span><span class="n">tags</span><span class="p">,</span> <span class="n">key_values</span><span class="o">=</span><span class="n">kv</span><span class="p">,</span> <span class="n">client</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dataset_key</span><span class="o">=</span><span class="n">dataset_key</span><span class="p">,</span> <span class="n">override_check</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">return_metadata</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="c1">#uploaded_file = dsf.upload_file_to_DS(bucket=bucket, filepath=file_path, filename=filename,     	title = title, description=description, tags=tags, key_values=kv, client=None, 			dataset_key=dataset_key, override_check=False, return_metadata=True)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Uploaded raw dataset with key </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">dataset_key</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">uploaded_file</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">retrieve_dataset_by_datasetkey</span><span class="p">(</span><span class="n">dataset_key</span><span class="p">,</span> <span class="n">bucket</span><span class="p">,</span> <span class="n">ds_client</span><span class="p">,</span> <span class="n">return_metadata</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Raw dataset </span><span class="si">%s</span><span class="s2"> is already in datastore, skipping upload.&quot;</span> <span class="o">%</span> <span class="n">dataset_key</span><span class="p">)</span>
+
+    <span class="n">raw_dset_oid</span> <span class="o">=</span> <span class="n">uploaded_file</span><span class="p">[</span><span class="s1">&#39;dataset_oid&#39;</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">raw_dset_oid</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, ATOM DDM Team.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

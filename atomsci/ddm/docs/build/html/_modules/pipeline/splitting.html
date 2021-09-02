@@ -7,12 +7,14 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>pipeline.splitting &mdash; ATOM Data-Driven Modeling Pipeline 1.1 documentation</title>
+  <title>pipeline.splitting &mdash; ATOM Data-Driven Modeling Pipeline 1.2.0 documentation</title>
   
 
   
   <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
 
   
   
@@ -29,6 +31,7 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
         <script src="../../_static/jquery.js"></script>
         <script src="../../_static/underscore.js"></script>
         <script src="../../_static/doctools.js"></script>
@@ -61,7 +64,7 @@
             
             
               <div class="version">
-                1.1
+                1.2.0
               </div>
             
           
@@ -172,6 +175,7 @@
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">copy</span>
 <span class="kn">import</span> <span class="nn">deepchem</span> <span class="k">as</span> <span class="nn">dc</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
@@ -247,8 +251,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1">#TODO: Need to test</span>
     <span class="n">id_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&#39;indices&#39;</span> <span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">ids</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)},</span> <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">dataset</span><span class="o">.</span><span class="n">ids</span><span class="p">])</span>
-    <span class="n">sel_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">id_list</span><span class="p">])</span>
-    <span class="n">match_df</span> <span class="o">=</span> <span class="n">id_df</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sel_df</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;inner&#39;</span><span class="p">)</span>
+    <span class="n">match_df</span> <span class="o">=</span> <span class="n">id_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">id_df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">id_list</span><span class="p">)]</span>
     <span class="n">subset</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">match_df</span><span class="o">.</span><span class="n">indices</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">subset</span></div>
 
@@ -267,7 +270,7 @@
 <span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1">#TODO: Need to test</span>
-    <span class="n">id_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">dataset</span><span class="o">.</span><span class="n">ids</span><span class="p">])</span>
+    <span class="n">id_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="nb">set</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">ids</span><span class="p">)])</span>
     <span class="n">subattr_df</span> <span class="o">=</span> <span class="n">id_df</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">attr_df</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;inner&#39;</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">subattr_df</span></div>
 
@@ -290,7 +293,7 @@
 <span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">id_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">dataset</span><span class="o">.</span><span class="n">ids</span><span class="p">])</span>
-    <span class="n">subattr_df</span> <span class="o">=</span> <span class="n">id_df</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">attr_df</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;inner&#39;</span><span class="p">,</span> <span class="n">left_index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">right_on</span><span class="o">=</span><span class="n">smiles_col</span><span class="p">)</span>
+    <span class="n">subattr_df</span> <span class="o">=</span> <span class="n">id_df</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">attr_df</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="n">smiles_col</span><span class="p">),</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;inner&#39;</span><span class="p">,</span> <span class="n">left_index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">right_on</span><span class="o">=</span><span class="n">smiles_col</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">subattr_df</span></div>
 
 <span class="c1"># ****************************************************************************************</span>
@@ -365,7 +368,7 @@
         <span class="k">elif</span> <span class="n">params</span><span class="o">.</span><span class="n">splitter</span> <span class="o">==</span> <span class="s1">&#39;stratified&#39;</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">splitter</span> <span class="o">=</span> <span class="n">dc</span><span class="o">.</span><span class="n">splits</span><span class="o">.</span><span class="n">RandomStratifiedSplitter</span><span class="p">()</span>
         <span class="k">elif</span> <span class="n">params</span><span class="o">.</span><span class="n">splitter</span> <span class="o">==</span> <span class="s1">&#39;butina&#39;</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">splitter</span> <span class="o">=</span> <span class="n">dc</span><span class="o">.</span><span class="n">splits</span><span class="o">.</span><span class="n">ButinaSplitter</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">splitter</span> <span class="o">=</span> <span class="n">dc</span><span class="o">.</span><span class="n">splits</span><span class="o">.</span><span class="n">ButinaSplitter</span><span class="p">(</span><span class="n">cutoff</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">butina_cutoff</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">params</span><span class="o">.</span><span class="n">splitter</span> <span class="o">==</span> <span class="s1">&#39;fingerprint&#39;</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">splitter</span> <span class="o">=</span> <span class="n">dc</span><span class="o">.</span><span class="n">splits</span><span class="o">.</span><span class="n">FingerprintSplitter</span><span class="p">()</span>
         <span class="k">elif</span> <span class="n">params</span><span class="o">.</span><span class="n">splitter</span> <span class="o">==</span> <span class="s1">&#39;ave_min&#39;</span><span class="p">:</span>
@@ -504,12 +507,21 @@
 <span class="sd">            Exception if there are duplicate ids or smiles strings in the dataset or the attr_df</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">dataset_dup</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="k">if</span> <span class="n">check_if_dupe_smiles_dataset</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">attr_df</span><span class="p">,</span> <span class="n">smiles_col</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Duplicate ids or smiles in the dataset&quot;</span><span class="p">)</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Duplicate ids or smiles in the dataset, will deduplicate first and assign all records per compound ID to same partition&quot;</span><span class="p">)</span>
+            <span class="n">dataset_dup</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">dataset_ori</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">dataset</span><span class="p">)</span>
+            <span class="n">id_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&#39;indices&#39;</span> <span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">ids</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">),</span> <span class="s2">&quot;compound_id&quot;</span><span class="p">:</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">dataset</span><span class="o">.</span><span class="n">ids</span><span class="p">]})</span>
+            <span class="n">sel_df</span> <span class="o">=</span> <span class="n">id_df</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="s2">&quot;compound_id&quot;</span><span class="p">)</span>
+            <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">sel_df</span><span class="o">.</span><span class="n">indices</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">needs_smiles</span><span class="p">():</span>
             <span class="c1"># Some DeepChem splitters require compound IDs in dataset to be SMILES strings. Swap in the</span>
             <span class="c1"># SMILES strings now; we&#39;ll reverse this later.</span>
-            <span class="n">dataset</span> <span class="o">=</span> <span class="n">DiskDataset</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="n">dataset</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">ids</span><span class="o">=</span><span class="n">attr_df</span><span class="p">[</span><span class="n">smiles_col</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">dataset</span> <span class="o">=</span> <span class="n">DiskDataset</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="n">dataset</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">ids</span><span class="o">=</span><span class="n">attr_df</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="n">smiles_col</span><span class="p">)[</span><span class="n">smiles_col</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">dataset_dup</span><span class="p">:</span>
+                <span class="n">dataset_ori</span> <span class="o">=</span> <span class="n">DiskDataset</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">dataset_ori</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="n">dataset_ori</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">ids</span><span class="o">=</span><span class="n">attr_df</span><span class="p">[</span><span class="n">smiles_col</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
 
         <span class="c1"># Under k-fold CV, the training/validation splits are determined by num_folds; only the test set fraction</span>
         <span class="c1"># is directly specified through command line parameters. If we use Butina splitting, we can&#39;t control</span>
@@ -519,10 +531,6 @@
         <span class="c1"># Use DeepChem train_test_split() to select held-out test set; then use k_fold_split on the</span>
         <span class="c1"># training set to split it into training/validation folds.</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">split</span> <span class="o">==</span> <span class="s1">&#39;butina&#39;</span><span class="p">:</span>
-            <span class="c1"># TODO: Splitter.train_test_split() doesn&#39;t provide a way to pass the cutoff parameter</span>
-            <span class="c1"># through to the ButinaSplitter.split() function. Simple fix would be to reimplement</span>
-            <span class="c1"># train_test_split() here (it&#39;s not a complicated function). For now, allow cutoff to default.</span>
-            <span class="c1">#train_cv, test = self.splitter.train_test_split(dataset, cutoff=self.params.butina_cutoff)</span>
             <span class="n">train_cv</span><span class="p">,</span> <span class="n">test</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">splitter</span><span class="o">.</span><span class="n">train_valid_test_split</span><span class="p">(</span><span class="n">dataset</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">splitter</span> <span class="o">=</span> <span class="n">dc</span><span class="o">.</span><span class="n">splits</span><span class="o">.</span><span class="n">ScaffoldSplitter</span><span class="p">()</span>
             <span class="n">train_cv_pairs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">splitter</span><span class="o">.</span><span class="n">k_fold_split</span><span class="p">(</span><span class="n">train_cv</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_folds</span><span class="p">)</span>
@@ -530,7 +538,7 @@
             <span class="c1"># TODO: Add special handling for AVE splitter</span>
             <span class="n">train_cv</span><span class="p">,</span> <span class="n">test</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">splitter</span><span class="o">.</span><span class="n">train_test_split</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">123</span><span class="p">),</span> <span class="n">frac_train</span><span class="o">=</span><span class="n">train_frac</span><span class="p">)</span>
             <span class="n">train_cv_pairs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">splitter</span><span class="o">.</span><span class="n">k_fold_split</span><span class="p">(</span><span class="n">train_cv</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_folds</span><span class="p">)</span>
-    
+
         <span class="n">train_valid_dsets</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">train_valid_attr</span> <span class="o">=</span> <span class="p">[]</span>
 
@@ -538,24 +546,35 @@
             <span class="c1"># Now that DeepChem splitters have done their work, replace the SMILES strings in the split </span>
             <span class="c1"># dataset objects with actual compound IDs.</span>
             <span class="k">for</span> <span class="n">train</span><span class="p">,</span> <span class="n">valid</span> <span class="ow">in</span> <span class="n">train_cv_pairs</span><span class="p">:</span>
+                <span class="c1"># assign the subsets to the original dataset if duplicated compounds exist</span>
+                <span class="k">if</span> <span class="n">dataset_dup</span><span class="p">:</span>
+                    <span class="n">train</span> <span class="o">=</span> <span class="n">select_dset_by_id_list</span><span class="p">(</span><span class="n">dataset_ori</span><span class="p">,</span> <span class="n">train</span><span class="o">.</span><span class="n">ids</span><span class="p">)</span>
+                    <span class="n">valid</span> <span class="o">=</span> <span class="n">select_dset_by_id_list</span><span class="p">(</span><span class="n">dataset_ori</span><span class="p">,</span> <span class="n">valid</span><span class="o">.</span><span class="n">ids</span><span class="p">)</span>
                 <span class="n">train_attr</span> <span class="o">=</span> <span class="n">select_attrs_by_dset_smiles</span><span class="p">(</span><span class="n">train</span><span class="p">,</span> <span class="n">attr_df</span><span class="p">,</span> <span class="n">smiles_col</span><span class="p">)</span>
-                <span class="n">train</span> <span class="o">=</span> <span class="n">DiskDataset</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">train</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="n">train</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">ids</span><span class="o">=</span><span class="n">train_attr</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                <span class="n">train</span> <span class="o">=</span> <span class="n">DiskDataset</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">train</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="n">train</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">ids</span><span class="o">=</span><span class="n">train_attr</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
 
                 <span class="n">valid_attr</span> <span class="o">=</span> <span class="n">select_attrs_by_dset_smiles</span><span class="p">(</span><span class="n">valid</span><span class="p">,</span> <span class="n">attr_df</span><span class="p">,</span> <span class="n">smiles_col</span><span class="p">)</span>
-                <span class="n">valid</span> <span class="o">=</span> <span class="n">DiskDataset</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">valid</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="n">valid</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">ids</span><span class="o">=</span><span class="n">valid_attr</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                <span class="n">valid</span> <span class="o">=</span> <span class="n">DiskDataset</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">valid</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="n">valid</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">ids</span><span class="o">=</span><span class="n">valid_attr</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
 
                 <span class="n">train_valid_dsets</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">train</span><span class="p">,</span> <span class="n">valid</span><span class="p">))</span>
                 <span class="n">train_valid_attr</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">train_attr</span><span class="p">,</span> <span class="n">valid_attr</span><span class="p">))</span>
 
+            <span class="k">if</span> <span class="n">dataset_dup</span><span class="p">:</span>
+                <span class="n">test</span> <span class="o">=</span> <span class="n">select_dset_by_id_list</span><span class="p">(</span><span class="n">dataset_ori</span><span class="p">,</span> <span class="n">test</span><span class="o">.</span><span class="n">ids</span><span class="p">)</span>
             <span class="n">test_attr</span> <span class="o">=</span> <span class="n">select_attrs_by_dset_smiles</span><span class="p">(</span><span class="n">test</span><span class="p">,</span> <span class="n">attr_df</span><span class="p">,</span> <span class="n">smiles_col</span><span class="p">)</span>
-            <span class="n">test</span> <span class="o">=</span> <span class="n">DiskDataset</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">test</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="n">test</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">ids</span><span class="o">=</span><span class="n">test_attr</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">test</span> <span class="o">=</span> <span class="n">DiskDataset</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">test</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="n">test</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">ids</span><span class="o">=</span><span class="n">test_attr</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># Otherwise just subset the ID-to-SMILES maps.</span>
             <span class="k">for</span> <span class="n">train</span><span class="p">,</span> <span class="n">valid</span> <span class="ow">in</span> <span class="n">train_cv_pairs</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">dataset_dup</span><span class="p">:</span>
+                    <span class="n">train</span> <span class="o">=</span> <span class="n">select_dset_by_id_list</span><span class="p">(</span><span class="n">dataset_ori</span><span class="p">,</span> <span class="n">train</span><span class="o">.</span><span class="n">ids</span><span class="p">)</span>
+                    <span class="n">valid</span> <span class="o">=</span> <span class="n">select_dset_by_id_list</span><span class="p">(</span><span class="n">dataset_ori</span><span class="p">,</span> <span class="n">valid</span><span class="o">.</span><span class="n">ids</span><span class="p">)</span>
                 <span class="n">train_attr</span> <span class="o">=</span> <span class="n">select_attrs_by_dset_ids</span><span class="p">(</span><span class="n">train</span><span class="p">,</span> <span class="n">attr_df</span><span class="p">)</span>
                 <span class="n">valid_attr</span> <span class="o">=</span> <span class="n">select_attrs_by_dset_ids</span><span class="p">(</span><span class="n">valid</span><span class="p">,</span> <span class="n">attr_df</span><span class="p">)</span>
                 <span class="n">train_valid_attr</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">train_attr</span><span class="p">,</span> <span class="n">valid_attr</span><span class="p">))</span>
             <span class="n">train_valid_dsets</span> <span class="o">=</span> <span class="n">train_cv_pairs</span>
+            <span class="k">if</span> <span class="n">dataset_dup</span><span class="p">:</span>
+                <span class="n">test</span> <span class="o">=</span> <span class="n">select_dset_by_id_list</span><span class="p">(</span><span class="n">dataset_ori</span><span class="p">,</span> <span class="n">test</span><span class="o">.</span><span class="n">ids</span><span class="p">)</span>
             <span class="n">test_attr</span> <span class="o">=</span> <span class="n">select_attrs_by_dset_ids</span><span class="p">(</span><span class="n">test</span><span class="p">,</span> <span class="n">attr_df</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">train_valid_dsets</span><span class="p">,</span> <span class="n">test</span><span class="p">,</span> <span class="n">train_valid_attr</span><span class="p">,</span> <span class="n">test_attr</span></div></div>
@@ -597,10 +616,10 @@
 <div class="viewcode-block" id="TrainValidTestSplitting.get_split_prefix"><a class="viewcode-back" href="../../pipeline.html#pipeline.splitting.TrainValidTestSplitting.get_split_prefix">[docs]</a>    <span class="k">def</span> <span class="nf">get_split_prefix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns a string identifying the split strategy (TVT or k-fold) and the splitting method</span>
 <span class="sd">        (index, scaffold, etc.) for use in filenames, dataset keys, etc.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Args:</span>
 <span class="sd">            parent (str): Default to empty string. Sets the parent directory for the output string</span>
-<span class="sd">            </span>
+
 <span class="sd">        Returns:</span>
 <span class="sd">            (str): A string that identifies the split strategy and the splitting method.</span>
 <span class="sd">            Appends a parent directory in front of the fold description</span>
@@ -615,14 +634,14 @@
 <div class="viewcode-block" id="TrainValidTestSplitting.split_dataset"><a class="viewcode-back" href="../../pipeline.html#pipeline.splitting.TrainValidTestSplitting.split_dataset">[docs]</a>    <span class="k">def</span> <span class="nf">split_dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="p">,</span> <span class="n">attr_df</span><span class="p">,</span> <span class="n">smiles_col</span><span class="p">):</span>
         <span class="c1">#smiles_col is a hack for now until deepchem fixes their scaffold and butina splitters</span>
         <span class="sd">&quot;&quot;&quot;Splits dataset into training, testing and validation sets.</span>
-<span class="sd">        </span>
+
 <span class="sd">        For ave_min, random, scaffold, index splits</span>
 <span class="sd">            self.params.split_valid_frac &amp; self.params.split_test_frac should be defined and </span>
 <span class="sd">            train_frac = 1.0 - self.params.split_valid_frac - self.params.split_test_frac</span>
-<span class="sd">        </span>
+
 <span class="sd">        For butina split, test size is not user defined, and depends on available clusters that qualify for placement in the test set</span>
 <span class="sd">            train_frac = 1.0 - self.params.split_valid_frac</span>
-<span class="sd">        </span>
+
 <span class="sd">        For temporal split, test size is also not user defined, and depends on number of compounds with dates after cutoff date.</span>
 <span class="sd">            train_frac = 1.0 - self.params.split_valid_frac</span>
 <span class="sd">        Args:</span>
@@ -631,7 +650,7 @@
 <span class="sd">            attr_df (Pandas DataFrame): dataframe containing SMILES strings indexed by compound IDs,</span>
 
 <span class="sd">            smiles_col (string): name of SMILES column (hack for now until deepchem fixes scaffold and butina splitters)</span>
-<span class="sd">        </span>
+
 <span class="sd">        Returns:</span>
 <span class="sd">            [(train, valid)], test, [(train_attr, valid_attr)], test_attr:</span>
 <span class="sd">            train (deepchem Dataset): training dataset.</span>
@@ -645,22 +664,30 @@
 <span class="sd">            valid_attr (Pandas DataFrame): dataframe of SMILES strings indexed by compound IDs for validation set.</span>
 
 <span class="sd">            test_attr (Pandas DataFrame): dataframe of SMILES strings indexed by compound IDs for test set.</span>
-<span class="sd">            </span>
+
 <span class="sd">        Raises:</span>
 <span class="sd">            Exception if there are duplicate ids or smiles strings in the dataset or the attr_df</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Splitting data by </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">splitter</span><span class="p">)</span>
 
+        <span class="n">dataset_dup</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="n">check_if_dupe_smiles_dataset</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">attr_df</span><span class="p">,</span> <span class="n">smiles_col</span><span class="p">):</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Duplicate ids or smiles in the dataset, will deduplicate first and assign all records per compound ID to same partition&quot;</span><span class="p">)</span>
+            <span class="n">dataset_dup</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">dataset_ori</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">dataset</span><span class="p">)</span>
+            <span class="n">id_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&#39;indices&#39;</span> <span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">ids</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">),</span> <span class="s2">&quot;compound_id&quot;</span><span class="p">:</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">dataset</span><span class="o">.</span><span class="n">ids</span><span class="p">]})</span>
+            <span class="n">sel_df</span> <span class="o">=</span> <span class="n">id_df</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="s2">&quot;compound_id&quot;</span><span class="p">)</span>
+            <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">sel_df</span><span class="o">.</span><span class="n">indices</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">needs_smiles</span><span class="p">():</span>
-            <span class="k">if</span> <span class="n">check_if_dupe_smiles_dataset</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">attr_df</span><span class="p">,</span> <span class="n">smiles_col</span><span class="p">):</span>
-                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Duplicate ids or smiles in the dataset&quot;</span><span class="p">)</span>
             <span class="c1"># Some DeepChem splitters require compound IDs in dataset to be SMILES strings. Swap in the</span>
             <span class="c1"># SMILES strings now; we&#39;ll reverse this later.</span>
-            <span class="n">dataset</span> <span class="o">=</span> <span class="n">DiskDataset</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="n">dataset</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">ids</span><span class="o">=</span><span class="n">attr_df</span><span class="p">[</span><span class="n">smiles_col</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">dataset</span> <span class="o">=</span> <span class="n">DiskDataset</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="n">dataset</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">ids</span><span class="o">=</span><span class="n">attr_df</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="n">smiles_col</span><span class="p">)[</span><span class="n">smiles_col</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">dataset_dup</span><span class="p">:</span>
+                <span class="n">dataset_ori</span> <span class="o">=</span> <span class="n">DiskDataset</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">dataset_ori</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="n">dataset_ori</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">ids</span><span class="o">=</span><span class="n">attr_df</span><span class="p">[</span><span class="n">smiles_col</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">split</span> <span class="o">==</span> <span class="s1">&#39;butina&#39;</span><span class="p">:</span>
-            <span class="c1">#train_valid, test = self.splitter.train_test_split(dataset, cutoff=self.params.butina_cutoff)</span>
             <span class="c1"># Can&#39;t use train_test_split with Butina because Butina splits into train and valid sets only.</span>
             <span class="n">train_valid</span><span class="p">,</span> <span class="n">test</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">splitter</span><span class="o">.</span><span class="n">train_valid_test_split</span><span class="p">(</span><span class="n">dataset</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">splitter</span> <span class="o">=</span> <span class="n">dc</span><span class="o">.</span><span class="n">splits</span><span class="o">.</span><span class="n">ScaffoldSplitter</span><span class="p">()</span>
@@ -685,7 +712,7 @@
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">split</span> <span class="o">==</span> <span class="s1">&#39;temporal&#39;</span><span class="p">:</span>
             <span class="c1"># TemporalSplitter requires that we pass attr_df so it can get the dates for each compound</span>
             <span class="n">train_frac</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">split_valid_frac</span>
-            <span class="n">train</span><span class="p">,</span> <span class="n">valid</span><span class="p">,</span> <span class="n">test</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">splitter</span><span class="o">.</span><span class="n">train_valid_test_split</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">attr_df</span><span class="p">,</span>
+            <span class="n">train</span><span class="p">,</span> <span class="n">valid</span><span class="p">,</span> <span class="n">test</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">splitter</span><span class="o">.</span><span class="n">train_valid_test_split</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">attr_df</span><span class="o">=</span><span class="n">attr_df</span><span class="p">,</span>
                                 <span class="n">frac_train</span><span class="o">=</span><span class="n">train_frac</span><span class="p">,</span> <span class="n">frac_valid</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">split_valid_frac</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">train_frac</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">split_valid_frac</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">split_test_frac</span>
@@ -694,17 +721,22 @@
                 <span class="n">seed</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">123</span><span class="p">))</span>
 
         <span class="c1"># Extract the ID-to_SMILES maps from attr_df for each subset.</span>
+        <span class="c1"># assign the subsets to the original dataset if duplicated compounds exist</span>
+        <span class="k">if</span> <span class="n">dataset_dup</span><span class="p">:</span>
+            <span class="n">train</span> <span class="o">=</span> <span class="n">select_dset_by_id_list</span><span class="p">(</span><span class="n">dataset_ori</span><span class="p">,</span> <span class="n">train</span><span class="o">.</span><span class="n">ids</span><span class="p">)</span>
+            <span class="n">valid</span> <span class="o">=</span> <span class="n">select_dset_by_id_list</span><span class="p">(</span><span class="n">dataset_ori</span><span class="p">,</span> <span class="n">valid</span><span class="o">.</span><span class="n">ids</span><span class="p">)</span>
+            <span class="n">test</span> <span class="o">=</span> <span class="n">select_dset_by_id_list</span><span class="p">(</span><span class="n">dataset_ori</span><span class="p">,</span> <span class="n">test</span><span class="o">.</span><span class="n">ids</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">needs_smiles</span><span class="p">():</span>
             <span class="c1"># Now that DeepChem splitters have done their work, replace the SMILES strings in the split </span>
             <span class="c1"># dataset objects with actual compound IDs.</span>
             <span class="n">train_attr</span> <span class="o">=</span> <span class="n">select_attrs_by_dset_smiles</span><span class="p">(</span><span class="n">train</span><span class="p">,</span> <span class="n">attr_df</span><span class="p">,</span> <span class="n">smiles_col</span><span class="p">)</span>
-            <span class="n">train</span> <span class="o">=</span> <span class="n">DiskDataset</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">train</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="n">train</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">ids</span><span class="o">=</span><span class="n">train_attr</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">train</span> <span class="o">=</span> <span class="n">DiskDataset</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">train</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="n">train</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">ids</span><span class="o">=</span><span class="n">train_attr</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
 
             <span class="n">valid_attr</span> <span class="o">=</span> <span class="n">select_attrs_by_dset_smiles</span><span class="p">(</span><span class="n">valid</span><span class="p">,</span> <span class="n">attr_df</span><span class="p">,</span> <span class="n">smiles_col</span><span class="p">)</span>
-            <span class="n">valid</span> <span class="o">=</span> <span class="n">DiskDataset</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">valid</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="n">valid</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">ids</span><span class="o">=</span><span class="n">valid_attr</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">valid</span> <span class="o">=</span> <span class="n">DiskDataset</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">valid</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="n">valid</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">ids</span><span class="o">=</span><span class="n">valid_attr</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
 
             <span class="n">test_attr</span> <span class="o">=</span> <span class="n">select_attrs_by_dset_smiles</span><span class="p">(</span><span class="n">test</span><span class="p">,</span> <span class="n">attr_df</span><span class="p">,</span> <span class="n">smiles_col</span><span class="p">)</span>
-            <span class="n">test</span> <span class="o">=</span> <span class="n">DiskDataset</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">test</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="n">test</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">ids</span><span class="o">=</span><span class="n">test_attr</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">test</span> <span class="o">=</span> <span class="n">DiskDataset</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">test</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="n">test</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">ids</span><span class="o">=</span><span class="n">test_attr</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># Otherwise just subset the ID-to-SMILES maps.</span>
             <span class="n">train_attr</span> <span class="o">=</span> <span class="n">select_attrs_by_dset_ids</span><span class="p">(</span><span class="n">train</span><span class="p">,</span> <span class="n">attr_df</span><span class="p">)</span>
@@ -714,8 +746,6 @@
         <span class="c1"># Note grouping of train/valid return values as tuple lists, to match format of </span>
         <span class="c1"># KFoldSplitting.split_dataset().</span>
         <span class="k">return</span> <span class="p">[(</span><span class="n">train</span><span class="p">,</span> <span class="n">valid</span><span class="p">)],</span> <span class="n">test</span><span class="p">,</span> <span class="p">[(</span><span class="n">train_attr</span><span class="p">,</span> <span class="n">valid_attr</span><span class="p">)],</span> <span class="n">test_attr</span></div></div>
-
-
 </pre></div>
 
            </div>

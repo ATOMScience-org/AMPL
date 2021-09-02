@@ -24,9 +24,9 @@ copyright = '2021, ATOM DDM Team'
 author = 'ATOM DDM Team'
 
 # The short X.Y version
-version = '1.1'
+version = '1.2.0'
 # The full version, including alpha/beta/rc tags
-release = '1.1'
+release = '1.2.0'
 
 
 # -- General configuration ---------------------------------------------------
