@@ -43,6 +43,10 @@ This COLAB notebook will use AMPL to upload datasets (small-molecule activity da
 * [Tutorial-06:](06_Combine_Datasets.ipynb) (**Time: ~ 4 minutes**)
 This COLAB notebook with use AMPL to merge HTR3A binding data from two different data sources, DTC and ExCAPE-DB.
 
+### Curating, merging and visualizing two datasets 
+* [Tutorial-06a:](06a_UnionDSet.ipynb) (**Time: ~ 7 minutes**)
+This COLAB notebook will use AMPL for creating Union train/test datasets. 
+
 ### Exploratory Data Analysis (EDA) Notebooks
 * [Tutorial-07:](07_EDA_With_Harmonization.ipynb) (**Time: ~ 4 minutes**). The notebook uses HTR3A as the protein target. The notebook accomplishes the following tasks:
    * Uses AMPL software
