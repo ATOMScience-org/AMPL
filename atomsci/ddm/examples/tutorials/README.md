@@ -44,7 +44,7 @@ This COLAB notebook will use AMPL to upload datasets (small-molecule activity da
 This COLAB notebook with use AMPL to merge HTR3A binding data from two different data sources, DTC and ExCAPE-DB.
 
 ### Creating Unionset Train/Test data creation 
-* [Tutorial-06a:](06a_UnionDSet.ipynb) (**Time: ~ 7 minutes**)
+* [Tutorial-06a:](06a_UnionDSet.ipynb) (**Time: ~ 6 minutes**)
 This COLAB notebook will use AMPL for creating Union train/test datasets. 
 
 ### Exploratory Data Analysis (EDA) Notebooks
