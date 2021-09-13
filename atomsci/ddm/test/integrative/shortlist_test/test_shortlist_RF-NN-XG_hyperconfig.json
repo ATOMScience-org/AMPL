@@ -1,6 +1,5 @@
 {
     "hyperparam": "True",
-    "lc_account": "asccasc",
     "slurm_partition": "pbatch",
     "uncertainty": "True",
     "search_type": "user_specified",
