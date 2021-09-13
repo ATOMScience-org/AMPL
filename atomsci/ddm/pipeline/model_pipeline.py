@@ -688,6 +688,25 @@ class ModelPipeline:
                 contains_responses=contains_responses, AD_method=AD_method, k=k,
                 dist_metric=dist_metric)
 
+	    # Inside predict_full_dataset, prediction columns are generated using something like:
+        # for i, colname in enumerate(self.params.response_cols):
+        #     result_df['%s_pred'%colname] = preds[:,i,0]
+        # predict_on_dataframe was only meant to handle single task models and so output
+        # columns were not prefixed with the response_col. Thus we need to remove the prefix
+        # for backwards compatibility
+        if len(self.params.response_cols)==1:
+            # currently the only columns that could have a response_col prefix
+            suffixes = ['pred', 'std', 'actual', 'prob']
+            rename_map = {}
+            colname = self.params.response_cols[0]
+            for suff in suffixes:
+                for c in result_df.columns:
+                    if c.startswith('%s_%s'%(colname, suff)):
+                        rename_map[c] = c[len(colname+'_'):] # chop off response_col_ prefix
+
+            # rename columns for backwards compatibility
+            result_df.rename(columns=rename_map, inplace=True)
+
         return result_df
 
     # ****************************************************************************************
@@ -731,7 +750,7 @@ class ModelPipeline:
         df = pd.DataFrame({'compound_id': np.linspace(0, len(smiles) - 1, len(smiles), dtype=int),
                         self.params.smiles_col: smiles,
                         task: np.zeros(len(smiles))})
-        res = self.predict_full_dataset(df, AD_method=AD_method, k=k, dist_metric=dist_metric)
+        res = self.predict_on_dataframe(df, AD_method=AD_method, k=k, dist_metric=dist_metric)
 
         sys.stdout = sys.__stdout__
 
