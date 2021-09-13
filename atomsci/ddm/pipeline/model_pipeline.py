@@ -707,7 +707,6 @@ class ModelPipeline:
             # rename columns for backwards compatibility
             result_df.rename(columns=rename_map, inplace=True)
 
-
         return result_df
 
     # ****************************************************************************************
