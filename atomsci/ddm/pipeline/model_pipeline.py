@@ -865,19 +865,22 @@ class ModelPipeline:
             if self.featurization.feat_type != "graphconv":
                 pred_data = copy.deepcopy(self.data.dataset.X)
                 self.run_mode = 'training'
-                self.load_featurize_data()
-                if len(self.data.train_valid_dsets) > 1:
-                    # combine train and valid set for k-fold CV models
-                    train_data = np.concatenate((self.data.train_valid_dsets[0][0].X, self.data.train_valid_dsets[0][1].X))
-                else:
-                    train_data = self.data.train_valid_dsets[0][0].X
-                if not hasattr(self, "train_pair_dis") or not hasattr(self, "train_pair_dis_metric") or self.train_pair_dis_metric != dist_metric:
-                    self.calc_train_dset_pair_dis(metric=dist_metric)
+                try:
+                    self.load_featurize_data()
+                    if len(self.data.train_valid_dsets) > 1:
+                        # combine train and valid set for k-fold CV models
+                        train_data = np.concatenate((self.data.train_valid_dsets[0][0].X, self.data.train_valid_dsets[0][1].X))
+                    else:
+                        train_data = self.data.train_valid_dsets[0][0].X
+                    if not hasattr(self, "train_pair_dis") or not hasattr(self, "train_pair_dis_metric") or self.train_pair_dis_metric != dist_metric:
+                        self.calc_train_dset_pair_dis(metric=dist_metric)
 
-                if AD_method == "local_density":
-                    result_df["AD_index"] = calc_AD_kmean_local_density(train_data, pred_data, k, train_dset_pair_distance=self.train_pair_dis, dist_metric=dist_metric)
-                else:
-                    result_df["AD_index"] = calc_AD_kmean_dist(train_data, pred_data, k, train_dset_pair_distance=self.train_pair_dis, dist_metric=dist_metric)
+                    if AD_method == "local_density":
+                        result_df["AD_index"] = calc_AD_kmean_local_density(train_data, pred_data, k, train_dset_pair_distance=self.train_pair_dis, dist_metric=dist_metric)
+                    else:
+                        result_df["AD_index"] = calc_AD_kmean_dist(train_data, pred_data, k, train_dset_pair_distance=self.train_pair_dis, dist_metric=dist_metric)
+                except:
+                    print("Cannot find original training data, AD not calculated")
             else:
                 self.log.warning("GraphConv features are not plain vectors, AD index cannot be calculated.")
 
