@@ -85,4 +85,5 @@ def training_statistics_file(model_dir, subset, minimum_r2):
         if (m['subset'] == subset) and (m['label'] == 'best'):
             break
 
-    assert (m['prediction_results']['r2_score'] >= minimum_r2), 'Error: Model test R^2 < minimum R^2'
+    test_r2 = m['prediction_results']['r2_score']
+    assert (test_r2 >= minimum_r2), 'Error: Model test R^2 %0.3f < minimum R^2 %0.3f'%(test_r2, minimum_r2)

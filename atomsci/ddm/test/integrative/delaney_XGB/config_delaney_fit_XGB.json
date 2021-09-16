@@ -14,25 +14,17 @@
     "smiles_col": "smiles",
     "response_cols": "measured log solubility in mols per litre",
 
-    "comment": "Features",
+   "comment": "Features",
     "comment": "----------------------------------------",
-    "featurizer": "graphconv",
+    "featurizer": "computed_descriptors",
+
+    "comment": "Descriptors",
+    "comment": "----------------------------------------",
+    "descriptor_type": "mordred_filtered",
 
     "comment": "Model",
     "comment": "----------------------------------------",
-    "model_type": "NN",
-
-    "comment": "Neural network",
-    "comment": "----------------------------------------",
-    "dropouts": "0.10,0.10,0.10",
-    "layer_sizes": "64,64,64",
-    "learning_rate": "0.000753",
-    "max_epochs": "500",
-
-    "comment": "Training",
-    "comment": "----------------------------------------",    
-    "comment": "This regulates how long to train the model",
-    "early_stopping_patience": "500",
+    "model_type": "xgboost",
 
     "comment": "Results",
     "comment": "----------------------------------------",    

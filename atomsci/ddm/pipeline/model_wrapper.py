@@ -1446,7 +1446,7 @@ class HybridModelWrapper(ModelWrapper):
         Da's loss function, based on L2 terms for both pKi and percent binding values
         This function is not appropriate for model fitting, but can be used for R^2 calculation.
         """
-        yreal = yr.numpy()
+        yreal = yr.to("cpu").numpy()
         pos_ki = np.where(np.isnan(yreal[:,1]))[0]
         pos_bind = np.where(~np.isnan(yreal[:,1]))[0]
         loss_ki = torch.sum((yp[pos_ki, 0] - yr[pos_ki, 0]) ** 2)
@@ -1474,7 +1474,7 @@ class HybridModelWrapper(ModelWrapper):
         """
 
         # Get indices of non-missing pKi values
-        yreal = yr.numpy()
+        yreal = yr.to("cpu").numpy()
         pos_ki = np.where(np.isnan(yreal[:,1]))[0]
         # Get indices of non-missing binding values
         pos_bind = np.where(~np.isnan(yreal[:,1]))[0]
@@ -1854,8 +1854,8 @@ class HybridModelWrapper(ModelWrapper):
             yb = yb.to(self.dev)
             yp = self.model(xb)
             for i in range(len(yb)):
-                real.append(yb.numpy()[i])
-                pred.append(yp.detach().numpy()[i])
+                real.append(yb.to("cpu").numpy()[i])
+                pred.append(yp.detach().to("cpu").numpy()[i])
         real = np.array(real)
         pred = np.array(pred)
 
