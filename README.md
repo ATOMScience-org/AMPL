@@ -90,6 +90,11 @@ cd ..
 ./build.sh && ./install.sh system
 ```
 
+#### Create jupyter notebook kernel (optional)
+With your environment activated:
+```
+python -m ipykernel install --user --name atomsci
+```
 - The `install.sh system` command installs AMPL directly in the conda environment. If `install.sh` alone is used, then AMPL is installed in the `$HOME/.local` directory.
 
 - After this process, you will have an `atomsci` conda environment with all dependencies installed. The name of the AMPL package is `atomsci-ampl` and is installed in the `install.sh` script to the environment with conda's `pip`.
