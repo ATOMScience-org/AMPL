@@ -1,7 +1,7 @@
 mkdir github
 cd github
 git clone https://github.com/ATOMconsortium/AMPL.git
-cd AMPL 
+cd AMPL
 git checkout deepchem_25
 cd ..
 
