@@ -1,6 +1,9 @@
 mkdir github
 cd github
-git clone https://github.com/stewarthe6/AMPL-1.git
+git clone https://github.com/ATOMconsortium/AMPL.git
+cd AMPL 
+git checkout deepchem_25
+cd ..
 
 
 cat << "EOF" > transformations_py.patch
@@ -17,11 +20,11 @@ cat << "EOF" > transformations_py.patch
  from deepchem.trans.transformers import Transformer, NormalizationTransformer
 EOF
 
-patch -N /content/github/AMPL-1/atomsci/ddm/pipeline/transformations.py transformations_py.patch
+patch -N /content/github/AMPL/atomsci/ddm/pipeline/transformations.py transformations_py.patch
 
 cat << "EOF" > __init___py.patch
---- /content/AMPL-1/atomsci/ddm/__init__.py.backup    2020-09-19 18:10:05.264013977 +0000
-+++ /content/AMPL-1/atomsci/ddm/__init__.py   2020-09-19 18:15:37.338771924 +0000
+--- /content/AMPL/atomsci/ddm/__init__.py.backup    2020-09-19 18:10:05.264013977 +0000
++++ /content/AMPL/atomsci/ddm/__init__.py   2020-09-19 18:15:37.338771924 +0000
 @@ -1,6 +1,6 @@
  import pkg_resources
  try:
@@ -31,12 +34,12 @@ cat << "EOF" > __init___py.patch
      pass
 EOF
 
-patch -N /content/github/AMPL-1/atomsci/ddm/__init__.py __init___py.patch
+patch -N /content/github/AMPL/atomsci/ddm/__init__.py __init___py.patch
 
-PATH=/content/AMPL-1/bin:$PATH
+PATH=/content/AMPL/bin:$PATH
 PYTHONPATH=
 
-cd /content/github/AMPL-1
-git checkout DC2.5
+cd /content/github/AMPL
+git checkout deepchem_25
 ./build.sh
 ./install.sh system
