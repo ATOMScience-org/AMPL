@@ -59,7 +59,7 @@ def test():
     pred_df_file = pfm.predict_from_model_file(model_path=pl.params.model_tarball_path,
                                          input_df=train_df[:10],
                                          id_col="compound_id",
-                                         smiles_col="rdkit_smiles",
+                                         smiles_col="base_rdkit_smiles",
                                          response_col="pKi_mean",
                                          dont_standardize=True,
                                          AD_method="z_score")
