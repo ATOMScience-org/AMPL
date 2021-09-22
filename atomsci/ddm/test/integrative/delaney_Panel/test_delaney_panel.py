@@ -110,7 +110,8 @@ def train_and_predict(train_json_f):
     prediction_type = params.prediction_type
     descriptor_type = params.descriptor_type
     featurizer = params.featurizer
-    model_dir = 'result/delaney-processed_curated_fit/%s_%s_scaffold_%s'%(model_type, featurizer, prediction_type)
+    splitter = params.splitter
+    model_dir = 'result/delaney-processed_curated_fit/%s_%s_%s_%s'%(model_type, featurizer, splitter, prediction_type)
     uuid = model.params.model_uuid
     tar_f = 'result/delaney-processed_curated_fit_model_%s.tar.gz'%(uuid)
     reload_dir = model_dir+'/'+uuid
@@ -174,22 +175,22 @@ def test():
 
     # Train and Predict
     # -----
-    #train_and_predict('reg_config_delaney_fit_base.json') # fine
-    #train_and_predict('reg_config_delaney_fit_NN_graphconv.json') # fine
-    #train_and_predict('reg_config_delaney_fit_XGB_mordred_filtered.json') # fine
+    #train_and_predict('jsons/reg_config_delaney_fit_base.json') # fine
+    #train_and_predict('jsons/reg_config_delaney_fit_NN_graphconv.json') # fine
+    #train_and_predict('jsons/reg_config_delaney_fit_XGB_mordred_filtered.json') # fine
 
-    #train_and_predict('reg_config_delaney_fit_RF_mordred_filtered.json') # predict_full_dataset broken
-    #train_and_predict('reg_config_delaney_fit_XGB_moe.json') # doesn't learn at all
-    #train_and_predict('reg_config_delaney_fit_NN_moe.json') # crashes during run
+    #train_and_predict('jsons/reg_config_delaney_fit_RF_mordred_filtered.json') # predict_full_dataset broken
+    #train_and_predict('jsons/reg_config_delaney_fit_XGB_moe.json') # doesn't learn at all
+    #train_and_predict('jsons/reg_config_delaney_fit_NN_moe.json') # crashes during run
 
-    #train_and_predict('class_config_delaney_fit_XGB_mordred_filtered.json') # fine
-    #train_and_predict('class_config_delaney_fit_NN_moe.json') # only works for class
-    #train_and_predict('class_config_delaney_fit_NN_ecfp.json') # only works for class
+    #train_and_predict('jsons/class_config_delaney_fit_XGB_mordred_filtered.json') # fine
+    #train_and_predict('jsons/class_config_delaney_fit_NN_moe.json') # only works for class
+    #train_and_predict('jsons/class_config_delaney_fit_NN_ecfp.json') # only works for class
 
     # multi task doesn't work with classification?
-    train_and_predict('multi_class_random_config_delaney_fit_NN_moe.json') # crashes during run
-    #train_and_predict('multi_reg_config_delaney_fit_NN_graphconv.json') # fine
-    #train_and_predict('multi_class_config_delaney_fit_NN_graphconv.json') # fine
+    train_and_predict('jsons/multi_class_random_config_delaney_fit_NN_moe.json') # crashes during run
+    #train_and_predict('jsons/multi_reg_config_delaney_fit_NN_graphconv.json') # fine
+    #train_and_predict('jsons/multi_class_config_delaney_fit_NN_graphconv.json') # fine
 
 if __name__ == '__main__':
     test()
