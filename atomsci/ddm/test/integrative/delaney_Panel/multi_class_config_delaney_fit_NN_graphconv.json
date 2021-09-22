@@ -15,10 +15,10 @@
 
     "comment": "Prediction Type",
     "comment": "----------------------------------------",
-    "response_cols": ["measured log solubility in mols per litre",
-                        "measured log solubility in mols per litre2"],
+    "response_cols": ["measured log solubility in mols per litre_class",
+                        "measured log solubility in mols per litre_class2"],
     "num_model_tasks": 2,
-    "prediction_type": "regression",
+    "prediction_type": "classification",
 
     "comment": "Features",
     "comment": "----------------------------------------",

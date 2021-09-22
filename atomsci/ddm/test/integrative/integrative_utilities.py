@@ -69,6 +69,20 @@ def training_statistics_file(model_dir, subset, minimum_r2, metric_col='r2_score
         model_dir: Model directory with training_model_metrics.json
         subset: Data subset
         minimum_r2: Minimum R^2
+        metric_col: Desired metric e.g. r2_score, accuracy_score
+    """
+
+    test_r2 = read_training_statistics_file(model_dir, subset, metric_col)
+    assert (test_r2 >= minimum_r2), 'Error: Model test R^2 %0.3f < minimum R^2 %0.3f'%(test_r2, minimum_r2)
+
+def read_training_statistics_file(model_dir, subset, metric_col):
+    """
+    Get training statistics
+
+    Arguments:
+        model_dir: Model directory with training_model_metrics.json
+        subset: Data subset
+        metric_col: Desired metric e.g. r2_score, accuracy_score
     """
 
     # Open training JSON file
@@ -85,5 +99,6 @@ def training_statistics_file(model_dir, subset, minimum_r2, metric_col='r2_score
         if (m['subset'] == subset) and (m['label'] == 'best'):
             break
 
-    test_r2 = m['prediction_results'][metric_col]
-    assert (test_r2 >= minimum_r2), 'Error: Model test R^2 %0.3f < minimum R^2 %0.3f'%(test_r2, minimum_r2)
+    test_metric = m['prediction_results'][metric_col]
+    return test_metric
+

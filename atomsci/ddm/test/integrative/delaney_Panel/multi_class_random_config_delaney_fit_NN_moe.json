@@ -28,6 +28,11 @@
     "comment": "----------------------------------------",
     "descriptor_type": "moe",
 
+    "comment": "Splitting",
+    "comment": "----------------------------------------",
+    "base_spliter": "random",
+    "spliter": "random",
+
     "comment": "Model",
     "comment": "----------------------------------------",
     "model_type": "NN",

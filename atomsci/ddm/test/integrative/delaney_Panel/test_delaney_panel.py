@@ -7,6 +7,7 @@ import os
 import sys
 
 import atomsci.ddm.pipeline.model_pipeline as mp
+import atomsci.ddm.pipeline.predict_from_model as pfm
 import atomsci.ddm.pipeline.parameter_parser as parse
 import atomsci.ddm.utils.curate_data as curate_data
 import atomsci.ddm.utils.struct_utils as struct_utils
@@ -25,7 +26,6 @@ def clean():
               'delaney-processed_curated_predict.csv']:
         if os.path.isfile(f):
             os.remove(f)
-
 
 def curate():
     """
@@ -77,7 +77,6 @@ def curate():
     assert (os.path.isfile('delaney-processed_curated_fit.csv'))
     assert (os.path.isfile('delaney-processed_curated_external.csv'))
 
-
 def download():
     """
     Separate download function so that download can be run separately if there is no internet.
@@ -89,9 +88,7 @@ def download():
 
     assert (os.path.isfile('delaney-processed.csv'))
 
-#train_json_f,'config_delaney_fit_XGB.json'
-#pred_json_f,'config_delaney_predict_XGB.json'
-def train_and_predict(train_json_f, pred_json_f):
+def train_and_predict(train_json_f):
     # Train model
     # -----------
     # Read parameter JSON file
@@ -111,58 +108,49 @@ def train_and_predict(train_json_f, pred_json_f):
     # -----------------------------
     model_type = params.model_type
     prediction_type = params.prediction_type
-    model_dir = 'result/delaney-processed_curated_fit/%s_computed_descriptors_scaffold_regression'%(model_type)
-    uuid = integrative_utilities.get_subdirectory(model_dir)
+    descriptor_type = params.descriptor_type
+    featurizer = params.featurizer
+    model_dir = 'result/delaney-processed_curated_fit/%s_%s_scaffold_%s'%(model_type, featurizer, prediction_type)
+    uuid = model.params.model_uuid
+    tar_f = 'result/delaney-processed_curated_fit_model_%s.tar.gz'%(uuid)
     reload_dir = model_dir+'/'+uuid
 
     # Check training statistics
     # -------------------------
     if prediction_type == 'regression':
         integrative_utilities.training_statistics_file(reload_dir, 'test', 0.6, 'r2_score')
+        score = integrative_utilities.read_training_statistics_file(reload_dir, 'test', 'r2_score')
     else:
-        integrative_utilities.training_statistics_file(reload_dir, 'test', 0.6, 'roc_auc')
+        integrative_utilities.training_statistics_file(reload_dir, 'test', 0.6, 'accuracy_score')
+        score = integrative_utilities.read_training_statistics_file(reload_dir, 'test', 'accuracy_score')
 
-    # Make prediction parameters
-    # --------------------------
-    # Read prediction parameter JSON file
-    with open(pred_json_f, 'r') as f:
-        predict_parameters_dict = json.loads(f.read())
-
-    # Set transformer key here because model uuid is not known before fit
-    predict_parameters_dict['transformer_key'] = reload_dir+'transformers.pkl'
-    # Set output directory for xgboost (XGB) model
-    predict_parameters_dict['result_dir'] = reload_dir
-
-    predict_parameters = parse.wrapper(predict_parameters_dict)
+    print("Final test score:", score)
 
     # Load second test set
     # --------------------
     data = pd.read_csv('delaney-processed_curated_external.csv')
 
-    # Select columns and rename response column
-    data = data[[predict_parameters.id_col, predict_parameters.smiles_col, predict_parameters.response_cols[0]]]
-    data = data.rename(columns={predict_parameters.response_cols[0]: 'experimental_values'})
+    predict = pfm.predict_from_model_file(tar_f, data, id_col=params.id_col, 
+        smiles_col=params.smiles_col, response_col=params.response_cols)
+    pred_cols = [f for f in predict.columns if f.endswith('_pred')]
 
-    # Make prediction pipeline
-    # ------------------------
-    pp = mp.create_prediction_pipeline_from_file(predict_parameters, reload_dir)
-
-    # Predict
-    # -------
-    predict = pp.predict_on_dataframe(data)
+    pred = predict[pred_cols].to_numpy()
 
     # Check predictions
     # -----------------
-    assert (predict['pred'].shape[0] == 117), 'Error: Incorrect number of predictions'
-    assert (np.all(np.isfinite(predict['pred'].values))), 'Error: Predictions are not numbers'
+    assert (pred.shape[0] == 117), 'Error: Incorrect number of predictions'
+    assert (np.all(np.isfinite(pred))), 'Error: Predictions are not numbers'
 
     # Save predictions with experimental values
     # -----------------------------------------
     predict.reset_index(level=0, inplace=True)
-    combined = pd.merge(data, predict, on=predict_parameters.id_col, how='inner')
-    combined.to_csv('delaney-processed_curated_predict.csv')
-    assert (os.path.isfile('delaney-processed_curated_predict.csv')
-            and os.path.getsize('delaney-processed_curated_predict.csv') > 0), 'Error: Prediction file not created'
+    combined = pd.merge(data, predict, on=params.id_col, how='inner')
+    pred_csv_name = 'delaney-processed_curated_%s_%s_%s_%s_%d_%s_predict.csv'%(
+            model_type, prediction_type, descriptor_type, featurizer, 
+            len(model.params.response_cols), model.params.splitter)
+    combined.to_csv(pred_csv_name)
+    assert (os.path.isfile(pred_csv_name)
+            and os.path.getsize(pred_csv_name) > 0), 'Error: Prediction file not created'
 
 
 
@@ -186,13 +174,22 @@ def test():
 
     # Train and Predict
     # -----
-    train_and_predict('config_delaney_fit_XGB.json', 
-        'config_delaney_predict_XGB.json')
+    #train_and_predict('reg_config_delaney_fit_base.json') # fine
+    #train_and_predict('reg_config_delaney_fit_NN_graphconv.json') # fine
+    #train_and_predict('reg_config_delaney_fit_XGB_mordred_filtered.json') # fine
 
+    #train_and_predict('reg_config_delaney_fit_RF_mordred_filtered.json') # predict_full_dataset broken
+    #train_and_predict('reg_config_delaney_fit_XGB_moe.json') # doesn't learn at all
+    #train_and_predict('reg_config_delaney_fit_NN_moe.json') # crashes during run
 
-def make_json_files():
-    
+    #train_and_predict('class_config_delaney_fit_XGB_mordred_filtered.json') # fine
+    #train_and_predict('class_config_delaney_fit_NN_moe.json') # only works for class
+    #train_and_predict('class_config_delaney_fit_NN_ecfp.json') # only works for class
 
+    # multi task doesn't work with classification?
+    train_and_predict('multi_class_random_config_delaney_fit_NN_moe.json') # crashes during run
+    #train_and_predict('multi_reg_config_delaney_fit_NN_graphconv.json') # fine
+    #train_and_predict('multi_class_config_delaney_fit_NN_graphconv.json') # fine
 
 if __name__ == '__main__':
     test()
