@@ -61,7 +61,7 @@ def get_subdirectory(model_dir_root):
     return uuid
 
 
-def training_statistics_file(model_dir, subset, minimum_r2):
+def training_statistics_file(model_dir, subset, minimum_r2, metric_col='r2_score'):
     """
     Get training statistics
 
@@ -85,5 +85,5 @@ def training_statistics_file(model_dir, subset, minimum_r2):
         if (m['subset'] == subset) and (m['label'] == 'best'):
             break
 
-    test_r2 = m['prediction_results']['r2_score']
+    test_r2 = m['prediction_results'][metric_col]
     assert (test_r2 >= minimum_r2), 'Error: Model test R^2 %0.3f < minimum R^2 %0.3f'%(test_r2, minimum_r2)
