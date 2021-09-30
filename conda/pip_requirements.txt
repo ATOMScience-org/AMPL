@@ -1,4 +1,5 @@
 absl-py==0.12.0
+altair==4.1.0
 anyconfig==0.10.0
 astor==0.8.1
 astunparse==1.6.3
@@ -43,6 +44,7 @@ llvmlite==0.35.0
 Markdown==3.3.4
 MolVS==0.1.1
 maestrowf==1.1.8
+matplotlib-venn==0.11.6
 monotonic==1.5
 mordred==1.2.0
 msgpack==1.0.2
@@ -61,6 +63,7 @@ prompt-toolkit==3.0.14
 protobuf==3.17.1
 ptyprocess==0.7.0
 py==1.10.0
+py3Dmol==1.7.0
 pyaml==20.4.0
 pyarrow==2.0.0
 pyasn1-modules==0.2.8
@@ -96,6 +99,7 @@ traitlets==4.3.3
 typing-extensions==3.7.4.3
 umap-learn==0.4.6
 urllib3==1.26.5
+vega-datasets==0.9.0
 wcwidth==0.2.5
 webcolors==1.11.1
 Werkzeug==2.0.1
