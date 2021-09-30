@@ -223,37 +223,37 @@ def H1_init():
 
 # Train and Predict
 # -----
-#def test_reg_config_delaney_fit_NN_graphconv():
-#    init()
-#    train_and_predict('jsons/reg_config_delaney_fit_NN_graphconv.json') # fine
-#
-#def test_reg_config_delaney_fit_XGB_mordred_filtered():
-#    init()
-#    train_and_predict('jsons/reg_config_delaney_fit_XGB_mordred_filtered.json') # fine
-#
-#def test_reg_config_delaney_fit_RF_mordred_filtered():
-#    init()
-#    train_and_predict('jsons/reg_config_delaney_fit_RF_mordred_filtered.json') # predict_full_dataset broken
-#
-#def test_class_config_delaney_fit_XGB_mordred_filtered():
-#    init()
-#    train_and_predict('jsons/class_config_delaney_fit_XGB_mordred_filtered.json') # breaks because labels aren't numbers
-#
-#def test_class_config_delaney_fit_NN_ecfp():
-#    init()
-#    train_and_predict('jsons/class_config_delaney_fit_NN_ecfp.json') # only works for class
-#
-#def test_multi_class_random_config_delaney_fit_NN_mordred_filtered():
-#    init()
-#    train_and_predict('jsons/multi_class_random_config_delaney_fit_NN_mordred_filtered.json') # crashes during run
-#
-#def test_multi_class_config_delaney_fit_NN_graphconv():
-#    init()
-#    train_and_predict('jsons/multi_class_config_delaney_fit_NN_graphconv.json') # fine
-#
-#def test_multi_reg_config_delaney_fit_NN_graphconv():
-#    init()
-#    train_and_predict('jsons/multi_reg_config_delaney_fit_NN_graphconv.json') # fine
+def test_reg_config_delaney_fit_NN_graphconv():
+    init()
+    train_and_predict('jsons/reg_config_delaney_fit_NN_graphconv.json') # fine
+
+def test_reg_config_delaney_fit_XGB_mordred_filtered():
+    init()
+    train_and_predict('jsons/reg_config_delaney_fit_XGB_mordred_filtered.json') # fine
+
+def test_reg_config_delaney_fit_RF_mordred_filtered():
+    init()
+    train_and_predict('jsons/reg_config_delaney_fit_RF_mordred_filtered.json') # predict_full_dataset broken
+
+def test_class_config_delaney_fit_XGB_mordred_filtered():
+    init()
+    train_and_predict('jsons/class_config_delaney_fit_XGB_mordred_filtered.json') # breaks because labels aren't numbers
+
+def test_class_config_delaney_fit_NN_ecfp():
+    init()
+    train_and_predict('jsons/class_config_delaney_fit_NN_ecfp.json') # only works for class
+
+def test_multi_class_random_config_delaney_fit_NN_mordred_filtered():
+    init()
+    train_and_predict('jsons/multi_class_random_config_delaney_fit_NN_mordred_filtered.json') # crashes during run
+
+def test_multi_class_config_delaney_fit_NN_graphconv():
+    init()
+    train_and_predict('jsons/multi_class_config_delaney_fit_NN_graphconv.json') # fine
+
+def test_multi_reg_config_delaney_fit_NN_graphconv():
+    init()
+    train_and_predict('jsons/multi_reg_config_delaney_fit_NN_graphconv.json') # fine
 
 # MOE doesn't seem to predict delaney very well
 # these are run using H1
@@ -266,13 +266,13 @@ def test_reg_config_H1_fit_NN_moe():
     H1_init()
     train_and_predict('jsons/reg_config_H1_fit_NN_moe.json', prefix='H1') # crashes during run
 
-#def test_multi_class_random_config_H1_fit_NN_moe():
-#    H1_init()
-#    train_and_predict('jsons/multi_class_config_H1_fit_NN_moe.json', prefix='H1') # works because labels aren't numbers
-#
-#def test_class_config_H1_fit_NN_moe():
-#    H1_init()
-#    train_and_predict('jsons/class_config_H1_fit_NN_moe.json', prefix='H1') # doesn't train at all anything
+def test_multi_class_random_config_H1_fit_NN_moe():
+    H1_init()
+    train_and_predict('jsons/multi_class_config_H1_fit_NN_moe.json', prefix='H1') # works because labels aren't numbers
+
+def test_class_config_H1_fit_NN_moe():
+    H1_init()
+    train_and_predict('jsons/class_config_H1_fit_NN_moe.json', prefix='H1') # doesn't train at all anything
 
 if __name__ == '__main__':
     test_class_config_H1_fit_NN_moe()
