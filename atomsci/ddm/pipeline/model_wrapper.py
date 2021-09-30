@@ -1903,33 +1903,11 @@ class HybridModelWrapper(ModelWrapper):
         os.mkdir(dest_dir)
 
 # ****************************************************************************************
-class DCRFModelWrapper(ModelWrapper):
-    """Contains methods to load in a dataset, split and featurize the data, fit a model to the train dataset,
-    generate predictions for an input dataset, and generate performance metrics for these predictions.
+class ForestModelWrapper(ModelWrapper):
+    """Wrapper class for DCRFModelWrapper and DCxgboostModelWrapper
 
-
-    Attributes:
-        Set in __init__
-            params (argparse.Namespace): The argparse.Namespace parameter object that contains all parameter information
-            featurization (Featurization object): The featurization object created outside of model_wrapper
-            log (log): The logger
-            output_dir (str): The parent path of the model directory
-            transformers (list): Initialized as an empty list, stores the transformers on the response col
-            transformers_x (list): Initialized as an empty list, stores the transformers on the featurizers
-            model_dir (str): The subdirectory under output_dir that contains the model. Created in setup_model_dirs.
-            best_model_dir (str): The subdirectory under output_dir that contains the best model. Created in setup_model_dirs
-            model: The dc.models.sklearn_models.SklearnModel as specified by the params attribute
-
-        Created in train:
-            data (ModelDataset): contains the dataset, set in pipeline
-            best_epoch (int): Set to 0, not applicable to deepchem random forest models
-            train_perf_data (PerfData): Contains the predictions and performance of the training dataset
-            valid_perf_data (PerfData): Contains the predictions and performance of the validation dataset
-            train_perfs (dict): A dictionary of predicted values and metrics on the training dataset
-            valid_perfs (dict): A dictionary of predicted values and metrics on the training dataset
-
+    contains code that is similar between the two tree based classes
     """
-
     def __init__(self, params, featurizer, ds_client):
         """Initializes DCRFModelWrapper object.
 
@@ -1944,22 +1922,11 @@ class DCRFModelWrapper(ModelWrapper):
         self.model_dir = self.best_model_dir
         os.makedirs(self.best_model_dir, exist_ok=True)
 
-        if self.params.prediction_type == 'regression':
-            rf_model = RandomForestRegressor(n_estimators=self.params.rf_estimators,
-                                             max_features=self.params.rf_max_features,
-                                             max_depth=self.params.rf_max_depth,
-                                             n_jobs=-1)
-        else:
-            rf_model = RandomForestClassifier(n_estimators=self.params.rf_estimators,
-                                              max_features=self.params.rf_max_features,
-                                              max_depth=self.params.rf_max_depth,
-                                              n_jobs=-1)
-
-        self.model = dc.models.sklearn_models.SklearnModel(rf_model, model_dir=self.best_model_dir)
+        self.model = self.make_dc_model(self.best_model_dir)
 
     # ****************************************************************************************
     def train(self, pipeline):
-        """Trains a random forest model and saves the trained model.
+        """Trains a forest model and saves the trained model.
 
         Args:
             pipeline (ModelPipeline): The ModelPipeline instance for this model run.
@@ -1986,8 +1953,6 @@ class DCRFModelWrapper(ModelWrapper):
         self.train_perf_data = perf.create_perf_data(self.params.prediction_type, pipeline.data, self.transformers,'train')
         self.valid_perf_data = perf.create_perf_data(self.params.prediction_type, pipeline.data, self.transformers, 'valid')
         self.test_perf_data = perf.create_perf_data(self.params.prediction_type, pipeline.data, self.transformers, 'test')
-
-        self.log.info("Fitting random forest model")
 
         test_dset = pipeline.data.test_dset
 
@@ -2026,6 +1991,20 @@ class DCRFModelWrapper(ModelWrapper):
         self.best_epoch = 0
 
     # ****************************************************************************************
+    def make_dc_model(self, model_dir):
+        """Build a DeepChem model.
+
+        Builds a model, wraps it in DeepChem's wrapper and returns it
+
+        Args:
+            model_dir (str): Directory where saved model is located.
+
+        returns:
+            A DeepChem model
+        """
+        raise NotImplementedError
+
+    # ****************************************************************************************
     def reload_model(self, reload_dir):
         """Loads a saved random forest model from the specified directory. Also loads any transformers that
         were saved with it.
@@ -2039,6 +2018,63 @@ class DCRFModelWrapper(ModelWrapper):
             Resets the value of model, transformers, and transformers_x
 
         """
+        # Restore the transformers from the datastore or filesystem
+        self.reload_transformers()
+        self.model = self.make_dc_model(reload_dir)
+        self.model.reload()
+
+
+# ****************************************************************************************
+class DCRFModelWrapper(ForestModelWrapper):
+    """Contains methods to load in a dataset, split and featurize the data, fit a model to the train dataset,
+    generate predictions for an input dataset, and generate performance metrics for these predictions.
+
+
+    Attributes:
+        Set in __init__
+            params (argparse.Namespace): The argparse.Namespace parameter object that contains all parameter information
+            featurization (Featurization object): The featurization object created outside of model_wrapper
+            log (log): The logger
+            output_dir (str): The parent path of the model directory
+            transformers (list): Initialized as an empty list, stores the transformers on the response col
+            transformers_x (list): Initialized as an empty list, stores the transformers on the featurizers
+            model_dir (str): The subdirectory under output_dir that contains the model. Created in setup_model_dirs.
+            best_model_dir (str): The subdirectory under output_dir that contains the best model. Created in setup_model_dirs
+            model: The dc.models.sklearn_models.SklearnModel as specified by the params attribute
+
+        Created in train:
+            data (ModelDataset): contains the dataset, set in pipeline
+            best_epoch (int): Set to 0, not applicable to deepchem random forest models
+            train_perf_data (PerfData): Contains the predictions and performance of the training dataset
+            valid_perf_data (PerfData): Contains the predictions and performance of the validation dataset
+            train_perfs (dict): A dictionary of predicted values and metrics on the training dataset
+            valid_perfs (dict): A dictionary of predicted values and metrics on the training dataset
+
+    """
+
+    def __init__(self, params, featurizer, ds_client):
+        """Initializes DCRFModelWrapper object.
+
+        Args:
+            params (Namespace object): contains all parameter information.
+
+            featurizer (Featurization): Object managing the featurization of compounds
+            ds_client: datastore client.
+        """
+        super().__init__(params, featurizer, ds_client)
+
+    # ****************************************************************************************
+    def make_dc_model(self, model_dir):
+        """Build a DeepChem model.
+
+        Builds a model, wraps it in DeepChem's wrapper and returns it
+
+        Args:
+            model_dir (str): Directory where saved model is located.
+
+        returns:
+            A DeepChem model
+        """
         if self.params.prediction_type == 'regression':
             rf_model = RandomForestRegressor(n_estimators=self.params.rf_estimators,
                                              max_features=self.params.rf_max_features,
@@ -2050,10 +2086,33 @@ class DCRFModelWrapper(ModelWrapper):
                                               max_depth=self.params.rf_max_depth,
                                               n_jobs=-1)
 
-        # Restore the transformers from the datastore or filesystem
-        self.reload_transformers()
-        self.model = dc.models.sklearn_models.SklearnModel(rf_model, model_dir=reload_dir)
-        self.model.reload()
+        return dc.models.sklearn_models.SklearnModel(rf_model, model_dir=model_dir)
+
+    # ****************************************************************************************
+    def train(self, pipeline):
+        """Trains a random forest model and saves the trained model.
+
+        Args:
+            pipeline (ModelPipeline): The ModelPipeline instance for this model run.
+
+        Returns:
+            None
+
+        Side effects:
+            data (ModelDataset): contains the dataset, set in pipeline
+
+            best_epoch (int): Set to 0, not applicable to deepchem random forest models
+
+            train_perf_data (PerfData): Contains the predictions and performance of the training dataset
+
+            valid_perf_data (PerfData): Contains the predictions and performance of the validation dataset
+
+            train_perfs (dict): A dictionary of predicted values and metrics on the training dataset
+
+            valid_perfs (dict): A dictionary of predicted values and metrics on the training dataset
+        """
+        self.log.info("Fitting random forest model")
+        super().train(pipeline)
 
     # ****************************************************************************************
     def get_pred_results(self, subset, epoch_label=None):
@@ -2183,7 +2242,7 @@ class DCRFModelWrapper(ModelWrapper):
         return
 
 # ****************************************************************************************
-class DCxgboostModelWrapper(ModelWrapper):
+class DCxgboostModelWrapper(ForestModelWrapper):
     """Contains methods to load in a dataset, split and featurize the data, fit a model to the train dataset,
     generate predictions for an input dataset, and generate performance metrics for these predictions.
 
@@ -2220,10 +2279,19 @@ class DCxgboostModelWrapper(ModelWrapper):
             ds_client: datastore client.
         """
         super().__init__(params, featurizer, ds_client)
-        self.best_model_dir = os.path.join(self.output_dir, 'best_model')
-        self.model_dir = self.best_model_dir
-        os.makedirs(self.best_model_dir, exist_ok=True)
 
+    # ****************************************************************************************
+    def make_dc_model(self, model_dir):
+        """Build a DeepChem model.
+
+        Builds a model, wraps it in DeepChem's wrapper and returns it
+
+        Args:
+            model_dir (str): Directory where saved model is located.
+
+        returns:
+            A DeepChem model
+        """
         if self.params.prediction_type == 'regression':
             xgb_model = xgb.XGBRegressor(max_depth=self.params.xgb_max_depth,
                                          learning_rate=self.params.xgb_learning_rate,
@@ -2276,7 +2344,8 @@ class DCxgboostModelWrapper(ModelWrapper):
                                           max_bin = 16,
                                           seed=0
                                          )
-        self.model = dc.models.GBDTModel(xgb_model, model_dir=self.best_model_dir)
+
+        return dc.models.sklearn_models.SklearnModel(xgb_model, model_dir=model_dir)
 
     # ****************************************************************************************
     def train(self, pipeline):
@@ -2301,124 +2370,8 @@ class DCxgboostModelWrapper(ModelWrapper):
 
             valid_perfs (dict): A dictionary of predicted values and metrics on the training dataset
         """
-
-        self.data = pipeline.data
-        self.best_epoch = None
-        self.train_perf_data = perf.create_perf_data(self.params.prediction_type, pipeline.data, self.transformers,'train')
-        self.valid_perf_data = perf.create_perf_data(self.params.prediction_type, pipeline.data, self.transformers, 'valid')
-        self.test_perf_data = perf.create_perf_data(self.params.prediction_type, pipeline.data, self.transformers, 'test')
-
         self.log.info("Fitting xgboost model")
-
-        test_dset = pipeline.data.test_dset
-
-        num_folds = len(pipeline.data.train_valid_dsets)
-        for k in range(num_folds):
-            train_dset, valid_dset = pipeline.data.train_valid_dsets[k]
-            self.model.fit(train_dset)
-
-            train_pred = self.model.predict(train_dset, [])
-            train_perf = self.train_perf_data.accumulate_preds(train_pred, train_dset.ids)
-
-            valid_pred = self.model.predict(valid_dset, [])
-            valid_perf = self.valid_perf_data.accumulate_preds(valid_pred, valid_dset.ids)
-
-            test_pred = self.model.predict(test_dset, [])
-            test_perf = self.test_perf_data.accumulate_preds(test_pred, test_dset.ids)
-            self.log.info("Fold %d: training %s = %.3f, validation %s = %.3f, test %s = %.3f" % (
-                          k, pipeline.metric_type, train_perf, pipeline.metric_type, valid_perf,
-                             pipeline.metric_type, test_perf))
-
-        # Compute mean and SD of performance metrics across validation sets for all folds
-        self.train_perf, self.train_perf_std = self.train_perf_data.compute_perf_metrics()
-        self.valid_perf, self.valid_perf_std = self.valid_perf_data.compute_perf_metrics()
-        self.test_perf, self.test_perf_std = self.test_perf_data.compute_perf_metrics()
-
-        # Compute score to be used for ranking model hyperparameter sets
-        self.model_choice_score = self.valid_perf_data.model_choice_score(self.params.model_choice_score_type)
-
-        if num_folds > 1:
-            # For k-fold CV, retrain on the combined training and validation sets
-            fit_dataset = self.data.combined_training_data()
-            self.model.fit(fit_dataset, restore=False)
-        self.model_save()
-        # The best model is just the single xgb training run.
-        self.best_epoch = 0
-
-    # ****************************************************************************************
-    def reload_model(self, reload_dir):
-
-        """Loads a saved xgboost model from the specified directory. Also loads any transformers that
-        were saved with it.
-
-        Args:
-            reload_dir (str): Directory where saved model is located.
-
-            model_dataset (ModelDataset Object): contains the current full dataset
-
-        Side effects:
-            Resets the value of model, transformers, and transformers_x
-
-        """
-
-        if self.params.prediction_type == 'regression':
-            xgb_model = xgb.XGBRegressor(max_depth=self.params.xgb_max_depth,
-                                         learning_rate=self.params.xgb_learning_rate,
-                                         n_estimators=self.params.xgb_n_estimators,
-                                         silent=True,
-                                         objective='reg:squarederror',
-                                         booster='gbtree',
-                                         gamma=self.params.xgb_gamma,
-                                         min_child_weight=self.params.xgb_min_child_weight,
-                                         max_delta_step=0,
-                                         subsample=self.params.xgb_subsample,
-                                         colsample_bytree=self.params.xgb_colsample_bytree,
-                                         colsample_bylevel=1,
-                                         reg_alpha=0,
-                                         reg_lambda=1,
-                                         scale_pos_weight=1,
-                                         base_score=0.5,
-                                         random_state=0,
-                                         missing=None,
-                                         importance_type='gain',
-                                         n_jobs=-1,
-                                         gpu_id = 0,
-                                         n_gpus = -1,
-                                         max_bin = 16,
-                                         seed=0
-                                         )
-        else:
-            xgb_model = xgb.XGBClassifier(max_depth=self.params.xgb_max_depth,
-                                         learning_rate=self.params.xgb_learning_rate,
-                                         n_estimators=self.params.xgb_n_estimators,
-                                          silent=True,
-                                          objective='binary:logistic',
-                                          booster='gbtree',
-                                          gamma=self.params.xgb_gamma,
-                                          min_child_weight=self.params.xgb_min_child_weight,
-                                          max_delta_step=0,
-                                          subsample=self.params.xgb_subsample,
-                                          colsample_bytree=self.params.xgb_colsample_bytree,
-                                          colsample_bylevel=1,
-                                          reg_alpha=0,
-                                          reg_lambda=1,
-                                          scale_pos_weight=1,
-                                          base_score=0.5,
-                                          random_state=0,
-                                          importance_type='gain',
-                                          missing=None,
-                                          gpu_id = 0,
-                                          n_jobs=-1,                                          
-                                          n_gpus = -1,
-                                          max_bin = 16,
-                                          seed=0
-                                         )
-
-        # Restore the transformers from the datastore or filesystem
-        self.reload_transformers()
-
-        self.model = dc.models.GBDTModel(xgb_model, model_dir=self.best_model_dir)
-        self.model.reload()
+        super().train(pipeline)
 
     # ****************************************************************************************
     def get_pred_results(self, subset, epoch_label=None):
