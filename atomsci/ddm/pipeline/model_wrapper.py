@@ -2023,6 +2023,71 @@ class ForestModelWrapper(ModelWrapper):
         self.model = self.make_dc_model(reload_dir)
         self.model.reload()
 
+    # ****************************************************************************************
+    def get_pred_results(self, subset, epoch_label=None):
+        """Returns predicted values and metrics from a training, validation or test subset
+        of the current dataset, or the full dataset.
+
+        Args:
+            subset: 'train', 'valid', 'test' or 'full' accordingly.
+
+            epoch_label: ignored; this function always returns the results for the current model.
+
+        Returns:
+            A dictionary of parameter, value pairs, in the format expected by the
+            prediction_results element of the ModelMetrics data.
+
+        Raises:
+            ValueError: if subset not in ['train','valid','test','full']
+            
+        """
+        if subset == 'train':
+            return self.get_train_valid_pred_results(self.train_perf_data)
+        elif subset == 'valid':
+            return self.get_train_valid_pred_results(self.valid_perf_data)
+        elif subset == 'test':
+            return self.get_train_valid_pred_results(self.test_perf_data)
+        elif subset == 'full':
+            return self.get_full_dataset_pred_results(self.data)
+        else:
+            raise ValueError("Unknown dataset subset '%s'" % subset)
+
+    # ****************************************************************************************
+    def get_perf_data(self, subset, epoch_label=None):
+        """Returns predicted values and metrics from a training, validation or test subset
+        of the current dataset, or the full dataset.
+
+        Args:
+            subset (str): may be 'train', 'valid', 'test' or 'full'
+
+            epoch_label (not used in random forest, but kept as part of the method structure)
+
+        Results:
+            PerfData object: Subclass of perfdata object associated with the appropriate subset's split strategy and prediction type.
+
+        Raises:
+            ValueError: if subset not in ['train','valid','test','full']
+        """
+
+        if subset == 'train':
+            return self.train_perf_data
+        elif subset == 'valid':
+            return self.valid_perf_data
+        elif subset == 'test':
+            #return self.get_test_perf_data(self.best_model_dir, self.data)
+            return self.test_perf_data
+        elif subset == 'full':
+            return self.get_full_dataset_perf_data(self.data)
+        else:
+            raise ValueError("Unknown dataset subset '%s'" % subset)
+
+    # ****************************************************************************************
+    def _clean_up_excess_files(self, dest_dir):
+        """
+        Function to clean up extra model files left behind in the training process.
+        Does not apply to Forest models.
+        """
+        return
 
 # ****************************************************************************************
 class DCRFModelWrapper(ForestModelWrapper):
@@ -2115,64 +2180,6 @@ class DCRFModelWrapper(ForestModelWrapper):
         super().train(pipeline)
 
     # ****************************************************************************************
-    def get_pred_results(self, subset, epoch_label=None):
-        """Returns predicted values and metrics from a training, validation or test subset
-        of the current dataset, or the full dataset.
-
-        Args:
-            subset: 'train', 'valid', 'test' or 'full' accordingly.
-
-            epoch_label: ignored; this function always returns the results for the current model.
-
-        Returns:
-            A dictionary of parameter, value pairs, in the format expected by the
-            prediction_results element of the ModelMetrics data.
-
-        Raises:
-            ValueError: if subset not in ['train','valid','test','full']
-            
-        """
-        if subset == 'train':
-            return self.get_train_valid_pred_results(self.train_perf_data)
-        elif subset == 'valid':
-            return self.get_train_valid_pred_results(self.valid_perf_data)
-        elif subset == 'test':
-            return self.get_train_valid_pred_results(self.test_perf_data)
-        elif subset == 'full':
-            return self.get_full_dataset_pred_results(self.data)
-        else:
-            raise ValueError("Unknown dataset subset '%s'" % subset)
-
-
-    # ****************************************************************************************
-    def get_perf_data(self, subset, epoch_label=None):
-        """Returns predicted values and metrics from a training, validation or test subset
-        of the current dataset, or the full dataset.
-
-        Args:
-            subset (str): may be 'train', 'valid', 'test' or 'full'
-            epoch_label (not used in random forest, but kept as part of the method structure)
-
-        Results:
-            PerfData object: Subclass of perfdata object associated with the appropriate subset's split strategy and prediction type.
-
-        Raises:
-            ValueError: if subset not in ['train','valid','test','full']
-        """
-        if subset == 'train':
-            return self.train_perf_data
-        elif subset == 'valid':
-            return self.valid_perf_data
-        elif subset == 'test':
-            #return self.get_test_perf_data(self.best_model_dir, self.data)
-            return self.test_perf_data
-        elif subset == 'full':
-            return self.get_full_dataset_perf_data(self.data)
-        else:
-            raise ValueError("Unknown dataset subset '%s'" % subset)
-
-
-    # ****************************************************************************************
     def generate_predictions(self, dataset):
         """Generates predictions for specified dataset, as well as uncertainty values if params.uncertainty=True
 
@@ -2233,14 +2240,6 @@ class DCRFModelWrapper(ForestModelWrapper):
         model_spec_metadata = dict(rf_specific = rf_metadata)
         return model_spec_metadata
     
-    # ****************************************************************************************
-    def _clean_up_excess_files(self, dest_dir):
-        """
-        Function to clean up extra model files left behind in the training process.
-        Does not apply to Random Forest.
-        """
-        return
-
 # ****************************************************************************************
 class DCxgboostModelWrapper(ForestModelWrapper):
     """Contains methods to load in a dataset, split and featurize the data, fit a model to the train dataset,
@@ -2374,64 +2373,6 @@ class DCxgboostModelWrapper(ForestModelWrapper):
         super().train(pipeline)
 
     # ****************************************************************************************
-    def get_pred_results(self, subset, epoch_label=None):
-        """Returns predicted values and metrics from a training, validation or test subset
-        of the current dataset, or the full dataset.
-
-        Args:
-            subset: 'train', 'valid', 'test' or 'full' accordingly.
-
-            epoch_label: ignored; this function always returns the results for the current model.
-
-        Returns:
-            A dictionary of parameter, value pairs, in the format expected by the
-            prediction_results element of the ModelMetrics data.
-
-        Raises:
-            ValueError: if subset not in ['train','valid','test','full']
-
-        """
-        if subset == 'train':
-            return self.get_train_valid_pred_results(self.train_perf_data)
-        elif subset == 'valid':
-            return self.get_train_valid_pred_results(self.valid_perf_data)
-        elif subset == 'test':
-            return self.get_train_valid_pred_results(self.test_perf_data)
-        elif subset == 'full':
-            return self.get_full_dataset_pred_results(self.data)
-        else:
-            raise ValueError("Unknown dataset subset '%s'" % subset)
-
-    # ****************************************************************************************
-    def get_perf_data(self, subset, epoch_label=None):
-        """Returns predicted values and metrics from a training, validation or test subset
-        of the current dataset, or the full dataset.
-
-        Args:
-            subset (str): may be 'train', 'valid', 'test' or 'full'
-
-            epoch_label (not used in random forest, but kept as part of the method structure)
-
-        Results:
-            PerfData object: Subclass of perfdata object associated with the appropriate subset's split strategy and prediction type.
-
-        Raises:
-            ValueError: if subset not in ['train','valid','test','full']
-        """
-
-        if subset == 'train':
-            return self.train_perf_data
-        elif subset == 'valid':
-            return self.valid_perf_data
-        elif subset == 'test':
-            #return self.get_test_perf_data(self.best_model_dir, self.data)
-            return self.test_perf_data
-        elif subset == 'full':
-            return self.get_full_dataset_perf_data(self.data)
-        else:
-            raise ValueError("Unknown dataset subset '%s'" % subset)
-
-    # ****************************************************************************************
     def generate_predictions(self, dataset):
         """Generates predictions for specified dataset, as well as uncertainty values if params.uncertainty=True
 
@@ -2471,11 +2412,3 @@ class DCxgboostModelWrapper(ForestModelWrapper):
                         }
         model_spec_metadata = dict(xgb_specific=xgb_metadata)
         return model_spec_metadata
-
-    # ****************************************************************************************
-    def _clean_up_excess_files(self, dest_dir):
-        """
-        Function to clean up extra model files left behind in the training process.
-        Does not apply to xgboost
-        """
-        return
