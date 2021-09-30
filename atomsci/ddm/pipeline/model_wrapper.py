@@ -2248,7 +2248,6 @@ class DCxgboostModelWrapper(ModelWrapper):
                                          gpu_id = 0,
                                          n_gpus = -1,
                                          max_bin = 16,
-#                                          tree_method = 'gpu_hist',
                                          seed=0
                                          )
         else:
@@ -2275,7 +2274,6 @@ class DCxgboostModelWrapper(ModelWrapper):
                                           n_jobs=-1,                                          
                                           n_gpus = -1,
                                           max_bin = 16,
-#                                           tree_method = 'gpu_hist',
                                           seed=0
                                          )
         self.model = dc.models.GBDTModel(xgb_model, model_dir=self.best_model_dir)
@@ -2388,7 +2386,6 @@ class DCxgboostModelWrapper(ModelWrapper):
                                          n_gpus = -1,
                                          max_bin = 16,
                                          seed=0
-#                                          tree_method = 'gpu_hist'
                                          )
         else:
             xgb_model = xgb.XGBClassifier(max_depth=self.params.xgb_max_depth,
@@ -2415,7 +2412,6 @@ class DCxgboostModelWrapper(ModelWrapper):
                                           n_gpus = -1,
                                           max_bin = 16,
                                           seed=0
-#                                           tree_method = 'gpu_hist',
                                          )
 
         # Restore the transformers from the datastore or filesystem
