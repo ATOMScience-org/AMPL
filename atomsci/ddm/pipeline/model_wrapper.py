@@ -471,6 +471,113 @@ class ModelWrapper(object):
           except Exception as e:
             self.log.error("Error when saving model:\n%s" % str(e))
 
+class LCTimerIterator:
+    '''
+    This creates an iterator that keeps track of time limits
+
+    Side Effects:
+        Sets the following attributes in input argument params: 
+            max_epochs (int): The max_epochs attribute will be updated to the current epoch 
+                index if it is projected that training will exceed the time limit
+                given.
+    '''
+    # ****************************************************************************************
+    def __init__(self, params, pipeline, log):
+        """
+        Args:
+            params (argparse.Namespace): The argparse.Namespace parameter object that contains all 
+               parameter information
+
+            pipeline (ModelPipeline): The ModelPipeline instance for this model run.
+
+            log (log): The logger used in the ModelWrapper
+        """
+        self.max_epochs = int(params.max_epochs)
+        self.time_limit = int(params.slurm_time_limit)
+        self.start_time = pipeline.start_time
+        self.training_start = time.time()
+        self.params = params
+        self.ei = -1
+        self.log = log
+
+    # ****************************************************************************************
+    def __iter__(self):
+        return self
+        
+    # ****************************************************************************************
+    def __next__(self):
+        """
+        Returns epoch index or stops when the have been enough iterations.
+        """
+        self.ei = self.ei + 1
+        if self.ei >= self.max_epochs:
+            raise StopIteration
+        elif llnl_utils.is_lc_system() and (self.ei > 0):
+            # If we're running on an LC system, check that we have enough time to complete another epoch
+            # before the current job finishes, by extrapolating from the time elapsed so far.
+
+            now = time.time() 
+            elapsed_time = now - self.start_time
+            training_time = now - self.training_start
+            time_remaining = self.time_limit * 60 - elapsed_time
+            time_needed = self._time_needed(training_time)
+
+            if time_needed > 0.9 * time_remaining:
+                self.log.warn("Projected time to finish one more epoch exceeds time left in job; cutting training to %d epochs" %
+                                self.ei)
+                self.params.max_epochs = self.ei
+                raise StopIteration
+            else:
+                return self.ei
+        else:
+            return self.ei
+
+    # ****************************************************************************************
+    def _time_needed(self, training_time):
+        """
+        Calculates the time needed to complete another epoch given the training time
+
+        Args:
+            training_time (int): Time the model has spent training so far
+
+        Returns:
+            int: Amount of time needed to complete another epoch
+        """
+
+        return training_time/self.ei
+
+class LCTimerKFoldIterator(LCTimerIterator):
+    '''
+    This creates an iterator that keeps track of time limits for kfold training
+
+    Side Effects:
+        Sets the following attributes in input argument params: 
+            max_epochs (int): The max_epochs attribute will be updated to the current epoch 
+                index if it is projected that training will exceed the time limit
+                given.
+    '''
+
+    # ****************************************************************************************
+    def _time_needed(self, training_time):
+        """
+        Calculates the time needed to complete another epoch given the training time.
+
+        epochs_remaining is how many epochs we have to run if we do one more across all folds,
+        then do self.best_epoch+1 epochs on the combined training & validation set, 
+        allowing for the possibility that the next epoch may be the best one.
+
+        Args:
+            training_time (int): Time the model has spent training so far
+
+        Returns:
+            int: Amount of time needed to complete another epoch
+        """
+
+        epochs_remaining = self.ei + 2
+        time_per_epoch = training_time/self.ei
+        time_needed = epochs_remaining * time_per_epoch
+
+        return time_needed
 
 # ****************************************************************************************
 class NNModelWrapper(ModelWrapper):
@@ -567,7 +674,6 @@ class NNModelWrapper(ModelWrapper):
             shutil.rmtree(dest_dir)
         os.mkdir(dest_dir)
  
-            
 # ****************************************************************************************
 class DCNNModelWrapper(NNModelWrapper):
     """Contains methods to load in a dataset, split and featurize the data, fit a model to the train dataset,
@@ -900,6 +1006,7 @@ class DCNNModelWrapper(NNModelWrapper):
                 valid_epoch_perfs (np.array): A standard validation set performance metric (r2_score or roc_auc), at the end of each epoch.
         """
         self.data = pipeline.data
+
         self.best_epoch = 0
         self.best_valid_score = None
         self.early_stopping_min_improvement = self.params.early_stopping_min_improvement
@@ -922,28 +1029,8 @@ class DCNNModelWrapper(NNModelWrapper):
             self.test_perf_data.append(perf.create_perf_data(self.params.prediction_type, pipeline.data, self.transformers, 'test'))
 
         test_dset = pipeline.data.test_dset
-
-        time_limit = int(self.params.slurm_time_limit)
-        training_start = time.time()
-
         train_dset, valid_dset = pipeline.data.train_valid_dsets[0]
-        for ei in range(self.params.max_epochs):
-            if llnl_utils.is_lc_system() and (ei > 0):
-                # If we're running on an LC system, check that we have enough time to complete another epoch
-                # before the current job finishes, by extrapolating from the time elapsed so far.
-
-                now = time.time() 
-                elapsed_time = now - pipeline.start_time
-                training_time = now - training_start
-                time_remaining = time_limit * 60 - elapsed_time
-                time_needed = training_time/ei
-
-                if time_needed > 0.9 * time_remaining:
-                    self.log.warn("Projected time to finish one more epoch exceeds time left in job; cutting training to %d epochs" %
-                                    ei)
-                    self.params.max_epochs = ei
-                    break
-
+        for ei in LCTimerIterator(self.params, pipeline, self.log):
             # Train the model for one epoch. We turn off automatic checkpointing, so the last checkpoint
             # saved will be the one we created intentionally when we reached a new best validation score.
             self.model.fit(train_dset, nb_epoch=1, checkpoint_interval=0)
@@ -1037,40 +1124,12 @@ class DCNNModelWrapper(NNModelWrapper):
 
         test_dset = pipeline.data.test_dset
 
-        time_limit = int(self.params.slurm_time_limit)
-        training_start = time.time()
-
         # Train a separate model for each fold
         models = []
         for k in range(num_folds):
             models.append(self.recreate_model())
 
-        for ei in range(self.params.max_epochs):
-            
-            if llnl_utils.is_lc_system() and (ei > 0):
-                # If we're running on an LC system, check that we have enough time to complete another epoch
-                # across all folds, plus rerun the training, before the current job finishes, by 
-                # extrapolating from the time elapsed so far.
-    
-                now = time.time() 
-                elapsed_time = now - pipeline.start_time
-                training_time = now - training_start
-                time_remaining = time_limit * 60 - elapsed_time
-
-                # epochs_remaining is how many epochs we have to run if we do one more across all folds,
-                # then do self.best_epoch+1 epochs on the combined training & validation set, allowing for the
-                # possibility that the next epoch may be the best one.
-
-                epochs_remaining = ei + 2
-                time_per_epoch = training_time/ei
-                time_needed = epochs_remaining * time_per_epoch
-    
-                if time_needed > 0.9 * time_remaining:
-                    self.log.warn('Projected time to finish one more epoch exceeds time left in job; cutting training to %d epochs' % ei)
-                    self.params.max_epochs = ei
-                    break
-
-
+        for ei in LCTimerKFoldIterator(self.params, pipeline, self.log):
             # Create PerfData structures that are only used within loop to compute metrics during initial training
             train_perf_data = perf.create_perf_data(self.params.prediction_type, pipeline.data, self.transformers, 'train')
             test_perf_data = perf.create_perf_data(self.params.prediction_type, pipeline.data, self.transformers, 'test')
@@ -1633,31 +1692,12 @@ class HybridModelWrapper(NNModelWrapper):
 
         test_data = self.test_data
 
-        time_limit = int(self.params.slurm_time_limit)
-        training_start = time.time()
-
         train_dset, valid_dset = pipeline.data.train_valid_dsets[0]
         if len(pipeline.data.train_valid_dsets) > 1:
             raise Exception("Currently the hybrid model  doesn't support K-fold cross validation splitting.")
         test_dset = pipeline.data.test_dset
         train_data, valid_data = self.train_valid_dsets[0]
-        for ei in range(self.params.max_epochs):
-            if llnl_utils.is_lc_system() and (ei > 0):
-                # If we're running on an LC system, check that we have enough time to complete another epoch
-                # before the current job finishes, by extrapolating from the time elapsed so far.
-
-                now = time.time() 
-                elapsed_time = now - pipeline.start_time
-                training_time = now - training_start
-                time_remaining = time_limit * 60 - elapsed_time
-                time_needed = training_time/ei
-
-                if time_needed > 0.9 * time_remaining:
-                    self.log.warn("Projected time to finish one more epoch exceeds time left in job; cutting training to %d epochs" %
-                                    ei)
-                    self.params.max_epochs = ei
-                    break
-
+        for ei in LCTimerIterator(self.params, pipeline, self.log):
             # Train the model for one epoch. We turn off automatic checkpointing, so the last checkpoint
             # saved will be the one we created intentionally when we reached a new best validation score.
             train_loss_ep = 0

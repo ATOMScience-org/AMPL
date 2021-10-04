@@ -34,7 +34,7 @@
     "dropouts": "0.10,0.10,0.10",
     "layer_sizes": "64,64,64",
     "learning_rate": "0.000753",
-    "max_epochs": "500",
+    "max_epochs": "100",
 
     "comment": "Training",
     "comment": "----------------------------------------",    
