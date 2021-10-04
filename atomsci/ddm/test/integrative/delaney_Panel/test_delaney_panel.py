@@ -235,6 +235,10 @@ def test_reg_config_delaney_fit_RF_mordred_filtered():
     init()
     train_and_predict('jsons/reg_config_delaney_fit_RF_mordred_filtered.json') # predict_full_dataset broken
 
+def test_reg_kfold_config_delaney_fit_NN_graphconv():
+    init()
+    train_and_predict('jsons/reg_kfold_config_delaney_fit_NN_graphconv.json') # fine
+
 def test_class_config_delaney_fit_XGB_mordred_filtered():
     init()
     train_and_predict('jsons/class_config_delaney_fit_XGB_mordred_filtered.json') # breaks because labels aren't numbers
@@ -275,5 +279,5 @@ def test_class_config_H1_fit_NN_moe():
     train_and_predict('jsons/class_config_H1_fit_NN_moe.json', prefix='H1') # doesn't train at all anything
 
 if __name__ == '__main__':
-    test_class_config_H1_fit_NN_moe()
+    test_reg_kfold_config_delaney_fit_NN_graphconv()
     #pass
