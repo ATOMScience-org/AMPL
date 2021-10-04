@@ -473,7 +473,103 @@ class ModelWrapper(object):
 
 
 # ****************************************************************************************
-class DCNNModelWrapper(ModelWrapper):
+class NNModelWrapper(ModelWrapper):
+    """ Wrapper for NN models.
+
+    Many NN models share similar functions. This class aggregates those similar functions
+    to reduce copied code
+
+    """
+
+    # ****************************************************************************************
+    def get_perf_data(self, subset, epoch_label=None):
+        """Returns predicted values and metrics from a training, validation or test subset
+        of the current dataset, or the full dataset. subset may be 'train', 'valid', 'test' or 'full',
+        epoch_label indicates the training epoch we want results for; currently the
+        only option for this is 'best'. Results are returned as a PerfData object of the appropriate class 
+        for the model's split strategy and prediction type.
+
+        Args:
+            subset (str): Label for the current subset of the dataset (choices ['train','valid','test','full'])
+
+            epoch_label (str): Label for the training epoch we want results for (choices ['best'])
+
+        Returns:
+            PerfData object: Performance object pulled from the appropriate subset
+
+        Raises:
+            ValueError: if epoch_label not in ['best']
+
+            ValueError: If subset not in ['train','valid','test','full']
+        """
+
+        if subset == 'full':
+            return self.get_full_dataset_perf_data(self.data)
+        if epoch_label == 'best':
+            epoch = self.best_epoch
+            model_dir = self.best_model_dir
+        else:
+            raise ValueError("Unknown epoch_label '%s'" % epoch_label)
+
+        if subset == 'train':
+            return self.train_perf_data[epoch]
+        elif subset == 'valid':
+            return self.valid_perf_data[epoch]
+        elif subset == 'test':
+            #return self.get_test_perf_data(model_dir, self.data)
+            return self.test_perf_data[epoch]
+        else:
+            raise ValueError("Unknown dataset subset '%s'" % subset)
+
+    # ****************************************************************************************
+    def get_pred_results(self, subset, epoch_label=None):
+        """Returns predicted values and metrics from a training, validation or test subset
+        of the current dataset, or the full dataset. subset may be 'train', 'valid', 'test'
+        accordingly.  epoch_label indicates the training epoch we want results for; currently the
+        only option for this is 'best'.  Results are returned as a dictionary of parameter, value pairs.
+
+        Args:
+            subset (str): Label for the current subset of the dataset (choices ['train','valid','test','full'])
+
+            epoch_label (str): Label for the training epoch we want results for (choices ['best'])
+
+        Returns:
+            dict: A dictionary of parameter/ value pairs of the prediction values and results of the dataset subset
+
+        Raises:
+            ValueError: if epoch_label not in ['best']
+
+            ValueError: If subset not in ['train','valid','test','full']
+        """
+        if subset == 'full':
+            return self.get_full_dataset_pred_results(self.data)
+        if epoch_label == 'best':
+            epoch = self.best_epoch
+            model_dir = self.best_model_dir
+        else:
+            raise ValueError("Unknown epoch_label '%s'" % epoch_label)
+        if subset == 'train':
+            return self.get_train_valid_pred_results(self.train_perf_data[epoch])
+        elif subset == 'valid':
+            return self.get_train_valid_pred_results(self.valid_perf_data[epoch])
+        elif subset == 'test':
+            return self.get_train_valid_pred_results(self.test_perf_data[epoch])
+        else:
+            raise ValueError("Unknown dataset subset '%s'" % subset)
+
+    # ****************************************************************************************
+    def _clean_up_excess_files(self, dest_dir):
+        """
+        Function to clean up extra model files left behind in the training process.
+        Only removes self.model_dir
+        """
+        if os.path.exists(dest_dir):
+            shutil.rmtree(dest_dir)
+        os.mkdir(dest_dir)
+ 
+            
+# ****************************************************************************************
+class DCNNModelWrapper(NNModelWrapper):
     """Contains methods to load in a dataset, split and featurize the data, fit a model to the train dataset,
     generate predictions for an input dataset, and generate performance metrics for these predictions.
 
@@ -891,8 +987,6 @@ class DCNNModelWrapper(ModelWrapper):
         self._copy_model(self.best_model_dir)
         self.log.info(f"Best model from epoch {self.best_epoch} saved to {self.best_model_dir}")
 
-
-
     # ****************************************************************************************
     def train_kfold_cv(self, pipeline):
         """Trains a neural net model with K-fold cross-validation for a specified number of epochs.
@@ -1073,7 +1167,6 @@ class DCNNModelWrapper(ModelWrapper):
             shutil.copy2(file, dest_dir)
         self.log.info("Saved model files to '%s'" % dest_dir)
 
-
     # ****************************************************************************************
     def reload_model(self, reload_dir):
         """Loads a saved neural net model from the specified directory.
@@ -1136,85 +1229,6 @@ class DCNNModelWrapper(ModelWrapper):
 
         # Restore the transformers from the datastore or filesystem
         self.reload_transformers()
-
-
-    # ****************************************************************************************
-    def get_pred_results(self, subset, epoch_label=None):
-        """Returns predicted values and metrics from a training, validation or test subset
-        of the current dataset, or the full dataset. subset may be 'train', 'valid', 'test'
-        accordingly.  epoch_label indicates the training epoch we want results for; currently the
-        only option for this is 'best'.  Results are returned as a dictionary of parameter, value pairs.
-
-        Args:
-            subset (str): Label for the current subset of the dataset (choices ['train','valid','test','full'])
-
-            epoch_label (str): Label for the training epoch we want results for (choices ['best'])
-
-        Returns:
-            dict: A dictionary of parameter/ value pairs of the prediction values and results of the dataset subset
-
-        Raises:
-            ValueError: if epoch_label not in ['best']
-
-            ValueError: If subset not in ['train','valid','test','full']
-        """
-        if subset == 'full':
-            return self.get_full_dataset_pred_results(self.data)
-        if epoch_label == 'best':
-            epoch = self.best_epoch
-            model_dir = self.best_model_dir
-        else:
-            raise ValueError("Unknown epoch_label '%s'" % epoch_label)
-        if subset == 'train':
-            return self.get_train_valid_pred_results(self.train_perf_data[epoch])
-        elif subset == 'valid':
-            return self.get_train_valid_pred_results(self.valid_perf_data[epoch])
-        elif subset == 'test':
-            return self.get_train_valid_pred_results(self.test_perf_data[epoch])
-        else:
-            raise ValueError("Unknown dataset subset '%s'" % subset)
-
-    # ****************************************************************************************
-    def get_perf_data(self, subset, epoch_label=None):
-        """Returns predicted values and metrics from a training, validation or test subset
-        of the current dataset, or the full dataset. subset may be 'train', 'valid', 'test' or 'full',
-        epoch_label indicates the training epoch we want results for; currently the
-        only option for this is 'best'. Results are returned as a PerfData object of the appropriate class 
-        for the model's split strategy and prediction type.
-
-        Args:
-            subset (str): Label for the current subset of the dataset (choices ['train','valid','test','full'])
-
-            epoch_label (str): Label for the training epoch we want results for (choices ['best'])
-
-        Returns:
-            PerfData object: Performance object pulled from the appropriate subset
-
-        Raises:
-            ValueError: if epoch_label not in ['best']
-
-            ValueError: If subset not in ['train','valid','test','full']
-        """
-
-        if subset == 'full':
-            return self.get_full_dataset_perf_data(self.data)
-        if epoch_label == 'best':
-            epoch = self.best_epoch
-            model_dir = self.best_model_dir
-        else:
-            raise ValueError("Unknown epoch_label '%s'" % epoch_label)
-
-        if subset == 'train':
-            return self.train_perf_data[epoch]
-        elif subset == 'valid':
-            return self.valid_perf_data[epoch]
-        elif subset == 'test':
-            #return self.get_test_perf_data(model_dir, self.data)
-            return self.test_perf_data[epoch]
-        else:
-            raise ValueError("Unknown dataset subset '%s'" % subset)
-
-
 
     # ****************************************************************************************
     def generate_predictions(self, dataset):
@@ -1305,19 +1319,9 @@ class DCNNModelWrapper(ModelWrapper):
         )
         model_spec_metadata = dict(nn_specific = nn_metadata)
         return model_spec_metadata
-
-    # ****************************************************************************************
-    def _clean_up_excess_files(self, dest_dir):
-        """
-        Function to clean up extra model files left behind in the training process.
-        Only removes self.model_dir
-        """
-        if os.path.exists(dest_dir):
-            shutil.rmtree(dest_dir)
-        os.mkdir(dest_dir)
-        
+       
 # ****************************************************************************************
-class HybridModelWrapper(ModelWrapper):
+class HybridModelWrapper(NNModelWrapper):
     """A wrapper for hybrid models, contains methods to load in a dataset, split and featurize the data, fit a model to the train dataset,
     generate predictions for an input dataset, and generate performance metrics for these predictions.
 
@@ -1742,82 +1746,6 @@ class HybridModelWrapper(ModelWrapper):
         # Restore the transformers from the datastore or filesystem
         self.reload_transformers()
 
-
-    # ****************************************************************************************
-    def get_pred_results(self, subset, epoch_label=None):
-        """Returns predicted values and metrics from a training, validation or test subset
-        of the current dataset, or the full dataset. subset may be 'train', 'valid', 'test'
-        accordingly.  epoch_label indicates the training epoch we want results for; currently the
-        only option for this is 'best'.  Results are returned as a dictionary of parameter, value pairs.
-
-        Args:
-            subset (str): Label for the current subset of the dataset (choices ['train','valid','test','full'])
-
-            epoch_label (str): Label for the training epoch we want results for (choices ['best'])
-
-        Returns:
-            dict: A dictionary of parameter/ value pairs of the prediction values and results of the dataset subset
-
-        Raises:
-            ValueError: if epoch_label not in ['best']
-
-            ValueError: If subset not in ['train','valid','test','full']
-        """
-        if subset == 'full':
-            return self.get_full_dataset_pred_results(self.data)
-        if epoch_label == 'best':
-            epoch = self.best_epoch
-            model_dir = self.best_model_dir
-        else:
-            raise ValueError("Unknown epoch_label '%s'" % epoch_label)
-        if subset == 'train':
-            return self.get_train_valid_pred_results(self.train_perf_data[epoch])
-        elif subset == 'valid':
-            return self.get_train_valid_pred_results(self.valid_perf_data[epoch])
-        elif subset == 'test':
-            return self.get_train_valid_pred_results(self.test_perf_data[epoch])
-        else:
-            raise ValueError("Unknown dataset subset '%s'" % subset)
-
-    # ****************************************************************************************
-    def get_perf_data(self, subset, epoch_label=None):
-        """Returns predicted values and metrics from a training, validation or test subset
-        of the current dataset, or the full dataset. subset may be 'train', 'valid', 'test' or 'full',
-        epoch_label indicates the training epoch we want results for; currently the
-        only option for this is 'best'. Results are returned as a PerfData object of the appropriate class 
-        for the model's split strategy and prediction type.
-
-        Args:
-            subset (str): Label for the current subset of the dataset (choices ['train','valid','test','full'])
-
-            epoch_label (str): Label for the training epoch we want results for (choices ['best'])
-
-        Returns:
-            PerfData object: Performance object pulled from the appropriate subset
-
-        Raises:
-            ValueError: if epoch_label not in ['best']
-
-            ValueError: If subset not in ['train','valid','test','full']
-        """
-
-        if subset == 'full':
-            return self.get_full_dataset_perf_data(self.data)
-        if epoch_label == 'best':
-            epoch = self.best_epoch
-            model_dir = self.best_model_dir
-        else:
-            raise ValueError("Unknown epoch_label '%s'" % epoch_label)
-        if subset == 'train':
-            return self.train_perf_data[epoch]
-        elif subset == 'valid':
-            return self.valid_perf_data[epoch]
-        elif subset == 'test':
-            #return self.get_test_perf_data(model_dir, self.data)
-            return self.test_perf_data[epoch]
-        else:
-            raise ValueError("Unknown dataset subset '%s'" % subset)
-
     # ****************************************************************************************
     def generate_predictions(self, dataset):
         """Generates predictions for specified dataset with current model, as well as standard deviations
@@ -1891,16 +1819,6 @@ class HybridModelWrapper(ModelWrapper):
         )
         model_spec_metadata = dict(hybrid_specific = nn_metadata)
         return model_spec_metadata
-
-    # ****************************************************************************************
-    def _clean_up_excess_files(self, dest_dir):
-        """
-        Function to clean up extra model files left behind in the training process.
-        Does not apply to Hybrid model.
-        """
-        if os.path.exists(dest_dir):
-            shutil.rmtree(dest_dir)
-        os.mkdir(dest_dir)
 
 # ****************************************************************************************
 class ForestModelWrapper(ModelWrapper):
