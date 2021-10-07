@@ -1007,26 +1007,12 @@ class DCNNModelWrapper(NNModelWrapper):
         """
         self.data = pipeline.data
 
-        self.best_epoch = 0
-        self.best_valid_score = None
-        self.early_stopping_min_improvement = self.params.early_stopping_min_improvement
-        self.early_stopping_patience = self.params.early_stopping_patience
-        self.train_epoch_perfs = np.zeros(self.params.max_epochs)
-        self.valid_epoch_perfs = np.zeros(self.params.max_epochs)
-        self.test_epoch_perfs = np.zeros(self.params.max_epochs)
-        self.train_epoch_perf_stds = np.zeros(self.params.max_epochs)
-        self.valid_epoch_perf_stds = np.zeros(self.params.max_epochs)
-        self.test_epoch_perf_stds = np.zeros(self.params.max_epochs)
-        self.model_choice_scores = np.zeros(self.params.max_epochs)
-
-        self.train_perf_data = []
-        self.valid_perf_data = []
-        self.test_perf_data = []
-
-        for ei in range(self.params.max_epochs):
-            self.train_perf_data.append(perf.create_perf_data(self.params.prediction_type, pipeline.data, self.transformers, 'train'))
-            self.valid_perf_data.append(perf.create_perf_data(self.params.prediction_type, pipeline.data, self.transformers, 'valid'))
-            self.test_perf_data.append(perf.create_perf_data(self.params.prediction_type, pipeline.data, self.transformers, 'test'))
+        em = perf.EpochManager(self,
+                                prediction_type=self.params.prediction_type, 
+                                model_dataset=pipeline.data, 
+                                transformers=self.transformers)
+        em.set_make_pred(lambda x: self.model.predict(x, []))
+        em.on_new_best_valid(lambda : self.model.save_checkpoint())
 
         test_dset = pipeline.data.test_dset
         train_dset, valid_dset = pipeline.data.train_valid_dsets[0]
@@ -1034,36 +1020,16 @@ class DCNNModelWrapper(NNModelWrapper):
             # Train the model for one epoch. We turn off automatic checkpointing, so the last checkpoint
             # saved will be the one we created intentionally when we reached a new best validation score.
             self.model.fit(train_dset, nb_epoch=1, checkpoint_interval=0)
-            train_pred = self.model.predict(train_dset, [])
-            valid_pred = self.model.predict(valid_dset, [])
-            test_pred = self.model.predict(test_dset, [])
+            train_perf, valid_perf, test_perf = em.update_epoch(ei,
+                                train_dset=train_dset, valid_dset=valid_dset, test_dset=test_dset)
 
-            train_perf = self.train_perf_data[ei].accumulate_preds(train_pred, train_dset.ids)
-            valid_perf = self.valid_perf_data[ei].accumulate_preds(valid_pred, valid_dset.ids)
-            test_perf = self.test_perf_data[ei].accumulate_preds(test_pred, test_dset.ids)
             self.log.info("Epoch %d: training %s = %.3f, validation %s = %.3f, test %s = %.3f" % (
                           ei, pipeline.metric_type, train_perf, pipeline.metric_type, valid_perf,
                           pipeline.metric_type, test_perf))
 
-            # Compute performance metrics for each subset, and check if we've reached a new best validation set score
-
-            self.train_epoch_perfs[ei], _ = self.train_perf_data[ei].compute_perf_metrics()
-            self.valid_epoch_perfs[ei], _ = self.valid_perf_data[ei].compute_perf_metrics()
-            self.test_epoch_perfs[ei], _ = self.test_perf_data[ei].compute_perf_metrics()
-            valid_score = self.valid_perf_data[ei].model_choice_score(self.params.model_choice_score_type)
-            self.model_choice_scores[ei] = valid_score
             self.num_epochs_trained = ei + 1
-            if self.best_valid_score is None:
-                self.model.save_checkpoint()
-                self.best_valid_score = valid_score
-                self.best_epoch = ei
-            elif valid_score - self.best_valid_score > self.early_stopping_min_improvement:
-                # Save a new checkpoint
-                self.model.save_checkpoint()
-                self.best_valid_score = valid_score
-                self.best_epoch = ei
-            elif ei - self.best_epoch > self.early_stopping_patience:
-                self.log.info(f"No improvement after {self.early_stopping_patience} epochs, stopping training")
+            # Compute performance metrics for each subset, and check if we've reached a new best validation set score
+            if em.should_stop():
                 break
 
         # Revert to last checkpoint
@@ -1104,23 +1070,15 @@ class DCNNModelWrapper(NNModelWrapper):
         # TODO: Fix docstrings above
         num_folds = len(pipeline.data.train_valid_dsets)
         self.data = pipeline.data
-        self.best_epoch = 0
-        self.best_valid_score = None
-        self.train_epoch_perfs = np.zeros(self.params.max_epochs)
-        self.valid_epoch_perfs = np.zeros(self.params.max_epochs)
-        self.test_epoch_perfs = np.zeros(self.params.max_epochs)
-        self.train_epoch_perf_stds = np.zeros(self.params.max_epochs)
-        self.valid_epoch_perf_stds = np.zeros(self.params.max_epochs)
-        self.test_epoch_perf_stds = np.zeros(self.params.max_epochs)
-        self.model_choice_scores = np.zeros(self.params.max_epochs)
-        self.early_stopping_min_improvement = self.params.early_stopping_min_improvement
-        self.early_stopping_patience = self.params.early_stopping_patience
-
 
         # Create PerfData structures for computing cross-validation metrics
-        self.valid_perf_data = []
-        for ei in range(self.params.max_epochs):
-            self.valid_perf_data.append(perf.create_perf_data(self.params.prediction_type, pipeline.data, self.transformers, 'valid'))
+        em = perf.EpochManagerKFold(self,
+                                subsets={'train':'train_valid', 'valid':'valid', 'test':'test'},
+                                prediction_type=self.params.prediction_type, 
+                                model_dataset=pipeline.data, 
+                                transformers=self.transformers)
+        em.set_make_pred(lambda x: self.model.predict(x, []))
+        em.on_new_best_valid(lambda : 1+1) # does not need to take any action
 
         test_dset = pipeline.data.test_dset
 
@@ -1140,12 +1098,12 @@ class DCNNModelWrapper(NNModelWrapper):
                 # We turn off automatic checkpointing - we only want to save a checkpoints for the final model.
                 self.model.fit(train_dset, nb_epoch=1, checkpoint_interval=0, restore=False)
                 train_pred = self.model.predict(train_dset, [])
-                valid_pred = self.model.predict(valid_dset, [])
                 test_pred = self.model.predict(test_dset, [])
 
                 train_perf = train_perf_data.accumulate_preds(train_pred, train_dset.ids)
-                valid_perf = self.valid_perf_data[ei].accumulate_preds(valid_pred, valid_dset.ids)
                 test_perf = test_perf_data.accumulate_preds(test_pred, test_dset.ids)
+
+                valid_perf = em.accumulate(ei, subset='valid', dset=valid_dset)
                 self.log.info("Fold %d, epoch %d: training %s = %.3f, validation %s = %.3f, test %s = %.3f" % (
                               k, ei, pipeline.metric_type, train_perf, pipeline.metric_type, valid_perf,
                               pipeline.metric_type, test_perf))
@@ -1153,24 +1111,11 @@ class DCNNModelWrapper(NNModelWrapper):
             # Compute performance metrics for current epoch across validation sets for all folds, and update
             # the best_epoch and best score if the new score exceeds the previous best score by a specified
             # threshold.
-
-            self.valid_epoch_perfs[ei], self.valid_epoch_perf_stds[ei] = self.valid_perf_data[ei].compute_perf_metrics()
-            valid_score = self.valid_perf_data[ei].model_choice_score(self.params.model_choice_score_type)
-            self.model_choice_scores[ei] = valid_score
-            self.num_epochs_trained = ei + 1
-            if self.best_valid_score is None:
-                self.best_valid_score = valid_score
-                self.best_epoch = ei
-                self.log.info(f"Total cross-validation score for epoch {ei} is {valid_score:.3}")
-            elif valid_score - self.best_valid_score > self.early_stopping_min_improvement:
-                self.best_valid_score = valid_score
-                self.best_epoch = ei
-                self.log.info(f"*** Total cross-validation score for epoch {ei} is {valid_score:.3}, is new maximum")
-            elif ei - self.best_epoch > self.early_stopping_patience:
-                self.log.info(f"No improvement after {self.early_stopping_patience} epochs, stopping training")
+            em.compute(ei, 'valid')
+            em.update_valid(ei)
+            if em.should_stop():
                 break
-            else:
-                self.log.info(f"Total cross-validation score for epoch {ei} is {valid_score:.3}")
+            self.num_epochs_trained = ei + 1
 
         # Train a new model for best_epoch epochs on the combined training/validation set. Compute the training and test
         # set metrics at each epoch.
@@ -1179,21 +1124,13 @@ class DCNNModelWrapper(NNModelWrapper):
         self.model = self.recreate_model()
         self.log.info(f"Best epoch was {self.best_epoch}, retraining with combined training/validation set")
 
-        self.train_perf_data = []
-        self.test_perf_data = []
         for ei in range(self.best_epoch+1):
-            self.train_perf_data.append(perf.create_perf_data(self.params.prediction_type, pipeline.data, self.transformers, 'train_valid'))
-            self.test_perf_data.append(perf.create_perf_data(self.params.prediction_type, pipeline.data, self.transformers, 'test'))
-
             self.model.fit(fit_dataset, nb_epoch=1, checkpoint_interval=0, restore=False)
-            train_pred = self.model.predict(fit_dataset, [])
-            test_pred = self.model.predict(test_dset, [])
-            train_perf = self.train_perf_data[ei].accumulate_preds(train_pred, fit_dataset.ids)
-            test_perf = self.test_perf_data[ei].accumulate_preds(test_pred, test_dset.ids)
+            train_perf, test_perf = em.update_epoch(ei, train_dset=fit_dataset, test_dset=test_dset)
+
             self.log.info(f"Combined folds: Epoch {ei}, training {pipeline.metric_type} = {train_perf:.3},"
                          + f"test {pipeline.metric_type} = {test_perf:.3}")
-            self.train_epoch_perfs[ei], self.train_epoch_perf_stds[ei] = self.train_perf_data[ei].compute_perf_metrics()
-            self.test_epoch_perfs[ei], self.test_epoch_perf_stds[ei] = self.test_perf_data[ei].compute_perf_metrics()
+
         self.model.save_checkpoint()
         self.model_save()
 
@@ -1659,18 +1596,6 @@ class HybridModelWrapper(NNModelWrapper):
         torch.save(checkpoint, checkpoint_file)
 
     def train(self, pipeline):
-        self.best_epoch = 0
-        self.best_valid_score = None
-        self.train_epoch_perfs = np.zeros(self.params.max_epochs)
-        self.valid_epoch_perfs = np.zeros(self.params.max_epochs)
-        self.test_epoch_perfs = np.zeros(self.params.max_epochs)
-        self.train_epoch_perf_stds = np.zeros(self.params.max_epochs)
-        self.valid_epoch_perf_stds = np.zeros(self.params.max_epochs)
-        self.test_epoch_perf_stds = np.zeros(self.params.max_epochs)
-        self.model_choice_scores = np.zeros(self.params.max_epochs)
-        self.early_stopping_min_improvement = self.params.early_stopping_min_improvement
-        self.early_stopping_patience = self.params.early_stopping_patience
-
         if self.params.loss_func.lower() == "poisson":
             self.loss_func = self._poisson_hybrid_loss
         else:
@@ -1679,18 +1604,23 @@ class HybridModelWrapper(NNModelWrapper):
         # load hybrid data
         self._load_hybrid_data(pipeline.data)
 
-        checkpoint_file = os.path.join(self.model_dir, f"{self.params.dataset_name}_model_{self.params.model_uuid}.pt")
+        checkpoint_file = os.path.join(self.model_dir, 
+            f"{self.params.dataset_name}_model_{self.params.model_uuid}.pt")
 
         opt = torch.optim.Adam(self.model.parameters(), lr=self.params.learning_rate)
-        self.train_perf_data = []
-        self.valid_perf_data = []
-        self.test_perf_data = []
-        for ei in range(self.params.max_epochs):
-            self.train_perf_data.append(perf.create_perf_data("hybrid", pipeline.data, self.transformers, 'train', is_ki=self.params.is_ki, ki_convert_ratio=self.params.ki_convert_ratio))
-            self.valid_perf_data.append(perf.create_perf_data("hybrid", pipeline.data, self.transformers, 'valid', is_ki=self.params.is_ki, ki_convert_ratio=self.params.ki_convert_ratio))
-            self.test_perf_data.append(perf.create_perf_data("hybrid", pipeline.data, self.transformers, 'test', is_ki=self.params.is_ki, ki_convert_ratio=self.params.ki_convert_ratio))
 
-        test_data = self.test_data
+        em = perf.EpochManager(self,
+                                prediction_type="hybrid",
+                                model_dataset=pipeline.data,
+                                transformers=self.transformers,
+                                is_ki=self.params.is_ki,
+                                ki_convert_ratio=self.params.ki_convert_ratio)
+
+        em.set_make_pred(lambda x: self.generate_predictions(x)[0])
+        # initialize ei here so we can use it in the closure
+        ei = 0
+        em.on_new_best_valid(lambda : self.save_model(checkpoint_file, self.model, 
+            opt, ei, self.model_dict))
 
         train_dset, valid_dset = pipeline.data.train_valid_dsets[0]
         if len(pipeline.data.train_valid_dsets) > 1:
@@ -1719,38 +1649,18 @@ class HybridModelWrapper(NNModelWrapper):
                     valid_loss_ep += (valid_loss_ki + valid_loss_bind)
                 valid_loss_ep /= (valid_data.n_ki + valid_data.n_bind)
 
-            train_pred, _ = self.generate_predictions(train_dset)
-            valid_pred, _ = self.generate_predictions(valid_dset)
-            test_pred, _ = self.generate_predictions(test_dset)
+            train_perf, valid_perf, test_perf = em.update_epoch(ei,
+                                train_dset=train_dset, valid_dset=valid_dset, test_dset=test_dset)
 
-            train_perf = self.train_perf_data[ei].accumulate_preds(train_pred, train_dset.ids)
-            valid_perf = self.valid_perf_data[ei].accumulate_preds(valid_pred, valid_dset.ids)
-            test_perf = self.test_perf_data[ei].accumulate_preds(test_pred, test_dset.ids)
             self.log.info("Epoch %d: training %s = %.3f, training loss = %.3f, validation %s = %.3f, validation loss = %.3f, test %s = %.3f" % (
                           ei, pipeline.metric_type, train_perf, train_loss_ep, pipeline.metric_type, valid_perf, valid_loss_ep,
                           pipeline.metric_type, test_perf))
 
             # Compute performance metrics for each subset, and check if we've reached a new best validation set score
-
-            self.train_epoch_perfs[ei], _ = self.train_perf_data[ei].compute_perf_metrics()
-            self.valid_epoch_perfs[ei], _ = self.valid_perf_data[ei].compute_perf_metrics()
-            self.test_epoch_perfs[ei], _ = self.test_perf_data[ei].compute_perf_metrics()
-            valid_score = self.valid_perf_data[ei].model_choice_score(self.params.model_choice_score_type)
-            self.model_choice_scores[ei] = valid_score
             self.num_epochs_trained = ei + 1
-            if self.best_valid_score is None:
-                self.save_model(checkpoint_file, self.model, opt, ei, self.model_dict)
-                self.best_valid_score = valid_score
-                self.best_epoch = ei
-            elif valid_score - self.best_valid_score > self.early_stopping_min_improvement:
-                # Save a new checkpoint
-                self.save_model(checkpoint_file, self.model, opt, ei, self.model_dict)
-                self.best_valid_score = valid_score
-                self.best_epoch = ei
-            elif ei - self.best_epoch > self.early_stopping_patience:
-                self.log.info(f"No improvement after {self.early_stopping_patience} epochs, stopping training")
+            if em.should_stop():
                 break
-
+ 
         # Revert to last checkpoint
         checkpoint = torch.load(checkpoint_file)
         self.model.load_state_dict(checkpoint['model_state_dict'])

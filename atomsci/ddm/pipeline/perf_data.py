@@ -5,6 +5,7 @@ Contains class PerfData and its subclasses, which are objects for collecting and
 and predictions
 """
 
+from textwrap import wrap
 import sklearn.metrics
 
 import deepchem as dc
@@ -15,6 +16,8 @@ from sklearn.metrics import accuracy_score, matthews_corrcoef, cohen_kappa_score
 from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
 
 from atomsci.ddm.pipeline import transformations as trans
+
+import pdb
 
 
 # ******************************************************************************************************************************
@@ -2078,3 +2081,116 @@ class SimpleHybridPerfData(HybridPerfData):
             return (r2_scores, None)
         else:
             return (r2_scores.mean(), None)
+
+
+# ****************************************************************************************
+class EpochManager:
+    """ Manages lists of PerfDatas
+
+    Manages lists of PerfData. Functions for updating each epoch.
+
+    Attributes:
+        Set in __init__:
+            folds (int): Initialized at zero, flag for determining which k-fold is being assessed
+
+            transformers (list of Transformer objects): from input arguments
+
+            real_vals (dict): The dictionary containing the origin response column values
+    
+    """
+
+    # ****************************************************************************************
+    # class EpochManager
+    def __init__(self, wrapper,
+            subsets={'train':'train',  'valid':'valid', 'test':'test'}, **kwargs):
+        params = wrapper.params
+        self._subsets = subsets
+        self._model_choice_score_type = params.model_choice_score_type
+        self._log = wrapper.log
+        self._should_stop = False
+        self.wrapper = wrapper
+        
+        self._new_best_valid_score = lambda x: False
+
+        self.wrapper.best_epoch = 0
+        self.wrapper.best_valid_score = None
+        self.wrapper.train_epoch_perfs = np.zeros(params.max_epochs)
+        self.wrapper.valid_epoch_perfs = np.zeros(params.max_epochs)
+        self.wrapper.test_epoch_perfs = np.zeros(params.max_epochs)
+        self.wrapper.train_epoch_perf_stds = np.zeros(params.max_epochs)
+        self.wrapper.valid_epoch_perf_stds = np.zeros(params.max_epochs)
+        self.wrapper.test_epoch_perf_stds = np.zeros(params.max_epochs)
+        self.wrapper.model_choice_scores = np.zeros(params.max_epochs)
+        self.wrapper.early_stopping_min_improvement = params.early_stopping_min_improvement
+        self.wrapper.early_stopping_patience = params.early_stopping_patience
+
+        self.wrapper.train_perf_data = []
+        self.wrapper.valid_perf_data = []
+        self.wrapper.test_perf_data = []
+
+        for _ in range(params.max_epochs):
+            self.wrapper.train_perf_data.append(
+                create_perf_data(subset=self._subsets['train'], **kwargs))
+            self.wrapper.valid_perf_data.append(
+                create_perf_data(subset=self._subsets['valid'], **kwargs))
+            self.wrapper.test_perf_data.append(
+                create_perf_data(subset=self._subsets['test'], **kwargs))
+
+    def should_stop(self):
+        return self._should_stop
+
+    def update_epoch(self, ei, train_dset=None, valid_dset=None, test_dset=None):
+        train_perf = self.update(ei, 'train', train_dset)
+        valid_perf = self.update(ei, 'valid', valid_dset)
+        test_perf = self.update(ei, 'test', test_dset)
+
+        return [p for p in [train_perf, valid_perf, test_perf] if not(p is None)]
+
+    def accumulate(self, ei, subset, dset):
+        pred = self._make_pred(dset)
+        perf = getattr(self.wrapper, f'{subset}_perf_data')[ei].accumulate_preds(pred, dset.ids)
+        return perf
+
+    def compute(self, ei, subset):
+        getattr(self.wrapper, f'{subset}_epoch_perfs')[ei], _ = \
+            getattr(self.wrapper, f'{subset}_perf_data')[ei].compute_perf_metrics()
+
+    def update_valid(self, ei):
+        valid_score = self.wrapper.valid_perf_data[ei].model_choice_score(self._model_choice_score_type)
+        self.wrapper.model_choice_scores[ei] = valid_score
+        if self.wrapper.best_valid_score is None:
+            self._new_best_valid_score()
+            self.wrapper.best_valid_score = valid_score
+            self.wrapper.best_epoch = ei
+            self._log.info(f"Total score for epoch {ei} is {valid_score:.3}")
+        elif valid_score - self.wrapper.best_valid_score > self.wrapper.early_stopping_min_improvement:
+            self._new_best_valid_score()
+            self.wrapper.best_valid_score = valid_score
+            self.wrapper.best_epoch = ei
+            self._log.info(f"*** Total score for epoch {ei} is {valid_score:.3}, is new maximum")
+        elif ei - self.wrapper.best_epoch > self.wrapper.early_stopping_patience:
+            self._log.info(f"No improvement after {self.wrapper.early_stopping_patience} epochs, stopping training")
+            self._should_stop = True
+
+    def update(self, ei, subset, dset=None):
+        if dset is None:
+            return None
+
+        perf = self.accumulate(ei, subset, dset)
+        self.compute(ei, subset)
+
+        if subset == 'valid':
+            self.update_valid(ei)
+
+        return perf
+
+    def set_make_pred(self, functional):
+        self._make_pred = functional
+
+    def on_new_best_valid(self, functional):
+        self._new_best_valid_score = functional
+
+class EpochManagerKFold(EpochManager):
+    def compute(self, ei, subset):
+        getattr(self.wrapper, f'{subset}_epoch_perfs')[ei], getattr(self.wrapper, f'{subset}_epoch_perf_stds')[ei]= \
+            getattr(self.wrapper, f'{subset}_perf_data')[ei].compute_perf_metrics()
