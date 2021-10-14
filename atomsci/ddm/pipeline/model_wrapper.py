@@ -221,6 +221,39 @@ class ModelWrapper(object):
             NotImplementedError: The method is implemented by subclasses
         """
         raise NotImplementedError
+
+        # ****************************************************************************************
+    def _create_output_transformers(self, model_dataset):
+        """
+        Initialize transformers for responses and persist them for later.
+
+        Args:
+            model_dataset: The ModelDataset object that handles the current dataset
+
+        Side effects
+            Overwrites the attributes:
+                transformers: A list of deepchem transformation objects on response_col, only if conditions are met
+        """
+        # TODO: Just a warning, we may have response transformers for classification datasets in the future
+        if self.params.prediction_type=='regression' and self.params.transformers==True:
+            self.transformers = [trans.NormalizationTransformerMissingData(transform_y=True, dataset=model_dataset.dataset)]
+
+        # ****************************************************************************************
+
+    def _create_feature_transformers(self, model_dataset):
+        """
+        Initialize transformers for features, and persist them for later.
+
+        Args:
+            model_dataset: The ModelDataset object that handles the current dataset
+
+        Side effects
+            Overwrites the attributes:
+                transformers_x: A list of deepchem transformation objects on featurizers, only if conditions are met.
+        """
+        # Set up transformers for features, if needed
+        self.transformers_x = trans.create_feature_transformers(self.params, model_dataset)
+
         # ****************************************************************************************
 
     def create_transformers(self, model_dataset):
@@ -239,17 +272,9 @@ class ModelWrapper(object):
                 params.transformer_key: A string pointing to the dataset key containing the transformer in the datastore, or the path to the transformer
 
         """
-        # TODO: Just a warning, we may have response transformers for classification datasets in the future
-        if self.params.prediction_type=='regression' and self.params.transformers==True:
-            # self.transformers = [
-            #    dc.trans.NormalizationTransformer(transform_y=True, dataset=model_dataset.dataset)]
-            if self.params.model_type != "hybrid":
-                self.transformers = [trans.NormalizationTransformerMissingData(transform_y=True, dataset=model_dataset.dataset)]
-            else:
-                self.transformers = [trans.NormalizationTransformerHybrid(transform_y=True, dataset=model_dataset.dataset)]
+        self._create_output_transformers(model_dataset)
 
-        # Set up transformers for features, if needed
-        self.transformers_x = trans.create_feature_transformers(self.params, model_dataset)
+        self._create_feature_transformers(model_dataset)
 
         if len(self.transformers) > 0 or len(self.transformers_x) > 0:
 
@@ -1769,6 +1794,22 @@ class HybridModelWrapper(NNModelWrapper):
         )
         model_spec_metadata = dict(hybrid_specific = nn_metadata)
         return model_spec_metadata
+
+    # ****************************************************************************************
+    def _create_output_transformers(self, model_dataset):
+        """
+        Initialize transformers for responses and persist them for later.
+
+        Args:
+            model_dataset: The ModelDataset object that handles the current dataset
+
+        Side effects
+            Overwrites the attributes:
+                transformers: A list of deepchem transformation objects on response_col, only if conditions are met
+        """
+        # TODO: Just a warning, we may have response transformers for classification datasets in the future
+        if self.params.prediction_type=='regression' and self.params.transformers==True:
+            self.transformers = [trans.NormalizationTransformerHybrid(transform_y=True, dataset=model_dataset.dataset)]
 
 # ****************************************************************************************
 class ForestModelWrapper(ModelWrapper):
