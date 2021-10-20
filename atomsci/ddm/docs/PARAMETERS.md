@@ -754,7 +754,7 @@ The AMPL pipeline contains many parameters and options to fit models and make pr
   
 |||
 |-|-|
-|*Description:*|Number of tasks to run for. 1 means a singletask model, > 1 means a multitask model|
+|*Description:*|DEPRECATED AND IGNORED. This argument is now infered from the response_cols. Number of tasks to run for. 1 means a singletask model, > 1 means a multitask model|
 |*Default:*|1|
 |*Type:*|int|
   
