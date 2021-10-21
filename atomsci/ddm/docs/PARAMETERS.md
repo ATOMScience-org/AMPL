@@ -80,7 +80,7 @@ The AMPL pipeline contains many parameters and options to fit models and make pr
   
 |||
 |-|-|
-|*Description:*|name of column(s) containing response values. Will default to last column if not specified. Input as a string of comma separated values for hyperparameter search. Can be input as a comma separated list for hyperparameter search (e.g. 'column1','column2')|
+|*Description:*|name of column(s) containing response values. Will default to last column if not specified. Can be input as a string of comma separated values or as a comma separated list (e.g. 'column1','column2'). Multitask models will be generated when multiple columns are specified.|
   
 - **save\_results**  
   
