@@ -1004,6 +1004,8 @@ def postprocess_args(parsed_args):
 
     Setting conditional options for descriptor_key.
 
+    Set uncertainty to False when using XGBoost because GBoost does not support uncertainty
+
     Args:
         parsed_args (argparse.Namespace): Raw parsed arguments.
 
@@ -1124,6 +1126,10 @@ def postprocess_args(parsed_args):
         if (not parsed_args.dataset_key is None) and (not os.path.isabs(parsed_args.dataset_key)) and (not os.path.isfile(parsed_args.dataset_key)):
             parsed_args.dataset_key = \
                 os.path.abspath(os.path.join(parsed_args.script_dir, parsed_args.dataset_key))
+
+    # Turn off uncertainty of XGBoost is the model type
+    if parsed_args.model_type == 'xgboost':
+        parsed_args.uncertainty = False
 
     return parsed_args
 

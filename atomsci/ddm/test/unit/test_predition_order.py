@@ -80,7 +80,7 @@ def test_predict_on_dataframe():
     print(match_rows)
     assert all([n == o for n, o in zip(new_id_col, old_id_col)])
 
-    score = skm.accuracy_score(shuffled_df[response_col].values, pred_df[response_col+'_pred'].values)
+    score = skm.accuracy_score(shuffled_df[response_col].values, pred_df['pred'].values)
     print(score)
     assert score > 0.5
 

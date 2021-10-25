@@ -1,0 +1,17 @@
+{
+    "comment": "Input file",
+    "comment": "----------------------------------------",
+    "id_col": "Compound ID",
+    "smiles_col": "smiles",
+    "response_cols": "measured log solubility in mols per litre",
+
+    "comment": "Model",
+    "comment": "----------------------------------------",
+    "comment": "Note: result_dir is set in test script",
+    "result_dir": "",
+
+    "comment": "Transformer",
+    "comment": "----------------------------------------",
+    "comment": "Note: transformer_key is set in test script",
+    "transformer_key": ""
+}

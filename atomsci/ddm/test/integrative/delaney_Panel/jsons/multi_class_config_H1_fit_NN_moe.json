@@ -1,0 +1,52 @@
+{
+    "comment": "System",
+    "comment": "----------------------------------------",
+    "system": "LC",
+    "datastore": "False",
+    "save_results": "False",
+    "data_owner": "username",
+
+    "comment": "Input file",
+    "comment": "----------------------------------------",
+    "comment": "Note: dataset_key must be a path/file name: E.G. ./dataset.csv",
+    "dataset_key": "./H1_curated_fit.csv",
+    "id_col": "compound_id",
+    "smiles_col": "base_rdkit_smiles",
+
+    "comment": "Splitting",
+    "comment": "----------------------------------------",
+    "split_uuid": "002251a2-83f8-4511-acf5-e8bbc5f86677",
+    "previously_split": "True",
+
+    "comment": "Prediction Type",
+    "comment": "----------------------------------------",
+    "response_cols": ["pKi_mean_class",
+                        "pKi_mean_class2"],
+    "num_model_tasks": 2,
+    "prediction_type": "classification",
+
+    "comment": "Features",
+    "comment": "----------------------------------------",
+    "featurizer": "computed_descriptors",
+
+    "comment": "Descriptors",
+    "comment": "----------------------------------------",
+    "descriptor_type": "moe",
+
+    "comment": "Model",
+    "comment": "----------------------------------------",
+    "model_type": "NN",
+    "dropout": ".01,.01,.01",
+    "layer_sizes": "64,64,64",
+    "learning_rate": "0.007",
+    "max_epochs": "50",
+    
+    "comment": "Training",
+    "comment": "----------------------------------------",
+    "comment": "This regulates how long to train the model",
+    "early_stopping_patience": "50",
+
+    "comment": "Results",
+    "comment": "----------------------------------------",    
+    "result_dir": "result"
+}
