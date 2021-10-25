@@ -6,6 +6,9 @@ import re
 import logging
 import datetime
 
+import os.path
+import atomsci.ddm.utils.checksum_utils as cu
+
 log = logging.getLogger('ATOM')
 # TODO: mjt, do we need to deal with parameters with options?
 # e.g. ["dk","d","r","s","f","n","dd","sl","y"]
@@ -1126,6 +1129,11 @@ def postprocess_args(parsed_args):
         if (not parsed_args.dataset_key is None) and (not os.path.isabs(parsed_args.dataset_key)) and (not os.path.isfile(parsed_args.dataset_key)):
             parsed_args.dataset_key = \
                 os.path.abspath(os.path.join(parsed_args.script_dir, parsed_args.dataset_key))
+
+    # generate dataset hash key if the file exists
+    if os.path.exists(parsed_args.dataset_key):
+        log.info("Created a dataset hash using %s", parsed_args.dataset_key)
+        parsed_args.dataset_hash = cu.create_checksum(parsed_args.dataset_key)
 
     # Turn off uncertainty of XGBoost is the model type
     if parsed_args.model_type == 'xgboost':
