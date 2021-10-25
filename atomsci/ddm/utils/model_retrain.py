@@ -40,7 +40,6 @@ import atomsci.ddm.utils.struct_utils as struct_utils
 import atomsci.ddm.pipeline.model_tracker as mt
 import atomsci.ddm.utils.datastore_functions as dsf
 from atomsci.ddm.pipeline import compare_models as cmp
-from atomsci.clients import MLMTClient
 
 import resource
 resource.setrlimit(resource.RLIMIT_NOFILE, (65536, 65536))

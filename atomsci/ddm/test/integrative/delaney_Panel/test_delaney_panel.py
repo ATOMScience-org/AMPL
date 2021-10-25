@@ -170,6 +170,7 @@ def train_and_predict(train_json_f, prefix='delaney-processed'):
     predict = pfm.predict_from_model_file(tar_f, data, id_col=params.id_col, 
         smiles_col=params.smiles_col, response_col=params.response_cols)
     pred_cols = [f for f in predict.columns if f.endswith('_pred')]
+    assert len(pred_cols) == len(params.response_cols)
 
     pred = predict[pred_cols].to_numpy()
 
