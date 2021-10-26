@@ -578,8 +578,8 @@ class ModelDataset(object):
             for f in range(self.splitting.num_folds):
                 train_df = train_valid_df[train_valid_df.fold != f]
                 valid_df = train_valid_df[train_valid_df.fold == f]
-                train_dset = split.select_dset_by_id_list(self.dataset, train_df.cmpd_id.values)
-                valid_dset = split.select_dset_by_id_list(self.dataset, valid_df.cmpd_id.values)
+                train_dset = split.select_dset_by_id_list(self.dataset, train_df.cmpd_id.astype(str).values)
+                valid_dset = split.select_dset_by_id_list(self.dataset, valid_df.cmpd_id.astype(str).values)
                 train_attr = split.select_attrs_by_dset_ids(train_dset, self.attr)
                 valid_attr = split.select_attrs_by_dset_ids(valid_dset, self.attr)
                 self.train_valid_dsets.append((train_dset, valid_dset))
@@ -587,15 +587,15 @@ class ModelDataset(object):
         else:
             train_df = split_df[split_df.subset == 'train']
             valid_df = split_df[split_df.subset == 'valid']
-            train_dset = split.select_dset_by_id_list(self.dataset, train_df.cmpd_id.values)
-            valid_dset = split.select_dset_by_id_list(self.dataset, valid_df.cmpd_id.values)
+            train_dset = split.select_dset_by_id_list(self.dataset, train_df.cmpd_id.astype(str).values)
+            valid_dset = split.select_dset_by_id_list(self.dataset, valid_df.cmpd_id.astype(str).values)
             train_attr = split.select_attrs_by_dset_ids(train_dset, self.attr)
             valid_attr = split.select_attrs_by_dset_ids(valid_dset, self.attr)
             self.train_valid_dsets.append((train_dset, valid_dset))
             self.train_valid_attr.append((train_attr, valid_attr))
 
         test_df = split_df[split_df.subset == 'test']
-        self.test_dset = split.select_dset_by_id_list(self.dataset, test_df.cmpd_id.values)
+        self.test_dset = split.select_dset_by_id_list(self.dataset, test_df.cmpd_id.astype(str).values)
         self.test_attr = split.select_attrs_by_dset_ids(self.test_dset, self.attr)
 
         self.log.warning('Previous dataset split restored')
