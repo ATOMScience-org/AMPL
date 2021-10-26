@@ -16,7 +16,7 @@ def create_checksum(filename):
     Calculates hash of the file
 
     Args:
-        filename (str): path to the file
+        filename (str): path to the dataset file
     
     Returns:
         returns the checksum
@@ -29,7 +29,7 @@ def create_checksum(filename):
             hash.update(chunk)
     return hash.hexdigest()
 
-def checksum_matches_by_dataset(ds1, ds2):
+def uses_same_training_data_by_datasets(ds1, ds2):
     """
     Checks if the two input files' checksums match.
 
@@ -42,12 +42,12 @@ def checksum_matches_by_dataset(ds1, ds2):
         True if the checksums of the two input match
 
     """
-    hash1 = create_checksum(filename1)
-    hash2 = create_checksum(filename2)
+    hash1 = create_checksum(ds1)
+    hash2 = create_checksum(ds2)
 
     return hash1 == hash2
 
-def uses_same_training_data(tar1, tar2):
+def uses_same_training_data_by_tarballs(tar1, tar2):
     """
     Checks if the two input files' checksums match.
 

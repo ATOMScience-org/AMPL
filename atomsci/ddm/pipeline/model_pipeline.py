@@ -323,6 +323,7 @@ class ModelPipeline:
             dataset_key=self.params.dataset_key,
             bucket=self.params.bucket,
             dataset_oid=self.data.dataset_oid,
+            dataset_hash=self.params.dataset_hash,
             id_col=self.params.id_col,
             smiles_col=self.params.smiles_col,
             response_cols=self.params.response_cols,
@@ -393,6 +394,7 @@ class ModelPipeline:
 
         # Dump the model parameters and metadata to a JSON file
         out_file = os.path.join(self.output_dir, 'model_metadata.json')
+
         with open(out_file, 'w') as out:
             json.dump(self.model_metadata, out, sort_keys=True, indent=4, separators=(',', ': '))
             out.write("\n")
@@ -494,6 +496,7 @@ class ModelPipeline:
             out_file = os.path.join(self.output_dir, 'model_metrics.json')
         else:
             out_file = os.path.join(self.output_dir, '%s_model_metrics.json' % prefix)
+
         with open(out_file, 'w') as out:
             json.dump(model_metrics, out, sort_keys=True, indent=4, separators=(',', ': '))
             out.write("\n")

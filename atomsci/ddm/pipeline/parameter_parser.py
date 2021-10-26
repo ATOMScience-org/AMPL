@@ -1132,8 +1132,8 @@ def postprocess_args(parsed_args):
 
     # generate dataset hash key if the file exists
     if os.path.exists(parsed_args.dataset_key):
-        log.info("Created a dataset hash using %s", parsed_args.dataset_key)
         parsed_args.dataset_hash = cu.create_checksum(parsed_args.dataset_key)
+        log.info("Created a dataset hash '%s' from dataset_key '%s'", parsed_args.dataset_hash, parsed_args.dataset_key)
 
     # Turn off uncertainty of XGBoost is the model type
     if parsed_args.model_type == 'xgboost':
