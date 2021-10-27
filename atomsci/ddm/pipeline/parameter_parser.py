@@ -1131,7 +1131,7 @@ def postprocess_args(parsed_args):
                 os.path.abspath(os.path.join(parsed_args.script_dir, parsed_args.dataset_key))
 
     # generate dataset hash key if the file exists
-    if os.path.exists(parsed_args.dataset_key):
+    if 'dataset_key' in parsed_args and parsed_args.dataset_key is not None and os.path.exists(parsed_args.dataset_key):
         parsed_args.dataset_hash = cu.create_checksum(parsed_args.dataset_key)
         log.info("Created a dataset hash '%s' from dataset_key '%s'", parsed_args.dataset_hash, parsed_args.dataset_key)
 

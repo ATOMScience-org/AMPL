@@ -318,6 +318,9 @@ class ModelPipeline:
             dataset_metadata = dsf.get_keyval(dataset_key=self.params.dataset_key, bucket=self.params.bucket)
         else:
             dataset_metadata = {}
+        if 'dataset_hash' not in self.params:
+            self.params.dataset_hash=None
+
         train_dset_data = dict(
             datastore=self.params.datastore,
             dataset_key=self.params.dataset_key,
