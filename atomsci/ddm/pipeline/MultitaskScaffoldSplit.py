@@ -12,8 +12,7 @@ from functools import partial
 import deepchem as dc
 from deepchem.data import Dataset
 from deepchem.splits import Splitter
-from deepchem.utils import ScaffoldGenerator
-import GeneticAlgorithm as ga
+from deepchem.splits.splitters import _generate_scaffold
 
 import rdkit
 from rdkit import Chem
@@ -21,33 +20,7 @@ from rdkit.Chem import AllChem
 
 from atomsci.ddm.pipeline import chem_diversity as cd
 from atomsci.ddm.pipeline import dist_metrics
-
-def _generate_scaffold(smiles: str,
-                        include_chirality: bool = False) -> str:
-    """Compute the Bemis-Murcko scaffold for a SMILES string.
-
-    Calculate the scaffold given a smiles string
-
-    Parameters
-    ----------
-    smiles: str
-        A SMILES string
-    include_chirality: bool
-        Boolean to include chirality
-
-    Returns
-    -------
-    scaffold: str
-        The output of rdkit.Chem.Scaffolds.MurckoScaffold.MurckoScaffoldSmilesFromSmiles
-        which is a string.
-
-    """
-    mol = Chem.MolFromSmiles(smiles)
-    if mol is None:
-        return None
-    engine = ScaffoldGenerator(include_chirality=include_chirality)
-    scaffold = engine.get_scaffold(mol)
-    return scaffold
+from atomsci.ddm.pipeline import GeneticAlgorithm as ga
 
 def _generate_scaffold_hists(scaffold_sets: List[Set[int]], 
                                 w: np.array) -> np.array:
@@ -600,7 +573,6 @@ class MultitaskScaffoldSplitter(Splitter):
 
         #print('best ever fitness %0.2f'%best_ever_fit)
         result = self.split_chromosome_to_compound_split(best)
-#        pdb.set_trace()
         return result
 
     def _split(self,
@@ -813,16 +785,68 @@ def split_using_MultitaskScaffoldSplit(df: pd.DataFrame,
 
     return split_df
 
+def split_with(df, splitter, smiles_col, id_col, response_cols, **kwargs):
+    '''
+    Given a dataframe and a splitter, perform split
+    Return a split dataframe, with base_rdkit_smiles as key
+    and subset with train, valid, test
+    '''
+    # Build a deepchem Dataset. X isn't used and can be ignored
+    X = np.ones((len(df), 10))
+    y, w = make_y_w(df, response_cols)
+    ids = df[smiles_col].values
+
+    dataset = dc.data.DiskDataset.from_numpy(X, y, w=w, ids=ids)
+
+    splits = splitter.split(dataset, **kwargs)
+
+    split_df = pd.DataFrame(df[[id_col]])
+    split_df = split_df.rename(columns={id_col:'cmpd_id'})
+    split_array = np.array(['unassigned']*split_df.shape[0])
+    split_array[splits[0]] = 'train'
+    split_array[splits[1]] = 'valid'
+    split_array[splits[2]] = 'test'
+
+    split_df['subset'] = split_array
+
+    if 'ss' in dir(splitter):
+        ss = splitter.ss
+        scaffold_array = np.ones(split_df.shape[0])
+        for i, scaffold in enumerate(ss):
+            scaffold_array[list(scaffold)] = i
+
+        split_df['scaffold'] = scaffold_array
+
+    return split_df
+
+def parse_args():
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument('data', type=str, help='path to input csv')
+    parser.add_argument('dist_weight', type=float, 
+        help='Weight for the importance of the difference between training and test partitions')
+    parser.add_argument('ratio_weight', type=float, 
+        help='Weight for the importance of ensuring each task has the appropriate number of samples in training/validation/test')
+    parser.add_argument('num_gens', type=int, 
+        help='Number of generations to run.')
+    parser.add_argument('smiles_col', type=str, help='the column containing smiles')
+    parser.add_argument('id_col', type=str, help='the column containing ids')
+    parser.add_argument('response_cols', type=str, help='comma seperated string of response columns')
+    parser.add_argument('output', type=str, help='name of the split file')
+
+    return parser.parse_args()
 
 if __name__ == '__main__':
     args = parse_args()
     total_df = pd.read_csv(args.data)
 
     dfw = args.dist_weight
-    sfw = args.strat_weight
+    rfw = args.ratio_weight
 
-    out_path = args.data.replace('.csv', '_d%d,s%d.csv'%(dfw,sfw))
+    response_cols = args.response_cols.split(',')
 
     mss = MultitaskScaffoldSplitter()
-    mss_split_df = split_with(total_df, mss, diff_fitness_weight=dfw, ratio_fitness_weight=sfw, num_generations=args.num_gens)
-    mss_split_df.to_csv(out_path, index=False)
+    mss_split_df = split_with(total_df, mss, 
+        smiles_col=args.smiles_col, id_col=args.id_col, response_cols=response_cols, 
+        diff_fitness_weight=dfw, ratio_fitness_weight=rfw, num_generations=args.num_gens)
+    mss_split_df.to_csv(args.output, index=False)
