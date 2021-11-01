@@ -1,5 +1,5 @@
 # ATOM Modeling PipeLine (AMPL) for Drug Discovery
-[![License](http://img.shields.io/:license-mit-blue.svg)](https://github.com/ATOMconsortium/AMPL/blob/master/LICENSE)
+[![License](http://img.shields.io/:license-mit-blue.svg)](https://github.com/ATOMScience-org/AMPL/blob/master/LICENSE)
 
 *Created by the [Accelerating Therapeutics for Opportunites in Medicine (ATOM) Consortium](https://atomscience.org)*
 
@@ -63,7 +63,7 @@ AMPL is a Python 3 package that has been developed and run in a specific conda e
 ### Install
 #### Clone the git repository
 
-`git clone https://github.com/ATOMconsortium/AMPL.git`  
+`git clone https://github.com/ATOMScience-org/AMPL.git`  
 &nbsp;  
 
 #### Create conda environment
@@ -134,7 +134,7 @@ python -m ipykernel install --user --name atomsci
 ---
 <a name="AMPL-tutorials"></a>
 ## AMPL tutorials
- Please follow the link, [`atomsci/ddm/examples/tutorials`](https://github.com/ATOMconsortium/AMPL/tree/master/atomsci/ddm/examples/tutorials), to access a collection of AMPL tutorial COLAB (Jupyter) notebooks. The tutorial notebooks give an exhaustive coverage of AMPL features. The AMPL team has prepared the tutorials to help beginners understand the basics to advanced AMPL features, and a reference for advanced AMPL users. 
+ Please follow the link, [`atomsci/ddm/examples/tutorials`](https://github.com/ATOMScience-org/AMPL/tree/master/atomsci/ddm/examples/tutorials), to access a collection of AMPL tutorial COLAB (Jupyter) notebooks. The tutorial notebooks give an exhaustive coverage of AMPL features. The AMPL team has prepared the tutorials to help beginners understand the basics to advanced AMPL features, and a reference for advanced AMPL users. 
 &nbsp;  
 &nbsp;  
 

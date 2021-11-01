@@ -35,6 +35,7 @@ try:
     from atomsci.clients import DatastoreClient
     from atomsci.clients import DatastoreClientSingleton
     from atomsci.clients import MLMTClient
+    from atomsci.clients import MLMTClientSingleton
 except (ModuleNotFoundError, ImportError):
     logger.info("atomsci.clients package missing, is currently unsupported for non-ATOM users.\n" +
                 "ATOM users should run 'pip install clients --user' to install.")
@@ -104,12 +105,12 @@ def config_client(
 
 #--------------------------------------------------------------------------------------------------------
 
-def initialize_model_tracker(): 
+def initialize_model_tracker(new_instance=False): 
     """
     Create or obtain a client object for the model tracker service..
 
     Returns:
-        mlmt_client (MLMTClient): The client object for the model tracker service.
+        mlmt_client (MLMTClientSingleton): The client object for the model tracker service.
     """
     if not clients_supported:
         raise Exception("Model tracker client not supported in current environment.")
@@ -120,7 +121,10 @@ def initialize_model_tracker():
     # MLMT service uses same API token as datastore. Make sure it gets set in the environment.
     ds_client = config_client()
 
-    mlmt_client = MLMTClient()
+    if new_instance:
+        mlmt_client = MLMTClient()
+    else:
+        mlmt_client = MLMTClientSingleton()
 
     return mlmt_client
 
