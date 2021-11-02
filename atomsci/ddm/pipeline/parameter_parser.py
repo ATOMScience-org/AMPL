@@ -6,6 +6,8 @@ import re
 import logging
 import datetime
 
+from packaging.version import parse
+
 log = logging.getLogger('ATOM')
 # TODO: mjt, do we need to deal with parameters with options?
 # e.g. ["dk","d","r","s","f","n","dd","sl","y"]
@@ -829,9 +831,9 @@ def get_parser():
         help='Full path to the optional configuration file. The configuration file is a set of parameters'
              ' in .json file format. TODO: Does not send a warning if set concurrently with other parameters.')
     parser.add_argument(
-        '--num_model_tasks', dest='num_model_tasks', type=int, required=False, default=1,
-        help='Number of tasks to run for. 1 means a singletask model, > 1 means a multitask model')
-
+        '--num_model_tasks', dest='num_model_tasks', type=int, required=False,
+        help='DEPRECATED AND IGNORED. This argument is now infered from the response_cols.'
+        ' Number of tasks to run for. 1 means a singletask model, > 1 means a multitask model')
     # **********************************************************************************************************
     # hyperparameters
     parser.add_argument(
@@ -1130,6 +1132,17 @@ def postprocess_args(parsed_args):
     # Turn off uncertainty of XGBoost is the model type
     if parsed_args.model_type == 'xgboost':
         parsed_args.uncertainty = False
+
+    # set num_model_tasks to equal len(response_cols)
+    # this ignores the current value of num_model_tasks
+    if not parsed_args.num_model_tasks is None:
+        print("num_model_tasks is deprecated and its value is ignored.")
+    if parsed_args.response_cols is None or type(parsed_args.response_cols) == str:
+        parsed_args.num_model_tasks = 1
+    elif type(parsed_args.response_cols) == list:
+        parsed_args.num_model_tasks = len(parsed_args.response_cols)
+    else:
+        raise Exception(f'Unexpected type for response_cols {type(parsed_args.response_cols)}')
 
     return parsed_args
 
