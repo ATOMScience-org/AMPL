@@ -1016,15 +1016,16 @@ class HyperparameterSearch(object):
         Returns:
             None
         """
-        for assay_params in job_list:
-            i = int(run_cmd('squeue | grep $(whoami) | wc -l').decode("utf-8"))
-            while i >= self.params.max_jobs:
-                print("%d jobs in queue, sleeping" % i)
-                time.sleep(retry_time)
+        for assay_params in job_list: 
+            if len(self.filter_jobs([assay_params]))==1:
                 i = int(run_cmd('squeue | grep $(whoami) | wc -l').decode("utf-8"))
-            self.log.info(assay_params)
-            self.out_file.write(str(assay_params))
-            run_command(self.shell_script, self.params.python_path, self.params.script_dir, assay_params)
+                while i >= self.params.max_jobs:
+                    print("%d jobs in queue, sleeping" % i)
+                    time.sleep(retry_time)
+                    i = int(run_cmd('squeue | grep $(whoami) | wc -l').decode("utf-8"))
+                self.log.info(assay_params)
+                self.out_file.write(str(assay_params))
+                run_command(self.shell_script, self.params.python_path, self.params.script_dir, assay_params)
 
     def already_run(self, assay_params, retry_time=10):
         """
@@ -1048,7 +1049,7 @@ class HyperparameterSearch(object):
         i = 0
         while retry:
             try:
-                print("Checking model tracker DB for existing model with parameter combo.")
+                print(f"Checking model tracker DB for existing model with parameter combo in {assay_params['collection_name']} collection.")
                 models = list(trkr.get_full_metadata(filter_dict, collection_name=assay_params['collection_name']))
                 retry = False
             except Exception as e:
@@ -1103,8 +1104,8 @@ class HyperparameterSearch(object):
         self.generate_assay_list()
         print("build_ jobs")
         job_list = self.build_jobs()
-        print("filter redundant jobs")
-        job_list = self.filter_jobs(job_list)
+#         print("filter redundant jobs")
+#         job_list = self.filter_jobs(job_list)
 
         return job_list
 
