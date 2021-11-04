@@ -267,7 +267,6 @@ def dict_to_list(inp_dictionary,replace_spaces=False):
         None if inp_dictionary is None
 
     """
-
     #if replace_spaces is true, replaces spaces with replace_spaces_str for os command line calls
     replace_spaces_str = "@"
     if not isinstance(inp_dictionary,dict):
@@ -981,7 +980,6 @@ def get_parser():
         '--hp_checkpoint_load', dest='hp_checkpoint_load', required=False, default=None,
         help='binary file to load a checkpoint of a previous HPO trial project, to continue the HPO serach. e.g. --hp_checkpoint_load=/path/to/file/checkpoint.pkl')
 
-
     return parser
 
 #***********************************************************************************************************
@@ -1132,11 +1130,14 @@ def postprocess_args(parsed_args):
         if (not parsed_args.dataset_key is None) and (not os.path.isabs(parsed_args.dataset_key)) and (not os.path.isfile(parsed_args.dataset_key)):
             parsed_args.dataset_key = \
                 os.path.abspath(os.path.join(parsed_args.script_dir, parsed_args.dataset_key))
-
+    
     # generate dataset hash key if the file exists
-    if 'dataset_key' in parsed_args and parsed_args.dataset_key is not None and os.path.exists(parsed_args.dataset_key):
-        parsed_args.dataset_hash = cu.create_checksum(parsed_args.dataset_key)
-        log.info("Created a dataset hash '%s' from dataset_key '%s'", parsed_args.dataset_hash, parsed_args.dataset_key)
+    try:
+        if os.path.exists(parsed_args.dataset_key):
+            parsed_args.dataset_hash = cu.create_checksum(parsed_args.dataset_key)
+            log.info("Created a dataset hash '%s' from dataset_key '%s'", parsed_args.dataset_hash, parsed_args.dataset_key)
+    except Exception:
+        pass # continue if it doesn't have a 'dataset_key'
 
     # Turn off uncertainty of XGBoost is the model type
     if parsed_args.model_type == 'xgboost':
