@@ -87,6 +87,7 @@ def train_model(input, output, dskey=''):
 
     # specify collection
     logger.debug("model params %s" % str(params))
+    logger.debug(params.__dict__.items())
 
     # Create model pipeline
     model = mp.ModelPipeline(params)
