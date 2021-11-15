@@ -14,4 +14,4 @@ Hyperparameter optimization
 ---------------------------
 Hyperparameter optimization for AMPL model fitting is available to run on SLURM clusters or with `HyperOpt <https://hyperopt.github.io/hyperopt/>`_. (Bayesian Optimization). To run Bayesian Optimization, the following steps can be followed.
 
-See `Hyperparameter optimization <https://github.com/ATOMconsortium/AMPL#hyperparameter-optimization>`_ for more details.
+See `Hyperparameter optimization <https://github.com/ATOMScience-org/AMPL#hyperparameter-optimization>`_ for more details.
