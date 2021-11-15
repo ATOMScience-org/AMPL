@@ -2,7 +2,7 @@ mkdir github
 cd github
 git clone https://github.com/ATOMScience-org/AMPL.git
 cd AMPL
-git checkout deepchem_25
+git checkout master
 cd ..
 
 
