@@ -16,6 +16,7 @@ import deepchem.data.data_loader as dl
 
 from atomsci.ddm.utils import datastore_functions as dsf
 from atomsci.ddm.pipeline import transformations as trans
+from atomsci.ddm.pipeline import parameter_parser as pp
 
 from rdkit import Chem
 from rdkit.Chem import AllChem
@@ -654,6 +655,9 @@ class DynamicFeaturization(Featurization):
             self.featurizer_obj = dc.feat.CircularFingerprint(size=params.ecfp_size, radius=params.ecfp_radius)
         elif self.feat_type == 'graphconv':
             self.featurizer_obj = dc.feat.ConvMolFeaturizer()
+        elif self.feat_type in pp.featurizer_wl:
+            kwargs = pp.extract_featurizer_args(params)
+            self.featurizer_obj = pp.featurizer_wl[self.feat_type](**kwargs)
         #TODO: MoleculeVAEFeaturizer is not working currently. Will be replaced by JT-VAE and cWAE
         # featurizers eventually.
         #elif self.feat_type == 'molvae':

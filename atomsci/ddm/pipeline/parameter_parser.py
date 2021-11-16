@@ -6,9 +6,19 @@ import re
 import logging
 import datetime
 
+import deepchem.models as dcm
+import deepchem.feat as dcf
+import inspect
+
 log = logging.getLogger('ATOM')
 # TODO: mjt, do we need to deal with parameters with options?
 # e.g. ["dk","d","r","s","f","n","dd","sl","y"]
+
+
+model_wl = {'AttentiveFPModel':dcm.AttentiveFPModel, 'GCNModel':dcm.GCNModel}#, dcm.MPNNModel, dcm.GCNModel, dcm.GATModel]
+model_param_prefix = 'dcm'
+featurizer_wl = {'MolGraphConvFeaturizer':dcf.MolGraphConvFeaturizer}
+featurizer_param_prefix = 'dcf'
 
 # Parameters that may take lists of values, usually but not always in the context of a hyperparam search
 
@@ -65,7 +75,21 @@ def to_str(params_obj):
     str_params = separator.join(strobj)
     return str_params
 
+#**********************************************************************************************************
+def extract_params(params, prefix):
+    args = {}
+    for k, v in vars(params).items():
+        if v is None:
+            continue
+        if k.startswith(prefix):
+            args[k[len(prefix)+1:]] = v
+    return args
 
+def extract_model_params(params):
+    return extract_params(params, model_param_prefix)
+
+def extract_featurizer_params(params):
+    return extract_params(params, featurizer_param_prefix)
 
 #**********************************************************************************************************
 def wrapper(*any_arg):
@@ -501,6 +525,7 @@ def get_parser():
         '--model_type', dest='model_type', default=None, type=str,
         help='Type of model to fit (NN, RF, or xgboost). The model_type sets the model subclass in model_wrapper. '
              'Can be input as a comma separated list for hyperparameter search (e.g. \'NN\',\'RF\')')
+    model_type_subpar = parser.add_subparsers(help='Arguments for this model')
     parser.add_argument(
         '--prediction_type', dest='prediction_type', required=False, default='regression',
         choices=['regression', 'classification'],
@@ -522,6 +547,40 @@ def get_parser():
         help='True/False flag for setting verbosity')
     parser.set_defaults(verbose=False)
 
+    # **********************************************************************************************************
+    # model_building_parameters: model type specific
+    for k, model in model_wl.items():
+        spec = inspect.getfullargspec(model)
+        params = spec.args
+        annots = spec.annotations
+        for p in params:
+            argname = f'--{model_param_prefix}_{p}'
+            print(f'adding parameter: {argname}')
+            try:
+                if p in annots:
+                    parser.add_argument(argname, type=annots[p], default=None)
+                else:
+                    parser.add_argument(argname, default=None)
+            except argparse.ArgumentError:
+                pass
+
+    # **********************************************************************************************************
+    # model_building_parameters: featurizer arguments type specific
+    for k, feat in featurizer_wl.items():
+        spec = inspect.getfullargspec(feat)
+        params = spec.args
+        annots = spec.annotations
+        for p in params:
+            argname = f'--{featurizer_param_prefix}_{p}'
+            print(f'adding parameter: {argname}')
+            try:
+                if p in annots:
+                    parser.add_argument(argname, type=annots[p], default=None)
+                else:
+                    parser.add_argument(argname, default=None)
+            except argparse.ArgumentError:
+                pass
+  
     # **********************************************************************************************************
     # model_building_parameters: graphconv
     parser.add_argument(

@@ -25,6 +25,18 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import RandomForestRegressor
 
 try:
+<<<<<<< Updated upstream
+=======
+    import dgl
+    import dgllife
+    import deepchem.models as dcm
+    from deepchem.models import AttentiveFPModel
+    afp_supported = True
+except ImportError:
+    afp_supported = False
+
+try:
+>>>>>>> Stashed changes
     import xgboost as xgb
     xgboost_supported = True
 except ImportError:
@@ -42,6 +54,7 @@ from atomsci.ddm.utils import datastore_functions as dsf
 from atomsci.ddm.utils import llnl_utils
 from atomsci.ddm.pipeline import transformations as trans
 from atomsci.ddm.pipeline import perf_data as perf
+import atomsci.ddm.pipeline.parameter_parser as pp
 
 logging.basicConfig(format='%(asctime)-15s %(message)s')
 
@@ -124,6 +137,13 @@ def create_model_wrapper(params, featurizer, ds_client=None):
             return DCxgboostModelWrapper(params, featurizer, ds_client)
     elif params.model_type == 'hybrid':
         return HybridModelWrapper(params, featurizer, ds_client)
+<<<<<<< Updated upstream
+=======
+    elif params.model_type in pp.model_wl:
+        if not afp_supported:
+            raise Exception("dgl and dgllife packages must be installed to use attentive_fp model.")
+        return DeepChemModelWrapper(params, featurizer, ds_client)
+>>>>>>> Stashed changes
     else:
         raise ValueError("Unknown model_type %s" % params.model_type)
 
@@ -2321,3 +2341,87 @@ class DCxgboostModelWrapper(ForestModelWrapper):
                         }
         model_spec_metadata = dict(xgb_specific=xgb_metadata)
         return model_spec_metadata
+<<<<<<< Updated upstream
+=======
+
+    # ****************************************************************************************
+    def _clean_up_excess_files(self, dest_dir):
+        """
+        Function to clean up extra model files left behind in the training process.
+        Does not apply to xgboost
+        """
+        return
+
+# ****************************************************************************************
+class DeepChemModelWrapper(DCNNModelWrapper):
+    """Implementation of AttentiveFP model from Xiong et al. [1]_. It uses a graph attention model
+    to propagate information from bond and neighboring atom features across a molecule represented as
+    a graph.
+
+    References
+    ----------
+    .. [1] Xiong, Zhaoping et al. "Pushing the Boundaries of Molecular Representation for Drug Discovery
+    with the Graph Attention Mechanism." Journal of Medicinal Chemistry (2019) 
+    doi: 10.1021/acs.jmedchem.0b00959
+
+    Attributes:
+        Set in __init__
+            params (argparse.Namespace): The argparse.Namespace parameter object that contains all parameter information
+            featurization (Featurization object): The featurization object created outside of model_wrapper
+            log (log): The logger
+            output_dir (str): The parent path of the model directory
+            transformers (list): Initialized as an empty list, stores the transformers on the response col
+            transformers_x (list): Initialized as an empty list, stores the transformers on the featurizers
+            model_dir (str): The subdirectory under output_dir that contains the model. Created in setup_model_dirs.
+            best_model_dir (str): The subdirectory under output_dir that contains the best model. Created in setup_model_dirs
+            model: The dc.models.sklearn_models.SklearnModel as specified by the params attribute
+
+        Created in train:
+            data (ModelDataset): contains the dataset, set in pipeline
+            best_epoch (int): Set to 0, not applicable
+            train_perf_data (PerfObjects): Contains the predictions and performance of the training dataset
+            valid_perf_data (PerfObjects): Contains the predictions and performance of the validation dataset
+            train_perfs (dict): A dictionary of predicted values and metrics on the training dataset
+            valid_perfs (dict): A dictionary of predicted values and metrics on the validation dataset
+
+    """
+
+    def _get_feature_counts(featurizer):
+        """
+        Returns the numbers of features per atom and bond of a molecule as a tuple.
+        """
+        dc_featurizer = featurizer.featurizer_obj
+        if not isinstance(dc_featurizer, dc.feat.MolGraphConvFeaturizer):
+            raise Exception("model must be used with mol_graph featurizer.")
+        graph_data = dc_featurizer.featurize('CC')
+        return len(graph_data.node_features), len(graph_data.edge_features)
+
+
+
+    def __init__(self, params, featurizer, ds_client):
+        """Initializes AttentiveFPModelWrapper object. Creates the underlying DeepChem AttentiveFPModel instance.
+
+        Args:
+            params (Namespace object): contains all parameter information.
+
+            featurizer (Featurization): Object managing the featurization of compounds
+            ds_client: datastore client.
+        """
+        super().__init__(params, featurizer, ds_client)
+        self.best_model_dir = os.path.join(self.output_dir, 'best_model')
+        self.model_dir = self.best_model_dir
+        os.makedirs(self.best_model_dir, exist_ok=True)
+
+        n_atom_feat, n_bond_feat = self._get_feature_counts(featurizer)
+        kwargs = pp.extract_model_params(params)
+
+
+
+        #self.model = AttentiveFPModel(n_tasks=self.params.num_model_tasks, 
+        #                              mode=params.prediction_type,
+        #                              number_atom_features=n_atom_feat,
+        #                              number_bond_features=n_bond_feat,
+        #                              n_classes=params.class_number,
+        #                              **kwargs) 
+
+>>>>>>> Stashed changes
