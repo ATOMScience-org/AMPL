@@ -300,7 +300,9 @@ class ModelWrapper(object):
 
             # Transformers are no longer saved as separate datastore objects; they are included in the model tarball
             self.params.transformer_key = os.path.join(self.output_dir, 'transformers.pkl')
-            pickle.dump((self.transformers, self.transformers_x), open(self.params.transformer_key, 'wb'))
+            txfmrpkl=open(self.params.transformer_key, 'wb')
+            pickle.dump((self.transformers, self.transformers_x), txfmrpkl)
+            txfmrpkl.close()
             self.log.info("Wrote transformers to %s" % self.params.transformer_key)
             self.params.transformer_oid = ""
             self.params.transformer_bucket = ""
@@ -320,7 +322,9 @@ class ModelWrapper(object):
         local_path = f"{self.output_dir}/transformers.pkl"
         if os.path.exists(local_path):
             self.log.info(f"Reloading transformers from model tarball {local_path}")
-            self.transformers, self.transformers_x = pickle.load(open(local_path, 'rb'))
+            txfmr=open(local_path, 'rb')
+            self.transformers, self.transformers_x = pickle.load(txfmr)
+            txfmr.close()
         else:
             if self.params.transformer_key is not None:
                 if self.params.save_results:
@@ -331,7 +335,9 @@ class ModelWrapper(object):
                         client = self.ds_client )
                 else:
                     self.log.info(f"Reloading transformers from file {self.params.transformer_key}")
-                    self.transformers, self.transformers_x = pickle.load(open( self.params.transformer_key, 'rb' ))
+                    txfmr=open( self.params.transformer_key, 'rb' )
+                    self.transformers, self.transformers_x = pickle.load(txfmr)
+                    txfmr.close()
             else:
                 # Shouldn't happen
                 raise Exception("Transformers needed to reload model, but no transformer_key specified.")

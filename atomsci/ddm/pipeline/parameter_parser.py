@@ -6,9 +6,17 @@ import re
 import logging
 import datetime
 
+<<<<<<< HEAD
 import deepchem.models as dcm
 import deepchem.feat as dcf
 import inspect
+=======
+
+import os.path
+import atomsci.ddm.utils.checksum_utils as cu
+
+from packaging.version import parse
+>>>>>>> 1.3.0
 
 log = logging.getLogger('ATOM')
 # TODO: mjt, do we need to deal with parameters with options?
@@ -285,7 +293,6 @@ def dict_to_list(inp_dictionary,replace_spaces=False):
         None if inp_dictionary is None
 
     """
-
     #if replace_spaces is true, replaces spaces with replace_spaces_str for os command line calls
     replace_spaces_str = "@"
     if not isinstance(inp_dictionary,dict):
@@ -888,9 +895,9 @@ def get_parser():
         help='Full path to the optional configuration file. The configuration file is a set of parameters'
              ' in .json file format. TODO: Does not send a warning if set concurrently with other parameters.')
     parser.add_argument(
-        '--num_model_tasks', dest='num_model_tasks', type=int, required=False, default=1,
-        help='Number of tasks to run for. 1 means a singletask model, > 1 means a multitask model')
-
+        '--num_model_tasks', dest='num_model_tasks', type=int, required=False,
+        help='DEPRECATED AND IGNORED. This argument is now infered from the response_cols.'
+        ' Number of tasks to run for. 1 means a singletask model, > 1 means a multitask model')
     # **********************************************************************************************************
     # hyperparameters
     parser.add_argument(
@@ -1033,7 +1040,6 @@ def get_parser():
     parser.add_argument(
         '--hp_checkpoint_load', dest='hp_checkpoint_load', required=False, default=None,
         help='binary file to load a checkpoint of a previous HPO trial project, to continue the HPO serach. e.g. --hp_checkpoint_load=/path/to/file/checkpoint.pkl')
-
 
     return parser
 
@@ -1185,10 +1191,29 @@ def postprocess_args(parsed_args):
         if (not parsed_args.dataset_key is None) and (not os.path.isabs(parsed_args.dataset_key)) and (not os.path.isfile(parsed_args.dataset_key)):
             parsed_args.dataset_key = \
                 os.path.abspath(os.path.join(parsed_args.script_dir, parsed_args.dataset_key))
+    
+    # generate dataset hash key if the file exists
+    try:
+        if os.path.exists(parsed_args.dataset_key):
+            parsed_args.dataset_hash = cu.create_checksum(parsed_args.dataset_key)
+            log.info("Created a dataset hash '%s' from dataset_key '%s'", parsed_args.dataset_hash, parsed_args.dataset_key)
+    except Exception:
+        pass # continue if it doesn't have a 'dataset_key'
 
     # Turn off uncertainty of XGBoost is the model type
     if parsed_args.model_type == 'xgboost':
         parsed_args.uncertainty = False
+
+    # set num_model_tasks to equal len(response_cols)
+    # this ignores the current value of num_model_tasks
+    if not parsed_args.num_model_tasks is None:
+        print("num_model_tasks is deprecated and its value is ignored.")
+    if parsed_args.response_cols is None or type(parsed_args.response_cols) == str:
+        parsed_args.num_model_tasks = 1
+    elif type(parsed_args.response_cols) == list:
+        parsed_args.num_model_tasks = len(parsed_args.response_cols)
+    else:
+        raise Exception(f'Unexpected type for response_cols {type(parsed_args.response_cols)}')
 
     return parsed_args
 
