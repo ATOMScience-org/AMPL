@@ -706,6 +706,9 @@ def get_parser():
         '--response_transform_type', dest='response_transform_type', default='normalization',
         help='type of normalization for the response column TODO: Not currently implemented')
     parser.add_argument(
+        '--weight_transform_type', dest='weight_transform_type', choices=['balancing'], default=None,
+        help='type of normalization for the weights')
+    parser.add_argument(
         '--transformer_bucket', dest='transformer_bucket', default=None,
         help='Datastore bucket where the transformer is stored. Specific to LLNL datastore system.')
     parser.add_argument(
