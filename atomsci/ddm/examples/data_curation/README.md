@@ -11,7 +11,7 @@ Users with some effort can easily -need Python programming- plug in other input 
 
 ## Software/hardware requirements: 
 
-* AMPL installation. Please check AMPL GitHub page for installation, https://github.com/ATOMconsortium/AMPL
+* AMPL installation. Please check AMPL GitHub page for installation, https://github.com/ATOMScience-org/AMPL
 * At least one database (ex. DTC or Excape or ChEMBL) input file placed under `DB` (see below for details) folder  
 * Memory requirement tips: ~ 80 GB for three target (CASP9, KCNH2, and CYP3A4) data collected from three sources, ChEMBL, DTC and ExCAPE-DB. The run took ~ 52 minutes (see Test Run section for details) for completion.
 
@@ -52,7 +52,7 @@ DB
 ```
 
 ### Instructions for running the script:
-* Install AMPL. Note AMPL is a conda-based software. Please refer to this link, https://github.com/ATOMconsortium/AMPL#Install, for details. 
+* Install AMPL. Note AMPL is a conda-based software. Please refer to this link, https://github.com/ATOMScience-org/AMPL#Install, for details. 
 * Create a folder to hold MultipleSourceCurn scripts. We call this folder, ```MultiplesourceCurn```.
 * Within **MultiplsesourceCurn** create two sub-folders called **DB** and **sourceCuration**
 * `DB` folder should hold atleast one datasource input file. Users have to download data from the data sources of their interest, such as DTC, ExCAPE-DB. Downloading the whole database files for DTC and ExCAPE-DB is straightforward. Please see the last section of this document for details. Please note that extracting the whole DB from ChEMBL needs some effort. Please check ChEMBL database links shown below for details:
@@ -163,5 +163,5 @@ The two JSON files contain information about binding data for different ChEMBL a
 4	None_CHEMBL113704	CC1C(=O)c2cc(O)ccc2OC1c1ccc(O)cc1	                8.40	4.0	            =	         nM	  CHEMBL658311	  EC50
 ```
 
-If you have any questions or comments, please raise them via AMPL Issues link, https://github.com/ATOMconsortium/AMPL/issues
+If you have any questions or comments, please raise them via AMPL Issues link, https://github.com/ATOMScience-org/AMPL/issues
 

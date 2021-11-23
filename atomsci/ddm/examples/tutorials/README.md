@@ -1,6 +1,6 @@
 ![Test Image 1](Img/ATOM.PNG)
 
-The ATOM Modeling PipeLine (AMPL; https://github.com/ATOMconsortium/AMPL) is an open-source, modular, extensible software pipeline for building and sharing models to advance in silico drug discovery. To see the list of AMPL parameters, please check this link,  https://github.com/ATOMconsortium/AMPL/blob/master/atomsci/ddm/docs/PARAMETERS.md
+The ATOM Modeling PipeLine (AMPL; https://github.com/ATOMScience-org/AMPL) is an open-source, modular, extensible software pipeline for building and sharing models to advance in silico drug discovery. To see the list of AMPL parameters, please check this link,  https://github.com/ATOMScience-org/AMPL/blob/master/atomsci/ddm/docs/PARAMETERS.md
 
 This page contains a collection of AMPL-COLAB tutorial notebooks. 
 
@@ -82,12 +82,12 @@ This notebook also explores AMPL functions for saving and loading prebuild AMPL 
  
 ## AMPL for drug-discovery Workshops
 * ATOM (AMPL)-FNL Workshop-1: (June 05, 2021) <br>
-In this workshop, we will demonstrate how to use Atom Modeling PipeLine (AMPL; https://github.com/ATOMconsortium/AMPL), a new, open-source conda-based software that automates key drug discovery steps. The workshop is part of the NCI Data Science Learning Exchange Hands-on Tutorial series. Click [here](https://github.com/ATOMconsortium/AMPL/blob/master/atomsci/ddm/examples/tutorials/AMPL_FNL_Workshop_06052021.ipynb) to access the notebook. For use with GCP or other pre-installed AMPL environments, click [here](https://github.com/ATOMconsortium/AMPL/blob/master/atomsci/ddm/examples/tutorials/GCP_AMPL_FNL_Workshop_06052021.ipynb).
+In this workshop, we will demonstrate how to use Atom Modeling PipeLine (AMPL; https://github.com/ATOMScience-org/AMPL), a new, open-source conda-based software that automates key drug discovery steps. The workshop is part of the NCI Data Science Learning Exchange Hands-on Tutorial series. Click [here](https://github.com/ATOMScience-org/AMPL/blob/master/atomsci/ddm/examples/tutorials/AMPL_FNL_Workshop_06052021.ipynb) to access the notebook. For use with GCP or other pre-installed AMPL environments, click [here](https://github.com/ATOMScience-org/AMPL/blob/master/atomsci/ddm/examples/tutorials/GCP_AMPL_FNL_Workshop_06052021.ipynb).
 * ATOM(AMPL)-FNL Workshop-2: (Aug 2021)<br>
 The goal of the workshop is to take single target binding assay data collected from three different chemoinformatics data sources (ChEMBL, DTC and ExCAPE-DB) and use AMPL to create a single harmonized Machine-Learning ready data (Aug, 2021)
-    - Notebook1: Click [here](https://github.com/ATOMconsortium/AMPL/blob/master/atomsci/ddm/examples/tutorials/AMPL_FNL_Wrshp2_1.ipynb) to access the notebook. 
-    - Notebook2: Click [here](https://github.com/ATOMconsortium/AMPL/blob/master/atomsci/ddm/examples/tutorials/AMPL_FNL_Wrshp2_2.ipynb) to access the notebook.
-    - Notebook3: Click [here](https://github.com/ATOMconsortium/AMPL/blob/master/atomsci/ddm/examples/tutorials/AMPL_FNL_Wrshp2_3.ipynb) to access the notebook.
+    - Notebook1: Click [here](https://github.com/ATOMScience-org/AMPL/blob/master/atomsci/ddm/examples/tutorials/AMPL_FNL_Wrshp2_1.ipynb) to access the notebook. 
+    - Notebook2: Click [here](https://github.com/ATOMScience-org/AMPL/blob/master/atomsci/ddm/examples/tutorials/AMPL_FNL_Wrshp2_2.ipynb) to access the notebook.
+    - Notebook3: Click [here](https://github.com/ATOMScience-org/AMPL/blob/master/atomsci/ddm/examples/tutorials/AMPL_FNL_Wrshp2_3.ipynb) to access the notebook.
 
 ## Supporting links
 
