@@ -113,7 +113,7 @@ def create_model_wrapper(params, featurizer, ds_client=None):
                              Installatin: \
                              from pip: pip3 install xgboost==0.90.\
                              livermore compute (lc): /usr/mic/bio/anaconda3/bin/pip install xgboost==0.90 --user \
-                             twintron-blue (TTB): /opt/conda/bin/pip install xgboost==0.90 --user/ \ "
+                             twintron-blue (TTB): /opt/conda/bin/pip install xgboost==0.90 --user "
                             )
         elif version.parse(xgb.__version__) < version.parse('0.9'):
             raise Exception(f"xgboost required to be = 0.9 for GPU support. \
