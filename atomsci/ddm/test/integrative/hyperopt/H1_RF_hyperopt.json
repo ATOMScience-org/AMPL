@@ -8,7 +8,7 @@
     "slurm_partition": "norm",
     "slurm_time_limit": "600",
     "prediction_type": "regression",
-    "dataset_key": "test/test_datasets/H1_std.csv",
+    "dataset_key": "/usr/WS1/he6/code/ATOM/AMPL_PR/atomsci/ddm/test/test_datasets/H1_std.csv",
     "id_col": "compound_id",
     "smiles_col": "base_rdkit_smiles",
     "response_cols": "pKi_mean",
@@ -24,6 +24,6 @@
     "rfd": "uniformint|8,512",
     "rff": "uniformint|8,200",
     "result_dir": "./output,./tmp",
-    "script_dir": "/usr/WS1/he6/code/ATOM/AMPL1.2_fork/atomsci/ddm",
-    "python_path": "/g/g19/he6/.conda/envs/dc23/bin/python"
+    "script_dir": "/usr/WS1/he6/code/ATOM/AMPL_PR/atomsci/ddm",
+    "python_path": "/usr/WS1/he6/AMPL_PR_env/bin/python"
 }

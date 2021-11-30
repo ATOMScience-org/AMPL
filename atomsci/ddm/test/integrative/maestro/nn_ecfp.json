@@ -3,7 +3,7 @@
 "collection_name": "test",
 "slurm_partition": "pbatch",
 "search_type": "user_specified",
-"dataset_key": "test/test_datasets/aurka_chembl_base_smiles_union.csv",
+"dataset_key": "../../test_datasets/aurka_chembl_base_smiles_union.csv",
 "datastore": "False",
 "uncertainty": "False",
 "splitter": "scaffold",
