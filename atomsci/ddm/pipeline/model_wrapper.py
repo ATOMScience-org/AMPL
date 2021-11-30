@@ -1273,18 +1273,23 @@ class DCNNModelWrapper(ModelWrapper):
                   # Transform the standard deviations, if we can. This is a bit of a hack, but it works for
                 # NormalizationTransformer, since the standard deviations used to scale the data are
                 # stored in the transformer object.
-                if len(self.transformers) == 1 and (isinstance(self.transformers[0], dc.trans.NormalizationTransformer) or isinstance(self.transformers[0],trans.NormalizationTransformerMissingData)):
+
+                # =-=ksm: The second 'isinstance' shouldn't be necessary since NormalizationTransformerMissingData
+                # is a subclass of dc.trans.NormalizationTransformer.
+                if len(self.transformers) == 1 and (isinstance(self.transformers[0], dc.trans.NormalizationTransformer) 
+                                                 or isinstance(self.transformers[0],trans.NormalizationTransformerMissingData)):
                     y_stds = self.transformers[0].y_stds.reshape((1,ntasks,1))
                     std = std / y_stds
                 pred = dc.trans.undo_transforms(pred, self.transformers)
-        elif self.params.transformers and self.transformers is not None:
-            pred = self.model.predict(dataset, self.transformers)
-            if self.params.prediction_type == 'regression':
-                pred = pred.reshape((pred.shape[0], pred.shape[1], 1))
         else:
-            pred = self.model.predict(dataset, [])
+            txform = [] if (not self.params.transformers or self.transformers is None) else self.transformers
+            pred = self.model.predict(dataset, txform)
             if self.params.prediction_type == 'regression':
-                pred = pred.reshape((pred.shape[0], pred.shape[1], 1))
+                if type(pred) == list and len(pred) == 0:
+                    # DeepChem models return empty list if no valid predictions
+                    pred = np.array([]).reshape((0,0,1))
+                else:
+                    pred = pred.reshape((pred.shape[0], pred.shape[1], 1))
         return pred, std
 
     # ****************************************************************************************
@@ -2248,11 +2253,11 @@ class DCxgboostModelWrapper(ModelWrapper):
                                          scale_pos_weight=1,
                                          base_score=0.5,
                                          random_state=0,
-                                         missing=None,
+                                         missing=np.nan,
                                          importance_type='gain',
                                          n_jobs=-1,
-                                         gpu_id = 0,
-                                         n_gpus = -1,
+                                         gpu_id = -1,
+                                         n_gpus = 0,
                                          max_bin = 16,
 #                                          tree_method = 'gpu_hist',
                                          seed=0
@@ -2276,10 +2281,10 @@ class DCxgboostModelWrapper(ModelWrapper):
                                           base_score=0.5,
                                           random_state=0,
                                           importance_type='gain',
-                                          missing=None,
-                                          gpu_id = 0,
+                                          missing=np.nan,
+                                          gpu_id = -1,
                                           n_jobs=-1,                                          
-                                          n_gpus = -1,
+                                          n_gpus = 0,
                                           max_bin = 16,
 #                                           tree_method = 'gpu_hist',
                                           seed=0
@@ -2387,11 +2392,11 @@ class DCxgboostModelWrapper(ModelWrapper):
                                          scale_pos_weight=1,
                                          base_score=0.5,
                                          random_state=0,
-                                         missing=None,
+                                         missing=np.nan,
                                          importance_type='gain',
                                          n_jobs=-1,
-                                         gpu_id = 0,
-                                         n_gpus = -1,
+                                         gpu_id = -1,
+                                         n_gpus = 0,
                                          max_bin = 16,
                                          seed=0
 #                                          tree_method = 'gpu_hist'
@@ -2415,10 +2420,10 @@ class DCxgboostModelWrapper(ModelWrapper):
                                           base_score=0.5,
                                           random_state=0,
                                           importance_type='gain',
-                                          missing=None,
-                                          gpu_id = 0,
+                                          missing=np.nan,
+                                          gpu_id = -1,
                                           n_jobs=-1,                                          
-                                          n_gpus = -1,
+                                          n_gpus = 0,
                                           max_bin = 16,
                                           seed=0
 #                                           tree_method = 'gpu_hist',
