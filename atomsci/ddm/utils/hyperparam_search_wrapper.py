@@ -64,7 +64,7 @@ def run_command(shell_script, python_path, script_dir, params):
     # It's necessary to make this call here becausae it makes sense for 
     # relative paths to be calucated relative to the .json file, not to 
     # wherever maestro will eventually run the model_pipeline script
-    parse.make_dataset_key_absolute(new_params, force=True)
+    parse.make_dataset_key_absolute(new_params)
     params_str = parse.to_str(new_params)
     slurm_command = 'sbatch {0} {1} {2} "{3}"'.format(shell_script, python_path, script_dir, params_str)
     print(slurm_command)
@@ -97,7 +97,7 @@ def gen_maestro_command(python_path, script_dir, params):
     # It's necessary to make this call here becausae it makes sense for 
     # relative paths to be calucated relative to the .json file, not to 
     # wherever maestro will eventually run the model_pipeline script
-    parse.make_dataset_key_absolute(new_params, force=True)
+    parse.make_dataset_key_absolute(new_params)
     params_str = parse.to_str(new_params)
     slurm_command = '{0} {1}/pipeline/model_pipeline.py {2}'.format(python_path, script_dir, params_str)
 

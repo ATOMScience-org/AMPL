@@ -1137,21 +1137,18 @@ def postprocess_args(parsed_args):
 
 
 #***********************************************************************************************************
-def make_dataset_key_absolute(parsed_args, force=False):
+def make_dataset_key_absolute(parsed_args):
     """ Converts dataset_key to an aboslute path
 
     Args:
         params (argparse.Namespace): Raw parsed arguments.
     """
-    # check to see if result_dir and dataset_key are relative paths
-    # if so, make them relative to current working directory
-    # We may also want to check if the dataset file in its relative path exists, if it exists, there is no need to add the script_dir. So it is compatible with the 1.0.1 code.
+    # check to see if dataset_key is a relative path
+    # if so, make it relative to current working directory
     # update to allow for datastore
     if not parsed_args.datastore:
-        if (not parsed_args.dataset_key is None) and (not os.path.isabs(parsed_args.dataset_key)) \
-            and ((not os.path.isfile(parsed_args.dataset_key)) or force):
-            parsed_args.dataset_key = \
-                os.path.abspath(parsed_args.dataset_key)
+        if (not parsed_args.dataset_key is None) and (not os.path.isabs(parsed_args.dataset_key)):
+            parsed_args.dataset_key = os.path.abspath(parsed_args.dataset_key)
 
     return parsed_args
 
