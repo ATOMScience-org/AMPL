@@ -10,7 +10,7 @@ A preprint of the paper is available at [J Chem Inf Model](https://pubmed.ncbi.n
 To run the models:
 
 - Clone the AMPL git repository and install the software, as described 
-in [the README file for AMPL](https://github.com/ATOMconsortium/AMPL/blob/master/README.md).
+in [the README file for AMPL](https://github.com/ATOMScience-org/AMPL/blob/master/README.md).
 - Prepare your input data file. It should be in CSV format with a row of column headers at the top, and should (at minimum)
 contain a column of SMILES strings for the compounds you want to run predictions on. You may optionally include the following columns:
   - A column of unique compound IDs; if none is provided, one will be generated for you. 

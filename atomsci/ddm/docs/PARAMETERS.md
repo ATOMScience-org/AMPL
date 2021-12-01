@@ -926,7 +926,7 @@ The AMPL pipeline contains many parameters and options to fit models and make pr
   
 |||
 |-|-|
-|*Description:*|Learning rate searching domain in Bayesian Optimization. The format is `scheme\|parameters`, e.g. `choice\|0.0001,0.0005,0.0002,0.001`. See https://github.com/ATOMconsortium/AMPL#hyperparameter-optimization|
+|*Description:*|Learning rate searching domain in Bayesian Optimization. The format is `scheme\|parameters`, e.g. `choice\|0.0001,0.0005,0.0002,0.001`. See https://github.com/ATOMScience-org/AMPL#hyperparameter-optimization|
 |*Default:*|None|
 
 - **dp**  
