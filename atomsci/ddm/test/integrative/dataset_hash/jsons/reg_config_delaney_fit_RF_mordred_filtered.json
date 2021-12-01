@@ -9,7 +9,7 @@
     "comment": "Input file",
     "comment": "----------------------------------------",
     "comment": "Note: dataset_key must be a path/file name: E.G. ./dataset.csv",
-    "dataset_key": "test/test_datasets/delaney-processed_curated_fit.csv",
+    "dataset_key": "../../test_datasets/delaney-processed_curated_fit.csv",
     "id_col": "Compound ID",
     "smiles_col": "smiles",
     "response_cols": "measured log solubility in mols per litre",

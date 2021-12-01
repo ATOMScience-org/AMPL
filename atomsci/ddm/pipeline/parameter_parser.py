@@ -166,17 +166,9 @@ def parse_config_file(config_file_path):
             flat_dict[vals] = flat_dict.pop(key)
 
     #dictionary comprehension that retains only the keys that are in the accepted list of parameters
-    if 'hyperparam' in orig_keys and flat_dict['hyperparam'] == True:
-        default = list_defaults(hyperparam=True)
-    else:
-        default = list_defaults()
-    keep = list(vars(default).keys())
-    newdict = {k: flat_dict[k] for k in keep if k in flat_dict}
+    hyperparam = 'hyperparam' in orig_keys and flat_dict['hyperparam'] == True
+    newdict = remove_unrecognized_arguments(flat_dict, hyperparam)
 
-    # Writes a warning for any arguments that are not in the default list of parameters
-    extra_keys = [x for x in list(flat_dict.keys()) if x not in newdict.keys()]
-    if len(extra_keys)>0:
-        log.warning(str(extra_keys) + " are not part of the accepted list of parameters and will be ignored")
     newdict['config_file'] = config_file_path
     return dict_to_list(newdict)
 
@@ -239,14 +231,7 @@ def parse_namespace(namespace_params=None):
             flat_dict[vals] = flat_dict.pop(key)
 
     #dictionary comprehension that retains only the keys that are in the accepted list of parameters
-    default = list_defaults()
-    keep = list(vars(default).keys())
-    newdict = {k: flat_dict[k] for k in keep if k in flat_dict}
-
-    # Writes a warning for any arguments that are not in the default list of parameters
-    extra_keys = [x for x in list(flat_dict.keys()) if x not in newdict.keys()]
-    if len(extra_keys)>0:
-        log.warning(str(extra_keys) + " are not part of the accepted list of parameters and will be ignored")
+    newdict = remove_unrecognized_arguments(flat_dict)
 
     return dict_to_list(newdict)
 
@@ -1122,15 +1107,9 @@ def postprocess_args(parsed_args):
                 raise Exception("layer_sizes, dropouts, weight_init_stddevs and bias_init_consts arguments must be the "
                                 "same length")
 
-    # check to see if result_dir and dataset_key are relative paths
-    # if so, make them relative to script_dir
-    # We may also want to check if the dataset file in its relative path exists, if it exists, there is no need to add the script_dir. So it is compatible with the 1.0.1 code.
-    # update to allow for datastore
-    if not parsed_args.datastore:
-        if (not parsed_args.dataset_key is None) and (not os.path.isabs(parsed_args.dataset_key)) and (not os.path.isfile(parsed_args.dataset_key)):
-            parsed_args.dataset_key = \
-                os.path.abspath(os.path.join(parsed_args.script_dir, parsed_args.dataset_key))
-    
+    # Converts dataset_key to an aboslute path
+    make_dataset_key_absolute(parsed_args)
+
     # generate dataset hash key if the file exists
     try:
         if os.path.exists(parsed_args.dataset_key):
@@ -1153,6 +1132,23 @@ def postprocess_args(parsed_args):
         parsed_args.num_model_tasks = len(parsed_args.response_cols)
     else:
         raise Exception(f'Unexpected type for response_cols {type(parsed_args.response_cols)}')
+
+    return parsed_args
+
+
+#***********************************************************************************************************
+def make_dataset_key_absolute(parsed_args):
+    """ Converts dataset_key to an aboslute path
+
+    Args:
+        params (argparse.Namespace): Raw parsed arguments.
+    """
+    # check to see if dataset_key is a relative path
+    # if so, make it relative to current working directory
+    # update to allow for datastore
+    if not parsed_args.datastore:
+        if (not parsed_args.dataset_key is None) and (not os.path.isabs(parsed_args.dataset_key)):
+            parsed_args.dataset_key = os.path.abspath(parsed_args.dataset_key)
 
     return parsed_args
 
@@ -1180,6 +1176,32 @@ def prune_defaults(params, keep_params={}):
     return new_dict
 
 #***********************************************************************************************************
+
+def remove_unrecognized_arguments(params, hyperparam=False):
+    """ Removes arguments not recognized by argument parser
+
+    Can be used to clean inputs to wrapper function or model_pipeline. Used heavily in hyperparam_search_wrapper
+
+    Args:
+        params (Namespace or dict): params to filter
+
+    Return:
+        dict of parameters
+    """
+    if not type(params) == dict:
+        params = vars(params)
+
+    #dictionary comprehension that retains only the keys that are in the accepted list of parameters
+    default = list_defaults(hyperparam)
+    keep = list(vars(default).keys())
+    newdict = {k: params[k] for k in keep if k in params}
+
+    # Writes a warning for any arguments that are not in the default list of parameters
+    extra_keys = [x for x in list(params.keys()) if x not in newdict.keys()]
+    if len(extra_keys)>0:
+        log.warning(str(extra_keys) + " are not part of the accepted list of parameters and will be ignored")
+
+    return newdict
 
 def main(argument):
     """Entry point when script is run from a shell"""

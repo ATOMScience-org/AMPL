@@ -39,7 +39,7 @@ The AMPL pipeline contains many parameters and options to fit models and make pr
   
 |||
 |-|-|
-|*Description:*|Datastore key (LLNL system) or file path for dataset. Paths are relative to script\_dir.|
+|*Description:*|Datastore key (LLNL system) or file path for dataset.|
   
 - **dataset\_name**  
   
