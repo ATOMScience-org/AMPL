@@ -302,6 +302,8 @@ def test_load_presplit_dataset():
     test_list.append(valid_attr.equals(orig_valid_attr))
     test_list.append((dataset_obj_from_file.test_dset.y == dataset_obj_from_file2.test_dset.y).all())
     test_list.append(dataset_obj_from_file.test_attr.equals(dataset_obj_from_file2.test_attr))
+    #pdb.set_trace()
+
     assert all(test_list)
     
 
@@ -373,13 +375,14 @@ def test_get_split_metadata():
 
     out_dict = dataset_obj_from_file.get_split_metadata()
     test_list = []
-    test_list.append(out_dict["Splitting"]["split_strategy"] == dataset_obj_from_file.params.split_strategy)
-    test_list.append(out_dict["Splitting"]["splitter"] == dataset_obj_from_file.params.splitter)
+    test_list.append(out_dict["split_strategy"] == dataset_obj_from_file.params.split_strategy)
+    test_list.append(out_dict["splitter"] == dataset_obj_from_file.params.splitter)
     # TODO: num_folds does not match. Need to identify the difference in num_folds.
     # test_list.append(out_dict["Splitting"]["num_folds"] == dataset_obj_from_file.splitting.num_folds)
-    test_list.append(out_dict["Splitting"]["split_valid_frac"] == dataset_obj_from_file.params.split_valid_frac)
-    test_list.append(out_dict["Splitting"]["split_test_frac"] == dataset_obj_from_file.params.split_test_frac)
-    test_list.append(out_dict["Splitting"]["split_uuid"] == dataset_obj_from_file.split_uuid)
+    test_list.append(out_dict["split_valid_frac"] == dataset_obj_from_file.params.split_valid_frac)
+    test_list.append(out_dict["split_test_frac"] == dataset_obj_from_file.params.split_test_frac)
+    test_list.append(out_dict["split_uuid"] == dataset_obj_from_file.split_uuid)
+   
     assert all(test_list)
     
     
