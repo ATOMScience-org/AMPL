@@ -7,6 +7,8 @@ import os
 
 from IPython.display import SVG, HTML
 from base64 import b64encode
+import warnings
+
 from rdkit import Chem
 from rdkit import DataStructs
 from rdkit.Chem import AllChem
@@ -151,12 +153,12 @@ def mol_to_html(mol, name, type='svg', directory='rdkit_svg', embed=False, width
     elif type.lower() == 'svg':
         mol_to_svg(mol, img_file, size=(width,height))
     if embed:
-        print("Warning: this will result in large data structures if you have a lot of molecules.")
+        warnings.warn("Warning: embed=True will result in large data structures if you have a lot of molecules.")
         img = open(img_file, 'rb').read()
         data_url = f'data:image/svg+xml;base64,' + b64encode(img).decode()
         return f"<img src='{data_url}' style='width:{width}px;'>"
     else:
-        return f"<img src='{data_url}' style='width:{width}px;'>"
+        return f"<img src='{img_file}' style='width:{width}px;'>"
 
 def mol_to_pil(mol, size=(400, 200)):
     """
