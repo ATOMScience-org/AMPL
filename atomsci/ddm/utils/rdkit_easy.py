@@ -6,7 +6,7 @@ Utilities for clustering and visualizing compound structures using RDKit.
 import os
 
 from IPython.display import SVG, HTML
-
+from base64 import b64encode
 from rdkit import Chem
 from rdkit import DataStructs
 from rdkit.Chem import AllChem
@@ -121,7 +121,7 @@ def cluster_fingerprints(fps, cutoff=0.2):
     return cs
 
 
-def mol_to_html(mol, name, type='svg', directory='rdkit_svg', width=400, height=200):
+def mol_to_html(mol, name, type='svg', directory='rdkit_svg', embed=False, width=400, height=200):
     """
     Creates an image file displaying the given molecule's 2D structure, and generates an HTML
     tag for it.
@@ -150,8 +150,13 @@ def mol_to_html(mol, name, type='svg', directory='rdkit_svg', width=400, height=
         mol_to_png(mol, img_file, size=(width,height))
     elif type.lower() == 'svg':
         mol_to_svg(mol, img_file, size=(width,height))
-    return '<img src="{0}/{1}" style="width:{2}px;">'.format(directory, name, width)
-
+    if embed:
+        print("Warning: this will result in large data structures if you have a lot of molecules.")
+        img = open(img_file, 'rb').read()
+        data_url = f'data:image/svg+xml;base64,' + b64encode(img).decode()
+        return f"<img src='{data_url}' style='width:{width}px;'>"
+    else:
+        return f"<img src='{data_url}' style='width:{width}px;'>"
 
 def mol_to_pil(mol, size=(400, 200)):
     """
@@ -219,7 +224,6 @@ def mol_to_svg(mol, img_file, size=(400,200)):
     svg = svg.replace('xmlns:svg','xmlns')
     with open(img_file, 'w') as img_out:
         img_out.write(svg)
-
 
 def show_df(df):
     """
