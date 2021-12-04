@@ -257,7 +257,7 @@ def save_svg(mol, name, size=(400,200)):
 
     """
     svg = mol_to_svg(mol, size)
-    with open(img_file, 'w') as img_out:
+    with open(name, 'w') as img_out:
         img_out.write(svg)
 
 
