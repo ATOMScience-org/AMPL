@@ -198,6 +198,12 @@ def test_default_params_command():
     params = parse.wrapper(required_inputs)
     defaults = default_parameters()
     assert params == defaults
+    
+
+def test_default_params_command_with_dataset_hash():
+    params = parse.wrapper(currentdir + '/../integrative/hybrid/H1_hybrid.json')
+    # a valid dataset hash should be generated after the parse.wrapper call
+    assert params.dataset_hash != ''
 
 """
 #test for ensuring system exits on required command

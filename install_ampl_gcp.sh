@@ -2,7 +2,7 @@ eval "$(command conda 'shell.bash' 'hook' 2> /dev/null)"
 
 mkdir github_repos
 cd github_repos
-git clone https://github.com/ATOMconsortium/AMPL.git
+git clone https://github.com/ATOMScience-org/AMPL.git
 cd AMPL
 cd conda
 conda create -y -n atomsci --file conda_package_list.txt

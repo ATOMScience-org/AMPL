@@ -2,6 +2,7 @@
 
 from maestrowf.datastructures.core import ParameterGenerator
 from atomsci.ddm.utils import hyperparam_search_wrapper as hsw
+import os
 
 #---------------------------------------------------------------------
 def get_custom_generator(env, **kwargs):

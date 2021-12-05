@@ -7,12 +7,31 @@ import os
 import time
 import pandas as pd
 
+import tempfile
+import tarfile
+import json
+
 import atomsci.ddm.pipeline.parameter_parser as parse
 import atomsci.ddm.pipeline.compare_models as cm
+
+def init_data():
+    '''
+    Copy files necessary for running tests
+    '''
+    if not os.path.exists('data'):
+        os.makedirs('data')
+
+    shutil.copyfile('../../test_datasets/H1_std.csv', 'data/H1_std.csv')
+    shutil.copyfile('../../test_datasets/aurka_chembl_base_smiles_union.csv', 
+        'data/aurka_chembl_base_smiles_union.csv')
 
 def clean():
     """
     Clean test files
+
+    Args:
+        split_uuids list(str): Remove split files in this list
+
     """
     if "shortlist_test" in os.listdir():
         shutil.rmtree("shortlist_test")
@@ -28,17 +47,9 @@ def clean():
     
     if "test_shortlist_with_uuids.csv" in os.listdir():
         os.remove("test_shortlist_with_uuids.csv")
-    
-    keep_files = ['H1_std.csv',
-    'H1_std_train_valid_test_scaffold_002251a2-83f8-4511-acf5-e8bbc5f86677.csv',
-    'aurka_chembl_base_smiles_union.csv',
-    'aurka_chembl_base_smiles_union_train_valid_test_scaffold_test-split.csv',]
-    
-    for file in os.listdir(os.path.abspath('../../test_datasets/')):
-        if os.path.isdir(os.path.join('../../test_datasets', file)):
-            continue
-        elif file not in keep_files:
-            os.remove(os.path.join('../../test_datasets', file))
+
+    if "data" in os.listdir():
+        shutil.rmtree("data")
 
 def wait_to_finish(split_json, search_json, max_time=1200):
     """ Run hyperparam search and return pref_df
@@ -93,7 +104,6 @@ def wait_to_finish(split_json, search_json, max_time=1200):
             print(shortlist_path)
             shortlist_df = pd.read_csv(shortlist_path)
             print(script_dir)
-            shortlist_df.dataset_key = script_dir + '/' + shortlist_df.dataset_key
             shortlist_df.to_csv(shortlist_path, index=False)
             num_found = num_jobs+1
         except:
@@ -163,15 +173,40 @@ def test():
     # -----
     clean()
 
+    # Init Data
+    # -----
+    init_data()
+
     # Run shortlist hyperparam search
     # ------------
-    result_df = wait_to_finish("test_shortlist_split_config.json", "test_shortlist_RF-NN-XG_hyperconfig.json", max_time=-1)
+    result_df = wait_to_finish("test_shortlist_split_config.json", 
+        "test_shortlist_RF-NN-XG_hyperconfig.json", max_time=-1)
     assert not result_df is None # Timed out
-#     assert max(result_df['test_r2_score'].values) > 0.6 # should do at least this well. I saw values like 0.687
 
     # Clean
     # -----
     clean()
+
+def extract_split_uuid(tar_file):
+    """
+    Given a tar file, return split uuid used to train the model.
+    """
+
+    tmpdir = tempfile.mkdtemp()
+
+    model_fp = tarfile.open(tar_file, mode='r:gz')
+    model_fp.extractall(path=tmpdir)
+    model_fp.close()
+
+    # make metadata path
+    metadata_path = os.path.join(tmpdir, 'model_metadata.json')
+
+    with open(metadata_path, 'r') as json_file:
+        json_dat = json.load(json_file)
+
+    split_uuid = json_dat['splitting_parameters']['split_uuid']
+
+    return split_uuid
 
 if __name__ == '__main__':
     test()

@@ -113,7 +113,7 @@ def create_model_wrapper(params, featurizer, ds_client=None):
                              Installatin: \
                              from pip: pip3 install xgboost==0.90.\
                              livermore compute (lc): /usr/mic/bio/anaconda3/bin/pip install xgboost==0.90 --user \
-                             twintron-blue (TTB): /opt/conda/bin/pip install xgboost==0.90 --user/ \ "
+                             twintron-blue (TTB): /opt/conda/bin/pip install xgboost==0.90 --user "
                             )
         elif version.parse(xgb.__version__) < version.parse('0.9'):
             raise Exception(f"xgboost required to be = 0.9 for GPU support. \
@@ -264,7 +264,8 @@ class ModelWrapper(object):
 
             # Transformers are no longer saved as separate datastore objects; they are included in the model tarball
             self.params.transformer_key = os.path.join(self.output_dir, 'transformers.pkl')
-            pickle.dump((self.transformers, self.transformers_x, self.transformers_w), open(self.params.transformer_key, 'wb'))
+            with open(self.params.transformer_key, 'wb') as txfmrpkl:
+                pickle.dump((self.transformers, self.transformers_x, self.transformers_w), txfmrpkl)
             self.log.info("Wrote transformers to %s" % self.params.transformer_key)
             self.params.transformer_oid = ""
             self.params.transformer_bucket = ""
@@ -284,7 +285,8 @@ class ModelWrapper(object):
         local_path = f"{self.output_dir}/transformers.pkl"
         if os.path.exists(local_path):
             self.log.info(f"Reloading transformers from model tarball {local_path}")
-            transformers_tuple = pickle.load(open(local_path, 'rb'))
+            with open(local_path, 'rb') as txfmr:
+                transformers_tuple = pickle.load(txfmr)
         else:
             if self.params.transformer_key is not None:
                 if self.params.save_results:
@@ -295,7 +297,8 @@ class ModelWrapper(object):
                         client = self.ds_client )
                 else:
                     self.log.info(f"Reloading transformers from file {self.params.transformer_key}")
-                    transformers_tuple = pickle.load(open( self.params.transformer_key, 'rb' ))
+                    with open(self.params.transformer_key, 'rb') as txfmr:
+                        transformers_tuple = pickle.load(txfmr)
             else:
                 # Shouldn't happen
                 raise Exception("Transformers needed to reload model, but no transformer_key specified.")
@@ -1290,18 +1293,23 @@ class DCNNModelWrapper(ModelWrapper):
                   # Transform the standard deviations, if we can. This is a bit of a hack, but it works for
                 # NormalizationTransformer, since the standard deviations used to scale the data are
                 # stored in the transformer object.
-                if len(self.transformers) == 1 and (isinstance(self.transformers[0], dc.trans.NormalizationTransformer) or isinstance(self.transformers[0],trans.NormalizationTransformerMissingData)):
+
+                # =-=ksm: The second 'isinstance' shouldn't be necessary since NormalizationTransformerMissingData
+                # is a subclass of dc.trans.NormalizationTransformer.
+                if len(self.transformers) == 1 and (isinstance(self.transformers[0], dc.trans.NormalizationTransformer) 
+                                                 or isinstance(self.transformers[0],trans.NormalizationTransformerMissingData)):
                     y_stds = self.transformers[0].y_stds.reshape((1,ntasks,1))
                     std = std / y_stds
                 pred = dc.trans.undo_transforms(pred, self.transformers)
-        elif self.params.transformers and self.transformers is not None:
-            pred = self.model.predict(dataset, self.transformers)
-            if self.params.prediction_type == 'regression':
-                pred = pred.reshape((pred.shape[0], pred.shape[1], 1))
         else:
-            pred = self.model.predict(dataset, [])
+            txform = [] if (not self.params.transformers or self.transformers is None) else self.transformers
+            pred = self.model.predict(dataset, txform)
             if self.params.prediction_type == 'regression':
-                pred = pred.reshape((pred.shape[0], pred.shape[1], 1))
+                if type(pred) == list and len(pred) == 0:
+                    # DeepChem models return empty list if no valid predictions
+                    pred = np.array([]).reshape((0,0,1))
+                else:
+                    pred = pred.reshape((pred.shape[0], pred.shape[1], 1))
         return pred, std
 
     # ****************************************************************************************
@@ -2271,11 +2279,11 @@ class DCxgboostModelWrapper(ModelWrapper):
                                          scale_pos_weight=1,
                                          base_score=0.5,
                                          random_state=0,
-                                         missing=None,
+                                         missing=np.nan,
                                          importance_type='gain',
                                          n_jobs=-1,
-                                         gpu_id = 0,
-                                         n_gpus = -1,
+                                         gpu_id = -1,
+                                         n_gpus = 0,
                                          max_bin = 16,
 #                                          tree_method = 'gpu_hist',
                                          seed=0
@@ -2299,10 +2307,10 @@ class DCxgboostModelWrapper(ModelWrapper):
                                           base_score=0.5,
                                           random_state=0,
                                           importance_type='gain',
-                                          missing=None,
-                                          gpu_id = 0,
+                                          missing=np.nan,
+                                          gpu_id = -1,
                                           n_jobs=-1,                                          
-                                          n_gpus = -1,
+                                          n_gpus = 0,
                                           max_bin = 16,
 #                                           tree_method = 'gpu_hist',
                                           seed=0
@@ -2410,11 +2418,11 @@ class DCxgboostModelWrapper(ModelWrapper):
                                          scale_pos_weight=1,
                                          base_score=0.5,
                                          random_state=0,
-                                         missing=None,
+                                         missing=np.nan,
                                          importance_type='gain',
                                          n_jobs=-1,
-                                         gpu_id = 0,
-                                         n_gpus = -1,
+                                         gpu_id = -1,
+                                         n_gpus = 0,
                                          max_bin = 16,
                                          seed=0
 #                                          tree_method = 'gpu_hist'
@@ -2438,10 +2446,10 @@ class DCxgboostModelWrapper(ModelWrapper):
                                           base_score=0.5,
                                           random_state=0,
                                           importance_type='gain',
-                                          missing=None,
-                                          gpu_id = 0,
+                                          missing=np.nan,
+                                          gpu_id = -1,
                                           n_jobs=-1,                                          
-                                          n_gpus = -1,
+                                          n_gpus = 0,
                                           max_bin = 16,
                                           seed=0
 #                                           tree_method = 'gpu_hist',

@@ -8,6 +8,7 @@ Author: Amanda Minnich
 
 # from __future__ import unicode_literals
 
+import argparse
 import collections
 import os, os.path
 import sys
@@ -38,6 +39,7 @@ import socket
 import traceback
 import copy
 import pickle
+import pdb
 
 
 def run_command(shell_script, python_path, script_dir, params):
@@ -57,7 +59,13 @@ def run_command(shell_script, python_path, script_dir, params):
         None
 
     """
-    params_str = parse.to_str(params)
+    # dataset_hash sneaks into params.
+    new_params = argparse.Namespace(**parse.remove_unrecognized_arguments(params))
+    # It's necessary to make this call here becausae it makes sense for 
+    # relative paths to be calucated relative to the .json file, not to 
+    # wherever maestro will eventually run the model_pipeline script
+    parse.make_dataset_key_absolute(new_params)
+    params_str = parse.to_str(new_params)
     slurm_command = 'sbatch {0} {1} {2} "{3}"'.format(shell_script, python_path, script_dir, params_str)
     print(slurm_command)
     os.system(slurm_command)
@@ -65,6 +73,11 @@ def run_command(shell_script, python_path, script_dir, params):
 def gen_maestro_command(python_path, script_dir, params):
     """
     Generates a string that can be fed into a command line.
+
+    Side Effects:
+        Dataset key will be converted to an absolute path before
+            returned. It's difficult to predict the working directory
+            used when maestro runs the script.
 
     Args:
         shell_script: Name of shell script to run
@@ -79,7 +92,13 @@ def gen_maestro_command(python_path, script_dir, params):
         str: Formatted command in the form of a string
 
     """
-    params_str = parse.to_str(params)
+    # Converts dataset_key to an aboslute path
+    new_params = argparse.Namespace(**parse.remove_unrecognized_arguments(params))
+    # It's necessary to make this call here becausae it makes sense for 
+    # relative paths to be calucated relative to the .json file, not to 
+    # wherever maestro will eventually run the model_pipeline script
+    parse.make_dataset_key_absolute(new_params)
+    params_str = parse.to_str(new_params)
     slurm_command = '{0} {1}/pipeline/model_pipeline.py {2}'.format(python_path, script_dir, params_str)
 
     return slurm_command
@@ -1016,15 +1035,16 @@ class HyperparameterSearch(object):
         Returns:
             None
         """
-        for assay_params in job_list:
-            i = int(run_cmd('squeue | grep $(whoami) | wc -l').decode("utf-8"))
-            while i >= self.params.max_jobs:
-                print("%d jobs in queue, sleeping" % i)
-                time.sleep(retry_time)
+        for assay_params in job_list: 
+            if len(self.filter_jobs([assay_params]))==1:
                 i = int(run_cmd('squeue | grep $(whoami) | wc -l').decode("utf-8"))
-            self.log.info(assay_params)
-            self.out_file.write(str(assay_params))
-            run_command(self.shell_script, self.params.python_path, self.params.script_dir, assay_params)
+                while i >= self.params.max_jobs:
+                    print("%d jobs in queue, sleeping" % i)
+                    time.sleep(retry_time)
+                    i = int(run_cmd('squeue | grep $(whoami) | wc -l').decode("utf-8"))
+                self.log.info(assay_params)
+                self.out_file.write(str(assay_params))
+                run_command(self.shell_script, self.params.python_path, self.params.script_dir, assay_params)
 
     def already_run(self, assay_params, retry_time=10):
         """
@@ -1048,7 +1068,7 @@ class HyperparameterSearch(object):
         i = 0
         while retry:
             try:
-                print("Checking model tracker DB for existing model with parameter combo.")
+                print(f"Checking model tracker DB for existing model with parameter combo in {assay_params['collection_name']} collection.")
                 models = list(trkr.get_full_metadata(filter_dict, collection_name=assay_params['collection_name']))
                 retry = False
             except Exception as e:
@@ -1103,8 +1123,8 @@ class HyperparameterSearch(object):
         self.generate_assay_list()
         print("build_ jobs")
         job_list = self.build_jobs()
-        print("filter redundant jobs")
-        job_list = self.filter_jobs(job_list)
+#         print("filter redundant jobs")
+#         job_list = self.filter_jobs(job_list)
 
         return job_list
 
