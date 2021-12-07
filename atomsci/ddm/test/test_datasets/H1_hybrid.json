@@ -1,0 +1,22 @@
+{
+    "system": "LC",
+    "datastore": "False",
+    "save_results": "False",
+    "data_owner": "username",
+    "prediction_type": "regression",
+    "dataset_key": "../test_datasets/H1_hybrid.csv",
+    "id_col": "compound_id",
+    "smiles_col": "rdkit_smiles",
+    "response_cols": "activity,conc",
+    "split_uuid": "c63c6d89-8832-4434-b27a-17213bd6ef8f",
+    "previously_split": "True",
+    "verbose": "True",
+    "transformers": "True",
+    "model_type": "hybrid",
+    "featurizer": "computed_descriptors",
+    "descriptor_type": "moe",
+    "result_dir": "./output",
+    "num_model_tasks": 2,
+    "ki_convert_ratio": 1.7241379310344829,
+    "is_ki": "True"
+}

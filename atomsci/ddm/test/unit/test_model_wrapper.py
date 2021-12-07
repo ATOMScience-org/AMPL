@@ -320,12 +320,10 @@ def test_train_NN_graphconv_scaffold_inputs():
     # checking that parameters are properly passed to the deepchem model object
     test1.append(isinstance(mp.model_wrapper.model, GraphConvModel))
     test1.append(mp.model_wrapper.model.model_dir == mp.model_wrapper.model_dir)
-    pdb.set_trace()
-    test1.append(mp.model_wrapper.model.model.graph_convs.__eq__([100,100]))
-    test1.append(mp.model_wrapper.model.model.dropouts.__eq__([0.3,0.3,0.1]))
+    test1.append([i.out_channel for i in mp.model_wrapper.model.model.graph_convs]== [100,100])
+    test1.append([i.rate for i in mp.model_wrapper.model.model.dropouts] == [0.3,0.3,0.1])
     test1.append(mp.model_wrapper.model.mode == 'regression')
-   
-    test1.append(mp.model_wrapper.model.model.dense == 10)
+    test1.append(mp.model_wrapper.model.model.dense.units == 10)
     assert all(test1)
     
     #***********************************************************************************
