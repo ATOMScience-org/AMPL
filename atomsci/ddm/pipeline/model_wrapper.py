@@ -126,7 +126,7 @@ def create_model_wrapper(params, featurizer, ds_client=None):
                              Installatin: \
                              from pip: pip3 install xgboost==0.90.\
                              livermore compute (lc): /usr/mic/bio/anaconda3/bin/pip install xgboost==0.90 --user \
-                             twintron-blue (TTB): /opt/conda/bin/pip install xgboost==0.90 --user/ \ "
+                             twintron-blue (TTB): /opt/conda/bin/pip install xgboost==0.90 --user "
                             )
         elif version.parse(xgb.__version__) < version.parse('0.9'):
             raise Exception(f"xgboost required to be = 0.9 for GPU support. \
@@ -1328,18 +1328,23 @@ class DCNNModelWrapper(NNModelWrapper):
                   # Transform the standard deviations, if we can. This is a bit of a hack, but it works for
                 # NormalizationTransformer, since the standard deviations used to scale the data are
                 # stored in the transformer object.
-                if len(self.transformers) == 1 and (isinstance(self.transformers[0], dc.trans.NormalizationTransformer) or isinstance(self.transformers[0],trans.NormalizationTransformerMissingData)):
+
+                # =-=ksm: The second 'isinstance' shouldn't be necessary since NormalizationTransformerMissingData
+                # is a subclass of dc.trans.NormalizationTransformer.
+                if len(self.transformers) == 1 and (isinstance(self.transformers[0], dc.trans.NormalizationTransformer) 
+                                                 or isinstance(self.transformers[0],trans.NormalizationTransformerMissingData)):
                     y_stds = self.transformers[0].y_stds.reshape((1,ntasks,1))
                     std = std / y_stds
                 pred = dc.trans.undo_transforms(pred, self.transformers)
-        elif self.params.transformers and self.transformers is not None:
-            pred = self.model.predict(dataset, self.transformers)
-            if self.params.prediction_type == 'regression':
-                pred = pred.reshape((pred.shape[0], pred.shape[1], 1))
         else:
-            pred = self.model.predict(dataset, [])
+            txform = [] if (not self.params.transformers or self.transformers is None) else self.transformers
+            pred = self.model.predict(dataset, txform)
             if self.params.prediction_type == 'regression':
-                pred = pred.reshape((pred.shape[0], pred.shape[1], 1))
+                if type(pred) == list and len(pred) == 0:
+                    # DeepChem models return empty list if no valid predictions
+                    pred = np.array([]).reshape((0,0,1))
+                else:
+                    pred = pred.reshape((pred.shape[0], pred.shape[1], 1))
         return pred, std
 
     # ****************************************************************************************
@@ -2244,11 +2249,11 @@ class DCxgboostModelWrapper(ForestModelWrapper):
                                          scale_pos_weight=1,
                                          base_score=0.5,
                                          random_state=0,
-                                         missing=None,
+                                         missing=np.nan,
                                          importance_type='gain',
                                          n_jobs=-1,
-                                         gpu_id = 0,
-                                         n_gpus = -1,
+                                         gpu_id = -1,
+                                         n_gpus = 0,
                                          max_bin = 16,
                                          seed=0
                                          )
@@ -2271,10 +2276,10 @@ class DCxgboostModelWrapper(ForestModelWrapper):
                                           base_score=0.5,
                                           random_state=0,
                                           importance_type='gain',
-                                          missing=None,
-                                          gpu_id = 0,
+                                          missing=np.nan,
+                                          gpu_id = -1,
                                           n_jobs=-1,                                          
-                                          n_gpus = -1,
+                                          n_gpus = 0,
                                           max_bin = 16,
                                           seed=0
                                          )
@@ -2305,7 +2310,180 @@ class DCxgboostModelWrapper(ForestModelWrapper):
             valid_perfs (dict): A dictionary of predicted values and metrics on the training dataset
         """
         self.log.info("Fitting xgboost model")
+<<<<<<< HEAD
         super().train(pipeline)
+=======
+
+        test_dset = pipeline.data.test_dset
+
+        num_folds = len(pipeline.data.train_valid_dsets)
+        for k in range(num_folds):
+            train_dset, valid_dset = pipeline.data.train_valid_dsets[k]
+            self.model.fit(train_dset)
+
+            train_pred = self.model.predict(train_dset, [])
+            train_perf = self.train_perf_data.accumulate_preds(train_pred, train_dset.ids)
+
+            valid_pred = self.model.predict(valid_dset, [])
+            valid_perf = self.valid_perf_data.accumulate_preds(valid_pred, valid_dset.ids)
+
+            test_pred = self.model.predict(test_dset, [])
+            test_perf = self.test_perf_data.accumulate_preds(test_pred, test_dset.ids)
+            self.log.info("Fold %d: training %s = %.3f, validation %s = %.3f, test %s = %.3f" % (
+                          k, pipeline.metric_type, train_perf, pipeline.metric_type, valid_perf,
+                             pipeline.metric_type, test_perf))
+
+        # Compute mean and SD of performance metrics across validation sets for all folds
+        self.train_perf, self.train_perf_std = self.train_perf_data.compute_perf_metrics()
+        self.valid_perf, self.valid_perf_std = self.valid_perf_data.compute_perf_metrics()
+        self.test_perf, self.test_perf_std = self.test_perf_data.compute_perf_metrics()
+
+        # Compute score to be used for ranking model hyperparameter sets
+        self.model_choice_score = self.valid_perf_data.model_choice_score(self.params.model_choice_score_type)
+
+        if num_folds > 1:
+            # For k-fold CV, retrain on the combined training and validation sets
+            fit_dataset = self.data.combined_training_data()
+            self.model.fit(fit_dataset, restore=False)
+        self.model_save()
+        # The best model is just the single xgb training run.
+        self.best_epoch = 0
+
+    # ****************************************************************************************
+    def reload_model(self, reload_dir):
+
+        """Loads a saved xgboost model from the specified directory. Also loads any transformers that
+        were saved with it.
+
+        Args:
+            reload_dir (str): Directory where saved model is located.
+
+            model_dataset (ModelDataset Object): contains the current full dataset
+
+        Side effects:
+            Resets the value of model, transformers, and transformers_x
+
+        """
+
+        if self.params.prediction_type == 'regression':
+            xgb_model = xgb.XGBRegressor(max_depth=self.params.xgb_max_depth,
+                                         learning_rate=self.params.xgb_learning_rate,
+                                         n_estimators=self.params.xgb_n_estimators,
+                                         silent=True,
+                                         objective='reg:squarederror',
+                                         booster='gbtree',
+                                         gamma=self.params.xgb_gamma,
+                                         min_child_weight=self.params.xgb_min_child_weight,
+                                         max_delta_step=0,
+                                         subsample=self.params.xgb_subsample,
+                                         colsample_bytree=self.params.xgb_colsample_bytree,
+                                         colsample_bylevel=1,
+                                         reg_alpha=0,
+                                         reg_lambda=1,
+                                         scale_pos_weight=1,
+                                         base_score=0.5,
+                                         random_state=0,
+                                         missing=np.nan,
+                                         importance_type='gain',
+                                         n_jobs=-1,
+                                         gpu_id = -1,
+                                         n_gpus = 0,
+                                         max_bin = 16,
+                                         seed=0
+#                                          tree_method = 'gpu_hist'
+                                         )
+        else:
+            xgb_model = xgb.XGBClassifier(max_depth=self.params.xgb_max_depth,
+                                         learning_rate=self.params.xgb_learning_rate,
+                                         n_estimators=self.params.xgb_n_estimators,
+                                          silent=True,
+                                          objective='binary:logistic',
+                                          booster='gbtree',
+                                          gamma=self.params.xgb_gamma,
+                                          min_child_weight=self.params.xgb_min_child_weight,
+                                          max_delta_step=0,
+                                          subsample=self.params.xgb_subsample,
+                                          colsample_bytree=self.params.xgb_colsample_bytree,
+                                          colsample_bylevel=1,
+                                          reg_alpha=0,
+                                          reg_lambda=1,
+                                          scale_pos_weight=1,
+                                          base_score=0.5,
+                                          random_state=0,
+                                          importance_type='gain',
+                                          missing=np.nan,
+                                          gpu_id = -1,
+                                          n_jobs=-1,                                          
+                                          n_gpus = 0,
+                                          max_bin = 16,
+                                          seed=0
+#                                           tree_method = 'gpu_hist',
+                                         )
+
+        # Restore the transformers from the datastore or filesystem
+        self.reload_transformers()
+
+        self.model = dc.models.GBDTModel(xgb_model, model_dir=self.best_model_dir)
+        self.model.reload()
+
+    # ****************************************************************************************
+    def get_pred_results(self, subset, epoch_label=None):
+        """Returns predicted values and metrics from a training, validation or test subset
+        of the current dataset, or the full dataset.
+
+        Args:
+            subset: 'train', 'valid', 'test' or 'full' accordingly.
+
+            epoch_label: ignored; this function always returns the results for the current model.
+
+        Returns:
+            A dictionary of parameter, value pairs, in the format expected by the
+            prediction_results element of the ModelMetrics data.
+
+        Raises:
+            ValueError: if subset not in ['train','valid','test','full']
+
+        """
+        if subset == 'train':
+            return self.get_train_valid_pred_results(self.train_perf_data)
+        elif subset == 'valid':
+            return self.get_train_valid_pred_results(self.valid_perf_data)
+        elif subset == 'test':
+            return self.get_train_valid_pred_results(self.test_perf_data)
+        elif subset == 'full':
+            return self.get_full_dataset_pred_results(self.data)
+        else:
+            raise ValueError("Unknown dataset subset '%s'" % subset)
+
+    # ****************************************************************************************
+    def get_perf_data(self, subset, epoch_label=None):
+        """Returns predicted values and metrics from a training, validation or test subset
+        of the current dataset, or the full dataset.
+
+        Args:
+            subset (str): may be 'train', 'valid', 'test' or 'full'
+
+            epoch_label (not used in random forest, but kept as part of the method structure)
+
+        Results:
+            PerfData object: Subclass of perfdata object associated with the appropriate subset's split strategy and prediction type.
+
+        Raises:
+            ValueError: if subset not in ['train','valid','test','full']
+        """
+
+        if subset == 'train':
+            return self.train_perf_data
+        elif subset == 'valid':
+            return self.valid_perf_data
+        elif subset == 'test':
+            #return self.get_test_perf_data(self.best_model_dir, self.data)
+            return self.test_perf_data
+        elif subset == 'full':
+            return self.get_full_dataset_perf_data(self.data)
+        else:
+            raise ValueError("Unknown dataset subset '%s'" % subset)
+>>>>>>> 1.3.0
 
     # ****************************************************************************************
     def generate_predictions(self, dataset):

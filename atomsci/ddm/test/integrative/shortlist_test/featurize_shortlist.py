@@ -28,6 +28,11 @@ def featurize_from_shortlist(shortlist_path=None, split_json = None):
         hp_params['response_cols'] = row.response_cols
         pparams = parse.wrapper(hp_params)
 
+        print('-----------------------------------------------')
+        print(hp_params['dataset_key'])
+        print(pparams.dataset_key)
+        print('-----------------------------------------------')
+
         # Create a ModelPipeline object
         pipe = mp.ModelPipeline(pparams)
 
