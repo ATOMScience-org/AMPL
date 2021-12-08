@@ -25,8 +25,6 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import RandomForestRegressor
 
 try:
-<<<<<<< Updated upstream
-=======
     import dgl
     import dgllife
     import deepchem.models as dcm
@@ -36,7 +34,6 @@ except ImportError:
     afp_supported = False
 
 try:
->>>>>>> Stashed changes
     import xgboost as xgb
     xgboost_supported = True
 except ImportError:
@@ -137,13 +134,10 @@ def create_model_wrapper(params, featurizer, ds_client=None):
             return DCxgboostModelWrapper(params, featurizer, ds_client)
     elif params.model_type == 'hybrid':
         return HybridModelWrapper(params, featurizer, ds_client)
-<<<<<<< Updated upstream
-=======
     elif params.model_type in pp.model_wl:
         if not afp_supported:
             raise Exception("dgl and dgllife packages must be installed to use attentive_fp model.")
         return DeepChemModelWrapper(params, featurizer, ds_client)
->>>>>>> Stashed changes
     else:
         raise ValueError("Unknown model_type %s" % params.model_type)
 
@@ -2525,8 +2519,6 @@ class DCxgboostModelWrapper(ForestModelWrapper):
                         }
         model_spec_metadata = dict(xgb_specific=xgb_metadata)
         return model_spec_metadata
-<<<<<<< Updated upstream
-=======
 
     # ****************************************************************************************
     def _clean_up_excess_files(self, dest_dir):
@@ -2575,12 +2567,11 @@ class DeepChemModelWrapper(DCNNModelWrapper):
         Returns the numbers of features per atom and bond of a molecule as a tuple.
         """
         dc_featurizer = featurizer.featurizer_obj
+        # TODO: figure out how to enforce correct feature type
         if not isinstance(dc_featurizer, dc.feat.MolGraphConvFeaturizer):
             raise Exception("model must be used with mol_graph featurizer.")
         graph_data = dc_featurizer.featurize('CC')
         return len(graph_data.node_features), len(graph_data.edge_features)
-
-
 
     def __init__(self, params, featurizer, ds_client):
         """Initializes AttentiveFPModelWrapper object. Creates the underlying DeepChem AttentiveFPModel instance.
@@ -2599,7 +2590,14 @@ class DeepChemModelWrapper(DCNNModelWrapper):
         n_atom_feat, n_bond_feat = self._get_feature_counts(featurizer)
         kwargs = pp.extract_model_params(params)
 
-
+        self.model = pp.model_wl[params.model_type](
+                n_tasks=self.params.num_model_tasks, 
+                mode=params.prediction_type,
+                number_atom_features=n_atom_feat,
+                number_bond_features=n_bond_feat,
+                n_classes=params.class_number,
+                **kwargs
+            ) 
 
         #self.model = AttentiveFPModel(n_tasks=self.params.num_model_tasks, 
         #                              mode=params.prediction_type,
@@ -2608,4 +2606,3 @@ class DeepChemModelWrapper(DCNNModelWrapper):
         #                              n_classes=params.class_number,
         #                              **kwargs) 
 
->>>>>>> Stashed changes
