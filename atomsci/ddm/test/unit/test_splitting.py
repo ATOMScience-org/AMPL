@@ -211,20 +211,20 @@ def test_select_dset_by_attr_ids_using_smiles():
     dataset = DiskDataset.from_numpy(data_obj_scaffold.dataset.X, data_obj_scaffold.dataset.y, ids=data_obj_scaffold.attr[data_obj_scaffold.params.smiles_col].values)
     newdf = pd.DataFrame({'compound_ids' : test_scaffold_attr.index.tolist()}, index = test_scaffold_attr.smiles)
     newDD = split.select_dset_by_attr_ids(dataset, newdf)
-    assert (newDD.y == test_scaffold.y).all()
+    assert (sorted(newDD.y) == sorted(test_scaffold.y))
 #***********************************************************************************
 
 def test_select_dset_by_attr_ids_using_compound_ids():
     #testing that the method can split a dataset according to its attr ids into the correct deepchem diskdataframe. This test uses compound_ids.
     newDD = split.select_dset_by_attr_ids(dataset_scaffold, test_scaffold_attr)
-    assert (newDD.y == test_scaffold.y).all()
+    assert (sorted(newDD.y) == sorted(test_scaffold.y))
 #***********************************************************************************
 
 def test_select_dset_by_id_list():
     #testing that the method can split a dataset according to a list of compound_ids into the correct deepchem diskdataframe.
     
     newDD = split.select_dset_by_id_list(dataset_scaffold, test_scaffold_attr.index.tolist())
-    assert (newDD.y == test_scaffold.y).all()
+    assert (sorted(newDD.y) == sorted(test_scaffold.y))
 
 #***********************************************************************************
 
@@ -232,7 +232,7 @@ def test_select_dset_by_id_list():
 def test_select_attrs_by_dset_ids():
     #testing that the method can split a attr according to a disk dataset, using compound_ids
     newDD = split.select_attrs_by_dset_ids(test_scaffold, data_obj_scaffold.attr)
-    assert newDD.equals(test_scaffold_attr)
+    assert set(newDD.index.values) == set(test_scaffold_attr.index.values)
     
 #***********************************************************************************
 
@@ -241,7 +241,7 @@ def test_select_attrs_by_dset_smiles():
     dataset = DiskDataset.from_numpy(test_scaffold.X, test_scaffold.y, ids=test_scaffold_attr[data_obj_scaffold.params.smiles_col].values)
 
     newDD = split.select_attrs_by_dset_smiles(dataset, data_obj_scaffold.attr,data_obj_scaffold.params.smiles_col )
-    assert newDD.equals(test_scaffold_attr)
+    assert set(newDD.index.values) == set(test_scaffold_attr.index.values)
 #***********************************************************************************
 
 def test_split_dataset_stratified(caplog):

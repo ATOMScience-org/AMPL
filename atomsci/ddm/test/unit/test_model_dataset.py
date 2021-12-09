@@ -296,13 +296,12 @@ def test_load_presplit_dataset():
     (train_attr, valid_attr) = dataset_obj_from_file2.train_valid_attr[0]
     
     test_list = []
-    test_list.append((train.y == orig_train.y).all())
-    test_list.append((valid.y == orig_valid.y).all())
-    test_list.append(train_attr.equals(orig_train_attr))
-    test_list.append(valid_attr.equals(orig_valid_attr))
-    test_list.append((dataset_obj_from_file.test_dset.y == dataset_obj_from_file2.test_dset.y).all())
-    test_list.append(dataset_obj_from_file.test_attr.equals(dataset_obj_from_file2.test_attr))
-    #pdb.set_trace()
+    test_list.append((sorted(train.y) == sorted(orig_train.y)))
+    test_list.append((sorted(valid.y) == sorted(orig_valid.y)))
+    test_list.append(set(train_attr.index.values) == set(orig_train_attr.index.values))
+    test_list.append(set(valid_attr.index.values) == set(orig_valid_attr.index.values))
+    test_list.append((sorted(dataset_obj_from_file.test_dset.y) == sorted(dataset_obj_from_file2.test_dset.y)))
+    test_list.append(set(dataset_obj_from_file.test_attr.index.values) == set(dataset_obj_from_file2.test_attr.index.values))
 
     assert all(test_list)
     
