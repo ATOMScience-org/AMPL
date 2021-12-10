@@ -2347,7 +2347,7 @@ class DCxgboostModelWrapper(ModelWrapper):
         if num_folds > 1:
             # For k-fold CV, retrain on the combined training and validation sets
             fit_dataset = self.data.combined_training_data()
-            self.model.fit(fit_dataset, restore=False)
+            self.model.fit(fit_dataset)
         self.model_save()
         # The best model is just the single xgb training run.
         self.best_epoch = 0
