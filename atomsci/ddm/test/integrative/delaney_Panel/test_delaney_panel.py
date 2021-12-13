@@ -223,6 +223,14 @@ def H1_init():
 
 # Train and Predict
 # -----
+def test_reg_config_delaney_fit_RF_3fold():
+    init()
+    train_and_predict('jsons/config_delaney_fit_rf_3fold_cv.json') # fine
+
+def test_reg_config_delaney_fit_XGB_3fold():
+    init()
+    train_and_predict('jsons/config_delaney_fit_xgb_3fold_cv.json') # fine
+
 def test_reg_config_delaney_fit_NN_graphconv():
     init()
     train_and_predict('jsons/reg_config_delaney_fit_NN_graphconv.json') # fine
