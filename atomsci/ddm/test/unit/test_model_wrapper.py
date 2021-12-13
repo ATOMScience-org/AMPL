@@ -77,7 +77,6 @@ DCNNModelWrapper, DCRFModelWrapper
     test.append(mdl.output_dir == inp_params.output_dir)
     test.append(mdl.model_dir == inp_params.output_dir + '/' + 'model')
     test.append(mdl.best_model_dir == inp_params.output_dir + '/' + 'best_model')
-    #test.append(mdl.baseline_model_dir == inp_params.output_dir + '/' + 'baseline_epoch_model')
     test.append(mdl.transformers == [])
     test.append(mdl.transformers_x == [])
     test.append(isinstance(mdl, model_wrapper.DCNNModelWrapper))
