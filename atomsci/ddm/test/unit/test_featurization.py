@@ -5,6 +5,7 @@ import inspect
 import numpy as np
 import atomsci.ddm.pipeline.featurization as feat
 import deepchem as dc
+
 try:
     from mol_vae_features import MoleculeVAEFeaturizer
     mol_vae_supported = True
@@ -66,7 +67,7 @@ def test_create_featurization_dynamicfeaturization():
     for method in methods:
         test.append(callable(getattr(featurizer_ecfp,method)))
         
-    test.append(isinstance(featurizer_ecfp.featurizer_obj, dc.feat.fingerprints.CircularFingerprint))
+    test.append(isinstance(featurizer_ecfp.featurizer_obj, dc.feat.CircularFingerprint))
     
     test.append(isinstance(featurizer_graphconv.featurizer_obj, dc.feat.graph_features.ConvMolFeaturizer))    
 
@@ -155,7 +156,7 @@ def test_get_featurized_data_subdir_dynamicfeaturization():
 def test_get_feature_specific_metadata_dynamicfeaturization():
     """Dynamic featurization returns a dictionary of parameter settings of the featurization object that are specific to the feature type. Testing all three currently implemented featurizers (ecfp, graphconv, molvae)"""
     ecfp_metadata = featurizer_ecfp.get_feature_specific_metadata(delaney_params_ecfp)
-    assert ecfp_metadata =={'ECFPSpecific': 
+    assert ecfp_metadata =={'ecfp_specific':
                             {"ecfp_radius": delaney_params_ecfp.ecfp_radius,
                              "ecfp_size":delaney_params_ecfp.ecfp_size }}
     graphconv_metadata = featurizer_graphconv.get_feature_specific_metadata(delaney_params_graphconv)
