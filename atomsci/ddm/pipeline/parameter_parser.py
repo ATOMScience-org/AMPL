@@ -1,32 +1,37 @@
 import argparse
 import json
 import sys
+from time import process_time
+import typing
 import os
 import re
 import logging
 import datetime
 
-<<<<<<< HEAD
 import deepchem.models as dcm
 import deepchem.feat as dcf
 import inspect
-=======
 
 import os.path
 import atomsci.ddm.utils.checksum_utils as cu
 
 from packaging.version import parse
->>>>>>> 1.3.0
 
 log = logging.getLogger('ATOM')
 # TODO: mjt, do we need to deal with parameters with options?
 # e.g. ["dk","d","r","s","f","n","dd","sl","y"]
 
 
-model_wl = {'AttentiveFPModel':dcm.AttentiveFPModel, 'GCNModel':dcm.GCNModel}#, dcm.MPNNModel, dcm.GCNModel, dcm.GATModel]
-model_param_prefix = 'dcm'
+# model white list
+# TODO: he6, we need to set model_dir using the existing parameter name.
+# possibly use dest, and make exctract parameters aware of that change.
+# also do uncertainty, and mode to prediction type
+model_wl = {'AttentiveFPModel':dcm.AttentiveFPModel, 
+            'GCNModel':dcm.GCNModel,
+            'MPNNModel':dcm.MPNNModel}#, dcm.GCNModel, dcm.GATModel]
+
+# featurizer white list
 featurizer_wl = {'MolGraphConvFeaturizer':dcf.MolGraphConvFeaturizer}
-featurizer_param_prefix = 'dcf'
 
 # Parameters that may take lists of values, usually but not always in the context of a hyperparam search
 
@@ -84,27 +89,190 @@ def to_str(params_obj):
     return str_params
 
 #**********************************************************************************************************
-def extract_params(params, prefix):
+def extract_model_params(params, strip_prefix=True):
+    assert params.model_type in model_wl
+
+    return extract_params(params, params.model_type, 
+        strip_prefix=strip_prefix)
+
+def extract_featurizer_params(params, strip_prefix=True):
+    assert params.featurizer in featurizer_wl
+
+    return extract_params(params, params.featurizer, 
+        strip_prefix=strip_prefix)
+
+def extract_params(params, prefix, strip_prefix=True):
     args = {}
     for k, v in vars(params).items():
         if v is None:
             continue
-        if k.startswith(prefix):
-            args[k[len(prefix)+1:]] = v
+        if k.startswith(prefix+'_'):
+            if strip_prefix:
+                args[k[len(prefix)+1:]] = v
+            else:
+                args[k] = v
     return args
 
-def extract_model_params(params):
-    return extract_params(params, model_param_prefix)
+def is_primative_type(t):
+    return t == int or t == str or t == float
 
-def extract_featurizer_params(params):
-    return extract_params(params, featurizer_param_prefix)
+def primative_type_only(type_annotation):
+    '''
+    Given annotation, return only primative types that can be read in
+    from commandline, int, float, and str.
+
+    Default return value is str, which is default for type parameter in
+    add_arguments
+    '''
+    if is_primative_type(type_annotation):
+        return type_annotation
+    elif str(type_annotation).startswith('typing.Union'):
+        # could not find a better way to do this check:
+        # https://stackoverflow.com/questions/49171189/whats-the-correct-way-to-check-if-an-object-is-a-typing-generic
+        for t in type_annotation.__args__:
+            if is_primative_type(t):
+                return t
+        return str
+    else:
+        return str
+
+def is_list_int(type_annotation):
+    '''
+    Given annotation, returns true if this accepts an integer list
+
+    Returns False on generic list will only return true for 'typing.List[int]'
+
+    Performs recursive earch in case of typing.Union
+    '''
+    if str(type_annotation).startswith('typing.Union'):
+        # could not find a better way to do this check:
+        # https://stackoverflow.com/questions/49171189/whats-the-correct-way-to-check-if-an-object-is-a-typing-generic
+        for t in type_annotation.__args__:
+            if is_list_int(t):
+                return True
+        return False
+    else:
+        return str(type_annotation) == 'typing.List[int]'
+
+def is_list_float(type_annotation):
+    '''
+    Given annotation, returns true if it accepts a float list
+
+    Returns False on generic list will only return true for 'typing.List[float]'
+
+    Performs recursive earch in case of typing.Union
+    '''
+    if str(type_annotation).startswith('typing.Union'):
+        # could not find a better way to do this check:
+        # https://stackoverflow.com/questions/49171189/whats-the-correct-way-to-check-if-an-object-is-a-typing-generic
+        for t in type_annotation.__args__:
+            if is_list_float(t):
+                return True
+        return False
+    else:
+        return str(type_annotation) == 'typing.List[float]'
+
+def is_list(type_annotation):
+    '''
+    Given annotation, returns true if it accepts a list
+
+    Returns False on generic list will only return true for 'typing.List' or <class 'list'>
+
+    Performs recursive earch in case of typing.Union
+    '''
+    if str(type_annotation).startswith('typing.Union'):
+        # could not find a better way to do this check:
+        # https://stackoverflow.com/questions/49171189/whats-the-correct-way-to-check-if-an-object-is-a-typing-generic
+        for t in type_annotation.__args__:
+            if is_list(t):
+                return True
+        return False
+    else:
+        return str(type_annotation).startswith('typing.List') or str(type_annotation) == "<class 'list'>"
+
+class AutoArgumentAdder:
+    '''
+    Finds, manages, and adds all parameters of a function to a argparse parser
+    '''
+    def __init__(self, func, prefix):
+        self.func = func # original function e.g. dcm.AttentiveFPModel
+        self.funcs = [] # a list of all parents. e.g. KerasModel
+        self.prefix = prefix # name of original function e.g. AttentiveFPModel
+        self.types = {} # parameter names to types
+        self.used_by = {} # mapping parameter names to an element in funcs
+        self.args = set() # set of arguments
+
+        self._add_all_keyword_arguments()
+
+    def _add_all_keyword_arguments(self):
+        self.funcs.append(self.func)
+        current_funcs = [self.func]
+        while len(current_funcs)>0:
+            # get something off bottom of the list
+            current_func = current_funcs.pop(0)
+            # add the bases to the list
+            current_funcs = current_funcs + list(current_func.__bases__)
+
+            # look at arguments for this function
+            spec = inspect.getfullargspec(current_func)
+            args = set(spec.args)
+            if args is None:
+                continue
+            # Remove all self arguments
+            if 'self' in args:
+                args.remove('self')
+            # add set of args
+            self.args = self.args.union(args)
+
+            # keep track of which functions use which arguments
+            func_name = str(current_func)
+            for a in args:
+                if a in self.used_by:
+                    self.used_by[a].append(func_name)
+                else:
+                    self.used_by[a] = [func_name]
+
+            # keep track of types for each argument
+            for a in args:
+                # find type of argument
+                if a in spec.annotations:
+                    t = spec.annotations[a]
+                else:
+                    t = str
+
+                if a in self.types:
+                    # do not overwrite args already in self.types
+                    continue
+                else:
+                    self.types[a] = t
+
+    def _make_param_name(self, arg_name):
+        return f'{self.prefix}_{arg_name}'
+
+    def add_to_parser(self, parser):
+        for p in self.args:
+            p_name = f'--{self._make_param_name(p)}'
+            t = self.types[p]
+            pt = primative_type_only(t)
+
+            parser.add_argument(p_name, type=pt, default=None,
+                help=f'Auto added argument used in one of these: '+', '.join(self.used_by[p]))
+
+    def get_list_int_args(self):
+        return [self._make_param_name(p) for p in self.args if is_list_int(self.types[p])]
+
+    def get_list_float_args(self):
+        return [self._make_param_name(p) for p in self.args if is_list_float(self.types[p])]
+
+    def get_list_args(self):
+        return [self._make_param_name(p) for p in self.args if is_list(self.types[p])]
 
 #**********************************************************************************************************
 def wrapper(*any_arg):
     """"Wrapper to handle the ParseParams class. Calls the correct method depending on the input argument type
 
         Args:
-            *any_arg: any single input of a str, dict, argparse.Namespace, or list
+            *any_arg: any single input of a str, dict, ar/printgparse.Namespace, or list
 
         Returns:
             argparse.Namespace: a Namespace.argparse object containing default parameters + user specified parameters
@@ -517,7 +685,6 @@ def get_parser():
         '--model_type', dest='model_type', default=None, type=str,
         help='Type of model to fit (NN, RF, or xgboost). The model_type sets the model subclass in model_wrapper. '
              'Can be input as a comma separated list for hyperparameter search (e.g. \'NN\',\'RF\')')
-    model_type_subpar = parser.add_subparsers(help='Arguments for this model')
     parser.add_argument(
         '--prediction_type', dest='prediction_type', required=False, default='regression',
         choices=['regression', 'classification'],
@@ -542,37 +709,15 @@ def get_parser():
     # **********************************************************************************************************
     # model_building_parameters: model type specific
     for k, model in model_wl.items():
-        spec = inspect.getfullargspec(model)
-        params = spec.args
-        annots = spec.annotations
-        for p in params:
-            argname = f'--{model_param_prefix}_{p}'
-            print(f'adding parameter: {argname}')
-            try:
-                if p in annots:
-                    parser.add_argument(argname, type=annots[p], default=None)
-                else:
-                    parser.add_argument(argname, default=None)
-            except argparse.ArgumentError:
-                pass
+        aaa = AutoArgumentAdder(func=model, prefix=k)
+        aaa.add_to_parser(parser)
 
     # **********************************************************************************************************
     # model_building_parameters: featurizer arguments type specific
     for k, feat in featurizer_wl.items():
-        spec = inspect.getfullargspec(feat)
-        params = spec.args
-        annots = spec.annotations
-        for p in params:
-            argname = f'--{featurizer_param_prefix}_{p}'
-            print(f'adding parameter: {argname}')
-            try:
-                if p in annots:
-                    parser.add_argument(argname, type=annots[p], default=None)
-                else:
-                    parser.add_argument(argname, default=None)
-            except argparse.ArgumentError:
-                pass
-  
+        aaa = AutoArgumentAdder(func=feat, prefix=k)
+        aaa.add_to_parser(parser)
+
     # **********************************************************************************************************
     # model_building_parameters: graphconv
     parser.add_argument(

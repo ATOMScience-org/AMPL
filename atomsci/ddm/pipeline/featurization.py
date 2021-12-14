@@ -94,7 +94,8 @@ def create_featurization(params):
 
     """
     #TODO: Change molvae to generic autoencoder
-    if params.featurizer in ('ecfp', 'graphconv', 'molvae'):
+    if params.featurizer in ('ecfp', 'graphconv', 'molvae') \
+            or params.featurizer in pp.featurizer_wl:
         return DynamicFeaturization(params)
     elif params.featurizer in ('descriptors'):
         return DescriptorFeaturization(params)
@@ -656,7 +657,7 @@ class DynamicFeaturization(Featurization):
         elif self.feat_type == 'graphconv':
             self.featurizer_obj = dc.feat.ConvMolFeaturizer()
         elif self.feat_type in pp.featurizer_wl:
-            kwargs = pp.extract_featurizer_args(params)
+            kwargs = pp.extract_featurizer_params(params)
             self.featurizer_obj = pp.featurizer_wl[self.feat_type](**kwargs)
         #TODO: MoleculeVAEFeaturizer is not working currently. Will be replaced by JT-VAE and cWAE
         # featurizers eventually.
@@ -819,6 +820,9 @@ class DynamicFeaturization(Featurization):
             return self.featurizer_obj.feature_length()
         elif self.feat_type == 'molvae':
             return self.featurizer_obj.latent_rep_size
+        elif self.feat_type in pp.featurizer_wl:
+            # It's kind of hard to count some of these features
+            return None
 
     # ****************************************************************************************
     def get_feature_specific_metadata(self, params):
@@ -845,6 +849,8 @@ class DynamicFeaturization(Featurization):
             # TODO: If the parameter name for the model file changes to 'autoencoder_model_key', change it below.
             mol_vae_params = {'autoencoder_model_key': params.mol_vae_model_file}
             feat_metadata['autoencoder_specific'] = mol_vae_params
+        elif self.feat_type in pp.featurizer_wl:
+            feat_metadata['auto_featurizer_specific'] = pp.extract_featurizer_params(params, strip_prefix=False)
         return feat_metadata
 
 # ****************************************************************************************
