@@ -5,6 +5,7 @@ astor==0.8.1
 astunparse==1.6.3
 attrs==20.3.0
 backcall==0.2.0
+bokeh==2.3.3
 bravado-core==5.17.0
 bravado==11.0.2
 cached-property==1.5.2
