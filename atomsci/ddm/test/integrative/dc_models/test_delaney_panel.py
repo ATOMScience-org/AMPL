@@ -225,5 +225,7 @@ def H1_init():
 # -----
 def test_reg_config_H1_fit_NN_moe():
     H1_init()
-    train_and_predict('jsons/reg_config_H1_fit_NN_moe.json', prefix='H1') # crashes during run
+    train_and_predict('reg_config_H1_fit_NN_moe.json', prefix='H1') # crashes during run
 
+if __name__ == '__main__':
+    test_reg_config_H1_fit_NN_moe()

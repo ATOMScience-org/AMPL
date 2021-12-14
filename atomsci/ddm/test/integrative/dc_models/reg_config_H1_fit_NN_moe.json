@@ -5,6 +5,7 @@
     "datastore": "False",
     "save_results": "False",
     "data_owner": "username",
+    "parser_version":"1.0",
 
     "comment": "Input file",
     "comment": "----------------------------------------",
@@ -21,28 +22,28 @@
     "comment": "Prediction Type",
     "comment": "----------------------------------------",
     "response_cols": "pKi_mean",
-    "prediction_type": "regression",
+    "AttentiveFPModel_mode": "regression",
+    "uncertainty": "False",
 
     "comment": "Features",
     "comment": "----------------------------------------",
-    "featurizer": "MolGraphConvFeaturizer",
+    "featurizer":"MolGraphConvFeaturizer",
+    "MolGraphConvFeaturizer_use_edges":"True",
 
     "comment": "Model",
     "comment": "----------------------------------------",
     "model_type": "AttentiveFPModel",
-    "dcm_num_layers": 3,
-    ""
-    "dropout": ".01,.01,.01",
-    "layer_sizes": "64,64,64",
-    "learning_rate": "0.0007",
-    "max_epochs": "500",
-    
+    "AttentiveFPModel_num_layers":"3",
+    "AttentiveFPModel_learning_rate": "0.0007",
+    "AttentiveFPModel_n_tasks": "1",
+
     "comment": "Training",
     "comment": "----------------------------------------",
     "comment": "This regulates how long to train the model",
-    "early_stopping_patience": "500",
+    "early_stopping_patience": "30",
+    "max_epochs": "200",
 
     "comment": "Results",
-    "comment": "----------------------------------------",    
+    "comment": "----------------------------------------",
     "result_dir": "result"
 }
