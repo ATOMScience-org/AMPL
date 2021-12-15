@@ -223,9 +223,21 @@ def H1_init():
 
 # Train and Predict
 # -----
-def test_reg_config_H1_fit_NN_moe():
+def test_reg_config_H1_fit_AttentiveFPModel():
     H1_init()
-    train_and_predict('reg_config_H1_fit_NN_moe.json', prefix='H1') # crashes during run
+    train_and_predict('reg_config_H1_fit_AttentiveFPModel.json', prefix='H1') # crashes during run
+
+# -----
+def test_reg_config_H1_fit_GCNModel():
+    H1_init()
+    train_and_predict('reg_config_H1_fit_GCNModel.json', prefix='H1') # crashes during run
+
+# -----
+def test_reg_config_H1_fit_MPNNModel():
+    H1_init()
+    train_and_predict('reg_config_H1_fit_MPNNModel.json', prefix='H1') # crashes during run
 
 if __name__ == '__main__':
-    test_reg_config_H1_fit_NN_moe()
+    #test_reg_config_H1_fit_MPNNModel() # get_num_atoms() does not exist
+    test_reg_config_H1_fit_GCNModel() # doesn't learn well
+    #test_reg_config_H1_fit_AttentiveFPModel() works fine?

@@ -2602,8 +2602,11 @@ class DeepChemModelWrapper(NNModelWrapper):
         # parameters can be overwritten by passing them explicitly
         extracted_features.update(kwargs)
 
+        chosen_model = pp.model_wl[self.params.model_type]
+        self.log.info(f'Args passed to {chosen_model}:{str(extracted_features)}')
+
         # build the model
-        model = pp.model_wl[self.params.model_type](
+        model = chosen_model(
                 **extracted_features
             ) 
 
@@ -2622,8 +2625,11 @@ class DeepChemModelWrapper(NNModelWrapper):
         """
         self.model = self.recreate_model(model_dir=reload_dir)
         chkpts = self.model.get_checkpoints()
-        best_chkpt = sorted(chkpts)[0] # checkpoint with the highest number is the best one
+
+        # checkpoint with the highest number is the best one
+        best_chkpt = sorted(chkpts)[0] 
         self.model.restore(best_chkpt, reload_dir)
+
         # Restore the transformers from the datastore or filesystem
         self.reload_transformers()
 

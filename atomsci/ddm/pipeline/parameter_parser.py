@@ -7,6 +7,7 @@ import os
 import re
 import logging
 import datetime
+import pdb
 
 import deepchem.models as dcm
 import deepchem.feat as dcf
@@ -25,7 +26,16 @@ log = logging.getLogger('ATOM')
 # model white list
 # TODO: he6, we need to set model_dir using the existing parameter name.
 # possibly use dest, and make exctract parameters aware of that change.
-# also do uncertainty, and mode to prediction type
+# mode to prediction_type, n_tasks, to num_model_tasks
+# Dictionary containing synonyms. Keyed on deepchem names with AMPL values
+# e.g. DeepChem's mode is the same as AMPL's prediction_type
+parameter_synonyms = {'mode':'prediction_type',
+                      'n_tasks':'num_model_tasks',
+                      'learning_rate':'learning_rate',
+                      'model_dir':'result_dir',
+                      'graph_conv_layers':'layer_sizes'
+                    }
+
 model_wl = {'AttentiveFPModel':dcm.AttentiveFPModel, 
             'GCNModel':dcm.GCNModel,
             'MPNNModel':dcm.MPNNModel}#, dcm.GCNModel, dcm.GATModel]
@@ -33,87 +43,109 @@ model_wl = {'AttentiveFPModel':dcm.AttentiveFPModel,
 # featurizer white list
 featurizer_wl = {'MolGraphConvFeaturizer':dcf.MolGraphConvFeaturizer}
 
-# Parameters that may take lists of values, usually but not always in the context of a hyperparam search
-
-convert_to_float_list = {'dropouts','weight_init_stddevs','bias_init_consts','learning_rate',
-                         'umap_targ_wt', 'umap_min_dist', 'dropout_list','weight_decay_penalty',
-                         'xgb_learning_rate',
-                         'xgb_gamma',
-                         "xgb_min_child_weight",
-                         "xgb_subsample",
-                         "xgb_colsample_bytree",
-                         "ki_convert_ratio"
-                         }
-convert_to_int_list = {'layer_sizes','rf_max_features','rf_estimators', 'rf_max_depth',
-                       'umap_dim', 'umap_neighbors', 'layer_nums', 'node_nums',
-                       "xgb_max_depth",  "xgb_n_estimators"}
-convert_to_numeric_list = convert_to_float_list | convert_to_int_list
-keep_as_list = {'dropouts','weight_init_stddevs','bias_init_consts',
-                'layer_sizes','dropout_list','layer_nums'}
-not_a_list_outside_of_hyperparams = {'learning_rate','weight_decay_penalty',
-                                     'xgb_learning_rate',
-                                     'xgb_gamma',
-                                     "xgb_min_child_weight",
-                                     "xgb_subsample",
-                                     "xgb_colsample_bytree",
-                                     "xgb_max_depth",  "xgb_n_estimators"
-                                     }
-convert_to_str_list = \
-    {'response_cols','model_type','featurizer','splitter','umap_metric','weight_decay_penalty_type','descriptor_type'}
-not_a_str_list_outside_of_hyperparams = \
-    {'model_type','featurizer','splitter','umap_metric','weight_decay_penalty_type','descriptor_type'}
-
 #**********************************************************************************************************
-def to_str(params_obj):
-    """ Converts a namespace.argparse object or a dict into a string for command line input
+def all_auto_arguments():
+    '''
+    Returns a set of all arguments that get automatically added
+    '''
+    result = []
+    for k,m in model_wl.items():
+        aaa = AutoArgumentAdder(func=m, prefix=k)
+        prefixed_names = aaa.all_prefixed_names()
+        result += prefixed_names
 
-        Args:
-            params_obj (argparse.Namespace or dict): an argparse namespace object or dict to be converted into a
-            command line input.
-                E.g. params_obj = argparse.Namespace(arg1 = val1, arg2 = val2, arg3 = val3) OR
-                params_obj = {'arg1':val1, 'arg2':val2, 'arg3':val3}
+    for k,f in featurizer_wl.items():
+        aaa = AutoArgumentAdder(func=f, prefix=k)
+        prefixed_names = aaa.all_prefixed_names()
+        result += prefixed_names
 
-        Returns:
-            str_params (str): parameters in string format
-                E.g. str_params = '--arg1 val1 --arg2 val2 --arg3 val3'
+    return set(result)
 
-    """
-    # This command converts the namespace_obj to a dict, with the spaces replaced with
-    # a temporary string.
-    if type(params_obj) == dict:
-        strobj = dict_to_list(params_obj,replace_spaces=True)
-    else:
-        strobj = dict_to_list(vars(params_obj),replace_spaces=True)
-    separator = " "
-    str_params = separator.join(strobj)
-    return str_params
+def all_auto_int_lists():
+    '''
+    Returns a set of all arguments that are automatically added and
+    accpet a list of ints.
+    '''
+    result = []
+    for k,m in model_wl.items():
+        aaa = AutoArgumentAdder(func=m, prefix=k)
+        prefixed_names = aaa.get_list_int_args()
+        result += prefixed_names
 
-#**********************************************************************************************************
+    for k,f in featurizer_wl.items():
+        aaa = AutoArgumentAdder(func=f, prefix=k)
+        prefixed_names = aaa.get_list_int_args()
+        result += prefixed_names
+
+    return set(result)
+
+def all_auto_lists():
+    '''
+    Returns a set of all arguments that get automatically added and are lists
+    '''
+    result = []
+    for k,m in model_wl.items():
+        aaa = AutoArgumentAdder(func=m, prefix=k)
+        prefixed_names = aaa.get_list_args()
+        result += prefixed_names
+
+    for k,f in featurizer_wl.items():
+        aaa = AutoArgumentAdder(func=f, prefix=k)
+        prefixed_names = aaa.get_list_args()
+        result += prefixed_names
+
+    return set(result)
+
 def extract_model_params(params, strip_prefix=True):
+    '''
+    Extracts parameters meant for a specific model. Use only for
+    arguments automatically added by an AutoArgumentAdder
+
+    Args:
+        params (Namespace): Parameter Namespace
+        strip_prefix (bool): Automatically added parameters come with a prefix.
+            When True, the prefix is removed. e.g. AttentiveFP_mode
+            becomes mode
+
+    Returns:
+        dict: A subset of parameters from params that should be passed on to the
+            model
+    '''
     assert params.model_type in model_wl
 
-    return extract_params(params, params.model_type, 
-        strip_prefix=strip_prefix)
+    aaa = AutoArgumentAdder(model_wl[params.model_type], params.model_type)
+    return aaa.extract_params(params, strip_prefix=strip_prefix)
 
 def extract_featurizer_params(params, strip_prefix=True):
+    '''
+    Extracts parameters meant for a specific featurizer. Use only for
+    arguments automatically added by an AutoArgumentAdder
+
+    Args:
+        params (Namespace): Parameter Namespace
+        strip_prefix (bool): Automatically added parameters come with a prefix.
+            When True, the prefix is removed. e.g. MolGraphConvFeaturizer_use_edges
+            becomes use_edges
+
+    Returns:
+        dict: A subset of parameters from params that should be passed on to the
+            featurizer
+    '''
     assert params.featurizer in featurizer_wl
 
-    return extract_params(params, params.featurizer, 
-        strip_prefix=strip_prefix)
-
-def extract_params(params, prefix, strip_prefix=True):
-    args = {}
-    for k, v in vars(params).items():
-        if v is None:
-            continue
-        if k.startswith(prefix+'_'):
-            if strip_prefix:
-                args[k[len(prefix)+1:]] = v
-            else:
-                args[k] = v
-    return args
+    aaa = AutoArgumentAdder(featurizer_wl[params.featurizer], params.featurizer)
+    return aaa.extract_params(params, strip_prefix=strip_prefix)
 
 def is_primative_type(t):
+    '''
+    Returns true if t is of type int, str, or float
+
+    Args:
+        t (type): A type
+
+    Returns:
+        bool. True if type is int, str, or float
+    '''
     return t == int or t == str or t == float
 
 def primative_type_only(type_annotation):
@@ -123,6 +155,12 @@ def primative_type_only(type_annotation):
 
     Default return value is str, which is default for type parameter in
     add_arguments
+
+    Args:
+        type_annotation (type): A type annotation.
+
+    Returns:
+        type: One of 3 choices, int, float, str
     '''
     if is_primative_type(type_annotation):
         return type_annotation
@@ -249,14 +287,73 @@ class AutoArgumentAdder:
     def _make_param_name(self, arg_name):
         return f'{self.prefix}_{arg_name}'
 
+    def all_prefixed_names(self):
+        return [self._make_param_name(p) for p in self.args]
+
     def add_to_parser(self, parser):
+        '''
+        Adds expected parameters to an argparse.ArgumentParser. Checks to 
+        see if the argument has synonyms e.g. mode and prediction_type and sets dest
+        accordingly. All parameters have default=None, this is checked later in 
+        self.extract_params. None parameters are not passed on so we can use
+        default parameters set by DeepChem.
+
+        Args:
+            parser (argparse.ArgumentParser): An argument parser
+
+        Returns:
+            None
+        '''
         for p in self.args:
             p_name = f'--{self._make_param_name(p)}'
             t = self.types[p]
             pt = primative_type_only(t)
 
-            parser.add_argument(p_name, type=pt, default=None,
-                help=f'Auto added argument used in one of these: '+', '.join(self.used_by[p]))
+            if p in parameter_synonyms:
+                # don't set default or type. e.g. learning_rate in AMPL is a str where as DeepChem
+                # expects a float
+                parser.add_argument(p_name, dest=parameter_synonyms[p],
+                    help=f'Auto added argument used in one of these: '+', '.join(self.used_by[p]))
+            else:
+                parser.add_argument(p_name, type=pt, default=None,
+                    help=f'Auto added argument used in one of these: '+', '.join(self.used_by[p]))
+
+    def extract_params(self, params, strip_prefix=False):
+        '''
+        Extracts non-None parameters from the given Namespace.
+
+        Args:
+            params (Namespace): Parameters.
+            strip_prefix (bool): Strips off the prefix of the parameter. e.g.
+                AttentiveFP_mode becomes mode
+
+        Returns:
+            dict: Dictionary containing a subset of parameters that are expected
+                by this function.
+        '''
+        args = {}
+        params = vars(params)
+        for p in self.args:
+            p_name = self._make_param_name(p)
+            # check to see if the argument is in params
+            if p_name in params:
+                v = params[p_name]
+            elif p in parameter_synonyms: # if it's not found, it might be a synonym
+                v = params[parameter_synonyms[p]]
+            else:
+                v = None # parameter is not found and assumed to not be set
+
+            # unset parameters are not passed on
+            if v is None:
+                continue
+
+            # Pass on set parameters
+            if strip_prefix:
+                args[p] = v
+            else:
+                args[p_name] = v
+
+        return args
 
     def get_list_int_args(self):
         return [self._make_param_name(p) for p in self.args if is_list_int(self.types[p])]
@@ -266,6 +363,63 @@ class AutoArgumentAdder:
 
     def get_list_args(self):
         return [self._make_param_name(p) for p in self.args if is_list(self.types[p])]
+
+
+# Parameters that may take lists of values, usually but not always in the context of a hyperparam search
+
+convert_to_float_list = {'dropouts','weight_init_stddevs','bias_init_consts','learning_rate',
+                         'umap_targ_wt', 'umap_min_dist', 'dropout_list','weight_decay_penalty',
+                         'xgb_learning_rate',
+                         'xgb_gamma',
+                         "xgb_min_child_weight",
+                         "xgb_subsample",
+                         "xgb_colsample_bytree",
+                         "ki_convert_ratio"
+                         }
+convert_to_int_list = {'layer_sizes','rf_max_features','rf_estimators', 'rf_max_depth',
+                       'umap_dim', 'umap_neighbors', 'layer_nums', 'node_nums',
+                       "xgb_max_depth",  "xgb_n_estimators"}.union(all_auto_int_lists())
+convert_to_numeric_list = convert_to_float_list | convert_to_int_list
+keep_as_list = {'dropouts','weight_init_stddevs','bias_init_consts',
+                'layer_sizes','dropout_list','layer_nums'}.union(all_auto_lists())
+not_a_list_outside_of_hyperparams = {'learning_rate','weight_decay_penalty',
+                                     'xgb_learning_rate',
+                                     'xgb_gamma',
+                                     "xgb_min_child_weight",
+                                     "xgb_subsample",
+                                     "xgb_colsample_bytree",
+                                     "xgb_max_depth",  "xgb_n_estimators"
+                                     }
+convert_to_str_list = \
+    {'response_cols','model_type','featurizer','splitter','umap_metric','weight_decay_penalty_type','descriptor_type'}
+not_a_str_list_outside_of_hyperparams = \
+    {'model_type','featurizer','splitter','umap_metric','weight_decay_penalty_type','descriptor_type'}
+
+#**********************************************************************************************************
+def to_str(params_obj):
+    """ Converts a namespace.argparse object or a dict into a string for command line input
+
+        Args:
+            params_obj (argparse.Namespace or dict): an argparse namespace object or dict to be converted into a
+            command line input.
+                E.g. params_obj = argparse.Namespace(arg1 = val1, arg2 = val2, arg3 = val3) OR
+                params_obj = {'arg1':val1, 'arg2':val2, 'arg3':val3}
+
+        Returns:
+            str_params (str): parameters in string format
+                E.g. str_params = '--arg1 val1 --arg2 val2 --arg3 val3'
+
+    """
+    # This command converts the namespace_obj to a dict, with the spaces replaced with
+    # a temporary string.
+    if type(params_obj) == dict:
+        strobj = dict_to_list(params_obj,replace_spaces=True)
+    else:
+        strobj = dict_to_list(vars(params_obj),replace_spaces=True)
+    separator = " "
+    str_params = separator.join(strobj)
+    return str_params
+
 
 #**********************************************************************************************************
 def wrapper(*any_arg):
@@ -1399,7 +1553,8 @@ def remove_unrecognized_arguments(params, hyperparam=False):
 
     #dictionary comprehension that retains only the keys that are in the accepted list of parameters
     default = list_defaults(hyperparam)
-    keep = list(vars(default).keys())
+    # add all auto arguments because they sometimes use dest and are ommitted from the vars call
+    keep = set(list(vars(default).keys())).union(all_auto_arguments())
     newdict = {k: params[k] for k in keep if k in params}
 
     # Writes a warning for any arguments that are not in the default list of parameters

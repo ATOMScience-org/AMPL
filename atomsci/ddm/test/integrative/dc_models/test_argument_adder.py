@@ -56,8 +56,58 @@ def test_list_args():
     assert set(list_list) == set(['b_b_list_int', 'b_b_list_float',
         'b_a_list', 'b_a_nother_list', 'b_a_union_list_int', 'b_a_union_list_float', 'b_a_union'])
 
+def test_synonyms():
+    answer_a = {
+        "mode": "regression",
+        "num_layers": 3,
+        "learning_rate": 0.0007,
+        "n_tasks": 1,
+    }
+
+    answer_c = {
+        "mode": "classification",
+        "num_layers": 3,
+        "learning_rate": 0.0007,
+        "n_tasks": 2,
+    }
+
+    json_a = {
+        "AttentiveFPModel_mode": "regression",
+        "AttentiveFPModel_num_layers":"3",
+        "AttentiveFPModel_learning_rate": "0.0007",
+        "response_cols": "asdf"
+    }
+
+    json_b = {
+        "prediction_type": "regression",
+        "AttentiveFPModel_num_layers":"3",
+        "learning_rate": "0.0007",
+        "response_cols": "asdf"
+    }
+
+    json_c = {
+        "prediction_type": "classification",
+        "AttentiveFPModel_num_layers":"3",
+        "learning_rate": "0.0007",
+        "response_cols": ["asdf1", "asdf2"]
+    }
+
+    params_a = pp.wrapper(json_a)
+    params_b = pp.wrapper(json_b)
+    params_c = pp.wrapper(json_c)
+
+    aaa = pp.AutoArgumentAdder(pp.model_wl['AttentiveFPModel'], 'AttentiveFPModel')
+
+    assert aaa.extract_params(params_a) == aaa.extract_params(params_b)
+    assert aaa.extract_params(params_a, strip_prefix=True) == answer_a
+    assert answer_c == aaa.extract_params(params_c, strip_prefix=True)
+    assert not aaa.extract_params(params_a) == aaa.extract_params(params_c)
+    assert not aaa.extract_params(params_b) == aaa.extract_params(params_c)
+
 if __name__ == '__main__':
-    test_add_arguments_to_parser()
-    test_list_float_args()
-    test_list_int_args()
-    test_list_args()
+    #test_add_arguments_to_parser()
+    #test_list_float_args()
+    #test_list_int_args()
+    #test_list_args()
+
+    test_synonyms()

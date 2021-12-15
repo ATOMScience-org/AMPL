@@ -820,6 +820,10 @@ class DynamicFeaturization(Featurization):
             return self.featurizer_obj.feature_length()
         elif self.feat_type == 'molvae':
             return self.featurizer_obj.latent_rep_size
+        elif self.feat_type == 'MolGraphConvFeaturizer':
+            # https://deepchem.readthedocs.io/en/latest/api_reference/featurizers.html#molgraphconvfeaturizer
+            # 30 atom features plus 11 edge features
+            return 44
         elif self.feat_type in pp.featurizer_wl:
             # It's kind of hard to count some of these features
             return None
