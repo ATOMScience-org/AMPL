@@ -6,11 +6,12 @@ import pandas as pd
 import os
 import sys
 
+import rdkit.Chem as rdC
+import rdkit.Chem.Descriptors as rdCD
+
 import atomsci.ddm.pipeline.model_pipeline as mp
 import atomsci.ddm.pipeline.predict_from_model as pfm
 import atomsci.ddm.pipeline.parameter_parser as parse
-import atomsci.ddm.utils.curate_data as curate_data
-import atomsci.ddm.utils.struct_utils as struct_utils
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 import integrative_utilities
@@ -27,55 +28,11 @@ def clean(prefix='delaney-processed'):
         if os.path.isfile(f):
             os.remove(f)
 
-def curate():
-    """
-    Curate dataset for model fitting
-    """
-    if (not os.path.isfile('delaney-processed_curated.csv') and
-            not os.path.isfile('delaney-processed_curated_fit.csv') and
-            not os.path.isfile('delaney-processed_curated_external.csv')):
-        raw_df = pd.read_csv('delaney-processed.csv')
-
-        # Generate smiles, inchi
-        raw_df['rdkit_smiles'] = raw_df['smiles'].apply(curate_data.base_smiles_from_smiles)
-        raw_df['inchi_key'] = raw_df['smiles'].apply(struct_utils.smiles_to_inchi_key)
-
-        # Check for duplicate compounds based on SMILES string
-        # Average the response value for duplicates
-        # Remove compounds where response value variation is above the threshold
-        # tolerance=% of individual respsonse value is allowed to different from the average to be included in averaging.
-        # max_std = maximum allowed standard deviation for computed average response value
-        tolerance = 10  # percentage
-        column = 'measured log solubility in mols per litre'
-        list_bad_duplicates = 'Yes'
-        data = raw_df
-        max_std = 100000  # esentially turned off in this example
-        data['compound_id'] = data['inchi_key']
-        curated_df = curate_data.average_and_remove_duplicates(
-            column, tolerance, list_bad_duplicates, data, max_std, compound_id='compound_id', smiles_col='rdkit_smiles')
-
-        # add additional columns for other forms of prediction
-        # e.g. classification and multi task
-        mean = np.mean(curated_df[column])
-        column_class = column+'_class'
-        curated_df[column_class] = curated_df[column].apply(lambda x: 1.0 if x>mean else 0.0)
-
-        # make a copy of each column for multi task
-        curated_df[column+'2'] = curated_df[column]
-        curated_df[column_class+'2'] = curated_df[column_class]
-
-        # Check distribution of response values
-        assert (curated_df.shape[0] == 1117), 'Error: Incorrect number of compounds'
-
-        curated_df.to_csv('delaney-processed_curated.csv')
-
-        # Create second test set by reproducible index for prediction
-        curated_df.tail(1000).to_csv('delaney-processed_curated_fit.csv')
-        curated_df.head(117).to_csv('delaney-processed_curated_external.csv')
-
-    assert (os.path.isfile('delaney-processed_curated.csv'))
-    assert (os.path.isfile('delaney-processed_curated_fit.csv'))
-    assert (os.path.isfile('delaney-processed_curated_external.csv'))
+def exact_mol_weight(x):
+    '''
+    Given SMILES, return exact mol weight
+    '''
+    return rdCD.ExactMolWt(rdC.MolFromSmiles(x))
 
 def H1_curate():
     """
@@ -99,6 +56,9 @@ def H1_curate():
         curated_df[column+'2'] = curated_df[column]
         curated_df[column_class+'2'] = curated_df[column_class]
 
+        # make a really easy test. calc mass of each molecule
+        curated_df['exact_mol_weight'] = curated_df['base_rdkit_smiles'].apply(lambda x: exact_mol_weight(x))
+
         curated_df.to_csv('H1_curated.csv', index=False)
         split_df.to_csv('H1_curated_fit_train_valid_test_scaffold_002251a2-83f8-4511-acf5-e8bbc5f86677.csv', index=False)
 
@@ -112,17 +72,6 @@ def H1_curate():
     assert (os.path.isfile('H1_curated_fit.csv'))
     assert (os.path.isfile('H1_curated_external.csv'))
     assert (os.path.isfile('H1_curated_fit_train_valid_test_scaffold_002251a2-83f8-4511-acf5-e8bbc5f86677.csv'))
-
-def download():
-    """
-    Separate download function so that download can be run separately if there is no internet.
-    """
-    if (not os.path.isfile('delaney-processed.csv')):
-        integrative_utilities.download_save(
-            'https://deepchemdata.s3-us-west-1.amazonaws.com/datasets/delaney-processed.csv',
-            'delaney-processed.csv')
-
-    assert (os.path.isfile('delaney-processed.csv'))
 
 def train_and_predict(train_json_f, prefix='delaney-processed'):
     # Train model
@@ -188,24 +137,6 @@ def train_and_predict(train_json_f, prefix='delaney-processed'):
     combined.to_csv(pred_csv_name)
     assert (os.path.isfile(pred_csv_name)
             and os.path.getsize(pred_csv_name) > 0), 'Error: Prediction file not created'
-
-def init():
-    """
-    Test full model pipeline: Curate data, fit model, and predict property for new compounds
-    """
-
-    # Clean
-    # -----
-    integrative_utilities.clean_fit_predict()
-    clean()
-
-    # Download
-    # --------
-    download()
-
-    # Curate
-    # ------
-    curate()
 
 def H1_init():
     """

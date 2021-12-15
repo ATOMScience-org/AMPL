@@ -21,7 +21,7 @@
 
     "comment": "Prediction Type",
     "comment": "----------------------------------------",
-    "response_cols": "pKi_mean",
+    "response_cols": "exact_mol_weight",
     "uncertainty": "False",
 
     "comment": "Features",
