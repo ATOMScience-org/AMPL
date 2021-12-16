@@ -12,13 +12,7 @@
     "dataset_key": "./delaney-processed_curated_fit.csv",
     "id_col": "Compound ID",
     "smiles_col": "smiles",
-
-    "comment": "Prediction Type",
-    "comment": "----------------------------------------",
-    "response_cols": ["measured log solubility in mols per litre_class",
-                        "measured log solubility in mols per litre_class2"],
-    "num_model_tasks": 2,
-    "prediction_type": "classification",
+    "response_cols": "measured log solubility in mols per litre",
 
     "comment": "Features",
     "comment": "----------------------------------------",
@@ -28,12 +22,19 @@
     "comment": "----------------------------------------",
     "model_type": "NN",
 
+    "comment": "Splitter",
+    "comment": "----------------------------------------",
+    "base_splitter": "random",
+    "splitter": "random",
+    "split_strategy": "k_fold_cv",
+    "num_folds": "5",
+
     "comment": "Neural network",
     "comment": "----------------------------------------",
     "dropouts": "0.10,0.10,0.10",
     "layer_sizes": "64,64,64",
     "learning_rate": "0.000753",
-    "max_epochs": "500",
+    "max_epochs": "100",
 
     "comment": "Training",
     "comment": "----------------------------------------",    
@@ -42,11 +43,5 @@
 
     "comment": "Results",
     "comment": "----------------------------------------",    
-    "result_dir": "result",
-
-    "comment": "Test config",
-    "comment": "these variables are only used in THIS test.",
-    "comment": "They will not do anything in the pipeline",
-    "comment": "----------------------------------------",
-    "perf_threshold": ".65"
+    "result_dir": "result"
 }

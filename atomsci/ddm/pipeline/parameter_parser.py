@@ -1,11 +1,18 @@
 import argparse
 import json
 import sys
+from time import process_time
+import typing
 import os
 import re
 import logging
 import datetime
+import pdb
 
+import deepchem.models as dcm
+import deepchem.models.torch_models as dcmt
+import deepchem.feat as dcf
+import inspect
 
 import os.path
 import atomsci.ddm.utils.checksum_utils as cu
@@ -15,6 +22,359 @@ from packaging.version import parse
 log = logging.getLogger('ATOM')
 # TODO: mjt, do we need to deal with parameters with options?
 # e.g. ["dk","d","r","s","f","n","dd","sl","y"]
+
+
+# model white list
+# TODO: he6, we need to set model_dir using the existing parameter name.
+# possibly use dest, and make exctract parameters aware of that change.
+# mode to prediction_type, n_tasks, to num_model_tasks
+# Dictionary containing synonyms. Keyed on deepchem names with AMPL values
+# e.g. DeepChem's mode is the same as AMPL's prediction_type
+parameter_synonyms = {'mode':'prediction_type',
+                      'n_tasks':'num_model_tasks',
+                      'learning_rate':'learning_rate',
+                      'model_dir':'result_dir',
+                    }
+
+model_wl = {'AttentiveFPModel':dcm.AttentiveFPModel, 
+            'GCNModel':dcm.GCNModel,
+            'MPNNModel':dcm.MPNNModel,
+            'GraphConvModel':dcm.GraphConvModel,
+            'MPNNModelPytorch':dcmt.MPNNModel}#, dcm.GCNModel, dcm.GATModel]
+
+# featurizer white list
+featurizer_wl = {'MolGraphConvFeaturizer':dcf.MolGraphConvFeaturizer,
+                    'WeaveFeaturizer':dcf.WeaveFeaturizer,
+                    'ConvMolFeaturizer':dcf.ConvMolFeaturizer}
+
+#**********************************************************************************************************
+def all_auto_arguments():
+    '''
+    Returns a set of all arguments that get automatically added
+    '''
+    result = []
+    for k,m in model_wl.items():
+        aaa = AutoArgumentAdder(func=m, prefix=k)
+        prefixed_names = aaa.all_prefixed_names()
+        result += prefixed_names
+
+    for k,f in featurizer_wl.items():
+        aaa = AutoArgumentAdder(func=f, prefix=k)
+        prefixed_names = aaa.all_prefixed_names()
+        result += prefixed_names
+
+    return set(result)
+
+def all_auto_int_lists():
+    '''
+    Returns a set of all arguments that are automatically added and
+    accpet a list of ints.
+    '''
+    result = []
+    for k,m in model_wl.items():
+        aaa = AutoArgumentAdder(func=m, prefix=k)
+        prefixed_names = aaa.get_list_int_args()
+        result += prefixed_names
+
+    for k,f in featurizer_wl.items():
+        aaa = AutoArgumentAdder(func=f, prefix=k)
+        prefixed_names = aaa.get_list_int_args()
+        result += prefixed_names
+
+    return set(result)
+
+def all_auto_lists():
+    '''
+    Returns a set of all arguments that get automatically added and are lists
+    '''
+    result = []
+    for k,m in model_wl.items():
+        aaa = AutoArgumentAdder(func=m, prefix=k)
+        prefixed_names = aaa.get_list_args()
+        result += prefixed_names
+
+    for k,f in featurizer_wl.items():
+        aaa = AutoArgumentAdder(func=f, prefix=k)
+        prefixed_names = aaa.get_list_args()
+        result += prefixed_names
+
+    return set(result)
+
+def extract_model_params(params, strip_prefix=True):
+    '''
+    Extracts parameters meant for a specific model. Use only for
+    arguments automatically added by an AutoArgumentAdder
+
+    Args:
+        params (Namespace): Parameter Namespace
+        strip_prefix (bool): Automatically added parameters come with a prefix.
+            When True, the prefix is removed. e.g. AttentiveFP_mode
+            becomes mode
+
+    Returns:
+        dict: A subset of parameters from params that should be passed on to the
+            model
+    '''
+    assert params.model_type in model_wl
+
+    aaa = AutoArgumentAdder(model_wl[params.model_type], params.model_type)
+    return aaa.extract_params(params, strip_prefix=strip_prefix)
+
+def extract_featurizer_params(params, strip_prefix=True):
+    '''
+    Extracts parameters meant for a specific featurizer. Use only for
+    arguments automatically added by an AutoArgumentAdder
+
+    Args:
+        params (Namespace): Parameter Namespace
+        strip_prefix (bool): Automatically added parameters come with a prefix.
+            When True, the prefix is removed. e.g. MolGraphConvFeaturizer_use_edges
+            becomes use_edges
+
+    Returns:
+        dict: A subset of parameters from params that should be passed on to the
+            featurizer
+    '''
+    assert params.featurizer in featurizer_wl
+
+    aaa = AutoArgumentAdder(featurizer_wl[params.featurizer], params.featurizer)
+    return aaa.extract_params(params, strip_prefix=strip_prefix)
+
+def is_primative_type(t):
+    '''
+    Returns true if t is of type int, str, or float
+
+    Args:
+        t (type): A type
+
+    Returns:
+        bool. True if type is int, str, or float
+    '''
+    return t == int or t == str or t == float
+
+def primative_type_only(type_annotation):
+    '''
+    Given annotation, return only primative types that can be read in
+    from commandline, int, float, and str.
+
+    Default return value is str, which is default for type parameter in
+    add_arguments
+
+    Args:
+        type_annotation (type): A type annotation.
+
+    Returns:
+        type: One of 3 choices, int, float, str
+    '''
+    if is_primative_type(type_annotation):
+        return type_annotation
+    elif str(type_annotation).startswith('typing.Union'):
+        # could not find a better way to do this check:
+        # https://stackoverflow.com/questions/49171189/whats-the-correct-way-to-check-if-an-object-is-a-typing-generic
+        for t in type_annotation.__args__:
+            if is_primative_type(t):
+                return t
+        return str
+    else:
+        return str
+
+def is_list_int(type_annotation):
+    '''
+    Given annotation, returns true if this accepts an integer list
+
+    Returns False on generic list will only return true for 'typing.List[int]'
+
+    Performs recursive earch in case of typing.Union
+    '''
+    if str(type_annotation).startswith('typing.Union'):
+        # could not find a better way to do this check:
+        # https://stackoverflow.com/questions/49171189/whats-the-correct-way-to-check-if-an-object-is-a-typing-generic
+        for t in type_annotation.__args__:
+            if is_list_int(t):
+                return True
+        return False
+    else:
+        return str(type_annotation) == 'typing.List[int]'
+
+def is_list_float(type_annotation):
+    '''
+    Given annotation, returns true if it accepts a float list
+
+    Returns False on generic list will only return true for 'typing.List[float]'
+
+    Performs recursive earch in case of typing.Union
+    '''
+    if str(type_annotation).startswith('typing.Union'):
+        # could not find a better way to do this check:
+        # https://stackoverflow.com/questions/49171189/whats-the-correct-way-to-check-if-an-object-is-a-typing-generic
+        for t in type_annotation.__args__:
+            if is_list_float(t):
+                return True
+        return False
+    else:
+        return str(type_annotation) == 'typing.List[float]'
+
+def is_list(type_annotation):
+    '''
+    Given annotation, returns true if it accepts a list
+
+    Returns False on generic list will only return true for 'typing.List' or <class 'list'>
+
+    Performs recursive earch in case of typing.Union
+    '''
+    if str(type_annotation).startswith('typing.Union'):
+        # could not find a better way to do this check:
+        # https://stackoverflow.com/questions/49171189/whats-the-correct-way-to-check-if-an-object-is-a-typing-generic
+        for t in type_annotation.__args__:
+            if is_list(t):
+                return True
+        return False
+    else:
+        return str(type_annotation).startswith('typing.List') or str(type_annotation) == "<class 'list'>"
+
+class AutoArgumentAdder:
+    '''
+    Finds, manages, and adds all parameters of a function to a argparse parser
+    '''
+    def __init__(self, func, prefix):
+        self.func = func # original function e.g. dcm.AttentiveFPModel
+        self.funcs = [] # a list of all parents. e.g. KerasModel
+        self.prefix = prefix # name of original function e.g. AttentiveFPModel
+        self.types = {} # parameter names to types
+        self.used_by = {} # mapping parameter names to an element in funcs
+        self.args = set() # set of arguments
+
+        self._add_all_keyword_arguments()
+
+    def _add_all_keyword_arguments(self):
+        self.funcs.append(self.func)
+        current_funcs = [self.func]
+        while len(current_funcs)>0:
+            # get something off bottom of the list
+            current_func = current_funcs.pop(0)
+            # add the bases to the list
+            current_funcs = current_funcs + list(current_func.__bases__)
+
+            # look at arguments for this function
+            spec = inspect.getfullargspec(current_func)
+            args = set(spec.args)
+            if args is None:
+                continue
+            # Remove all self arguments
+            if 'self' in args:
+                args.remove('self')
+            # add set of args
+            self.args = self.args.union(args)
+
+            # keep track of which functions use which arguments
+            func_name = str(current_func)
+            for a in args:
+                if a in self.used_by:
+                    self.used_by[a].append(func_name)
+                else:
+                    self.used_by[a] = [func_name]
+
+            # keep track of types for each argument
+            for a in args:
+                # find type of argument
+                if a in spec.annotations:
+                    t = spec.annotations[a]
+                else:
+                    # guess if there is no annotation e.g. MPNN has no annotations
+                    if a.startswith('n_') or 'num_' in a or a.startswith('number_'):
+                        t = int
+                    else:
+                        t = str
+
+                if a in self.types:
+                    # do not overwrite args already in self.types
+                    continue
+                else:
+                    self.types[a] = t
+
+    def _make_param_name(self, arg_name):
+        return f'{self.prefix}_{arg_name}'
+
+    def all_prefixed_names(self):
+        return [self._make_param_name(p) for p in self.args]
+
+    def add_to_parser(self, parser):
+        '''
+        Adds expected parameters to an argparse.ArgumentParser. Checks to 
+        see if the argument has synonyms e.g. mode and prediction_type and sets dest
+        accordingly. All parameters have default=None, this is checked later in 
+        self.extract_params. None parameters are not passed on so we can use
+        default parameters set by DeepChem.
+
+        Args:
+            parser (argparse.ArgumentParser): An argument parser
+
+        Returns:
+            None
+        '''
+        for p in self.args:
+            p_name = f'--{self._make_param_name(p)}'
+            t = self.types[p]
+            pt = primative_type_only(t)
+
+            if self.prefix == 'MPNNModel' and p.startswith('n_'):
+                print(f'{self.prefix} {p} {pt} {t}')
+
+            if p in parameter_synonyms:
+                # don't set default or type. e.g. learning_rate in AMPL is a str where as DeepChem
+                # expects a float
+                parser.add_argument(p_name, dest=parameter_synonyms[p],
+                    help=f'Auto added argument used in one of these: '+', '.join(self.used_by[p]))
+            else:
+                parser.add_argument(p_name, type=pt, default=None,
+                    help=f'Auto added argument used in one of these: '+', '.join(self.used_by[p]))
+
+    def extract_params(self, params, strip_prefix=False):
+        '''
+        Extracts non-None parameters from the given Namespace.
+
+        Args:
+            params (Namespace): Parameters.
+            strip_prefix (bool): Strips off the prefix of the parameter. e.g.
+                AttentiveFP_mode becomes mode
+
+        Returns:
+            dict: Dictionary containing a subset of parameters that are expected
+                by this function.
+        '''
+        args = {}
+        params = vars(params)
+        for p in self.args:
+            p_name = self._make_param_name(p)
+            # check to see if the argument is in params
+            if p_name in params:
+                v = params[p_name]
+            elif p in parameter_synonyms: # if it's not found, it might be a synonym
+                v = params[parameter_synonyms[p]]
+            else:
+                v = None # parameter is not found and assumed to not be set
+
+            # unset parameters are not passed on
+            if v is None:
+                continue
+
+            # Pass on set parameters
+            if strip_prefix:
+                args[p] = v
+            else:
+                args[p_name] = v
+
+        return args
+
+    def get_list_int_args(self):
+        return [self._make_param_name(p) for p in self.args if is_list_int(self.types[p])]
+
+    def get_list_float_args(self):
+        return [self._make_param_name(p) for p in self.args if is_list_float(self.types[p])]
+
+    def get_list_args(self):
+        return [self._make_param_name(p) for p in self.args if is_list(self.types[p])]
+
 
 # Parameters that may take lists of values, usually but not always in the context of a hyperparam search
 
@@ -29,10 +389,10 @@ convert_to_float_list = {'dropouts','weight_init_stddevs','bias_init_consts','le
                          }
 convert_to_int_list = {'layer_sizes','rf_max_features','rf_estimators', 'rf_max_depth',
                        'umap_dim', 'umap_neighbors', 'layer_nums', 'node_nums',
-                       "xgb_max_depth",  "xgb_n_estimators"}
+                       "xgb_max_depth",  "xgb_n_estimators"}.union(all_auto_int_lists())
 convert_to_numeric_list = convert_to_float_list | convert_to_int_list
 keep_as_list = {'dropouts','weight_init_stddevs','bias_init_consts',
-                'layer_sizes','dropout_list','layer_nums'}
+                'layer_sizes','dropout_list','layer_nums'}.union(all_auto_lists())
 not_a_list_outside_of_hyperparams = {'learning_rate','weight_decay_penalty',
                                      'xgb_learning_rate',
                                      'xgb_gamma',
@@ -72,13 +432,12 @@ def to_str(params_obj):
     return str_params
 
 
-
 #**********************************************************************************************************
 def wrapper(*any_arg):
     """"Wrapper to handle the ParseParams class. Calls the correct method depending on the input argument type
 
         Args:
-            *any_arg: any single input of a str, dict, argparse.Namespace, or list
+            *any_arg: any single input of a str, dict, ar/printgparse.Namespace, or list
 
         Returns:
             argparse.Namespace: a Namespace.argparse object containing default parameters + user specified parameters
@@ -511,6 +870,18 @@ def get_parser():
         '--verbose', dest='verbose', action='store_true',
         help='True/False flag for setting verbosity')
     parser.set_defaults(verbose=False)
+
+    # **********************************************************************************************************
+    # model_building_parameters: model type specific
+    for k, model in model_wl.items():
+        aaa = AutoArgumentAdder(func=model, prefix=k)
+        aaa.add_to_parser(parser)
+
+    # **********************************************************************************************************
+    # model_building_parameters: featurizer arguments type specific
+    for k, feat in featurizer_wl.items():
+        aaa = AutoArgumentAdder(func=feat, prefix=k)
+        aaa.add_to_parser(parser)
 
     # **********************************************************************************************************
     # model_building_parameters: graphconv
@@ -1193,7 +1564,8 @@ def remove_unrecognized_arguments(params, hyperparam=False):
 
     #dictionary comprehension that retains only the keys that are in the accepted list of parameters
     default = list_defaults(hyperparam)
-    keep = list(vars(default).keys())
+    # add all auto arguments because they sometimes use dest and are ommitted from the vars call
+    keep = set(list(vars(default).keys())).union(all_auto_arguments())
     newdict = {k: params[k] for k in keep if k in params}
 
     # Writes a warning for any arguments that are not in the default list of parameters
