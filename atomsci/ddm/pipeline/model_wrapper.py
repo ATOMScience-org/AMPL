@@ -95,6 +95,19 @@ def dc_restore(model, checkpoint=None, model_dir=None, session=None):
         # inference only.
         model._checkpoint.restore(checkpoint).expect_partial().run_restore_ops(session)
 
+def all_bases(model):
+    '''
+    Given a model, return all bases
+    '''
+    result = [model]
+    current_funcs = [model]
+    while len(current_funcs)>0:
+        current_func = current_funcs.pop(0)
+        current_funcs = current_funcs + list(current_func.__bases__)
+        result = result + list(current_func.__bases__)
+
+    return result
+
 # ****************************************************************************************
 def create_model_wrapper(params, featurizer, ds_client=None):
     """Factory function for creating Model objects of the correct subclass for params.model_type.
@@ -135,9 +148,16 @@ def create_model_wrapper(params, featurizer, ds_client=None):
     elif params.model_type == 'hybrid':
         return HybridModelWrapper(params, featurizer, ds_client)
     elif params.model_type in pp.model_wl:
-        if not afp_supported:
-            raise Exception("dgl and dgllife packages must be installed to use attentive_fp model.")
-        return DeepChemModelWrapper(params, featurizer, ds_client)
+        requested_model = pp.model_wl[params.model_type]
+        bases = all_bases(requested_model)
+        # keras and torch models have slightly different interfaces. They also save their models
+        # differently. These two wrappers implement the same interface.
+        if any(['TorchModel' in str(b) for b in bases]):
+            if not afp_supported:
+                raise Exception("dgl and dgllife packages must be installed to use attentive_fp model.")
+            return PytorchDeepChemModelWrapper(params, featurizer, ds_client)
+        elif any(['KerasModel' in str(b) for b in bases]):
+            return KerasDeepChemModelWrapper(params, featurizer, ds_client)
     else:
         raise ValueError("Unknown model_type %s" % params.model_type)
 
@@ -1080,7 +1100,7 @@ class DCNNModelWrapper(NNModelWrapper):
         self.sess = tf.compat.v1.Session(graph=self.g)
         n_features = self.get_num_features()
         self.num_epochs_trained = 0
-
+        self.log.warning("This method is deprecated and will not be supported in the future")
         if self.params.featurizer == 'graphconv':
 
             # Set defaults for layer sizes and dropouts, if not specified by caller. Note that
@@ -1353,6 +1373,10 @@ class DCNNModelWrapper(NNModelWrapper):
 
         # Restore the transformers from the datastore or filesystem
         self.reload_transformers()
+
+    # ****************************************************************************************
+    def restore(self):
+        dc_restore(self.model)
 
     # ****************************************************************************************
     def get_model_specific_metadata(self):
@@ -2536,7 +2560,7 @@ class DCxgboostModelWrapper(ForestModelWrapper):
         return
 
 # ****************************************************************************************
-class DeepChemModelWrapper(NNModelWrapper):
+class PytorchDeepChemModelWrapper(NNModelWrapper):
     """Implementation of AttentiveFP model from Xiong et al. [1]_. It uses a graph attention model
     to propagate information from bond and neighboring atom features across a molecule represented as
     a graph.
@@ -2672,3 +2696,51 @@ class DeepChemModelWrapper(NNModelWrapper):
         shutil.copy2(chkpt_file, dest_dir)
         self.log.info("Saved model files to '%s'" % dest_dir)
 
+class KerasDeepChemModelWrapper(PytorchDeepChemModelWrapper):
+    def _copy_model(self, dest_dir):
+        """Copies the files needed to recreate a DeepChem NN model from the current model
+        directory to a destination directory.
+
+        Args:
+            dest_dir (str): The destination directory for the model files
+        """
+
+        chkpt_file = os.path.join(self.model_dir, 'checkpoint')
+        with open(chkpt_file, 'r') as chkpt_in:
+            chkpt_dict = yaml.load(chkpt_in.read())
+        chkpt_prefix = chkpt_dict['model_checkpoint_path']
+        files = [chkpt_file]
+        # files.append(os.path.join(self.model_dir, 'model.pickle'))
+        files.append(os.path.join(self.model_dir, '%s.index' % chkpt_prefix))
+        # files.append(os.path.join(self.model_dir, '%s.meta' % chkpt_prefix))
+        files = files + glob.glob(os.path.join(self.model_dir, '%s.data-*' % chkpt_prefix))
+        self._clean_up_excess_files(dest_dir)
+        for file in files:
+            shutil.copy2(file, dest_dir)
+        self.log.info("Saved model files to '%s'" % dest_dir)
+
+    def reload_model(self, reload_dir):
+        """Loads a saved neural net model from the specified directory.
+
+        Args:
+            reload_dir (str): Directory where saved model is located.
+            model_dataset (ModelDataset Object): contains the current full dataset
+
+        Side effects:
+            Resets the value of model, transformers, and transformers_x
+        """
+        self.model = self.recreate_model(model_dir=reload_dir)
+
+        # Get latest checkpoint path transposed to current model dir
+        ckpt = tf.train.get_checkpoint_state(reload_dir)
+        if os.path.exists(f"{ckpt.model_checkpoint_path}.index"):
+            checkpoint = ckpt.model_checkpoint_path
+        else:
+            checkpoint = os.path.join(reload_dir, os.path.basename(ckpt.model_checkpoint_path))
+        dc_restore(self.model, checkpoint=checkpoint)
+
+        # Restore the transformers from the datastore or filesystem
+        self.reload_transformers()
+
+    def restore(self):
+        dc_restore(self.model)

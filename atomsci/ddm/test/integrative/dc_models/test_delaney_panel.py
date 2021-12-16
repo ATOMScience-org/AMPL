@@ -169,6 +169,6 @@ def test_reg_config_H1_fit_MPNNModel():
     train_and_predict('reg_config_H1_fit_MPNNModel.json', prefix='H1') # crashes during run
 
 if __name__ == '__main__':
-    #test_reg_config_H1_fit_MPNNModel() # get_num_atoms() does not exist
-    test_reg_config_H1_fit_GCNModel() # doesn't learn well
-    #test_reg_config_H1_fit_AttentiveFPModel() works fine?
+    test_reg_config_H1_fit_MPNNModel() # uses the WeaveFeaturizer
+    #test_reg_config_H1_fit_GCNModel()
+    #test_reg_config_H1_fit_AttentiveFPModel() #works fine?

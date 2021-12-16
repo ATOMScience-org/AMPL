@@ -10,6 +10,7 @@ import datetime
 import pdb
 
 import deepchem.models as dcm
+import deepchem.models.torch_models as dcmt
 import deepchem.feat as dcf
 import inspect
 
@@ -33,15 +34,18 @@ parameter_synonyms = {'mode':'prediction_type',
                       'n_tasks':'num_model_tasks',
                       'learning_rate':'learning_rate',
                       'model_dir':'result_dir',
-                      'graph_conv_layers':'layer_sizes'
                     }
 
 model_wl = {'AttentiveFPModel':dcm.AttentiveFPModel, 
             'GCNModel':dcm.GCNModel,
-            'MPNNModel':dcm.MPNNModel}#, dcm.GCNModel, dcm.GATModel]
+            'MPNNModel':dcm.MPNNModel,
+            'GraphConvModel':dcm.GraphConvModel,
+            'MPNNModelPytorch':dcmt.MPNNModel}#, dcm.GCNModel, dcm.GATModel]
 
 # featurizer white list
-featurizer_wl = {'MolGraphConvFeaturizer':dcf.MolGraphConvFeaturizer}
+featurizer_wl = {'MolGraphConvFeaturizer':dcf.MolGraphConvFeaturizer,
+                    'WeaveFeaturizer':dcf.WeaveFeaturizer,
+                    'ConvMolFeaturizer':dcf.ConvMolFeaturizer}
 
 #**********************************************************************************************************
 def all_auto_arguments():
@@ -276,7 +280,11 @@ class AutoArgumentAdder:
                 if a in spec.annotations:
                     t = spec.annotations[a]
                 else:
-                    t = str
+                    # guess if there is no annotation e.g. MPNN has no annotations
+                    if a.startswith('n_') or 'num_' in a or a.startswith('number_'):
+                        t = int
+                    else:
+                        t = str
 
                 if a in self.types:
                     # do not overwrite args already in self.types
@@ -308,6 +316,9 @@ class AutoArgumentAdder:
             p_name = f'--{self._make_param_name(p)}'
             t = self.types[p]
             pt = primative_type_only(t)
+
+            if self.prefix == 'MPNNModel' and p.startswith('n_'):
+                print(f'{self.prefix} {p} {pt} {t}')
 
             if p in parameter_synonyms:
                 # don't set default or type. e.g. learning_rate in AMPL is a str where as DeepChem
