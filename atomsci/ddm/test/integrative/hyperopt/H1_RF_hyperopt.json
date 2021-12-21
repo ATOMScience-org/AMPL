@@ -23,5 +23,5 @@
     "rfe": "uniformint|8,512",
     "rfd": "uniformint|8,512",
     "rff": "uniformint|8,200",
-    "result_dir": "./output,./tmp",
+    "result_dir": "./output,./tmp"
 }
