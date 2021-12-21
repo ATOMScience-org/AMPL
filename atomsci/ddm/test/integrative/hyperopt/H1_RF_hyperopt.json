@@ -24,6 +24,6 @@
     "rfd": "uniformint|8,512",
     "rff": "uniformint|8,200",
     "result_dir": "./output,./tmp",
-    "script_dir": "/usr/WS1/he6/code/ATOM/AMPL_PR/atomsci/ddm",
-    "python_path": "/usr/WS1/he6/AMPL_PR_env/bin/python"
+    "script_dir": "/usr/WS1/he6/code/ATOM/AMPL1.2_fork/atomsci/ddm",
+    "python_path": "/usr/WS1/he6/AMPL_fork_env/bin/python"
 }
