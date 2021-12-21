@@ -104,10 +104,23 @@ def test_synonyms():
     assert not aaa.extract_params(params_a) == aaa.extract_params(params_c)
     assert not aaa.extract_params(params_b) == aaa.extract_params(params_c)
 
+def test_defaults():
+    json_d = {
+        "prediction_type": "classification",
+        "AttentiveFPModel_num_layers":"3",
+        "response_cols": ["asdf1", "asdf2"]
+    }
+
+    params_d = pp.wrapper(json_d)
+    # make sure that the default value of synonyms are still set correctly
+    expected_lr = 0.0005
+    assert params_d.learning_rate == expected_lr, f'{params_d.learning_rate} should be {expected_lr}'
+
 if __name__ == '__main__':
-    #test_add_arguments_to_parser()
-    #test_list_float_args()
-    #test_list_int_args()
-    #test_list_args()
+    test_add_arguments_to_parser()
+    test_list_float_args()
+    test_list_int_args()
+    test_list_args()
 
     test_synonyms()
+    test_defaults()

@@ -178,27 +178,31 @@ def primative_type_only(type_annotation):
     else:
         return str
 
-def is_list_int(type_annotation):
+def is_list_int(p, type_annotation):
     '''
-    Given annotation, returns true if this accepts an integer list
+    Given parameter name and annotation, returns true if this accepts an integer list
 
     Returns False on generic list will only return true for 'typing.List[int]'
 
     Performs recursive earch in case of typing.Union
     '''
+    # some guesses because annotations aren't always 100% correct.
+    if 'graph_conv_layers' in p:
+        return True
+
     if str(type_annotation).startswith('typing.Union'):
         # could not find a better way to do this check:
         # https://stackoverflow.com/questions/49171189/whats-the-correct-way-to-check-if-an-object-is-a-typing-generic
         for t in type_annotation.__args__:
-            if is_list_int(t):
+            if is_list_int(p, t):
                 return True
         return False
     else:
         return str(type_annotation) == 'typing.List[int]'
 
-def is_list_float(type_annotation):
+def is_list_float(p, type_annotation):
     '''
-    Given annotation, returns true if it accepts a float list
+    Given paramter name and annotation, returns true if it accepts a float list
 
     Returns False on generic list will only return true for 'typing.List[float]'
 
@@ -208,25 +212,29 @@ def is_list_float(type_annotation):
         # could not find a better way to do this check:
         # https://stackoverflow.com/questions/49171189/whats-the-correct-way-to-check-if-an-object-is-a-typing-generic
         for t in type_annotation.__args__:
-            if is_list_float(t):
+            if is_list_float(p, t):
                 return True
         return False
     else:
         return str(type_annotation) == 'typing.List[float]'
 
-def is_list(type_annotation):
+def is_list(p, type_annotation):
     '''
-    Given annotation, returns true if it accepts a list
+    Given paramter name and annotation, returns true if it accepts a list
 
     Returns False on generic list will only return true for 'typing.List' or <class 'list'>
 
     Performs recursive earch in case of typing.Union
     '''
+    # some guesses because annotations aren't always 100% correct.
+    if 'graph_conv_layers' in p:
+        return True
+
     if str(type_annotation).startswith('typing.Union'):
         # could not find a better way to do this check:
         # https://stackoverflow.com/questions/49171189/whats-the-correct-way-to-check-if-an-object-is-a-typing-generic
         for t in type_annotation.__args__:
-            if is_list(t):
+            if is_list(p, t):
                 return True
         return False
     else:
@@ -317,9 +325,6 @@ class AutoArgumentAdder:
             t = self.types[p]
             pt = primative_type_only(t)
 
-            if self.prefix == 'MPNNModel' and p.startswith('n_'):
-                print(f'{self.prefix} {p} {pt} {t}')
-
             if p in parameter_synonyms:
                 # don't set default or type. e.g. learning_rate in AMPL is a str where as DeepChem
                 # expects a float
@@ -367,13 +372,13 @@ class AutoArgumentAdder:
         return args
 
     def get_list_int_args(self):
-        return [self._make_param_name(p) for p in self.args if is_list_int(self.types[p])]
+        return [self._make_param_name(p) for p in self.args if is_list_int(p, self.types[p])]
 
     def get_list_float_args(self):
-        return [self._make_param_name(p) for p in self.args if is_list_float(self.types[p])]
+        return [self._make_param_name(p) for p in self.args if is_list_float(p, self.types[p])]
 
     def get_list_args(self):
-        return [self._make_param_name(p) for p in self.args if is_list(self.types[p])]
+        return [self._make_param_name(p) for p in self.args if is_list(p, self.types[p])]
 
 
 # Parameters that may take lists of values, usually but not always in the context of a hyperparam search
@@ -872,18 +877,6 @@ def get_parser():
     parser.set_defaults(verbose=False)
 
     # **********************************************************************************************************
-    # model_building_parameters: model type specific
-    for k, model in model_wl.items():
-        aaa = AutoArgumentAdder(func=model, prefix=k)
-        aaa.add_to_parser(parser)
-
-    # **********************************************************************************************************
-    # model_building_parameters: featurizer arguments type specific
-    for k, feat in featurizer_wl.items():
-        aaa = AutoArgumentAdder(func=feat, prefix=k)
-        aaa.add_to_parser(parser)
-
-    # **********************************************************************************************************
     # model_building_parameters: graphconv
     parser.add_argument(
         '--optimizer_type', dest='optimizer_type', required=False, default='adam',
@@ -1335,6 +1328,18 @@ def get_parser():
     parser.add_argument(
         '--hp_checkpoint_load', dest='hp_checkpoint_load', required=False, default=None,
         help='binary file to load a checkpoint of a previous HPO trial project, to continue the HPO serach. e.g. --hp_checkpoint_load=/path/to/file/checkpoint.pkl')
+
+    # **********************************************************************************************************
+    # model_building_parameters: model type specific
+    for k, model in model_wl.items():
+        aaa = AutoArgumentAdder(func=model, prefix=k)
+        aaa.add_to_parser(parser)
+
+    # **********************************************************************************************************
+    # model_building_parameters: featurizer arguments type specific
+    for k, feat in featurizer_wl.items():
+        aaa = AutoArgumentAdder(func=feat, prefix=k)
+        aaa.add_to_parser(parser)
 
     return parser
 

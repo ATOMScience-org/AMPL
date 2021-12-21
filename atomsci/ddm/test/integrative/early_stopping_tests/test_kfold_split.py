@@ -181,10 +181,10 @@ def saved_model_identity(pparams):
 
 if __name__ == '__main__':
     #test_train_valid_test()
-    #test_kfold()
+    test_kfold()
     #test_graphconv()
     #test_ecfp_nn()
     #test_attentivefp()
-    test_gcnmodel()
+    #test_gcnmodel()
     print('Passed')
 
