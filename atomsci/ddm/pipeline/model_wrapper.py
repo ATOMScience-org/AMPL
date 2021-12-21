@@ -189,6 +189,7 @@ class ModelWrapper(object):
         os.makedirs(self.model_dir, exist_ok=True)
         self.transformers = []
         self.transformers_x = []
+        self.transformers_w = []
 
         # ****************************************************************************************
 
