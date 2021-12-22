@@ -2342,6 +2342,12 @@ class DCxgboostModelWrapper(ForestModelWrapper):
         """
         self.log.info("Fitting xgboost model")
 
+        self.data = pipeline.data
+        self.best_epoch = None
+        self.train_perf_data = perf.create_perf_data(self.params.prediction_type, pipeline.data, self.transformers,'train')
+        self.valid_perf_data = perf.create_perf_data(self.params.prediction_type, pipeline.data, self.transformers, 'valid')
+        self.test_perf_data = perf.create_perf_data(self.params.prediction_type, pipeline.data, self.transformers, 'test')
+
         test_dset = pipeline.data.test_dset
 
         num_folds = len(pipeline.data.train_valid_dsets)

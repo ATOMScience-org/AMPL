@@ -36,5 +36,10 @@
 
     "comment": "Results",
     "comment": "----------------------------------------",    
-    "result_dir": "result"
+    "result_dir": "result",
+
+    "comment": "Test",
+    "comment": "----------------------------------------",    
+    "perf_threshold": "0.50"
+
 }

@@ -47,10 +47,10 @@ def test():
     if not os.path.isfile(params.dataset_key):
         hp_params["dataset_key"] = os.path.join(script_dir, hp_params["dataset_key"])
 
-    with open("H1_RF_hyperopt.json", "w") as f:
+    with open("H1_RF_hyperopt_temp.json", "w") as f:
         json.dump(hp_params, f, indent=4)
 
-    run_cmd = f"{python_path} {script_dir}/utils/hyperparam_search_wrapper.py --config_file ./H1_RF_hyperopt.json"
+    run_cmd = f"{python_path} {script_dir}/utils/hyperparam_search_wrapper.py --config_file ./H1_RF_hyperopt_temp.json"
     os.system(run_cmd)
 
     # check results
