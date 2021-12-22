@@ -83,23 +83,23 @@ def plot_dataset_dist_distr(dataset, feat_type, dist_metric, task_name, **metric
     return dists
 
 #------------------------------------------------------------------------------------------------------------------
-def plot_tani_dist_distr(df, smiles_col, df_name, ndist_max = ndist_max, **metric_kwargs):
+def plot_tani_dist_distr(df, smiles_col, df_name, radius=4, ndist_max = ndist_max, **metric_kwargs):
     """
     Generate a density plot showing the distribution of distances between 
     ecfp feature vectors, using the tanimoto metric.
     """
-    # log = logging.getLogger('ATOM')
+    log = logging.getLogger('ATOM')
     num_cmpds = len(df)
-    if num_cmpds > 50000:
-        log.warning("Dataset has %d compounds, too big to calculate distance matrix" % num_cmpds)
-        return
+#     if num_cmpds > 50000:
+#         log.warning("Dataset has %d compounds, too big to calculate distance matrix" % num_cmpds)
+#         return
 
     # log.warning("Starting distance matrix calculation for %d compounds" % num_cmpds)
     feat_type = 'ecfp'
     dist_metric = 'tanimoto'
     smiles_arr1 = df[smiles_col].values
     mols1 = [Chem.MolFromSmiles(s) for s in smiles_arr1]
-    fprints1 = [AllChem.GetMorganFingerprintAsBitVect(mol, 2, 1024) for mol in mols1]
+    fprints1 = [AllChem.GetMorganFingerprintAsBitVect(mol, radius, 1024) for mol in mols1]
     dists = GetTanimotoDistMat(fprints1)
 
     # log.warning("Finished calculation of %d distances" % len(dists))
