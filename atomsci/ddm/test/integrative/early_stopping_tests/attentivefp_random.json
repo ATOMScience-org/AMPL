@@ -5,7 +5,6 @@
     "datastore": "False",
     "save_results": "False",
     "data_owner": "username",
-    "parser_version":"1.0",
 
     "comment": "Input",
     "comment": "----------------------------------------",

@@ -22,7 +22,6 @@
     "comment": "Prediction Type",
     "comment": "----------------------------------------",
     "response_cols": "exact_mol_weight",
-    "AttentiveFPModel_mode": "regression",
     "uncertainty": "False",
 
     "comment": "Features",
@@ -33,6 +32,7 @@
     "comment": "Model",
     "comment": "----------------------------------------",
     "model_type": "PytorchMPNNModel",
+    "PytrochMPNNModel_mode": "regression",
     "PytorchMPNNModel_num_layers":"3",
     "PytorchMPNNModel_learning_rate": "0.0007",
     "PytorchMPNNModel_n_tasks": "1",

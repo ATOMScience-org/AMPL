@@ -123,6 +123,39 @@ def test_gcnmodel():
 
     saved_model_identity(pparams)
 
+def test_graphconvmodel():
+    script_path = os.path.dirname(os.path.realpath(__file__))
+    json_file = os.path.join(script_path, 'GraphConvModel_random.json')
+
+    pparams = parse.wrapper(['--config_file', json_file])
+    pparams.dataset_key = os.path.join(script_path, 
+        '../../test_datasets/aurka_chembl_base_smiles_union.csv')
+    pparams.result_dir = script_path
+
+    saved_model_identity(pparams)
+
+def test_mpnnmodel():
+    script_path = os.path.dirname(os.path.realpath(__file__))
+    json_file = os.path.join(script_path, 'MPNNModel_random.json')
+
+    pparams = parse.wrapper(['--config_file', json_file])
+    pparams.dataset_key = os.path.join(script_path, 
+        '../../test_datasets/aurka_chembl_base_smiles_union.csv')
+    pparams.result_dir = script_path
+
+    saved_model_identity(pparams)
+
+def test_pytorchmpnnmodel():
+    script_path = os.path.dirname(os.path.realpath(__file__))
+    json_file = os.path.join(script_path, 'PytorchMPNNModel_random.json')
+
+    pparams = parse.wrapper(['--config_file', json_file])
+    pparams.dataset_key = os.path.join(script_path, 
+        '../../test_datasets/aurka_chembl_base_smiles_union.csv')
+    pparams.result_dir = script_path
+
+    saved_model_identity(pparams)
+
 def saved_model_identity(pparams):
     script_path = os.path.dirname(os.path.realpath(__file__))
     if not pparams.previously_split:
@@ -180,11 +213,14 @@ def saved_model_identity(pparams):
             and (test_length == len(test_df))
 
 if __name__ == '__main__':
-    #test_train_valid_test()
+    test_train_valid_test()
     test_kfold()
-    #test_graphconv()
-    #test_ecfp_nn()
-    #test_attentivefp()
-    #test_gcnmodel()
+    test_graphconv()
+    test_ecfp_nn()
+    test_attentivefp()
+    test_gcnmodel()
+    test_graphconvmodel()
+    test_mpnnmodel()
+    test_pytorchmpnnmodel()
     print('Passed')
 
