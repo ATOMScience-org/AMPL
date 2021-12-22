@@ -40,7 +40,7 @@ model_wl = {'AttentiveFPModel':dcm.AttentiveFPModel,
             'GCNModel':dcm.GCNModel,
             'MPNNModel':dcm.MPNNModel,
             'GraphConvModel':dcm.GraphConvModel,
-            'MPNNModelPytorch':dcmt.MPNNModel}#, dcm.GCNModel, dcm.GATModel]
+            'PytorchMPNNModel':dcmt.MPNNModel}#, dcm.GCNModel, dcm.GATModel]
 
 # featurizer white list
 featurizer_wl = {'MolGraphConvFeaturizer':dcf.MolGraphConvFeaturizer,
@@ -79,6 +79,24 @@ def all_auto_int_lists():
     for k,f in featurizer_wl.items():
         aaa = AutoArgumentAdder(func=f, prefix=k)
         prefixed_names = aaa.get_list_int_args()
+        result += prefixed_names
+
+    return set(result)
+
+def all_auto_float_lists():
+    '''
+    Returns a set of all arguments that are automatically added and
+    accpet a list of float.
+    '''
+    result = []
+    for k,m in model_wl.items():
+        aaa = AutoArgumentAdder(func=m, prefix=k)
+        prefixed_names = aaa.get_list_float_args()
+        result += prefixed_names
+
+    for k,f in featurizer_wl.items():
+        aaa = AutoArgumentAdder(func=f, prefix=k)
+        prefixed_names = aaa.get_list_float_args()
         result += prefixed_names
 
     return set(result)

@@ -34,6 +34,12 @@ def exact_mol_weight(x):
     '''
     return rdCD.ExactMolWt(rdC.MolFromSmiles(x))
 
+def num_atoms(x):
+    '''
+    Given SMILES, return the number of atoms
+    '''
+    return len(rdC.MolFromSmiles(x).GetAtoms())
+
 def H1_curate():
     """
     Curate dataset for model fitting
@@ -58,6 +64,9 @@ def H1_curate():
 
         # make a really easy test. calc mass of each molecule
         curated_df['exact_mol_weight'] = curated_df['base_rdkit_smiles'].apply(lambda x: exact_mol_weight(x))
+
+        # make a really easy test. count the number of atoms in a molecule
+        curated_df['num_atoms'] = curated_df['base_rdkit_smiles'].apply(lambda x: num_atoms(x))
 
         curated_df.to_csv('H1_curated.csv', index=False)
         split_df.to_csv('H1_curated_fit_train_valid_test_scaffold_002251a2-83f8-4511-acf5-e8bbc5f86677.csv', index=False)
@@ -157,18 +166,26 @@ def H1_init():
 def test_reg_config_H1_fit_AttentiveFPModel():
     H1_init()
     train_and_predict('reg_config_H1_fit_AttentiveFPModel.json', prefix='H1') # crashes during run
-
 # -----
 def test_reg_config_H1_fit_GCNModel():
     H1_init()
     train_and_predict('reg_config_H1_fit_GCNModel.json', prefix='H1') # crashes during run
-
 # -----
 def test_reg_config_H1_fit_MPNNModel():
     H1_init()
     train_and_predict('reg_config_H1_fit_MPNNModel.json', prefix='H1') # crashes during run
 
+def test_reg_config_H1_fit_GraphConvModel():
+    H1_init()
+    train_and_predict('reg_config_H1_fit_GraphConvModel.json', prefix='H1') # crashes during run
+
+def test_reg_config_H1_fit_PytorchMPNNModel():
+    H1_init()
+    train_and_predict('reg_config_H1_fit_PytorchMPNNModel.json', prefix='H1') # crashes during run
+
 if __name__ == '__main__':
-    test_reg_config_H1_fit_MPNNModel() # uses the WeaveFeaturizer
+    test_reg_config_H1_fit_PytorchMPNNModel() # Pytorch implementation of MPNNModel
+    #test_reg_config_H1_fit_GraphConvModel() # the same model as graphconv
+    #test_reg_config_H1_fit_MPNNModel() # uses the WeaveFeaturizer
     #test_reg_config_H1_fit_GCNModel()
     #test_reg_config_H1_fit_AttentiveFPModel() #works fine?
