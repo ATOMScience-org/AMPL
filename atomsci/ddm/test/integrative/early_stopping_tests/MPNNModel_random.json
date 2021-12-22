@@ -1,0 +1,48 @@
+{
+    "comment": "System",
+    "comment": "----------------------------------------",
+    "system": "LC",
+    "datastore": "False",
+    "save_results": "False",
+    "data_owner": "username",
+    "parser_version":"1.0",
+
+    "comment": "Input",
+    "comment": "----------------------------------------",
+    "id_col":"compound_id",
+    "smiles_col":"base_rdkit_smiles",
+    "response_cols":"pIC50",
+
+    "comment": "Splitting",
+    "comment": "----------------------------------------",
+    "previously_split": "False",
+    "split_test_frac": "0.25",
+    "split_valid_frac": "0.25",
+
+    "comment": "Prediction Type",
+    "comment": "----------------------------------------",
+    "AttentiveFPModel_mode": "regression",
+    "uncertainty": "False",
+
+    "comment": "Features",
+    "comment": "----------------------------------------",
+    "featurizer":"WeaveFeaturizer",
+
+    "comment": "Model",
+    "comment": "----------------------------------------",
+    "model_type": "MPNNModel",
+    "MPNNModel_mode": "regression",
+    "comment": "these features are set specifically for the WeaveFeaturizer",
+    "MPNNModel_n_atom_feat": "75",
+    "MPNNModel_n_pair_feat": "14",
+
+    "comment": "Training",
+    "comment": "----------------------------------------",
+    "comment": "This regulates how long to train the model",
+    "early_stopping_patience": "3",
+    "max_epochs": "12",
+
+    "comment": "Results",
+    "comment": "----------------------------------------",
+    "result_dir": "result"
+}
