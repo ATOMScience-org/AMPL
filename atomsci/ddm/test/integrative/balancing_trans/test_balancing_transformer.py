@@ -1,39 +1,25 @@
-import sys
-import os
-import pdb
-import numpy as np
 import pandas as pd
 import tempfile
 
-import pdb
-
 import atomsci.ddm.pipeline.parameter_parser as parse
 import atomsci.ddm.pipeline.model_pipeline as mp
-import atomsci.ddm.pipeline.model_datasets as md
-import atomsci.ddm.pipeline.perf_plots as pp
-import atomsci.ddm.pipeline.model_wrapper as mw
-import atomsci.ddm.pipeline.compare_models as cmp
-import atomsci.ddm.pipeline.featurization as feat
-import atomsci.ddm.pipeline.transformations as trans
-import atomsci.ddm.utils.datastore_functions as dsf
 
 import logging
 logger = logging.getLogger(__name__)
-#logger.setLevel(logging.DEBUG)
 
 nreps = 10
 metrics = []
 vals = []
 balanced = []
 subset = []
-    
+
 def test_balancing_transformer():
     dset_key = '../../test_datasets/MRP3_dataset.csv'
     dset_df = pd.read_csv(dset_key)
 
     res_dir = tempfile.mkdtemp()
     split_uuid = create_scaffold_split(dset_key, res_dir)
-    
+
     # train the model without the balancing
     train_model_wo_balan(dset_key, split_uuid, res_dir)
     # train the model with the balancing parameter
@@ -43,10 +29,10 @@ def test_balancing_transformer():
 
     # check the recall_score
     rec_df = metrics_df[metrics_df.metric == 'recall_score']
-    
+
     not_balanced_series = rec_df[(rec_df.balanced == 'no')].groupby("subset").val.mean()
     balanced_series = rec_df[(rec_df.balanced == 'yes')].groupby("subset").val.mean()
-    
+
     assert((balanced_series['test'] > not_balanced_series['test']) & (balanced_series['valid'] > not_balanced_series['valid']) )
 
 def create_scaffold_split(dset_key, res_dir):
@@ -122,7 +108,7 @@ def train_model_wo_balan(dset_key, split_uuid, res_dir):
         MP = mp.ModelPipeline(pparams)
         MP.train_model()
         wrapper = MP.model_wrapper
-    
+
         for ss in ['valid', 'test']:
             metvals = wrapper.get_pred_results(ss, 'best')
             for metric in ['roc_auc_score', 'prc_auc_score', 'cross_entropy', 'precision', 'recall_score', 'npv', 'accuracy_score', 'bal_accuracy', 'kappa','matthews_cc']:
@@ -169,7 +155,7 @@ def train_model_w_balan(dset_key, split_uuid, res_dir):
         MP = mp.ModelPipeline(pparams)
         MP.train_model()
         wrapper = MP.model_wrapper
-    
+
         for ss in ['valid', 'test']:
             metvals = wrapper.get_pred_results(ss, 'best')
             for metric in ['roc_auc_score', 'prc_auc_score', 'cross_entropy', 'precision', 'recall_score', 'npv', 'accuracy_score', 'bal_accuracy', 'kappa','matthews_cc']:
@@ -179,5 +165,4 @@ def train_model_w_balan(dset_key, split_uuid, res_dir):
                 vals.append(metvals[metric])
 
 if __name__ == '__main__':
-    
-    test()
+    test_balancing_transformer()
