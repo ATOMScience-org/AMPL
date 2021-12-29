@@ -872,7 +872,9 @@ class ModelPipeline:
                 pred_data = copy.deepcopy(self.data.dataset.X)
                 self.run_mode = 'training'
                 try:
+                    print("Featurizing training data for AD calculation.")
                     self.load_featurize_data()
+                    print("Calculating AD index.")
                     if len(self.data.train_valid_dsets) > 1:
                         # combine train and valid set for k-fold CV models
                         train_data = np.concatenate((self.data.train_valid_dsets[0][0].X, self.data.train_valid_dsets[0][1].X))
