@@ -21,7 +21,7 @@
 
     "comment": "Prediction Type",
     "comment": "----------------------------------------",
-    "response_cols": "exact_mol_weight",
+    "response_cols": "pKi_mean",
     "uncertainty": "False",
 
     "comment": "Features",
@@ -34,7 +34,7 @@
     "model_type": "PytorchMPNNModel",
     "PytrochMPNNModel_mode": "regression",
     "PytorchMPNNModel_num_layers":"3",
-    "PytorchMPNNModel_learning_rate": "0.0007",
+    "PytorchMPNNModel_learning_rate": "0.001",
     "PytorchMPNNModel_n_tasks": "1",
 
     "comment": "Training",
@@ -45,5 +45,9 @@
 
     "comment": "Results",
     "comment": "----------------------------------------",
-    "result_dir": "result"
+    "result_dir": "result",
+
+    "comment": "Test",
+    "comment": "----------------------------------------",    
+    "perf_threshold": "0.30"
 }
