@@ -839,22 +839,27 @@ def get_filesystem_perf_results(result_dir, pred_type='classification'):
     ampl_version_list = []
     model_uuid_list = []
     model_type_list = []
+    featurizer_list = []
+    dataset_key_list = []
+    splitter_list = []
+    model_score_type_list = []
+    feature_transform_type_list = []
+
+    # model type specific lists
+    # XGB lists
+    xgb_gamma_list = []
+    xgb_learning_rate_list = []
+    # RF lists
+    rf_estimators_list = []
+    rf_max_features_list = []
+    rf_max_depth_list = []
+    # NN lists
     max_epochs_list = []
     learning_rate_list = []
     dropouts_list = []
     layer_sizes_list = []
-    featurizer_list = []
-    dataset_key_list = []
-    splitter_list = []
-    rf_estimators_list = []
-    rf_max_features_list = []
-    rf_max_depth_list = []
-    xgb_gamma_list = []
-    xgb_learning_rate_list = []
     best_epoch_list = []
-    model_score_type_list = []
-    feature_transform_type_list = []
-    
+
     subsets = ['train', 'valid', 'test']
 
     if pred_type == 'regression':

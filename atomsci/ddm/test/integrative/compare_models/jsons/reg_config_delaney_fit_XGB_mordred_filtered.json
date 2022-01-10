@@ -1,0 +1,38 @@
+{
+    "comment": "System",
+    "comment": "----------------------------------------",
+    "system": "LC",
+    "datastore": "False",
+    "save_results": "False",
+    "data_owner": "username",
+
+    "comment": "Input file",
+    "comment": "----------------------------------------",
+    "comment": "Note: dataset_key must be a path/file name: E.G. ./dataset.csv",
+    "dataset_key": "./delaney-processed_curated_fit.csv",
+    "id_col": "Compound ID",
+    "smiles_col": "smiles",
+    "response_cols": "measured log solubility in mols per litre",
+
+    "comment": "Features",
+    "comment": "----------------------------------------",
+    "featurizer": "computed_descriptors",
+
+    "comment": "Descriptors",
+    "comment": "----------------------------------------",
+    "descriptor_type": "mordred_filtered",
+
+    "comment": "Model",
+    "comment": "----------------------------------------",
+    "model_type": "xgboost",
+    "xgb_gamma": "0.1",
+    "xgb_learning_rate": "0.11",
+
+    "comment": "Results",
+    "comment": "----------------------------------------",    
+    "result_dir": "result",
+
+    "comment": "Test",
+    "comment": "----------------------------------------",    
+    "perf_threshold": "0.50"
+}
