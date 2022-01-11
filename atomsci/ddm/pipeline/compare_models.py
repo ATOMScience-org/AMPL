@@ -43,6 +43,23 @@ logging.basicConfig(format='%(asctime)-15s %(message)s')
 nan = np.float32('nan')
 
 #------------------------------------------------------------------------------------------------------------------
+def del_ignored_params(dictionary, ignored_params):
+    """
+    Deletes ignored parameters from the dictionary if they exist
+
+    Args:
+        dictionary (dict): A dictionary with parameters
+
+        ignored_parameters (list(str)): A list of keys potentially in the dictionary
+
+    Returns:
+        None
+    """
+    for ip in ignored_params:
+        if ip in dictionary:
+            del dictionary[ip]
+
+#------------------------------------------------------------------------------------------------------------------
 def get_collection_datasets(collection_name):
     """
     Returns a list of unique training datasets used for all models in a given collection.
@@ -258,13 +275,89 @@ def get_training_perf_table(dataset_key, bucket, collection_name, pred_type='reg
     perf_df = perf_df.sort_values(sort_metric, ascending=False)
     return perf_df
 
+# -----------------------------------------------------------------------------------------------------------------
+def extract_model_and_feature_parameters(metadata_dict):
+    """
+    Given a config file, extract model and featuer parameters. Looks for parameter names
+    that end in *_specific. e.g. nn_specific, auto_featurizer_specific
+
+    Args:
+        model_metadict (dict): Dictionary containing NON-FLATTENED metadata for an AMPL model
+
+    Returns:
+        dictionary containing featurizer and model parameters. Most contain the following
+        keys. ['max_epochs', 'best_epoch', 'learning_rate', 'layer_sizes', 'drop_outs', 
+        'rf_estimators', 'rf_max_features', 'rf_max_depth', 'xgb_gamma', 'xgb_learning_rate',
+        'featurizer_parameters_dict', 'model_parameters_dict']
+    """
+    model_params = metadata_dict['model_parameters']
+    model_type = model_params['model_type']
+    required = ['max_epochs', 'best_epoch', 'learning_rate', 'layer_sizes', 'dropouts', 
+        'rf_estimators', 'rf_max_features', 'rf_max_depth', 'xgb_gamma', 'xgb_learning_rate']
+
+    model_info = {}
+    model_info['model_uuid'] = metadata_dict['model_uuid']
+    if model_type == 'NN':
+        nn_params = metadata_dict['nn_specific']
+        model_info['max_epochs'] = nn_params['max_epochs']
+        model_info['best_epoch'] = nn_params['best_epoch']
+        model_info['learning_rate'] = nn_params['learning_rate']
+        model_info['layer_sizes'] = ','.join(['%d' % s for s in nn_params['layer_sizes']])
+        model_info['dropouts'] = ','.join(['%.2f' % d for d in nn_params['dropouts']])
+    elif model_type == 'RF':
+        rf_params = metadata_dict['rf_specific']
+        model_info['rf_estimators'] = rf_params['rf_estimators']
+        model_info['rf_max_features'] = rf_params['rf_max_features']
+        model_info['rf_max_depth'] = rf_params['rf_max_depth']
+    elif model_type == 'xgboost':
+        xgb_params = metadata_dict['xgb_specific']
+        model_info['xgb_gamma'] = xgb_params['xgb_gamma']
+        model_info['xgb_learning_rate'] = xgb_params['xgb_learning_rate']
+
+    for r in required:
+        if r not in model_info:
+            # all fields must be filled in
+            model_info[r] = nan
+
+    # the new way of extracting model parameters is to simply save them in json
+    if 'nn_specific' in metadata_dict:
+        model_metadata = metadata_dict['nn_specific']
+        # delete several parameters that aren't normally saved
+        ignored_params = ['batch_size','bias_init_consts','optimizer_type',
+            'weight_decay_penalty','weight_decay_penalty_type','weight_init_stddevs']
+        del_ignored_params(model_metadata, ignored_params)
+    elif 'rf_specific' in metadata_dict:
+        model_metadata = metadata_dict['rf_specific']
+    elif 'xgb_specific' in metadata_dict:
+        model_metadata = metadata_dict['xgb_specific']
+        # delete several parameters that aren't normally saved
+        ignored_params = ['xgb_colsample_bytree','xgb_max_depth',
+            'xgb_min_child_weight','xgb_n_estimators','xgb_subsample']
+        del_ignored_params(model_metadata, ignored_params)
+    else:
+        # no model parameters found
+        model_metadata = {}
+    model_info['model_parameters_dict'] = json.dumps(model_metadata)
+
+    if 'ecfp_specific' in metadata_dict:
+        feat_metadata = metadata_dict['ecfp_specific']
+    elif 'auto_featurizer_specific' in metadata_dict:
+        feat_metadata = metadata_dict['auto_featurizer_specific']
+    elif 'autoencoder_specific' in metadata_dict:
+        feat_metadata = metadata_dict['autoencoder_specific']
+    else:
+        # no model parameters found
+        feat_metadata = {}
+    model_info['feat_parameters_dict'] = json.dumps(feat_metadata)
+
+    return model_info
 
 # ------------------------------------------------------------------------------------------------------------------
 def get_best_perf_table(metric_type, col_name=None, result_dir=None, model_uuid=None, metadata_dict=None, PK_pipe=False):
     """
     Extract parameters and training run performance metrics for a single model. The model may be
     specified either by a metadata dictionary, a model_uuid or a result directory; in the model_uuid case, the function
-    queries the model tracker DB for the model metadata. For models saved in the filesystem, can query the performance
+    queries the model tracker DB for the model metadata. For models saved in the filesystem, can oquery the performance
     data from the original result directory, but not from a saved tarball.
 
     Args:
@@ -364,42 +457,12 @@ def get_best_perf_table(metric_type, col_name=None, result_dir=None, model_uuid=
         #tmp_df = dsf.retrieve_dataset_by_datasetkey(model_info['dataset_key'], model_info['bucket'])
         #model_info['num_samples'] = tmp_df.shape[0]
         model_info['num_samples'] = nan
-    if model_info['model_type'] == 'NN':
-        nn_params = metadata_dict['nn_specific']
-        model_info['max_epochs'] = nn_params['max_epochs']
-        model_info['best_epoch'] = nn_params['best_epoch']
-        model_info['learning_rate'] = nn_params['learning_rate']
-        model_info['layer_sizes'] = ','.join(['%d' % s for s in nn_params['layer_sizes']])
-        model_info['dropouts'] = ','.join(['%.2f' % d for d in nn_params['dropouts']])
-        model_info['rf_estimators'] = nan
-        model_info['rf_max_features'] = nan
-        model_info['rf_max_depth'] = nan
-        model_info['xgb_gamma'] = nan
-        model_info['xgb_learning_rate'] = nan
-    if model_info['model_type'] == 'RF':
-        rf_params = metadata_dict['rf_specific']
-        model_info['rf_estimators'] = rf_params['rf_estimators']
-        model_info['rf_max_features'] = rf_params['rf_max_features']
-        model_info['rf_max_depth'] = rf_params['rf_max_depth']
-        model_info['max_epochs'] = nan
-        model_info['best_epoch'] = nan
-        model_info['learning_rate'] = nan
-        model_info['layer_sizes'] = nan
-        model_info['dropouts'] = nan
-        model_info['xgb_gamma'] = nan
-        model_info['xgb_learning_rate'] = nan
-    if model_info['model_type'] == 'xgboost':
-        xgb_params = metadata_dict['xgb_specific']
-        model_info['max_epochs'] = nan
-        model_info['best_epoch'] = nan
-        model_info['learning_rate'] = nan
-        model_info['layer_sizes'] = nan
-        model_info['dropouts'] = nan
-        model_info['rf_estimators'] = nan
-        model_info['rf_max_features'] = nan
-        model_info['rf_max_depth'] = nan
-        model_info['xgb_gamma'] = xgb_params['xgb_gamma']
-        model_info['xgb_learning_rate'] = xgb_params['xgb_learning_rate']
+
+    # add model and feature params
+    # model_uuid appears in model_feature_params and will overwrite the one in model_info
+    # it's the same uuid, so it should be ok
+    model_feature_params = extract_model_and_feature_parameters(metadata_dict)
+    model_info.update(model_feature_params)
 
     for metrics_dict in metrics_dicts:
         subset = metrics_dict['subset']
@@ -846,19 +909,7 @@ def get_filesystem_perf_results(result_dir, pred_type='classification'):
     feature_transform_type_list = []
 
     # model type specific lists
-    # XGB lists
-    xgb_gamma_list = []
-    xgb_learning_rate_list = []
-    # RF lists
-    rf_estimators_list = []
-    rf_max_features_list = []
-    rf_max_depth_list = []
-    # NN lists
-    max_epochs_list = []
-    learning_rate_list = []
-    dropouts_list = []
-    layer_sizes_list = []
-    best_epoch_list = []
+    param_list = []
 
     subsets = ['train', 'valid', 'test']
 
@@ -935,48 +986,15 @@ def get_filesystem_perf_results(result_dir, pred_type='classification'):
         dataset_key_list.append(metadata_dict['training_dataset']['dataset_key'])
         feature_transform_type = metadata_dict['training_dataset']['feature_transform_type']
         feature_transform_type_list.append(feature_transform_type)
-        if model_type == 'NN':
-            nn_params = metadata_dict['nn_specific']
-            max_epochs_list.append(nn_params['max_epochs'])
-            best_epoch_list.append(nn_params['best_epoch'])
-            learning_rate_list.append(nn_params['learning_rate'])
-            layer_sizes_list.append(','.join(['%d' % s for s in nn_params['layer_sizes']]))
-            dropouts_list.append(','.join(['%.2f' % d for d in nn_params['dropouts']]))
-            rf_estimators_list.append(nan)
-            rf_max_features_list.append(nan)
-            rf_max_depth_list.append(nan)
-            xgb_gamma_list.append(nan)
-            xgb_learning_rate_list.append(nan)
-        if model_type == 'RF':
-            rf_params = metadata_dict['rf_specific']
-            rf_estimators_list.append(rf_params['rf_estimators'])
-            rf_max_features_list.append(rf_params['rf_max_features'])
-            rf_max_depth_list.append(rf_params['rf_max_depth'])
-            max_epochs_list.append(nan)
-            best_epoch_list.append(nan)
-            learning_rate_list.append(nan)
-            layer_sizes_list.append(nan)
-            dropouts_list.append(nan)
-            xgb_gamma_list.append(nan)
-            xgb_learning_rate_list.append(nan)
-        if model_type == 'xgboost':
-            xgb_params = metadata_dict['xgb_specific']
-            rf_estimators_list.append(nan)
-            rf_max_features_list.append(nan)
-            rf_max_depth_list.append(nan)
-            max_epochs_list.append(nan)
-            best_epoch_list.append(nan)
-            learning_rate_list.append(nan)
-            layer_sizes_list.append(nan)
-            dropouts_list.append(nan)
-            xgb_gamma_list.append(xgb_params['xgb_gamma'])
-            xgb_learning_rate_list.append(xgb_params['xgb_learning_rate'])
+
+        param_list.append(extract_model_and_feature_parameters(metadata_dict))
+
         for subset in subsets:
             for metric in metrics:
                 score_dict[subset][metric].append(subset_metrics[subset][metric])
         score_dict['valid']['model_choice_score'].append(subset_metrics['valid']['model_choice_score'])
 
-
+    param_df = pd.DataFrame(param_list)
     perf_df = pd.DataFrame(dict(
                     model_uuid=model_uuid_list,
                     model_path = path_list,
@@ -986,17 +1004,9 @@ def get_filesystem_perf_results(result_dir, pred_type='classification'):
                     featurizer=featurizer_list,
                     splitter=splitter_list,
                     model_score_type=model_score_type_list,
-                    feature_transform_type=feature_transform_type_list,
-                    learning_rate=learning_rate_list,
-                    dropouts=dropouts_list,
-                    layer_sizes=layer_sizes_list,
-                    best_epoch=best_epoch_list,
-                    max_epochs=max_epochs_list,
-                    rf_estimators=rf_estimators_list,
-                    rf_max_features=rf_max_features_list,
-                    rf_max_depth=rf_max_depth_list,
-                    xgb_gamma=xgb_gamma_list,
-                    xgb_learning_rate=xgb_learning_rate_list))
+                    feature_transform_type=feature_transform_type_list))
+
+    perf_df = perf_df.merge(param_df, on='model_uuid', how='inner')
 
     perf_df['model_choice_score'] = score_dict['valid']['model_choice_score']
     for subset in subsets:
@@ -1121,21 +1131,13 @@ def get_summary_perf_tables(collection_names=None, filter_dict={}, result_dir=No
     splitter_list = []
     split_strategy_list = []
     split_uuid_list = []
-    rf_estimators_list = []
-    rf_max_features_list = []
-    rf_max_depth_list = []
-    xgb_gamma_list = []
-    xgb_learning_rate_list = []
-    best_epoch_list = []
-    max_epochs_list = []
-    learning_rate_list = []
-    layer_sizes_list = []
-    dropouts_list = []
     umap_dim_list = []
     umap_targ_wt_list = []
     umap_neighbors_list = []
     umap_min_dist_list = []
     split_uuid_list=[]
+
+    model_feat_param_list = []
 
 
     if prediction_type == 'regression':
@@ -1239,44 +1241,7 @@ def get_summary_perf_tables(collection_names=None, filter_dict={}, result_dir=No
                 umap_neighbors_list.append(nan)
                 umap_min_dist_list.append(nan)
 
-            if model_type == 'NN':
-                nn_params = metadata_dict['nn_specific']
-                max_epochs_list.append(nn_params['max_epochs'])
-                best_epoch_list.append(nn_params['best_epoch'])
-                learning_rate_list.append(nn_params['learning_rate'])
-                layer_sizes_list.append(','.join(['%d' % s for s in nn_params['layer_sizes']]))
-                dropouts_list.append(','.join(['%.2f' % d for d in nn_params['dropouts']]))
-                rf_estimators_list.append(nan)
-                rf_max_features_list.append(nan)
-                rf_max_depth_list.append(nan)
-                xgb_gamma_list.append(nan)
-                xgb_learning_rate_list.append(nan)
-            elif model_type == 'RF':
-                rf_params = metadata_dict['rf_specific']
-                rf_estimators_list.append(rf_params['rf_estimators'])
-                rf_max_features_list.append(rf_params['rf_max_features'])
-                rf_max_depth_list.append(rf_params['rf_max_depth'])
-                max_epochs_list.append(nan)
-                best_epoch_list.append(nan)
-                learning_rate_list.append(nan)
-                layer_sizes_list.append(nan)
-                dropouts_list.append(nan)
-                xgb_gamma_list.append(nan)
-                xgb_learning_rate_list.append(nan)
-            elif model_type == 'xgboost':
-                xgb_params = metadata_dict['xgb_specific']
-                max_epochs_list.append(nan)
-                best_epoch_list.append(nan)
-                learning_rate_list.append(nan)
-                layer_sizes_list.append(nan)
-                dropouts_list.append(nan)
-                rf_estimators_list.append(nan)
-                rf_max_features_list.append(nan)
-                rf_max_depth_list.append(nan)
-                xgb_gamma_list.append(xgb_params['xgb_gamma'])
-                xgb_learning_rate_list.append(xgb_params['xgb_learning_rate'])
-            else:
-                raise Exception('Unexpected model type %s' % model_type)
+            model_feat_param_list.append(extract_model_and_feature_parameters(metadata_dict))
 
             # Get model metrics for this model
             metrics_dicts = metadata_dict['training_metrics']
@@ -1317,23 +1282,18 @@ def get_summary_perf_tables(collection_names=None, filter_dict={}, result_dir=No
                     umap_targ_wt=umap_targ_wt_list,
                     umap_neighbors=umap_neighbors_list,
                     umap_min_dist=umap_min_dist_list,
-                    layer_sizes=layer_sizes_list,
-                    dropouts=dropouts_list,
-                    learning_rate=learning_rate_list,
-                    best_epoch=best_epoch_list,
-                    max_epochs=max_epochs_list,
-                    rf_estimators=rf_estimators_list,
-                    rf_max_features=rf_max_features_list,
-                    rf_max_depth=rf_max_depth_list,
-                    xgb_gamma=xgb_gamma_list,
-                    xgb_learning_rate=xgb_learning_rate_list,
                     dataset_bucket=bucket_list,
                     dataset_key=dataset_key_list,
                     dataset_size=dset_size_list,
                     parameter=param_list
                     )
 
+
     perf_df = pd.DataFrame(col_dict)
+
+    param_df = pd.DataFrame(model_feat_param_list)
+    perf_df = perf_df.merge(param_df, on='model_uuid', how='inner')
+
     for subset in subsets:
         ncmpds_col = '%s_size' % subset
         perf_df[ncmpds_col] = ncmpd_dict[subset]

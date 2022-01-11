@@ -67,32 +67,18 @@ def confirm_perf_table(json_f, df):
         assert row['xgb_gamma'] == float(config['xgb_gamma'])
         assert row['xgb_learning_rate'] == float(config['xgb_learning_rate'])
 
-def test_RF_results():
-    init()
-    json_f = 'jsons/reg_config_delaney_fit_RF_mordred_filtered.json'
-    train_and_predict(json_f)
+def compare_dictionaries(ref, model_info):
+    '''
+    Args:
+        ref: this is the hardcoded reference dictionary. Everything in this
+            dictionary must appear in output and they must be exactly the same or,
+            if it's a numeric value, must be within 1e-6.
 
-    df = cm.get_filesystem_perf_results('result', 'regression')
-    confirm_perf_table(json_f, df)
+        model_info: This is the output from get_bset_perf_table
 
-    df = cm.get_summary_perf_tables(result_dir='result', prediction_type='regression')
-    confirm_perf_table(json_f, df)
-
-    model_uuid = df['model_uuid'].values[0]
-    model_info = cm.get_best_perf_table(metric_type='r2_score', model_uuid=model_uuid, result_dir='result')
-    print('model_info:', model_info)
-    confirm_perf_table(json_f, pd.DataFrame([model_info]))
-
-    # here's a hard coded result to compare to. Things that change run to run have been deleted
-    ref = {'collection_name': None, 'model_type': 'RF', 'featurizer': 'computed_descriptors', 
-    'splitter': 'scaffold',
-    'bucket': 'public', 'descriptor_type': 'mordred_filtered', 'num_samples': nan, 
-    'rf_estimators': 501, 'rf_max_features': 33, 'rf_max_depth': 10000, 'max_epochs': nan,
-    'best_epoch': nan, 'learning_rate': nan, 'layer_sizes': nan, 'dropouts': nan, 'xgb_gamma': nan, 
-    'xgb_learning_rate': nan, 'r2_score_train': 0.9868310465536477, 'rms_score_train': 0.23420071038051685, 
-    'r2_score_valid': 0.6749311013819588, 'rms_score_valid': 1.0925651018717388, 
-    'r2_score_test': 0.6573317661939333, 'rms_score_test': 1.2246446102121993}
-
+    Returns:
+        None
+    '''
     for k, v in ref.items():
         if not v  == v:
             # in the case of nan
@@ -105,35 +91,83 @@ def test_RF_results():
             # some kind of numerical object
             assert abs(model_info[k]-v) < 1e-6
 
+def all_similar_tests(json_f):
+    train_and_predict(json_f)
+
+    df1 = cm.get_filesystem_perf_results('result', 'regression')
+    confirm_perf_table(json_f, df1)
+
+    df2 = cm.get_summary_perf_tables(result_dir='result', prediction_type='regression')
+    confirm_perf_table(json_f, df2)
+
+    model_uuid = df2['model_uuid'].values[0]
+    model_info = cm.get_best_perf_table(metric_type='r2_score', model_uuid=model_uuid, result_dir='result')
+    print('model_info:', model_info)
+    confirm_perf_table(json_f, pd.DataFrame([model_info]))
+
+    assert model_info['model_parameters_dict'] == df1.iloc[0]['model_parameters_dict']
+    assert model_info['model_parameters_dict'] == df2.iloc[0]['model_parameters_dict']
+
+    return df1, df2, model_info
+
+def test_RF_results():
+    init()
+    json_f = 'jsons/reg_config_delaney_fit_RF_mordred_filtered.json'
+
+    df1, df2, model_info = all_similar_tests(json_f)
+
+    # here's a hard coded result to compare to. Things that change run to run have been deleted
+    ref = {'collection_name': None, 'model_type': 'RF', 'featurizer': 'computed_descriptors', 
+    'splitter': 'scaffold',
+    'bucket': 'public', 'descriptor_type': 'mordred_filtered', 'num_samples': nan, 
+    'rf_estimators': 501, 'rf_max_features': 33, 'rf_max_depth': 10000, 'max_epochs': nan,
+    'best_epoch': nan, 'learning_rate': nan, 'layer_sizes': nan, 'dropouts': nan, 'xgb_gamma': nan, 
+    'xgb_learning_rate': nan, 'r2_score_train': 0.9868310465536477, 'rms_score_train': 0.23420071038051685, 
+    'r2_score_valid': 0.6749311013819588, 'rms_score_valid': 1.0925651018717388, 
+    'r2_score_test': 0.6573317661939333, 'rms_score_test': 1.2246446102121993}
+
+    compare_dictionaries(ref=ref, model_info=model_info)
+
+    assert json.loads(model_info['model_parameters_dict']) == {'rf_estimators':501, 
+            'rf_max_features':33,
+            'rf_max_depth':10000}
+
+    assert model_info['feat_parameters_dict'] == json.dumps({})
+
     clean()
 
 def test_NN_results():
     init()
     json_f = 'jsons/reg_config_delaney_fit_NN_graphconv.json'
-    train_and_predict(json_f)
 
-    df = cm.get_filesystem_perf_results('result', 'regression')
-    confirm_perf_table(json_f, df)
+    df1, df2, model_info = all_similar_tests(json_f)
 
-    df = cm.get_summary_perf_tables(result_dir='result', prediction_type='regression')
-    confirm_perf_table(json_f, df)
+    # don't compare best_epoch
+    model_params = json.loads(model_info['model_parameters_dict'])
+    del model_params['best_epoch']
+    assert model_params == {"dropouts": [0.10,0.10,0.10],
+            "layer_sizes": [64,64,64],
+            "learning_rate": 0.000753,
+            "max_epochs": 500,}
+
+    assert model_info['feat_parameters_dict'] == json.dumps({})
 
     clean()
 
 def test_XGB_results():
     init()
     json_f = 'jsons/reg_config_delaney_fit_XGB_mordred_filtered.json'
-    train_and_predict(json_f)
 
-    df = cm.get_filesystem_perf_results('result', 'regression')
-    confirm_perf_table(json_f, df)
+    df1, df2, model_info = all_similar_tests(json_f)
 
-    df = cm.get_summary_perf_tables(result_dir='result', prediction_type='regression')
-    confirm_perf_table(json_f, df)
+    assert json.loads(model_info['model_parameters_dict']) == {"xgb_gamma": 0.1,
+            "xgb_learning_rate": 0.11,}
+
+    assert model_info['feat_parameters_dict'] == json.dumps({})
 
     clean()
 
 if __name__ == '__main__':
     test_RF_results()
-#    test_NN_results()
-#    test_XGB_results()
+    test_NN_results()
+    test_XGB_results()
