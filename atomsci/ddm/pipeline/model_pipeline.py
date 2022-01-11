@@ -89,7 +89,7 @@ def calc_AD_kmean_local_density(train_dset, pred_dset, k, train_dset_pair_distan
     """
     if train_dset_pair_distance is None:
         # calcualate the pair-wise distance of training set
-        train_pair_dist = pairwise_distances(X=train_dset, metric=dist_metric)
+        train_dset_pair_distance = pairwise_distances(X=train_dset, metric=dist_metric)
     # pairwise distance between train and pred set
     pred_size = len(pred_dset)
     train_pred_dis = pairwise_distances(X=pred_dset, Y=train_dset, metric=dist_metric)
