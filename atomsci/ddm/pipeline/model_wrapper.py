@@ -177,9 +177,11 @@ class ModelWrapper(object):
 
             output_dir (str): The parent path of the model directory
 
-            transformers (list): Initialized as an empty list, stores the transformers on the response col
+            transformers (list): Initialized as an empty list, stores the transformers on the response cols
 
-            transformers_x (list): Initialized as an empty list, stores the transformers on the featurizers
+            transformers_x (list): Initialized as an empty list, stores the transformers on the features
+
+            transformers_w (list): Initialized as an empty list, stores the transformers on the weights
 
         set in setup_model_dirs:
             best_model_dir (str): The subdirectory under output_dir that contains the best model. Created in setup_model_dirs
@@ -205,9 +207,11 @@ class ModelWrapper(object):
 
                 output_dir (str): The parent path of the model directory
 
-                transformers (list): Initialized as an empty list, stores the transformers on the response col
+                transformers (list): Initialized as an empty list, stores the transformers on the response cols
 
-                transformers_x (list): Initialized as an empty list, stores the transformers on the featurizers
+                transformers_x (list): Initialized as an empty list, stores the transformers on the features
+
+                transformers_w (list): Initialized as an empty list, stores the transformers on the weights
 
         """
         self.params = params
@@ -219,6 +223,7 @@ class ModelWrapper(object):
         os.makedirs(self.model_dir, exist_ok=True)
         self.transformers = []
         self.transformers_x = []
+        self.transformers_w = []
 
         # ****************************************************************************************
 
@@ -292,16 +297,18 @@ class ModelWrapper(object):
 
     def create_transformers(self, model_dataset):
         """
-        Initialize transformers for responses and/or features, and persist them for later.
+        Initialize transformers for responses, features and weights, and persist them for later.
 
         Args:
             model_dataset: The ModelDataset object that handles the current dataset
 
         Side effects
             Overwrites the attributes:
-                transformers: A list of deepchem transformation objects on response_col, only if conditions are met
+                transformers: A list of deepchem transformation objects on responses, only if conditions are met
 
-                transformers_x: A list of deepchem transformation objects on featurizers, only if conditions are met.
+                transformers_x: A list of deepchem transformation objects on features, only if conditions are met.
+
+                transformers_w: A list of deepchem transformation objects on weights, only if conditions are met.
 
                 params.transformer_key: A string pointing to the dataset key containing the transformer in the datastore, or the path to the transformer
 
@@ -310,13 +317,15 @@ class ModelWrapper(object):
 
         self._create_feature_transformers(model_dataset)
 
-        if len(self.transformers) > 0 or len(self.transformers_x) > 0:
+        # Set up transformers for weights, if needed
+        self.transformers_w = trans.create_weight_transformers(self.params, model_dataset)
+
+        if len(self.transformers) + len(self.transformers_x) + len(self.transformers_w) > 0:
 
             # Transformers are no longer saved as separate datastore objects; they are included in the model tarball
             self.params.transformer_key = os.path.join(self.output_dir, 'transformers.pkl')
-            txfmrpkl=open(self.params.transformer_key, 'wb')
-            pickle.dump((self.transformers, self.transformers_x), txfmrpkl)
-            txfmrpkl.close()
+            with open(self.params.transformer_key, 'wb') as txfmrpkl:
+                pickle.dump((self.transformers, self.transformers_x, self.transformers_w), txfmrpkl)
             self.log.info("Wrote transformers to %s" % self.params.transformer_key)
             self.params.transformer_oid = ""
             self.params.transformer_bucket = ""
@@ -325,7 +334,7 @@ class ModelWrapper(object):
 
     def reload_transformers(self):
         """
-        Load response and feature transformers from datastore objects or files. Before AMPL v1.2 these
+        Load response, feature and weight transformers from datastore objects or files. Before AMPL v1.2 these
         were persisted as separate datastore objects when the model tracker was used; subsequently they
         are included in model tarballs, which should have been unpacked before this function gets called.
         """
@@ -336,26 +345,30 @@ class ModelWrapper(object):
         local_path = f"{self.output_dir}/transformers.pkl"
         if os.path.exists(local_path):
             self.log.info(f"Reloading transformers from model tarball {local_path}")
-            txfmr=open(local_path, 'rb')
-            self.transformers, self.transformers_x = pickle.load(txfmr)
-            txfmr.close()
+            with open(local_path, 'rb') as txfmr:
+                transformers_tuple = pickle.load(txfmr)
         else:
             if self.params.transformer_key is not None:
                 if self.params.save_results:
                     self.log.info(f"Reloading transformers from datastore key {self.params.transformer_key}")
-                    self.transformers, self.transformers_x = dsf.retrieve_dataset_by_datasetkey(
+                    transformers_tuple = dsf.retrieve_dataset_by_datasetkey(
                         dataset_key = self.params.transformer_key,
                         bucket = self.params.transformer_bucket,
                         client = self.ds_client )
                 else:
                     self.log.info(f"Reloading transformers from file {self.params.transformer_key}")
-                    txfmr=open( self.params.transformer_key, 'rb' )
-                    self.transformers, self.transformers_x = pickle.load(txfmr)
-                    txfmr.close()
+                    with open(self.params.transformer_key, 'rb') as txfmr:
+                        transformers_tuple = pickle.load(txfmr)
             else:
                 # Shouldn't happen
                 raise Exception("Transformers needed to reload model, but no transformer_key specified.")
 
+
+        if len(transformers_tuple) == 3:
+            self.transformers, self.transformers_x, self.transformers_w = transformers_tuple
+        else:
+            self.transformers, self.transformers_x = transformers_tuple
+            self.transformers_w = []
 
         # ****************************************************************************************
 
@@ -378,6 +391,10 @@ class ModelWrapper(object):
         if len(self.transformers_x) > 0:
             self.log.info("Transforming feature data")
             for transformer in self.transformers_x:
+                transformed_dataset = transformer.transform(transformed_dataset)
+        if len(self.transformers_w) > 0:
+            self.log.info("Transforming weights")
+            for transformer in self.transformers_w:
                 transformed_dataset = transformer.transform(transformed_dataset)
 
         return transformed_dataset
@@ -1320,7 +1337,7 @@ class DCNNModelWrapper(NNModelWrapper):
             model_dataset (ModelDataset Object): contains the current full dataset
 
         Side effects:
-            Resets the value of model, transformers, and transformers_x
+            Resets the value of model, transformers, transformers_x and transformers_w
         """
         if self.params.featurizer == 'graphconv':
             self.model = dc.models.GraphConvModel(
@@ -1417,9 +1434,11 @@ class HybridModelWrapper(NNModelWrapper):
 
             output_dir (str): The parent path of the model directory
 
-            transformers (list): Initialized as an empty list, stores the transformers on the response col
+            transformers (list): Initialized as an empty list, stores the transformers on the response cols
 
-            transformers_x (list): Initialized as an empty list, stores the transformers on the featurizers
+            transformers_x (list): Initialized as an empty list, stores the transformers on the features
+
+            transformers_w (list): Initialized as an empty list, stores the transformers on the weights
 
             model_dir (str): The subdirectory under output_dir that contains the model. Created in setup_model_dirs.
 
@@ -1462,9 +1481,11 @@ class HybridModelWrapper(NNModelWrapper):
 
             output_dir (str): The parent path of the model directory
 
-            transforsamers (list): Initialized as an empty list, stores the transformers on the response col
+            transforsamers (list): Initialized as an empty list, stores the transformers on the response cols
 
-            transformers_x (list): Initialized as an empty list, stores the transformers on the featurizers
+            transformers_x (list): Initialized as an empty list, stores the transformers on the features
+
+            transformers_w (list): Initialized as an empty list, stores the transformers on the weights
 
             model: dc.models.TorchModel
         """
@@ -1986,7 +2007,7 @@ class ForestModelWrapper(ModelWrapper):
             model_dataset (ModelDataset Object): contains the current full dataset
 
         Side effects:
-            Resets the value of model, transformers, and transformers_x
+            Resets the value of model, transformers, transformers_x and transformers_w
 
         """
         # Restore the transformers from the datastore or filesystem
@@ -2223,8 +2244,9 @@ class DCxgboostModelWrapper(ForestModelWrapper):
             featurization (Featurization object): The featurization object created outside of model_wrapper
             log (log): The logger
             output_dir (str): The parent path of the model directory
-            transformers (list): Initialized as an empty list, stores the transformers on the response col
-            transformers_x (list): Initialized as an empty list, stores the transformers on the featurizers
+            transformers (list): Initialized as an empty list, stores the transformers on the response cols
+            transformers_x (list): Initialized as an empty list, stores the transformers on the features
+            transformers_w (list): Initialized as an empty list, stores the transformers on the weights
             model_dir (str): The subdirectory under output_dir that contains the model. Created in setup_model_dirs.
             best_model_dir (str): The subdirectory under output_dir that contains the best model. Created in setup_model_dirs
             model: The dc.models.sklearn_models.SklearnModel as specified by the params attribute
@@ -2395,7 +2417,7 @@ class DCxgboostModelWrapper(ForestModelWrapper):
             model_dataset (ModelDataset Object): contains the current full dataset
 
         Side effects:
-            Resets the value of model, transformers, and transformers_x
+            Resets the value of model, transformers, transformers_x and transformers_w
 
         """
 

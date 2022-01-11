@@ -23,10 +23,14 @@ indicate the specific model that is used for predictions.
 
 For example, the following command runs predictions on the small test dataset included in the `data` subdirectory:
 
-`./predict_bsep_inhibition.py -i data/small_test_data.csv -o small_test_output.csv --id_col compound_id --smiles_col base_rdkit_smiles --activity_col active`
+`./predict_bsep_inhibition.py -i data/small_test_data.csv -o small_test_output.csv --id_col compound_name --smiles_col base_rdkit_smiles --activity_col active`
 
 When the `--activity_col` option is specified, it is asssumed that the input activity values are the ground truth. The code then compares the input values
 against the predictions and computes and displays various performance metrics.
+
+The accessibility domain index can optionally be calculated by including a path to the original data used to train the model. If the training data is not found at its original location or at the path included, the AD index will not be calculated. The following command will run predictions and calculate the AD index:
+
+`./predict_bsep_inhibition.py -i data/small_test_data.csv -o small_test_output.csv --id_col compound_name --smiles_col base_rdkit_smiles --activity_col active --ad_method z_score --ext_train_data data/morgan_warner_combined_bsep_data.csv`
 
 ### Output file format
 The output of the `predict_bsep_inhibition.py` command is a CSV file with the following columns (not necessarily in this order):

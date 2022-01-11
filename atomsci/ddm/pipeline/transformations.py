@@ -14,7 +14,7 @@ import umap
 import pdb
 
 import deepchem as dc
-from deepchem.trans.transformers import Transformer, NormalizationTransformer
+from deepchem.trans.transformers import Transformer, NormalizationTransformer, BalancingTransformer
 from sklearn.preprocessing import RobustScaler
 from sklearn.impute import SimpleImputer
 
@@ -98,6 +98,30 @@ def create_feature_transformers(params, model_dataset):
         transformers_x = []
 
     return transformers_x
+
+# ****************************************************************************************
+def create_weight_transformers(params, model_dataset):
+    """Fit an optional balancing transformation to the weight matrix of the given dataset, and return a
+    DeepChem transformer object holding its parameters.
+
+    Args:
+        params (argparse.namespace: Object containing the parameter list
+
+        model_dataset (ModelDataset): Contains the dataset to be transformed.
+
+    Returns:
+        (list of DeepChem transformer objects): list of transformers for the weight matrix
+    """
+    if params.weight_transform_type == 'balancing':
+        if params.prediction_type == 'classification':
+            transformers_w = [BalancingTransformer(model_dataset.dataset)]
+        else:
+            log.warning("Warning: Balancing transformer only supported for classification models.")
+            transformers_w = []
+    else:
+        transformers_w = []
+
+    return transformers_w
 
 # ****************************************************************************************
 def get_transformer_specific_metadata(params):
