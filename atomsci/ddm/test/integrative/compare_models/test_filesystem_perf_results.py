@@ -1,13 +1,18 @@
 import atomsci.ddm.pipeline.compare_models as cm
+from atomsci.ddm.pipeline.compare_models import nan
 import sys
 import os
 import shutil
 import tarfile
 import json
 import glob
+import pandas as pd
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../delaney_Panel'))
 from test_delaney_panel import init, train_and_predict
+
+sys.path.append(os.path.join(os.path.dirname(__file__), '../dc_models'))
+from test_retrain_dc_models import H1_curate
 
 def clean():
     delaney_files = glob.glob('delaney-processed*.csv')
@@ -73,6 +78,33 @@ def test_RF_results():
     df = cm.get_summary_perf_tables(result_dir='result', prediction_type='regression')
     confirm_perf_table(json_f, df)
 
+    model_uuid = df['model_uuid'].values[0]
+    model_info = cm.get_best_perf_table(metric_type='r2_score', model_uuid=model_uuid, result_dir='result')
+    print('model_info:', model_info)
+    confirm_perf_table(json_f, pd.DataFrame([model_info]))
+
+    # here's a hard coded result to compare to. Things that change run to run have been deleted
+    ref = {'collection_name': None, 'model_type': 'RF', 'featurizer': 'computed_descriptors', 
+    'splitter': 'scaffold',
+    'bucket': 'public', 'descriptor_type': 'mordred_filtered', 'num_samples': nan, 
+    'rf_estimators': 501, 'rf_max_features': 33, 'rf_max_depth': 10000, 'max_epochs': nan,
+    'best_epoch': nan, 'learning_rate': nan, 'layer_sizes': nan, 'dropouts': nan, 'xgb_gamma': nan, 
+    'xgb_learning_rate': nan, 'r2_score_train': 0.9868310465536477, 'rms_score_train': 0.23420071038051685, 
+    'r2_score_valid': 0.6749311013819588, 'rms_score_valid': 1.0925651018717388, 
+    'r2_score_test': 0.6573317661939333, 'rms_score_test': 1.2246446102121993}
+
+    for k, v in ref.items():
+        if not v  == v:
+            # in the case of nan
+            assert not model_info[k] == model_info[k]
+        elif v is None:
+            assert model_info[k] is None
+        elif type(v) == str:
+            assert model_info[k] == v
+        else:
+            # some kind of numerical object
+            assert abs(model_info[k]-v) < 1e-6
+
     clean()
 
 def test_NN_results():
@@ -103,5 +135,5 @@ def test_XGB_results():
 
 if __name__ == '__main__':
     test_RF_results()
-    test_NN_results()
-    test_XGB_results()
+#    test_NN_results()
+#    test_XGB_results()
