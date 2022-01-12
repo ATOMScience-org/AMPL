@@ -31,7 +31,6 @@
     "comment": "----------------------------------------",
     "model_type": "PytorchMPNNModel",
     "PytorchMPNNModel_mode": "regression",
-    "PytorchMPNNModel_num_layers":"3",
     "PytorchMPNNModel_learning_rate": "0.0007",
     "PytorchMPNNModel_n_tasks": "1",
 
