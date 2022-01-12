@@ -21,7 +21,7 @@
 
     "comment": "Prediction Type",
     "comment": "----------------------------------------",
-    "response_cols": "pKi_mean",
+    "response_cols": "exact_mol_weight",
     "AttentiveFPModel_mode": "regression",
     "uncertainty": "False",
 
@@ -45,5 +45,9 @@
 
     "comment": "Results",
     "comment": "----------------------------------------",
-    "result_dir": "result"
+    "result_dir": "result",
+
+    "comment": "Test",
+    "comment": "----------------------------------------",    
+    "perf_threshold": "0.90"
 }

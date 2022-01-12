@@ -213,14 +213,23 @@ def saved_model_identity(pparams):
             and (test_length == len(test_df))
 
 if __name__ == '__main__':
+    print('train_valid_test')
     test_train_valid_test()
+    print('kfold')
     test_kfold()
+    print('graphconv')
     test_graphconv()
+    print('ecfp nn')
     test_ecfp_nn()
+    print('attentive fp')
     test_attentivefp()
+    print('gcn model')
     test_gcnmodel()
+    print('graphconv new')
     test_graphconvmodel()
+    print('mpnn')
     test_mpnnmodel()
+    print('pytorch mpnn')
     test_pytorchmpnnmodel()
     print('Passed')
 

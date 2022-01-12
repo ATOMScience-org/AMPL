@@ -21,32 +21,33 @@
 
     "comment": "Prediction Type",
     "comment": "----------------------------------------",
-    "response_cols": "pKi_mean",
+    "response_cols": "exact_mol_weight",
     "uncertainty": "False",
 
     "comment": "Features",
     "comment": "----------------------------------------",
     "featurizer":"MolGraphConvFeaturizer",
-    "MolGraphConvFeaturizer_use_edges":"True",
 
     "comment": "Model",
     "comment": "----------------------------------------",
-    "model_type": "PytorchMPNNModel",
-    "PytrochMPNNModel_mode": "regression",
-    "PytorchMPNNModel_learning_rate": "0.001",
-    "PytorchMPNNModel_n_tasks": "1",
+    "model_type": "GCNModel",
+    "GCNModel_mode": "regression",
+    "GCNModel_learning_rate": "0.0003",
+    "GCNModel_graph_conv_layers": "16,16",
+    "GCNModel_predictor_hidden_feats": "16",
 
     "comment": "Training",
     "comment": "----------------------------------------",
     "comment": "This regulates how long to train the model",
-    "early_stopping_patience": "30",
-    "max_epochs": "200",
+    "early_stopping_patience": "4",
+    "max_epochs": "5",
 
     "comment": "Results",
     "comment": "----------------------------------------",
     "result_dir": "result",
 
     "comment": "Test",
+    "comment": "This test does not need to do well, just generate some files.",
     "comment": "----------------------------------------",    
-    "perf_threshold": "0.30"
+    "perf_threshold": "-10000000"
 }

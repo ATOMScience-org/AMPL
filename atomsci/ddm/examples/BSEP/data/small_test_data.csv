@@ -1,4 +1,4 @@
-base_rdkit_smiles,compound_id,pIC50,relation,active
+base_rdkit_smiles,compound_name,pIC50,relation,active
 CN(C)[C@@H]1C(O)=C(C(N)=O)C(=O)[C@@]2(O)C(O)=C3C(=O)c4c(O)cccc4[C@@](C)(O)C3CC12,CHEMBL198,3.0,<,0
 C[C@]12C[C@H](O)[C@@]3(F)C(CCC4=CC(=O)C=C[C@@]43C)C1C[C@@H](O)[C@]2(O)C(=O)CO,CHEMBL3039453,3.627824713884936,,1
 Nc1nc2cc(Cl)ccc2o1,CHEMBL472566,3.0,<,0

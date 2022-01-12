@@ -7,34 +7,35 @@
     "data_owner": "username",
     "parser_version":"1.0",
 
-    "comment": "Input file",
+    "comment": "Input",
     "comment": "----------------------------------------",
-    "comment": "Note: dataset_key must be a path/file name: E.G. ./dataset.csv",
-    "dataset_key": "./H1_curated_fit.csv",
-    "id_col": "compound_id",
-    "smiles_col": "base_rdkit_smiles",
+    "id_col":"compound_id",
+    "smiles_col":"base_rdkit_smiles",
+    "response_cols":"pIC50",
 
     "comment": "Splitting",
     "comment": "----------------------------------------",
-    "split_uuid": "002251a2-83f8-4511-acf5-e8bbc5f86677",
-    "previously_split": "True",
+    "previously_split": "False",
+    "split_test_frac": "0.25",
+    "split_valid_frac": "0.25",
 
     "comment": "Prediction Type",
     "comment": "----------------------------------------",
-    "response_cols": "pKi_mean",
+    "AttentiveFPModel_mode": "regression",
     "uncertainty": "False",
 
     "comment": "Features",
     "comment": "----------------------------------------",
-    "featurizer":"MolGraphConvFeaturizer",
-    "MolGraphConvFeaturizer_use_edges":"True",
+    "featurizer":"ConvMolFeaturizer",
 
     "comment": "Model",
     "comment": "----------------------------------------",
-    "model_type": "PytorchMPNNModel",
-    "PytrochMPNNModel_mode": "regression",
-    "PytorchMPNNModel_learning_rate": "0.001",
-    "PytorchMPNNModel_n_tasks": "1",
+    "model_type": "GraphConvModel",
+    "GraphConvModel_mode": "regression",
+    "GraphConvModel_dropout": "0.2",
+    "GraphConvModel_learning_rate": "0.000753",
+    "GraphConvModel_graph_conv_layers": "64,64,64",
+    "GraphConvModel_dense_layer_size": "64",
 
     "comment": "Training",
     "comment": "----------------------------------------",
@@ -44,9 +45,5 @@
 
     "comment": "Results",
     "comment": "----------------------------------------",
-    "result_dir": "result",
-
-    "comment": "Test",
-    "comment": "----------------------------------------",    
-    "perf_threshold": "0.30"
+    "result_dir": "result"
 }

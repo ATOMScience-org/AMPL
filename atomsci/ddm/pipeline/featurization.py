@@ -70,7 +70,7 @@ def make_weights(vals):
         vals: numpy array same as input vals, but nans are replaced with 0
         w: numpy array same shape as vals, where w[i,j] = 1 if vals[i,j] is nan else w[i,j] = 0
     """
-    w = np.ones_like(vals)
+    w = np.ones_like(vals, dtype=np.float32)
     nan_indexes = np.argwhere(np.isnan(vals))
     w[nan_indexes] = 0
     out_vals = np.copy(vals)
@@ -762,7 +762,8 @@ class DynamicFeaturization(Featurization):
         Returns:
             Empty list since we will not be transforming the features of a DynamicFeaturization object
         """
-        #TODO: Add comment describing why this is always returning an empty list
+        # Dynamic features such as ECFP fingerprints are not typically scaled and centered. This behavior
+        # can be overridden if necessary by specific subclasses.
         return []
 
     # ****************************************************************************************
@@ -923,7 +924,7 @@ class PersistentFeaturization(Featurization):
             dataset (deepchem.Dataset): featurized dataset
 
         """
-        #TODO: Add comment describing why this is always returning an empty list
+        # Leave it to subclasses to determine if features should be scaled and centered.
         return []
 
 # ****************************************************************************************
@@ -1292,7 +1293,7 @@ class DescriptorFeaturization(PersistentFeaturization):
             vals, weights = make_weights(vals)
         else:
             vals = np.zeros((nrows,ncols))
-            weights = np.ones_like(vals)
+            weights = np.ones_like(vals, dtype=np.float32)
 
         attr = attr.loc[ids]
 
@@ -1587,7 +1588,7 @@ class ComputedDescriptorFeaturization(DescriptorFeaturization):
             vals, weights = make_weights(vals)
         else:
             vals = np.zeros((nrows,ncols))
-            weights = np.ones_like(vals)
+            weights = np.ones_like(vals, dtype=np.float32)
 
         # Create a table of SMILES strings and other attributes indexed by compound IDs
         attr = get_dataset_attributes(merged_dset_df, params)

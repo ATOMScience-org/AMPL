@@ -1,0 +1,45 @@
+{
+    "comment": "System",
+    "comment": "----------------------------------------",
+    "system": "LC",
+    "datastore": "False",
+    "save_results": "False",
+    "data_owner": "username",
+
+    "comment": "Input file",
+    "comment": "----------------------------------------",
+    "comment": "Note: dataset_key must be a path/file name: E.G. ./dataset.csv",
+    "dataset_key": "./delaney-processed_curated_fit.csv",
+    "id_col": "Compound ID",
+    "smiles_col": "smiles",
+    "response_cols": "measured log solubility in mols per litre",
+
+    "comment": "Features",
+    "comment": "----------------------------------------",
+    "featurizer": "graphconv",
+
+    "comment": "Model",
+    "comment": "----------------------------------------",
+    "model_type": "NN",
+
+    "comment": "Neural network",
+    "comment": "----------------------------------------",
+    "dropouts": "0.10,0.10,0.10",
+    "layer_sizes": "64,64,64",
+    "learning_rate": "0.000753",
+    "max_epochs": "5",
+
+    "comment": "Training",
+    "comment": "----------------------------------------",    
+    "comment": "This regulates how long to train the model",
+    "early_stopping_patience": "4",
+
+    "comment": "Results",
+    "comment": "----------------------------------------",    
+    "result_dir": "result",
+
+    "comment": "Test",
+    "comment": "This test does not need to do well, just generate some files.",
+    "comment": "----------------------------------------",    
+    "perf_threshold": "-10000000"
+}
