@@ -322,6 +322,11 @@ def extract_model_and_feature_parameters(metadata_dict):
     # the new way of extracting model parameters is to simply save them in json
     if 'nn_specific' in metadata_dict:
         model_metadata = metadata_dict['nn_specific']
+        # include learning rate  and best_epoch for convenience 
+        model_info['best_epoch'] = model_metadata['best_epoch']
+        learning_rate_col = [c for c in model_metadata.keys() if c.endswith('learning_rate')]
+        if len(learning_rate_col) == 1:
+            model_info['learning_rate'] = model_metadata[learning_rate_col[0]]
         # delete several parameters that aren't normally saved
         ignored_params = ['batch_size','bias_init_consts','optimizer_type',
             'weight_decay_penalty','weight_decay_penalty_type','weight_init_stddevs']

@@ -1,4 +1,5 @@
 import atomsci.ddm.pipeline.compare_models as cm
+import atomsci.ddm.pipeline.parameter_parser as pp
 from atomsci.ddm.pipeline.compare_models import nan
 import sys
 import os
@@ -19,6 +20,11 @@ def clean():
     for df in delaney_files:
         if os.path.exists(df):
             os.remove(df)
+
+    h1_files = glob.glob('H1_*.csv')
+    for hf in h1_files:
+        if os.path.exists(hf):
+            os.remove(hf)
 
     if os.path.exists('result'):
         shutil.rmtree('result')
@@ -66,6 +72,11 @@ def confirm_perf_table(json_f, df):
         print(row[[c for c in df.columns if c.startswith('xgb_')]])
         assert row['xgb_gamma'] == float(config['xgb_gamma'])
         assert row['xgb_learning_rate'] == float(config['xgb_learning_rate'])
+    else:
+        assert model_type in pp.model_wl
+        assert row['best_epoch'] > 0
+        pparams = pp.wrapper(config)
+        assert row['learning_rate'] == float(pparams.learning_rate)
 
 def compare_dictionaries(ref, model_info):
     '''
@@ -91,8 +102,8 @@ def compare_dictionaries(ref, model_info):
             # some kind of numerical object
             assert abs(model_info[k]-v) < 1e-6
 
-def all_similar_tests(json_f):
-    train_and_predict(json_f)
+def all_similar_tests(json_f, prefix='delaney-processed'):
+    train_and_predict(json_f, prefix=prefix)
 
     df1 = cm.get_filesystem_perf_results('result', 'regression')
     confirm_perf_table(json_f, df1)
@@ -111,6 +122,7 @@ def all_similar_tests(json_f):
     return df1, df2, model_info
 
 def test_RF_results():
+    clean()
     init()
     json_f = 'jsons/reg_config_delaney_fit_RF_mordred_filtered.json'
 
@@ -137,6 +149,7 @@ def test_RF_results():
     clean()
 
 def test_NN_results():
+    clean()
     init()
     json_f = 'jsons/reg_config_delaney_fit_NN_graphconv.json'
 
@@ -155,6 +168,7 @@ def test_NN_results():
     clean()
 
 def test_XGB_results():
+    clean()
     init()
     json_f = 'jsons/reg_config_delaney_fit_XGB_mordred_filtered.json'
 
@@ -167,7 +181,120 @@ def test_XGB_results():
 
     clean()
 
+def test_AttentiveFP_results():
+    clean()
+    H1_curate()
+    json_f = 'jsons/reg_config_H1_fit_AttentiveFPModel.json'
+
+    df1, df2, model_info = all_similar_tests(json_f, 'H1')
+
+    # don't compare best_epoch
+    model_params = json.loads(model_info['model_parameters_dict'])
+    del model_params['best_epoch']
+    assert model_params == {
+        "AttentiveFPModel_mode":"regression",
+        "AttentiveFPModel_num_layers":3,
+        "AttentiveFPModel_learning_rate": 0.0007,
+        "AttentiveFPModel_model_dir": "result",
+        "AttentiveFPModel_n_tasks": 1,}
+
+    assert json.loads(model_info['feat_parameters_dict']) == {"MolGraphConvFeaturizer_use_edges":"True",}
+
+    clean()
+
+def test_GCN_results():
+    clean()
+    H1_curate()
+    json_f = 'jsons/reg_config_H1_fit_GCNModel.json'
+
+    df1, df2, model_info = all_similar_tests(json_f, 'H1')
+
+    # don't compare best_epoch
+    model_params = json.loads(model_info['model_parameters_dict'])
+    del model_params['best_epoch']
+    assert model_params == {
+            "GCNModel_n_tasks": 1,
+            "GCNModel_model_dir": "result",
+            "GCNModel_mode": "regression",
+            "GCNModel_learning_rate": 0.0003,
+            "GCNModel_graph_conv_layers": [16,16],
+            "GCNModel_predictor_hidden_feats": 16,}
+
+    assert model_info['feat_parameters_dict'] == json.dumps({})
+
+    clean()
+
+def test_GraphConvModel_results():
+    clean()
+    H1_curate()
+    json_f = 'jsons/reg_config_H1_fit_GraphConvModel.json'
+
+    df1, df2, model_info = all_similar_tests(json_f, 'H1')
+
+    # don't compare best_epoch
+    model_params = json.loads(model_info['model_parameters_dict'])
+    del model_params['best_epoch']
+    assert model_params == {
+            "GraphConvModel_n_tasks": 1,
+            "GraphConvModel_model_dir": "result",
+            "GraphConvModel_mode": "regression",
+            "GraphConvModel_dropout": 0.2,
+            "GraphConvModel_learning_rate": 0.000753,
+            "GraphConvModel_graph_conv_layers": [64,64,64],
+            "GraphConvModel_dense_layer_size": 64,}
+
+    assert model_info['feat_parameters_dict'] == json.dumps({})
+
+    clean()
+
+def test_MPNN_results():
+
+    clean()
+    H1_curate()
+    json_f = 'jsons/reg_config_H1_fit_MPNNModel.json'
+
+    df1, df2, model_info = all_similar_tests(json_f, 'H1')
+
+    # don't compare best_epoch
+    model_params = json.loads(model_info['model_parameters_dict'])
+    del model_params['best_epoch']
+    assert model_params == {
+            "MPNNModel_n_tasks": 1,
+            "MPNNModel_mode": "regression",
+            "MPNNModel_model_dir": "result",
+            "MPNNModel_learning_rate": 0.0005,
+            "MPNNModel_n_atom_feat": 75,
+            "MPNNModel_n_pair_feat": 14,}
+
+    assert model_info['feat_parameters_dict'] == json.dumps({})
+
+    clean()
+
+def test_PytorchMPNN_results():
+    clean()
+    H1_curate()
+    json_f = 'jsons/reg_config_H1_fit_PytorchMPNNModel.json'
+
+    df1, df2, model_info = all_similar_tests(json_f, 'H1')
+
+    model_params = json.loads(model_info['model_parameters_dict'])
+    del model_params['best_epoch']
+    ref = {
+                "PytorchMPNNModel_model_dir": "result",
+                "PytorchMPNNModel_mode": "regression",
+                "PytorchMPNNModel_learning_rate": 0.001,
+                "PytorchMPNNModel_n_tasks": 1,}
+    assert model_params == ref
+    assert json.loads(model_info['feat_parameters_dict']) == {"MolGraphConvFeaturizer_use_edges":"True"}
+
+    clean()
+
 if __name__ == '__main__':
     test_RF_results()
     test_NN_results()
     test_XGB_results()
+    test_AttentiveFP_results()
+    test_GCN_results()
+    test_GraphConvModel_results()
+    test_MPNN_results()
+    test_PytorchMPNN_results()
