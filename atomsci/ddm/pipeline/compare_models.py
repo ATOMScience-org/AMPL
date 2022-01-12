@@ -322,7 +322,8 @@ def extract_model_and_feature_parameters(metadata_dict):
     # the new way of extracting model parameters is to simply save them in json
     if 'nn_specific' in metadata_dict:
         model_metadata = metadata_dict['nn_specific']
-        # include learning rate  and best_epoch for convenience 
+        # include learning rate, max_epochs, and best_epoch for convenience 
+        model_info['max_epochs'] = model_metadata['max_epochs']
         model_info['best_epoch'] = model_metadata['best_epoch']
         learning_rate_col = [c for c in model_metadata.keys() if c.endswith('learning_rate')]
         if len(learning_rate_col) == 1:

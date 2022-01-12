@@ -40,14 +40,15 @@
     "comment": "Training",
     "comment": "----------------------------------------",
     "comment": "This regulates how long to train the model",
-    "early_stopping_patience": "30",
-    "max_epochs": "100",
+    "early_stopping_patience": "3",
+    "max_epochs": "5",
 
     "comment": "Results",
     "comment": "----------------------------------------",
     "result_dir": "result",
 
     "comment": "Test",
+    "comment": "just needs to run doesn't need to pass",
     "comment": "----------------------------------------",    
-    "perf_threshold": "0.40"
+    "perf_threshold": "-1000000"
 }

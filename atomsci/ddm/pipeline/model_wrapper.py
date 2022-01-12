@@ -2695,6 +2695,7 @@ class PytorchDeepChemModelWrapper(NNModelWrapper):
                 Parameters are saved under the key 'nn_specific' as a subdictionary.
         """
         nn_metadata = pp.extract_model_params(self.params, strip_prefix=False)
+        nn_metadata['max_epochs'] = self.params.max_epochs
         nn_metadata['best_epoch'] = self.best_epoch
         model_spec_metadata = dict(nn_specific = nn_metadata)
         return model_spec_metadata

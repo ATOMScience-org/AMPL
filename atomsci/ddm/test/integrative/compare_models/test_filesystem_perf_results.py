@@ -161,7 +161,7 @@ def test_NN_results():
     assert model_params == {"dropouts": [0.10,0.10,0.10],
             "layer_sizes": [64,64,64],
             "learning_rate": 0.000753,
-            "max_epochs": 500,}
+            "max_epochs": 5,}
 
     assert model_info['feat_parameters_dict'] == json.dumps({})
 
@@ -192,6 +192,7 @@ def test_AttentiveFP_results():
     model_params = json.loads(model_info['model_parameters_dict'])
     del model_params['best_epoch']
     assert model_params == {
+        "max_epochs": 5,
         "AttentiveFPModel_mode":"regression",
         "AttentiveFPModel_num_layers":3,
         "AttentiveFPModel_learning_rate": 0.0007,
@@ -213,12 +214,13 @@ def test_GCN_results():
     model_params = json.loads(model_info['model_parameters_dict'])
     del model_params['best_epoch']
     assert model_params == {
-            "GCNModel_n_tasks": 1,
-            "GCNModel_model_dir": "result",
-            "GCNModel_mode": "regression",
-            "GCNModel_learning_rate": 0.0003,
-            "GCNModel_graph_conv_layers": [16,16],
-            "GCNModel_predictor_hidden_feats": 16,}
+        "max_epochs": 5,
+        "GCNModel_n_tasks": 1,
+        "GCNModel_model_dir": "result",
+        "GCNModel_mode": "regression",
+        "GCNModel_learning_rate": 0.0003,
+        "GCNModel_graph_conv_layers": [16,16],
+        "GCNModel_predictor_hidden_feats": 16,}
 
     assert model_info['feat_parameters_dict'] == json.dumps({})
 
@@ -235,13 +237,14 @@ def test_GraphConvModel_results():
     model_params = json.loads(model_info['model_parameters_dict'])
     del model_params['best_epoch']
     assert model_params == {
-            "GraphConvModel_n_tasks": 1,
-            "GraphConvModel_model_dir": "result",
-            "GraphConvModel_mode": "regression",
-            "GraphConvModel_dropout": 0.2,
-            "GraphConvModel_learning_rate": 0.000753,
-            "GraphConvModel_graph_conv_layers": [64,64,64],
-            "GraphConvModel_dense_layer_size": 64,}
+        "max_epochs": 5,
+        "GraphConvModel_n_tasks": 1,
+        "GraphConvModel_model_dir": "result",
+        "GraphConvModel_mode": "regression",
+        "GraphConvModel_dropout": 0.2,
+        "GraphConvModel_learning_rate": 0.000753,
+        "GraphConvModel_graph_conv_layers": [64,64,64],
+        "GraphConvModel_dense_layer_size": 64,}
 
     assert model_info['feat_parameters_dict'] == json.dumps({})
 
@@ -259,12 +262,13 @@ def test_MPNN_results():
     model_params = json.loads(model_info['model_parameters_dict'])
     del model_params['best_epoch']
     assert model_params == {
-            "MPNNModel_n_tasks": 1,
-            "MPNNModel_mode": "regression",
-            "MPNNModel_model_dir": "result",
-            "MPNNModel_learning_rate": 0.0005,
-            "MPNNModel_n_atom_feat": 75,
-            "MPNNModel_n_pair_feat": 14,}
+        "max_epochs": 5,
+        "MPNNModel_n_tasks": 1,
+        "MPNNModel_mode": "regression",
+        "MPNNModel_model_dir": "result",
+        "MPNNModel_learning_rate": 0.0005,
+        "MPNNModel_n_atom_feat": 75,
+        "MPNNModel_n_pair_feat": 14,}
 
     assert model_info['feat_parameters_dict'] == json.dumps({})
 
@@ -280,10 +284,11 @@ def test_PytorchMPNN_results():
     model_params = json.loads(model_info['model_parameters_dict'])
     del model_params['best_epoch']
     ref = {
-                "PytorchMPNNModel_model_dir": "result",
-                "PytorchMPNNModel_mode": "regression",
-                "PytorchMPNNModel_learning_rate": 0.001,
-                "PytorchMPNNModel_n_tasks": 1,}
+        "max_epochs": 5,
+        "PytorchMPNNModel_model_dir": "result",
+        "PytorchMPNNModel_mode": "regression",
+        "PytorchMPNNModel_learning_rate": 0.001,
+        "PytorchMPNNModel_n_tasks": 1,}
     assert model_params == ref
     assert json.loads(model_info['feat_parameters_dict']) == {"MolGraphConvFeaturizer_use_edges":"True"}
 
