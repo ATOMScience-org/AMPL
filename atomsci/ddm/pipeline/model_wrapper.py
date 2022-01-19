@@ -2773,4 +2773,7 @@ class KerasDeepChemModelWrapper(PytorchDeepChemModelWrapper):
         self.reload_transformers()
 
     def restore(self):
+        '''
+        Restores this model
+        '''
         dc_restore(self.model)

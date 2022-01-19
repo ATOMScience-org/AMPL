@@ -51,6 +51,13 @@ featurizer_wl = {'MolGraphConvFeaturizer':dcf.MolGraphConvFeaturizer,
 def all_auto_arguments():
     '''
     Returns a set of all arguments that get automatically added
+
+    Args:
+        None
+
+    Returns:
+        set: A set of all arguments that were automatically added.
+
     '''
     result = []
     for k,m in model_wl.items():
@@ -68,7 +75,14 @@ def all_auto_arguments():
 def all_auto_int_lists():
     '''
     Returns a set of all arguments that are automatically added and
-    accpet a list of ints.
+    accept a list of ints.
+
+    Args:
+        None
+
+    Returns:
+        set: A set of automatically added arugments that could accept a
+            list of ints.
     '''
     result = []
     for k,m in model_wl.items():
@@ -86,7 +100,13 @@ def all_auto_int_lists():
 def all_auto_float_lists():
     '''
     Returns a set of all arguments that are automatically added and
-    accpet a list of float.
+    accept a list of float.
+
+    Args:
+        None
+
+    Returns:
+        A set of automatically added arguments that accept a list of floats
     '''
     result = []
     for k,m in model_wl.items():
@@ -104,6 +124,12 @@ def all_auto_float_lists():
 def all_auto_lists():
     '''
     Returns a set of all arguments that get automatically added and are lists
+
+    Args:
+        None
+
+    Returns:
+        set: A set of automatically added arguments that accept a list.
     '''
     result = []
     for k,m in model_wl.items():
@@ -203,6 +229,15 @@ def is_list_int(p, type_annotation):
     Returns False on generic list will only return true for 'typing.List[int]'
 
     Performs recursive earch in case of typing.Union
+
+    Args:
+        p (str): A parameter name.
+
+        type_annotation (object): This is a type annotation returned by the inspect
+            module
+
+    Returns:
+        boolean: If this annotation will accept a List[int]
     '''
     # some guesses because annotations aren't always 100% correct.
     if 'graph_conv_layers' in p:
@@ -225,6 +260,15 @@ def is_list_float(p, type_annotation):
     Returns False on generic list will only return true for 'typing.List[float]'
 
     Performs recursive earch in case of typing.Union
+
+    Args:
+        p (str): A parameter name.
+
+        type_annotation (object): This is a type annotation returned by the inspect
+            module
+
+    Returns:
+        boolean: If this annotation will accept a List[float]
     '''
     if str(type_annotation).startswith('typing.Union'):
         # could not find a better way to do this check:
@@ -243,6 +287,15 @@ def is_list(p, type_annotation):
     Returns False on generic list will only return true for 'typing.List' or <class 'list'>
 
     Performs recursive earch in case of typing.Union
+
+    Args:
+        p (str): A parameter name.
+
+        type_annotation (object): This is a type annotation returned by the inspect
+            module
+
+    Returns:
+        boolean: If this annotation will accept a List
     '''
     # some guesses because annotations aren't always 100% correct.
     if 'graph_conv_layers' in p:
@@ -260,9 +313,34 @@ def is_list(p, type_annotation):
 
 class AutoArgumentAdder:
     '''
-    Finds, manages, and adds all parameters of a function to a argparse parser
+    Finds, manages, and adds all parameters of an object to a argparse parser
+
+    AutoArgumentAdder recursively finds all keyword arguments of a given object.
+    A prefix is added to each keyword argument to prevent collisions and help 
+    distinguish automatically added arguments from normal arguments.
+
+    Attributes:
+        func (object): The original object e.g. dcm.AttentiveFPModel
+        funcs (List[object]): A list of parents. e.g. KerasModel
+        prefix (str): A prefix for arguments. e.g. 'AttentiveFPModel'
+        types (dict): A mapping between parameter names and types. Prefixes
+            are not used in the keys.
+        used_by (dict): A mapping between parameter names (no prefix) and 
+            the object or objects that use that parameter.
+        args (set): A set of all argument names
     '''
     def __init__(self, func, prefix):
+        '''
+        Initialize all attributes with given object
+
+        Args:
+            func (object): Input object. e.g. dcm.AttentiveFPModel
+
+            prefix (str): A prefix used to distinguish arguments from default
+                AMPL arguments
+
+        Returns: None
+        '''
         self.func = func # original function e.g. dcm.AttentiveFPModel
         self.funcs = [] # a list of all parents. e.g. KerasModel
         self.prefix = prefix # name of original function e.g. AttentiveFPModel
@@ -273,6 +351,16 @@ class AutoArgumentAdder:
         self._add_all_keyword_arguments()
 
     def _add_all_keyword_arguments(self):
+        '''
+        Recursively explores self.func and its parents to find all keyword
+        arguments. The type and which object uses each argument is recorded
+
+        Args:
+            None
+
+        Returns:
+            None
+        '''
         self.funcs.append(self.func)
         current_funcs = [self.func]
         while len(current_funcs)>0:
@@ -319,9 +407,27 @@ class AutoArgumentAdder:
                     self.types[a] = t
 
     def _make_param_name(self, arg_name):
+        '''
+        Combines the prefix and argument name
+
+        Args:
+            arg_name (str): The name of an argument
+
+        Returns:
+            str: The same argument with a prefix.
+        '''
         return f'{self.prefix}_{arg_name}'
 
     def all_prefixed_names(self):
+        '''
+        Returns a list of all argument names with prefixes added
+
+        Args:
+            None
+
+        Returns:
+            List[str]: A list of all arguments with prefix added
+        '''
         return [self._make_param_name(p) for p in self.args]
 
     def add_to_parser(self, parser):
@@ -390,12 +496,39 @@ class AutoArgumentAdder:
         return args
 
     def get_list_int_args(self):
+        '''
+        Returns a list of arguments that accept a List[int]
+
+        Args:
+            None
+
+        Returns:
+            List[str]: A list of prefixed argument names that will accept a List[int]
+        '''
         return [self._make_param_name(p) for p in self.args if is_list_int(p, self.types[p])]
 
     def get_list_float_args(self):
+        '''
+        Returns a list of arguments that accept a List[float]
+
+        Args:
+            None
+
+        Returns:
+            List[str]: A list of prefixed argument names that will accept a List[float]
+        '''
         return [self._make_param_name(p) for p in self.args if is_list_float(p, self.types[p])]
 
     def get_list_args(self):
+        '''
+        Returns a list of arguments that accept a List
+
+        Args:
+            None
+
+        Returns:
+            List[str]: A list of prefixed argument names that will accept a List
+        '''
         return [self._make_param_name(p) for p in self.args if is_list(p, self.types[p])]
 
 

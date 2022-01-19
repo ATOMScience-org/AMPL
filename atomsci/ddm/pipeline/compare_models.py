@@ -363,7 +363,7 @@ def get_best_perf_table(metric_type, col_name=None, result_dir=None, model_uuid=
     """
     Extract parameters and training run performance metrics for a single model. The model may be
     specified either by a metadata dictionary, a model_uuid or a result directory; in the model_uuid case, the function
-    queries the model tracker DB for the model metadata. For models saved in the filesystem, can oquery the performance
+    queries the model tracker DB for the model metadata. For models saved in the filesystem, can query the performance
     data from the original result directory, but not from a saved tarball.
 
     Args:
