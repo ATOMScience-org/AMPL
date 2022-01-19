@@ -26,7 +26,7 @@ def test_reg_config_H1_fit_PytorchMPNNModel():
 
 if __name__ == '__main__':
     test_reg_config_H1_fit_PytorchMPNNModel() # Pytorch implementation of MPNNModel
-    #test_reg_config_H1_fit_GraphConvModel() # the same model as graphconv
-    #test_reg_config_H1_fit_MPNNModel() # uses the WeaveFeaturizer
-    #test_reg_config_H1_fit_GCNModel()
-    #test_reg_config_H1_fit_AttentiveFPModel() #works fine?
+    test_reg_config_H1_fit_GraphConvModel() # the same model as graphconv
+    test_reg_config_H1_fit_MPNNModel() # uses the WeaveFeaturizer
+    test_reg_config_H1_fit_GCNModel()
+    test_reg_config_H1_fit_AttentiveFPModel() #works fine?
