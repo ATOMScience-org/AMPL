@@ -163,6 +163,9 @@ def base_feature_importance(model_pipeline=None, params=None):
     importance. For all models, the returned data frame will include feature names, means and standard deviations
     for each feature.
 
+    This function has been tested on RFs and NNs with rdkit descriptors. Other models and feature combinations
+    may not be supported.
+
     Args:
         model_pipeline (`ModelPipeline`): A pipeline object for a model that was trained in the current Python session
         or loaded from the model tracker or a tarball file. Either model_pipeline or params must be provided.
