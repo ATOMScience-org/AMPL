@@ -30,7 +30,7 @@ try:
     import deepchem.models as dcm
     from deepchem.models import AttentiveFPModel
     afp_supported = True
-except ImportError:
+except ImportError, OSError:
     afp_supported = False
 
 try:
