@@ -113,6 +113,56 @@ def H1_curate():
     assert (os.path.isfile('H1_curated_external.csv'))
     assert (os.path.isfile('H1_curated_fit_train_valid_test_scaffold_002251a2-83f8-4511-acf5-e8bbc5f86677.csv'))
 
+def duplicate_df(original, id_col):
+    '''
+    Copies all rows in the original and appends _dupe to the ids
+    Returns a dataframe with each row duplicated once
+    '''
+    second_df = original.copy()
+    second_df[id_col] = second_df[id_col].apply(lambda x: x+'_dupe')
+    return pd.concat([original, second_df])
+
+def H1_double_curate():
+    """
+    Curate dataset for model fitting
+    """
+    if (not os.path.isfile('H1_double_curated.csv') and
+            not os.path.isfile('H1_double_curated_fit.csv') and
+            not os.path.isfile('H1_double_curated_external.csv')):
+        curated_df = pd.read_csv('../../test_datasets/H1_std.csv')
+        split_df = pd.read_csv('../../test_datasets/H1_std_train_valid_test_scaffold_002251a2-83f8-4511-acf5-e8bbc5f86677.csv')
+        id_col = "compound_id"
+        column = "pKi_mean"
+
+        # add additional columns for other forms of prediction
+        # e.g. classification and multi task
+        mean = np.mean(curated_df[column])
+        column_class = column+'_class'
+        curated_df[column_class] = curated_df[column].apply(lambda x: 1.0 if x>mean else 0.0)
+        
+        # make a copy of each column for multi task
+        curated_df[column+'2'] = curated_df[column]
+        curated_df[column_class+'2'] = curated_df[column_class]
+
+        # duplicate some of the SMILES
+        curated_df = duplicate_df(curated_df, id_col)
+        split_df = duplicate_df(split_df, 'cmpd_id')
+
+        curated_df.to_csv('H1_double_curated.csv', index=False)
+        split_df.to_csv('H1_double_curated_fit_train_valid_test_scaffold_002251a2-83f8-4511-acf5-e8bbc5f86677.csv', index=False)
+
+        split_external = split_df[split_df['subset']=='test']
+        curated_external_df = curated_df[curated_df[id_col].isin(split_external['cmpd_id'])]
+        # Create second test set by reproducible index for prediction
+        curated_df.to_csv('H1_double_curated_fit.csv', index=False)
+        curated_external_df.to_csv('H1_double_curated_external.csv', index=False)
+
+    assert (os.path.isfile('H1_double_curated.csv'))
+    assert (os.path.isfile('H1_double_curated_fit.csv'))
+    assert (os.path.isfile('H1_double_curated_external.csv'))
+    assert (os.path.isfile('H1_double_curated_fit_train_valid_test_scaffold_002251a2-83f8-4511-acf5-e8bbc5f86677.csv'))
+
+
 def download():
     """
     Separate download function so that download can be run separately if there is no internet.
@@ -155,10 +205,17 @@ def train_and_predict(train_json_f, prefix='delaney-processed'):
     # Check training statistics
     # -------------------------
     if prediction_type == 'regression':
-        integrative_utilities.training_statistics_file(reload_dir, 'test', 0.45, 'r2_score')
+        threshold = 0.6
+        if 'perf_threshold' in config:
+            threshold = float(config['perf_threshold'])
+
+        integrative_utilities.training_statistics_file(reload_dir, 'test', threshold, 'r2_score')
         score = integrative_utilities.read_training_statistics_file(reload_dir, 'test', 'r2_score')
     else:
-        integrative_utilities.training_statistics_file(reload_dir, 'test', 0.7, 'accuracy_score')
+        threshold = 0.7
+        if 'perf_threshold' in config:
+            threshold = float(config['perf_threshold'])
+        integrative_utilities.training_statistics_file(reload_dir, 'test', threshold, 'accuracy_score')
         score = integrative_utilities.read_training_statistics_file(reload_dir, 'test', 'accuracy_score')
 
     print("Final test score:", score)
@@ -170,6 +227,7 @@ def train_and_predict(train_json_f, prefix='delaney-processed'):
     predict = pfm.predict_from_model_file(tar_f, data, id_col=params.id_col, 
         smiles_col=params.smiles_col, response_col=params.response_cols)
     pred_cols = [f for f in predict.columns if f.endswith('_pred')]
+    assert len(pred_cols) == len(params.response_cols)
 
     pred = predict[pred_cols].to_numpy()
 
@@ -221,6 +279,21 @@ def H1_init():
     # ------
     H1_curate()
 
+def H1_double_init():
+    """
+    Test full model pipeline: Curate data, fit model, and predict property for new compounds
+    """
+
+    # Clean
+    # -----
+    integrative_utilities.clean_fit_predict()
+    clean('H1_double')
+
+    # Curate
+    # ------
+    H1_double_curate()
+
+
 # Train and Predict
 # -----
 def test_reg_config_delaney_fit_RF_3fold():
@@ -242,6 +315,10 @@ def test_reg_config_delaney_fit_XGB_mordred_filtered():
 def test_reg_config_delaney_fit_RF_mordred_filtered():
     init()
     train_and_predict('jsons/reg_config_delaney_fit_RF_mordred_filtered.json') # predict_full_dataset broken
+
+def test_reg_kfold_config_delaney_fit_NN_graphconv():
+    init()
+    train_and_predict('jsons/reg_kfold_config_delaney_fit_NN_graphconv.json') # fine
 
 def test_class_config_delaney_fit_XGB_mordred_filtered():
     init()
@@ -268,20 +345,24 @@ def test_multi_reg_config_delaney_fit_NN_graphconv():
 # -------
 def test_reg_config_H1_fit_XGB_moe():
     H1_init()
-    train_and_predict('jsons/reg_config_H1_fit_XGB_moe.json', prefix='H1') # doesn't learn at all
+    train_and_predict('jsons/reg_config_H1_fit_XGB_moe.json', prefix='H1')
 
 def test_reg_config_H1_fit_NN_moe():
     H1_init()
-    train_and_predict('jsons/reg_config_H1_fit_NN_moe.json', prefix='H1') # crashes during run
+    train_and_predict('jsons/reg_config_H1_fit_NN_moe.json', prefix='H1')
+
+def test_reg_config_H1_double_fit_NN_moe():
+    H1_double_init()
+    train_and_predict('jsons/reg_config_H1_double_fit_NN_moe.json', prefix='H1_double')
 
 def test_multi_class_random_config_H1_fit_NN_moe():
     H1_init()
-    train_and_predict('jsons/multi_class_config_H1_fit_NN_moe.json', prefix='H1') # works because labels aren't numbers
+    train_and_predict('jsons/multi_class_config_H1_fit_NN_moe.json', prefix='H1')
 
 def test_class_config_H1_fit_NN_moe():
     H1_init()
-    train_and_predict('jsons/class_config_H1_fit_NN_moe.json', prefix='H1') # doesn't train at all anything
+    train_and_predict('jsons/class_config_H1_fit_NN_moe.json', prefix='H1')
 
 if __name__ == '__main__':
-    test_class_config_H1_fit_NN_moe()
+    test_reg_kfold_config_delaney_fit_NN_graphconv()
     #pass

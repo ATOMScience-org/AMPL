@@ -318,11 +318,15 @@ class ModelPipeline:
             dataset_metadata = dsf.get_keyval(dataset_key=self.params.dataset_key, bucket=self.params.bucket)
         else:
             dataset_metadata = {}
+        if 'dataset_hash' not in self.params:
+            self.params.dataset_hash=None
+
         train_dset_data = dict(
             datastore=self.params.datastore,
             dataset_key=self.params.dataset_key,
             bucket=self.params.bucket,
             dataset_oid=self.data.dataset_oid,
+            dataset_hash=self.params.dataset_hash,
             id_col=self.params.id_col,
             smiles_col=self.params.smiles_col,
             response_cols=self.params.response_cols,
@@ -393,6 +397,7 @@ class ModelPipeline:
 
         # Dump the model parameters and metadata to a JSON file
         out_file = os.path.join(self.output_dir, 'model_metadata.json')
+
         with open(out_file, 'w') as out:
             json.dump(self.model_metadata, out, sort_keys=True, indent=4, separators=(',', ': '))
             out.write("\n")
@@ -494,6 +499,7 @@ class ModelPipeline:
             out_file = os.path.join(self.output_dir, 'model_metrics.json')
         else:
             out_file = os.path.join(self.output_dir, '%s_model_metrics.json' % prefix)
+
         with open(out_file, 'w') as out:
             json.dump(model_metrics, out, sort_keys=True, indent=4, separators=(',', ': '))
             out.write("\n")
@@ -866,7 +872,9 @@ class ModelPipeline:
                 pred_data = copy.deepcopy(self.data.dataset.X)
                 self.run_mode = 'training'
                 try:
+                    print("Featurizing training data for AD calculation.")
                     self.load_featurize_data()
+                    print("Calculating AD index.")
                     if len(self.data.train_valid_dsets) > 1:
                         # combine train and valid set for k-fold CV models
                         train_data = np.concatenate((self.data.train_valid_dsets[0][0].X, self.data.train_valid_dsets[0][1].X))

@@ -16,6 +16,7 @@ import deepchem.data.data_loader as dl
 
 from atomsci.ddm.utils import datastore_functions as dsf
 from atomsci.ddm.pipeline import transformations as trans
+from atomsci.ddm.pipeline import parameter_parser as pp
 
 from rdkit import Chem
 from rdkit.Chem import AllChem
@@ -69,7 +70,7 @@ def make_weights(vals):
         vals: numpy array same as input vals, but nans are replaced with 0
         w: numpy array same shape as vals, where w[i,j] = 1 if vals[i,j] is nan else w[i,j] = 0
     """
-    w = np.ones_like(vals)
+    w = np.ones_like(vals, dtype=np.float32)
     nan_indexes = np.argwhere(np.isnan(vals))
     w[nan_indexes] = 0
     out_vals = np.copy(vals)
@@ -93,7 +94,8 @@ def create_featurization(params):
 
     """
     #TODO: Change molvae to generic autoencoder
-    if params.featurizer in ('ecfp', 'graphconv', 'molvae'):
+    if params.featurizer in ('ecfp', 'graphconv', 'molvae') \
+            or params.featurizer in pp.featurizer_wl:
         return DynamicFeaturization(params)
     elif params.featurizer in ('descriptors'):
         return DescriptorFeaturization(params)
@@ -654,6 +656,9 @@ class DynamicFeaturization(Featurization):
             self.featurizer_obj = dc.feat.CircularFingerprint(size=params.ecfp_size, radius=params.ecfp_radius)
         elif self.feat_type == 'graphconv':
             self.featurizer_obj = dc.feat.ConvMolFeaturizer()
+        elif self.feat_type in pp.featurizer_wl:
+            kwargs = pp.extract_featurizer_params(params)
+            self.featurizer_obj = pp.featurizer_wl[self.feat_type](**kwargs)
         #TODO: MoleculeVAEFeaturizer is not working currently. Will be replaced by JT-VAE and cWAE
         # featurizers eventually.
         #elif self.feat_type == 'molvae':
@@ -757,7 +762,8 @@ class DynamicFeaturization(Featurization):
         Returns:
             Empty list since we will not be transforming the features of a DynamicFeaturization object
         """
-        #TODO: Add comment describing why this is always returning an empty list
+        # Dynamic features such as ECFP fingerprints are not typically scaled and centered. This behavior
+        # can be overridden if necessary by specific subclasses.
         return []
 
     # ****************************************************************************************
@@ -815,6 +821,13 @@ class DynamicFeaturization(Featurization):
             return self.featurizer_obj.feature_length()
         elif self.feat_type == 'molvae':
             return self.featurizer_obj.latent_rep_size
+        elif self.feat_type == 'MolGraphConvFeaturizer':
+            # https://deepchem.readthedocs.io/en/latest/api_reference/featurizers.html#molgraphconvfeaturizer
+            # 30 atom features plus 11 edge features
+            return 44
+        elif self.feat_type in pp.featurizer_wl:
+            # It's kind of hard to count some of these features
+            return None
 
     # ****************************************************************************************
     def get_feature_specific_metadata(self, params):
@@ -841,6 +854,8 @@ class DynamicFeaturization(Featurization):
             # TODO: If the parameter name for the model file changes to 'autoencoder_model_key', change it below.
             mol_vae_params = {'autoencoder_model_key': params.mol_vae_model_file}
             feat_metadata['autoencoder_specific'] = mol_vae_params
+        elif self.feat_type in pp.featurizer_wl:
+            feat_metadata['auto_featurizer_specific'] = pp.extract_featurizer_params(params, strip_prefix=False)
         return feat_metadata
 
 # ****************************************************************************************
@@ -909,7 +924,7 @@ class PersistentFeaturization(Featurization):
             dataset (deepchem.Dataset): featurized dataset
 
         """
-        #TODO: Add comment describing why this is always returning an empty list
+        # Leave it to subclasses to determine if features should be scaled and centered.
         return []
 
 # ****************************************************************************************
@@ -1278,7 +1293,7 @@ class DescriptorFeaturization(PersistentFeaturization):
             vals, weights = make_weights(vals)
         else:
             vals = np.zeros((nrows,ncols))
-            weights = np.ones_like(vals)
+            weights = np.ones_like(vals, dtype=np.float32)
 
         attr = attr.loc[ids]
 
@@ -1573,7 +1588,7 @@ class ComputedDescriptorFeaturization(DescriptorFeaturization):
             vals, weights = make_weights(vals)
         else:
             vals = np.zeros((nrows,ncols))
-            weights = np.ones_like(vals)
+            weights = np.ones_like(vals, dtype=np.float32)
 
         # Create a table of SMILES strings and other attributes indexed by compound IDs
         attr = get_dataset_attributes(merged_dset_df, params)

@@ -6,6 +6,7 @@ import numpy as np
 import atomsci.ddm.pipeline.featurization as feat
 import atomsci.ddm.pipeline.parameter_parser as parse
 import deepchem as dc
+from deepchem.models import GraphConvModel
 import atomsci.ddm.pipeline.model_datasets as model_dataset
 import atomsci.ddm.pipeline.model_wrapper as model_wrapper
 import atomsci.ddm.pipeline.model_pipeline as MP
@@ -13,6 +14,7 @@ import atomsci.ddm.pipeline.perf_data as perf_data
 
 import utils_testing as utils
 import copy
+import pdb
 
 """This testing script assumes that /ds/data/public/delaney/delaney-processed.csv is still on the same path on twintron. Assumes that the dataset_key: /ds/projdata/gsk_data/GSK_derived/PK_parameters/gsk_blood_plasma_partition_rat_crit_res_data.csv under the bucket gskdata and with the object_oid: 5af0e6368003ff018de33db5 still exists. 
 """
@@ -67,6 +69,7 @@ DCNNModelWrapper, DCRFModelWrapper
     featurization = feat.create_featurization(inp_params)
     mdl = model_wrapper.create_model_wrapper(inp_params, featurization)
     mdl.setup_model_dirs()
+    
     # testing for correct attribute initialization with model_type == "NN"
     test = []
     test.append(mdl.params.model_type == 'NN')
@@ -74,7 +77,6 @@ DCNNModelWrapper, DCRFModelWrapper
     test.append(mdl.output_dir == inp_params.output_dir)
     test.append(mdl.model_dir == inp_params.output_dir + '/' + 'model')
     test.append(mdl.best_model_dir == inp_params.output_dir + '/' + 'best_model')
-    test.append(mdl.baseline_model_dir == inp_params.output_dir + '/' + 'baseline_epoch_model')
     test.append(mdl.transformers == [])
     test.append(mdl.transformers_x == [])
     test.append(isinstance(mdl, model_wrapper.DCNNModelWrapper))
@@ -311,15 +313,16 @@ def test_train_NN_graphconv_scaffold_inputs():
     mp.model_wrapper = model_wrapper.create_model_wrapper(inp_params, mp.featurization, mp.ds_client)
     # asserting that the correct model is created with the correct layer sizes, dropouts, model_dir, and mode by default
     test1 = []
+    
     test1.append(mp.model_wrapper.params.layer_sizes == [100, 100, 10])
     test1.append(mp.model_wrapper.params.dropouts == [0.3,0.3,0.1])
     # checking that parameters are properly passed to the deepchem model object
-    test1.append(isinstance(mp.model_wrapper.model, dc.models.tensorgraph.models.graph_models.GraphConvModel))
+    test1.append(isinstance(mp.model_wrapper.model, GraphConvModel))
     test1.append(mp.model_wrapper.model.model_dir == mp.model_wrapper.model_dir)
-    test1.append(mp.model_wrapper.model.graph_conv_layers == [100,100])
-    test1.append(mp.model_wrapper.model.dropout == [0.3,0.3,0.1])
+    test1.append([i.out_channel for i in mp.model_wrapper.model.model.graph_convs]== [100,100])
+    test1.append([i.rate for i in mp.model_wrapper.model.model.dropouts] == [0.3,0.3,0.1])
     test1.append(mp.model_wrapper.model.mode == 'regression')
-    test1.append(mp.model_wrapper.model.dense_layer_size == 10)
+    test1.append(mp.model_wrapper.model.model.dense.units == 10)
     assert all(test1)
     
     #***********************************************************************************

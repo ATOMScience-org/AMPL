@@ -5,8 +5,13 @@ Utilities for clustering and visualizing compound structures using RDKit.
 
 import os
 
-from IPython.display import SVG, HTML
+from IPython.display import SVG, HTML, display
+from base64 import b64encode
+import io
 
+import logging
+
+import pandas as pd
 from rdkit import Chem
 from rdkit import DataStructs
 from rdkit.Chem import AllChem
@@ -16,6 +21,21 @@ from rdkit.Chem.Draw import MolToImage, rdMolDraw2D
 from rdkit.ML.Cluster import Butina
 from rdkit.ML.Descriptors import MoleculeDescriptors
 
+logging.basicConfig(format='%(asctime)-15s %(message)s')
+
+def setup_notebook():
+    """
+    Set up current notebook for displaying plots and Bokeh output using full width of window
+    """
+    from bokeh.plotting import output_notebook
+
+    get_ipython().run_line_magic('matplotlib', 'inline')
+    # Bokeh option
+    output_notebook()
+    display(HTML("<style>.container { width:100% !important; }</style>"))
+
+    pd.set_option('display.max_columns', None)
+    pd.set_option('max_seq_items', None)
 
 def add_mol_column(df, smiles_col, molecule_col='mol'):
     """
@@ -121,19 +141,20 @@ def cluster_fingerprints(fps, cutoff=0.2):
     return cs
 
 
-def mol_to_html(mol, name, type='svg', directory='rdkit_svg', width=400, height=200):
+def mol_to_html(mol, name='', type='svg', directory='rdkit_svg', embed=False, width=400, height=200):
     """
-    Creates an image file displaying the given molecule's 2D structure, and generates an HTML
-    tag for it.
+    Creates an image displaying the given molecule's 2D structure, and generates an HTML
+    tag for it. The image can be embedded directly into the HTML tag or saved to a file.
 
     Args:
         mol (rdkit.Chem.Mol): Object representing molecule.
 
-        name (str): Filename of image file to create, relative to 'directory'.
+        name (str): Filename of image file to create, relative to 'directory'; only used if embed=False.
 
         type (str): Image format; must be 'png' or 'svg'.
 
-        directory (str): Path relative to notebook directory of subdirectory where image file will be written. The directory will be created if necessary. Note that absolute paths will not work in notebooks.
+        directory (str): Path relative to notebook directory of subdirectory where image file will be written. 
+        The directory will be created if necessary. Note that absolute paths will not work in notebooks. Ignored if embed=True.
 
         width (int): Width of image bounding box.
 
@@ -143,15 +164,33 @@ def mol_to_html(mol, name, type='svg', directory='rdkit_svg', width=400, height=
         str: HTML image tag referencing the image file.
 
     """
-    img_file = '%s/%s' % (directory, name)
-    os.makedirs(directory, exist_ok=True)
-
-    if type.lower() == 'png':
-        mol_to_png(mol, img_file, size=(width,height))
-    elif type.lower() == 'svg':
-        mol_to_svg(mol, img_file, size=(width,height))
-    return '<img src="{0}/{1}" style="width:{2}px;">'.format(directory, name, width)
-
+    log = logging.getLogger('ATOM')
+    
+    if type.lower() not in ['png','svg']:
+        log.warning('Image type not recognized. Choose between png and svg.')
+        return
+    
+    if embed:
+        log.info("Warning: embed=True will result in large data structures if you have a lot of molecules.")
+        if type.lower() == 'png':
+            img=mol_to_pil(mol, size=(width,height))
+            imgByteArr = io.BytesIO()
+            img.save(imgByteArr, format=img.format)
+            imgByteArr = imgByteArr.getvalue()
+            data_url = f'data:image/png;base64,' + b64encode(imgByteArr).decode()
+        elif type.lower() == 'svg':
+            img=mol_to_svg(mol, size=(width,height)).encode('utf-8')
+            data_url = f'data:image/svg+xml;base64,' + b64encode(img).decode()
+        return f"<img src='{data_url}' style='width:{width}px;'>" 
+    
+    else:
+        img_file = '%s/%s' % (directory, name)
+        os.makedirs(directory, exist_ok=True)
+        if type.lower() == 'png':
+            save_png(mol, img_file, size=(width,height))
+        elif type.lower()=='svg':
+            save_svg(mol, img_file, size=(width,height))
+        return f"<img src='{img_file}' style='width:{width}px;'>"
 
 def mol_to_pil(mol, size=(400, 200)):
     """
@@ -170,7 +209,7 @@ def mol_to_pil(mol, size=(400, 200)):
     return pil
 
 
-def mol_to_png(mol, name, size=(400, 200)):
+def save_png(mol, name, size=(400, 200)):
     """
     Draws the molecule mol into a PNG file with filename 'name' and with the given size
     in pixels.
@@ -187,17 +226,17 @@ def mol_to_png(mol, name, size=(400, 200)):
     pil.save(name, 'PNG')
 
 
-def mol_to_svg(mol, img_file, size=(400,200)):
+def mol_to_svg(mol, size=(400,200)):
     """
-    Draw molecule mol's structure into an SVG file with path 'img_file' and with the
-    given size.
+    Returns a RDKit MolDraw2DSVG object containing an image of the given molecule's structure.
 
     Args:
         mol (rdkit.Chem.Mol): Object representing molecule.
 
-        img_file (str): Path to write SVG file to.
-
         size (tuple): Width and height of bounding box of image.
+
+    Returns:
+       RDKit.rdMolDraw2D.MolDraw2DSVG text (str): An SVG object containing an image of the molecule's structure.
 
     """
     img_wd, img_ht = size
@@ -217,7 +256,24 @@ def mol_to_svg(mol, img_file, size=(400,200)):
     svg = drawer.GetDrawingText()
     svg = svg.replace('svg:','')
     svg = svg.replace('xmlns:svg','xmlns')
-    with open(img_file, 'w') as img_out:
+    return svg
+
+
+def save_svg(mol, name, size=(400,200)):
+    """
+    Draws the molecule mol into an SVG file with filename 'name' and with the given size
+    in pixels.
+
+    Args:
+        mol (rdkit.Chem.Mol): Object representing molecule.
+
+        name (str): Path to write SVG file to.
+
+        size (tuple): Width and height of bounding box of image.
+
+    """
+    svg = mol_to_svg(mol, size)
+    with open(name, 'w') as img_out:
         img_out.write(svg)
 
 
@@ -248,3 +304,4 @@ def show_html(html):
 
     """
     return HTML(html)
+

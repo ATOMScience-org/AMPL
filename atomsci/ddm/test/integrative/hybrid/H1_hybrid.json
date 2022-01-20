@@ -4,7 +4,7 @@
     "save_results": "False",
     "data_owner": "username",
     "prediction_type": "regression",
-    "dataset_key": "test/test_datasets/H1_hybrid.csv",
+    "dataset_key": "../../test_datasets/H1_hybrid.csv",
     "id_col": "compound_id",
     "smiles_col": "rdkit_smiles",
     "response_cols": "activity,conc",

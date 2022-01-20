@@ -44,6 +44,6 @@
     "early_stopping_patience": "500",
 
     "comment": "Results",
-    "comment": "----------------------------------------",    
+    "comment": "----------------------------------------",
     "result_dir": "result"
 }

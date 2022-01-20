@@ -70,9 +70,13 @@ def wait_to_finish(maestro_run_command, max_time=600):
     assert len(maestro_folders) == 1
     maestro_folder = maestro_folders[0]
 
+    print('folder created')
+
     # make sure that there's a status file
     status_file = os.path.join(maestro_folder, 'status.csv')
     assert os.path.exists(status_file)
+
+    print('status found')
 
     # check how many jobs got started
     out = run_command(['wc', '-l', status_file])
@@ -86,12 +90,20 @@ def wait_to_finish(maestro_run_command, max_time=600):
         # wait until the training jobs have finished
         time.sleep(wait_interval) # check for results every 30 seconds
         time_waited += wait_interval
-        grep = run_command(['grep', '-c', 'FINISHED', status_file])
-        print(grep)
+        finished_grep = run_command(['grep', '-c', 'FINISHED', status_file])
         try:
-            num_completed = int(grep)
-        except:
+            num_completed = int(finished_grep)
+        except ValueError:
             num_completed = 0
+
+        failed_grep = run_command(['grep', '-c', 'FAILED', status_file])
+        try:
+            num_failed = int(failed_grep)
+        except ValueError:
+            num_failed = 0
+
+        print(f'{num_completed} jobs finished {num_failed} jobs failed')
+        assert num_failed == 0
 
     # see if you timed out
     assert time_waited < max_time
@@ -114,11 +126,15 @@ def test():
         hp_params = json.load(f)
     pparams = parse.wrapper(hp_params)
 
+    print('launch maestro')
     _ = wait_to_finish(f"maestro run -y -p custom_gen.py run_nn_ecfp.yaml", max_time=2*60*60) # wait 2 hours.
 
     result_df = cm.get_filesystem_perf_results(pparams.result_dir, pparams.prediction_type)
     assert not result_df is None # Timed out
     assert max(result_df['test_r2_score'].values) > 0.6 # should do at least this well. I saw values like 0.687
+
+    print('waiting for maestro to finish')
+    time.sleep(60)
 
     # Clean
     # -----

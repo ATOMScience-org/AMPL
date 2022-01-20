@@ -12,6 +12,8 @@ currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentfram
 parentdir = os.path.dirname(currentdir)
 import atomsci.ddm.pipeline.parameter_parser as parse
 
+import pdb
+
 config_path = currentdir + '/config_list_inputs.json'
 filter_dict_path = currentdir + '/filter_dict_example.json'
 required_inputs = ['--dataset_key','/ds/data/public/delaney/delaney-processed.csv',
@@ -159,7 +161,7 @@ def test_correct_input_mixed_command_line_types():
     test = []
     test.append(params.system == 'twintron-blue')
     test.append(params.dataset_key == '/ds/data/public/delaney/delaney-processed.csv')
-    test.append(params.layer_sizes == [42,42])
+    test.append(params.layer_sizes == [[42, 42]])
     test.append(params.batch_size == 63)
     test.append(params.previously_split)
     test.append(params.descriptor_type == 'moe') 
@@ -175,7 +177,7 @@ def test_correct_input_type_json():
     test = []
     test.append(params.system == 'twintron-blue')
     test.append(params.dataset_key == '/ds/data/public/delaney/delaney-processed.csv')
-    test.append(params.layer_sizes == [42,42])
+    test.append(params.layer_sizes == [[42, 42]])
     test.append(params.batch_size == 63)
     test.append(params.previously_split)
     test.append(params.descriptor_type == 'moe')
@@ -198,6 +200,12 @@ def test_default_params_command():
     params = parse.wrapper(required_inputs)
     defaults = default_parameters()
     assert params == defaults
+    
+
+def test_default_params_command_with_dataset_hash():
+    params = parse.wrapper(currentdir + '/../test_datasets/H1_hybrid.json')
+    # a valid dataset hash should be generated after the parse.wrapper call
+    assert params.dataset_hash != ''
 
 """
 #test for ensuring system exits on required command
@@ -270,7 +278,7 @@ def test_correct_input_type_namespace():
     params = parse.wrapper(list_inputs_namespace)
     test = []
     test.append(params.dataset_key == '/ds/data/public/delaney/delaney-processed.csv')
-    test.append(params.layer_sizes == [42,42])
+    test.append(params.layer_sizes == [[42, 42]])
     test.append(params.batch_size == 63)
     test.append(params.previously_split)
     test.append(params.descriptor_type == 'moe')
@@ -293,7 +301,7 @@ def test_correct_input_type_namespace():
     
     params = parse.wrapper(list_inputs_dict)
     test.append(params.dataset_key == '/ds/data/public/delaney/delaney-processed.csv')
-    test.append(params.layer_sizes == [42,42])
+    test.append(params.layer_sizes == [[42, 42]])
     test.append(params.batch_size == 63)
     test.append(params.previously_split)
     test.append(params.descriptor_type == 'moe')
@@ -319,7 +327,7 @@ def test_command_line_namespace_and_dict_input():
     params = parse.wrapper(command_line_namespace_inputs)
     test = []
     test.append(params.dataset_key == '/ds/data/public/delaney/delaney-processed.csv')
-    test.append(params.layer_sizes == [42,42])
+    test.append(params.layer_sizes == [[42, 42]])
     test.append(params.batch_size == 63)
     test.append(params.previously_split)
     test.append(params.descriptor_type == 'moe')
@@ -338,7 +346,7 @@ def test_command_line_namespace_and_dict_input():
  'ModelMetadata.TrainingDataset.id_col': "['nin', [0,1,3,4]]"})
     params = parse.wrapper(command_line_dict_inputs)
     test.append(params.dataset_key == '/ds/data/public/delaney/delaney-processed.csv')
-    test.append(params.layer_sizes == [42,42])
+    test.append(params.layer_sizes == [[42, 42]])
     test.append(params.batch_size == 63)
     test.append(params.previously_split)
     test.append(params.descriptor_type == 'moe')
@@ -362,7 +370,7 @@ def test_hierarchical_dict():
     test = []
     test.append(params.system == 'twintron-blue')
     test.append(params.dataset_key == '/ds/data/public/delaney/delaney-processed.csv')
-    test.append(params.layer_sizes == [42,42])
+    test.append(params.layer_sizes == [[42, 42]])
     test.append(params.batch_size == 63)
     test.append(params.previously_split)
     test.append(params.descriptor_type == 'moe')

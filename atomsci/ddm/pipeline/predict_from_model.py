@@ -60,7 +60,8 @@ def predict_from_tracker_model(model_uuid, collection, input_df, id_col='compoun
 
 # =====================================================================================================
 def predict_from_model_file(model_path, input_df, id_col='compound_id', smiles_col='rdkit_smiles',
-                     response_col=None, conc_col=None, is_featurized=False, dont_standardize=False, AD_method=None, k=5, dist_metric="euclidean"):
+                     response_col=None, conc_col=None, is_featurized=False, dont_standardize=False, AD_method=None, k=5, dist_metric="euclidean",
+                     external_training_data=None):
     """
     Loads a pretrained model from a model tarball file and runs predictions on compounds in an input
     data frame.
@@ -90,13 +91,16 @@ def predict_from_model_file(model_path, input_df, id_col='compound_id', smiles_c
         k (int): number of the neareast neighbors to evaluate the AD index, default is 5.
 
         dist_metric (str): distance metrics, valid values are 'cityblock', 'cosine', 'euclidean', 'jaccard', 'manhattan'
+        
+        external_training_data (str): path to where the dataset is if the model was originally trained elsewhere. For AD_index calc.
     Return: 
         A data frame with compound IDs, SMILES strings and predicted response values. Actual response values
         will be included if response_col is provided. Standard prediction error estimates will be included
         if the model was trained with uncertainty=True. Note that the predicted and actual response
         columns will be labeled according to the response_col setting in the original training data,
         not the response_col passed to this function; e.g. if the original model response_col was 'pIC50',
-        the returned data frame will contain columns 'pIC50_actual', 'pIC50_pred' and 'pIC50_std'.
+        the returned data frame will contain columns 'pIC50_actual', 'pIC50_pred' and 'pIC50_std'. For proper
+        ADI calculation, the original data column names must be the same for the new data.
     """
 
     input_df, pred_params = _prepare_input_data(input_df, id_col, smiles_col, response_col, conc_col, dont_standardize)
@@ -105,8 +109,11 @@ def predict_from_model_file(model_path, input_df, id_col='compound_id', smiles_c
     pred_params = parse.wrapper(pred_params)
 
     pipe = mp.create_prediction_pipeline_from_file(pred_params, reload_dir=None, model_path=model_path)
+    if external_training_data is not None:
+        pipe.params.dataset_key=external_training_data
     pred_df = pipe.predict_full_dataset(input_df, contains_responses=has_responses, is_featurized=is_featurized,
                                         dset_params=pred_params, AD_method=AD_method, k=k, dist_metric=dist_metric)
+    pred_df=input_df.merge(pred_df)
     return pred_df
 
 # =====================================================================================================
@@ -126,20 +133,20 @@ def _prepare_input_data(input_df, id_col, smiles_col, response_col, conc_col, do
         print("Standardizing SMILES strings for %d compounds." % input_df.shape[0])
         orig_ncmpds = input_df.shape[0]
         std_smiles = base_smiles_from_smiles(input_df[smiles_col].values.tolist(), workers=16)
-        input_df['standardized_smiles'] = std_smiles
-        input_df = input_df[input_df.standardized_smiles != '']
+        input_df['orig_smiles']=input_df[smiles_col]
+        input_df[smiles_col] = std_smiles
+        input_df = input_df[input_df[smiles_col] != '']
         if input_df.shape[0] == 0:
             raise ValueError("No valid SMILES strings to predict on.")
         nlost = orig_ncmpds - input_df.shape[0]
         if nlost > 0:
             print("Could not parse %d SMILES strings; will predict on the remainder." % nlost)
-        std_smiles_col = 'standardized_smiles'
 
     pred_params = {
         'featurizer': 'computed_descriptors',
         'result_dir': tempfile.mkdtemp(),
         'id_col': id_col,
-        'smiles_col': std_smiles_col
+        'smiles_col': smiles_col
     }
     if (response_col is not None) and (response_col in input_df.columns.values):
         pred_params['response_cols'] = response_col
