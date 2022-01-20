@@ -5,6 +5,7 @@ Contains class PerfData and its subclasses, which are objects for collecting and
 and predictions
 """
 
+from textwrap import wrap
 import sklearn.metrics
 
 import deepchem as dc
@@ -15,6 +16,8 @@ from sklearn.metrics import accuracy_score, matthews_corrcoef, cohen_kappa_score
 from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
 
 from atomsci.ddm.pipeline import transformations as trans
+
+import pdb
 
 
 # ******************************************************************************************************************************
@@ -2078,3 +2081,314 @@ class SimpleHybridPerfData(HybridPerfData):
             return (r2_scores, None)
         else:
             return (r2_scores.mean(), None)
+
+
+# ****************************************************************************************
+class EpochManager:
+    """ Manages lists of PerfDatas
+
+    This class manages lists of PerfDatas as well as variables related to iteratively
+    training a model over several epochs. This class sets several varaibles in a given
+    ModelWrapper for the sake of backwards compatibility
+
+    Attributes:
+        Set in __init__:
+            _subsets (dict): Must contain the keys 'train', 'valid', 'test'. The values
+                are used as subsets when calling create_perf_data.
+
+            _model_choice_score_type (str): Passed into PerfData.model_choice_score
+
+            _log (logger): This is the from wrapper.log
+
+            _should_stop (bool): True when training as satisfied stopping conditions. Either
+                it has reached the max number of epochs or has exceeded early_stopping_patience
+
+            wrapper (ModelWrapper): The model wrapper where this object is being used.
+
+            _new_best_valid_score (function): This function takes no arguments and is called
+                whenever a new best validation score is achieved.
+    
+    """
+
+    # ****************************************************************************************
+    # class EpochManager
+    def __init__(self, wrapper,
+            subsets={'train':'train',  'valid':'valid', 'test':'test'}, **kwargs):
+        """ Initialize EpochManager
+
+        Args:
+            wrapper (ModelWrapper): The ModelWrapper that's doing the training
+
+            subsets (dict): Must contain the keys 'train', 'valid', 'test'. The values
+                are used as subsets when calling create_perf_data.
+
+            kwargs (dict): Additional keyword args are passed to create_perf_data. The
+                subset argument should not be passed.
+
+        Side effects:
+            Creates the following attributes in wrapper:
+                best_epoch
+                best_valid_score
+                train_epoch_perfs
+                valid_epoch_perfs
+                test_epoch_perfs
+                train_epoch_perf_stds
+                valid_epoch_perf_stds
+                test_epoch_perf_stds
+                model_choice_scores
+                early_stopping_min_improvement
+                early_stopping_patience
+                train_perf_data
+                valid_perf_data
+                test_perf_data
+        """
+        params = wrapper.params
+        self._subsets = subsets
+        self._model_choice_score_type = params.model_choice_score_type
+        self._log = wrapper.log
+        self._should_stop = False
+        self.wrapper = wrapper
+        
+        self._new_best_valid_score = lambda: False
+
+        self.wrapper.best_epoch = 0
+        self.wrapper.best_valid_score = None
+        self.wrapper.train_epoch_perfs = np.zeros(params.max_epochs)
+        self.wrapper.valid_epoch_perfs = np.zeros(params.max_epochs)
+        self.wrapper.test_epoch_perfs = np.zeros(params.max_epochs)
+        self.wrapper.train_epoch_perf_stds = np.zeros(params.max_epochs)
+        self.wrapper.valid_epoch_perf_stds = np.zeros(params.max_epochs)
+        self.wrapper.test_epoch_perf_stds = np.zeros(params.max_epochs)
+        self.wrapper.model_choice_scores = np.zeros(params.max_epochs)
+        self.wrapper.early_stopping_min_improvement = params.early_stopping_min_improvement
+        self.wrapper.early_stopping_patience = params.early_stopping_patience
+
+        self.wrapper.train_perf_data = []
+        self.wrapper.valid_perf_data = []
+        self.wrapper.test_perf_data = []
+
+        for _ in range(params.max_epochs):
+            self.wrapper.train_perf_data.append(
+                create_perf_data(subset=self._subsets['train'], **kwargs))
+            self.wrapper.valid_perf_data.append(
+                create_perf_data(subset=self._subsets['valid'], **kwargs))
+            self.wrapper.test_perf_data.append(
+                create_perf_data(subset=self._subsets['test'], **kwargs))
+
+    # ****************************************************************************************
+    # class EpochManager
+    def should_stop(self):
+        """ 
+        Returns True when the training loop should stop
+
+        Returns:
+            bool: True when the training loop should stop
+        """
+        return self._should_stop
+
+    # ****************************************************************************************
+    # class EpochManager
+    def update_epoch(self, ei, train_dset=None, valid_dset=None, test_dset=None):
+        """ Update training state after an epoch
+
+        This function updates train/valid/test_perf_data. Call this function once
+        per epoch. Call self.should_stop() after calling this function to see if you should
+        exit the training loop.
+        
+        Subsets with None arguments will be ignored
+
+        Args:
+            ei (int): The epoch index
+
+            train_dset (dc.data.Dataset): The train dataset
+
+            valid_dset (dc.data.Dataset): The valid dataset. Providing this argument updates
+                best_valid_score and _should_stop
+
+            test_dset (dc.data.Dataset): The test dataset
+
+        Returns:
+            list: A list of performance values for the provided datasets.
+
+        Side effects
+            This function updates self._should_stop
+
+        """
+        train_perf = self.update(ei, 'train', train_dset)
+        valid_perf = self.update(ei, 'valid', valid_dset)
+        test_perf = self.update(ei, 'test', test_dset)
+
+        return [p for p in [train_perf, valid_perf, test_perf] if not(p is None)]
+
+    # ****************************************************************************************
+    # class EpochManager
+    def accumulate(self, ei, subset, dset):
+        """ Accumulate predictions
+        
+        Makes predictions, accumulate predictions and calculate the performance metric. Calls PerfData.accumulate_preds
+        belonging to the epoch, subset, and given dataset.
+
+        Args:
+            ei (int): Epoch index
+
+            subset (str): Which subset, should be train, valid, or test.
+
+            dset (dc.data.Dataset): Calculates the performance for the given dset
+
+        Returns:
+            float: Performance metric for the given dset.
+        """
+        pred = self._make_pred(dset)
+        perf = getattr(self.wrapper, f'{subset}_perf_data')[ei].accumulate_preds(pred, dset.ids)
+        return perf
+
+    # ****************************************************************************************
+    # class EpochManager
+    def compute(self, ei, subset):
+        """ Computes performance metrics
+
+        This calls PerfData.compute_perf_metrics and saves the result in 
+        f'{subset}_epoch_perfs'
+
+        Args:
+            ei (int): Epoch index
+
+            subset (str): Which subset to compute_perf_metrics. Should be train, valid, or test
+
+        Returns:
+            None
+
+        """
+        getattr(self.wrapper, f'{subset}_epoch_perfs')[ei], _ = \
+            getattr(self.wrapper, f'{subset}_perf_data')[ei].compute_perf_metrics()
+
+    # ****************************************************************************************
+    # class EpochManager
+    def update_valid(self, ei):
+        """ Checks validation score
+
+        Checks validation performance of the given epoch index. Updates self._should_stop, checks
+        on early stopping conditions, calls self._new_best_valid_score() when necessary.
+
+        Args:
+            ei (int): Epoch index
+
+        Returns:
+            None
+
+        Side effects
+            Updates self._should_stop when it's time to exit the training loop.
+        """
+        valid_score = self.wrapper.valid_perf_data[ei].model_choice_score(self._model_choice_score_type)
+        self.wrapper.model_choice_scores[ei] = valid_score
+        if self.wrapper.best_valid_score is None:
+            self._new_best_valid_score()
+            self.wrapper.best_valid_score = valid_score
+            self.wrapper.best_epoch = ei
+            self._log.info(f"Total score for epoch {ei} is {valid_score:.3}")
+        elif valid_score - self.wrapper.best_valid_score > self.wrapper.early_stopping_min_improvement:
+            self._new_best_valid_score()
+            self.wrapper.best_valid_score = valid_score
+            self.wrapper.best_epoch = ei
+            self._log.info(f"*** Total score for epoch {ei} is {valid_score:.3}, is new maximum")
+        elif ei - self.wrapper.best_epoch > self.wrapper.early_stopping_patience:
+            self._log.info(f"No improvement after {self.wrapper.early_stopping_patience} epochs, stopping training")
+            self._should_stop = True
+
+    # ****************************************************************************************
+    # class EpochManager
+    def update(self, ei, subset, dset=None):
+        """ Update training state
+
+        Updates the training state for a given subset and epoch index with the given dataset.
+
+        Args:
+            ei (int): Epoch index.
+
+            subset (str): Should be train, valid, test
+
+            dset (dc.data.Dataset): Updates using this dset
+
+        Returns:
+            perf (float): the performance of the given dset.
+
+        """
+        if dset is None:
+            return None
+
+        perf = self.accumulate(ei, subset, dset)
+        self.compute(ei, subset)
+
+        if subset == 'valid':
+            self.update_valid(ei)
+
+        return perf
+
+    # ****************************************************************************************
+    # class EpochManager
+    def set_make_pred(self, functional):
+        """ Sets the function used to make predictions
+
+        Sets the function used to make predictions. This must be called before invoking
+        self.update and self.accumulate
+
+        Args:
+            functional (function): This function takes one argument, a dc.data.Dataset, and
+                returns an array of predictions for that dset. This function is called 
+                when updating the training state after a given epoch.
+
+        Returns:
+            None
+
+        Side effects:
+            Saves the functional as self._make_pred
+        """
+        self._make_pred = functional
+
+    # ****************************************************************************************
+    # class EpochManager
+    def on_new_best_valid(self, functional):
+        """ Sets the function called when a new best validation score is achieved
+
+        Saves the function called when there's a new best validation score.
+
+        Args:
+            functional (function): This function takes no arguments and returns nothing. This
+                function is called when there's a new best validation score. This can be used
+                to tell the ModelWrapper to save the model.
+
+        Returns:
+            None
+
+        Side effect:
+            Saves the _new_best_valid_score function.
+
+        """
+        self._new_best_valid_score = functional
+
+# ****************************************************************************************
+class EpochManagerKFold(EpochManager):
+    """
+        This class manages the training state when using KFold cross validation. This is
+        necessary because this manager uses f'{subset}_epoch_perf_stds' unlike EpochManager
+
+    """
+    # ****************************************************************************************
+    # class EpochManagerKFold
+    def compute(self, ei, subset):
+        """ Calls PerfData.compute_perf_metrics()
+        
+        This differs from EpochManager.compute in that it saves the results into
+        f'{subset}_epoch_perf_stds'
+
+        Args:
+            ei (int): Epoch index
+
+            subset (str): Should be train, valid, test.
+
+        Returns:
+            None
+    
+        """
+        getattr(self.wrapper, f'{subset}_epoch_perfs')[ei], getattr(self.wrapper, f'{subset}_epoch_perf_stds')[ei]= \
+            getattr(self.wrapper, f'{subset}_perf_data')[ei].compute_perf_metrics()

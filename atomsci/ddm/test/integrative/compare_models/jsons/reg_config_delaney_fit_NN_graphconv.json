@@ -12,13 +12,7 @@
     "dataset_key": "./delaney-processed_curated_fit.csv",
     "id_col": "Compound ID",
     "smiles_col": "smiles",
-
-    "comment": "Prediction Type",
-    "comment": "----------------------------------------",
-    "response_cols": ["measured log solubility in mols per litre_class",
-                        "measured log solubility in mols per litre_class2"],
-    "num_model_tasks": 2,
-    "prediction_type": "classification",
+    "response_cols": "measured log solubility in mols per litre",
 
     "comment": "Features",
     "comment": "----------------------------------------",
@@ -33,20 +27,19 @@
     "dropouts": "0.10,0.10,0.10",
     "layer_sizes": "64,64,64",
     "learning_rate": "0.000753",
-    "max_epochs": "500",
+    "max_epochs": "5",
 
     "comment": "Training",
     "comment": "----------------------------------------",    
     "comment": "This regulates how long to train the model",
-    "early_stopping_patience": "500",
+    "early_stopping_patience": "4",
 
     "comment": "Results",
     "comment": "----------------------------------------",    
     "result_dir": "result",
 
-    "comment": "Test config",
-    "comment": "these variables are only used in THIS test.",
-    "comment": "They will not do anything in the pipeline",
-    "comment": "----------------------------------------",
-    "perf_threshold": ".65"
+    "comment": "Test",
+    "comment": "This test does not need to do well, just generate some files.",
+    "comment": "----------------------------------------",    
+    "perf_threshold": "-10000000"
 }

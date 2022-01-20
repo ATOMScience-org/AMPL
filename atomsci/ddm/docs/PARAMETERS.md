@@ -18,6 +18,7 @@ The AMPL pipeline contains many parameters and options to fit models and make pr
   - [Transformers](#Transformers)
   - [UMAP](#UMAP)
   - [XGBoost](#XGBoost)
+  - [Additional DeepChem Models](#Auto-DCModels)
 - [Model Saving](#Model-Saving)
 - [Model Metadata](#Model-Metadata)
 - [Miscellaneous](#Miscellaneous)
@@ -661,6 +662,50 @@ The AMPL pipeline contains many parameters and options to fit models and make pr
 |*Default:*|1.0|
   
 ---
+
+<a name="Auto-DCModels"></a>
+## Additional DeepChem Models and Featurizers
+As of version 1.3 AMPL partially supports several DeepChem models. It is possible to train and predict
+using these models, but they are not currently integrated with the hyperparameter search wrapper.
+
+### Models
+AMPL supports the following models:
+
+- [AttentiveFPModel](https://deepchem.readthedocs.io/en/latest/api_reference/models.html#attentivefpmodel)
+- [GCNModel](https://deepchem.readthedocs.io/en/latest/api_reference/models.html#gcnmodel)
+- [GraphConvModel](https://deepchem.readthedocs.io/en/latest/api_reference/models.html#graphconvmodel)
+- [MPNNModel](https://deepchem.readthedocs.io/en/latest/api_reference/models.html#mpnnmodel)
+- [PytorchMPNNModel](https://deepchem.readthedocs.io/en/latest/api_reference/models.html#id38)
+
+
+These models can be selected by using the `model_type` paramter e.g. `"model_type":"AttentiveFPModel"`.
+Parameters for each model can be passed in by prefixing the parameter with the name of the model.
+
+```
+    "comment": "Model",
+    "comment": "----------------------------------------",
+    "model_type": "AttentiveFPModel",
+    "AttentiveFPModel_num_layers":"3",
+    "AttentiveFPModel_learning_rate": "0.0007",
+    "AttentiveFPModel_n_tasks": "1",
+```
+
+### Featurizers
+AMPL supports the following DeepChem featurizers:
+- [MolGraphConvFeaturizer](https://deepchem.readthedocs.io/en/latest/api_reference/featurizers.html#molgraphconvfeaturizer)
+- [WeaveFeaturizer](https://deepchem.readthedocs.io/en/latest/api_reference/featurizers.html#weavefeaturizer)
+- [ConvMolFeaturizer](https://deepchem.readthedocs.io/en/latest/api_reference/featurizers.html#convmolfeaturizer)
+
+Each DeepChem model expects a specific featurizer. Model/Featurizer compatibility is listed in [this table](https://deepchem.readthedocs.io/en/latest/api_reference/featurizers.html#convmolfeaturizer).
+Featurizers can be specified by setting the `featurizer` parameter. Featurizer parameters are passed
+in the same way as model parameters.
+
+```
+    "comment": "Features",
+    "comment": "----------------------------------------",
+    "featurizer":"MolGraphConvFeaturizer",
+    "MolGraphConvFeaturizer_use_edges":"True",
+```
 
 <a name="Model-Saving"></a>
 # Model Saving  

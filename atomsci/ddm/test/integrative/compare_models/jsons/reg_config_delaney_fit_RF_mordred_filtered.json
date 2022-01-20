@@ -14,7 +14,7 @@
     "smiles_col": "smiles",
     "response_cols": "measured log solubility in mols per litre",
 
-    "comment": "Features",
+   "comment": "Features",
     "comment": "----------------------------------------",
     "featurizer": "computed_descriptors",
 
@@ -24,13 +24,12 @@
 
     "comment": "Model",
     "comment": "----------------------------------------",
-    "model_type": "xgboost",
+    "model_type": "RF",
+    "rf_estimators": "501",
+    "rf_max_features": "33",
+    "rf_max_depth": "10000",
 
     "comment": "Results",
     "comment": "----------------------------------------",    
-    "result_dir": "result",
-
-    "comment": "Test",
-    "comment": "----------------------------------------",    
-    "perf_threshold": "0.50"
+    "result_dir": "result"
 }

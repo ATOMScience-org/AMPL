@@ -9,19 +9,10 @@
     "comment": "Input file",
     "comment": "----------------------------------------",
     "comment": "Note: dataset_key must be a path/file name: E.G. ./dataset.csv",
-    "dataset_key": "./H1_curated_fit.csv",
-    "id_col": "compound_id",
-    "smiles_col": "base_rdkit_smiles",
-
-    "comment": "Splitting",
-    "comment": "----------------------------------------",
-    "split_uuid": "002251a2-83f8-4511-acf5-e8bbc5f86677",
-    "previously_split": "True",
-
-    "comment": "Prediction Type",
-    "comment": "----------------------------------------",
-    "comment": "Note: regression is the default prediction type",
-    "response_cols": "pKi_mean",
+    "dataset_key": "./delaney-processed_curated_fit.csv",
+    "id_col": "Compound ID",
+    "smiles_col": "smiles",
+    "response_cols": "measured log solubility in mols per litre",
 
     "comment": "Features",
     "comment": "----------------------------------------",
@@ -29,20 +20,19 @@
 
     "comment": "Descriptors",
     "comment": "----------------------------------------",
-    "descriptor_type": "moe_scaled",
+    "descriptor_type": "mordred_filtered",
 
     "comment": "Model",
     "comment": "----------------------------------------",
     "model_type": "xgboost",
+    "xgb_gamma": "0.1",
+    "xgb_learning_rate": "0.11",
 
     "comment": "Results",
     "comment": "----------------------------------------",    
     "result_dir": "result",
 
-    "comment": "Test config",
-    "comment": "these variables are only used in THIS test.",
-    "comment": "They will not do anything in the pipeline",
-    "comment": "----------------------------------------",
-    "perf_threshold": ".45"
-
+    "comment": "Test",
+    "comment": "----------------------------------------",    
+    "perf_threshold": "0.50"
 }

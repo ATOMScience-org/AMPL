@@ -16,6 +16,7 @@ import deepchem.data.data_loader as dl
 
 from atomsci.ddm.utils import datastore_functions as dsf
 from atomsci.ddm.pipeline import transformations as trans
+from atomsci.ddm.pipeline import parameter_parser as pp
 
 from rdkit import Chem
 from rdkit.Chem import AllChem
@@ -93,7 +94,8 @@ def create_featurization(params):
 
     """
     #TODO: Change molvae to generic autoencoder
-    if params.featurizer in ('ecfp', 'graphconv', 'molvae'):
+    if params.featurizer in ('ecfp', 'graphconv', 'molvae') \
+            or params.featurizer in pp.featurizer_wl:
         return DynamicFeaturization(params)
     elif params.featurizer in ('descriptors'):
         return DescriptorFeaturization(params)
@@ -654,6 +656,9 @@ class DynamicFeaturization(Featurization):
             self.featurizer_obj = dc.feat.CircularFingerprint(size=params.ecfp_size, radius=params.ecfp_radius)
         elif self.feat_type == 'graphconv':
             self.featurizer_obj = dc.feat.ConvMolFeaturizer()
+        elif self.feat_type in pp.featurizer_wl:
+            kwargs = pp.extract_featurizer_params(params)
+            self.featurizer_obj = pp.featurizer_wl[self.feat_type](**kwargs)
         #TODO: MoleculeVAEFeaturizer is not working currently. Will be replaced by JT-VAE and cWAE
         # featurizers eventually.
         #elif self.feat_type == 'molvae':
@@ -816,6 +821,13 @@ class DynamicFeaturization(Featurization):
             return self.featurizer_obj.feature_length()
         elif self.feat_type == 'molvae':
             return self.featurizer_obj.latent_rep_size
+        elif self.feat_type == 'MolGraphConvFeaturizer':
+            # https://deepchem.readthedocs.io/en/latest/api_reference/featurizers.html#molgraphconvfeaturizer
+            # 30 atom features plus 11 edge features
+            return 44
+        elif self.feat_type in pp.featurizer_wl:
+            # It's kind of hard to count some of these features
+            return None
 
     # ****************************************************************************************
     def get_feature_specific_metadata(self, params):
@@ -842,6 +854,8 @@ class DynamicFeaturization(Featurization):
             # TODO: If the parameter name for the model file changes to 'autoencoder_model_key', change it below.
             mol_vae_params = {'autoencoder_model_key': params.mol_vae_model_file}
             feat_metadata['autoencoder_specific'] = mol_vae_params
+        elif self.feat_type in pp.featurizer_wl:
+            feat_metadata['auto_featurizer_specific'] = pp.extract_featurizer_params(params, strip_prefix=False)
         return feat_metadata
 
 # ****************************************************************************************

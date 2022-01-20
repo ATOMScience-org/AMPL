@@ -5,12 +5,11 @@ import numpy as np
 import pandas as pd
 import os
 import sys
-import glob
 
 import atomsci.ddm.pipeline.parameter_parser as parse
 from atomsci.ddm.pipeline import model_pipeline as mp
-from atomsci.ddm.pipeline import predict_from_model as pfm
-from atomsci.ddm.pipeline import perf_data
+
+from sklearn.metrics import r2_score
 
 def clean():
     """
@@ -56,10 +55,16 @@ def test():
     pred_results = pred_data.get_prediction_results()
     print(pred_results)
 
+    pred_score = pred_results['r2_score']
+    score_threshold = 0.4
+    assert pred_score > score_threshold, \
+        f'Error: Score is too low {pred_score}. Must be higher than {score_threshold}'
+
     print("Make predictions with the hyrid model")
     predict= pl.predict_on_dataframe(train_df[:10], contains_responses=False)
     assert (predict['pred'].shape[0] == 10), 'Error: Incorrect number of predictions'
     assert (np.all(np.isfinite(predict['pred'].values))), 'Error: Predictions are not numbers'
 
+    
 if __name__ == '__main__':
     test()

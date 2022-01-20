@@ -5,6 +5,7 @@
     "datastore": "False",
     "save_results": "False",
     "data_owner": "username",
+    "parser_version":"1.0",
 
     "comment": "Input file",
     "comment": "----------------------------------------",
@@ -20,37 +21,34 @@
 
     "comment": "Prediction Type",
     "comment": "----------------------------------------",
-    "response_cols": "pKi_mean",
-    "prediction_type": "regression",
+    "response_cols": "exact_mol_weight",
+    "uncertainty": "False",
 
     "comment": "Features",
     "comment": "----------------------------------------",
-    "featurizer": "computed_descriptors",
-
-    "comment": "Descriptors",
-    "comment": "----------------------------------------",
-    "descriptor_type": "moe_scaled_filtered",
+    "featurizer":"WeaveFeaturizer",
 
     "comment": "Model",
     "comment": "----------------------------------------",
-    "model_type": "NN",
-    "dropout": ".01,.01,.01",
-    "layer_sizes": "64,64,64",
-    "learning_rate": "0.0007",
-    "max_epochs": "500",
-    
+    "model_type": "MPNNModel",
+    "MPNNModel_mode": "regression",
+    "comment": "these features are set specifically for the WeaveFeaturizer",
+    "MPNNModel_n_atom_feat": "75",
+    "MPNNModel_n_pair_feat": "14",
+
     "comment": "Training",
     "comment": "----------------------------------------",
     "comment": "This regulates how long to train the model",
-    "early_stopping_patience": "500",
+    "early_stopping_patience": "4",
+    "max_epochs": "5",
 
     "comment": "Results",
     "comment": "----------------------------------------",
     "result_dir": "result",
 
-    "comment": "Test config",
-    "comment": "these variables are only used in THIS test.",
-    "comment": "They will not do anything in the pipeline",
-    "comment": "----------------------------------------",
-    "perf_threshold": ".45"
+    "comment": "Test",
+    "comment": "This test does not need to do well, just generate some files.",
+    "comment": "----------------------------------------",    
+    "perf_threshold": "-10000000"
+
 }
