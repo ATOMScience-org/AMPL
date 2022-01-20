@@ -26,7 +26,7 @@ Documentation in readthedocs format is available [here](https://ampl.readthedocs
 - [Getting started](#Getting-started)
   - [Prerequisites](#Prerequisites)
   - [Install](#Install)
-     - [Setup to run attentive_fp model](#Install-afp)
+     - [Setup to run dgl model](#Install-dgl)
   - [Install with Docker](#Install-docker)
   - [AMPL usage survey](#AMPL-usage-survey)
 - [Tutorials](#AMPL-tutorials)
@@ -105,8 +105,8 @@ python -m ipykernel install --user --name atomsci
 - More details on installation can be found in [Advanced installation](#Advanced-installation).  
 &nbsp;  
 
-<a name="Install-afp"></a>
-#### Setup to run attentive_fp model
+<a name="Install-dgl"></a>
+#### Setup to run dgl model
 Go to the `AMPL` root directory and install the AMPL package:
 ```
 conda activate atomsci
@@ -114,7 +114,7 @@ conda activate atomsci
 source set_dgl_env.sh $test_env
 ```
 
-where `$test_env` is the name of the Conda environment to run dgl in.
+where `$test_env` is the name of the Conda environment to run `dgl` in.
 
 <a name="Install-docker"></a>
 ### Install with Docker
