@@ -1,75 +1,34 @@
-
-
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8" />
-  
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
-  <title>pipeline.featurization &mdash; ATOM Data-Driven Modeling Pipeline 1.2.0 documentation</title>
-  
-
-  
-  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-
-  
-  
-
-  
-  
-
-  
-
-  
+  <title>pipeline.featurization &mdash; ATOM Data-Driven Modeling Pipeline 1.3.0 documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
         <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
         <script src="../../_static/jquery.js"></script>
         <script src="../../_static/underscore.js"></script>
         <script src="../../_static/doctools.js"></script>
-    
-    <script type="text/javascript" src="../../_static/js/theme.js"></script>
-
-    
+    <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
-
-          
             <a href="../../index.html" class="icon icon-home"> ATOM Data-Driven Modeling Pipeline
-          
-
-          
           </a>
-
-          
-            
-            
               <div class="version">
-                1.2.0
+                1.3.0
               </div>
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -77,18 +36,7 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../guide/getting_started.html">Getting started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../guide/install.html">Installation</a></li>
@@ -102,69 +50,30 @@
 <li class="toctree-l1"><a class="reference internal" href="../../modules.html">atomsci</a></li>
 </ul>
 
-            
-          
         </div>
-        
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../../index.html">ATOM Data-Driven Modeling Pipeline</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
       <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
-        
           <li><a href="../index.html">Module code</a> &raquo;</li>
-        
       <li>pipeline.featurization</li>
-    
-    
       <li class="wy-breadcrumbs-aside">
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
+             
   <h1>Source code for pipeline.featurization</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Classes providing different methods of featurizing compounds and other data entities</span>
@@ -184,6 +93,7 @@
 
 <span class="kn">from</span> <span class="nn">atomsci.ddm.utils</span> <span class="kn">import</span> <span class="n">datastore_functions</span> <span class="k">as</span> <span class="n">dsf</span>
 <span class="kn">from</span> <span class="nn">atomsci.ddm.pipeline</span> <span class="kn">import</span> <span class="n">transformations</span> <span class="k">as</span> <span class="n">trans</span>
+<span class="kn">from</span> <span class="nn">atomsci.ddm.pipeline</span> <span class="kn">import</span> <span class="n">parameter_parser</span> <span class="k">as</span> <span class="n">pp</span>
 
 <span class="kn">from</span> <span class="nn">rdkit</span> <span class="kn">import</span> <span class="n">Chem</span>
 <span class="kn">from</span> <span class="nn">rdkit.Chem</span> <span class="kn">import</span> <span class="n">AllChem</span>
@@ -237,7 +147,7 @@
 <span class="sd">        vals: numpy array same as input vals, but nans are replaced with 0</span>
 <span class="sd">        w: numpy array same shape as vals, where w[i,j] = 1 if vals[i,j] is nan else w[i,j] = 0</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">w</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">vals</span><span class="p">)</span>
+    <span class="n">w</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">vals</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
     <span class="n">nan_indexes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">vals</span><span class="p">))</span>
     <span class="n">w</span><span class="p">[</span><span class="n">nan_indexes</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="n">out_vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">vals</span><span class="p">)</span>
@@ -261,7 +171,8 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1">#TODO: Change molvae to generic autoencoder</span>
-    <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">featurizer</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;ecfp&#39;</span><span class="p">,</span> <span class="s1">&#39;graphconv&#39;</span><span class="p">,</span> <span class="s1">&#39;molvae&#39;</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">featurizer</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;ecfp&#39;</span><span class="p">,</span> <span class="s1">&#39;graphconv&#39;</span><span class="p">,</span> <span class="s1">&#39;molvae&#39;</span><span class="p">)</span> \
+            <span class="ow">or</span> <span class="n">params</span><span class="o">.</span><span class="n">featurizer</span> <span class="ow">in</span> <span class="n">pp</span><span class="o">.</span><span class="n">featurizer_wl</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">DynamicFeaturization</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">params</span><span class="o">.</span><span class="n">featurizer</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;descriptors&#39;</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">DescriptorFeaturization</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
@@ -822,6 +733,9 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">featurizer_obj</span> <span class="o">=</span> <span class="n">dc</span><span class="o">.</span><span class="n">feat</span><span class="o">.</span><span class="n">CircularFingerprint</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">ecfp_size</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">ecfp_radius</span><span class="p">)</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">feat_type</span> <span class="o">==</span> <span class="s1">&#39;graphconv&#39;</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">featurizer_obj</span> <span class="o">=</span> <span class="n">dc</span><span class="o">.</span><span class="n">feat</span><span class="o">.</span><span class="n">ConvMolFeaturizer</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">feat_type</span> <span class="ow">in</span> <span class="n">pp</span><span class="o">.</span><span class="n">featurizer_wl</span><span class="p">:</span>
+            <span class="n">kwargs</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">extract_featurizer_params</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">featurizer_obj</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">featurizer_wl</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">feat_type</span><span class="p">](</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="c1">#TODO: MoleculeVAEFeaturizer is not working currently. Will be replaced by JT-VAE and cWAE</span>
         <span class="c1"># featurizers eventually.</span>
         <span class="c1">#elif self.feat_type == &#39;molvae&#39;:</span>
@@ -925,7 +839,8 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            Empty list since we will not be transforming the features of a DynamicFeaturization object</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1">#TODO: Add comment describing why this is always returning an empty list</span>
+        <span class="c1"># Dynamic features such as ECFP fingerprints are not typically scaled and centered. This behavior</span>
+        <span class="c1"># can be overridden if necessary by specific subclasses.</span>
         <span class="k">return</span> <span class="p">[]</span></div>
 
     <span class="c1"># ****************************************************************************************</span>
@@ -982,7 +897,14 @@
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">feat_type</span> <span class="o">==</span> <span class="s1">&#39;graphconv&#39;</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">featurizer_obj</span><span class="o">.</span><span class="n">feature_length</span><span class="p">()</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">feat_type</span> <span class="o">==</span> <span class="s1">&#39;molvae&#39;</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">featurizer_obj</span><span class="o">.</span><span class="n">latent_rep_size</span></div>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">featurizer_obj</span><span class="o">.</span><span class="n">latent_rep_size</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">feat_type</span> <span class="o">==</span> <span class="s1">&#39;MolGraphConvFeaturizer&#39;</span><span class="p">:</span>
+            <span class="c1"># https://deepchem.readthedocs.io/en/latest/api_reference/featurizers.html#molgraphconvfeaturizer</span>
+            <span class="c1"># 30 atom features plus 11 edge features</span>
+            <span class="k">return</span> <span class="mi">44</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">feat_type</span> <span class="ow">in</span> <span class="n">pp</span><span class="o">.</span><span class="n">featurizer_wl</span><span class="p">:</span>
+            <span class="c1"># It&#39;s kind of hard to count some of these features</span>
+            <span class="k">return</span> <span class="kc">None</span></div>
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="DynamicFeaturization.get_feature_specific_metadata"><a class="viewcode-back" href="../../pipeline.html#pipeline.featurization.DynamicFeaturization.get_feature_specific_metadata">[docs]</a>    <span class="k">def</span> <span class="nf">get_feature_specific_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
@@ -1009,6 +931,8 @@
             <span class="c1"># TODO: If the parameter name for the model file changes to &#39;autoencoder_model_key&#39;, change it below.</span>
             <span class="n">mol_vae_params</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;autoencoder_model_key&#39;</span><span class="p">:</span> <span class="n">params</span><span class="o">.</span><span class="n">mol_vae_model_file</span><span class="p">}</span>
             <span class="n">feat_metadata</span><span class="p">[</span><span class="s1">&#39;autoencoder_specific&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mol_vae_params</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">feat_type</span> <span class="ow">in</span> <span class="n">pp</span><span class="o">.</span><span class="n">featurizer_wl</span><span class="p">:</span>
+            <span class="n">feat_metadata</span><span class="p">[</span><span class="s1">&#39;auto_featurizer_specific&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">extract_featurizer_params</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">strip_prefix</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">feat_metadata</span></div></div>
 
 <span class="c1"># ****************************************************************************************</span>
@@ -1077,7 +1001,7 @@
 <span class="sd">            dataset (deepchem.Dataset): featurized dataset</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1">#TODO: Add comment describing why this is always returning an empty list</span>
+        <span class="c1"># Leave it to subclasses to determine if features should be scaled and centered.</span>
         <span class="k">return</span> <span class="p">[]</span></div></div>
 
 <span class="c1"># ****************************************************************************************</span>
@@ -1446,7 +1370,7 @@
             <span class="n">vals</span><span class="p">,</span> <span class="n">weights</span> <span class="o">=</span> <span class="n">make_weights</span><span class="p">(</span><span class="n">vals</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nrows</span><span class="p">,</span><span class="n">ncols</span><span class="p">))</span>
-            <span class="n">weights</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">vals</span><span class="p">)</span>
+            <span class="n">weights</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">vals</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
 
         <span class="n">attr</span> <span class="o">=</span> <span class="n">attr</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">ids</span><span class="p">]</span>
 
@@ -1741,7 +1665,7 @@
             <span class="n">vals</span><span class="p">,</span> <span class="n">weights</span> <span class="o">=</span> <span class="n">make_weights</span><span class="p">(</span><span class="n">vals</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nrows</span><span class="p">,</span><span class="n">ncols</span><span class="p">))</span>
-            <span class="n">weights</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">vals</span><span class="p">)</span>
+            <span class="n">weights</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">vals</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
 
         <span class="c1"># Create a table of SMILES strings and other attributes indexed by compound IDs</span>
         <span class="n">attr</span> <span class="o">=</span> <span class="n">get_dataset_attributes</span><span class="p">(</span><span class="n">merged_dset_df</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
@@ -1981,46 +1905,30 @@
 </pre></div>
 
            </div>
-           
           </div>
           <footer>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &#169; Copyright 2021, ATOM DDM Team.
-
-    </p>
+    <p>&#169; Copyright 2022, ATOM DDM Team.</p>
   </div>
-    
-    
-    
-    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
-    
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>

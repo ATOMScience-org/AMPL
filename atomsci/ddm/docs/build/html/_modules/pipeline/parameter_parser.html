@@ -1,75 +1,34 @@
-
-
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8" />
-  
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
-  <title>pipeline.parameter_parser &mdash; ATOM Data-Driven Modeling Pipeline 1.2.0 documentation</title>
-  
-
-  
-  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-
-  
-  
-
-  
-  
-
-  
-
-  
+  <title>pipeline.parameter_parser &mdash; ATOM Data-Driven Modeling Pipeline 1.3.0 documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
         <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
         <script src="../../_static/jquery.js"></script>
         <script src="../../_static/underscore.js"></script>
         <script src="../../_static/doctools.js"></script>
-    
-    <script type="text/javascript" src="../../_static/js/theme.js"></script>
-
-    
+    <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
-
-          
             <a href="../../index.html" class="icon icon-home"> ATOM Data-Driven Modeling Pipeline
-          
-
-          
           </a>
-
-          
-            
-            
               <div class="version">
-                1.2.0
+                1.3.0
               </div>
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -77,18 +36,7 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../guide/getting_started.html">Getting started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../guide/install.html">Installation</a></li>
@@ -102,81 +50,564 @@
 <li class="toctree-l1"><a class="reference internal" href="../../modules.html">atomsci</a></li>
 </ul>
 
-            
-          
         </div>
-        
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../../index.html">ATOM Data-Driven Modeling Pipeline</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
       <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
-        
           <li><a href="../index.html">Module code</a> &raquo;</li>
-        
       <li>pipeline.parameter_parser</li>
-    
-    
       <li class="wy-breadcrumbs-aside">
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
+             
   <h1>Source code for pipeline.parameter_parser</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">argparse</span>
 <span class="kn">import</span> <span class="nn">json</span>
 <span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">process_time</span>
+<span class="kn">import</span> <span class="nn">typing</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">datetime</span>
+<span class="kn">import</span> <span class="nn">pdb</span>
+
+<span class="kn">import</span> <span class="nn">deepchem.models</span> <span class="k">as</span> <span class="nn">dcm</span>
+<span class="kn">import</span> <span class="nn">deepchem.models.torch_models</span> <span class="k">as</span> <span class="nn">dcmt</span>
+<span class="kn">import</span> <span class="nn">deepchem.feat</span> <span class="k">as</span> <span class="nn">dcf</span>
+<span class="kn">import</span> <span class="nn">inspect</span>
+
+<span class="kn">import</span> <span class="nn">os.path</span>
+<span class="kn">import</span> <span class="nn">atomsci.ddm.utils.checksum_utils</span> <span class="k">as</span> <span class="nn">cu</span>
+
+<span class="kn">from</span> <span class="nn">packaging.version</span> <span class="kn">import</span> <span class="n">parse</span>
 
 <span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;ATOM&#39;</span><span class="p">)</span>
 <span class="c1"># TODO: mjt, do we need to deal with parameters with options?</span>
 <span class="c1"># e.g. [&quot;dk&quot;,&quot;d&quot;,&quot;r&quot;,&quot;s&quot;,&quot;f&quot;,&quot;n&quot;,&quot;dd&quot;,&quot;sl&quot;,&quot;y&quot;]</span>
+
+
+<span class="c1"># model white list</span>
+<span class="c1"># TODO: he6, we need to set model_dir using the existing parameter name.</span>
+<span class="c1"># possibly use dest, and make exctract parameters aware of that change.</span>
+<span class="c1"># mode to prediction_type, n_tasks, to num_model_tasks</span>
+<span class="c1"># Dictionary containing synonyms. Keyed on deepchem names with AMPL values</span>
+<span class="c1"># e.g. DeepChem&#39;s mode is the same as AMPL&#39;s prediction_type</span>
+<span class="n">parameter_synonyms</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;mode&#39;</span><span class="p">:</span><span class="s1">&#39;prediction_type&#39;</span><span class="p">,</span>
+                      <span class="s1">&#39;n_tasks&#39;</span><span class="p">:</span><span class="s1">&#39;num_model_tasks&#39;</span><span class="p">,</span>
+                      <span class="s1">&#39;learning_rate&#39;</span><span class="p">:</span><span class="s1">&#39;learning_rate&#39;</span><span class="p">,</span>
+                      <span class="s1">&#39;model_dir&#39;</span><span class="p">:</span><span class="s1">&#39;result_dir&#39;</span><span class="p">,</span>
+                    <span class="p">}</span>
+
+<span class="n">model_wl</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;AttentiveFPModel&#39;</span><span class="p">:</span><span class="n">dcm</span><span class="o">.</span><span class="n">AttentiveFPModel</span><span class="p">,</span> 
+            <span class="s1">&#39;GCNModel&#39;</span><span class="p">:</span><span class="n">dcm</span><span class="o">.</span><span class="n">GCNModel</span><span class="p">,</span>
+            <span class="s1">&#39;MPNNModel&#39;</span><span class="p">:</span><span class="n">dcm</span><span class="o">.</span><span class="n">MPNNModel</span><span class="p">,</span>
+            <span class="s1">&#39;GraphConvModel&#39;</span><span class="p">:</span><span class="n">dcm</span><span class="o">.</span><span class="n">GraphConvModel</span><span class="p">,</span>
+            <span class="s1">&#39;PytorchMPNNModel&#39;</span><span class="p">:</span><span class="n">dcmt</span><span class="o">.</span><span class="n">MPNNModel</span><span class="p">}</span><span class="c1">#, dcm.GCNModel, dcm.GATModel]</span>
+
+<span class="c1"># featurizer white list</span>
+<span class="n">featurizer_wl</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;MolGraphConvFeaturizer&#39;</span><span class="p">:</span><span class="n">dcf</span><span class="o">.</span><span class="n">MolGraphConvFeaturizer</span><span class="p">,</span>
+                    <span class="s1">&#39;WeaveFeaturizer&#39;</span><span class="p">:</span><span class="n">dcf</span><span class="o">.</span><span class="n">WeaveFeaturizer</span><span class="p">,</span>
+                    <span class="s1">&#39;ConvMolFeaturizer&#39;</span><span class="p">:</span><span class="n">dcf</span><span class="o">.</span><span class="n">ConvMolFeaturizer</span><span class="p">}</span>
+
+<span class="c1">#**********************************************************************************************************</span>
+<div class="viewcode-block" id="all_auto_arguments"><a class="viewcode-back" href="../../pipeline.html#pipeline.parameter_parser.all_auto_arguments">[docs]</a><span class="k">def</span> <span class="nf">all_auto_arguments</span><span class="p">():</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Returns a set of all arguments that get automatically added</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        None</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        set: A set of all arguments that were automatically added.</span>
+
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">m</span> <span class="ow">in</span> <span class="n">model_wl</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">aaa</span> <span class="o">=</span> <span class="n">AutoArgumentAdder</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">m</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="n">k</span><span class="p">)</span>
+        <span class="n">prefixed_names</span> <span class="o">=</span> <span class="n">aaa</span><span class="o">.</span><span class="n">all_prefixed_names</span><span class="p">()</span>
+        <span class="n">result</span> <span class="o">+=</span> <span class="n">prefixed_names</span>
+
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">f</span> <span class="ow">in</span> <span class="n">featurizer_wl</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">aaa</span> <span class="o">=</span> <span class="n">AutoArgumentAdder</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">f</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="n">k</span><span class="p">)</span>
+        <span class="n">prefixed_names</span> <span class="o">=</span> <span class="n">aaa</span><span class="o">.</span><span class="n">all_prefixed_names</span><span class="p">()</span>
+        <span class="n">result</span> <span class="o">+=</span> <span class="n">prefixed_names</span>
+
+    <span class="k">return</span> <span class="nb">set</span><span class="p">(</span><span class="n">result</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="all_auto_int_lists"><a class="viewcode-back" href="../../pipeline.html#pipeline.parameter_parser.all_auto_int_lists">[docs]</a><span class="k">def</span> <span class="nf">all_auto_int_lists</span><span class="p">():</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Returns a set of all arguments that are automatically added and</span>
+<span class="sd">    accept a list of ints.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        None</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        set: A set of automatically added arugments that could accept a</span>
+<span class="sd">            list of ints.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">m</span> <span class="ow">in</span> <span class="n">model_wl</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">aaa</span> <span class="o">=</span> <span class="n">AutoArgumentAdder</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">m</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="n">k</span><span class="p">)</span>
+        <span class="n">prefixed_names</span> <span class="o">=</span> <span class="n">aaa</span><span class="o">.</span><span class="n">get_list_int_args</span><span class="p">()</span>
+        <span class="n">result</span> <span class="o">+=</span> <span class="n">prefixed_names</span>
+
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">f</span> <span class="ow">in</span> <span class="n">featurizer_wl</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">aaa</span> <span class="o">=</span> <span class="n">AutoArgumentAdder</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">f</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="n">k</span><span class="p">)</span>
+        <span class="n">prefixed_names</span> <span class="o">=</span> <span class="n">aaa</span><span class="o">.</span><span class="n">get_list_int_args</span><span class="p">()</span>
+        <span class="n">result</span> <span class="o">+=</span> <span class="n">prefixed_names</span>
+
+    <span class="k">return</span> <span class="nb">set</span><span class="p">(</span><span class="n">result</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="all_auto_float_lists"><a class="viewcode-back" href="../../pipeline.html#pipeline.parameter_parser.all_auto_float_lists">[docs]</a><span class="k">def</span> <span class="nf">all_auto_float_lists</span><span class="p">():</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Returns a set of all arguments that are automatically added and</span>
+<span class="sd">    accept a list of float.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        None</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        A set of automatically added arguments that accept a list of floats</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">m</span> <span class="ow">in</span> <span class="n">model_wl</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">aaa</span> <span class="o">=</span> <span class="n">AutoArgumentAdder</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">m</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="n">k</span><span class="p">)</span>
+        <span class="n">prefixed_names</span> <span class="o">=</span> <span class="n">aaa</span><span class="o">.</span><span class="n">get_list_float_args</span><span class="p">()</span>
+        <span class="n">result</span> <span class="o">+=</span> <span class="n">prefixed_names</span>
+
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">f</span> <span class="ow">in</span> <span class="n">featurizer_wl</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">aaa</span> <span class="o">=</span> <span class="n">AutoArgumentAdder</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">f</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="n">k</span><span class="p">)</span>
+        <span class="n">prefixed_names</span> <span class="o">=</span> <span class="n">aaa</span><span class="o">.</span><span class="n">get_list_float_args</span><span class="p">()</span>
+        <span class="n">result</span> <span class="o">+=</span> <span class="n">prefixed_names</span>
+
+    <span class="k">return</span> <span class="nb">set</span><span class="p">(</span><span class="n">result</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="all_auto_lists"><a class="viewcode-back" href="../../pipeline.html#pipeline.parameter_parser.all_auto_lists">[docs]</a><span class="k">def</span> <span class="nf">all_auto_lists</span><span class="p">():</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Returns a set of all arguments that get automatically added and are lists</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        None</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        set: A set of automatically added arguments that accept a list.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">m</span> <span class="ow">in</span> <span class="n">model_wl</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">aaa</span> <span class="o">=</span> <span class="n">AutoArgumentAdder</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">m</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="n">k</span><span class="p">)</span>
+        <span class="n">prefixed_names</span> <span class="o">=</span> <span class="n">aaa</span><span class="o">.</span><span class="n">get_list_args</span><span class="p">()</span>
+        <span class="n">result</span> <span class="o">+=</span> <span class="n">prefixed_names</span>
+
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">f</span> <span class="ow">in</span> <span class="n">featurizer_wl</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">aaa</span> <span class="o">=</span> <span class="n">AutoArgumentAdder</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">f</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="n">k</span><span class="p">)</span>
+        <span class="n">prefixed_names</span> <span class="o">=</span> <span class="n">aaa</span><span class="o">.</span><span class="n">get_list_args</span><span class="p">()</span>
+        <span class="n">result</span> <span class="o">+=</span> <span class="n">prefixed_names</span>
+
+    <span class="k">return</span> <span class="nb">set</span><span class="p">(</span><span class="n">result</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="extract_model_params"><a class="viewcode-back" href="../../pipeline.html#pipeline.parameter_parser.extract_model_params">[docs]</a><span class="k">def</span> <span class="nf">extract_model_params</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">strip_prefix</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Extracts parameters meant for a specific model. Use only for</span>
+<span class="sd">    arguments automatically added by an AutoArgumentAdder</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        params (Namespace): Parameter Namespace</span>
+<span class="sd">        strip_prefix (bool): Automatically added parameters come with a prefix.</span>
+<span class="sd">            When True, the prefix is removed. e.g. AttentiveFP_mode</span>
+<span class="sd">            becomes mode</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        dict: A subset of parameters from params that should be passed on to the</span>
+<span class="sd">            model</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">assert</span> <span class="n">params</span><span class="o">.</span><span class="n">model_type</span> <span class="ow">in</span> <span class="n">model_wl</span>
+
+    <span class="n">aaa</span> <span class="o">=</span> <span class="n">AutoArgumentAdder</span><span class="p">(</span><span class="n">model_wl</span><span class="p">[</span><span class="n">params</span><span class="o">.</span><span class="n">model_type</span><span class="p">],</span> <span class="n">params</span><span class="o">.</span><span class="n">model_type</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">aaa</span><span class="o">.</span><span class="n">extract_params</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">strip_prefix</span><span class="o">=</span><span class="n">strip_prefix</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="extract_featurizer_params"><a class="viewcode-back" href="../../pipeline.html#pipeline.parameter_parser.extract_featurizer_params">[docs]</a><span class="k">def</span> <span class="nf">extract_featurizer_params</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">strip_prefix</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Extracts parameters meant for a specific featurizer. Use only for</span>
+<span class="sd">    arguments automatically added by an AutoArgumentAdder</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        params (Namespace): Parameter Namespace</span>
+<span class="sd">        strip_prefix (bool): Automatically added parameters come with a prefix.</span>
+<span class="sd">            When True, the prefix is removed. e.g. MolGraphConvFeaturizer_use_edges</span>
+<span class="sd">            becomes use_edges</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        dict: A subset of parameters from params that should be passed on to the</span>
+<span class="sd">            featurizer</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">assert</span> <span class="n">params</span><span class="o">.</span><span class="n">featurizer</span> <span class="ow">in</span> <span class="n">featurizer_wl</span>
+
+    <span class="n">aaa</span> <span class="o">=</span> <span class="n">AutoArgumentAdder</span><span class="p">(</span><span class="n">featurizer_wl</span><span class="p">[</span><span class="n">params</span><span class="o">.</span><span class="n">featurizer</span><span class="p">],</span> <span class="n">params</span><span class="o">.</span><span class="n">featurizer</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">aaa</span><span class="o">.</span><span class="n">extract_params</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">strip_prefix</span><span class="o">=</span><span class="n">strip_prefix</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="is_primative_type"><a class="viewcode-back" href="../../pipeline.html#pipeline.parameter_parser.is_primative_type">[docs]</a><span class="k">def</span> <span class="nf">is_primative_type</span><span class="p">(</span><span class="n">t</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Returns true if t is of type int, str, or float</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        t (type): A type</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        bool. True if type is int, str, or float</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">return</span> <span class="n">t</span> <span class="o">==</span> <span class="nb">int</span> <span class="ow">or</span> <span class="n">t</span> <span class="o">==</span> <span class="nb">str</span> <span class="ow">or</span> <span class="n">t</span> <span class="o">==</span> <span class="nb">float</span></div>
+
+<div class="viewcode-block" id="primative_type_only"><a class="viewcode-back" href="../../pipeline.html#pipeline.parameter_parser.primative_type_only">[docs]</a><span class="k">def</span> <span class="nf">primative_type_only</span><span class="p">(</span><span class="n">type_annotation</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Given annotation, return only primative types that can be read in</span>
+<span class="sd">    from commandline, int, float, and str.</span>
+
+<span class="sd">    Default return value is str, which is default for type parameter in</span>
+<span class="sd">    add_arguments</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        type_annotation (type): A type annotation.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        type: One of 3 choices, int, float, str</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">if</span> <span class="n">is_primative_type</span><span class="p">(</span><span class="n">type_annotation</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">type_annotation</span>
+    <span class="k">elif</span> <span class="nb">str</span><span class="p">(</span><span class="n">type_annotation</span><span class="p">)</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;typing.Union&#39;</span><span class="p">):</span>
+        <span class="c1"># could not find a better way to do this check:</span>
+        <span class="c1"># https://stackoverflow.com/questions/49171189/whats-the-correct-way-to-check-if-an-object-is-a-typing-generic</span>
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">type_annotation</span><span class="o">.</span><span class="n">__args__</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">is_primative_type</span><span class="p">(</span><span class="n">t</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">t</span>
+        <span class="k">return</span> <span class="nb">str</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">str</span></div>
+
+<div class="viewcode-block" id="is_list_int"><a class="viewcode-back" href="../../pipeline.html#pipeline.parameter_parser.is_list_int">[docs]</a><span class="k">def</span> <span class="nf">is_list_int</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">type_annotation</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Given parameter name and annotation, returns true if this accepts an integer list</span>
+
+<span class="sd">    Returns False on generic list will only return true for &#39;typing.List[int]&#39;</span>
+
+<span class="sd">    Performs recursive earch in case of typing.Union</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        p (str): A parameter name.</span>
+
+<span class="sd">        type_annotation (object): This is a type annotation returned by the inspect</span>
+<span class="sd">            module</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        boolean: If this annotation will accept a List[int]</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="c1"># some guesses because annotations aren&#39;t always 100% correct.</span>
+    <span class="k">if</span> <span class="s1">&#39;graph_conv_layers&#39;</span> <span class="ow">in</span> <span class="n">p</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">type_annotation</span><span class="p">)</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;typing.Union&#39;</span><span class="p">):</span>
+        <span class="c1"># could not find a better way to do this check:</span>
+        <span class="c1"># https://stackoverflow.com/questions/49171189/whats-the-correct-way-to-check-if-an-object-is-a-typing-generic</span>
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">type_annotation</span><span class="o">.</span><span class="n">__args__</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">is_list_int</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+                <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">type_annotation</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;typing.List[int]&#39;</span></div>
+
+<div class="viewcode-block" id="is_list_float"><a class="viewcode-back" href="../../pipeline.html#pipeline.parameter_parser.is_list_float">[docs]</a><span class="k">def</span> <span class="nf">is_list_float</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">type_annotation</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Given paramter name and annotation, returns true if it accepts a float list</span>
+
+<span class="sd">    Returns False on generic list will only return true for &#39;typing.List[float]&#39;</span>
+
+<span class="sd">    Performs recursive earch in case of typing.Union</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        p (str): A parameter name.</span>
+
+<span class="sd">        type_annotation (object): This is a type annotation returned by the inspect</span>
+<span class="sd">            module</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        boolean: If this annotation will accept a List[float]</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">type_annotation</span><span class="p">)</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;typing.Union&#39;</span><span class="p">):</span>
+        <span class="c1"># could not find a better way to do this check:</span>
+        <span class="c1"># https://stackoverflow.com/questions/49171189/whats-the-correct-way-to-check-if-an-object-is-a-typing-generic</span>
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">type_annotation</span><span class="o">.</span><span class="n">__args__</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">is_list_float</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+                <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">type_annotation</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;typing.List[float]&#39;</span></div>
+
+<div class="viewcode-block" id="is_list"><a class="viewcode-back" href="../../pipeline.html#pipeline.parameter_parser.is_list">[docs]</a><span class="k">def</span> <span class="nf">is_list</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">type_annotation</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Given paramter name and annotation, returns true if it accepts a list</span>
+
+<span class="sd">    Returns False on generic list will only return true for &#39;typing.List&#39; or &lt;class &#39;list&#39;&gt;</span>
+
+<span class="sd">    Performs recursive earch in case of typing.Union</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        p (str): A parameter name.</span>
+
+<span class="sd">        type_annotation (object): This is a type annotation returned by the inspect</span>
+<span class="sd">            module</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        boolean: If this annotation will accept a List</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="c1"># some guesses because annotations aren&#39;t always 100% correct.</span>
+    <span class="k">if</span> <span class="s1">&#39;graph_conv_layers&#39;</span> <span class="ow">in</span> <span class="n">p</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">type_annotation</span><span class="p">)</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;typing.Union&#39;</span><span class="p">):</span>
+        <span class="c1"># could not find a better way to do this check:</span>
+        <span class="c1"># https://stackoverflow.com/questions/49171189/whats-the-correct-way-to-check-if-an-object-is-a-typing-generic</span>
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">type_annotation</span><span class="o">.</span><span class="n">__args__</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">is_list</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+                <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">type_annotation</span><span class="p">)</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;typing.List&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">str</span><span class="p">(</span><span class="n">type_annotation</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;&lt;class &#39;list&#39;&gt;&quot;</span></div>
+
+<div class="viewcode-block" id="AutoArgumentAdder"><a class="viewcode-back" href="../../pipeline.html#pipeline.parameter_parser.AutoArgumentAdder">[docs]</a><span class="k">class</span> <span class="nc">AutoArgumentAdder</span><span class="p">:</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Finds, manages, and adds all parameters of an object to a argparse parser</span>
+
+<span class="sd">    AutoArgumentAdder recursively finds all keyword arguments of a given object.</span>
+<span class="sd">    A prefix is added to each keyword argument to prevent collisions and help </span>
+<span class="sd">    distinguish automatically added arguments from normal arguments.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        func (object): The original object e.g. dcm.AttentiveFPModel</span>
+<span class="sd">        funcs (List[object]): A list of parents. e.g. KerasModel</span>
+<span class="sd">        prefix (str): A prefix for arguments. e.g. &#39;AttentiveFPModel&#39;</span>
+<span class="sd">        types (dict): A mapping between parameter names and types. Prefixes</span>
+<span class="sd">            are not used in the keys.</span>
+<span class="sd">        used_by (dict): A mapping between parameter names (no prefix) and </span>
+<span class="sd">            the object or objects that use that parameter.</span>
+<span class="sd">        args (set): A set of all argument names</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">prefix</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Initialize all attributes with given object</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            func (object): Input object. e.g. dcm.AttentiveFPModel</span>
+
+<span class="sd">            prefix (str): A prefix used to distinguish arguments from default</span>
+<span class="sd">                AMPL arguments</span>
+
+<span class="sd">        Returns: None</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">func</span> <span class="o">=</span> <span class="n">func</span> <span class="c1"># original function e.g. dcm.AttentiveFPModel</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">funcs</span> <span class="o">=</span> <span class="p">[]</span> <span class="c1"># a list of all parents. e.g. KerasModel</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">prefix</span> <span class="o">=</span> <span class="n">prefix</span> <span class="c1"># name of original function e.g. AttentiveFPModel</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">types</span> <span class="o">=</span> <span class="p">{}</span> <span class="c1"># parameter names to types</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">used_by</span> <span class="o">=</span> <span class="p">{}</span> <span class="c1"># mapping parameter names to an element in funcs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">args</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span> <span class="c1"># set of arguments</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_add_all_keyword_arguments</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_add_all_keyword_arguments</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Recursively explores self.func and its parents to find all keyword</span>
+<span class="sd">        arguments. The type and which object uses each argument is recorded</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            None</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            None</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">funcs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">func</span><span class="p">)</span>
+        <span class="n">current_funcs</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">func</span><span class="p">]</span>
+        <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">current_funcs</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># get something off bottom of the list</span>
+            <span class="n">current_func</span> <span class="o">=</span> <span class="n">current_funcs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+            <span class="c1"># add the bases to the list</span>
+            <span class="n">current_funcs</span> <span class="o">=</span> <span class="n">current_funcs</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">current_func</span><span class="o">.</span><span class="vm">__bases__</span><span class="p">)</span>
+
+            <span class="c1"># look at arguments for this function</span>
+            <span class="n">spec</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getfullargspec</span><span class="p">(</span><span class="n">current_func</span><span class="p">)</span>
+            <span class="n">args</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">spec</span><span class="o">.</span><span class="n">args</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">args</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="c1"># Remove all self arguments</span>
+            <span class="k">if</span> <span class="s1">&#39;self&#39;</span> <span class="ow">in</span> <span class="n">args</span><span class="p">:</span>
+                <span class="n">args</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s1">&#39;self&#39;</span><span class="p">)</span>
+            <span class="c1"># add set of args</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">args</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+
+            <span class="c1"># keep track of which functions use which arguments</span>
+            <span class="n">func_name</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">current_func</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">args</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">used_by</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">used_by</span><span class="p">[</span><span class="n">a</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">func_name</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">used_by</span><span class="p">[</span><span class="n">a</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">func_name</span><span class="p">]</span>
+
+            <span class="c1"># keep track of types for each argument</span>
+            <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">args</span><span class="p">:</span>
+                <span class="c1"># find type of argument</span>
+                <span class="k">if</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">spec</span><span class="o">.</span><span class="n">annotations</span><span class="p">:</span>
+                    <span class="n">t</span> <span class="o">=</span> <span class="n">spec</span><span class="o">.</span><span class="n">annotations</span><span class="p">[</span><span class="n">a</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># guess if there is no annotation e.g. MPNN has no annotations</span>
+                    <span class="k">if</span> <span class="n">a</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;n_&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="s1">&#39;num_&#39;</span> <span class="ow">in</span> <span class="n">a</span> <span class="ow">or</span> <span class="n">a</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;number_&#39;</span><span class="p">):</span>
+                        <span class="n">t</span> <span class="o">=</span> <span class="nb">int</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">t</span> <span class="o">=</span> <span class="nb">str</span>
+
+                <span class="k">if</span> <span class="n">a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">types</span><span class="p">:</span>
+                    <span class="c1"># do not overwrite args already in self.types</span>
+                    <span class="k">continue</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">types</span><span class="p">[</span><span class="n">a</span><span class="p">]</span> <span class="o">=</span> <span class="n">t</span>
+
+    <span class="k">def</span> <span class="nf">_make_param_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">arg_name</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Combines the prefix and argument name</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            arg_name (str): The name of an argument</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            str: The same argument with a prefix.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">prefix</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">arg_name</span><span class="si">}</span><span class="s1">&#39;</span>
+
+<div class="viewcode-block" id="AutoArgumentAdder.all_prefixed_names"><a class="viewcode-back" href="../../pipeline.html#pipeline.parameter_parser.AutoArgumentAdder.all_prefixed_names">[docs]</a>    <span class="k">def</span> <span class="nf">all_prefixed_names</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Returns a list of all argument names with prefixes added</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            None</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[str]: A list of all arguments with prefix added</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_make_param_name</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="AutoArgumentAdder.add_to_parser"><a class="viewcode-back" href="../../pipeline.html#pipeline.parameter_parser.AutoArgumentAdder.add_to_parser">[docs]</a>    <span class="k">def</span> <span class="nf">add_to_parser</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parser</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Adds expected parameters to an argparse.ArgumentParser. Checks to </span>
+<span class="sd">        see if the argument has synonyms e.g. mode and prediction_type and sets dest</span>
+<span class="sd">        accordingly. All parameters have default=None, this is checked later in </span>
+<span class="sd">        self.extract_params. None parameters are not passed on so we can use</span>
+<span class="sd">        default parameters set by DeepChem.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            parser (argparse.ArgumentParser): An argument parser</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            None</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">:</span>
+            <span class="n">p_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;--</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_make_param_name</span><span class="p">(</span><span class="n">p</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span>
+            <span class="n">t</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">types</span><span class="p">[</span><span class="n">p</span><span class="p">]</span>
+            <span class="n">pt</span> <span class="o">=</span> <span class="n">primative_type_only</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">parameter_synonyms</span><span class="p">:</span>
+                <span class="c1"># don&#39;t set default or type. e.g. learning_rate in AMPL is a str where as DeepChem</span>
+                <span class="c1"># expects a float</span>
+                <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="n">p_name</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="n">parameter_synonyms</span><span class="p">[</span><span class="n">p</span><span class="p">],</span>
+                    <span class="n">help</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;Auto added argument used in one of these: &#39;</span><span class="o">+</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">used_by</span><span class="p">[</span><span class="n">p</span><span class="p">]))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="n">p_name</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">pt</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                    <span class="n">help</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;Auto added argument used in one of these: &#39;</span><span class="o">+</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">used_by</span><span class="p">[</span><span class="n">p</span><span class="p">]))</span></div>
+
+<div class="viewcode-block" id="AutoArgumentAdder.extract_params"><a class="viewcode-back" href="../../pipeline.html#pipeline.parameter_parser.AutoArgumentAdder.extract_params">[docs]</a>    <span class="k">def</span> <span class="nf">extract_params</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">strip_prefix</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Extracts non-None parameters from the given Namespace.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            params (Namespace): Parameters.</span>
+<span class="sd">            strip_prefix (bool): Strips off the prefix of the parameter. e.g.</span>
+<span class="sd">                AttentiveFP_mode becomes mode</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            dict: Dictionary containing a subset of parameters that are expected</span>
+<span class="sd">                by this function.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="nb">vars</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">:</span>
+            <span class="n">p_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_make_param_name</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+            <span class="c1"># check to see if the argument is in params</span>
+            <span class="k">if</span> <span class="n">p_name</span> <span class="ow">in</span> <span class="n">params</span><span class="p">:</span>
+                <span class="n">v</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="n">p_name</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">parameter_synonyms</span><span class="p">:</span> <span class="c1"># if it&#39;s not found, it might be a synonym</span>
+                <span class="n">v</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="n">parameter_synonyms</span><span class="p">[</span><span class="n">p</span><span class="p">]]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">v</span> <span class="o">=</span> <span class="kc">None</span> <span class="c1"># parameter is not found and assumed to not be set</span>
+
+            <span class="c1"># unset parameters are not passed on</span>
+            <span class="k">if</span> <span class="n">v</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="c1"># Pass on set parameters</span>
+            <span class="k">if</span> <span class="n">strip_prefix</span><span class="p">:</span>
+                <span class="n">args</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">args</span><span class="p">[</span><span class="n">p_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
+
+        <span class="k">return</span> <span class="n">args</span></div>
+
+<div class="viewcode-block" id="AutoArgumentAdder.get_list_int_args"><a class="viewcode-back" href="../../pipeline.html#pipeline.parameter_parser.AutoArgumentAdder.get_list_int_args">[docs]</a>    <span class="k">def</span> <span class="nf">get_list_int_args</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Returns a list of arguments that accept a List[int]</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            None</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[str]: A list of prefixed argument names that will accept a List[int]</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_make_param_name</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span> <span class="k">if</span> <span class="n">is_list_int</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">types</span><span class="p">[</span><span class="n">p</span><span class="p">])]</span></div>
+
+<div class="viewcode-block" id="AutoArgumentAdder.get_list_float_args"><a class="viewcode-back" href="../../pipeline.html#pipeline.parameter_parser.AutoArgumentAdder.get_list_float_args">[docs]</a>    <span class="k">def</span> <span class="nf">get_list_float_args</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Returns a list of arguments that accept a List[float]</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            None</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[str]: A list of prefixed argument names that will accept a List[float]</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_make_param_name</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span> <span class="k">if</span> <span class="n">is_list_float</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">types</span><span class="p">[</span><span class="n">p</span><span class="p">])]</span></div>
+
+<div class="viewcode-block" id="AutoArgumentAdder.get_list_args"><a class="viewcode-back" href="../../pipeline.html#pipeline.parameter_parser.AutoArgumentAdder.get_list_args">[docs]</a>    <span class="k">def</span> <span class="nf">get_list_args</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Returns a list of arguments that accept a List</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            None</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[str]: A list of prefixed argument names that will accept a List</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_make_param_name</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span> <span class="k">if</span> <span class="n">is_list</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">types</span><span class="p">[</span><span class="n">p</span><span class="p">])]</span></div></div>
+
 
 <span class="c1"># Parameters that may take lists of values, usually but not always in the context of a hyperparam search</span>
 
@@ -191,10 +622,10 @@
                          <span class="p">}</span>
 <span class="n">convert_to_int_list</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;layer_sizes&#39;</span><span class="p">,</span><span class="s1">&#39;rf_max_features&#39;</span><span class="p">,</span><span class="s1">&#39;rf_estimators&#39;</span><span class="p">,</span> <span class="s1">&#39;rf_max_depth&#39;</span><span class="p">,</span>
                        <span class="s1">&#39;umap_dim&#39;</span><span class="p">,</span> <span class="s1">&#39;umap_neighbors&#39;</span><span class="p">,</span> <span class="s1">&#39;layer_nums&#39;</span><span class="p">,</span> <span class="s1">&#39;node_nums&#39;</span><span class="p">,</span>
-                       <span class="s2">&quot;xgb_max_depth&quot;</span><span class="p">,</span>  <span class="s2">&quot;xgb_n_estimators&quot;</span><span class="p">}</span>
+                       <span class="s2">&quot;xgb_max_depth&quot;</span><span class="p">,</span>  <span class="s2">&quot;xgb_n_estimators&quot;</span><span class="p">}</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">all_auto_int_lists</span><span class="p">())</span>
 <span class="n">convert_to_numeric_list</span> <span class="o">=</span> <span class="n">convert_to_float_list</span> <span class="o">|</span> <span class="n">convert_to_int_list</span>
 <span class="n">keep_as_list</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;dropouts&#39;</span><span class="p">,</span><span class="s1">&#39;weight_init_stddevs&#39;</span><span class="p">,</span><span class="s1">&#39;bias_init_consts&#39;</span><span class="p">,</span>
-                <span class="s1">&#39;layer_sizes&#39;</span><span class="p">,</span><span class="s1">&#39;dropout_list&#39;</span><span class="p">,</span><span class="s1">&#39;layer_nums&#39;</span><span class="p">}</span>
+                <span class="s1">&#39;layer_sizes&#39;</span><span class="p">,</span><span class="s1">&#39;dropout_list&#39;</span><span class="p">,</span><span class="s1">&#39;layer_nums&#39;</span><span class="p">}</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">all_auto_lists</span><span class="p">())</span>
 <span class="n">not_a_list_outside_of_hyperparams</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;learning_rate&#39;</span><span class="p">,</span><span class="s1">&#39;weight_decay_penalty&#39;</span><span class="p">,</span>
                                      <span class="s1">&#39;xgb_learning_rate&#39;</span><span class="p">,</span>
                                      <span class="s1">&#39;xgb_gamma&#39;</span><span class="p">,</span>
@@ -234,13 +665,12 @@
     <span class="k">return</span> <span class="n">str_params</span></div>
 
 
-
 <span class="c1">#**********************************************************************************************************</span>
 <div class="viewcode-block" id="wrapper"><a class="viewcode-back" href="../../pipeline.html#pipeline.parameter_parser.wrapper">[docs]</a><span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">any_arg</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;&quot;Wrapper to handle the ParseParams class. Calls the correct method depending on the input argument type</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            *any_arg: any single input of a str, dict, argparse.Namespace, or list</span>
+<span class="sd">            *any_arg: any single input of a str, dict, ar/printgparse.Namespace, or list</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            argparse.Namespace: a Namespace.argparse object containing default parameters + user specified parameters</span>
@@ -328,17 +758,9 @@
             <span class="n">flat_dict</span><span class="p">[</span><span class="n">vals</span><span class="p">]</span> <span class="o">=</span> <span class="n">flat_dict</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
 
     <span class="c1">#dictionary comprehension that retains only the keys that are in the accepted list of parameters</span>
-    <span class="k">if</span> <span class="s1">&#39;hyperparam&#39;</span> <span class="ow">in</span> <span class="n">orig_keys</span> <span class="ow">and</span> <span class="n">flat_dict</span><span class="p">[</span><span class="s1">&#39;hyperparam&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
-        <span class="n">default</span> <span class="o">=</span> <span class="n">list_defaults</span><span class="p">(</span><span class="n">hyperparam</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">default</span> <span class="o">=</span> <span class="n">list_defaults</span><span class="p">()</span>
-    <span class="n">keep</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">vars</span><span class="p">(</span><span class="n">default</span><span class="p">)</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
-    <span class="n">newdict</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">flat_dict</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">keep</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">flat_dict</span><span class="p">}</span>
+    <span class="n">hyperparam</span> <span class="o">=</span> <span class="s1">&#39;hyperparam&#39;</span> <span class="ow">in</span> <span class="n">orig_keys</span> <span class="ow">and</span> <span class="n">flat_dict</span><span class="p">[</span><span class="s1">&#39;hyperparam&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="kc">True</span>
+    <span class="n">newdict</span> <span class="o">=</span> <span class="n">remove_unrecognized_arguments</span><span class="p">(</span><span class="n">flat_dict</span><span class="p">,</span> <span class="n">hyperparam</span><span class="p">)</span>
 
-    <span class="c1"># Writes a warning for any arguments that are not in the default list of parameters</span>
-    <span class="n">extra_keys</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">flat_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="k">if</span> <span class="n">x</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">newdict</span><span class="o">.</span><span class="n">keys</span><span class="p">()]</span>
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">extra_keys</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
-        <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">extra_keys</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; are not part of the accepted list of parameters and will be ignored&quot;</span><span class="p">)</span>
     <span class="n">newdict</span><span class="p">[</span><span class="s1">&#39;config_file&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">config_file_path</span>
     <span class="k">return</span> <span class="n">dict_to_list</span><span class="p">(</span><span class="n">newdict</span><span class="p">)</span></div>
 
@@ -401,14 +823,7 @@
             <span class="n">flat_dict</span><span class="p">[</span><span class="n">vals</span><span class="p">]</span> <span class="o">=</span> <span class="n">flat_dict</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
 
     <span class="c1">#dictionary comprehension that retains only the keys that are in the accepted list of parameters</span>
-    <span class="n">default</span> <span class="o">=</span> <span class="n">list_defaults</span><span class="p">()</span>
-    <span class="n">keep</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">vars</span><span class="p">(</span><span class="n">default</span><span class="p">)</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
-    <span class="n">newdict</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">flat_dict</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">keep</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">flat_dict</span><span class="p">}</span>
-
-    <span class="c1"># Writes a warning for any arguments that are not in the default list of parameters</span>
-    <span class="n">extra_keys</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">flat_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="k">if</span> <span class="n">x</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">newdict</span><span class="o">.</span><span class="n">keys</span><span class="p">()]</span>
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">extra_keys</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
-        <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">extra_keys</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; are not part of the accepted list of parameters and will be ignored&quot;</span><span class="p">)</span>
+    <span class="n">newdict</span> <span class="o">=</span> <span class="n">remove_unrecognized_arguments</span><span class="p">(</span><span class="n">flat_dict</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">dict_to_list</span><span class="p">(</span><span class="n">newdict</span><span class="p">)</span></div>
 
@@ -429,7 +844,6 @@
 <span class="sd">        None if inp_dictionary is None</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-
     <span class="c1">#if replace_spaces is true, replaces spaces with replace_spaces_str for os command line calls</span>
     <span class="n">replace_spaces_str</span> <span class="o">=</span> <span class="s2">&quot;@&quot;</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">inp_dictionary</span><span class="p">,</span><span class="nb">dict</span><span class="p">):</span>
@@ -874,6 +1288,9 @@
         <span class="s1">&#39;--response_transform_type&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;response_transform_type&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;normalization&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="s1">&#39;type of normalization for the response column TODO: Not currently implemented&#39;</span><span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--weight_transform_type&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;weight_transform_type&#39;</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;balancing&#39;</span><span class="p">],</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;type of normalization for the weights&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
         <span class="s1">&#39;--transformer_bucket&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;transformer_bucket&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Datastore bucket where the transformer is stored. Specific to LLNL datastore system.&#39;</span><span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
@@ -997,9 +1414,9 @@
         <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Full path to the optional configuration file. The configuration file is a set of parameters&#39;</span>
              <span class="s1">&#39; in .json file format. TODO: Does not send a warning if set concurrently with other parameters.&#39;</span><span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
-        <span class="s1">&#39;--num_model_tasks&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;num_model_tasks&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Number of tasks to run for. 1 means a singletask model, &gt; 1 means a multitask model&#39;</span><span class="p">)</span>
-
+        <span class="s1">&#39;--num_model_tasks&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;num_model_tasks&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;DEPRECATED AND IGNORED. This argument is now infered from the response_cols.&#39;</span>
+        <span class="s1">&#39; Number of tasks to run for. 1 means a singletask model, &gt; 1 means a multitask model&#39;</span><span class="p">)</span>
     <span class="c1"># **********************************************************************************************************</span>
     <span class="c1"># hyperparameters</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
@@ -1143,6 +1560,17 @@
         <span class="s1">&#39;--hp_checkpoint_load&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;hp_checkpoint_load&#39;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="s1">&#39;binary file to load a checkpoint of a previous HPO trial project, to continue the HPO serach. e.g. --hp_checkpoint_load=/path/to/file/checkpoint.pkl&#39;</span><span class="p">)</span>
 
+    <span class="c1"># **********************************************************************************************************</span>
+    <span class="c1"># model_building_parameters: model type specific</span>
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">model</span> <span class="ow">in</span> <span class="n">model_wl</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">aaa</span> <span class="o">=</span> <span class="n">AutoArgumentAdder</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">model</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="n">k</span><span class="p">)</span>
+        <span class="n">aaa</span><span class="o">.</span><span class="n">add_to_parser</span><span class="p">(</span><span class="n">parser</span><span class="p">)</span>
+
+    <span class="c1"># **********************************************************************************************************</span>
+    <span class="c1"># model_building_parameters: featurizer arguments type specific</span>
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">feat</span> <span class="ow">in</span> <span class="n">featurizer_wl</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">aaa</span> <span class="o">=</span> <span class="n">AutoArgumentAdder</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">feat</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="n">k</span><span class="p">)</span>
+        <span class="n">aaa</span><span class="o">.</span><span class="n">add_to_parser</span><span class="p">(</span><span class="n">parser</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">parser</span></div>
 
@@ -1171,6 +1599,8 @@
 <span class="sd">    response_cols, which is passed as a list</span>
 
 <span class="sd">    Setting conditional options for descriptor_key.</span>
+
+<span class="sd">    Set uncertainty to False when using XGBoost because GBoost does not support uncertainty</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        parsed_args (argparse.Namespace): Raw parsed arguments.</span>
@@ -1284,14 +1714,48 @@
                 <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;layer_sizes, dropouts, weight_init_stddevs and bias_init_consts arguments must be the &quot;</span>
                                 <span class="s2">&quot;same length&quot;</span><span class="p">)</span>
 
-    <span class="c1"># check to see if result_dir and dataset_key are relative paths</span>
-    <span class="c1"># if so, make them relative to script_dir</span>
-    <span class="c1"># We may also want to check if the dataset file in its relative path exists, if it exists, there is no need to add the script_dir. So it is compatible with the 1.0.1 code.</span>
+    <span class="c1"># Converts dataset_key to an aboslute path</span>
+    <span class="n">make_dataset_key_absolute</span><span class="p">(</span><span class="n">parsed_args</span><span class="p">)</span>
+
+    <span class="c1"># generate dataset hash key if the file exists</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">parsed_args</span><span class="o">.</span><span class="n">dataset_key</span><span class="p">):</span>
+            <span class="n">parsed_args</span><span class="o">.</span><span class="n">dataset_hash</span> <span class="o">=</span> <span class="n">cu</span><span class="o">.</span><span class="n">create_checksum</span><span class="p">(</span><span class="n">parsed_args</span><span class="o">.</span><span class="n">dataset_key</span><span class="p">)</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Created a dataset hash &#39;</span><span class="si">%s</span><span class="s2">&#39; from dataset_key &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span><span class="p">,</span> <span class="n">parsed_args</span><span class="o">.</span><span class="n">dataset_hash</span><span class="p">,</span> <span class="n">parsed_args</span><span class="o">.</span><span class="n">dataset_key</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">pass</span> <span class="c1"># continue if it doesn&#39;t have a &#39;dataset_key&#39;</span>
+
+    <span class="c1"># Turn off uncertainty of XGBoost is the model type</span>
+    <span class="k">if</span> <span class="n">parsed_args</span><span class="o">.</span><span class="n">model_type</span> <span class="o">==</span> <span class="s1">&#39;xgboost&#39;</span><span class="p">:</span>
+        <span class="n">parsed_args</span><span class="o">.</span><span class="n">uncertainty</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="c1"># set num_model_tasks to equal len(response_cols)</span>
+    <span class="c1"># this ignores the current value of num_model_tasks</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">parsed_args</span><span class="o">.</span><span class="n">num_model_tasks</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;num_model_tasks is deprecated and its value is ignored.&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">parsed_args</span><span class="o">.</span><span class="n">response_cols</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">type</span><span class="p">(</span><span class="n">parsed_args</span><span class="o">.</span><span class="n">response_cols</span><span class="p">)</span> <span class="o">==</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">parsed_args</span><span class="o">.</span><span class="n">num_model_tasks</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">parsed_args</span><span class="o">.</span><span class="n">response_cols</span><span class="p">)</span> <span class="o">==</span> <span class="nb">list</span><span class="p">:</span>
+        <span class="n">parsed_args</span><span class="o">.</span><span class="n">num_model_tasks</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">parsed_args</span><span class="o">.</span><span class="n">response_cols</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Unexpected type for response_cols </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">parsed_args</span><span class="o">.</span><span class="n">response_cols</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">parsed_args</span></div>
+
+
+<span class="c1">#***********************************************************************************************************</span>
+<div class="viewcode-block" id="make_dataset_key_absolute"><a class="viewcode-back" href="../../pipeline.html#pipeline.parameter_parser.make_dataset_key_absolute">[docs]</a><span class="k">def</span> <span class="nf">make_dataset_key_absolute</span><span class="p">(</span><span class="n">parsed_args</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Converts dataset_key to an aboslute path</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        params (argparse.Namespace): Raw parsed arguments.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># check to see if dataset_key is a relative path</span>
+    <span class="c1"># if so, make it relative to current working directory</span>
     <span class="c1"># update to allow for datastore</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">parsed_args</span><span class="o">.</span><span class="n">datastore</span><span class="p">:</span>
-        <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">parsed_args</span><span class="o">.</span><span class="n">dataset_key</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isabs</span><span class="p">(</span><span class="n">parsed_args</span><span class="o">.</span><span class="n">dataset_key</span><span class="p">))</span> <span class="ow">and</span> <span class="p">(</span><span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">parsed_args</span><span class="o">.</span><span class="n">dataset_key</span><span class="p">)):</span>
-            <span class="n">parsed_args</span><span class="o">.</span><span class="n">dataset_key</span> <span class="o">=</span> \
-                <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">parsed_args</span><span class="o">.</span><span class="n">script_dir</span><span class="p">,</span> <span class="n">parsed_args</span><span class="o">.</span><span class="n">dataset_key</span><span class="p">))</span>
+        <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">parsed_args</span><span class="o">.</span><span class="n">dataset_key</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isabs</span><span class="p">(</span><span class="n">parsed_args</span><span class="o">.</span><span class="n">dataset_key</span><span class="p">)):</span>
+            <span class="n">parsed_args</span><span class="o">.</span><span class="n">dataset_key</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">parsed_args</span><span class="o">.</span><span class="n">dataset_key</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">parsed_args</span></div>
 
@@ -1320,6 +1784,33 @@
 
 <span class="c1">#***********************************************************************************************************</span>
 
+<div class="viewcode-block" id="remove_unrecognized_arguments"><a class="viewcode-back" href="../../pipeline.html#pipeline.parameter_parser.remove_unrecognized_arguments">[docs]</a><span class="k">def</span> <span class="nf">remove_unrecognized_arguments</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">hyperparam</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Removes arguments not recognized by argument parser</span>
+
+<span class="sd">    Can be used to clean inputs to wrapper function or model_pipeline. Used heavily in hyperparam_search_wrapper</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        params (Namespace or dict): params to filter</span>
+
+<span class="sd">    Return:</span>
+<span class="sd">        dict of parameters</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">type</span><span class="p">(</span><span class="n">params</span><span class="p">)</span> <span class="o">==</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="nb">vars</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+
+    <span class="c1">#dictionary comprehension that retains only the keys that are in the accepted list of parameters</span>
+    <span class="n">default</span> <span class="o">=</span> <span class="n">list_defaults</span><span class="p">(</span><span class="n">hyperparam</span><span class="p">)</span>
+    <span class="c1"># add all auto arguments because they sometimes use dest and are ommitted from the vars call</span>
+    <span class="n">keep</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">vars</span><span class="p">(</span><span class="n">default</span><span class="p">)</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">all_auto_arguments</span><span class="p">())</span>
+    <span class="n">newdict</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">params</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">keep</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">params</span><span class="p">}</span>
+
+    <span class="c1"># Writes a warning for any arguments that are not in the default list of parameters</span>
+    <span class="n">extra_keys</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="k">if</span> <span class="n">x</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">newdict</span><span class="o">.</span><span class="n">keys</span><span class="p">()]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">extra_keys</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">extra_keys</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; are not part of the accepted list of parameters and will be ignored&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">newdict</span></div>
+
 <div class="viewcode-block" id="main"><a class="viewcode-back" href="../../pipeline.html#pipeline.parameter_parser.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">argument</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Entry point when script is run from a shell&quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">argument</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;--help&#39;</span><span class="p">,</span> <span class="s1">&#39;-h&#39;</span><span class="p">]:</span>
@@ -1342,46 +1833,30 @@
 </pre></div>
 
            </div>
-           
           </div>
           <footer>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &#169; Copyright 2021, ATOM DDM Team.
-
-    </p>
+    <p>&#169; Copyright 2022, ATOM DDM Team.</p>
   </div>
-    
-    
-    
-    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
-    
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>

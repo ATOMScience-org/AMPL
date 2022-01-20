@@ -15,7 +15,7 @@ Clone the git repository
 ^^^^^^^^^^^^^^^^^^^^^^^^
 ::
 
-    git clone https://github.com/ATOMconsortium/AMPL.git
+    git clone https://github.com/ATOMScience-org/AMPL.git
  
 Create conda environment
 ^^^^^^^^^^^^^^^^^^^^^^^^
