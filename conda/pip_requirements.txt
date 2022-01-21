@@ -35,7 +35,7 @@ hyperopt==0.2.5
 importlib-metadata==3.3.0
 iniconfig==1.1.1
 ipykernel==5.5.0
-ipython==7.16.1
+ipython==7.16.3
 ipython-genutils==0.2.0
 jedi==0.18.0
 Jinja2==3.0.1
