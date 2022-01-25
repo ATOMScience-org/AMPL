@@ -10,10 +10,9 @@ import os
 import sys
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-from matplotlib_venn import venn3
-import seaborn as sns
 import pdb
+
+from rdkit import Chem
 
 from atomsci.ddm.utils.struct_utils import base_smiles_from_smiles
 import atomsci.ddm.utils.datastore_functions as dsf
@@ -59,6 +58,22 @@ pub_dsets = dict(
     JAK3 = dict(IC50="jak3"),
 )
 
+# The following list includes the nonmetals commonly found in organic molecules, along with alkali and alkaline earth
+# metals commonly found in salts (Na, Mg, K, Ca).
+organic_atomic_nums = [1, 5, 6, 7, 8, 9, 11, 12, 14, 15, 16, 17, 19, 20, 33, 34, 35, 53]
+
+def is_organometallic(mol):
+    """
+    Returns True if the molecule is organometallic
+    """
+    if mol is None:
+        return True
+    for at in mol.GetAtoms():
+        if not (at.GetAtomicNum() in organic_atomic_nums):
+            return True
+    return False
+
+
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Generic functions for all datasets
@@ -73,7 +88,7 @@ def standardize_relations(dset_df, db='DTC'):
     Standardize the censoring operators to =, < or >, and remove any rows whose operators
     don't map to a standard one. There is a special case for db='ChEMBL' that strips
     the extra "'"s around relationship symbols. Assumes relationship columns are 
-    'Standard Relation' and 'standard_relation' for ChEMBL and DTC respectively.
+    'Standard Relation', 'standard_relation' and 'activity_prefix' for ChEMBL, DTC and GoStar respectively.
 
     This function makes the following mappings: ">" to ">", ">=" to ">", "<" to "<",
     "<=" to "<", and "=" to "=". All other relations are removed from the DataFrame.
@@ -82,16 +97,21 @@ def standardize_relations(dset_df, db='DTC'):
         dset_df (DataFrame): Input DataFrame. Must contain either 'Standard Relation'
             or 'standard_relation'
 
-        db (str): Source database. Must be either 'DTC' or 'ChEMBL'
+        db (str): Source database. Must be either 'GoStar', 'DTC' or 'ChEMBL'
 
     Returns:
         DataFrame: Dataframe with the standardized relationship sybmols
 
     """
-    relation_cols = dict(ChEMBL='Standard Relation', DTC='standard_relation')
-    rel_col = relation_cols[db]
-
-    dset_df[rel_col].fillna('=', inplace=True)
+    relation_cols = dict(ChEMBL='standard_relation', DTC='standard_relation', GoStar='activity_prefix')
+    try:
+        rel_col = relation_cols[db]
+    except KeyError:
+        raise ValueError(f"Unknown database {db} for standardize_relations") 
+    try:
+        dset_df[rel_col].fillna('=', inplace=True)
+    except KeyError:
+        raise ValueError(f"Dataset doesn't contain relation column {rel_col} expected for source database {db}")
     ops = dset_df[rel_col].values
     if db == 'ChEMBL':
         # Remove annoying quotes around operators
@@ -101,6 +121,7 @@ def standardize_relations(dset_df, db='DTC'):
         ">=": ">",
         "<": "<",
         "<=": "<",
+        "~": "=",
         "=": "="
     }
     ops = np.array([op_dict.get(op, "@") for op in ops])
