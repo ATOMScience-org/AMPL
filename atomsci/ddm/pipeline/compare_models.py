@@ -323,8 +323,8 @@ def extract_model_and_feature_parameters(metadata_dict):
     if 'nn_specific' in metadata_dict:
         model_metadata = metadata_dict['nn_specific']
         # include learning rate, max_epochs, and best_epoch for convenience 
-        model_info['max_epochs'] = model_metadata['max_epochs']
-        model_info['best_epoch'] = model_metadata['best_epoch']
+        model_info['max_epochs'] = model_metadata.get('max_epochs', np.nan)
+        model_info['best_epoch'] = model_metadata.get('best_epoch', np.nan)
         learning_rate_col = [c for c in model_metadata.keys() if c.endswith('learning_rate')]
         if len(learning_rate_col) == 1:
             model_info['learning_rate'] = model_metadata[learning_rate_col[0]]
