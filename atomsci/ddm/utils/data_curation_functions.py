@@ -14,9 +14,8 @@ import pdb
 
 from rdkit import Chem
 
-from atomsci.ddm.utils.struct_utils import base_smiles_from_smiles
+from atomsci.ddm.utils.struct_utils import base_smiles_from_smiles, mols_from_smiles
 import atomsci.ddm.utils.datastore_functions as dsf
-#from atomsci.ddm.utils import datastore_functions as dsf
 from atomsci.ddm.utils import curate_data as curate
 import atomsci.ddm.utils.struct_utils as struct_utils
 import atomsci.ddm.utils.curate_data as curate_data, imp
@@ -62,6 +61,13 @@ pub_dsets = dict(
 # metals commonly found in salts (Na, Mg, K, Ca).
 organic_atomic_nums = [1, 5, 6, 7, 8, 9, 11, 12, 14, 15, 16, 17, 19, 20, 33, 34, 35, 53]
 
+# ----------------------------------------------------------------------------------------------------------------------
+# Generic functions for all datasets
+# ----------------------------------------------------------------------------------------------------------------------
+
+# Note: Functions freq_table and labeled_freq_table have been moved to ddm.utils.curate_data module.
+
+# ----------------------------------------------------------------------------------------------------------------------
 def is_organometallic(mol):
     """
     Returns True if the molecule is organometallic
@@ -73,13 +79,14 @@ def is_organometallic(mol):
             return True
     return False
 
-
-
 # ----------------------------------------------------------------------------------------------------------------------
-# Generic functions for all datasets
-# ----------------------------------------------------------------------------------------------------------------------
-
-# Note: Functions freq_table and labeled_freq_table have been moved to ddm.utils.curate_data module.
+def exclude_organometallics(df, smiles_col='rdkit_smiles'):
+    """
+    Filters data frame df based on column smiles_col to exclude organometallic compounds
+    """
+    mols = mols_from_smiles(df[smiles_col].values.tolist(), workers=16)
+    include = np.array([not is_organometallic(mol) for mol in mols])
+    return df[include].copy()
 
 # ----------------------------------------------------------------------------------------------------------------------
 def standardize_relations(dset_df, db='DTC'):
@@ -258,7 +265,7 @@ def ic50topic50(x) :
     Calculates pIC50 from IC50
 
     Args:
-        x (float): An IC50.
+        x (float): An IC50 in nanomolar (nM) units.
 
     Returns:
         float: The pIC50.
