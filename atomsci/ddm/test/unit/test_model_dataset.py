@@ -3,12 +3,16 @@ import sys
 import pandas as pd
 import pytest
 import inspect
+import json
 import numpy as np
 import atomsci.ddm.pipeline.featurization as feat
 import atomsci.ddm.pipeline.splitting as split
 import atomsci.ddm.utils.datastore_functions as ds
 import deepchem as dc
 import atomsci.ddm.pipeline.model_datasets as model_dataset
+import atomsci.ddm.pipeline.parameter_parser as parse
+from atomsci.ddm.pipeline import model_pipeline as mp
+from atomsci.ddm.pipeline import featurization as feat
 import utils_testing as utils
 
 """This testing script assumes that /ds/data/public/delaney/delaney-processed.csv is still on the same path on twintron. Assumes that the dataset_key: /ds/projdata/gsk_data/GSK_derived/PK_parameters/gsk_blood_plasma_partition_rat_crit_res_data.csv under the bucket gskdata and with the object_oid: 5af0e6368003ff018de33db5 still exists. 
@@ -386,3 +390,25 @@ def test_get_split_metadata():
     
     
 #***********************************************************************************
+
+def test_load_presplit_dataset():
+    # open the test
+    with open("../test_datasets/H1_hybrid.json", "r") as f:
+        config = json.load(f)
+
+    # change to some fake uuid
+    config["split_uuid"] = "c63c6d89-8832-4434-b27a-17213bd6ef8"
+    params = parse.wrapper(config)
+
+    MP = mp.ModelPipeline(params)
+    featurization=None
+    if featurization is None:
+        featurization = feat.create_featurization(MP.params)
+    MP.featurization = featurization
+    with pytest.raises(SystemExit) as e:
+        # The command to test
+        # should system exit
+        MP.load_featurize_data()
+    # test
+    assert e.type == SystemExit
+    assert e.value.code == 1
