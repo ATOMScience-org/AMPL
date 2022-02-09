@@ -14,6 +14,7 @@ import pandas as pd
 from deepchem.data import DiskDataset
 from atomsci.ddm.pipeline.ave_splitter import AVEMinSplitter
 from atomsci.ddm.pipeline.temporal_splitter import TemporalSplitter
+from atomsci.ddm.pipeline.MultitaskScaffoldSplit import MultitaskScaffoldSplitter
 import collections
 
 logging.basicConfig(format='%(asctime)-15s %(message)s')
@@ -24,7 +25,9 @@ smiles_splits = ['scaffold', 'butina', 'fingerprint']
 
 # List of model parameters related to splitting. Make sure to update this list if we add more parameters.
 split_params = ['splitter', 'split_strategy', 'split_valid_frac', 'split_test_frac', 'butina_cutoff',
-                'num_folds', 'base_splitter', 'cutoff_date', 'date_col', 'previously_split']
+                'num_folds', 'base_splitter', 'cutoff_date', 'date_col', 'previously_split',
+                'mtss_num_super_scaffolds', 'mtss_num_generations', 'mtss_train_test_dist_weight', 
+                'mtss_train_valid_dist_weight', 'mtss_split_fraction_weight', 'mtss_num_pop']
 
 def create_splitting(params):
     """Factory function to create appropriate type of Splitting object, based on dataset parameters
@@ -197,6 +200,8 @@ class Splitting(object):
             self.splitter = dc.splits.RandomSplitter()
         elif params.splitter == 'scaffold':
             self.splitter = dc.splits.ScaffoldSplitter()
+        elif params.splitter == 'multitaskscaffold':
+            self.splitter = MultitaskScaffoldSplitter()
         elif params.splitter == 'stratified':
             self.splitter = dc.splits.RandomStratifiedSplitter()
         elif params.splitter == 'butina':
@@ -546,6 +551,20 @@ class TrainValidTestSplitting(Splitting):
             train_frac = 1.0 - self.params.split_valid_frac
             train, valid, test = self.splitter.train_valid_test_split(dataset, attr_df=attr_df,
                                 frac_train=train_frac, frac_valid=self.params.split_valid_frac)
+        elif self.split == 'multitaskscaffold':
+            # perform multitask scaffold split
+            train_frac = 1.0 - self.params.split_valid_frac - self.params.split_test_frac
+            train, valid, test = self.splitter.train_valid_test_split(
+                dataset, 
+                frac_train=train_frac, 
+                frac_valid=self.params.split_valid_frac, 
+                frac_test=self.params.split_test_frac, 
+                diff_fitness_weight_tvt=self.params.mtss_train_test_dist_weight,
+                diff_fitness_weight_tvv=self.params.mtss_train_valid_dist_weight,
+                ratio_fitness_weight=self.params.mtss_split_fraction_weight,
+                num_super_scaffolds=self.params.mtss_num_super_scaffolds,
+                num_pop=self.params.mtss_num_pop,
+                num_generations=self.params.mtss_num_generations)
         else:
             train_frac = 1.0 - self.params.split_valid_frac - self.params.split_test_frac
             train, valid, test = self.splitter.train_valid_test_split(dataset, 
