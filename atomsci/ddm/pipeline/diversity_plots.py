@@ -83,7 +83,7 @@ def plot_dataset_dist_distr(dataset, feat_type, dist_metric, task_name, **metric
     return dists
 
 #------------------------------------------------------------------------------------------------------------------
-def plot_tani_dist_distr(df, smiles_col, df_name, radius=2, ndist_max = ndist_max, subsets=False, **metric_kwargs):
+def plot_tani_dist_distr(df, smiles_col, df_name, radius=2, ndist_max = ndist_max, subset_col='subset', subsets=False, **metric_kwargs):
     """
     Generate a density plot showing the distribution of nearest neighbor distances between 
     ecfp feature vectors, using the tanimoto metric. Optionally split by subset.
@@ -94,8 +94,8 @@ def plot_tani_dist_distr(df, smiles_col, df_name, radius=2, ndist_max = ndist_ma
         log.warning("Dataset has %d compounds, too big to calculate distance matrix" % num_cmpds)
         return
 
-    if subsets and 'subset' not in df.columns:
-        log.warning("'subset' column not found. Calculating total tanimoto distances instead.")
+    if subsets and subset_col not in df.columns:
+        log.warning(f"{subset_col} column not found. Calculating total tanimoto distances instead.")
         subsets=False
     feat_type = 'ecfp'
     dist_metric = 'tanimoto'
@@ -106,10 +106,10 @@ def plot_tani_dist_distr(df, smiles_col, df_name, radius=2, ndist_max = ndist_ma
         dists=pd.DataFrame(zip(dists,subs), columns=['dist','subset'])
     elif subsets:
         dists=pd.DataFrame([], columns=['dist','subset'])
-        for subs in df.subset.unique():
+        for subs in df[subset_col].unique():
             if subs=='train': continue
-            smiles_arr1 = df.loc[df.subset=='train', smiles_col].values
-            smiles_arr2=df.loc[df.subset==subs, smiles_col].values
+            smiles_arr1 = df.loc[df[subset_col]=='train', smiles_col].values
+            smiles_arr2 = df.loc[df[subset_col]==subs, smiles_col].values
             diststmp = cd.calc_dist_smiles(feat_type, dist_metric, smiles_arr2, smiles_arr2=smiles_arr1, calc_type='nearest', num_nearest=1)
             substmp=[subs]*len(diststmp)
             diststmp = pd.DataFrame(zip(diststmp,substmp), columns=['dist','subset'])
@@ -124,7 +124,7 @@ def plot_tani_dist_distr(df, smiles_col, df_name, radius=2, ndist_max = ndist_ma
     else: 
         ax.set_title(f"{df_name} dataset: Distribution of {dist_metric} nearest neighbor distances\nbetween {feat_type} feature vectors from partitions to the training data")
 
-    return dists, fig
+    return dists
 
 #------------------------------------------------------------------------------------------------------------------
 def diversity_plots(dset_key, datastore=True, bucket='public', title_prefix=None, ecfp_radius=4, umap_file=None, out_dir=None,
