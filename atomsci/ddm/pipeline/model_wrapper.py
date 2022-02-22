@@ -1186,7 +1186,6 @@ class DCNNModelWrapper(NNModelWrapper):
                     weight_decay_penalty=self.params.weight_decay_penalty,
                     weight_decay_penalty_type=self.params.weight_decay_penalty_type,
                     batch_size=self.params.batch_size,
-                    seed=123,
                     verbosity='low',
                     model_dir=self.model_dir,
                     learning_rate_decay_time=1000,
@@ -1223,7 +1222,6 @@ class DCNNModelWrapper(NNModelWrapper):
                     weight_decay_penalty=self.params.weight_decay_penalty,
                     weight_decay_penalty_type=self.params.weight_decay_penalty_type,
                     batch_size=self.params.batch_size,
-                    seed=123,
                     verbosity='low',
                     model_dir=self.model_dir,
                     learning_rate_decay_time=1000,
@@ -1272,7 +1270,6 @@ class DCNNModelWrapper(NNModelWrapper):
                     weight_decay_penalty=self.params.weight_decay_penalty,
                     weight_decay_penalty_type=self.params.weight_decay_penalty_type,
                     batch_size=self.params.batch_size,
-                    seed=123,
                     verbosity='low',
                     model_dir=self.model_dir,
                     learning_rate_decay_time=1000,
@@ -1293,7 +1290,6 @@ class DCNNModelWrapper(NNModelWrapper):
                     weight_decay_penalty=self.params.weight_decay_penalty,
                     weight_decay_penalty_type=self.params.weight_decay_penalty_type,
                     batch_size=self.params.batch_size,
-                    seed=123,
                     verbosity='low',
                     model_dir=self.model_dir,
                     learning_rate_decay_time=1000,
@@ -2308,7 +2304,6 @@ class DCxgboostModelWrapper(ForestModelWrapper):
                                          gpu_id = -1,
                                          n_gpus = 0,
                                          max_bin = 16,
-                                         seed=0
                                          )
         else:
             xgb_model = xgb.XGBClassifier(max_depth=self.params.xgb_max_depth,
@@ -2334,7 +2329,6 @@ class DCxgboostModelWrapper(ForestModelWrapper):
                                           n_jobs=-1,                                          
                                           n_gpus = 0,
                                           max_bin = 16,
-                                          seed=0
                                          )
 
         return dc.models.sklearn_models.SklearnModel(xgb_model, model_dir=model_dir)
@@ -2445,7 +2439,6 @@ class DCxgboostModelWrapper(ForestModelWrapper):
                                          gpu_id = -1,
                                          n_gpus = 0,
                                          max_bin = 16,
-                                         seed=0
                                          )
         else:
             xgb_model = xgb.XGBClassifier(max_depth=self.params.xgb_max_depth,
@@ -2471,7 +2464,6 @@ class DCxgboostModelWrapper(ForestModelWrapper):
                                          n_jobs=-1,                                          
                                          n_gpus = 0,
                                          max_bin = 16,
-                                         seed=0
                                          )
 
         # Restore the transformers from the datastore or filesystem
