@@ -58,7 +58,7 @@ def confirm_perf_table(json_f, df):
 
     model_type = config['model_type']
     if model_type == 'NN':
-        assert row['best_epoch'] > 0
+        assert row['best_epoch'] >= 0
         assert row['max_epochs'] == int(config['max_epochs'])
         assert row['learning_rate'] == float(config['learning_rate'])
         assert row['layer_sizes'] == config['layer_sizes']
@@ -74,7 +74,7 @@ def confirm_perf_table(json_f, df):
         assert row['xgb_learning_rate'] == float(config['xgb_learning_rate'])
     else:
         assert model_type in pp.model_wl
-        assert row['best_epoch'] > 0
+        assert row['best_epoch'] >= 0
         pparams = pp.wrapper(config)
         assert row['learning_rate'] == float(pparams.learning_rate)
 
@@ -134,9 +134,7 @@ def test_RF_results():
     'bucket': 'public', 'descriptor_type': 'mordred_filtered', 'num_samples': nan, 
     'rf_estimators': 501, 'rf_max_features': 33, 'rf_max_depth': 10000, 'max_epochs': nan,
     'best_epoch': nan, 'learning_rate': nan, 'layer_sizes': nan, 'dropouts': nan, 'xgb_gamma': nan, 
-    'xgb_learning_rate': nan, 'r2_score_train': 0.9868310465536477, 'rms_score_train': 0.23420071038051685, 
-    'r2_score_valid': 0.6749311013819588, 'rms_score_valid': 1.0925651018717388, 
-    'r2_score_test': 0.6573317661939333, 'rms_score_test': 1.2246446102121993}
+    'xgb_learning_rate': nan}
 
     compare_dictionaries(ref=ref, model_info=model_info)
 

@@ -373,7 +373,7 @@ class KFoldSplitting(Splitting):
             train_cv_pairs = self.splitter.k_fold_split(train_cv, self.num_folds)
         else:
             # TODO: Add special handling for AVE splitter
-            train_cv, test = self.splitter.train_test_split(dataset, seed=np.random.seed(123), frac_train=train_frac)
+            train_cv, test = self.splitter.train_test_split(dataset, frac_train=train_frac)
             train_cv_pairs = self.splitter.k_fold_split(train_cv, self.num_folds)
 
         train_valid_dsets = []
@@ -530,7 +530,7 @@ class TrainValidTestSplitting(Splitting):
             self.splitter = dc.splits.ScaffoldSplitter()
             # With Butina splitting, we don't have control over the size of the test set
             train_frac = 1.0 - self.params.split_valid_frac
-            train, valid = self.splitter.train_test_split(train_valid, seed=np.random.seed(123), frac_train=train_frac)
+            train, valid = self.splitter.train_test_split(train_valid, frac_train=train_frac)
         elif self.split == 'ave_min':
             # AVEMinSplitter also only does train-valid splits, but at least nested splits seem to work.
             # TODO: Change this if we modify AVE splitter to do 3-way splits internally.
@@ -568,8 +568,7 @@ class TrainValidTestSplitting(Splitting):
         else:
             train_frac = 1.0 - self.params.split_valid_frac - self.params.split_test_frac
             train, valid, test = self.splitter.train_valid_test_split(dataset, 
-                frac_train=train_frac, frac_valid=self.params.split_valid_frac, frac_test=self.params.split_test_frac,
-                seed=np.random.seed(123))
+                frac_train=train_frac, frac_valid=self.params.split_valid_frac, frac_test=self.params.split_test_frac)
 
         # Extract the ID-to_SMILES maps from attr_df for each subset.
         # assign the subsets to the original dataset if duplicated compounds exist
