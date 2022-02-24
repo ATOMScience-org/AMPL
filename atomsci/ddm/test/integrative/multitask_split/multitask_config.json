@@ -1,0 +1,57 @@
+{
+    "comment": "System",
+    "comment": "----------------------------------------",
+    "system": "LC",
+    "datastore": "False",
+    "save_results": "False",
+    "data_owner": "username",
+
+    "comment": "Input file",
+    "comment": "----------------------------------------",
+    "comment": "Note: dataset_key must be a path/file name: E.G. ./dataset.csv",
+    "dataset_key": "KCNA5_KCNH2_SCN5A_data.csv",
+    "id_col": "compound_id",
+    "smiles_col": "base_rdkit_smiles",
+    "response_cols": ["target_KCNA5_standard_value",
+       "target_KCNH2_standard_value", "target_SCN5A_activity"],
+
+    "comment": "Prediction Type",
+    "comment": "----------------------------------------",
+    "num_model_tasks": 4,
+    "prediction_type": "regression",
+
+    "comment": "Features",
+    "comment": "----------------------------------------",
+    "featurizer": "ecfp",
+
+    "comment": "Model",
+    "comment": "----------------------------------------",
+    "model_type": "NN",
+
+    "comment": "Neural network",
+    "comment": "----------------------------------------",
+    "dropouts": "0.10,0.10,0.10",
+    "layer_sizes": "64,64,64",
+    "learning_rate": "0.000753",
+    "max_epochs": "50",
+
+    "comment": "Training",
+    "comment": "----------------------------------------",    
+    "comment": "This regulates how long to train the model",
+    "early_stopping_patience": "5",
+
+    "comment": "Splitting",
+    "comment": "----------------------------------------",    
+    "splitter": "multitaskscaffold",
+    "mtss_num_super_scaffolds": 40,
+    "mtss_num_generations": 20,
+    "mtss_num_pop": 97,
+    "mtss_train_test_dist_weight": 1,
+    "mtss_train_valid_dist_weight": 1,
+    "mtss_split_fraction_weight": 1,
+
+    "comment": "Results",
+    "comment": "----------------------------------------",    
+    "result_dir": "result"
+}
+

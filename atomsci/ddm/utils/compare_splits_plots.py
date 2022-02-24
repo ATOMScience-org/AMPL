@@ -43,22 +43,24 @@ class SplitStats:
         self.test_y, self.test_w = mss.make_y_w(self.test_df, response_cols)
         self.valid_y, self.valid_w = mss.make_y_w(self.valid_df, response_cols)
 
-        self.dists = self._get_dists()
+        self.dists_tvt = self._get_dists(self.train_df, self.test_df)
+        self.dists_tvv = self._get_dists(self.train_df, self.valid_df)
 
         self.train_fracs, self.valid_fracs, self.test_fracs = self._split_ratios()
 
-    def _get_dists(self):
+    def _get_dists(self, df_a, df_b):
         '''
         Calculate pairwise compound distances between training and test subsets.
 
         Args:
-            None
+            df_a: choice of self.train_df, self.test_df, self.valid_df
+            df_b: choice of self.train_df, self.test_df, self.valid_df
 
         Returns:
             Array of floats. Pairwise Tanimoto distances between training and test subsets.
         '''
-        return cd.calc_dist_smiles('ECFP', 'tanimoto', self.train_df[self.smiles_col].values, 
-                    self.test_df[self.smiles_col].values)
+        return cd.calc_dist_smiles('ECFP', 'tanimoto', df_a[self.smiles_col].values, 
+                    df_b[self.smiles_col].values)
     
     def _split_ratios(self):
         '''
@@ -80,17 +82,19 @@ class SplitStats:
         '''
         Prints useful statistics to stdout
         '''
-        print("dist mean: %0.2f, median: %0.2f, std: %0.2f"%\
-            (np.mean(self.dists), np.median(self.dists), np.std(self.dists)))
+        print("dist tvt mean: %0.2f, median: %0.2f, std: %0.2f"%\
+            (np.mean(self.dists_tvt), np.median(self.dists_tvt), np.std(self.dists_tvt)))
+        print("dist tvv mean: %0.2f, median: %0.2f, std: %0.2f"%\
+            (np.mean(self.dists_tvv), np.median(self.dists_tvv), np.std(self.dists_tvv)))
         print("train frac mean: %0.2f, median: %0.2f, std: %0.2f"%\
-            (np.mean(self.train_fracs), np.median(self.train_fracs), np.std(self.train_fracs)))
+           (np.mean(self.train_fracs), np.median(self.train_fracs), np.std(self.train_fracs)))
         print("test frac mean: %0.2f, median: %0.2f, std: %0.2f"%\
             (np.mean(self.test_fracs), np.median(self.test_fracs), np.std(self.test_fracs)))
         print("valid frac mean: %0.2f, median: %0.2f, std: %0.2f"%\
             (np.mean(self.valid_fracs), np.median(self.valid_fracs), np.std(self.valid_fracs)))
 
 
-    def dist_hist_plot(self, dist_path=''):
+    def dist_hist_plot(self, dists, title, dist_path=''):
         """
         Creates a histogram of pairwise Tanimoto distances between training
         and test sets
@@ -101,12 +105,14 @@ class SplitStats:
         """
         # plot compound distance histogram
         pyplot.figure()
-        g = sns.distplot(self.dists, kde=False)
+        g = sns.distplot(dists, kde=False)
         g.set_xlabel('Tanimoto Distance',fontsize=13)
         g.set_ylabel('# Compound Pairs',fontsize=13)
+        g.set_title(title)
         
         if len(dist_path) > 0:
             save_figure(dist_path+'_dist_hist')
+        pyplot.close()
 
     def umap_plot(self, dist_path=''):
         """
@@ -131,6 +137,8 @@ class SplitStats:
         sns.scatterplot(x='x', y='y', hue='subset', data=sub_total_df)
         if len(dist_path) > 0:
             save_figure(dist_path+'_umap_scatter')
+
+        pyplot.close()
 
     def subset_frac_plot(self, dist_path=''):
         """
@@ -163,9 +171,11 @@ class SplitStats:
             dist_path (str): Optional Where to save the plot. The string '_frac_box' will be
                 appended to this input
         """
-
-        # histogram of compound distances between training and test subsets
-        self.dist_hist_plot(dist_path)
+        # histogram of compound distances between training, valid, and test subsets
+        self.dist_hist_plot(self.dists_tvt, 'Train vs Test pairwise Tanimoto Distance',
+            dist_path=dist_path+'_tvt')
+        self.dist_hist_plot(self.dists_tvv, 'Train vs Valid pairwise Tanimoto Distance',
+            dist_path=dist_path+'_tvv')
 
         # umap on ecfp fingerprints. visualizes clusters of training/valid/testing split
         self.umap_plot(dist_path)
