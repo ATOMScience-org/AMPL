@@ -1198,9 +1198,30 @@ def get_parser():
              ' TODO: Behavior of split_valid_frac is dependent on split_test_frac and DeepChem')
     parser.add_argument(
         '--splitter', '-s', dest='splitter', default='scaffold', type=str,
-        help='Type of splitter to use: index, random, scaffold, butina, ave_min, temporal, fingerprint, or stratified.'
+        help='Type of splitter to use: index, random, scaffold, butina, ave_min, temporal, fingerprint, multitaskscaffold or stratified.'
              ' Used to set the splitting.py subclass. Can be input as a comma separated list for hyperparameter search'
              ' (e.g. \'scaffold\',\'random\')')
+
+    parser.add_argument(
+        '--mtss_num_super_scaffolds', default=40, type=int,
+        help='This specifies the number of genes in a chromosome for the genetic algorithm. Scaffolds bins are often'
+             ' very small and only contain 1 compound. Scaffolds are therefore combined into super scaffolds to'
+             ' the number of genes and also reduce complexity and runtime.')
+    parser.add_argument(
+        '--mtss_num_generations', default=20, type=int,
+        help='The number of generations the genetic algorithm will run.')
+    parser.add_argument(
+        '--mtss_num_pop', default=100, type=int,
+        help='Size of population per generation in the genetic algorithm.')
+    parser.add_argument(
+        '--mtss_train_test_dist_weight', default=1.0, type=float,
+        help='How much weight to give the tanimoto distance between training and test partitions.')
+    parser.add_argument(
+        '--mtss_train_valid_dist_weight', default=1.0, type=float,
+        help='How much weight to give the tanimoto distance between training and valid partitions.')
+    parser.add_argument(
+        '--mtss_split_fraction_weight', default=1.0, type=float,
+        help='How much weight to give adherence to requested subset franctions.')
 
     # **********************************************************************************************************
     # model_building_parameters: transformers

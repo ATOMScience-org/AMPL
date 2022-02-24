@@ -53,10 +53,6 @@ from atomsci.ddm.pipeline import transformations as trans
 
 logging.basicConfig(format='%(asctime)-15s %(message)s')
 
-# Only for debug!
-np.random.seed(123)
-
-
 # ---------------------------------------------
 def calc_AD_kmean_dist(train_dset, pred_dset, k, train_dset_pair_distance=None, dist_metric="euclidean"):
     """

@@ -1,0 +1,37 @@
+{
+    "comment": "System",
+    "comment": "----------------------------------------",
+    "system": "LC",
+    "datastore": "False",
+    "save_results": "False",
+    "data_owner": "username",
+
+    "comment": "Input file",
+    "comment": "----------------------------------------",
+    "comment": "Note: dataset_key must be a path/file name: E.G. ./dataset.csv",
+    "dataset_key": "KCNA5_KCNH2_SCN5A_data.csv",
+    "id_col": "compound_id",
+    "smiles_col": "base_rdkit_smiles",
+    "response_cols": ["target_KCNA5_standard_value",
+       "target_KCNH2_standard_value", "target_SCN5A_activity"],
+
+    "comment": "Features",
+    "comment": "----------------------------------------",
+    "featurizer": "ecfp",
+
+    "comment": "Splitting",
+    "comment": "----------------------------------------",    
+    "splitter": "multitaskscaffold",
+    "mtss_num_super_scaffolds": 30,
+    "mtss_num_generations": 15,
+    "mtss_num_pop": 97,
+    "mtss_train_test_dist_weight": 0.9,
+    "mtss_train_valid_dist_weight": 0.8,
+    "mtss_split_fraction_weight": 2.0,
+    "split_only": "True",
+
+    "comment": "Results",
+    "comment": "----------------------------------------",    
+    "result_dir": "result"
+}
+
