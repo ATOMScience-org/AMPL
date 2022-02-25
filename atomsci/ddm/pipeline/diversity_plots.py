@@ -83,10 +83,10 @@ def plot_dataset_dist_distr(dataset, feat_type, dist_metric, task_name, **metric
     return dists
 
 #------------------------------------------------------------------------------------------------------------------
-def plot_tani_dist_distr(df, smiles_col, df_name, radius=2, ndist_max = ndist_max, **metric_kwargs):
+def plot_tani_dist_distr(df, smiles_col, df_name, radius=2, ndist_max = ndist_max, subset_col='subset', subsets=False, **metric_kwargs):
     """
-    Generate a density plot showing the distribution of distances between 
-    ecfp feature vectors, using the tanimoto metric.
+    Generate a density plot showing the distribution of nearest neighbor distances between 
+    ecfp feature vectors, using the tanimoto metric. Optionally split by subset.
     """
     log = logging.getLogger('ATOM')
     num_cmpds = len(df)
@@ -94,31 +94,36 @@ def plot_tani_dist_distr(df, smiles_col, df_name, radius=2, ndist_max = ndist_ma
         log.warning("Dataset has %d compounds, too big to calculate distance matrix" % num_cmpds)
         return
 
-    # log.warning("Starting distance matrix calculation for %d compounds" % num_cmpds)
+    if subsets and subset_col not in df.columns:
+        log.warning(f"{subset_col} column not found. Calculating total tanimoto distances instead.")
+        subsets=False
     feat_type = 'ecfp'
     dist_metric = 'tanimoto'
-    smiles_arr1 = df[smiles_col].values
-    mols1 = [Chem.MolFromSmiles(s) for s in smiles_arr1]
-    fprints1 = [AllChem.GetMorganFingerprintAsBitVect(mol, radius, 1024) for mol in mols1]
-    dists = GetTanimotoDistMat(fprints1)
-
-    # log.warning("Finished calculation of %d distances" % len(dists))
-
-    if len(dists) > ndist_max:
-        # Sample a subset of the distances so KDE doesn't take so long
-        dist_sample = np.random.choice(dists, size=ndist_max)
-    else:
-        dist_sample = dists
-
-    dist_pdf = gaussian_kde(dist_sample)
-    x_plt = np.linspace(min(dist_sample), max(dist_sample), 500)
-    y_plt = dist_pdf(x_plt)
-    fig, ax = plt.subplots(figsize=(8.0,8.0))
-    ax.plot(x_plt, y_plt)
+    if not subsets:
+        smiles_arr1 = df[smiles_col].values
+        dists=cd.calc_dist_smiles(feat_type, dist_metric, smiles_arr1, calc_type='nearest', num_nearest=1)
+        subs=['all']*len(dists)
+        dists=pd.DataFrame(zip(dists,subs), columns=['dist','subset'])
+    elif subsets:
+        dists=pd.DataFrame([], columns=['dist','subset'])
+        for subs in df[subset_col].unique():
+            if subs=='train': continue
+            smiles_arr1 = df.loc[df[subset_col]=='train', smiles_col].values
+            smiles_arr2 = df.loc[df[subset_col]==subs, smiles_col].values
+            diststmp = cd.calc_dist_smiles(feat_type, dist_metric, smiles_arr2, smiles_arr2=smiles_arr1, calc_type='nearest', num_nearest=1)
+            substmp=[subs]*len(diststmp)
+            diststmp = pd.DataFrame(zip(diststmp,substmp), columns=['dist','subset'])
+            dists=pd.concat([dists,diststmp])
+    fig, ax = plt.subplots(figsize=(6,6))
+    sns.kdeplot(data=dists[dists.subset!='train'], x='dist', hue='subset', legend=True, common_norm=False, common_grid=True, fill=False, ax=ax)
     ax.set_xlabel('%s distance' % dist_metric)
     ax.set_ylabel('Density')
-    ax.set_title("%s dataset\nDistribution of %s distances between %s feature vectors" % (
-                  df_name, dist_metric, feat_type))
+    if len(dists.subset.unique())==1:
+        ax.set_title("%s dataset\nDistribution of %s nearest neighbor distances between %s feature vectors" % (
+                      df_name, dist_metric, feat_type))
+    else: 
+        ax.set_title(f"{df_name} dataset: Distribution of {dist_metric} nearest neighbor distances\nbetween {feat_type} feature vectors from partitions to the training data")
+
     return dists
 
 #------------------------------------------------------------------------------------------------------------------
