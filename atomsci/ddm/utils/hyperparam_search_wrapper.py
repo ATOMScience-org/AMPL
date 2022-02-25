@@ -754,8 +754,8 @@ class HyperparameterSearch(object):
             assay_params['response_cols']=response_cols
             
         assay_params['dataset_name'] = assay_params['dataset_key'].split('/')[-1].replace('.csv','')
-        # use ecfp b/c it's fast and doesn't save anything to file system
-        assay_params['featurizer'] = 'ecfp'
+        # rdkit_raw b/c it's the fastest and won't have to be redone every split 
+        assay_params['featurizer'] = 'rdkit_raw'
         assay_params['previously_featurized'] = False
         assay_params['datastore'] = False
         
@@ -801,7 +801,7 @@ class HyperparameterSearch(object):
         rows = []
         for assay, bucket, response_cols, collection in datasets:
             split_uuids = {'dataset_key': assay, 'bucket': bucket, 'response_cols':response_cols, 'collection':collection}
-            for splitter in ['random', 'scaffold']:
+            for splitter in ['random', 'scaffold', 'fingerprint']:
                 for split_combo in [[0.1,0.1], [0.15,0.15],[0.1,0.2],[0.2,0.2]]:
                     split_name = "%s_%d_%d" % (splitter, split_combo[0]*100, split_combo[1]*100)
                     try:
@@ -854,7 +854,7 @@ class HyperparameterSearch(object):
         rows = []
         for assay, bucket, response_cols, collection in datasets:
             split_uuids = {'dataset_key': assay, 'bucket': bucket, 'response_cols':response_cols, 'collection':collection}
-            for splitter in ['random', 'scaffold']:
+            for splitter in ['random', 'scaffold','fingerprint']:
                 for split_combo in [[0.1,0.1], [0.15,0.15],[0.1,0.2],[0.2,0.2]]:
                     split_name = "%s_%d_%d" % (splitter, split_combo[0]*100, split_combo[1]*100)
                     try:
