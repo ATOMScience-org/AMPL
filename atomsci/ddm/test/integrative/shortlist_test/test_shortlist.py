@@ -112,12 +112,11 @@ def wait_to_finish(split_json, search_json, max_time=1200):
             print("Still waiting")
             time.sleep(wait_interval) # check for results every 30 seconds
             time_waited += wait_interval
-        
 
     dataset_key = shortlist_df['dataset_key'].iloc[-1].replace('.csv', f'_with_{features}_descriptors.csv')
     dset_path, dataset_key = dataset_key.rsplit(sep='/', maxsplit=1)
     feat_path = dset_path+'/scaled_descriptors/'+dataset_key
-    
+
     # Featurize shortlist
     print("Submitting batch featurization job")
     run_cmd = f"{python_path} {script_dir}/test/integrative/shortlist_test/featurize_shortlist.py {shortlist_path} {split_json}"
@@ -138,9 +137,11 @@ def wait_to_finish(split_json, search_json, max_time=1200):
             feat_df = None
             time.sleep(wait_interval) # check for results every 30 seconds
             time_waited += wait_interval
-    
+        print(f'waited {time_waited} found {num_found}')
+
     # Test HP search with shortlist
     run_cmd = f"{python_path} {script_dir}/utils/hyperparam_search_wrapper.py --config_file {search_json}"
+    print(f"hyperparam command: {run_cmd}")
     p = subprocess.Popen(run_cmd.split(' '), stdout=subprocess.PIPE)
     out = p.stdout.read().decode("utf-8")
 
@@ -161,6 +162,7 @@ def wait_to_finish(split_json, search_json, max_time=1200):
         except:
             num_found = 0
             result_df = None
+        print(f'waited {time_waited} found {num_found}')
 
     return result_df
 
