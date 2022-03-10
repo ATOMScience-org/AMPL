@@ -755,7 +755,8 @@ class HyperparameterSearch(object):
             
         assay_params['dataset_name'] = assay_params['dataset_key'].split('/')[-1].replace('.csv','')
         # rdkit_raw b/c it's the fastest and won't have to be redone every split 
-        assay_params['featurizer'] = 'rdkit_raw'
+        assay_params['featurizer'] = 'computed_descriptors'
+        assay_params['descriptor_type'] = 'rdkit_raw'
         assay_params['previously_featurized'] = False
         assay_params['datastore'] = False
         
@@ -868,7 +869,6 @@ class HyperparameterSearch(object):
         df = pd.DataFrame(rows)
         fname = self.params.shortlist_key.replace('.csv','_with_uuids.csv')
         df.to_csv(fname, index=False)
-        
 
     def get_shortlist_df(self, split_uuids=False, retry_time=60):
         """
