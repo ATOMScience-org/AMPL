@@ -89,7 +89,7 @@ def exclude_organometallics(df, smiles_col='rdkit_smiles'):
     return df[include].copy()
 
 # ----------------------------------------------------------------------------------------------------------------------
-def standardize_relations(dset_df, db='DTC'):
+def standardize_relations(dset_df, db='DTC', rel_col=None, output_rel_col=None, invert=False):
     """ Standardizes censoring operators
 
     Standardize the censoring operators to =, < or >, and remove any rows whose operators
@@ -104,17 +104,31 @@ def standardize_relations(dset_df, db='DTC'):
         dset_df (DataFrame): Input DataFrame. Must contain either 'Standard Relation'
             or 'standard_relation'
 
-        db (str): Source database. Must be either 'GoStar', 'DTC' or 'ChEMBL'
+        db (str): Source database. Must be either 'GoStar', 'DTC' or 'ChEMBL'. Required if rel_col is not specified.
+
+        rel_col (str): Column containing relational operators. If specified, overrides the default relation column 
+            for db.
+
+        output_rel_col (str): If specified, put the standardized operators in a new column with this name and leave
+            the original operator column unchanged.
+
+        invert (bool): If true, replace the inequality operators with their inverses. This is useful when a reported
+            value such as IC50 is converted to its negative log such as pIC50.
 
     Returns:
         DataFrame: Dataframe with the standardized relationship sybmols
 
     """
-    relation_cols = dict(ChEMBL='standard_relation', DTC='standard_relation', GoStar='activity_prefix')
-    try:
-        rel_col = relation_cols[db]
-    except KeyError:
-        raise ValueError(f"Unknown database {db} for standardize_relations") 
+    if rel_col is None:
+        relation_cols = dict(ChEMBL='standard_relation', DTC='standard_relation', GoStar='activity_prefix')
+        try:
+            rel_col = relation_cols[db]
+        except KeyError:
+            raise ValueError(f"Unknown database {db} for standardize_relations") 
+
+    if output_rel_col is None:
+        output_rel_col = rel_col
+
     try:
         dset_df[rel_col].fillna('=', inplace=True)
     except KeyError:
@@ -128,12 +142,19 @@ def standardize_relations(dset_df, db='DTC'):
         ">=": ">",
         "<": "<",
         "<=": "<",
+        ">R": ">",
+        ">=R": ">",
+        "<R": "<",
+        "<=R": "<",
         "~": "=",
         "=": "="
     }
     ops = np.array([op_dict.get(op, "@") for op in ops])
-    dset_df[rel_col] = ops
-    dset_df = dset_df[dset_df[rel_col] != "@"]
+    if invert:
+        inv_op = {'>': '<', '<': '>'}
+        ops = np.array([inv_op.get(op, op) for op in ops])
+    dset_df[output_rel_col] = ops
+    dset_df = dset_df[dset_df[output_rel_col] != "@"].copy()
     return dset_df
 
 # ----------------------------------------------------------------------------------------------------------------------
