@@ -20,13 +20,13 @@ sys.path.insert(0, os.path.abspath('../../'))
 # -- Project information -----------------------------------------------------
 
 project = 'ATOM Data-Driven Modeling Pipeline'
-copyright = '2021, ATOM DDM Team'
+copyright = '2022, ATOM DDM Team'
 author = 'ATOM DDM Team'
 
 # The short X.Y version
-version = '1.2.0'
+version = '1.3.0'
 # The full version, including alpha/beta/rc tags
-release = '1.2.0'
+release = '1.3.0'
 
 
 # -- General configuration ---------------------------------------------------

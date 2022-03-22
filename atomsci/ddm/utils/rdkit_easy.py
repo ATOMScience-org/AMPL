@@ -5,12 +5,13 @@ Utilities for clustering and visualizing compound structures using RDKit.
 
 import os
 
-from IPython.display import SVG, HTML
+from IPython.display import SVG, HTML, display
 from base64 import b64encode
 import io
 
 import logging
 
+import pandas as pd
 from rdkit import Chem
 from rdkit import DataStructs
 from rdkit.Chem import AllChem
@@ -21,6 +22,20 @@ from rdkit.ML.Cluster import Butina
 from rdkit.ML.Descriptors import MoleculeDescriptors
 
 logging.basicConfig(format='%(asctime)-15s %(message)s')
+
+def setup_notebook():
+    """
+    Set up current notebook for displaying plots and Bokeh output using full width of window
+    """
+    from bokeh.plotting import output_notebook
+
+    get_ipython().run_line_magic('matplotlib', 'inline')
+    # Bokeh option
+    output_notebook()
+    display(HTML("<style>.container { width:100% !important; }</style>"))
+
+    pd.set_option('display.max_columns', None)
+    pd.set_option('max_seq_items', None)
 
 def add_mol_column(df, smiles_col, molecule_col='mol'):
     """
@@ -126,7 +141,7 @@ def cluster_fingerprints(fps, cutoff=0.2):
     return cs
 
 
-def mol_to_html(mol, name, type='svg', directory='rdkit_svg', embed=False, width=400, height=200):
+def mol_to_html(mol, name='', type='svg', directory='rdkit_svg', embed=False, width=400, height=200):
     """
     Creates an image displaying the given molecule's 2D structure, and generates an HTML
     tag for it. The image can be embedded directly into the HTML tag or saved to a file.
@@ -134,11 +149,12 @@ def mol_to_html(mol, name, type='svg', directory='rdkit_svg', embed=False, width
     Args:
         mol (rdkit.Chem.Mol): Object representing molecule.
 
-        name (str): Filename of image file to create, relative to 'directory'.
+        name (str): Filename of image file to create, relative to 'directory'; only used if embed=False.
 
         type (str): Image format; must be 'png' or 'svg'.
 
-        directory (str): Path relative to notebook directory of subdirectory where image file will be written. The directory will be created if necessary. Note that absolute paths will not work in notebooks. Only if embed=False.
+        directory (str): Path relative to notebook directory of subdirectory where image file will be written. 
+        The directory will be created if necessary. Note that absolute paths will not work in notebooks. Ignored if embed=True.
 
         width (int): Width of image bounding box.
 
@@ -288,3 +304,4 @@ def show_html(html):
 
     """
     return HTML(html)
+

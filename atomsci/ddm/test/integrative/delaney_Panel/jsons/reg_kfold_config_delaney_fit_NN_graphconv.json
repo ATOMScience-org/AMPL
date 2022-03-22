@@ -1,0 +1,47 @@
+{
+    "comment": "System",
+    "comment": "----------------------------------------",
+    "system": "LC",
+    "datastore": "False",
+    "save_results": "False",
+    "data_owner": "username",
+
+    "comment": "Input file",
+    "comment": "----------------------------------------",
+    "comment": "Note: dataset_key must be a path/file name: E.G. ./dataset.csv",
+    "dataset_key": "./delaney-processed_curated_fit.csv",
+    "id_col": "Compound ID",
+    "smiles_col": "smiles",
+    "response_cols": "measured log solubility in mols per litre",
+
+    "comment": "Features",
+    "comment": "----------------------------------------",
+    "featurizer": "graphconv",
+
+    "comment": "Model",
+    "comment": "----------------------------------------",
+    "model_type": "NN",
+
+    "comment": "Splitter",
+    "comment": "----------------------------------------",
+    "base_splitter": "random",
+    "splitter": "random",
+    "split_strategy": "k_fold_cv",
+    "num_folds": "5",
+
+    "comment": "Neural network",
+    "comment": "----------------------------------------",
+    "dropouts": "0.10,0.10,0.10",
+    "layer_sizes": "64,64,64",
+    "learning_rate": "0.000753",
+    "max_epochs": "100",
+
+    "comment": "Training",
+    "comment": "----------------------------------------",    
+    "comment": "This regulates how long to train the model",
+    "early_stopping_patience": "500",
+
+    "comment": "Results",
+    "comment": "----------------------------------------",    
+    "result_dir": "result"
+}

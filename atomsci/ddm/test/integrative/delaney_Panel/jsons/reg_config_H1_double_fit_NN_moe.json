@@ -1,0 +1,56 @@
+{
+    "comment": "System",
+    "comment": "----------------------------------------",
+    "system": "LC",
+    "datastore": "False",
+    "save_results": "False",
+    "data_owner": "username",
+
+    "comment": "Input file",
+    "comment": "----------------------------------------",
+    "comment": "Note: dataset_key must be a path/file name: E.G. ./dataset.csv",
+    "dataset_key": "./H1_double_curated_fit.csv",
+    "id_col": "compound_id",
+    "smiles_col": "base_rdkit_smiles",
+
+    "comment": "Splitting",
+    "comment": "----------------------------------------",
+    "split_uuid": "002251a2-83f8-4511-acf5-e8bbc5f86677",
+    "previously_split": "True",
+
+    "comment": "Prediction Type",
+    "comment": "----------------------------------------",
+    "response_cols": "pKi_mean",
+    "prediction_type": "regression",
+
+    "comment": "Features",
+    "comment": "----------------------------------------",
+    "featurizer": "computed_descriptors",
+
+    "comment": "Descriptors",
+    "comment": "----------------------------------------",
+    "descriptor_type": "moe_scaled_filtered",
+
+    "comment": "Model",
+    "comment": "----------------------------------------",
+    "model_type": "NN",
+    "dropout": ".01,.01,.01",
+    "layer_sizes": "64,64,64",
+    "learning_rate": "0.0007",
+    "max_epochs": "500",
+    
+    "comment": "Training",
+    "comment": "----------------------------------------",
+    "comment": "This regulates how long to train the model",
+    "early_stopping_patience": "500",
+
+    "comment": "Results",
+    "comment": "----------------------------------------",
+    "result_dir": "result",
+
+    "comment": "Test config",
+    "comment": "these variables are only used in THIS test.",
+    "comment": "They will not do anything in the pipeline",
+    "comment": "----------------------------------------",
+    "perf_threshold": ".45"
+}

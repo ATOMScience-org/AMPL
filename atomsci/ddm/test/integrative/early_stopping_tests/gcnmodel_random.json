@@ -1,0 +1,46 @@
+{
+    "comment": "System",
+    "comment": "----------------------------------------",
+    "system": "LC",
+    "datastore": "False",
+    "save_results": "False",
+    "data_owner": "username",
+
+    "comment": "Input",
+    "comment": "----------------------------------------",
+    "id_col":"compound_id",
+    "smiles_col":"base_rdkit_smiles",
+    "response_cols":"pIC50",
+
+    "comment": "Splitting",
+    "comment": "----------------------------------------",
+    "previously_split": "False",
+    "split_test_frac": "0.25",
+    "split_valid_frac": "0.25",
+
+    "comment": "Prediction Type",
+    "comment": "----------------------------------------",
+    "uncertainty": "False",
+
+    "comment": "Features",
+    "comment": "----------------------------------------",
+    "featurizer":"MolGraphConvFeaturizer",
+
+    "comment": "Model",
+    "comment": "----------------------------------------",
+    "model_type": "GCNModel",
+    "GCNModel_mode": "regression",
+    "GCNModel_learning_rate": "0.0003",
+    "GCNModel_graph_conv_layers": "16,16",
+    "GCNModel_predictor_hidden_feats": "16",
+
+    "comment": "Training",
+    "comment": "----------------------------------------",
+    "comment": "This regulates how long to train the model",
+    "early_stopping_patience": "50",
+    "max_epochs": "200",
+
+    "comment": "Results",
+    "comment": "----------------------------------------",
+    "result_dir": "result"
+}

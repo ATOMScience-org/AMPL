@@ -1,0 +1,54 @@
+{
+    "comment": "System",
+    "comment": "----------------------------------------",
+    "system": "LC",
+    "datastore": "False",
+    "save_results": "False",
+    "data_owner": "username",
+    "parser_version":"1.0",
+
+    "comment": "Input file",
+    "comment": "----------------------------------------",
+    "comment": "Note: dataset_key must be a path/file name: E.G. ./dataset.csv",
+    "dataset_key": "./H1_curated_fit.csv",
+    "id_col": "compound_id",
+    "smiles_col": "base_rdkit_smiles",
+
+    "comment": "Splitting",
+    "comment": "----------------------------------------",
+    "split_uuid": "002251a2-83f8-4511-acf5-e8bbc5f86677",
+    "previously_split": "True",
+
+    "comment": "Prediction Type",
+    "comment": "----------------------------------------",
+    "response_cols": "exact_mol_weight",
+    "AttentiveFPModel_mode": "regression",
+    "uncertainty": "False",
+
+    "comment": "Features",
+    "comment": "----------------------------------------",
+    "featurizer":"MolGraphConvFeaturizer",
+    "MolGraphConvFeaturizer_use_edges":"True",
+
+    "comment": "Model",
+    "comment": "----------------------------------------",
+    "model_type": "AttentiveFPModel",
+    "AttentiveFPModel_num_layers":"3",
+    "AttentiveFPModel_learning_rate": "0.0007",
+    "AttentiveFPModel_n_tasks": "1",
+
+    "comment": "Training",
+    "comment": "----------------------------------------",
+    "comment": "This regulates how long to train the model",
+    "early_stopping_patience": "3",
+    "max_epochs": "5",
+
+    "comment": "Results",
+    "comment": "----------------------------------------",
+    "result_dir": "result",
+
+    "comment": "Test",
+    "comment": "This test does not need to do well, just generate some files.",
+    "comment": "----------------------------------------",    
+    "perf_threshold": "-10000000"
+}

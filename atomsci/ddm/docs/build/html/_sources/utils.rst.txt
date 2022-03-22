@@ -100,14 +100,6 @@ utils.struct\_utils module
    :undoc-members:
    :show-inheritance:
 
-utils.verify\_results module
-----------------------------------------
-
-.. automodule:: utils.verify_results
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 Module contents
 ---------------
 

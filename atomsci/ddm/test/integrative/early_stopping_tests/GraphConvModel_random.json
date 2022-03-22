@@ -1,0 +1,49 @@
+{
+    "comment": "System",
+    "comment": "----------------------------------------",
+    "system": "LC",
+    "datastore": "False",
+    "save_results": "False",
+    "data_owner": "username",
+    "parser_version":"1.0",
+
+    "comment": "Input",
+    "comment": "----------------------------------------",
+    "id_col":"compound_id",
+    "smiles_col":"base_rdkit_smiles",
+    "response_cols":"pIC50",
+
+    "comment": "Splitting",
+    "comment": "----------------------------------------",
+    "previously_split": "False",
+    "split_test_frac": "0.25",
+    "split_valid_frac": "0.25",
+
+    "comment": "Prediction Type",
+    "comment": "----------------------------------------",
+    "AttentiveFPModel_mode": "regression",
+    "uncertainty": "False",
+
+    "comment": "Features",
+    "comment": "----------------------------------------",
+    "featurizer":"ConvMolFeaturizer",
+
+    "comment": "Model",
+    "comment": "----------------------------------------",
+    "model_type": "GraphConvModel",
+    "GraphConvModel_mode": "regression",
+    "GraphConvModel_dropout": "0.2",
+    "GraphConvModel_learning_rate": "0.000753",
+    "GraphConvModel_graph_conv_layers": "64,64,64",
+    "GraphConvModel_dense_layer_size": "64",
+
+    "comment": "Training",
+    "comment": "----------------------------------------",
+    "comment": "This regulates how long to train the model",
+    "early_stopping_patience": "30",
+    "max_epochs": "200",
+
+    "comment": "Results",
+    "comment": "----------------------------------------",
+    "result_dir": "result"
+}

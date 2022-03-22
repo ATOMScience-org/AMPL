@@ -1,75 +1,34 @@
-
-
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8" />
-  
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
-  <title>pipeline.perf_data &mdash; ATOM Data-Driven Modeling Pipeline 1.2.0 documentation</title>
-  
-
-  
-  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-
-  
-  
-
-  
-  
-
-  
-
-  
+  <title>pipeline.perf_data &mdash; ATOM Data-Driven Modeling Pipeline 1.3.0 documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
         <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
         <script src="../../_static/jquery.js"></script>
         <script src="../../_static/underscore.js"></script>
         <script src="../../_static/doctools.js"></script>
-    
-    <script type="text/javascript" src="../../_static/js/theme.js"></script>
-
-    
+    <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
-
-          
             <a href="../../index.html" class="icon icon-home"> ATOM Data-Driven Modeling Pipeline
-          
-
-          
           </a>
-
-          
-            
-            
               <div class="version">
-                1.2.0
+                1.3.0
               </div>
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -77,18 +36,7 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../guide/getting_started.html">Getting started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../guide/install.html">Installation</a></li>
@@ -102,69 +50,30 @@
 <li class="toctree-l1"><a class="reference internal" href="../../modules.html">atomsci</a></li>
 </ul>
 
-            
-          
         </div>
-        
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../../index.html">ATOM Data-Driven Modeling Pipeline</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
       <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
-        
           <li><a href="../index.html">Module code</a> &raquo;</li>
-        
       <li>pipeline.perf_data</li>
-    
-    
       <li class="wy-breadcrumbs-aside">
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
+             
   <h1>Source code for pipeline.perf_data</h1><div class="highlight"><pre>
 <span></span><span class="ch">#!/usr/bin/env python</span>
 
@@ -173,6 +82,7 @@
 <span class="sd">and predictions</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
+<span class="kn">from</span> <span class="nn">textwrap</span> <span class="kn">import</span> <span class="n">wrap</span>
 <span class="kn">import</span> <span class="nn">sklearn.metrics</span>
 
 <span class="kn">import</span> <span class="nn">deepchem</span> <span class="k">as</span> <span class="nn">dc</span>
@@ -183,6 +93,8 @@
 <span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="kn">import</span> <span class="n">r2_score</span><span class="p">,</span> <span class="n">mean_absolute_error</span><span class="p">,</span> <span class="n">mean_squared_error</span>
 
 <span class="kn">from</span> <span class="nn">atomsci.ddm.pipeline</span> <span class="kn">import</span> <span class="n">transformations</span> <span class="k">as</span> <span class="n">trans</span>
+
+<span class="kn">import</span> <span class="nn">pdb</span>
 
 
 <span class="c1"># ******************************************************************************************************************************</span>
@@ -2246,49 +2158,344 @@
             <span class="k">return</span> <span class="p">(</span><span class="n">r2_scores</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="p">(</span><span class="n">r2_scores</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span> <span class="kc">None</span><span class="p">)</span></div></div>
+
+
+<span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="EpochManager"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.EpochManager">[docs]</a><span class="k">class</span> <span class="nc">EpochManager</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot; Manages lists of PerfDatas</span>
+
+<span class="sd">    This class manages lists of PerfDatas as well as variables related to iteratively</span>
+<span class="sd">    training a model over several epochs. This class sets several varaibles in a given</span>
+<span class="sd">    ModelWrapper for the sake of backwards compatibility</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        Set in __init__:</span>
+<span class="sd">            _subsets (dict): Must contain the keys &#39;train&#39;, &#39;valid&#39;, &#39;test&#39;. The values</span>
+<span class="sd">                are used as subsets when calling create_perf_data.</span>
+
+<span class="sd">            _model_choice_score_type (str): Passed into PerfData.model_choice_score</span>
+
+<span class="sd">            _log (logger): This is the from wrapper.log</span>
+
+<span class="sd">            _should_stop (bool): True when training as satisfied stopping conditions. Either</span>
+<span class="sd">                it has reached the max number of epochs or has exceeded early_stopping_patience</span>
+
+<span class="sd">            wrapper (ModelWrapper): The model wrapper where this object is being used.</span>
+
+<span class="sd">            _new_best_valid_score (function): This function takes no arguments and is called</span>
+<span class="sd">                whenever a new best validation score is achieved.</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># ****************************************************************************************</span>
+    <span class="c1"># class EpochManager</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wrapper</span><span class="p">,</span>
+            <span class="n">subsets</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;train&#39;</span><span class="p">:</span><span class="s1">&#39;train&#39;</span><span class="p">,</span>  <span class="s1">&#39;valid&#39;</span><span class="p">:</span><span class="s1">&#39;valid&#39;</span><span class="p">,</span> <span class="s1">&#39;test&#39;</span><span class="p">:</span><span class="s1">&#39;test&#39;</span><span class="p">},</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Initialize EpochManager</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            wrapper (ModelWrapper): The ModelWrapper that&#39;s doing the training</span>
+
+<span class="sd">            subsets (dict): Must contain the keys &#39;train&#39;, &#39;valid&#39;, &#39;test&#39;. The values</span>
+<span class="sd">                are used as subsets when calling create_perf_data.</span>
+
+<span class="sd">            kwargs (dict): Additional keyword args are passed to create_perf_data. The</span>
+<span class="sd">                subset argument should not be passed.</span>
+
+<span class="sd">        Side effects:</span>
+<span class="sd">            Creates the following attributes in wrapper:</span>
+<span class="sd">                best_epoch</span>
+<span class="sd">                best_valid_score</span>
+<span class="sd">                train_epoch_perfs</span>
+<span class="sd">                valid_epoch_perfs</span>
+<span class="sd">                test_epoch_perfs</span>
+<span class="sd">                train_epoch_perf_stds</span>
+<span class="sd">                valid_epoch_perf_stds</span>
+<span class="sd">                test_epoch_perf_stds</span>
+<span class="sd">                model_choice_scores</span>
+<span class="sd">                early_stopping_min_improvement</span>
+<span class="sd">                early_stopping_patience</span>
+<span class="sd">                train_perf_data</span>
+<span class="sd">                valid_perf_data</span>
+<span class="sd">                test_perf_data</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="n">wrapper</span><span class="o">.</span><span class="n">params</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_subsets</span> <span class="o">=</span> <span class="n">subsets</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_model_choice_score_type</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">model_choice_score_type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_log</span> <span class="o">=</span> <span class="n">wrapper</span><span class="o">.</span><span class="n">log</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_should_stop</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wrapper</span> <span class="o">=</span> <span class="n">wrapper</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_new_best_valid_score</span> <span class="o">=</span> <span class="k">lambda</span><span class="p">:</span> <span class="kc">False</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">wrapper</span><span class="o">.</span><span class="n">best_epoch</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wrapper</span><span class="o">.</span><span class="n">best_valid_score</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wrapper</span><span class="o">.</span><span class="n">train_epoch_perfs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">max_epochs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wrapper</span><span class="o">.</span><span class="n">valid_epoch_perfs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">max_epochs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wrapper</span><span class="o">.</span><span class="n">test_epoch_perfs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">max_epochs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wrapper</span><span class="o">.</span><span class="n">train_epoch_perf_stds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">max_epochs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wrapper</span><span class="o">.</span><span class="n">valid_epoch_perf_stds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">max_epochs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wrapper</span><span class="o">.</span><span class="n">test_epoch_perf_stds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">max_epochs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wrapper</span><span class="o">.</span><span class="n">model_choice_scores</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">max_epochs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wrapper</span><span class="o">.</span><span class="n">early_stopping_min_improvement</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">early_stopping_min_improvement</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wrapper</span><span class="o">.</span><span class="n">early_stopping_patience</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">early_stopping_patience</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">wrapper</span><span class="o">.</span><span class="n">train_perf_data</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wrapper</span><span class="o">.</span><span class="n">valid_perf_data</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wrapper</span><span class="o">.</span><span class="n">test_perf_data</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">max_epochs</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">wrapper</span><span class="o">.</span><span class="n">train_perf_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="n">create_perf_data</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_subsets</span><span class="p">[</span><span class="s1">&#39;train&#39;</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">wrapper</span><span class="o">.</span><span class="n">valid_perf_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="n">create_perf_data</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_subsets</span><span class="p">[</span><span class="s1">&#39;valid&#39;</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">wrapper</span><span class="o">.</span><span class="n">test_perf_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="n">create_perf_data</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_subsets</span><span class="p">[</span><span class="s1">&#39;test&#39;</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">))</span>
+
+    <span class="c1"># ****************************************************************************************</span>
+    <span class="c1"># class EpochManager</span>
+<div class="viewcode-block" id="EpochManager.should_stop"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.EpochManager.should_stop">[docs]</a>    <span class="k">def</span> <span class="nf">should_stop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">        Returns True when the training loop should stop</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            bool: True when the training loop should stop</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_should_stop</span></div>
+
+    <span class="c1"># ****************************************************************************************</span>
+    <span class="c1"># class EpochManager</span>
+<div class="viewcode-block" id="EpochManager.update_epoch"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.EpochManager.update_epoch">[docs]</a>    <span class="k">def</span> <span class="nf">update_epoch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ei</span><span class="p">,</span> <span class="n">train_dset</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">valid_dset</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">test_dset</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Update training state after an epoch</span>
+
+<span class="sd">        This function updates train/valid/test_perf_data. Call this function once</span>
+<span class="sd">        per epoch. Call self.should_stop() after calling this function to see if you should</span>
+<span class="sd">        exit the training loop.</span>
+<span class="sd">        </span>
+<span class="sd">        Subsets with None arguments will be ignored</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            ei (int): The epoch index</span>
+
+<span class="sd">            train_dset (dc.data.Dataset): The train dataset</span>
+
+<span class="sd">            valid_dset (dc.data.Dataset): The valid dataset. Providing this argument updates</span>
+<span class="sd">                best_valid_score and _should_stop</span>
+
+<span class="sd">            test_dset (dc.data.Dataset): The test dataset</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            list: A list of performance values for the provided datasets.</span>
+
+<span class="sd">        Side effects</span>
+<span class="sd">            This function updates self._should_stop</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">train_perf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">ei</span><span class="p">,</span> <span class="s1">&#39;train&#39;</span><span class="p">,</span> <span class="n">train_dset</span><span class="p">)</span>
+        <span class="n">valid_perf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">ei</span><span class="p">,</span> <span class="s1">&#39;valid&#39;</span><span class="p">,</span> <span class="n">valid_dset</span><span class="p">)</span>
+        <span class="n">test_perf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">ei</span><span class="p">,</span> <span class="s1">&#39;test&#39;</span><span class="p">,</span> <span class="n">test_dset</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="p">[</span><span class="n">train_perf</span><span class="p">,</span> <span class="n">valid_perf</span><span class="p">,</span> <span class="n">test_perf</span><span class="p">]</span> <span class="k">if</span> <span class="ow">not</span><span class="p">(</span><span class="n">p</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)]</span></div>
+
+    <span class="c1"># ****************************************************************************************</span>
+    <span class="c1"># class EpochManager</span>
+<div class="viewcode-block" id="EpochManager.accumulate"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.EpochManager.accumulate">[docs]</a>    <span class="k">def</span> <span class="nf">accumulate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ei</span><span class="p">,</span> <span class="n">subset</span><span class="p">,</span> <span class="n">dset</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Accumulate predictions</span>
+<span class="sd">        </span>
+<span class="sd">        Makes predictions, accumulate predictions and calculate the performance metric. Calls PerfData.accumulate_preds</span>
+<span class="sd">        belonging to the epoch, subset, and given dataset.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            ei (int): Epoch index</span>
+
+<span class="sd">            subset (str): Which subset, should be train, valid, or test.</span>
+
+<span class="sd">            dset (dc.data.Dataset): Calculates the performance for the given dset</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            float: Performance metric for the given dset.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pred</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_make_pred</span><span class="p">(</span><span class="n">dset</span><span class="p">)</span>
+        <span class="n">perf</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">wrapper</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">subset</span><span class="si">}</span><span class="s1">_perf_data&#39;</span><span class="p">)[</span><span class="n">ei</span><span class="p">]</span><span class="o">.</span><span class="n">accumulate_preds</span><span class="p">(</span><span class="n">pred</span><span class="p">,</span> <span class="n">dset</span><span class="o">.</span><span class="n">ids</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">perf</span></div>
+
+    <span class="c1"># ****************************************************************************************</span>
+    <span class="c1"># class EpochManager</span>
+<div class="viewcode-block" id="EpochManager.compute"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.EpochManager.compute">[docs]</a>    <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ei</span><span class="p">,</span> <span class="n">subset</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Computes performance metrics</span>
+
+<span class="sd">        This calls PerfData.compute_perf_metrics and saves the result in </span>
+<span class="sd">        f&#39;{subset}_epoch_perfs&#39;</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            ei (int): Epoch index</span>
+
+<span class="sd">            subset (str): Which subset to compute_perf_metrics. Should be train, valid, or test</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">wrapper</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">subset</span><span class="si">}</span><span class="s1">_epoch_perfs&#39;</span><span class="p">)[</span><span class="n">ei</span><span class="p">],</span> <span class="n">_</span> <span class="o">=</span> \
+            <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">wrapper</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">subset</span><span class="si">}</span><span class="s1">_perf_data&#39;</span><span class="p">)[</span><span class="n">ei</span><span class="p">]</span><span class="o">.</span><span class="n">compute_perf_metrics</span><span class="p">()</span></div>
+
+    <span class="c1"># ****************************************************************************************</span>
+    <span class="c1"># class EpochManager</span>
+<div class="viewcode-block" id="EpochManager.update_valid"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.EpochManager.update_valid">[docs]</a>    <span class="k">def</span> <span class="nf">update_valid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ei</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Checks validation score</span>
+
+<span class="sd">        Checks validation performance of the given epoch index. Updates self._should_stop, checks</span>
+<span class="sd">        on early stopping conditions, calls self._new_best_valid_score() when necessary.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            ei (int): Epoch index</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            None</span>
+
+<span class="sd">        Side effects</span>
+<span class="sd">            Updates self._should_stop when it&#39;s time to exit the training loop.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">valid_score</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wrapper</span><span class="o">.</span><span class="n">valid_perf_data</span><span class="p">[</span><span class="n">ei</span><span class="p">]</span><span class="o">.</span><span class="n">model_choice_score</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model_choice_score_type</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wrapper</span><span class="o">.</span><span class="n">model_choice_scores</span><span class="p">[</span><span class="n">ei</span><span class="p">]</span> <span class="o">=</span> <span class="n">valid_score</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">wrapper</span><span class="o">.</span><span class="n">best_valid_score</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_new_best_valid_score</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">wrapper</span><span class="o">.</span><span class="n">best_valid_score</span> <span class="o">=</span> <span class="n">valid_score</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">wrapper</span><span class="o">.</span><span class="n">best_epoch</span> <span class="o">=</span> <span class="n">ei</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Total score for epoch </span><span class="si">{</span><span class="n">ei</span><span class="si">}</span><span class="s2"> is </span><span class="si">{</span><span class="n">valid_score</span><span class="si">:</span><span class="s2">.3</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">valid_score</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">wrapper</span><span class="o">.</span><span class="n">best_valid_score</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">wrapper</span><span class="o">.</span><span class="n">early_stopping_min_improvement</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_new_best_valid_score</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">wrapper</span><span class="o">.</span><span class="n">best_valid_score</span> <span class="o">=</span> <span class="n">valid_score</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">wrapper</span><span class="o">.</span><span class="n">best_epoch</span> <span class="o">=</span> <span class="n">ei</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;*** Total score for epoch </span><span class="si">{</span><span class="n">ei</span><span class="si">}</span><span class="s2"> is </span><span class="si">{</span><span class="n">valid_score</span><span class="si">:</span><span class="s2">.3</span><span class="si">}</span><span class="s2">, is new maximum&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">ei</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">wrapper</span><span class="o">.</span><span class="n">best_epoch</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">wrapper</span><span class="o">.</span><span class="n">early_stopping_patience</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No improvement after </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">wrapper</span><span class="o">.</span><span class="n">early_stopping_patience</span><span class="si">}</span><span class="s2"> epochs, stopping training&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_should_stop</span> <span class="o">=</span> <span class="kc">True</span></div>
+
+    <span class="c1"># ****************************************************************************************</span>
+    <span class="c1"># class EpochManager</span>
+<div class="viewcode-block" id="EpochManager.update"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.EpochManager.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ei</span><span class="p">,</span> <span class="n">subset</span><span class="p">,</span> <span class="n">dset</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Update training state</span>
+
+<span class="sd">        Updates the training state for a given subset and epoch index with the given dataset.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            ei (int): Epoch index.</span>
+
+<span class="sd">            subset (str): Should be train, valid, test</span>
+
+<span class="sd">            dset (dc.data.Dataset): Updates using this dset</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            perf (float): the performance of the given dset.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">dset</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="n">perf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">accumulate</span><span class="p">(</span><span class="n">ei</span><span class="p">,</span> <span class="n">subset</span><span class="p">,</span> <span class="n">dset</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">ei</span><span class="p">,</span> <span class="n">subset</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">subset</span> <span class="o">==</span> <span class="s1">&#39;valid&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">update_valid</span><span class="p">(</span><span class="n">ei</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">perf</span></div>
+
+    <span class="c1"># ****************************************************************************************</span>
+    <span class="c1"># class EpochManager</span>
+<div class="viewcode-block" id="EpochManager.set_make_pred"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.EpochManager.set_make_pred">[docs]</a>    <span class="k">def</span> <span class="nf">set_make_pred</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">functional</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Sets the function used to make predictions</span>
+
+<span class="sd">        Sets the function used to make predictions. This must be called before invoking</span>
+<span class="sd">        self.update and self.accumulate</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            functional (function): This function takes one argument, a dc.data.Dataset, and</span>
+<span class="sd">                returns an array of predictions for that dset. This function is called </span>
+<span class="sd">                when updating the training state after a given epoch.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            None</span>
+
+<span class="sd">        Side effects:</span>
+<span class="sd">            Saves the functional as self._make_pred</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_make_pred</span> <span class="o">=</span> <span class="n">functional</span></div>
+
+    <span class="c1"># ****************************************************************************************</span>
+    <span class="c1"># class EpochManager</span>
+<div class="viewcode-block" id="EpochManager.on_new_best_valid"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.EpochManager.on_new_best_valid">[docs]</a>    <span class="k">def</span> <span class="nf">on_new_best_valid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">functional</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Sets the function called when a new best validation score is achieved</span>
+
+<span class="sd">        Saves the function called when there&#39;s a new best validation score.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            functional (function): This function takes no arguments and returns nothing. This</span>
+<span class="sd">                function is called when there&#39;s a new best validation score. This can be used</span>
+<span class="sd">                to tell the ModelWrapper to save the model.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            None</span>
+
+<span class="sd">        Side effect:</span>
+<span class="sd">            Saves the _new_best_valid_score function.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_new_best_valid_score</span> <span class="o">=</span> <span class="n">functional</span></div></div>
+
+<span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="EpochManagerKFold"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.EpochManagerKFold">[docs]</a><span class="k">class</span> <span class="nc">EpochManagerKFold</span><span class="p">(</span><span class="n">EpochManager</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This class manages the training state when using KFold cross validation. This is</span>
+<span class="sd">        necessary because this manager uses f&#39;{subset}_epoch_perf_stds&#39; unlike EpochManager</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># ****************************************************************************************</span>
+    <span class="c1"># class EpochManagerKFold</span>
+<div class="viewcode-block" id="EpochManagerKFold.compute"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.EpochManagerKFold.compute">[docs]</a>    <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ei</span><span class="p">,</span> <span class="n">subset</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Calls PerfData.compute_perf_metrics()</span>
+<span class="sd">        </span>
+<span class="sd">        This differs from EpochManager.compute in that it saves the results into</span>
+<span class="sd">        f&#39;{subset}_epoch_perf_stds&#39;</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            ei (int): Epoch index</span>
+
+<span class="sd">            subset (str): Should be train, valid, test.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            None</span>
+<span class="sd">    </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">wrapper</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">subset</span><span class="si">}</span><span class="s1">_epoch_perfs&#39;</span><span class="p">)[</span><span class="n">ei</span><span class="p">],</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">wrapper</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">subset</span><span class="si">}</span><span class="s1">_epoch_perf_stds&#39;</span><span class="p">)[</span><span class="n">ei</span><span class="p">]</span><span class="o">=</span> \
+            <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">wrapper</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">subset</span><span class="si">}</span><span class="s1">_perf_data&#39;</span><span class="p">)[</span><span class="n">ei</span><span class="p">]</span><span class="o">.</span><span class="n">compute_perf_metrics</span><span class="p">()</span></div></div>
 </pre></div>
 
            </div>
-           
           </div>
           <footer>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &#169; Copyright 2021, ATOM DDM Team.
-
-    </p>
+    <p>&#169; Copyright 2022, ATOM DDM Team.</p>
   </div>
-    
-    
-    
-    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
-    
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>

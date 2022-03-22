@@ -45,6 +45,12 @@
     "early_stopping_patience": "500",
 
     "comment": "Results",
-    "comment": "----------------------------------------",    
-    "result_dir": "result"
+    "comment": "----------------------------------------",
+    "result_dir": "result",
+
+    "comment": "Test config",
+    "comment": "these variables are only used in THIS test.",
+    "comment": "They will not do anything in the pipeline",
+    "comment": "----------------------------------------",
+    "perf_threshold": ".45"
 }

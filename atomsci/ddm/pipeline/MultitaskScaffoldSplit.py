@@ -2,6 +2,7 @@ import pdb
 import argparse
 import random
 import timeit
+import tempfile
 from typing import Any, Dict, List, Iterator, Optional, Sequence, Set, Tuple
 
 import numpy as np
@@ -10,7 +11,7 @@ from tqdm import tqdm
 from functools import partial
 
 import deepchem as dc
-from deepchem.data import Dataset
+from deepchem.data import Dataset, DiskDataset
 from deepchem.splits import Splitter
 from deepchem.splits.splitters import _generate_scaffold
 
@@ -302,13 +303,15 @@ class MultitaskScaffoldSplitter(Splitter):
         return split
 
     def scaffold_diff_fitness(self, 
-                            split_chromosome: List[str]) -> float:
+                            split_chromosome: List[str],
+                            part_a: str,
+                            part_b: str) -> float:
         '''Grades a chromosome based on how well the partitions are separated
 
         Grades the quality of the split based on which scaffolds were alloted to
-        which partitions. The difference between two partitions is measured as
-        the minimum distance between all pairs of scaffolds between the training
-        and test partitions
+        which partitions. The difference between two partitions (part_a and part_b)
+        is measured as the minimum distance between all pairs of scaffolds between 
+        the two given partitions
 
         Parameters
         ----------
@@ -321,8 +324,8 @@ class MultitaskScaffoldSplitter(Splitter):
         score: float
             Floating point value beteween 0-1. 1 is the best score and 0 is the worst
         '''
-        train_scaffolds = [i for i, part in enumerate(split_chromosome) if part=='train']
-        test_scaffolds = [i for i, part in enumerate(split_chromosome) if part=='test']
+        train_scaffolds = [i for i, part in enumerate(split_chromosome) if part==part_a]
+        test_scaffolds = [i for i, part in enumerate(split_chromosome) if part==part_b]
 
         # if a partition is completely empty, return 0
         if len(train_scaffolds) == 0 or len(test_scaffolds) == 0:
@@ -440,14 +443,14 @@ class MultitaskScaffoldSplitter(Splitter):
         float
             A float between 0 and 1. 1 best 0 is worst
         """
-        fitness = self.diff_fitness_weight*self.scaffold_diff_fitness(split_chromosome) \
-                    + self.ratio_fitness_weight*self.ratio_fitness(split_chromosome)
+        fitness = self.diff_fitness_weight_tvt*self.scaffold_diff_fitness(split_chromosome, 'train', 'test') \
+                + self.diff_fitness_weight_tvv*self.scaffold_diff_fitness(split_chromosome, 'train', 'valid') \
+                + self.ratio_fitness_weight*self.ratio_fitness(split_chromosome)
 
         return fitness
 
     def init_scaffolds(self,
-             dataset: Dataset,
-             num_super_scaffolds: int = 20) -> None:
+             dataset: Dataset) -> None:
         """Creates super scaffolds used in splitting
 
         This function sets a 
@@ -457,8 +460,6 @@ class MultitaskScaffoldSplitter(Splitter):
         dataset: Dataset
             Deepchem Dataset. The parameter w must be created and ids must contain
             smiles.
-        num_super_scaffolds: int
-            The number of super scaffolds.
         Returns
         -------
         None
@@ -470,7 +471,8 @@ class MultitaskScaffoldSplitter(Splitter):
 
         # using the same stragetgy as scaffold split, combine the scaffolds
         # together until you have roughly 100 scaffold sets
-        self.ss = smush_small_scaffolds(big_ss, num_super_scaffolds=num_super_scaffolds)
+        self.ss = smush_small_scaffolds(big_ss, num_super_scaffolds=self.num_super_scaffolds)
+        print(f'num_super_scaffolds: {len(self.ss)}, {self.num_super_scaffolds}')
 
         # rows is the number of scaffolds
         # columns is number of tasks
@@ -482,13 +484,14 @@ class MultitaskScaffoldSplitter(Splitter):
             frac_valid: float = 0.1,
             frac_test: float = 0.1,
             seed: Optional[int] = None,
-            diff_fitness_weight: float = 0,
+            diff_fitness_weight_tvt: float = 0,
+            diff_fitness_weight_tvv: float = 0,
             ratio_fitness_weight: float = 1,
             num_super_scaffolds: int = 20,
             num_pop: int = 100,
-            workers: int = 10,
             num_generations: int=30,
-            print_timings: bool = False) -> Tuple:
+            print_timings: bool = False,
+            log_every_n: int = 1000) -> Tuple:
         """Creates a split for the given datset
 
         This split splits the dataset into a list of super scaffolds then
@@ -510,8 +513,11 @@ class MultitaskScaffoldSplitter(Splitter):
             The fraction of data that each task should have in the test partition
         seed: Optional[int]
             Seed for random number generator
-        diff_fitness_weight: float
+        diff_fitness_weight_tvt: float
             Weight for the importance of the difference between training and test
+            partitions
+        diff_fitness_weight_tvv: float
+            Weight for the importance of the difference between training and valid
             partitions
         ratio_fitness_feight: float
             Weight for the importance of ensuring each task has the appropriate
@@ -520,26 +526,33 @@ class MultitaskScaffoldSplitter(Splitter):
             The number of super scaffolds.
         num_pop: int
             Size of the population for the genetic algorithm
-        workers: int
-            Number of workers to parallelize the genetic algorithm
         num_generations: int
             Number of generations to run the genetic algorithm
+        log_every_n: int
+            Controls the logger by dictating how often logger outputs will be produced.
         Returns
         -------
         Tuple
             A tuple with 3 elements that are training, validation, and test compound
             indexes into dataset, respectively
         """
+        if seed is not None:
+            np.random.seed(seed)
+
         self.dataset = dataset
-        self.diff_fitness_weight = diff_fitness_weight
+        self.diff_fitness_weight_tvt = diff_fitness_weight_tvt
+        self.diff_fitness_weight_tvv = diff_fitness_weight_tvv
         self.ratio_fitness_weight = ratio_fitness_weight
+        self.num_super_scaffolds = num_super_scaffolds
+        self.num_pop = num_pop
+        self.num_generations = num_generations
 
         self.frac_train = frac_train
         self.frac_valid = frac_valid
         self.frac_test = frac_test
 
         # set up super scaffolds
-        self.init_scaffolds(self.dataset, num_super_scaffolds)
+        self.init_scaffolds(self.dataset)
 
         # ecpf features
         self.ecfp_features = calc_ecfp(dataset.ids)
@@ -551,7 +564,7 @@ class MultitaskScaffoldSplitter(Splitter):
 
         # initial population
         population = []
-        for i in range(num_pop):
+        for i in range(self.num_pop):
             start = timeit.default_timer()
             split_chromosome = self._split(frac_train=frac_train, frac_valid=frac_valid, 
                                 frac_test=frac_test)
@@ -562,7 +575,7 @@ class MultitaskScaffoldSplitter(Splitter):
         gene_alg = ga.GeneticAlgorithm(population, self.grade, ga_crossover,
                         ga_mutate)
         #gene_alg.iterate(num_generations)
-        for i in range(num_generations):
+        for i in range(self.num_generations):
             gene_alg.step(print_timings=print_timings)
             best_fitness = gene_alg.pop_scores[0]
             print("step %d: best_fitness %0.2f"%(i, best_fitness))
@@ -578,13 +591,10 @@ class MultitaskScaffoldSplitter(Splitter):
     def _split(self,
             frac_train: float = 0.8,
             frac_valid: float = 0.1,
-            frac_test: float = 0.1,
-            seed: Optional[int] = None) -> List[str]:
+            frac_test: float = 0.1) -> List[str]:
         """Return indices for specified split
         Parameters
         ----------
-        seed: int, optional (default None)
-            Random seed to use.
         frac_train: float, optional (default 0.8)
             The fraction of data to be used for the training split.
         frac_valid: float, optional (default 0.1)
@@ -597,9 +607,6 @@ class MultitaskScaffoldSplitter(Splitter):
             A list of strings, index i contains a string, 'train', 'valid', 'test'
             which determines the partition that scaffold belongs to
         """
-        if seed is not None:
-            np.random.seed(seed)
-
         # Figure out how many positive samples we want for each task in each dataset.
         n_tasks = self.scaffold_hists.shape[1]
         y_present = self.scaffold_hists != 0
@@ -650,6 +657,104 @@ class MultitaskScaffoldSplitter(Splitter):
                 split_chromosome[s] = part_name
 
         return split_chromosome
+
+    def train_valid_test_split(self, 
+            dataset: Dataset,
+            frac_train: float = 0.8,
+            frac_valid: float = 0.1,
+            frac_test: float = 0.1,
+            seed: Optional[int] = None,
+            diff_fitness_weight_tvt: float = 0,
+            diff_fitness_weight_tvv: float = 0,
+            ratio_fitness_weight: float = 1,
+            num_super_scaffolds: int = 20,
+            num_pop: int = 100,
+            num_generations: int=30,
+            train_dir: Optional[str] = None,
+            valid_dir: Optional[str] = None,
+            test_dir: Optional[str] = None,
+            log_every_n: int = 1000) -> Tuple[Dataset, Dataset, Dataset]:
+        """Creates a split for the given datset
+
+        This split splits the dataset into a list of super scaffolds then
+        assigns each scaffold into one of three partitions. The scaffolds
+        are assigned using a GeneticAlgorithm and tries to maximize the
+        difference between the training and test partitions as well as ensuring
+        all tasks have an appropriate number of training/validation/test samples
+
+        Parameters
+        ----------
+        dataset: Dataset
+            Deepchem Dataset. The parameter w must be created and ids must contain
+            smiles.
+        frac_train: float
+            The fraction of data that each task should have in the train partition
+        frac_valid: float
+            The fraction of data that each task should have in the valid partition
+        frac_test: float
+            The fraction of data that each task should have in the test partition
+        seed: Optional[int]
+            Seed for random number generator
+        diff_fitness_weight_tvt: float
+            Weight for the importance of the difference between training and test
+            partitions
+        diff_fitness_weight_tvv: float
+            Weight for the importance of the difference between training and valid
+            partitions
+        ratio_fitness_feight: float
+            Weight for the importance of ensuring each task has the appropriate
+            number of samples in training/validation/test
+        num_super_scaffolds: int
+            The number of super scaffolds.
+        num_pop: int
+            Size of the population for the genetic algorithm
+        log_every_n: int
+            Controls the logger by dictating how often logger outputs will be produced.
+        num_generations: int
+            Number of generations to run the genetic algorithm
+        train_dir: str, optional (default None)
+            If specified, the directory in which the generated
+            training dataset should be stored. This is only
+            considered if `isinstance(dataset, dc.data.DiskDataset)`
+        valid_dir: str, optional (default None)
+            If specified, the directory in which the generated
+            valid dataset should be stored. This is only
+            considered if `isinstance(dataset, dc.data.DiskDataset)`
+            is True.
+        test_dir: str, optional (default None)
+            If specified, the directory in which the generated
+            test dataset should be stored. This is only
+            considered if `isinstance(dataset, dc.data.DiskDataset)`
+            is True.
+
+        Returns
+        -------
+        Tuple
+            A tuple with 3 elements that are training, validation, and test compound
+            indexes into dataset, respectively
+        """
+        train_inds, valid_inds, test_inds = self.split(
+            dataset=dataset, frac_train=frac_train,
+            frac_valid=frac_valid, frac_test=frac_test, 
+            seed=seed, diff_fitness_weight_tvt=diff_fitness_weight_tvt,
+            diff_fitness_weight_tvv=diff_fitness_weight_tvv, ratio_fitness_weight=ratio_fitness_weight,
+            num_super_scaffolds=num_super_scaffolds, num_pop=num_pop, num_generations=num_generations,
+            print_timings=False)
+
+        if train_dir is None:
+            train_dir = tempfile.mkdtemp()
+        if valid_dir is None:
+            valid_dir = tempfile.mkdtemp()
+        if test_dir is None:
+            test_dir = tempfile.mkdtemp()
+
+        train_dataset = dataset.select(train_inds, train_dir)
+        valid_dataset = dataset.select(valid_inds, valid_dir)
+        test_dataset = dataset.select(test_inds, test_dir)
+        if isinstance(train_dataset, DiskDataset):
+            train_dataset.memory_cache_size = 40 * (1 << 20)  # 40 MB
+
+        return train_dataset, valid_dataset, test_dataset
 
 def ga_crossover(parents: List[List[str]],
                 num_pop: int) -> List[List[str]]:

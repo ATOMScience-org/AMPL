@@ -52,6 +52,14 @@ pipeline.featurization module
     :undoc-members:
     :show-inheritance:
 
+pipeline.featurize\_importance module
+-----------------------------
+
+.. automodule:: pipeline.featurize_importance
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 pipeline.model\_datasets module
 -------------------------------
 
