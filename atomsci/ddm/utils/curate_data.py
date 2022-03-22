@@ -499,6 +499,40 @@ def get_rdkit_smiles_parent (data):
     return data
 
 
+# ---------------------------------------------------------------------------------------------------------------------------------
+def remove_outlier_replicates(df, response_col='pIC50', id_col='compound_id', max_diff_from_median=1.0):
+    """
+    Examine groups of replicate measurements for compounds identified by compound ID and compute median response
+    for each group. Eliminate measurements that differ by more than a given value from the median; note that
+    in some groups this will result in all replicates being deleted.
+
+    Args:
+        df (DataFrame): Table of compounds and response data
+
+        response_col (str): Column containing response values
+
+        id_col (str): Column containing compound IDs
+
+        max_diff_from_median (float): Maximum absolute difference from median value allowed for retained replicates.
+
+    Returns:
+        result_df (DataFrame): Filtered data frame with outlier replicates removed.
+
+    """
+
+    fr_df = freq_table(df, id_col, min_freq=2)
+    rep_ids = fr_df[id_col].values.tolist()
+    has_rep_df = df[df[id_col].isin(rep_ids)]
+    no_rep_df = df[~df[id_col].isin(rep_ids)]
+    gby = has_rep_df.groupby(id_col)
+    def filter_outliers(g_df):
+        med = np.median(g_df[response_col].values)
+        keep = ( np.abs( g_df[response_col].values - med ) <= max_diff_from_median)
+        return g_df[keep]
+    filt_df = gby.apply(filter_outliers)
+    result_df = pd.concat([filt_df, no_rep_df], ignore_index=True)
+    return result_df
+
 # ******************************************************************************************************************************************
 def average_and_remove_duplicates (column, tolerance, list_bad_duplicates,
         data, max_stdev = 100000, compound_id='CMPD_NUMBER', 
