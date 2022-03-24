@@ -10,7 +10,7 @@
     "shortlist_key": "test_shortlist_with_uuids.csv",
     "datastore": "False",
     "id_col": "compound_id",
-    "smiles_col": "base_rdkit_smiles",
+    "smiles_col": "rdkit_smiles",
     "result_dir": "./shortlist_test",
     "split_only": "False",
     "previously_split": "True",
