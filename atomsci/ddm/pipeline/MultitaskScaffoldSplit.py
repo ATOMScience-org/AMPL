@@ -153,7 +153,6 @@ def dist_smiles_from_ecfp(ecfp1: List[rdkit.DataStructs.cDataStructs.ExplicitBit
     """
     if len(ecfp1) == 0 or len(ecfp2) == 0:
         pass
-        #pdb.set_trace()
     return cd.calc_summary(dist_metrics.tanimoto(ecfp1, ecfp2), calc_type='nearest', 
                         num_nearest=1, within_dset=False)
 
