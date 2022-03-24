@@ -757,7 +757,7 @@ class HyperparameterSearch(object):
         # rdkit_raw b/c it's the fastest and won't have to be redone every split 
         assay_params['featurizer'] = 'computed_descriptors'
         assay_params['descriptor_type'] = 'rdkit_raw'
-        assay_params['previously_featurized'] = False
+        assay_params['previously_featurized'] = True
         assay_params['datastore'] = False
         
         namespace_params = parse.wrapper(assay_params)
