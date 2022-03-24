@@ -1,4 +1,4 @@
-,compound_id,base_rdkit_smiles,relation,pIC50,active,molecule_name,spid
+,compound_id,rdkit_smiles,relation,pIC50,active,molecule_name,spid
 0,3657,NC(=O)NO,<,2.876148359,0,hydroxyurea,494
 1,1349907,Cn1cc[nH]c1=S,<,2.876148359,0,methimazole,565
 2,44561,O=C([O-])P(=O)([O-])[O-],<,2.876148359,0,foscarnet sodium,Chembl_txp_144
