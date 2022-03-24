@@ -6,7 +6,6 @@
     "save_results": "False",
     "verbose": "True",
     "system": "LC",
-    "lc_account":"asccasc",
     "use_shortlist": "True",
     "shortlist_key": "test_shortlist_with_uuids.csv",
     "datastore": "False",
