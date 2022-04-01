@@ -504,14 +504,15 @@ def remove_outlier_replicates(df, response_col='pIC50', id_col='compound_id', ma
     """
     Examine groups of replicate measurements for compounds identified by compound ID and compute median response
     for each group. Eliminate measurements that differ by more than a given value from the median; note that
-    in some groups this will result in all replicates being deleted.
+    in some groups this will result in all replicates being deleted. This function should be used together with
+    `aggregate_assay_data` instead of `average_and_remove_duplicates` to reduce data to a single value per compound.
 
     Args:
         df (DataFrame): Table of compounds and response data
 
         response_col (str): Column containing response values
 
-        id_col (str): Column containing compound IDs
+        id_col (str): Column that uniquely identifies compounds, and therefore measurements to be treated as replicates.
 
         max_diff_from_median (float): Maximum absolute difference from median value allowed for retained replicates.
 
@@ -530,6 +531,8 @@ def remove_outlier_replicates(df, response_col='pIC50', id_col='compound_id', ma
         keep = ( np.abs( g_df[response_col].values - med ) <= max_diff_from_median)
         return g_df[keep]
     filt_df = gby.apply(filter_outliers)
+    n_removed = len(has_rep_df) - len(filt_df)
+    print(f"Removed {n_removed} {response_col} replicate measurements that were > {max_diff_from_median} from median")
     result_df = pd.concat([filt_df, no_rep_df], ignore_index=True)
     return result_df
 
