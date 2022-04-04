@@ -71,10 +71,17 @@ def make_weights(vals):
         w: numpy array same shape as vals, where w[i,j] = 1 if vals[i,j] is nan else w[i,j] = 0
     """
     w = np.ones_like(vals, dtype=np.float32)
+    
+    # sometimes instead of nan, '' is used for missing values
+    vals[vals==''] = np.nan
+    vals = vals.astype(np.float32)
+
     nan_indexes = np.argwhere(np.isnan(vals))
-    w[nan_indexes] = 0
     out_vals = np.copy(vals)
-    out_vals[nan_indexes] = 0
+
+    for r,c in nan_indexes:
+        w[r, c] = 0
+        out_vals[r, c] = 0
 
     return out_vals, w
 
@@ -740,7 +747,7 @@ class DynamicFeaturization(Featurization):
             ##JEA: will set weights to 0 for missing values
             ##JEA: Featurize task results iff they exist.
             dset_df=dset_df.replace(np.nan, "", regex=True)
-            vals, w = dl._convert_df_to_numpy(dset_df, params.response_cols) #, self.id_field)
+            vals, w = make_weights(dset_df[params.response_cols].values) #, self.id_field)
             # Filter out examples where featurization failed.
             vals, w = (vals[is_valid], w[is_valid])
         else:
