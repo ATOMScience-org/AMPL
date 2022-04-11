@@ -26,7 +26,7 @@ Documentation in readthedocs format is available [here](https://ampl.readthedocs
 - [Getting started](#Getting-started)
   - [Prerequisites](#Prerequisites)
   - [Install](#Install)
-     - [Setup to run dgl model](#Install-dgl)
+     - [dgl and CUDA (**optional**)](#Install-dgl)
   - [Install with Docker](#Install-docker)
   - [AMPL usage survey](#AMPL-usage-survey)
 - [Tutorials](#AMPL-tutorials)
@@ -106,7 +106,21 @@ python -m ipykernel install --user --name atomsci
 &nbsp;  
 
 <a name="Install-dgl"></a>
-#### Setup to run dgl model
+#### Some models use [dgl](https://www.dgl.ai/) which requires CUDA. The following steps only apply to these models:
+
+##### If your machine doesn't have CUDA,
+
+Suggestions:
+
+1) [Install CUDA](https://developer.nvidia.com/cuda-11.1.0-download-archive)
+
+2) Set up an environment variable to use CPU instead of GPU
+```
+$ export CUDA_VISIBLE_DEVICES=''
+```
+
+##### If your machine has CUDA,
+
 Go to the `AMPL` root directory and install the AMPL package:
 ```
 conda activate atomsci
@@ -114,7 +128,7 @@ conda activate atomsci
 source set_dgl_env.sh $test_env
 ```
 
-where `$test_env` is the name of the Conda environment to run `dgl` in.
+where `$test_env` is the name of the your current Conda environment to run [dgl](https://www.dgl.ai/) in.
 
 <a name="Install-docker"></a>
 ### Install with Docker
