@@ -24,6 +24,8 @@ from torch.utils.data import DataLoader
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import RandomForestRegressor
 
+import pdb
+
 try:
     import dgl
     import dgllife
@@ -964,7 +966,7 @@ class NNModelWrapper(ModelWrapper):
         '''
         Reverts model to last saved checkpoint
         '''
-        dc_restore(self.model)
+        self.model.restore()
 
     # ****************************************************************************************
     def generate_predictions(self, dataset):
@@ -1381,15 +1383,14 @@ class DCNNModelWrapper(NNModelWrapper):
             checkpoint = ckpt.model_checkpoint_path
         else:
             checkpoint = os.path.join(reload_dir, os.path.basename(ckpt.model_checkpoint_path))
-        dc_restore(self.model, checkpoint=checkpoint)
-
+        self.model.restore(checkpoint=checkpoint)
 
         # Restore the transformers from the datastore or filesystem
         self.reload_transformers()
 
     # ****************************************************************************************
     def restore(self):
-        dc_restore(self.model)
+        self.model.restore()
 
     # ****************************************************************************************
     def get_model_specific_metadata(self):
@@ -2759,7 +2760,7 @@ class KerasDeepChemModelWrapper(PytorchDeepChemModelWrapper):
             checkpoint = ckpt.model_checkpoint_path
         else:
             checkpoint = os.path.join(reload_dir, os.path.basename(ckpt.model_checkpoint_path))
-        dc_restore(self.model, checkpoint=checkpoint)
+        self.model.restore(checkpoint=checkpoint)
 
         # Restore the transformers from the datastore or filesystem
         self.reload_transformers()
@@ -2768,4 +2769,4 @@ class KerasDeepChemModelWrapper(PytorchDeepChemModelWrapper):
         '''
         Restores this model
         '''
-        dc_restore(self.model)
+        self.model.restore()
