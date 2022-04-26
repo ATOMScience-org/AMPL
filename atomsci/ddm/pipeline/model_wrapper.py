@@ -156,9 +156,9 @@ def create_model_wrapper(params, featurizer, ds_client=None):
     """
     if params.model_type == 'NN':
         if params.featurizer == 'graphconv':
-            return GraphConvDeepChemModelWrapper(params, featurizer, ds_client)
+            return GraphConvDCModelWrapper(params, featurizer, ds_client)
         else:
-            return MultiClassDeepChemModelWrapper(params, featurizer, ds_client)
+            return MultitaskDCModelWrapper(params, featurizer, ds_client)
     elif params.model_type == 'RF':
         return DCRFModelWrapper(params, featurizer, ds_client)
     elif params.model_type == 'xgboost':
@@ -2360,7 +2360,7 @@ class PytorchDeepChemModelWrapper(NNModelWrapper):
         self.model.restore()
 
 # ****************************************************************************************
-class MultiClassDeepChemModelWrapper(PytorchDeepChemModelWrapper):
+class MultitaskDCModelWrapper(PytorchDeepChemModelWrapper):
     """Contains methods to load in a dataset, split and featurize the data, fit a model to the train dataset,
     generate predictions for an input dataset, and generate performance metrics for these predictions.
 
@@ -2487,7 +2487,7 @@ class MultiClassDeepChemModelWrapper(PytorchDeepChemModelWrapper):
         to neural network models.
 
         Returns:
-            model_spec_metdata (dict): A dictionary of the parameter sets for the MultiClassDeepChemModelWrapper object.
+            model_spec_metdata (dict): A dictionary of the parameter sets for the MultitaskDCModelWrapper object.
                 Parameters are saved under the key 'nn_specific' as a subdictionary.
         """
         
@@ -2561,7 +2561,7 @@ class KerasDeepChemModelWrapper(PytorchDeepChemModelWrapper):
         dc_restore(self.model, checkpoint, model_dir, session)
 
 # ****************************************************************************************
-class GraphConvDeepChemModelWrapper(KerasDeepChemModelWrapper):
+class GraphConvDCModelWrapper(KerasDeepChemModelWrapper):
     """Contains methods to load in a dataset, split and featurize the data, fit a model to the train dataset,
     generate predictions for an input dataset, and generate performance metrics for these predictions.
 
@@ -2608,7 +2608,7 @@ class GraphConvDeepChemModelWrapper(KerasDeepChemModelWrapper):
     """
 
     def __init__(self, params, featurizer, ds_client):
-        """Initializes GraphConvDeepChemModelWrapper object.
+        """Initializes GraphConvDCModelWrapper object.
 
         Args:
             params (Namespace object): contains all parameter information.
@@ -2688,7 +2688,7 @@ class GraphConvDeepChemModelWrapper(KerasDeepChemModelWrapper):
         to neural network models.
 
         Returns:
-            model_spec_metdata (dict): A dictionary of the parameter sets for the GraphConvDeepChemModelWrapper object.
+            model_spec_metdata (dict): A dictionary of the parameter sets for the GraphConvDCModelWrapper object.
                 Parameters are saved under the key 'nn_specific' as a subdictionary.
         """
         nn_metadata = dict(
