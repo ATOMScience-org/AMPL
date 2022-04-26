@@ -1060,7 +1060,7 @@ def get_parser():
         ('Comma-separated list of initial bias parameters per layer for dense NN models with conditional values. '
          'Defaults to [1.0]*len(layer_sizes). Must be same length as layer_sizes. Can be input as a space-separated '
          'list of comma-separated lists for hyperparameters (e.g. \'1.0,1.0 0.9,0.9 0.8,0.9\'). Default behavior is'
-         ' set within __init__ method of DCNNModelWrapper.  '
+         ' set within __init__ method of relevant ModelWrapper class.  '
          + separator.join(temp_bias_init_consts_string)).rstrip(',')
     parser.add_argument(
         '--bias_init_consts', dest='bias_init_consts', required=False, default=None,
@@ -1072,7 +1072,7 @@ def get_parser():
         ('Comma-separated list of dropout rates per layer for NN models with default values conditional on featurizer.'
          ' Default behavior is controlled in model_wrapper.py. Must be same length as layer_sizes. Can be input as '
          'a space-separated list of comma-separated lists for hyperparameters (e.g. \'0.4,0.4 0.2,0.2 0.3,0.3\'). '
-         'Default behavior is set within __init__ method of DCNNModelWrapper. Defaults: '
+         'Default behavior is set within __init__ method of relevant ModelWrapper class. Defaults: '
          + separator.join(temp_dropout_string)).rstrip(',')
     parser.add_argument(
         '--dropouts', dest='dropouts', required=False, default=None,
@@ -1084,7 +1084,7 @@ def get_parser():
         ('Comma-separated list of layer sizes for NN models with default values conditional on featurizer. Must be'
          ' same length as layer_sizes. Can be input as a space-separated list of comma-separated lists for '
          'hyperparameters (e.g. \'64,16 200,100 1000,500\'). Default behavior is set within __init__ method of '
-         'DCNNModelWrapper. Defaults: '
+         'relevant ModelWrapper class. Defaults: '
          + separator.join(temp_layer_size_string)).rstrip(',')
     parser.add_argument(
         '--layer_sizes', dest='layer_sizes', required=False, default=None,
@@ -1113,7 +1113,7 @@ def get_parser():
         ('Comma-separated list of standard deviations per layer for initializing weights in dense NN models with '
          'conditional values. Must be same length as layer_sizes. Can be input as a space-separated list of '
          'comma-separated lists for hyperparameters (e.g. \'0.001,0.001 0.002,0.002 0.03,003\'). Default behavior is '
-         'set within __init__ method of DCNNModelWrapper. Defaults: '
+         'set within __init__ method of relevant ModelWrapper class. Defaults: '
          + separator.join(temp_weight_init_stddevs_string)).rstrip(',')
     parser.add_argument(
         '--weight_init_stddevs', dest='weight_init_stddevs', required=False, default=None,

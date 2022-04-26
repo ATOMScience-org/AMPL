@@ -63,7 +63,7 @@ Dependencies:
 None
 
 Calls:
-DCNNModelWrapper, DCRFModelWrapper
+MultitaskDCModelWrapper, DCRFModelWrapper
     """
     inp_params = parse.wrapper(general_params)
     featurization = feat.create_featurization(inp_params)
@@ -79,7 +79,7 @@ DCNNModelWrapper, DCRFModelWrapper
     test.append(mdl.best_model_dir == inp_params.output_dir + '/' + 'best_model')
     test.append(mdl.transformers == [])
     test.append(mdl.transformers_x == [])
-    test.append(isinstance(mdl, model_wrapper.DCNNModelWrapper))
+    test.append(isinstance(mdl, model_wrapper.MultitaskDCModelWrapper))
 
     # testing for correct attribute initialization with model_type == "RF"
     temp_params = copy.deepcopy(inp_params)
