@@ -73,7 +73,7 @@ def test_splits():
     mss = MultitaskScaffoldSplitter()
     mss_split_df = split_with(total_df, mss, 
         smiles_col=smiles_col, id_col=id_col, response_cols=response_cols, 
-        diff_fitness_weight=dfw, ratio_fitness_weight=rfw, num_generations=1,
+        diff_fitness_weight_tvt=dfw, ratio_fitness_weight=rfw, num_generations=1,
         num_super_scaffolds=num_super_scaffolds,
         frac_train=frac_train, frac_test=frac_test, frac_valid=frac_valid)
     mss_split_df.to_csv('one_gen_split.csv', index=False)
@@ -89,7 +89,7 @@ def test_splits():
     mss = MultitaskScaffoldSplitter()
     mss_split_df = split_with(total_df, mss, 
         smiles_col=smiles_col, id_col=id_col, response_cols=response_cols, 
-        diff_fitness_weight=dfw, ratio_fitness_weight=rfw,
+        diff_fitness_weight_tvt=dfw, ratio_fitness_weight=rfw,
         num_generations=num_generations,
         num_super_scaffolds=num_super_scaffolds,
         frac_train=frac_train, frac_test=frac_test, frac_valid=frac_valid)
@@ -117,8 +117,8 @@ def test_splits():
     split_c_ss.make_all_plots(dist_path=os.path.join(output_dir, 'scaffold_'))
 
     # median train/test compound distance should have gone up
-    assert np.median(split_a_ss.dists) <= np.median(split_b_ss.dists)
-    assert np.median(split_c_ss.dists) <= np.median(split_b_ss.dists)
+    assert np.median(split_a_ss.dists_tvt) <= np.median(split_b_ss.dists_tvt)
+    assert np.median(split_c_ss.dists_tvt) <= np.median(split_b_ss.dists_tvt)
 
     # no subset should contain 0 samples
     assert np.min(np.concatenate(

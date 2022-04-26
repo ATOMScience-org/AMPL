@@ -24,6 +24,8 @@ from torch.utils.data import DataLoader
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import RandomForestRegressor
 
+import pdb
+
 try:
     import dgl
     import dgllife
@@ -988,7 +990,6 @@ class NNModelWrapper(ModelWrapper):
         Reverts model to last saved checkpoint
         '''
         self.model.restore()
-        #dc_restore(self.model)
 
     # ****************************************************************************************
     def _copy_model(self, dest_dir):
