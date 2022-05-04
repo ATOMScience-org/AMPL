@@ -145,6 +145,7 @@ def plot_tani_dist_distr(df, smiles_col, df_name, radius=2, subset_col='subset',
             substmp=[subs]*len(diststmp)
             diststmp = pd.DataFrame(zip(diststmp,substmp), columns=['dist','subset'])
             dists=pd.concat([dists,diststmp])
+    dists=dists.reset_index(drop=True)
     fig, ax = plt.subplots(figsize=(plot_width, plot_width))
     sns.kdeplot(data=dists[dists.subset!=ref_subset], x='dist', hue='subset', legend=True, common_norm=False, common_grid=True, fill=False, ax=ax)
     ax.set_xlabel('%s distance' % dist_metric)
@@ -153,7 +154,7 @@ def plot_tani_dist_distr(df, smiles_col, df_name, radius=2, subset_col='subset',
         ax.set_title("%s dataset\nDistribution of %s nearest neighbor distances between %s feature vectors" % (
                       df_name, dist_metric, feat_type))
     else: 
-        ax.set_title(f"{df_name} dataset: Distribution of {dist_metric} distances\nbetween {feat_type} feature vectors from non-{ref_subset} subsets to their nearest neighbors in the {ref_subset} subset")
+        ax.set_title(f"{df_name} dataset: Distribution of {dist_metric} distances\nbetween {feat_type} feature vectors from non-{ref_subset} subsets\nto their nearest neighbors in the {ref_subset} subset")
 
     return dists
 
