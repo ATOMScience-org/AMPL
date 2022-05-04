@@ -34,11 +34,11 @@ def test_predict_from_model():
     new_id_col = pred_df[id_col].values
 
     match_rows = all([n == o for n, o in zip(new_id_col, old_id_col)])
-    print(match_rows)
+    print('do all rows match?', match_rows)
     assert all([n == o for n, o in zip(new_id_col, old_id_col)])
 
     score = skm.accuracy_score(shuffled_df[response_col].values, pred_df[response_col+'_pred'].values)
-    print(score)
+    print('accuracy score', score)
     assert score > 0.5
 
 def test_predict_on_dataframe():
@@ -77,13 +77,13 @@ def test_predict_on_dataframe():
     new_id_col = pred_df[id_col].values
 
     match_rows = all([n == o for n, o in zip(new_id_col, old_id_col)])
-    print(match_rows)
+    print('do all rows match?', match_rows)
     assert all([n == o for n, o in zip(new_id_col, old_id_col)])
 
     score = skm.accuracy_score(shuffled_df[response_col].values, pred_df['pred'].values)
-    print(score)
+    print('accuracy score', score)
     assert score > 0.5
 
 if __name__ == '__main__':
     test_predict_on_dataframe()
-#    test_predict_from_model()
+    test_predict_from_model()
