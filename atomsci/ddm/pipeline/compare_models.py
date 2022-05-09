@@ -24,8 +24,6 @@ import atomsci.ddm.pipeline.parameter_parser as parse
 import atomsci.ddm.pipeline.model_wrapper as mw
 import atomsci.ddm.pipeline.featurization as feat
 
-from tensorflow.python.keras.utils.layer_utils import count_params
-
 logger = logging.getLogger('ATOM')
 mlmt_supported = True
 try:
@@ -2127,7 +2125,7 @@ def num_trainable_parameters_from_file(tar_path):
     model_params = parse.wrapper(config)
 
     # Is this an NN model
-    if not model_params.model_type == 'NN':
+    if not (model_params.model_type == 'NN' or model_params.model_type in parse.model_wl):
         raise ValueError('Saved model is not a neural network. Recieved %s'%model_params.model_type)
 
     model_params.save_results = False
@@ -2142,4 +2140,4 @@ def num_trainable_parameters_from_file(tar_path):
     # Create the ModelWrapper object.
     pipeline.model_wrapper = mw.create_model_wrapper(pipeline.params, featurization)
 
-    return count_params(pipeline.model_wrapper.model.model.trainable_weights)
+    return pipeline.model_wrapper.count_params()
