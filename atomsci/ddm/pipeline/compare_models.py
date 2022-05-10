@@ -2131,13 +2131,18 @@ def num_trainable_parameters_from_file(tar_path):
     model_params.save_results = False
     model_params.output_dir = reload_dir
 
-    featurization = feat.create_featurization(model_params)
+    # some models need to be 'built' (graphconv models for one) 
+    # before you can count the paramters
+    # The only sure way to do this with DeepChem is to make some predictions.
+    # This code is adapted from predict_from_model
+    pred_df = pd.DataFrame(data={model_params.id_col:['a', 'b', 'c'],
+        model_params.smiles_col:['OC(CCN1CCCCC1)(c1ccccc1)C1CC2C=CC1C2',
+            'COC(=O)CC1CCCCCC1N1CCN(C(=O)C(C)Cc2ccc(Cl)cc2Cl)CC1',
+            'O=C(O)c1ccc2cccnc2c1N1CCN(CCc2ccc(OCCCN3CCCCCC3)cc2)CC1']})
+    pipe = mp.create_prediction_pipeline_from_file(model_params, 
+        reload_dir=None, model_path=tar_path)
+    pred_df = pipe.predict_full_dataset(pred_df, contains_responses=False, 
+                                        is_featurized=False,
+                                        dset_params=model_params)
 
-    print("Featurization = %s" % str(featurization))
-    # Create a ModelPipeline object
-    pipeline = mp.ModelPipeline(model_params)
-
-    # Create the ModelWrapper object.
-    pipeline.model_wrapper = mw.create_model_wrapper(pipeline.params, featurization)
-
-    return pipeline.model_wrapper.count_params()
+    return pipe.model_wrapper.count_params()
