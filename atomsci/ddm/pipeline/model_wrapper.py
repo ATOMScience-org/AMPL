@@ -55,6 +55,8 @@ from atomsci.ddm.pipeline import transformations as trans
 from atomsci.ddm.pipeline import perf_data as perf
 import atomsci.ddm.pipeline.parameter_parser as pp
 
+from tensorflow.python.keras.utils.layer_utils import count_params
+
 logging.basicConfig(format='%(asctime)-15s %(message)s')
 
 def get_latest_pytorch_checkpoint(model, model_dir=None):
@@ -2359,6 +2361,22 @@ class PytorchDeepChemModelWrapper(NNModelWrapper):
         '''
         self.model.restore()
 
+    def count_params(self):
+        '''
+        Returns the number of trainable parameters
+
+        There's no function implemented in Pytorch that does this so I'm using the
+        solution found here:https://discuss.pytorch.org/t/how-do-i-check-the-number-of-parameters-of-a-model/4325/25
+
+        Args:
+            None
+
+        Returns
+            Int- the number of trainable parameters
+        '''
+        pytorch_total_params = sum(p.numel() for p in self.model.model.parameters() if p.requires_grad)
+        return pytorch_total_params
+
 # ****************************************************************************************
 class MultitaskDCModelWrapper(PytorchDeepChemModelWrapper):
     """Contains methods to load in a dataset, split and featurize the data, fit a model to the train dataset,
@@ -2559,6 +2577,19 @@ class KerasDeepChemModelWrapper(PytorchDeepChemModelWrapper):
         Restores this model
         '''
         dc_restore(self.model, checkpoint, model_dir, session)
+
+    def count_params(self):
+        '''
+        Returns the number of trainable parameters using Keras' count_params function
+
+        Args:
+            None
+
+        Returns
+            Int- the number of trainable parameters using Keras' count_params function
+        '''
+
+        return count_params(self.model.model.trainable_weights)
 
 # ****************************************************************************************
 class GraphConvDCModelWrapper(KerasDeepChemModelWrapper):
