@@ -15,6 +15,12 @@
 
 env=$1
 
+if [ "$env" = "" ];
+then
+    echo -n "Enter the current cond environment: "
+    read env
+fi
+
 # check if it's running on LC or not
 if [ -d "/p/vast1" ]
 then

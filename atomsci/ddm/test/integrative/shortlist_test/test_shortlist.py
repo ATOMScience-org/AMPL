@@ -13,6 +13,7 @@ import json
 
 import atomsci.ddm.pipeline.parameter_parser as parse
 import atomsci.ddm.pipeline.compare_models as cm
+from atomsci.ddm.utils import llnl_utils
 
 def init_data():
     '''
@@ -183,9 +184,12 @@ def test():
 
     # Run shortlist hyperparam search
     # ------------
-    result_df = wait_to_finish("test_shortlist_split_config.json", 
-        "test_shortlist_RF-NN-XG_hyperconfig.json", max_time=-1)
-    assert len(result_df) == 18 # Timed out
+    if llnl_utils.is_lc_system():
+        result_df = wait_to_finish("test_shortlist_split_config.json",
+            "test_shortlist_RF-NN-XG_hyperconfig.json", max_time=-1)
+        assert len(result_df) == 18 # Timed out
+    else:
+        assert True
 
     # Clean
     # -----

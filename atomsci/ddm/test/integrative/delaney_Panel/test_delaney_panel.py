@@ -205,7 +205,7 @@ def train_and_predict(train_json_f, prefix='delaney-processed'):
     # Check training statistics
     # -------------------------
     if prediction_type == 'regression':
-        threshold = 0.6
+        threshold = 0.4
         if 'perf_threshold' in config:
             threshold = float(config['perf_threshold'])
 
