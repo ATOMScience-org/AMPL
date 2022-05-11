@@ -8,6 +8,7 @@ import time
 
 import atomsci.ddm.pipeline.parameter_parser as parse
 import atomsci.ddm.pipeline.compare_models as cm
+from atomsci.ddm.utils import llnl_utils
 
 def clean():
     """
@@ -88,20 +89,24 @@ def test():
 
     # Run ECFP NN hyperparam search
     # ------------
-    result_df = wait_to_finish("nn_ecfp.json", max_time=-1)
-    assert not result_df is None # Timed out
-    assert max(result_df['test_r2_score'].values) > 0.6 # should do at least this well. I saw values like 0.687
+    if llnl_utils.is_lc_system():
+        result_df = wait_to_finish("nn_ecfp.json", max_time=-1)
+        assert not result_df is None # Timed out
+        assert max(result_df['test_r2_score'].values) > 0.6 # should do at least this well. I saw values like 0.687
+    else:
+        assert True
 
     # Clean
     # -----
     clean()
 
-    # Run graphconv NN hyperparam search
-    result_df = wait_to_finish("nn_graphconv.json", max_time=-1)
-    print(result_df)
-    assert not result_df is None # Timed out
-    assert max(result_df['test_r2_score'].values) > 0.6 # should do at least this well. I saw values like 0.62
-
+    if llnl_utils.is_lc_system():
+        # Run graphconv NN hyperparam search
+        result_df = wait_to_finish("nn_graphconv.json", max_time=-1)
+        assert not result_df is None # Timed out
+        assert max(result_df['test_r2_score'].values) > 0.6 # should do at least this well. I saw values like 0.62
+    else:
+        assert True
     # Clean
     # -----
     clean()

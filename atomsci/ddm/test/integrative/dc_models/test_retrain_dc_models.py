@@ -15,6 +15,7 @@ import atomsci.ddm.pipeline.model_pipeline as mp
 import atomsci.ddm.pipeline.predict_from_model as pfm
 import atomsci.ddm.pipeline.parameter_parser as parse
 import atomsci.ddm.utils.model_retrain as mr
+from atomsci.ddm.utils import llnl_utils
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 import integrative_utilities
@@ -86,6 +87,11 @@ def H1_curate():
     assert (os.path.isfile('H1_curated_fit_train_valid_test_scaffold_002251a2-83f8-4511-acf5-e8bbc5f86677.csv'))
 
 def train_and_predict(train_json_f, prefix='delaney-processed'):
+    # ignore if we don't run on LC
+    if not llnl_utils.is_lc_system():
+        assert True
+        return
+
     # Train model
     # -----------
     # Read parameter JSON file
@@ -116,7 +122,7 @@ def train_and_predict(train_json_f, prefix='delaney-processed'):
     # Check training statistics
     # -------------------------
     if prediction_type == 'regression':
-        threshold = 0.6
+        threshold = 0.4
         if 'perf_threshold' in config:
             threshold = float(config['perf_threshold'])
 

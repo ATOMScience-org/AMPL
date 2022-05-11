@@ -2,6 +2,7 @@ import atomsci.ddm.pipeline.model_wrapper as mw
 import logging
 import time
 from argparse import Namespace
+from atomsci.ddm.utils import llnl_utils
 
 def test_LCTimerIterator_too_long():
     # make fake parameters
@@ -20,7 +21,10 @@ def test_LCTimerIterator_too_long():
         # in at most 18 iterations
         time.sleep(10)
 
-    assert params.max_epochs <= 18
+    if llnl_utils.is_lc_system():
+        assert params.max_epochs <= 18
+    else:
+        assert True
 
 def test_LCTimerIterator_finishes_all_epochs():
     # make fake parameters
@@ -51,13 +55,16 @@ def test_LCTimerKFoldIterator_too_long():
     pipeline = Namespace(start_time = time.time())
 
     lcit = mw.LCTimerKFoldIterator(params, pipeline, log)
-    for ei in lcit:
-        # each iteration takes 10 seconds. Since the time limit is
-        # set to 3 minute, this won't reach max_epochs and should quit
-        # in less than 18 iterations
-        time.sleep(10)
+    if llnl_utils.is_lc_system():
+        for ei in lcit:
+            # each iteration takes 10 seconds. Since the time limit is
+            # set to 3 minute, this won't reach max_epochs and should quit
+            # in less than 18 iterations
+            time.sleep(10)
 
-    assert params.max_epochs <= 18
+        assert params.max_epochs <= 18
+    else:
+        assert True
 
 def test_LCTimerKFoldIterator_finishes_all_epochs():
     # make fake parameters
