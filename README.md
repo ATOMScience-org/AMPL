@@ -72,10 +72,10 @@ AMPL is a Python 3 package that has been developed and run in a specific conda e
 
 #### Create conda environment
 <a name="create-conda-env"></a>
-There is a script `install_ampl_env.sh` that will automate the conda env creation and the packages install for you.
+There is a script `create_ampl_env.sh` that will automate the conda env creation and the packages install for you.
 
 ```
-$ source install_ampl_env.sh
+$ source create_ampl_env.sh
 ```
 
 It will 
