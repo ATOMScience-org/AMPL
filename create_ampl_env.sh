@@ -36,6 +36,6 @@ pip install -r pip_requirements.txt
 # 'tensorflow.python.training.experimental.mixed_precision' has no attribute '_register_wrapper_optimizer_cls'
 
 pip uninstall -y keras
-pip install -U tensorflow keras
+pip install -U tensorflow==2.8.0 keras==2.8.0
 
 duration=$(( SECONDS - start ))
