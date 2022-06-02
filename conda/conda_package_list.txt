@@ -102,7 +102,7 @@ https://conda.anaconda.org/conda-forge/noarch/cycler-0.10.0-py_2.tar.bz2
 https://conda.anaconda.org/conda-forge/linux-64/greenlet-1.1.0-py37hcd2ae1e_0.tar.bz2
 https://conda.anaconda.org/conda-forge/linux-64/importlib-metadata-4.4.0-py37h89c1867_0.tar.bz2
 https://conda.anaconda.org/conda-forge/linux-64/kiwisolver-1.3.1-py37h2527ec5_1.tar.bz2
-https://conda.anaconda.org/conda-forge/linux-64/numpy-1.20.3-py37h038b26d_0.tar.bz2
+https://conda.anaconda.org/conda-forge/linux-64/numpy-1.21.0-py37h038b26d_0.tar.bz2
 https://conda.anaconda.org/conda-forge/noarch/packaging-21.3-pyhd8ed1ab_0.tar.bz2
 https://conda.anaconda.org/conda-forge/linux-64/pillow-8.2.0-py37h4600e1f_1.tar.bz2
 https://conda.anaconda.org/conda-forge/linux-64/pycairo-1.20.0-py37hfff247e_1.tar.bz2
