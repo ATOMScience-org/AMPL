@@ -613,7 +613,7 @@ def average_and_remove_duplicates (column, tolerance, list_bad_duplicates,
 
         # 4. Make removal recommendations
         data['Remove_BadDuplicate'] = np.where((data['Perc_Var']>tolerance),1,0)
-        data['Remove_BadDuplicate'] = np.where((data['VALUE_NUM_std']>max_stdev),1,0)
+        data['Remove_BadDuplicate'] = np.where((data['VALUE_NUM_std']>max_stdev),1, data.Remove_BadDuplicate.values)
 
         bad_duplicates = data['Remove_BadDuplicate'].max()  # 0 = no bad duplicates, 1 = bad duplicates
 
