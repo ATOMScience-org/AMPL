@@ -52,10 +52,10 @@ pipeline.featurization module
     :undoc-members:
     :show-inheritance:
 
-pipeline.featurize\_importance module
+pipeline.feature\_importance module
 -----------------------------
 
-.. automodule:: pipeline.featurize_importance
+.. automodule:: pipeline.feature_importance
     :members:
     :undoc-members:
     :show-inheritance:

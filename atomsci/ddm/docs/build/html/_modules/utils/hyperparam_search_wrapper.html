@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>utils.hyperparam_search_wrapper &mdash; ATOM Data-Driven Modeling Pipeline 1.3.0 documentation</title>
+  <title>utils.hyperparam_search_wrapper &mdash; ATOM Data-Driven Modeling Pipeline 1.4.0 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -13,6 +13,7 @@
         <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
         <script src="../../_static/jquery.js"></script>
         <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../../_static/doctools.js"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
@@ -27,7 +28,7 @@
             <a href="../../index.html" class="icon icon-home"> ATOM Data-Driven Modeling Pipeline
           </a>
               <div class="version">
-                1.3.0
+                1.4.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
@@ -831,9 +832,10 @@
             <span class="n">assay_params</span><span class="p">[</span><span class="s1">&#39;response_cols&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">response_cols</span>
             
         <span class="n">assay_params</span><span class="p">[</span><span class="s1">&#39;dataset_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">assay_params</span><span class="p">[</span><span class="s1">&#39;dataset_key&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.csv&#39;</span><span class="p">,</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
-        <span class="c1"># use ecfp b/c it&#39;s fast and doesn&#39;t save anything to file system</span>
-        <span class="n">assay_params</span><span class="p">[</span><span class="s1">&#39;featurizer&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;ecfp&#39;</span>
-        <span class="n">assay_params</span><span class="p">[</span><span class="s1">&#39;previously_featurized&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="c1"># rdkit_raw b/c it&#39;s the fastest and won&#39;t have to be redone every split </span>
+        <span class="n">assay_params</span><span class="p">[</span><span class="s1">&#39;featurizer&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;computed_descriptors&#39;</span>
+        <span class="n">assay_params</span><span class="p">[</span><span class="s1">&#39;descriptor_type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;rdkit_raw&#39;</span>
+        <span class="n">assay_params</span><span class="p">[</span><span class="s1">&#39;previously_featurized&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="n">assay_params</span><span class="p">[</span><span class="s1">&#39;datastore&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
         
         <span class="n">namespace_params</span> <span class="o">=</span> <span class="n">parse</span><span class="o">.</span><span class="n">wrapper</span><span class="p">(</span><span class="n">assay_params</span><span class="p">)</span>
@@ -878,7 +880,7 @@
         <span class="n">rows</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">assay</span><span class="p">,</span> <span class="n">bucket</span><span class="p">,</span> <span class="n">response_cols</span><span class="p">,</span> <span class="n">collection</span> <span class="ow">in</span> <span class="n">datasets</span><span class="p">:</span>
             <span class="n">split_uuids</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;dataset_key&#39;</span><span class="p">:</span> <span class="n">assay</span><span class="p">,</span> <span class="s1">&#39;bucket&#39;</span><span class="p">:</span> <span class="n">bucket</span><span class="p">,</span> <span class="s1">&#39;response_cols&#39;</span><span class="p">:</span><span class="n">response_cols</span><span class="p">,</span> <span class="s1">&#39;collection&#39;</span><span class="p">:</span><span class="n">collection</span><span class="p">}</span>
-            <span class="k">for</span> <span class="n">splitter</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;random&#39;</span><span class="p">,</span> <span class="s1">&#39;scaffold&#39;</span><span class="p">]:</span>
+            <span class="k">for</span> <span class="n">splitter</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;random&#39;</span><span class="p">,</span> <span class="s1">&#39;scaffold&#39;</span><span class="p">,</span> <span class="s1">&#39;fingerprint&#39;</span><span class="p">]:</span>
                 <span class="k">for</span> <span class="n">split_combo</span> <span class="ow">in</span> <span class="p">[[</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.1</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.15</span><span class="p">,</span><span class="mf">0.15</span><span class="p">],[</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.2</span><span class="p">],[</span><span class="mf">0.2</span><span class="p">,</span><span class="mf">0.2</span><span class="p">]]:</span>
                     <span class="n">split_name</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">_</span><span class="si">%d</span><span class="s2">_</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">splitter</span><span class="p">,</span> <span class="n">split_combo</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="mi">100</span><span class="p">,</span> <span class="n">split_combo</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="mi">100</span><span class="p">)</span>
                     <span class="k">try</span><span class="p">:</span>
@@ -931,7 +933,7 @@
         <span class="n">rows</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">assay</span><span class="p">,</span> <span class="n">bucket</span><span class="p">,</span> <span class="n">response_cols</span><span class="p">,</span> <span class="n">collection</span> <span class="ow">in</span> <span class="n">datasets</span><span class="p">:</span>
             <span class="n">split_uuids</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;dataset_key&#39;</span><span class="p">:</span> <span class="n">assay</span><span class="p">,</span> <span class="s1">&#39;bucket&#39;</span><span class="p">:</span> <span class="n">bucket</span><span class="p">,</span> <span class="s1">&#39;response_cols&#39;</span><span class="p">:</span><span class="n">response_cols</span><span class="p">,</span> <span class="s1">&#39;collection&#39;</span><span class="p">:</span><span class="n">collection</span><span class="p">}</span>
-            <span class="k">for</span> <span class="n">splitter</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;random&#39;</span><span class="p">,</span> <span class="s1">&#39;scaffold&#39;</span><span class="p">]:</span>
+            <span class="k">for</span> <span class="n">splitter</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;random&#39;</span><span class="p">,</span> <span class="s1">&#39;scaffold&#39;</span><span class="p">,</span><span class="s1">&#39;fingerprint&#39;</span><span class="p">]:</span>
                 <span class="k">for</span> <span class="n">split_combo</span> <span class="ow">in</span> <span class="p">[[</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.1</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.15</span><span class="p">,</span><span class="mf">0.15</span><span class="p">],[</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.2</span><span class="p">],[</span><span class="mf">0.2</span><span class="p">,</span><span class="mf">0.2</span><span class="p">]]:</span>
                     <span class="n">split_name</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">_</span><span class="si">%d</span><span class="s2">_</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">splitter</span><span class="p">,</span> <span class="n">split_combo</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="mi">100</span><span class="p">,</span> <span class="n">split_combo</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="mi">100</span><span class="p">)</span>
                     <span class="k">try</span><span class="p">:</span>
@@ -945,7 +947,6 @@
         <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span>
         <span class="n">fname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">shortlist_key</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.csv&#39;</span><span class="p">,</span><span class="s1">&#39;_with_uuids.csv&#39;</span><span class="p">)</span>
         <span class="n">df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
-        
 
 <div class="viewcode-block" id="HyperparameterSearch.get_shortlist_df"><a class="viewcode-back" href="../../utils.html#utils.hyperparam_search_wrapper.HyperparameterSearch.get_shortlist_df">[docs]</a>    <span class="k">def</span> <span class="nf">get_shortlist_df</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">split_uuids</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">retry_time</span><span class="o">=</span><span class="mi">60</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>

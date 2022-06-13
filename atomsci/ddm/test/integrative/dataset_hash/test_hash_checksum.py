@@ -15,7 +15,7 @@ def clean():
     Clean test files
     """
     if "result" not in os.listdir():
-        os.mkdir("output")
+        os.mkdir("result")
     for f in os.listdir("./result"):
         if os.path.isfile("./result/"+f):
             os.remove("./result/"+f)

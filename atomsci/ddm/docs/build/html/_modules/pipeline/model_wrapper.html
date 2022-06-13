@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>pipeline.model_wrapper &mdash; ATOM Data-Driven Modeling Pipeline 1.3.0 documentation</title>
+  <title>pipeline.model_wrapper &mdash; ATOM Data-Driven Modeling Pipeline 1.4.0 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -13,6 +13,7 @@
         <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
         <script src="../../_static/jquery.js"></script>
         <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../../_static/doctools.js"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
@@ -27,7 +28,7 @@
             <a href="../../index.html" class="icon icon-home"> ATOM Data-Driven Modeling Pipeline
           </a>
               <div class="version">
-                1.3.0
+                1.4.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
@@ -101,6 +102,8 @@
 <span class="kn">from</span> <span class="nn">sklearn.ensemble</span> <span class="kn">import</span> <span class="n">RandomForestClassifier</span>
 <span class="kn">from</span> <span class="nn">sklearn.ensemble</span> <span class="kn">import</span> <span class="n">RandomForestRegressor</span>
 
+<span class="kn">import</span> <span class="nn">pdb</span>
+
 <span class="k">try</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">dgl</span>
     <span class="kn">import</span> <span class="nn">dgllife</span>
@@ -130,7 +133,36 @@
 <span class="kn">from</span> <span class="nn">atomsci.ddm.pipeline</span> <span class="kn">import</span> <span class="n">perf_data</span> <span class="k">as</span> <span class="n">perf</span>
 <span class="kn">import</span> <span class="nn">atomsci.ddm.pipeline.parameter_parser</span> <span class="k">as</span> <span class="nn">pp</span>
 
+<span class="kn">from</span> <span class="nn">tensorflow.python.keras.utils.layer_utils</span> <span class="kn">import</span> <span class="n">count_params</span>
+
 <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="nb">format</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%(asctime)-15s</span><span class="s1"> </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="get_latest_pytorch_checkpoint"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.get_latest_pytorch_checkpoint">[docs]</a><span class="k">def</span> <span class="nf">get_latest_pytorch_checkpoint</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">model_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Gets the latest torch model</span>
+
+<span class="sd">    Calls get_checkpoints(), sorts them, and returns the</span>
+<span class="sd">    latest model (the one with the biggets number)</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        model: A model that inherits DeepChem TorchModel</span>
+<span class="sd">        model_dir: Optional argument that directs the model</span>
+<span class="sd">            to a specific folder</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        path relative to model_dir, if provided, to the latest</span>
+<span class="sd">        checkpoint</span>
+
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">chkpts</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get_checkpoints</span><span class="p">(</span><span class="n">model_dir</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">chkpts</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">chkpts</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No &#39;best&#39; checkpoint found. deepchem.Model.get_checkpoints() is empty&quot;</span><span class="p">)</span>
+    <span class="c1"># checkpoint with the highest number is the best one</span>
+    <span class="n">latest_chkpt</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">chkpts</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">getctime</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">latest_chkpt</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">latest_chkpt</span></div>
+ 
 
 <div class="viewcode-block" id="dc_restore"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.dc_restore">[docs]</a><span class="k">def</span> <span class="nf">dc_restore</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">checkpoint</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">model_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">session</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Reload the values of all variables from a checkpoint file.</span>
@@ -203,7 +235,10 @@
 <span class="sd">        ValueError: Only params.model_type = &#39;NN&#39;, &#39;RF&#39; or &#39;xgboost&#39; is supported.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">model_type</span> <span class="o">==</span> <span class="s1">&#39;NN&#39;</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">DCNNModelWrapper</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">featurizer</span><span class="p">,</span> <span class="n">ds_client</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">featurizer</span> <span class="o">==</span> <span class="s1">&#39;graphconv&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">GraphConvDCModelWrapper</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">featurizer</span><span class="p">,</span> <span class="n">ds_client</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">MultitaskDCModelWrapper</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">featurizer</span><span class="p">,</span> <span class="n">ds_client</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">params</span><span class="o">.</span><span class="n">model_type</span> <span class="o">==</span> <span class="s1">&#39;RF&#39;</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">DCRFModelWrapper</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">featurizer</span><span class="p">,</span> <span class="n">ds_client</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">params</span><span class="o">.</span><span class="n">model_type</span> <span class="o">==</span> <span class="s1">&#39;xgboost&#39;</span><span class="p">:</span>
@@ -834,13 +869,6 @@
         <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">dest_dir</span><span class="p">)</span>
 
     <span class="c1"># ****************************************************************************************</span>
-    <span class="k">def</span> <span class="nf">restore</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">        Restores the model to the last available checkpoint</span>
-<span class="sd">        &#39;&#39;&#39;</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
-
-    <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="NNModelWrapper.train"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.NNModelWrapper.train">[docs]</a>    <span class="k">def</span> <span class="nf">train</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pipeline</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Trains a neural net model for multiple epochs, choose the epoch with the best validation</span>
 <span class="sd">        set performance, refits the model for that number of epochs, and saves the tuned model.</span>
@@ -849,7 +877,7 @@
 <span class="sd">            pipeline (ModelPipeline): The ModelPipeline instance for this model run.</span>
 
 <span class="sd">        Side effects:</span>
-<span class="sd">            Sets the following attributes for DCNNModelWrapper:</span>
+<span class="sd">            Sets the following attributes for NNModelWrapper:</span>
 <span class="sd">                data (ModelDataset): contains the dataset, set in pipeline</span>
 
 <span class="sd">                best_epoch (int): Initialized as None, keeps track of the epoch with the best validation score</span>
@@ -883,7 +911,7 @@
 <span class="sd">            pipeline (ModelPipeline): The ModelPipeline instance for this model run.</span>
 
 <span class="sd">        Side effects:</span>
-<span class="sd">            Sets the following attributes for DCNNModelWrapper:</span>
+<span class="sd">            Sets the following attributes for NNModelWrapper:</span>
 <span class="sd">                data (ModelDataset): contains the dataset, set in pipeline</span>
 
 <span class="sd">                best_epoch (int): Initialized as None, keeps track of the epoch with the best validation score</span>
@@ -985,7 +1013,7 @@
 <span class="sd">            pipeline (ModelPipeline): The ModelPipeline instance for this model run.</span>
 
 <span class="sd">        Side effects:</span>
-<span class="sd">            Sets the following attributes for DCNNModelWrapper:</span>
+<span class="sd">            Sets the following attributes for NNModelWrapper:</span>
 <span class="sd">                data (ModelDataset): contains the dataset, set in pipeline</span>
 
 <span class="sd">                best_epoch (int): Initialized as None, keeps track of the epoch with the best validation score</span>
@@ -1041,7 +1069,25 @@
         <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Reverts model to last saved checkpoint</span>
 <span class="sd">        &#39;&#39;&#39;</span>
-        <span class="n">dc_restore</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">)</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">restore</span><span class="p">()</span></div>
+
+    <span class="c1"># ****************************************************************************************</span>
+    <span class="k">def</span> <span class="nf">_copy_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dest_dir</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Copies the files needed to recreate a DeepChem NN model from the current model</span>
+<span class="sd">        directory to a destination directory.</span>
+
+<span class="sd">        Looks at self.model.get_checkpoints() and assumes the last checkpoint saved is the best</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dest_dir (str): The destination directory for the model files</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">chkpt_file</span> <span class="o">=</span> <span class="n">get_latest_pytorch_checkpoint</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_clean_up_excess_files</span><span class="p">(</span><span class="n">dest_dir</span><span class="p">)</span>
+
+        <span class="n">shutil</span><span class="o">.</span><span class="n">copy2</span><span class="p">(</span><span class="n">chkpt_file</span><span class="p">,</span> <span class="n">dest_dir</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Saved model files to &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">dest_dir</span><span class="p">)</span>
+
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="NNModelWrapper.generate_predictions"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.NNModelWrapper.generate_predictions">[docs]</a>    <span class="k">def</span> <span class="nf">generate_predictions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="p">):</span>
@@ -1113,390 +1159,6 @@
                     <span class="n">pred</span> <span class="o">=</span> <span class="n">pred</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">pred</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">pred</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">1</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">pred</span><span class="p">,</span> <span class="n">std</span></div></div>
 
-<span class="c1"># ****************************************************************************************</span>
-<div class="viewcode-block" id="DCNNModelWrapper"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.DCNNModelWrapper">[docs]</a><span class="k">class</span> <span class="nc">DCNNModelWrapper</span><span class="p">(</span><span class="n">NNModelWrapper</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Contains methods to load in a dataset, split and featurize the data, fit a model to the train dataset,</span>
-<span class="sd">    generate predictions for an input dataset, and generate performance metrics for these predictions.</span>
-
-<span class="sd">    Attributes:</span>
-<span class="sd">        Set in __init__</span>
-<span class="sd">            params (argparse.Namespace): The argparse.Namespace parameter object that contains all parameter information</span>
-<span class="sd">            featurziation (Featurization object): The featurization object created outside of model_wrapper</span>
-
-<span class="sd">            log (log): The logger</span>
-
-<span class="sd">            output_dir (str): The parent path of the model directory</span>
-
-<span class="sd">            transformers (list): Initialized as an empty list, stores the transformers on the response col</span>
-
-<span class="sd">            transformers_x (list): Initialized as an empty list, stores the transformers on the featurizers</span>
-
-<span class="sd">            model_dir (str): The subdirectory under output_dir that contains the model. Created in setup_model_dirs.</span>
-
-<span class="sd">            best_model_dir (str): The subdirectory under output_dir that contains the best model. Created in setup_model_dirs</span>
-
-<span class="sd">            g: The tensorflow graph object</span>
-
-<span class="sd">            sess: The tensor flow graph session</span>
-
-<span class="sd">            model: The dc.models.GraphConvModel, MultitaskRegressor, or MultitaskClassifier object, as specified by the params attribute</span>
-
-<span class="sd">        Created in train:</span>
-<span class="sd">            data (ModelDataset): contains the dataset, set in pipeline</span>
-
-<span class="sd">            best_epoch (int): Initialized as None, keeps track of the epoch with the best validation score</span>
-
-<span class="sd">            train_perf_data (np.array of PerfData): Initialized as an empty array, </span>
-<span class="sd">                contains the predictions and performance of the training dataset</span>
-
-<span class="sd">            valid_perf_data (np.array of PerfData): Initialized as an empty array,</span>
-<span class="sd">                contains the predictions and performance of the validation dataset</span>
-
-<span class="sd">            train_epoch_perfs (np.array of dicts): Initialized as an empty array,</span>
-<span class="sd">                contains a list of dictionaries of predicted values and metrics on the training dataset</span>
-
-<span class="sd">            valid_epoch_perfs (np.array of dicts): Initialized as an empty array,</span>
-<span class="sd">                contains a list of dictionaries of predicted values and metrics on the validation dataset</span>
-
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">featurizer</span><span class="p">,</span> <span class="n">ds_client</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Initializes DCNNModelWrapper object.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            params (Namespace object): contains all parameter information.</span>
-
-<span class="sd">            featurizer (Featurizer object): initialized outside of model_wrapper</span>
-
-<span class="sd">        Side effects:</span>
-<span class="sd">            params (argparse.Namespace): The argparse.Namespace parameter object that contains all parameter information</span>
-
-<span class="sd">            featurziation (Featurization object): The featurization object created outside of model_wrapper</span>
-
-<span class="sd">            log (log): The logger</span>
-
-<span class="sd">            output_dir (str): The parent path of the model directory</span>
-
-<span class="sd">            transformers (list): Initialized as an empty list, stores the transformers on the response col</span>
-
-<span class="sd">            transformers_x (list): Initialized as an empty list, stores the transformers on the featurizers</span>
-
-<span class="sd">            g: The tensorflow graph object</span>
-
-<span class="sd">            sess: The tensor flow graph session</span>
-
-<span class="sd">            model: The dc.models.GraphConvModel, MultitaskRegressor, or MultitaskClassifier object, as specified by the params attribute</span>
-
-
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">featurizer</span><span class="p">,</span> <span class="n">ds_client</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">g</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">Graph</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">sess</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">compat</span><span class="o">.</span><span class="n">v1</span><span class="o">.</span><span class="n">Session</span><span class="p">(</span><span class="n">graph</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">g</span><span class="p">)</span>
-        <span class="n">n_features</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_num_features</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">num_epochs_trained</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;This method is deprecated and will not be supported in the future&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">featurizer</span> <span class="o">==</span> <span class="s1">&#39;graphconv&#39;</span><span class="p">:</span>
-
-            <span class="c1"># Set defaults for layer sizes and dropouts, if not specified by caller. Note that</span>
-            <span class="c1"># these depend on the featurizer used.</span>
-
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">layer_sizes</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">layer_sizes</span> <span class="o">=</span> <span class="p">[</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">128</span><span class="p">]</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">dropouts</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">uncertainty</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">dropouts</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.25</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">layer_sizes</span><span class="p">)</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">dropouts</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">layer_sizes</span><span class="p">)</span>
-
-            <span class="c1"># TODO: Need to check that GraphConvModel params are actually being used</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">dc</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">GraphConvModel</span><span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">num_model_tasks</span><span class="p">,</span>
-                <span class="n">batch_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span>
-                <span class="n">learning_rate</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">learning_rate</span><span class="p">,</span>
-                <span class="n">learning_rate_decay_time</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
-                <span class="n">optimizer_type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">optimizer_type</span><span class="p">,</span>
-                <span class="n">beta1</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span>
-                <span class="n">beta2</span><span class="o">=</span><span class="mf">0.999</span><span class="p">,</span>
-                <span class="n">model_dir</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">model_dir</span><span class="p">,</span>
-                <span class="n">mode</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">prediction_type</span><span class="p">,</span>
-                <span class="n">tensorboard</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                <span class="n">uncertainty</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">uncertainty</span><span class="p">,</span>
-                <span class="n">graph_conv_layers</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">layer_sizes</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
-                <span class="n">dense_layer_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">layer_sizes</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
-                <span class="n">dropout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">dropouts</span><span class="p">,</span>
-                <span class="n">penalty</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">weight_decay_penalty</span><span class="p">,</span>
-                <span class="n">penalty_type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">weight_decay_penalty_type</span><span class="p">)</span>
-
-        <span class="k">else</span><span class="p">:</span>
-            <span class="c1"># Set defaults for layer sizes and dropouts, if not specified by caller. Note that</span>
-            <span class="c1"># default layer sizes depend on the featurizer used.</span>
-
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">layer_sizes</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">featurizer</span> <span class="o">==</span> <span class="s1">&#39;ecfp&#39;</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">layer_sizes</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">500</span><span class="p">]</span>
-                <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">featurizer</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;descriptors&#39;</span><span class="p">,</span> <span class="s1">&#39;computed_descriptors&#39;</span><span class="p">]:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">layer_sizes</span> <span class="o">=</span> <span class="p">[</span><span class="mi">200</span><span class="p">,</span> <span class="mi">100</span><span class="p">]</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="c1"># Shouldn&#39;t happen</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;You need to define default layer sizes for featurizer </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span>
-                                     <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">featurizer</span><span class="p">)</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">layer_sizes</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">500</span><span class="p">]</span>
-
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">dropouts</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">dropouts</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.4</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">layer_sizes</span><span class="p">)</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">weight_init_stddevs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">weight_init_stddevs</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.02</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">layer_sizes</span><span class="p">)</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">bias_init_consts</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">bias_init_consts</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">layer_sizes</span><span class="p">)</span>
-
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">prediction_type</span> <span class="o">==</span> <span class="s1">&#39;regression&#39;</span><span class="p">:</span>
-
-                <span class="c1"># TODO: Need to check that MultitaskRegressor params are actually being used</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">MultitaskRegressor</span><span class="p">(</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">num_model_tasks</span><span class="p">,</span>
-                    <span class="n">n_features</span><span class="p">,</span>
-                    <span class="n">layer_sizes</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">layer_sizes</span><span class="p">,</span>
-                    <span class="n">dropouts</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">dropouts</span><span class="p">,</span>
-                    <span class="n">weight_init_stddevs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">weight_init_stddevs</span><span class="p">,</span>
-                    <span class="n">bias_init_consts</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">bias_init_consts</span><span class="p">,</span>
-                    <span class="n">learning_rate</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">learning_rate</span><span class="p">,</span>
-                    <span class="n">weight_decay_penalty</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">weight_decay_penalty</span><span class="p">,</span>
-                    <span class="n">weight_decay_penalty_type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">weight_decay_penalty_type</span><span class="p">,</span>
-                    <span class="n">batch_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span>
-                    <span class="n">seed</span><span class="o">=</span><span class="mi">123</span><span class="p">,</span>
-                    <span class="n">verbosity</span><span class="o">=</span><span class="s1">&#39;low&#39;</span><span class="p">,</span>
-                    <span class="n">model_dir</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">model_dir</span><span class="p">,</span>
-                    <span class="n">learning_rate_decay_time</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
-                    <span class="n">beta1</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span>
-                    <span class="n">beta2</span><span class="o">=</span><span class="mf">0.999</span><span class="p">,</span>
-                    <span class="n">mode</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">prediction_type</span><span class="p">,</span>
-                    <span class="n">tensorboard</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                    <span class="n">uncertainty</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">uncertainty</span><span class="p">)</span>
-
-                <span class="c1"># print(&quot;JEA debug&quot;,self.params.num_model_tasks,n_features,self.params.layer_sizes,self.params.weight_init_stddevs,self.params.bias_init_consts,self.params.dropouts,self.params.weight_decay_penalty,self.params.weight_decay_penalty_type,self.params.batch_size,self.params.learning_rate)</span>
-                <span class="c1"># self.model = MultitaskRegressor(</span>
-                <span class="c1">#     self.params.num_model_tasks,</span>
-                <span class="c1">#     n_features,</span>
-                <span class="c1">#     layer_sizes=self.params.layer_sizes,</span>
-                <span class="c1">#     weight_init_stddevs=self.params.weight_init_stddevs,</span>
-                <span class="c1">#     bias_init_consts=self.params.bias_init_consts,</span>
-                <span class="c1">#     dropouts=self.params.dropouts,</span>
-                <span class="c1">#     weight_decay_penalty=self.params.weight_decay_penalty,</span>
-                <span class="c1">#     weight_decay_penalty_type=self.params.weight_decay_penalty_type,</span>
-                <span class="c1">#     batch_size=self.params.batch_size,</span>
-                <span class="c1">#     learning_rate=self.params.learning_rate,</span>
-                <span class="c1">#     seed=123)</span>
-
-            <span class="k">else</span><span class="p">:</span>
-                <span class="c1"># TODO: Need to check that MultitaskClassifier params are actually being used</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">MultitaskClassifier</span><span class="p">(</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">num_model_tasks</span><span class="p">,</span>
-                    <span class="n">n_features</span><span class="p">,</span>
-                    <span class="n">layer_sizes</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">layer_sizes</span><span class="p">,</span>
-                    <span class="n">dropouts</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">dropouts</span><span class="p">,</span>
-                    <span class="n">weight_init_stddevs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">weight_init_stddevs</span><span class="p">,</span>
-                    <span class="n">bias_init_consts</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">bias_init_consts</span><span class="p">,</span>
-                    <span class="n">learning_rate</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">learning_rate</span><span class="p">,</span>
-                    <span class="n">weight_decay_penalty</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">weight_decay_penalty</span><span class="p">,</span>
-                    <span class="n">weight_decay_penalty_type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">weight_decay_penalty_type</span><span class="p">,</span>
-                    <span class="n">batch_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span>
-                    <span class="n">seed</span><span class="o">=</span><span class="mi">123</span><span class="p">,</span>
-                    <span class="n">verbosity</span><span class="o">=</span><span class="s1">&#39;low&#39;</span><span class="p">,</span>
-                    <span class="n">model_dir</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">model_dir</span><span class="p">,</span>
-                    <span class="n">learning_rate_decay_time</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
-                    <span class="n">beta1</span><span class="o">=</span><span class="mf">.9</span><span class="p">,</span>
-                    <span class="n">beta2</span><span class="o">=</span><span class="mf">.999</span><span class="p">,</span>
-                    <span class="n">mode</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">prediction_type</span><span class="p">,</span>
-                    <span class="n">tensorboard</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                    <span class="n">n_classes</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">class_number</span><span class="p">)</span>
-
-    <span class="c1"># ****************************************************************************************</span>
-<div class="viewcode-block" id="DCNNModelWrapper.recreate_model"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.DCNNModelWrapper.recreate_model">[docs]</a>    <span class="k">def</span> <span class="nf">recreate_model</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Creates a new DeepChem Model object of the correct type for the requested featurizer and prediction type </span>
-<span class="sd">        and returns it.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">featurizer</span> <span class="o">==</span> <span class="s1">&#39;graphconv&#39;</span><span class="p">:</span>
-            <span class="n">model</span> <span class="o">=</span> <span class="n">dc</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">GraphConvModel</span><span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">num_model_tasks</span><span class="p">,</span>
-                <span class="n">batch_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span>
-                <span class="n">learning_rate</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">learning_rate</span><span class="p">,</span>
-                <span class="n">learning_rate_decay_time</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
-                <span class="n">optimizer_type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">optimizer_type</span><span class="p">,</span>
-                <span class="n">beta1</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span>
-                <span class="n">beta2</span><span class="o">=</span><span class="mf">0.999</span><span class="p">,</span>
-                <span class="n">model_dir</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">model_dir</span><span class="p">,</span>
-                <span class="n">mode</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">prediction_type</span><span class="p">,</span>
-                <span class="n">tensorboard</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                <span class="n">uncertainty</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">uncertainty</span><span class="p">,</span>
-                <span class="n">graph_conv_layers</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">layer_sizes</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
-                <span class="n">dense_layer_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">layer_sizes</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
-                <span class="n">dropout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">dropouts</span><span class="p">,</span>
-                <span class="n">penalty</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">weight_decay_penalty</span><span class="p">,</span>
-                <span class="n">penalty_type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">weight_decay_penalty_type</span><span class="p">)</span>
-
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">n_features</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_num_features</span><span class="p">()</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">prediction_type</span> <span class="o">==</span> <span class="s1">&#39;regression&#39;</span><span class="p">:</span>
-                <span class="n">model</span> <span class="o">=</span> <span class="n">MultitaskRegressor</span><span class="p">(</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">num_model_tasks</span><span class="p">,</span>
-                    <span class="n">n_features</span><span class="p">,</span>
-                    <span class="n">layer_sizes</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">layer_sizes</span><span class="p">,</span>
-                    <span class="n">dropouts</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">dropouts</span><span class="p">,</span>
-                    <span class="n">weight_init_stddevs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">weight_init_stddevs</span><span class="p">,</span>
-                    <span class="n">bias_init_consts</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">bias_init_consts</span><span class="p">,</span>
-                    <span class="n">learning_rate</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">learning_rate</span><span class="p">,</span>
-                    <span class="n">weight_decay_penalty</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">weight_decay_penalty</span><span class="p">,</span>
-                    <span class="n">weight_decay_penalty_type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">weight_decay_penalty_type</span><span class="p">,</span>
-                    <span class="n">batch_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span>
-                    <span class="n">seed</span><span class="o">=</span><span class="mi">123</span><span class="p">,</span>
-                    <span class="n">verbosity</span><span class="o">=</span><span class="s1">&#39;low&#39;</span><span class="p">,</span>
-                    <span class="n">model_dir</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">model_dir</span><span class="p">,</span>
-                    <span class="n">learning_rate_decay_time</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
-                    <span class="n">beta1</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span>
-                    <span class="n">beta2</span><span class="o">=</span><span class="mf">0.999</span><span class="p">,</span>
-                    <span class="n">mode</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">prediction_type</span><span class="p">,</span>
-                    <span class="n">tensorboard</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                    <span class="n">uncertainty</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">uncertainty</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">model</span> <span class="o">=</span> <span class="n">MultitaskClassifier</span><span class="p">(</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">num_model_tasks</span><span class="p">,</span>
-                    <span class="n">n_features</span><span class="p">,</span>
-                    <span class="n">layer_sizes</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">layer_sizes</span><span class="p">,</span>
-                    <span class="n">dropouts</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">dropouts</span><span class="p">,</span>
-                    <span class="n">weight_init_stddevs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">weight_init_stddevs</span><span class="p">,</span>
-                    <span class="n">bias_init_consts</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">bias_init_consts</span><span class="p">,</span>
-                    <span class="n">learning_rate</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">learning_rate</span><span class="p">,</span>
-                    <span class="n">weight_decay_penalty</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">weight_decay_penalty</span><span class="p">,</span>
-                    <span class="n">weight_decay_penalty_type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">weight_decay_penalty_type</span><span class="p">,</span>
-                    <span class="n">batch_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span>
-                    <span class="n">seed</span><span class="o">=</span><span class="mi">123</span><span class="p">,</span>
-                    <span class="n">verbosity</span><span class="o">=</span><span class="s1">&#39;low&#39;</span><span class="p">,</span>
-                    <span class="n">model_dir</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">model_dir</span><span class="p">,</span>
-                    <span class="n">learning_rate_decay_time</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
-                    <span class="n">beta1</span><span class="o">=</span><span class="mf">.9</span><span class="p">,</span>
-                    <span class="n">beta2</span><span class="o">=</span><span class="mf">.999</span><span class="p">,</span>
-                    <span class="n">mode</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">prediction_type</span><span class="p">,</span>
-                    <span class="n">tensorboard</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                    <span class="n">n_classes</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">class_number</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="n">model</span></div>
-
-    <span class="c1"># ****************************************************************************************</span>
-    <span class="k">def</span> <span class="nf">_copy_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dest_dir</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Copies the files needed to recreate a DeepChem NN model from the current model</span>
-<span class="sd">        directory to a destination directory.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            dest_dir (str): The destination directory for the model files</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="n">chkpt_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model_dir</span><span class="p">,</span> <span class="s1">&#39;checkpoint&#39;</span><span class="p">)</span>
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">chkpt_file</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">chkpt_in</span><span class="p">:</span>
-            <span class="n">chkpt_dict</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">chkpt_in</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
-        <span class="n">chkpt_prefix</span> <span class="o">=</span> <span class="n">chkpt_dict</span><span class="p">[</span><span class="s1">&#39;model_checkpoint_path&#39;</span><span class="p">]</span>
-        <span class="n">files</span> <span class="o">=</span> <span class="p">[</span><span class="n">chkpt_file</span><span class="p">]</span>
-        <span class="c1"># files.append(os.path.join(self.model_dir, &#39;model.pickle&#39;))</span>
-        <span class="n">files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model_dir</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">.index&#39;</span> <span class="o">%</span> <span class="n">chkpt_prefix</span><span class="p">))</span>
-        <span class="c1"># files.append(os.path.join(self.model_dir, &#39;%s.meta&#39; % chkpt_prefix))</span>
-        <span class="n">files</span> <span class="o">=</span> <span class="n">files</span> <span class="o">+</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model_dir</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">.data-*&#39;</span> <span class="o">%</span> <span class="n">chkpt_prefix</span><span class="p">))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_clean_up_excess_files</span><span class="p">(</span><span class="n">dest_dir</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
-            <span class="n">shutil</span><span class="o">.</span><span class="n">copy2</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">dest_dir</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Saved model files to &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">dest_dir</span><span class="p">)</span>
-
-    <span class="c1"># ****************************************************************************************</span>
-<div class="viewcode-block" id="DCNNModelWrapper.reload_model"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.DCNNModelWrapper.reload_model">[docs]</a>    <span class="k">def</span> <span class="nf">reload_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reload_dir</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Loads a saved neural net model from the specified directory.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            reload_dir (str): Directory where saved model is located.</span>
-<span class="sd">            model_dataset (ModelDataset Object): contains the current full dataset</span>
-
-<span class="sd">        Side effects:</span>
-<span class="sd">            Resets the value of model, transformers, transformers_x and transformers_w</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">featurizer</span> <span class="o">==</span> <span class="s1">&#39;graphconv&#39;</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">dc</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">GraphConvModel</span><span class="p">(</span>
-                <span class="n">n_tasks</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">num_model_tasks</span><span class="p">,</span>
-                <span class="n">n_features</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_num_features</span><span class="p">(),</span>
-                <span class="n">batch_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span>
-                <span class="n">model_dir</span><span class="o">=</span><span class="n">reload_dir</span><span class="p">,</span>
-                <span class="n">uncertainty</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">uncertainty</span><span class="p">,</span>
-                <span class="n">graph_conv_layers</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">layer_sizes</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
-                <span class="n">dense_layer_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">layer_sizes</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
-                <span class="n">dropout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">dropouts</span><span class="p">,</span>
-                <span class="n">learning_rate</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">learning_rate</span><span class="p">,</span>
-                <span class="n">mode</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">prediction_type</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">prediction_type</span> <span class="o">==</span> <span class="s1">&#39;regression&#39;</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">MultitaskRegressor</span><span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">num_model_tasks</span><span class="p">,</span>
-                <span class="n">n_features</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_num_features</span><span class="p">(),</span>
-                <span class="n">layer_sizes</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">layer_sizes</span><span class="p">,</span>
-                <span class="n">dropouts</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">dropouts</span><span class="p">,</span>
-                <span class="n">weight_init_stddevs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">weight_init_stddevs</span><span class="p">,</span>
-                <span class="n">bias_init_consts</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">bias_init_consts</span><span class="p">,</span>
-                <span class="n">weight_decay_penalty</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">weight_decay_penalty</span><span class="p">,</span>
-                <span class="n">weight_decay_penalty_type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">weight_decay_penalty_type</span><span class="p">,</span>
-                <span class="n">model_dir</span><span class="o">=</span><span class="n">reload_dir</span><span class="p">,</span>
-                <span class="n">learning_rate</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">learning_rate</span><span class="p">,</span>
-                <span class="n">uncertainty</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">uncertainty</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">MultitaskClassifier</span><span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">num_model_tasks</span><span class="p">,</span>
-                <span class="n">n_features</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_num_features</span><span class="p">(),</span>
-                <span class="n">layer_sizes</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">layer_sizes</span><span class="p">,</span>
-                <span class="n">dropouts</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">dropouts</span><span class="p">,</span>
-                <span class="n">weight_init_stddevs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">weight_init_stddevs</span><span class="p">,</span>
-                <span class="n">bias_init_consts</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">bias_init_consts</span><span class="p">,</span>
-                <span class="n">weight_decay_penalty</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">weight_decay_penalty</span><span class="p">,</span>
-                <span class="n">weight_decay_penalty_type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">weight_decay_penalty_type</span><span class="p">,</span>
-                <span class="n">model_dir</span><span class="o">=</span><span class="n">reload_dir</span><span class="p">,</span>
-                <span class="n">learning_rate</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">learning_rate</span><span class="p">,</span>
-                <span class="n">n_classes</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">class_number</span><span class="p">)</span>
-        <span class="c1"># Hack to run models trained in DeepChem 2.1 with DeepChem 2.2</span>
-        <span class="c1"># self.model.default_outputs = self.model.outputs</span>
-        <span class="c1"># Get latest checkpoint path transposed to current model dir</span>
-        <span class="n">ckpt</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">get_checkpoint_state</span><span class="p">(</span><span class="n">reload_dir</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">ckpt</span><span class="o">.</span><span class="n">model_checkpoint_path</span><span class="si">}</span><span class="s2">.index&quot;</span><span class="p">):</span>
-            <span class="n">checkpoint</span> <span class="o">=</span> <span class="n">ckpt</span><span class="o">.</span><span class="n">model_checkpoint_path</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">checkpoint</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">reload_dir</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">ckpt</span><span class="o">.</span><span class="n">model_checkpoint_path</span><span class="p">))</span>
-        <span class="n">dc_restore</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="n">checkpoint</span><span class="o">=</span><span class="n">checkpoint</span><span class="p">)</span>
-
-
-        <span class="c1"># Restore the transformers from the datastore or filesystem</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">reload_transformers</span><span class="p">()</span></div>
-
-    <span class="c1"># ****************************************************************************************</span>
-<div class="viewcode-block" id="DCNNModelWrapper.restore"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.DCNNModelWrapper.restore">[docs]</a>    <span class="k">def</span> <span class="nf">restore</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">dc_restore</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">)</span></div>
-
-    <span class="c1"># ****************************************************************************************</span>
-<div class="viewcode-block" id="DCNNModelWrapper.get_model_specific_metadata"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.DCNNModelWrapper.get_model_specific_metadata">[docs]</a>    <span class="k">def</span> <span class="nf">get_model_specific_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns a dictionary of parameter settings for this ModelWrapper object that are specific</span>
-<span class="sd">        to neural network models.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            model_spec_metdata (dict): A dictionary of the parameter sets for the DCNNModelWrapper object.</span>
-<span class="sd">                Parameters are saved under the key &#39;nn_specific&#39; as a subdictionary.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">nn_metadata</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
-                    <span class="n">best_epoch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">best_epoch</span><span class="p">,</span>
-                    <span class="n">max_epochs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">max_epochs</span><span class="p">,</span>
-                    <span class="n">batch_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span>
-                    <span class="n">optimizer_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">optimizer_type</span><span class="p">,</span>
-                    <span class="n">layer_sizes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">layer_sizes</span><span class="p">,</span>
-                    <span class="n">dropouts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">dropouts</span><span class="p">,</span>
-                    <span class="n">weight_init_stddevs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">weight_init_stddevs</span><span class="p">,</span>
-                    <span class="n">bias_init_consts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">bias_init_consts</span><span class="p">,</span>
-                    <span class="n">learning_rate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">learning_rate</span><span class="p">,</span>
-                    <span class="n">weight_decay_penalty</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">weight_decay_penalty</span><span class="p">,</span>
-                    <span class="n">weight_decay_penalty_type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">weight_decay_penalty_type</span>
-        <span class="p">)</span>
-        <span class="n">model_spec_metadata</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">nn_specific</span> <span class="o">=</span> <span class="n">nn_metadata</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">model_spec_metadata</span></div></div>
-       
 <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="HybridModelWrapper"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.HybridModelWrapper">[docs]</a><span class="k">class</span> <span class="nc">HybridModelWrapper</span><span class="p">(</span><span class="n">NNModelWrapper</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;A wrapper for hybrid models, contains methods to load in a dataset, split and featurize the data, fit a model to the train dataset,</span>
@@ -2385,7 +2047,6 @@
                                          <span class="n">gpu_id</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span>
                                          <span class="n">n_gpus</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
                                          <span class="n">max_bin</span> <span class="o">=</span> <span class="mi">16</span><span class="p">,</span>
-                                         <span class="n">seed</span><span class="o">=</span><span class="mi">0</span>
                                          <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">xgb_model</span> <span class="o">=</span> <span class="n">xgb</span><span class="o">.</span><span class="n">XGBClassifier</span><span class="p">(</span><span class="n">max_depth</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">xgb_max_depth</span><span class="p">,</span>
@@ -2411,7 +2072,6 @@
                                           <span class="n">n_jobs</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>                                          
                                           <span class="n">n_gpus</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
                                           <span class="n">max_bin</span> <span class="o">=</span> <span class="mi">16</span><span class="p">,</span>
-                                          <span class="n">seed</span><span class="o">=</span><span class="mi">0</span>
                                          <span class="p">)</span>
 
         <span class="k">return</span> <span class="n">dc</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">sklearn_models</span><span class="o">.</span><span class="n">SklearnModel</span><span class="p">(</span><span class="n">xgb_model</span><span class="p">,</span> <span class="n">model_dir</span><span class="o">=</span><span class="n">model_dir</span><span class="p">)</span></div>
@@ -2522,7 +2182,6 @@
                                          <span class="n">gpu_id</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span>
                                          <span class="n">n_gpus</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
                                          <span class="n">max_bin</span> <span class="o">=</span> <span class="mi">16</span><span class="p">,</span>
-                                         <span class="n">seed</span><span class="o">=</span><span class="mi">0</span>
                                          <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">xgb_model</span> <span class="o">=</span> <span class="n">xgb</span><span class="o">.</span><span class="n">XGBClassifier</span><span class="p">(</span><span class="n">max_depth</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">xgb_max_depth</span><span class="p">,</span>
@@ -2548,7 +2207,6 @@
                                          <span class="n">n_jobs</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>                                          
                                          <span class="n">n_gpus</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
                                          <span class="n">max_bin</span> <span class="o">=</span> <span class="mi">16</span><span class="p">,</span>
-                                         <span class="n">seed</span><span class="o">=</span><span class="mi">0</span>
                                          <span class="p">)</span>
 
         <span class="c1"># Restore the transformers from the datastore or filesystem</span>
@@ -2706,7 +2364,7 @@
 <span class="sd">            featurizer (Featurization): Object managing the featurization of compounds</span>
 <span class="sd">            ds_client: datastore client.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># use NNModelWrapper init. Not DCNNModelWrapper</span>
+        <span class="c1"># use NNModelWrapper init. </span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">featurizer</span><span class="p">,</span> <span class="n">ds_client</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">num_epochs_trained</span> <span class="o">=</span> <span class="mi">0</span>
 
@@ -2753,10 +2411,8 @@
 <span class="sd">            Resets the value of model, transformers, and transformers_x</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">recreate_model</span><span class="p">(</span><span class="n">model_dir</span><span class="o">=</span><span class="n">reload_dir</span><span class="p">)</span>
-        <span class="n">chkpts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">get_checkpoints</span><span class="p">()</span>
-
         <span class="c1"># checkpoint with the highest number is the best one</span>
-        <span class="n">best_chkpt</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">chkpts</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> 
+        <span class="n">best_chkpt</span> <span class="o">=</span> <span class="n">get_latest_pytorch_checkpoint</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">restore</span><span class="p">(</span><span class="n">best_chkpt</span><span class="p">,</span> <span class="n">reload_dir</span><span class="p">)</span>
 
         <span class="c1"># Restore the transformers from the datastore or filesystem</span>
@@ -2768,7 +2424,7 @@
 <span class="sd">        to neural network models.</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            model_spec_metdata (dict): A dictionary of the parameter sets for the DCNNModelWrapper object.</span>
+<span class="sd">            model_spec_metdata (dict): A dictionary of the parameter sets for the NNModelWrapper object.</span>
 <span class="sd">                Parameters are saved under the key &#39;nn_specific&#39; as a subdictionary.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">nn_metadata</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">extract_model_params</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">,</span> <span class="n">strip_prefix</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
@@ -2783,26 +2439,171 @@
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">restore</span><span class="p">()</span></div>
 
-    <span class="c1"># ****************************************************************************************</span>
-    <span class="k">def</span> <span class="nf">_copy_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dest_dir</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Copies the files needed to recreate a DeepChem NN model from the current model</span>
-<span class="sd">        directory to a destination directory.</span>
+<div class="viewcode-block" id="PytorchDeepChemModelWrapper.count_params"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.PytorchDeepChemModelWrapper.count_params">[docs]</a>    <span class="k">def</span> <span class="nf">count_params</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Returns the number of trainable parameters</span>
 
-<span class="sd">        Looks at self.model.get_checkpoints() and assumes the last checkpoint saved is the best</span>
+<span class="sd">        There&#39;s no function implemented in Pytorch that does this so I&#39;m using the</span>
+<span class="sd">        solution found here:https://discuss.pytorch.org/t/how-do-i-check-the-number-of-parameters-of-a-model/4325/25</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            dest_dir (str): The destination directory for the model files</span>
+<span class="sd">            None</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">            Int- the number of trainable parameters</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">pytorch_total_params</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">numel</span><span class="p">()</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">()</span> <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">requires_grad</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">pytorch_total_params</span></div></div>
+
+<span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="MultitaskDCModelWrapper"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.MultitaskDCModelWrapper">[docs]</a><span class="k">class</span> <span class="nc">MultitaskDCModelWrapper</span><span class="p">(</span><span class="n">PytorchDeepChemModelWrapper</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Contains methods to load in a dataset, split and featurize the data, fit a model to the train dataset,</span>
+<span class="sd">    generate predictions for an input dataset, and generate performance metrics for these predictions.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        Set in __init__</span>
+<span class="sd">            params (argparse.Namespace): The argparse.Namespace parameter object that contains all parameter information</span>
+<span class="sd">            featurziation (Featurization object): The featurization object created outside of model_wrapper</span>
+
+<span class="sd">            log (log): The logger</span>
+
+<span class="sd">            output_dir (str): The parent path of the model directory</span>
+
+<span class="sd">            transformers (list): Initialized as an empty list, stores the transformers on the response col</span>
+
+<span class="sd">            transformers_x (list): Initialized as an empty list, stores the transformers on the featurizers</span>
+
+<span class="sd">            model_dir (str): The subdirectory under output_dir that contains the model. Created in setup_model_dirs.</span>
+
+<span class="sd">            best_model_dir (str): The subdirectory under output_dir that contains the best model. Created in setup_model_dirs</span>
+
+<span class="sd">            g: The tensorflow graph object</span>
+
+<span class="sd">            sess: The tensor flow graph session</span>
+
+<span class="sd">            model: The dc.models.GraphConvModel, MultitaskRegressor, or MultitaskClassifier object, as specified by the params attribute</span>
+
+<span class="sd">        Created in train:</span>
+<span class="sd">            data (ModelDataset): contains the dataset, set in pipeline</span>
+
+<span class="sd">            best_epoch (int): Initialized as None, keeps track of the epoch with the best validation score</span>
+
+<span class="sd">            train_perf_data (np.array of PerfData): Initialized as an empty array, </span>
+<span class="sd">                contains the predictions and performance of the training dataset</span>
+
+<span class="sd">            valid_perf_data (np.array of PerfData): Initialized as an empty array,</span>
+<span class="sd">                contains the predictions and performance of the validation dataset</span>
+
+<span class="sd">            train_epoch_perfs (np.array of dicts): Initialized as an empty array,</span>
+<span class="sd">                contains a list of dictionaries of predicted values and metrics on the training dataset</span>
+
+<span class="sd">            valid_epoch_perfs (np.array of dicts): Initialized as an empty array,</span>
+<span class="sd">                contains a list of dictionaries of predicted values and metrics on the validation dataset</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="MultitaskDCModelWrapper.recreate_model"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.MultitaskDCModelWrapper.recreate_model">[docs]</a>    <span class="k">def</span> <span class="nf">recreate_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Creates a new DeepChem Model object of the correct type for the requested featurizer and prediction type </span>
+<span class="sd">        and returns it.</span>
+
+<span class="sd">        reload_dir (str): Directory where saved model is located.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">chkpts</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">get_checkpoints</span><span class="p">())</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">chkpts</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No &#39;best&#39; checkpoint found. deepchem.Model.get_checkpoints() is empty&quot;</span><span class="p">)</span>
-        <span class="n">chkpt_file</span> <span class="o">=</span> <span class="n">chkpts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="c1"># most recent is best</span>
+        <span class="k">if</span> <span class="n">model_dir</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">model_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_dir</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_clean_up_excess_files</span><span class="p">(</span><span class="n">dest_dir</span><span class="p">)</span>
+        <span class="n">n_features</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_num_features</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">layer_sizes</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">featurizer</span> <span class="o">==</span> <span class="s1">&#39;ecfp&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">layer_sizes</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">500</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">featurizer</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;descriptors&#39;</span><span class="p">,</span> <span class="s1">&#39;computed_descriptors&#39;</span><span class="p">]:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">layer_sizes</span> <span class="o">=</span> <span class="p">[</span><span class="mi">200</span><span class="p">,</span> <span class="mi">100</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># Shouldn&#39;t happen</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;You need to define default layer sizes for featurizer </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span>
+                                    <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">featurizer</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">layer_sizes</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">500</span><span class="p">]</span>
 
-        <span class="n">shutil</span><span class="o">.</span><span class="n">copy2</span><span class="p">(</span><span class="n">chkpt_file</span><span class="p">,</span> <span class="n">dest_dir</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Saved model files to &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">dest_dir</span><span class="p">)</span></div>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">dropouts</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">dropouts</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.4</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">layer_sizes</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">weight_init_stddevs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">weight_init_stddevs</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.02</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">layer_sizes</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">bias_init_consts</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">bias_init_consts</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">layer_sizes</span><span class="p">)</span>
 
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">prediction_type</span> <span class="o">==</span> <span class="s1">&#39;regression&#39;</span><span class="p">:</span>
+
+            <span class="c1"># TODO: Need to check that MultitaskRegressor params are actually being used</span>
+            <span class="n">model</span> <span class="o">=</span> <span class="n">MultitaskRegressor</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">num_model_tasks</span><span class="p">,</span>
+                <span class="n">n_features</span><span class="p">,</span>
+                <span class="n">layer_sizes</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">layer_sizes</span><span class="p">,</span>
+                <span class="n">dropouts</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">dropouts</span><span class="p">,</span>
+                <span class="n">weight_init_stddevs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">weight_init_stddevs</span><span class="p">,</span>
+                <span class="n">bias_init_consts</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">bias_init_consts</span><span class="p">,</span>
+                <span class="n">learning_rate</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">learning_rate</span><span class="p">,</span>
+                <span class="n">weight_decay_penalty</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">weight_decay_penalty</span><span class="p">,</span>
+                <span class="n">weight_decay_penalty_type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">weight_decay_penalty_type</span><span class="p">,</span>
+                <span class="n">batch_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span>
+                <span class="n">verbosity</span><span class="o">=</span><span class="s1">&#39;low&#39;</span><span class="p">,</span>
+                <span class="n">model_dir</span><span class="o">=</span><span class="n">model_dir</span><span class="p">,</span>
+                <span class="n">learning_rate_decay_time</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
+                <span class="n">beta1</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span>
+                <span class="n">beta2</span><span class="o">=</span><span class="mf">0.999</span><span class="p">,</span>
+                <span class="n">mode</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">prediction_type</span><span class="p">,</span>
+                <span class="n">tensorboard</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                <span class="n">uncertainty</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">uncertainty</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># TODO: Need to check that MultitaskClassifier params are actually being used</span>
+            <span class="n">model</span> <span class="o">=</span> <span class="n">MultitaskClassifier</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">num_model_tasks</span><span class="p">,</span>
+                <span class="n">n_features</span><span class="p">,</span>
+                <span class="n">layer_sizes</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">layer_sizes</span><span class="p">,</span>
+                <span class="n">dropouts</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">dropouts</span><span class="p">,</span>
+                <span class="n">weight_init_stddevs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">weight_init_stddevs</span><span class="p">,</span>
+                <span class="n">bias_init_consts</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">bias_init_consts</span><span class="p">,</span>
+                <span class="n">learning_rate</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">learning_rate</span><span class="p">,</span>
+                <span class="n">weight_decay_penalty</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">weight_decay_penalty</span><span class="p">,</span>
+                <span class="n">weight_decay_penalty_type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">weight_decay_penalty_type</span><span class="p">,</span>
+                <span class="n">batch_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span>
+                <span class="n">verbosity</span><span class="o">=</span><span class="s1">&#39;low&#39;</span><span class="p">,</span>
+                <span class="n">model_dir</span><span class="o">=</span><span class="n">model_dir</span><span class="p">,</span>
+                <span class="n">learning_rate_decay_time</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
+                <span class="n">beta1</span><span class="o">=.</span><span class="mi">9</span><span class="p">,</span>
+                <span class="n">beta2</span><span class="o">=.</span><span class="mi">999</span><span class="p">,</span>
+                <span class="n">mode</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">prediction_type</span><span class="p">,</span>
+                <span class="n">tensorboard</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                <span class="n">n_classes</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">class_number</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">model</span></div>
+
+    <span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="MultitaskDCModelWrapper.get_model_specific_metadata"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.MultitaskDCModelWrapper.get_model_specific_metadata">[docs]</a>    <span class="k">def</span> <span class="nf">get_model_specific_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns a dictionary of parameter settings for this ModelWrapper object that are specific</span>
+<span class="sd">        to neural network models.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            model_spec_metdata (dict): A dictionary of the parameter sets for the MultitaskDCModelWrapper object.</span>
+<span class="sd">                Parameters are saved under the key &#39;nn_specific&#39; as a subdictionary.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">nn_metadata</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+                    <span class="n">best_epoch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">best_epoch</span><span class="p">,</span>
+                    <span class="n">max_epochs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">max_epochs</span><span class="p">,</span>
+                    <span class="n">batch_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span>
+                    <span class="n">optimizer_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">optimizer_type</span><span class="p">,</span>
+                    <span class="n">layer_sizes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">layer_sizes</span><span class="p">,</span>
+                    <span class="n">dropouts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">dropouts</span><span class="p">,</span>
+                    <span class="n">weight_init_stddevs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">weight_init_stddevs</span><span class="p">,</span>
+                    <span class="n">bias_init_consts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">bias_init_consts</span><span class="p">,</span>
+                    <span class="n">learning_rate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">learning_rate</span><span class="p">,</span>
+                    <span class="n">weight_decay_penalty</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">weight_decay_penalty</span><span class="p">,</span>
+                    <span class="n">weight_decay_penalty_type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">weight_decay_penalty_type</span>
+        <span class="p">)</span>
+        <span class="n">model_spec_metadata</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">nn_specific</span> <span class="o">=</span> <span class="n">nn_metadata</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">model_spec_metadata</span></div></div>
+
+<span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="KerasDeepChemModelWrapper"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.KerasDeepChemModelWrapper">[docs]</a><span class="k">class</span> <span class="nc">KerasDeepChemModelWrapper</span><span class="p">(</span><span class="n">PytorchDeepChemModelWrapper</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">_copy_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dest_dir</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Copies the files needed to recreate a DeepChem NN model from the current model</span>
@@ -2844,16 +2645,178 @@
             <span class="n">checkpoint</span> <span class="o">=</span> <span class="n">ckpt</span><span class="o">.</span><span class="n">model_checkpoint_path</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">checkpoint</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">reload_dir</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">ckpt</span><span class="o">.</span><span class="n">model_checkpoint_path</span><span class="p">))</span>
-        <span class="n">dc_restore</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="n">checkpoint</span><span class="o">=</span><span class="n">checkpoint</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">restore</span><span class="p">(</span><span class="n">checkpoint</span><span class="o">=</span><span class="n">checkpoint</span><span class="p">)</span>
 
         <span class="c1"># Restore the transformers from the datastore or filesystem</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">reload_transformers</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="KerasDeepChemModelWrapper.restore"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.KerasDeepChemModelWrapper.restore">[docs]</a>    <span class="k">def</span> <span class="nf">restore</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="KerasDeepChemModelWrapper.restore"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.KerasDeepChemModelWrapper.restore">[docs]</a>    <span class="k">def</span> <span class="nf">restore</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">checkpoint</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">model_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">session</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Restores this model</span>
 <span class="sd">        &#39;&#39;&#39;</span>
-        <span class="n">dc_restore</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">)</span></div></div>
+        <span class="n">dc_restore</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="n">checkpoint</span><span class="p">,</span> <span class="n">model_dir</span><span class="p">,</span> <span class="n">session</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="KerasDeepChemModelWrapper.count_params"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.KerasDeepChemModelWrapper.count_params">[docs]</a>    <span class="k">def</span> <span class="nf">count_params</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Returns the number of trainable parameters using Keras&#39; count_params function</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            None</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">            Int- the number of trainable parameters using Keras&#39; count_params function</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="k">return</span> <span class="n">count_params</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">trainable_weights</span><span class="p">)</span></div></div>
+
+<span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="GraphConvDCModelWrapper"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.GraphConvDCModelWrapper">[docs]</a><span class="k">class</span> <span class="nc">GraphConvDCModelWrapper</span><span class="p">(</span><span class="n">KerasDeepChemModelWrapper</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Contains methods to load in a dataset, split and featurize the data, fit a model to the train dataset,</span>
+<span class="sd">    generate predictions for an input dataset, and generate performance metrics for these predictions.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        Set in __init__</span>
+<span class="sd">            params (argparse.Namespace): The argparse.Namespace parameter object that contains all parameter information</span>
+<span class="sd">            featurziation (Featurization object): The featurization object created outside of model_wrapper</span>
+
+<span class="sd">            log (log): The logger</span>
+
+<span class="sd">            output_dir (str): The parent path of the model directory</span>
+
+<span class="sd">            transformers (list): Initialized as an empty list, stores the transformers on the response col</span>
+
+<span class="sd">            transformers_x (list): Initialized as an empty list, stores the transformers on the featurizers</span>
+
+<span class="sd">            model_dir (str): The subdirectory under output_dir that contains the model. Created in setup_model_dirs.</span>
+
+<span class="sd">            best_model_dir (str): The subdirectory under output_dir that contains the best model. Created in setup_model_dirs</span>
+
+<span class="sd">            g: The tensorflow graph object</span>
+
+<span class="sd">            sess: The tensor flow graph session</span>
+
+<span class="sd">            model: The dc.models.GraphConvModel, MultitaskRegressor, or MultitaskClassifier object, as specified by the params attribute</span>
+
+<span class="sd">        Created in train:</span>
+<span class="sd">            data (ModelDataset): contains the dataset, set in pipeline</span>
+
+<span class="sd">            best_epoch (int): Initialized as None, keeps track of the epoch with the best validation score</span>
+
+<span class="sd">            train_perf_data (np.array of PerfData): Initialized as an empty array, </span>
+<span class="sd">                contains the predictions and performance of the training dataset</span>
+
+<span class="sd">            valid_perf_data (np.array of PerfData): Initialized as an empty array,</span>
+<span class="sd">                contains the predictions and performance of the validation dataset</span>
+
+<span class="sd">            train_epoch_perfs (np.array of dicts): Initialized as an empty array,</span>
+<span class="sd">                contains a list of dictionaries of predicted values and metrics on the training dataset</span>
+
+<span class="sd">            valid_epoch_perfs (np.array of dicts): Initialized as an empty array,</span>
+<span class="sd">                contains a list of dictionaries of predicted values and metrics on the validation dataset</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">featurizer</span><span class="p">,</span> <span class="n">ds_client</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initializes GraphConvDCModelWrapper object.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            params (Namespace object): contains all parameter information.</span>
+
+<span class="sd">            featurizer (Featurizer object): initialized outside of model_wrapper</span>
+
+<span class="sd">        Side effects:</span>
+<span class="sd">            params (argparse.Namespace): The argparse.Namespace parameter object that contains all parameter information</span>
+
+<span class="sd">            featurziation (Featurization object): The featurization object created outside of model_wrapper</span>
+
+<span class="sd">            log (log): The logger</span>
+
+<span class="sd">            output_dir (str): The parent path of the model directory</span>
+
+<span class="sd">            transformers (list): Initialized as an empty list, stores the transformers on the response col</span>
+
+<span class="sd">            transformers_x (list): Initialized as an empty list, stores the transformers on the featurizers</span>
+
+<span class="sd">            g: The tensorflow graph object</span>
+
+<span class="sd">            sess: The tensor flow graph session</span>
+
+<span class="sd">            model: The dc.models.GraphConvModel, MultitaskRegressor, or MultitaskClassifier object, as specified by the params attribute</span>
+
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">featurizer</span><span class="p">,</span> <span class="n">ds_client</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">g</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">Graph</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sess</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">compat</span><span class="o">.</span><span class="n">v1</span><span class="o">.</span><span class="n">Session</span><span class="p">(</span><span class="n">graph</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">g</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_epochs_trained</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">recreate_model</span><span class="p">(</span><span class="n">model_dir</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">model_dir</span><span class="p">)</span>
+
+    <span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="GraphConvDCModelWrapper.recreate_model"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.GraphConvDCModelWrapper.recreate_model">[docs]</a>    <span class="k">def</span> <span class="nf">recreate_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Creates a new DeepChem Model object of the correct type for the requested featurizer and prediction type </span>
+<span class="sd">        and returns it.</span>
+
+<span class="sd">        reload_dir (str): Directory where saved model is located.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">model_dir</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">model_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_dir</span>
+
+        <span class="c1"># Set defaults for layer sizes and dropouts, if not specified by caller. Note that</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">layer_sizes</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">layer_sizes</span> <span class="o">=</span> <span class="p">[</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">128</span><span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">dropouts</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">uncertainty</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">dropouts</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.25</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">layer_sizes</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">dropouts</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">layer_sizes</span><span class="p">)</span>
+
+        <span class="n">model</span> <span class="o">=</span> <span class="n">dc</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">GraphConvModel</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">num_model_tasks</span><span class="p">,</span>
+            <span class="n">batch_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span>
+            <span class="n">learning_rate</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">learning_rate</span><span class="p">,</span>
+            <span class="n">learning_rate_decay_time</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
+            <span class="n">optimizer_type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">optimizer_type</span><span class="p">,</span>
+            <span class="n">beta1</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span>
+            <span class="n">beta2</span><span class="o">=</span><span class="mf">0.999</span><span class="p">,</span>
+            <span class="n">model_dir</span><span class="o">=</span><span class="n">model_dir</span><span class="p">,</span>
+            <span class="n">mode</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">prediction_type</span><span class="p">,</span>
+            <span class="n">tensorboard</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">uncertainty</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">uncertainty</span><span class="p">,</span>
+            <span class="n">graph_conv_layers</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">layer_sizes</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+            <span class="n">dense_layer_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">layer_sizes</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+            <span class="n">dropout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">dropouts</span><span class="p">,</span>
+            <span class="n">penalty</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">weight_decay_penalty</span><span class="p">,</span>
+            <span class="n">penalty_type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">weight_decay_penalty_type</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">model</span></div>
+
+    <span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="GraphConvDCModelWrapper.get_model_specific_metadata"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.GraphConvDCModelWrapper.get_model_specific_metadata">[docs]</a>    <span class="k">def</span> <span class="nf">get_model_specific_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns a dictionary of parameter settings for this ModelWrapper object that are specific</span>
+<span class="sd">        to neural network models.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            model_spec_metdata (dict): A dictionary of the parameter sets for the GraphConvDCModelWrapper object.</span>
+<span class="sd">                Parameters are saved under the key &#39;nn_specific&#39; as a subdictionary.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">nn_metadata</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+                    <span class="n">best_epoch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">best_epoch</span><span class="p">,</span>
+                    <span class="n">max_epochs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">max_epochs</span><span class="p">,</span>
+                    <span class="n">batch_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span>
+                    <span class="n">optimizer_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">optimizer_type</span><span class="p">,</span>
+                    <span class="n">layer_sizes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">layer_sizes</span><span class="p">,</span>
+                    <span class="n">dropouts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">dropouts</span><span class="p">,</span>
+                    <span class="n">weight_init_stddevs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">weight_init_stddevs</span><span class="p">,</span>
+                    <span class="n">bias_init_consts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">bias_init_consts</span><span class="p">,</span>
+                    <span class="n">learning_rate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">learning_rate</span><span class="p">,</span>
+                    <span class="n">weight_decay_penalty</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">weight_decay_penalty</span><span class="p">,</span>
+                    <span class="n">weight_decay_penalty_type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">weight_decay_penalty_type</span>
+        <span class="p">)</span>
+        <span class="n">model_spec_metadata</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">nn_specific</span> <span class="o">=</span> <span class="n">nn_metadata</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">model_spec_metadata</span></div></div>
+
+
 </pre></div>
 
            </div>

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>utils.model_retrain &mdash; ATOM Data-Driven Modeling Pipeline 1.3.0 documentation</title>
+  <title>utils.model_retrain &mdash; ATOM Data-Driven Modeling Pipeline 1.4.0 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -13,6 +13,7 @@
         <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
         <script src="../../_static/jquery.js"></script>
         <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../../_static/doctools.js"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
@@ -27,7 +28,7 @@
             <a href="../../index.html" class="icon icon-home"> ATOM Data-Driven Modeling Pipeline
           </a>
               <div class="version">
-                1.3.0
+                1.4.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
@@ -195,7 +196,7 @@
 
     <span class="c1"># make metadata path</span>
     <span class="n">metadata_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmpdir</span><span class="p">,</span> <span class="s1">&#39;model_metadata.json&#39;</span><span class="p">)</span>
-
+    
     <span class="k">return</span> <span class="n">train_model</span><span class="p">(</span><span class="n">metadata_path</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">dskey</span><span class="o">=</span><span class="n">dskey</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="train_model_from_tracker"><a class="viewcode-back" href="../../utils.html#utils.model_retrain.train_model_from_tracker">[docs]</a><span class="k">def</span> <span class="nf">train_model_from_tracker</span><span class="p">(</span><span class="n">model_uuid</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">):</span>
