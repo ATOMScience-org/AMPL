@@ -1,5 +1,5 @@
-atomsci package
-===============
+ddm package
+===========
 
 Subpackages
 -----------
@@ -7,12 +7,13 @@ Subpackages
 .. toctree::
    :maxdepth: 4
 
-   atomsci.ddm
+   ddm.pipeline
+   ddm.utils
 
 Module contents
 ---------------
 
-.. automodule:: atomsci
+.. automodule:: ddm
    :members:
    :undoc-members:
    :show-inheritance:

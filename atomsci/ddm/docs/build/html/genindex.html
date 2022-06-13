@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Index &mdash; ATOM Data-Driven Modeling Pipeline 1.3.0 documentation</title>
+  <title>Index &mdash; ATOM Data-Driven Modeling Pipeline 1.4.0 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -13,6 +13,7 @@
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="#" />
@@ -27,7 +28,7 @@
             <a href="index.html" class="icon icon-home"> ATOM Data-Driven Modeling Pipeline
           </a>
               <div class="version">
-                1.3.0
+                1.4.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -175,6 +176,8 @@
 <h2 id="B">B</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="pipeline.html#pipeline.feature_importance.base_feature_importance">base_feature_importance() (in module pipeline.feature_importance)</a>
+</li>
       <li><a href="utils.html#utils.struct_utils.base_mol_from_inchi">base_mol_from_inchi() (in module utils.struct_utils)</a>
 </li>
       <li><a href="utils.html#utils.struct_utils.base_mol_from_smiles">base_mol_from_smiles() (in module utils.struct_utils)</a>
@@ -232,6 +235,8 @@
       <li><a href="utils.html#utils.rdkit_easy.cluster_dataframe">cluster_dataframe() (in module utils.rdkit_easy)</a>
 </li>
       <li><a href="utils.html#utils.rdkit_easy.cluster_fingerprints">cluster_fingerprints() (in module utils.rdkit_easy)</a>
+</li>
+      <li><a href="pipeline.html#pipeline.feature_importance.cluster_permutation_importance">cluster_permutation_importance() (in module pipeline.feature_importance)</a>
 </li>
       <li><a href="pipeline.html#pipeline.model_datasets.ModelDataset.combined_training_data">combined_training_data() (pipeline.model_datasets.ModelDataset method)</a>
 </li>
@@ -291,6 +296,12 @@
 </li>
       <li><a href="utils.html#utils.datastore_functions.copy_datasets_to_bucket">copy_datasets_to_bucket() (in module utils.datastore_functions)</a>
 </li>
+      <li><a href="pipeline.html#pipeline.model_wrapper.KerasDeepChemModelWrapper.count_params">count_params() (pipeline.model_wrapper.KerasDeepChemModelWrapper method)</a>
+
+      <ul>
+        <li><a href="pipeline.html#pipeline.model_wrapper.PytorchDeepChemModelWrapper.count_params">(pipeline.model_wrapper.PytorchDeepChemModelWrapper method)</a>
+</li>
+      </ul></li>
       <li><a href="pipeline.html#pipeline.model_datasets.ModelDataset.create_dataset_split_table">create_dataset_split_table() (pipeline.model_datasets.ModelDataset method)</a>
 </li>
       <li><a href="pipeline.html#pipeline.featurization.DescriptorFeaturization.create_feature_transformer">create_feature_transformer() (pipeline.featurization.DescriptorFeaturization method)</a>
@@ -347,8 +358,6 @@
 </li>
       <li><a href="pipeline.html#pipeline.model_wrapper.dc_restore">dc_restore() (in module pipeline.model_wrapper)</a>
 </li>
-      <li><a href="pipeline.html#pipeline.model_wrapper.DCNNModelWrapper">DCNNModelWrapper (class in pipeline.model_wrapper)</a>
-</li>
       <li><a href="pipeline.html#pipeline.model_wrapper.DCRFModelWrapper">DCRFModelWrapper (class in pipeline.model_wrapper)</a>
 </li>
       <li><a href="pipeline.html#pipeline.model_wrapper.DCxgboostModelWrapper">DCxgboostModelWrapper (class in pipeline.model_wrapper)</a>
@@ -361,11 +370,13 @@
 </li>
       <li><a href="pipeline.html#pipeline.featurization.DescriptorFeaturization.desc_type_source">desc_type_source (pipeline.featurization.DescriptorFeaturization attribute)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="pipeline.html#pipeline.featurization.DescriptorFeaturization">DescriptorFeaturization (class in pipeline.featurization)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="pipeline.html#pipeline.parameter_parser.dict_to_list">dict_to_list() (in module pipeline.parameter_parser)</a>
+</li>
+      <li><a href="pipeline.html#pipeline.feature_importance.display_feature_clusters">display_feature_clusters() (in module pipeline.feature_importance)</a>
 </li>
       <li><a href="pipeline.html#pipeline.diversity_plots.diversity_plots">diversity_plots() (in module pipeline.diversity_plots)</a>
 </li>
@@ -397,16 +408,18 @@
 </li>
       <li><a href="pipeline.html#pipeline.perf_data.EpochManagerKFold">EpochManagerKFold (class in pipeline.perf_data)</a>
 </li>
+      <li><a href="utils.html#utils.data_curation_functions.exclude_organometallics">exclude_organometallics() (in module utils.data_curation_functions)</a>
+</li>
       <li><a href="pipeline.html#pipeline.model_tracker.export_model">export_model() (in module pipeline.model_tracker)</a>
 </li>
       <li><a href="pipeline.html#pipeline.compare_models.extract_collection_perf_metrics">extract_collection_perf_metrics() (in module pipeline.compare_models)</a>
 </li>
       <li><a href="pipeline.html#pipeline.model_tracker.extract_datastore_model_tarball">extract_datastore_model_tarball() (in module pipeline.model_tracker)</a>
 </li>
-      <li><a href="pipeline.html#pipeline.parameter_parser.extract_featurizer_params">extract_featurizer_params() (in module pipeline.parameter_parser)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="pipeline.html#pipeline.parameter_parser.extract_featurizer_params">extract_featurizer_params() (in module pipeline.parameter_parser)</a>
+</li>
       <li><a href="pipeline.html#pipeline.compare_models.extract_model_and_feature_parameters">extract_model_and_feature_parameters() (in module pipeline.compare_models)</a>
 </li>
       <li><a href="pipeline.html#pipeline.parameter_parser.extract_model_params">extract_model_params() (in module pipeline.parameter_parser)</a>
@@ -637,6 +650,8 @@
 </li>
       <li><a href="utils.html#utils.datastore_functions.get_keyval">get_keyval() (in module utils.datastore_functions)</a>
 </li>
+      <li><a href="pipeline.html#pipeline.model_wrapper.get_latest_pytorch_checkpoint">get_latest_pytorch_checkpoint() (in module pipeline.model_wrapper)</a>
+</li>
       <li><a href="pipeline.html#pipeline.parameter_parser.AutoArgumentAdder.get_list_args">get_list_args() (pipeline.parameter_parser.AutoArgumentAdder method)</a>
 </li>
       <li><a href="pipeline.html#pipeline.parameter_parser.AutoArgumentAdder.get_list_float_args">get_list_float_args() (pipeline.parameter_parser.AutoArgumentAdder method)</a>
@@ -651,16 +666,18 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="pipeline.html#pipeline.model_tracker.get_model_collection_by_uuid">get_model_collection_by_uuid() (in module pipeline.model_tracker)</a>
 </li>
-      <li><a href="pipeline.html#pipeline.model_wrapper.DCNNModelWrapper.get_model_specific_metadata">get_model_specific_metadata() (pipeline.model_wrapper.DCNNModelWrapper method)</a>
+      <li><a href="pipeline.html#pipeline.model_wrapper.DCRFModelWrapper.get_model_specific_metadata">get_model_specific_metadata() (pipeline.model_wrapper.DCRFModelWrapper method)</a>
 
       <ul>
-        <li><a href="pipeline.html#pipeline.model_wrapper.DCRFModelWrapper.get_model_specific_metadata">(pipeline.model_wrapper.DCRFModelWrapper method)</a>
-</li>
         <li><a href="pipeline.html#pipeline.model_wrapper.DCxgboostModelWrapper.get_model_specific_metadata">(pipeline.model_wrapper.DCxgboostModelWrapper method)</a>
+</li>
+        <li><a href="pipeline.html#pipeline.model_wrapper.GraphConvDCModelWrapper.get_model_specific_metadata">(pipeline.model_wrapper.GraphConvDCModelWrapper method)</a>
 </li>
         <li><a href="pipeline.html#pipeline.model_wrapper.HybridModelWrapper.get_model_specific_metadata">(pipeline.model_wrapper.HybridModelWrapper method)</a>
 </li>
         <li><a href="pipeline.html#pipeline.model_wrapper.ModelWrapper.get_model_specific_metadata">(pipeline.model_wrapper.ModelWrapper method)</a>
+</li>
+        <li><a href="pipeline.html#pipeline.model_wrapper.MultitaskDCModelWrapper.get_model_specific_metadata">(pipeline.model_wrapper.MultitaskDCModelWrapper method)</a>
 </li>
         <li><a href="pipeline.html#pipeline.model_wrapper.PytorchDeepChemModelWrapper.get_model_specific_metadata">(pipeline.model_wrapper.PytorchDeepChemModelWrapper method)</a>
 </li>
@@ -809,6 +826,8 @@
         <li><a href="pipeline.html#pipeline.perf_data.SimpleRegressionPerfData.get_weights">(pipeline.perf_data.SimpleRegressionPerfData method)</a>
 </li>
       </ul></li>
+      <li><a href="pipeline.html#pipeline.model_wrapper.GraphConvDCModelWrapper">GraphConvDCModelWrapper (class in pipeline.model_wrapper)</a>
+</li>
       <li><a href="utils.html#utils.hyperparam_search_wrapper.GridSearch">GridSearch (class in utils.hyperparam_search_wrapper)</a>
 </li>
   </ul></td>
@@ -852,6 +871,8 @@
       <li><a href="pipeline.html#pipeline.parameter_parser.is_list_float">is_list_float() (in module pipeline.parameter_parser)</a>
 </li>
       <li><a href="pipeline.html#pipeline.parameter_parser.is_list_int">is_list_int() (in module pipeline.parameter_parser)</a>
+</li>
+      <li><a href="utils.html#utils.data_curation_functions.is_organometallic">is_organometallic() (in module utils.data_curation_functions)</a>
 </li>
       <li><a href="pipeline.html#pipeline.parameter_parser.is_primative_type">is_primative_type() (in module pipeline.parameter_parser)</a>
 </li>
@@ -997,6 +1018,8 @@
 </li>
         <li><a href="pipeline.html#module-pipeline.diversity_plots">pipeline.diversity_plots</a>
 </li>
+        <li><a href="pipeline.html#module-pipeline.feature_importance">pipeline.feature_importance</a>
+</li>
         <li><a href="pipeline.html#module-pipeline.featurization">pipeline.featurization</a>
 </li>
         <li><a href="pipeline.html#module-pipeline.model_datasets">pipeline.model_datasets</a>
@@ -1056,6 +1079,8 @@
 </li>
       <li><a href="utils.html#utils.process_slurm.move_failed_slurm">move_failed_slurm() (in module utils.process_slurm)</a>
 </li>
+      <li><a href="pipeline.html#pipeline.model_wrapper.MultitaskDCModelWrapper">MultitaskDCModelWrapper (class in pipeline.model_wrapper)</a>
+</li>
       <li><a href="pipeline.html#pipeline.featurization.ATOMAtomTypeEState.my_es_types">my_es_types (pipeline.featurization.ATOMAtomTypeEState attribute)</a>
 </li>
   </ul></td>
@@ -1112,6 +1137,8 @@
 </li>
       <li><a href="pipeline.html#pipeline.ave_splitter.permutation">permutation() (in module pipeline.ave_splitter)</a>
 </li>
+      <li><a href="pipeline.html#pipeline.feature_importance.permutation_feature_importance">permutation_feature_importance() (in module pipeline.feature_importance)</a>
+</li>
       <li><a href="pipeline.html#pipeline.featurization.PersistentFeaturization">PersistentFeaturization (class in pipeline.featurization)</a>
 </li>
       <li>
@@ -1157,6 +1184,13 @@
 </li>
       </ul></li>
       <li>
+    pipeline.feature_importance
+
+      <ul>
+        <li><a href="pipeline.html#module-pipeline.feature_importance">module</a>
+</li>
+      </ul></li>
+      <li>
     pipeline.featurization
 
       <ul>
@@ -1177,6 +1211,8 @@
         <li><a href="pipeline.html#module-pipeline.model_pipeline">module</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     pipeline.model_tracker
 
@@ -1184,8 +1220,6 @@
         <li><a href="pipeline.html#module-pipeline.model_tracker">module</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     pipeline.model_wrapper
 
@@ -1229,6 +1263,8 @@
 </li>
       </ul></li>
       <li><a href="pipeline.html#pipeline.diversity_plots.plot_dataset_dist_distr">plot_dataset_dist_distr() (in module pipeline.diversity_plots)</a>
+</li>
+      <li><a href="pipeline.html#pipeline.feature_importance.plot_feature_importances">plot_feature_importances() (in module pipeline.feature_importance)</a>
 </li>
       <li><a href="pipeline.html#pipeline.perf_plots.plot_perf_vs_epoch">plot_perf_vs_epoch() (in module pipeline.perf_plots)</a>
 </li>
@@ -1274,9 +1310,11 @@
 </li>
       <li><a href="utils.html#utils.struct_utils.rdkit_smiles_from_smiles">rdkit_smiles_from_smiles() (in module utils.struct_utils)</a>
 </li>
-      <li><a href="pipeline.html#pipeline.model_wrapper.DCNNModelWrapper.recreate_model">recreate_model() (pipeline.model_wrapper.DCNNModelWrapper method)</a>
+      <li><a href="pipeline.html#pipeline.model_wrapper.GraphConvDCModelWrapper.recreate_model">recreate_model() (pipeline.model_wrapper.GraphConvDCModelWrapper method)</a>
 
       <ul>
+        <li><a href="pipeline.html#pipeline.model_wrapper.MultitaskDCModelWrapper.recreate_model">(pipeline.model_wrapper.MultitaskDCModelWrapper method)</a>
+</li>
         <li><a href="pipeline.html#pipeline.model_wrapper.PytorchDeepChemModelWrapper.recreate_model">(pipeline.model_wrapper.PytorchDeepChemModelWrapper method)</a>
 </li>
       </ul></li>
@@ -1286,11 +1324,9 @@
 </li>
       <li><a href="pipeline.html#pipeline.perf_data.RegressionPerfData">RegressionPerfData (class in pipeline.perf_data)</a>
 </li>
-      <li><a href="pipeline.html#pipeline.model_wrapper.DCNNModelWrapper.reload_model">reload_model() (pipeline.model_wrapper.DCNNModelWrapper method)</a>
+      <li><a href="pipeline.html#pipeline.model_wrapper.DCxgboostModelWrapper.reload_model">reload_model() (pipeline.model_wrapper.DCxgboostModelWrapper method)</a>
 
       <ul>
-        <li><a href="pipeline.html#pipeline.model_wrapper.DCxgboostModelWrapper.reload_model">(pipeline.model_wrapper.DCxgboostModelWrapper method)</a>
-</li>
         <li><a href="pipeline.html#pipeline.model_wrapper.ForestModelWrapper.reload_model">(pipeline.model_wrapper.ForestModelWrapper method)</a>
 </li>
         <li><a href="pipeline.html#pipeline.model_wrapper.HybridModelWrapper.reload_model">(pipeline.model_wrapper.HybridModelWrapper method)</a>
@@ -1306,6 +1342,8 @@
 </li>
       <li><a href="pipeline.html#pipeline.featurization.remove_duplicate_smiles">remove_duplicate_smiles() (in module pipeline.featurization)</a>
 </li>
+      <li><a href="utils.html#utils.curate_data.remove_outlier_replicates">remove_outlier_replicates() (in module utils.curate_data)</a>
+</li>
       <li><a href="pipeline.html#pipeline.parameter_parser.remove_unrecognized_arguments">remove_unrecognized_arguments() (in module pipeline.parameter_parser)</a>
 </li>
       <li><a href="utils.html#utils.datastore_functions.repeat_defined_search">repeat_defined_search() (in module utils.datastore_functions)</a>
@@ -1314,18 +1352,16 @@
 </li>
       <li><a href="utils.html#utils.process_slurm.rerun_failed">rerun_failed() (in module utils.process_slurm)</a>
 </li>
-      <li><a href="pipeline.html#pipeline.model_wrapper.DCNNModelWrapper.restore">restore() (pipeline.model_wrapper.DCNNModelWrapper method)</a>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="pipeline.html#pipeline.model_wrapper.KerasDeepChemModelWrapper.restore">restore() (pipeline.model_wrapper.KerasDeepChemModelWrapper method)</a>
 
       <ul>
-        <li><a href="pipeline.html#pipeline.model_wrapper.KerasDeepChemModelWrapper.restore">(pipeline.model_wrapper.KerasDeepChemModelWrapper method)</a>
-</li>
         <li><a href="pipeline.html#pipeline.model_wrapper.NNModelWrapper.restore">(pipeline.model_wrapper.NNModelWrapper method)</a>
 </li>
         <li><a href="pipeline.html#pipeline.model_wrapper.PytorchDeepChemModelWrapper.restore">(pipeline.model_wrapper.PytorchDeepChemModelWrapper method)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="pipeline.html#pipeline.model_pipeline.retrain_model">retrain_model() (in module pipeline.model_pipeline)</a>
 </li>
       <li><a href="utils.html#utils.datastore_functions.retrieve_bucket_names">retrieve_bucket_names() (in module utils.datastore_functions)</a>
