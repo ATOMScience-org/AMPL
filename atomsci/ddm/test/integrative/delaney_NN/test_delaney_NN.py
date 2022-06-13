@@ -56,12 +56,12 @@ def curate():
             column, tolerance, list_bad_duplicates, data, max_std, compound_id='compound_id', smiles_col='rdkit_smiles')
 
         # Check distribution of response values
-        assert (curated_df.shape[0] == 1117), 'Error: Incorrect number of compounds'
+        assert (curated_df.shape[0] == 1116), f"Error: Incorrect number of compounds ({len(curated_df)}, should be 1116)"
 
         curated_df.to_csv('delaney-processed_curated.csv')
 
         # Create second test set by reproducible index for prediction
-        curated_df.tail(1000).to_csv('delaney-processed_curated_fit.csv')
+        curated_df.tail(999).to_csv('delaney-processed_curated_fit.csv')
         curated_df.head(117).to_csv('delaney-processed_curated_external.csv')
 
     assert(os.path.isfile('delaney-processed_curated.csv'))

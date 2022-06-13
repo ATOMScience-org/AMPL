@@ -78,7 +78,7 @@ def curate():
     curated_df.to_csv(data_filename, index=False)
 
     # Create second test set by reproducible index for prediction
-    curated_df.tail(5000).to_csv('hlm_clearance_curated_fit.csv')
+    curated_df.tail(4989).to_csv('hlm_clearance_curated_fit.csv')
     curated_df.head(348).to_csv('hlm_clearance_curated_external.csv')
 
 

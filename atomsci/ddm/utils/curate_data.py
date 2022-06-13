@@ -74,7 +74,7 @@ def set_group_permissions(path, system='AD', owner='GSK'):
     os.chmod(path, 0o770)
 
 # ******************************************************************************************************************************************
-def replicate_rmsd(dset_df, smiles_col='base_rdkit_smiles', value_col='PIC50', relation_col='relation'):
+def replicate_rmsd(dset_df, smiles_col='base_rdkit_smiles', value_col='PIC50', relation_col='relation', default_val=1.0):
     """Compute RMS deviation of all replicate uncensored measurements from means
 
     Compute RMS deviation of all replicate uncensored measurements in dset_df from their means. Measurements are treated
@@ -91,6 +91,8 @@ def replicate_rmsd(dset_df, smiles_col='base_rdkit_smiles', value_col='PIC50', r
 
         relation_col (str): The input DataFrame column containing relational operators (<, >, etc.).
 
+        default_val (float): The value to return if there are no compounds with replicate measurements.
+
     Returns:
         float: returns root mean squared deviation of all replicate uncensored measurements
 
@@ -98,12 +100,15 @@ def replicate_rmsd(dset_df, smiles_col='base_rdkit_smiles', value_col='PIC50', r
     dset_df = dset_df[~(dset_df[relation_col].isin(['<', '>']))]
     uniq_smiles, uniq_counts = np.unique(dset_df[smiles_col].values, return_counts=True)
     smiles_with_reps = uniq_smiles[uniq_counts > 1]
-    uniq_devs = []
-    for smiles in smiles_with_reps:
-        values = dset_df[dset_df[smiles_col] == smiles][value_col].values
-        uniq_devs.extend(values - values.mean())
-    uniq_devs = np.array(uniq_devs)
-    rmsd = np.sqrt(np.mean(uniq_devs ** 2))
+    if len(smiles_with_reps) > 0:
+        uniq_devs = []
+        for smiles in smiles_with_reps:
+            values = dset_df[dset_df[smiles_col] == smiles][value_col].values
+            uniq_devs.extend(values - values.mean())
+        uniq_devs = np.array(uniq_devs)
+        rmsd = np.sqrt(np.mean(uniq_devs ** 2))
+    else:
+        rmsd = default_val
     return rmsd
 
 # ******************************************************************************************************************************************
@@ -164,7 +169,10 @@ def mle_censored_mean(cmpd_df, std_est, value_col='PIC50', relation_col='relatio
         # Then minimize it
         opt_res = minimize_scalar(loglik, method='brent')
         if not opt_res.success:
-            print('Likelihood maximization failed, message is: "%s"' % opt_res.message)
+            if 'message' in opt_res.keys():
+                print('Likelihood maximization failed, message is: "%s"' % opt_res.message)
+            else:
+                print('Likelihood maximization failed')
             mle_value = nan
         else:
             mle_value = opt_res.x
@@ -175,7 +183,7 @@ def mle_censored_mean(cmpd_df, std_est, value_col='PIC50', relation_col='relatio
 def aggregate_assay_data(assay_df, value_col='VALUE_NUM', output_value_col=None,
                          label_actives=True,
                          active_thresh=None,
-                         id_col='CMPD_NUMBER', smiles_col='rdkit_smiles', relation_col='VALUE_FLAG', date_col=None):
+                         id_col='CMPD_NUMBER', smiles_col='rdkit_smiles', relation_col='VALUE_FLAG', date_col=None, verbose=False):
     """Aggregates replicated values in assay data
 
     Map RDKit SMILES strings in assay_df to base structures, then compute an MLE estimate of the mean value over replicate measurements
@@ -211,7 +219,8 @@ def aggregate_assay_data(assay_df, value_col='VALUE_NUM', output_value_col=None,
     assay_df = assay_df.fillna({relation_col: '', smiles_col: ''})
     # Filter out rows where SMILES is missing
     n_missing_smiles = np.array([len(smiles) == 0 for smiles in assay_df[smiles_col].values]).sum()
-    print("%d entries in input table are missing SMILES strings" % n_missing_smiles)
+    if verbose:
+        print("%d entries in input table are missing SMILES strings" % n_missing_smiles)
     has_smiles = np.array([len(smiles) > 0 for smiles in assay_df[smiles_col].values])
     assay_df = assay_df[has_smiles].copy()
 
@@ -226,7 +235,8 @@ def aggregate_assay_data(assay_df, value_col='VALUE_NUM', output_value_col=None,
     assay_df['base_rdkit_smiles'] = smiles_strs
     uniq_smiles_strs = list(set(smiles_strs))
     nuniq = len(uniq_smiles_strs)
-    print("%d unique SMILES strings are reduced to %d unique base SMILES strings" % (norig, nuniq))
+    if verbose:
+        print("%d unique SMILES strings are reduced to %d unique base SMILES strings" % (norig, nuniq))
     smiles_map = dict([(smiles,i) for i, smiles in enumerate(uniq_smiles_strs)])
     smiles_indices = np.array([smiles_map.get(smiles, nuniq) for smiles in smiles_strs])
 
@@ -465,6 +475,7 @@ def filter_out_comments (values, values_cs, data):
 
 
 # ******************************************************************************************************************************************
+# DEPRECATED: This is extremely inefficient and inflexible. Probably this is only used in some legacy curation notebooks.
 def get_rdkit_smiles_parent (data):
     """Strip the salts off the rdkit SMILES strings
 
@@ -498,6 +509,44 @@ def get_rdkit_smiles_parent (data):
 
     return data
 
+
+# ---------------------------------------------------------------------------------------------------------------------------------
+def remove_outlier_replicates(df, response_col='pIC50', id_col='compound_id', max_diff_from_median=1.0):
+    """
+    Examine groups of replicate measurements for compounds identified by compound ID and compute median response
+    for each group. Eliminate measurements that differ by more than a given value from the median; note that
+    in some groups this will result in all replicates being deleted. This function should be used together with
+    `aggregate_assay_data` instead of `average_and_remove_duplicates` to reduce data to a single value per compound.
+
+    Args:
+        df (DataFrame): Table of compounds and response data
+
+        response_col (str): Column containing response values
+
+        id_col (str): Column that uniquely identifies compounds, and therefore measurements to be treated as replicates.
+
+        max_diff_from_median (float): Maximum absolute difference from median value allowed for retained replicates.
+
+    Returns:
+        result_df (DataFrame): Filtered data frame with outlier replicates removed.
+
+    """
+
+    fr_df = freq_table(df, id_col, min_freq=2)
+    rep_ids = fr_df[id_col].values.tolist()
+    has_rep_df = df[df[id_col].isin(rep_ids)]
+    no_rep_df = df[~df[id_col].isin(rep_ids)]
+    gby = has_rep_df.groupby(id_col)
+    def filter_outliers(g_df):
+        med = np.median(g_df[response_col].values)
+        keep = ( np.abs( g_df[response_col].values - med ) <= max_diff_from_median)
+        return g_df[keep]
+    filt_df = gby.apply(filter_outliers)
+    n_removed = len(has_rep_df) - len(filt_df)
+    if n_removed > 0:
+        print(f"Removed {n_removed} {response_col} replicate measurements that were > {max_diff_from_median} from median")
+    result_df = pd.concat([filt_df, no_rep_df], ignore_index=True)
+    return result_df
 
 # ******************************************************************************************************************************************
 def average_and_remove_duplicates (column, tolerance, list_bad_duplicates,
@@ -564,7 +613,7 @@ def average_and_remove_duplicates (column, tolerance, list_bad_duplicates,
 
         # 4. Make removal recommendations
         data['Remove_BadDuplicate'] = np.where((data['Perc_Var']>tolerance),1,0)
-        data['Remove_BadDuplicate'] = np.where((data['VALUE_NUM_std']>max_stdev),1,0)
+        data['Remove_BadDuplicate'] = np.where((data['VALUE_NUM_std']>max_stdev),1, data.Remove_BadDuplicate.values)
 
         bad_duplicates = data['Remove_BadDuplicate'].max()  # 0 = no bad duplicates, 1 = bad duplicates
 
