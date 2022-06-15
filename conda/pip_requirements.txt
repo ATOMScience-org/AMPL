@@ -101,7 +101,7 @@ tensorboard-data-server==0.6.1
 tensorboard-plugin-wit==1.8.1
 tensorflow==2.8.0
 tensorflow-estimator==2.8.0
-tensorflow-gpu==2.8.0
+tensorflow-gpu==2.8.1
 tensorflow-io-gcs-filesystem==0.24.0
 termcolor==1.1.0
 tf-estimator-nightly==2.8.0.dev2021122109
