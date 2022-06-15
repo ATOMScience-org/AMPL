@@ -194,14 +194,23 @@ def base_feature_importance(model_pipeline=None, params=None):
             log.info("model_pipeline and params were both passed; ignoring params argument and using params from model")
         pparams = model_pipeline.params
 
+    # Load the original training, validation and test data, if necessary
+    try:
+        model_data = model_pipeline.data
+    except AttributeError:
+        model_pipeline.featurization = model_pipeline.model_wrapper.featurization
+        model_pipeline.load_featurize_data()
+        model_data = model_pipeline.data
+
     # Get the list of feature column names
+    #features = model_pipeline.model_wrapper.featurization.get_feature_columns()
     features = model_pipeline.featurization.get_feature_columns()
     nfeat = len(features)
     imp_df = pd.DataFrame({'feature': features})
 
     # Get the training, validation and test sets (we assume we're not using K-fold CV). These are DeepChem Dataset objects.
-    (train_dset, valid_dset) = model_pipeline.data.train_valid_dsets[0]
-    test_dset = model_pipeline.data.test_dset
+    (train_dset, valid_dset) = model_data.train_valid_dsets[0]
+    test_dset = model_data.test_dset
 
     imp_df['mean_value'] = train_dset.X.mean(axis=0)
     imp_df['std_value'] = train_dset.X.std(axis=0)

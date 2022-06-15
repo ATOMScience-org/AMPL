@@ -13,6 +13,7 @@ import json
 
 import atomsci.ddm.pipeline.parameter_parser as parse
 import atomsci.ddm.pipeline.compare_models as cm
+from atomsci.ddm.utils import llnl_utils
 
 def init_data():
     '''
@@ -21,9 +22,8 @@ def init_data():
     if not os.path.exists('data'):
         os.makedirs('data')
 
-    shutil.copyfile('../../test_datasets/H1_std.csv', 'data/H1_std.csv')
-    shutil.copyfile('../../test_datasets/aurka_chembl_base_smiles_union.csv', 
-        'data/aurka_chembl_base_smiles_union.csv')
+    shutil.copyfile('../../test_datasets/MRP3_dataset.csv', 'data/MRP3_dataset.csv')
+    shutil.copyfile('../../test_datasets/delaney-processed_curated_fit.csv', 'data/delaney-processed_curated_fit.csv')
 
 def clean():
     """
@@ -83,10 +83,38 @@ def wait_to_finish(split_json, search_json, max_time=1200):
     
     slkey = pparams.shortlist_key
     slkey = slkey.replace('.csv','')
-    slkey = '/test/integrative/shortlist_test/'+slkey
-    shortlist_path = f"{script_dir}/{slkey}_with_uuids.csv"
+    slkey = os.path.join('test/integrative/shortlist_test/',slkey)
+    shortlist_path = os.path.join(script_dir, f'{slkey}.csv')
     print(shortlist_path)
     features = pparams.descriptor_type
+    shortlist_df = pd.read_csv(shortlist_path)
+    dataset_key = shortlist_df['dataset_key'].iloc[-1].replace('.csv', f'_with_{features}_descriptors.csv')
+    dset_path, dataset_key = dataset_key.rsplit(sep='/', maxsplit=1)
+    feat_path = dset_path+'/scaled_descriptors/'+dataset_key
+    
+    # Featurize shortlist
+    print("Submitting batch featurization job")
+    run_cmd = f"{python_path} {os.path.join(script_dir, 'test/integrative/shortlist_test/featurize_shortlist.py')} {shortlist_path} {split_json}"
+    p = subprocess.Popen(run_cmd.split(' '), stdout=subprocess.PIPE)
+    out = p.stdout.read().decode("utf-8")
+    num_jobs = 1
+    num_found = 0
+    time_waited = 0
+    wait_interval = 30
+    print("Waiting for shortlist featurization to finish. Checks every 30 seconds")
+    while (num_found < num_jobs) and ((max_time == -1) or (time_waited < max_time)):
+        # wait until the training jobs have finished
+        try:
+            feat_df = pd.read_csv(feat_path)
+            num_found = feat_df.shape[0]
+        except:
+            num_found = 0
+            feat_df = None
+            time.sleep(wait_interval) # check for results every 30 seconds
+            time_waited += wait_interval
+        print(f'waited {time_waited} found {num_found}')
+    
+    shortlist_path = os.path.join(script_dir, f'{slkey}_with_uuids.csv')
     
     # Split shortlist
     print("Submitting shortlist split job")
@@ -112,35 +140,11 @@ def wait_to_finish(split_json, search_json, max_time=1200):
             print("Still waiting")
             time.sleep(wait_interval) # check for results every 30 seconds
             time_waited += wait_interval
-        
 
-    dataset_key = shortlist_df['dataset_key'].iloc[-1].replace('.csv', f'_with_{features}_descriptors.csv')
-    dset_path, dataset_key = dataset_key.rsplit(sep='/', maxsplit=1)
-    feat_path = dset_path+'/scaled_descriptors/'+dataset_key
-    
-    # Featurize shortlist
-    print("Submitting batch featurization job")
-    run_cmd = f"{python_path} {script_dir}/test/integrative/shortlist_test/featurize_shortlist.py {shortlist_path} {split_json}"
-    p = subprocess.Popen(run_cmd.split(' '), stdout=subprocess.PIPE)
-    out = p.stdout.read().decode("utf-8")
-    num_jobs = 1
-    num_found = 0
-    time_waited = 0
-    wait_interval = 30
-    print("Waiting for shortlist featurization to finish. Checks every 30 seconds")
-    while (num_found < num_jobs) and ((max_time == -1) or (time_waited < max_time)):
-        # wait until the training jobs have finished
-        try:
-            feat_df = pd.read_csv(feat_path)
-            num_found = feat_df.shape[0]
-        except:
-            num_found = 0
-            feat_df = None
-            time.sleep(wait_interval) # check for results every 30 seconds
-            time_waited += wait_interval
-    
     # Test HP search with shortlist
+    
     run_cmd = f"{python_path} {script_dir}/utils/hyperparam_search_wrapper.py --config_file {search_json}"
+    print(f"hyperparam command: {run_cmd}")
     p = subprocess.Popen(run_cmd.split(' '), stdout=subprocess.PIPE)
     out = p.stdout.read().decode("utf-8")
 
@@ -161,6 +165,7 @@ def wait_to_finish(split_json, search_json, max_time=1200):
         except:
             num_found = 0
             result_df = None
+        print(f'waited {time_waited} found {num_found}')
 
     return result_df
 
@@ -179,9 +184,12 @@ def test():
 
     # Run shortlist hyperparam search
     # ------------
-    result_df = wait_to_finish("test_shortlist_split_config.json", 
-        "test_shortlist_RF-NN-XG_hyperconfig.json", max_time=-1)
-    assert not result_df is None # Timed out
+    if llnl_utils.is_lc_system():
+        result_df = wait_to_finish("test_shortlist_split_config.json",
+            "test_shortlist_RF-NN-XG_hyperconfig.json", max_time=-1)
+        assert len(result_df) == 18 # Timed out
+    else:
+        assert True
 
     # Clean
     # -----

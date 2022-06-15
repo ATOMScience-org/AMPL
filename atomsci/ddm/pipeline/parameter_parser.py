@@ -1060,7 +1060,7 @@ def get_parser():
         ('Comma-separated list of initial bias parameters per layer for dense NN models with conditional values. '
          'Defaults to [1.0]*len(layer_sizes). Must be same length as layer_sizes. Can be input as a space-separated '
          'list of comma-separated lists for hyperparameters (e.g. \'1.0,1.0 0.9,0.9 0.8,0.9\'). Default behavior is'
-         ' set within __init__ method of DCNNModelWrapper.  '
+         ' set within __init__ method of relevant ModelWrapper class.  '
          + separator.join(temp_bias_init_consts_string)).rstrip(',')
     parser.add_argument(
         '--bias_init_consts', dest='bias_init_consts', required=False, default=None,
@@ -1072,7 +1072,7 @@ def get_parser():
         ('Comma-separated list of dropout rates per layer for NN models with default values conditional on featurizer.'
          ' Default behavior is controlled in model_wrapper.py. Must be same length as layer_sizes. Can be input as '
          'a space-separated list of comma-separated lists for hyperparameters (e.g. \'0.4,0.4 0.2,0.2 0.3,0.3\'). '
-         'Default behavior is set within __init__ method of DCNNModelWrapper. Defaults: '
+         'Default behavior is set within __init__ method of relevant ModelWrapper class. Defaults: '
          + separator.join(temp_dropout_string)).rstrip(',')
     parser.add_argument(
         '--dropouts', dest='dropouts', required=False, default=None,
@@ -1084,7 +1084,7 @@ def get_parser():
         ('Comma-separated list of layer sizes for NN models with default values conditional on featurizer. Must be'
          ' same length as layer_sizes. Can be input as a space-separated list of comma-separated lists for '
          'hyperparameters (e.g. \'64,16 200,100 1000,500\'). Default behavior is set within __init__ method of '
-         'DCNNModelWrapper. Defaults: '
+         'relevant ModelWrapper class. Defaults: '
          + separator.join(temp_layer_size_string)).rstrip(',')
     parser.add_argument(
         '--layer_sizes', dest='layer_sizes', required=False, default=None,
@@ -1113,7 +1113,7 @@ def get_parser():
         ('Comma-separated list of standard deviations per layer for initializing weights in dense NN models with '
          'conditional values. Must be same length as layer_sizes. Can be input as a space-separated list of '
          'comma-separated lists for hyperparameters (e.g. \'0.001,0.001 0.002,0.002 0.03,003\'). Default behavior is '
-         'set within __init__ method of DCNNModelWrapper. Defaults: '
+         'set within __init__ method of relevant ModelWrapper class. Defaults: '
          + separator.join(temp_weight_init_stddevs_string)).rstrip(',')
     parser.add_argument(
         '--weight_init_stddevs', dest='weight_init_stddevs', required=False, default=None,
@@ -1198,9 +1198,30 @@ def get_parser():
              ' TODO: Behavior of split_valid_frac is dependent on split_test_frac and DeepChem')
     parser.add_argument(
         '--splitter', '-s', dest='splitter', default='scaffold', type=str,
-        help='Type of splitter to use: index, random, scaffold, butina, ave_min, temporal, fingerprint, or stratified.'
+        help='Type of splitter to use: index, random, scaffold, butina, ave_min, temporal, fingerprint, multitaskscaffold or stratified.'
              ' Used to set the splitting.py subclass. Can be input as a comma separated list for hyperparameter search'
              ' (e.g. \'scaffold\',\'random\')')
+
+    parser.add_argument(
+        '--mtss_num_super_scaffolds', default=40, type=int,
+        help='This specifies the number of genes in a chromosome for the genetic algorithm. Scaffolds bins are often'
+             ' very small and only contain 1 compound. Scaffolds are therefore combined into super scaffolds to'
+             ' the number of genes and also reduce complexity and runtime.')
+    parser.add_argument(
+        '--mtss_num_generations', default=20, type=int,
+        help='The number of generations the genetic algorithm will run.')
+    parser.add_argument(
+        '--mtss_num_pop', default=100, type=int,
+        help='Size of population per generation in the genetic algorithm.')
+    parser.add_argument(
+        '--mtss_train_test_dist_weight', default=1.0, type=float,
+        help='How much weight to give the tanimoto distance between training and test partitions.')
+    parser.add_argument(
+        '--mtss_train_valid_dist_weight', default=1.0, type=float,
+        help='How much weight to give the tanimoto distance between training and valid partitions.')
+    parser.add_argument(
+        '--mtss_split_fraction_weight', default=1.0, type=float,
+        help='How much weight to give adherence to requested subset franctions.')
 
     # **********************************************************************************************************
     # model_building_parameters: transformers

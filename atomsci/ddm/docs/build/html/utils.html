@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>utils package &mdash; ATOM Data-Driven Modeling Pipeline 1.3.0 documentation</title>
+  <title>utils package &mdash; ATOM Data-Driven Modeling Pipeline 1.4.0 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -14,6 +14,7 @@
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -29,7 +30,7 @@
             <a href="index.html" class="icon icon-home"> ATOM Data-Driven Modeling Pipeline
           </a>
               <div class="version">
-                1.3.0
+                1.4.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -98,12 +99,12 @@
            <div itemprop="articleBody">
              
   <section id="utils-package">
-<h1>utils package<a class="headerlink" href="#utils-package" title="Permalink to this headline"></a></h1>
+<h1>utils package<a class="headerlink" href="#utils-package" title="Permalink to this heading"></a></h1>
 <section id="submodules">
-<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline"></a></h2>
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading"></a></h2>
 </section>
 <section id="module-utils.curate_data">
-<span id="utils-curate-data-module"></span><h2>utils.curate_data module<a class="headerlink" href="#module-utils.curate_data" title="Permalink to this headline"></a></h2>
+<span id="utils-curate-data-module"></span><h2>utils.curate_data module<a class="headerlink" href="#module-utils.curate_data" title="Permalink to this heading"></a></h2>
 <p>Utility functions used for AMPL dataset curation and creation.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="utils.curate_data.add_classification_column">
@@ -133,7 +134,7 @@ is preferred for the common case where the classification is based on a left-cen
 
 <dl class="py function">
 <dt class="sig sig-object py" id="utils.curate_data.aggregate_assay_data">
-<span class="sig-prename descclassname"><span class="pre">utils.curate_data.</span></span><span class="sig-name descname"><span class="pre">aggregate_assay_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">assay_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value_col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'VALUE_NUM'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_value_col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label_actives</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">active_thresh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'CMPD_NUMBER'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smiles_col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'rdkit_smiles'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">relation_col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'VALUE_FLAG'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">date_col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/curate_data.html#aggregate_assay_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.curate_data.aggregate_assay_data" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">utils.curate_data.</span></span><span class="sig-name descname"><span class="pre">aggregate_assay_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">assay_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value_col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'VALUE_NUM'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_value_col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label_actives</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">active_thresh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'CMPD_NUMBER'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smiles_col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'rdkit_smiles'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">relation_col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'VALUE_FLAG'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">date_col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/curate_data.html#aggregate_assay_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.curate_data.aggregate_assay_data" title="Permalink to this definition"></a></dt>
 <dd><p>Aggregates replicated values in assay data</p>
 <p>Map RDKit SMILES strings in assay_df to base structures, then compute an MLE estimate of the mean value over replicate measurements
 for the same SMILES strings, taking censoring into account. Generate an aggregated result table with one value for each unique base
@@ -369,8 +370,26 @@ str: Relation, ‘’ not censored, ‘&gt;’ right censored, ‘&lt;’ left c
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="utils.curate_data.remove_outlier_replicates">
+<span class="sig-prename descclassname"><span class="pre">utils.curate_data.</span></span><span class="sig-name descname"><span class="pre">remove_outlier_replicates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">response_col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'pIC50'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'compound_id'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_diff_from_median</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/curate_data.html#remove_outlier_replicates"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.curate_data.remove_outlier_replicates" title="Permalink to this definition"></a></dt>
+<dd><p>Examine groups of replicate measurements for compounds identified by compound ID and compute median response
+for each group. Eliminate measurements that differ by more than a given value from the median; note that
+in some groups this will result in all replicates being deleted. This function should be used together with
+<cite>aggregate_assay_data</cite> instead of <cite>average_and_remove_duplicates</cite> to reduce data to a single value per compound.</p>
+<dl>
+<dt>Args:</dt><dd><p>df (DataFrame): Table of compounds and response data</p>
+<p>response_col (str): Column containing response values</p>
+<p>id_col (str): Column that uniquely identifies compounds, and therefore measurements to be treated as replicates.</p>
+<p>max_diff_from_median (float): Maximum absolute difference from median value allowed for retained replicates.</p>
+</dd>
+<dt>Returns:</dt><dd><p>result_df (DataFrame): Filtered data frame with outlier replicates removed.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="utils.curate_data.replicate_rmsd">
-<span class="sig-prename descclassname"><span class="pre">utils.curate_data.</span></span><span class="sig-name descname"><span class="pre">replicate_rmsd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dset_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smiles_col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'base_rdkit_smiles'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value_col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'PIC50'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">relation_col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'relation'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/curate_data.html#replicate_rmsd"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.curate_data.replicate_rmsd" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">utils.curate_data.</span></span><span class="sig-name descname"><span class="pre">replicate_rmsd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dset_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smiles_col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'base_rdkit_smiles'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value_col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'PIC50'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">relation_col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'relation'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_val</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/curate_data.html#replicate_rmsd"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.curate_data.replicate_rmsd" title="Permalink to this definition"></a></dt>
 <dd><p>Compute RMS deviation of all replicate uncensored measurements from means</p>
 <p>Compute RMS deviation of all replicate uncensored measurements in dset_df from their means. Measurements are treated
 as replicates if they correspond to the same SMILES string, and are considered censored if the relation
@@ -381,6 +400,7 @@ in the dataset.</p>
 <p>smiles_col (str): Name of the column that contains SMILES strings.</p>
 <p>value_col (str): Name of the column that contains target values.</p>
 <p>relation_col (str): The input DataFrame column containing relational operators (&lt;, &gt;, etc.).</p>
+<p>default_val (float): The value to return if there are no compounds with replicate measurements.</p>
 </dd>
 <dt>Returns:</dt><dd><p>float: returns root mean squared deviation of all replicate uncensored measurements</p>
 </dd>
@@ -444,7 +464,7 @@ creates plots that compares normal and log distributions of the data.</p>
 
 </section>
 <section id="module-utils.data_curation_functions">
-<span id="utils-data-curation-functions-module"></span><h2>utils.data_curation_functions module<a class="headerlink" href="#module-utils.data_curation_functions" title="Permalink to this headline"></a></h2>
+<span id="utils-data-curation-functions-module"></span><h2>utils.data_curation_functions module<a class="headerlink" href="#module-utils.data_curation_functions" title="Permalink to this heading"></a></h2>
 <p>data_curation_functions.py</p>
 <p>Extract Kevin’s functions for curation of public datasets
 Modify them to match Jonathan’s curation methods in notebook
@@ -507,6 +527,12 @@ filters out all rows where df[k] == v.</p>
 <dt>Returns:</dt><dd><p>DataFrame: Rows where all df[k] == v</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utils.data_curation_functions.exclude_organometallics">
+<span class="sig-prename descclassname"><span class="pre">utils.data_curation_functions.</span></span><span class="sig-name descname"><span class="pre">exclude_organometallics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smiles_col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'rdkit_smiles'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/data_curation_functions.html#exclude_organometallics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.data_curation_functions.exclude_organometallics" title="Permalink to this definition"></a></dt>
+<dd><p>Filters data frame df based on column smiles_col to exclude organometallic compounds</p>
 </dd></dl>
 
 <dl class="py function">
@@ -616,11 +642,17 @@ atomsci.ddm.utils.struct_utils.base_rdkit_smiles_from_smiles. A new column,
 <dd><p>Calculates pIC50 from IC50</p>
 <p>Calculates pIC50 from IC50</p>
 <dl class="simple">
-<dt>Args:</dt><dd><p>x (float): An IC50.</p>
+<dt>Args:</dt><dd><p>x (float): An IC50 in nanomolar (nM) units.</p>
 </dd>
 <dt>Returns:</dt><dd><p>float: The pIC50.</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utils.data_curation_functions.is_organometallic">
+<span class="sig-prename descclassname"><span class="pre">utils.data_curation_functions.</span></span><span class="sig-name descname"><span class="pre">is_organometallic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mol</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/data_curation_functions.html#is_organometallic"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.data_curation_functions.is_organometallic" title="Permalink to this definition"></a></dt>
+<dd><p>Returns True if the molecule is organometallic</p>
 </dd></dl>
 
 <dl class="py function">
@@ -646,7 +678,7 @@ to directores calcuated from ‘data_root’</p>
 <p>Standardize the censoring operators to =, &lt; or &gt;, and remove any rows whose operators
 don’t map to a standard one. There is a special case for db=’ChEMBL’ that strips
 the extra “‘“s around relationship symbols. Assumes relationship columns are 
-‘Standard Relation’ and ‘standard_relation’ for ChEMBL and DTC respectively.</p>
+‘Standard Relation’, ‘standard_relation’ and ‘activity_prefix’ for ChEMBL, DTC and GoStar respectively.</p>
 <p>This function makes the following mappings: “&gt;” to “&gt;”, “&gt;=” to “&gt;”, “&lt;” to “&lt;”,
 “&lt;=” to “&lt;”, and “=” to “=”. All other relations are removed from the DataFrame.</p>
 <dl>
@@ -654,7 +686,15 @@ the extra “‘“s around relationship symbols. Assumes relationship columns a
 <dt>dset_df (DataFrame): Input DataFrame. Must contain either ‘Standard Relation’</dt><dd><p>or ‘standard_relation’</p>
 </dd>
 </dl>
-<p>db (str): Source database. Must be either ‘DTC’ or ‘ChEMBL’</p>
+<p>db (str): Source database. Must be either ‘GoStar’, ‘DTC’ or ‘ChEMBL’. Required if rel_col is not specified.</p>
+<dl class="simple">
+<dt>rel_col (str): Column containing relational operators. If specified, overrides the default relation column </dt><dd><p>for db.</p>
+</dd>
+<dt>output_rel_col (str): If specified, put the standardized operators in a new column with this name and leave</dt><dd><p>the original operator column unchanged.</p>
+</dd>
+<dt>invert (bool): If true, replace the inequality operators with their inverses. This is useful when a reported</dt><dd><p>value such as IC50 is converted to its negative log such as pIC50.</p>
+</dd>
+</dl>
 </dd>
 <dt>Returns:</dt><dd><p>DataFrame: Dataframe with the standardized relationship sybmols</p>
 </dd>
@@ -994,7 +1034,7 @@ This also assumes that the id_col is ‘Original_Entry_ID’</p>
 
 </section>
 <section id="module-utils.datastore_functions">
-<span id="utils-datastore-functions-module"></span><h2>utils.datastore_functions module<a class="headerlink" href="#module-utils.datastore_functions" title="Permalink to this headline"></a></h2>
+<span id="utils-datastore-functions-module"></span><h2>utils.datastore_functions module<a class="headerlink" href="#module-utils.datastore_functions" title="Permalink to this heading"></a></h2>
 <p>This file contains functions to make it easier to browse and retrieve data from the datastore.
 Intended for general use. Add/modify functions as needed. Created 23Jul18 CHW</p>
 <dl class="py function">
@@ -1477,7 +1517,7 @@ csv returns a DataFrame</p>
 
 </section>
 <section id="module-utils.genTestset">
-<span id="utils-gentestset-module"></span><h2>utils.genTestset module<a class="headerlink" href="#module-utils.genTestset" title="Permalink to this headline"></a></h2>
+<span id="utils-gentestset-module"></span><h2>utils.genTestset module<a class="headerlink" href="#module-utils.genTestset" title="Permalink to this heading"></a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="utils.genTestset.Union">
 <span class="sig-prename descclassname"><span class="pre">utils.genTestset.</span></span><span class="sig-name descname"><span class="pre">Union</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lst1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lst2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lst3</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/genTestset.html#Union"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.genTestset.Union" title="Permalink to this definition"></a></dt>
@@ -1548,13 +1588,13 @@ with left-censored values (i.e., those with ‘&lt;’ in the relation column.
 
 </section>
 <section id="module-utils.hyperparam_search_wrapper">
-<span id="utils-hyperparam-search-wrapper-module"></span><h2>utils.hyperparam_search_wrapper module<a class="headerlink" href="#module-utils.hyperparam_search_wrapper" title="Permalink to this headline"></a></h2>
+<span id="utils-hyperparam-search-wrapper-module"></span><h2>utils.hyperparam_search_wrapper module<a class="headerlink" href="#module-utils.hyperparam_search_wrapper" title="Permalink to this heading"></a></h2>
 <p>Script to generate hyperparameter combinations based on input params and send off jobs to a slurm system.
 Author: Amanda Minnich</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="utils.hyperparam_search_wrapper.GeometricSearch">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">utils.hyperparam_search_wrapper.</span></span><span class="sig-name descname"><span class="pre">GeometricSearch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/hyperparam_search_wrapper.html#GeometricSearch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.hyperparam_search_wrapper.GeometricSearch" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="#utils.hyperparam_search_wrapper.HyperparameterSearch" title="utils.hyperparam_search_wrapper.HyperparameterSearch"><code class="xref py py-class docutils literal notranslate"><span class="pre">utils.hyperparam_search_wrapper.HyperparameterSearch</span></code></a></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">utils.hyperparam_search_wrapper.</span></span><span class="sig-name descname"><span class="pre">GeometricSearch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/hyperparam_search_wrapper.html#GeometricSearch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.hyperparam_search_wrapper.GeometricSearch" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#utils.hyperparam_search_wrapper.HyperparameterSearch" title="utils.hyperparam_search_wrapper.HyperparameterSearch"><code class="xref py py-class docutils literal notranslate"><span class="pre">HyperparameterSearch</span></code></a></p>
 <p>Generates parameter values in logistic steps, rather than linear like GridSearch does</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="utils.hyperparam_search_wrapper.GeometricSearch.generate_assay_list">
@@ -1605,8 +1645,8 @@ you want to try for that param</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="utils.hyperparam_search_wrapper.GridSearch">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">utils.hyperparam_search_wrapper.</span></span><span class="sig-name descname"><span class="pre">GridSearch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/hyperparam_search_wrapper.html#GridSearch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.hyperparam_search_wrapper.GridSearch" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="#utils.hyperparam_search_wrapper.HyperparameterSearch" title="utils.hyperparam_search_wrapper.HyperparameterSearch"><code class="xref py py-class docutils literal notranslate"><span class="pre">utils.hyperparam_search_wrapper.HyperparameterSearch</span></code></a></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">utils.hyperparam_search_wrapper.</span></span><span class="sig-name descname"><span class="pre">GridSearch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/hyperparam_search_wrapper.html#GridSearch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.hyperparam_search_wrapper.GridSearch" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#utils.hyperparam_search_wrapper.HyperparameterSearch" title="utils.hyperparam_search_wrapper.HyperparameterSearch"><code class="xref py py-class docutils literal notranslate"><span class="pre">HyperparameterSearch</span></code></a></p>
 <p>Generates fixed steps on a grid for a given hyperparameter range</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="utils.hyperparam_search_wrapper.GridSearch.generate_assay_list">
@@ -1657,7 +1697,7 @@ you want to try for that param</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="utils.hyperparam_search_wrapper.HyperOptSearch">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">utils.hyperparam_search_wrapper.</span></span><span class="sig-name descname"><span class="pre">HyperOptSearch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/hyperparam_search_wrapper.html#HyperOptSearch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.hyperparam_search_wrapper.HyperOptSearch" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">utils.hyperparam_search_wrapper.</span></span><span class="sig-name descname"><span class="pre">HyperOptSearch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/hyperparam_search_wrapper.html#HyperOptSearch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.hyperparam_search_wrapper.HyperOptSearch" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Perform hyperparameter search with Bayesian Optmization (Tree Parzen Estimator)</p>
 <p>To use HyperOptSearch, modify the config json file as follows:</p>
@@ -1701,7 +1741,7 @@ rfe: rf_estimator, same structure as the learning rate above, e.g. uniformint|64
 
 <dl class="py class">
 <dt class="sig sig-object py" id="utils.hyperparam_search_wrapper.HyperparameterSearch">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">utils.hyperparam_search_wrapper.</span></span><span class="sig-name descname"><span class="pre">HyperparameterSearch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/hyperparam_search_wrapper.html#HyperparameterSearch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.hyperparam_search_wrapper.HyperparameterSearch" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">utils.hyperparam_search_wrapper.</span></span><span class="sig-name descname"><span class="pre">HyperparameterSearch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/hyperparam_search_wrapper.html#HyperparameterSearch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.hyperparam_search_wrapper.HyperparameterSearch" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>The class for generating and running all hyperparameter combinations based on the input params given</p>
 <dl class="py method">
@@ -1925,8 +1965,8 @@ split_uuids included. Generates splits for the split_combos [[0.1,0.1], [0.15,0.
 
 <dl class="py class">
 <dt class="sig sig-object py" id="utils.hyperparam_search_wrapper.RandomSearch">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">utils.hyperparam_search_wrapper.</span></span><span class="sig-name descname"><span class="pre">RandomSearch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/hyperparam_search_wrapper.html#RandomSearch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.hyperparam_search_wrapper.RandomSearch" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="#utils.hyperparam_search_wrapper.HyperparameterSearch" title="utils.hyperparam_search_wrapper.HyperparameterSearch"><code class="xref py py-class docutils literal notranslate"><span class="pre">utils.hyperparam_search_wrapper.HyperparameterSearch</span></code></a></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">utils.hyperparam_search_wrapper.</span></span><span class="sig-name descname"><span class="pre">RandomSearch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/hyperparam_search_wrapper.html#RandomSearch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.hyperparam_search_wrapper.RandomSearch" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#utils.hyperparam_search_wrapper.HyperparameterSearch" title="utils.hyperparam_search_wrapper.HyperparameterSearch"><code class="xref py py-class docutils literal notranslate"><span class="pre">HyperparameterSearch</span></code></a></p>
 <p>Generates the specified number of random parameter values for within the specified range</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="utils.hyperparam_search_wrapper.RandomSearch.generate_assay_list">
@@ -1977,8 +2017,8 @@ you want to try for that param</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="utils.hyperparam_search_wrapper.UserSpecifiedSearch">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">utils.hyperparam_search_wrapper.</span></span><span class="sig-name descname"><span class="pre">UserSpecifiedSearch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/hyperparam_search_wrapper.html#UserSpecifiedSearch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.hyperparam_search_wrapper.UserSpecifiedSearch" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="#utils.hyperparam_search_wrapper.HyperparameterSearch" title="utils.hyperparam_search_wrapper.HyperparameterSearch"><code class="xref py py-class docutils literal notranslate"><span class="pre">utils.hyperparam_search_wrapper.HyperparameterSearch</span></code></a></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">utils.hyperparam_search_wrapper.</span></span><span class="sig-name descname"><span class="pre">UserSpecifiedSearch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/hyperparam_search_wrapper.html#UserSpecifiedSearch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.hyperparam_search_wrapper.UserSpecifiedSearch" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#utils.hyperparam_search_wrapper.HyperparameterSearch" title="utils.hyperparam_search_wrapper.HyperparameterSearch"><code class="xref py py-class docutils literal notranslate"><span class="pre">HyperparameterSearch</span></code></a></p>
 <p>Generates combinations using the user-specified steps</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="utils.hyperparam_search_wrapper.UserSpecifiedSearch.generate_assay_list">
@@ -2179,7 +2219,7 @@ for new LC model tracker.</p>
 
 </section>
 <section id="module-utils.llnl_utils">
-<span id="utils-llnl-utils-module"></span><h2>utils.llnl_utils module<a class="headerlink" href="#module-utils.llnl_utils" title="Permalink to this headline"></a></h2>
+<span id="utils-llnl-utils-module"></span><h2>utils.llnl_utils module<a class="headerlink" href="#module-utils.llnl_utils" title="Permalink to this heading"></a></h2>
 <p>Utility functions for running and managing jobs on LC machines.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="utils.llnl_utils.get_command_output">
@@ -2240,7 +2280,7 @@ command.</p>
 
 </section>
 <section id="module-utils.model_retrain">
-<span id="utils-model-retrain-module"></span><h2>utils.model_retrain module<a class="headerlink" href="#module-utils.model_retrain" title="Permalink to this headline"></a></h2>
+<span id="utils-model-retrain-module"></span><h2>utils.model_retrain module<a class="headerlink" href="#module-utils.model_retrain" title="Permalink to this heading"></a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="utils.model_retrain.main">
 <span class="sig-prename descclassname"><span class="pre">utils.model_retrain.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">argv</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/model_retrain.html#main"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.model_retrain.main" title="Permalink to this definition"></a></dt>
@@ -2303,10 +2343,10 @@ command.</p>
 
 </section>
 <section id="utils-open-docs-module">
-<h2>utils.open-docs module<a class="headerlink" href="#utils-open-docs-module" title="Permalink to this headline"></a></h2>
+<h2>utils.open-docs module<a class="headerlink" href="#utils-open-docs-module" title="Permalink to this heading"></a></h2>
 </section>
 <section id="module-utils.process_slurm">
-<span id="utils-process-slurm-module"></span><h2>utils.process_slurm module<a class="headerlink" href="#module-utils.process_slurm" title="Permalink to this headline"></a></h2>
+<span id="utils-process-slurm-module"></span><h2>utils.process_slurm module<a class="headerlink" href="#module-utils.process_slurm" title="Permalink to this heading"></a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="utils.process_slurm.get_timings">
 <span class="sig-prename descclassname"><span class="pre">utils.process_slurm.</span></span><span class="sig-name descname"><span class="pre">get_timings</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">output_dirs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/process_slurm.html#get_timings"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.process_slurm.get_timings" title="Permalink to this definition"></a></dt>
@@ -2339,7 +2379,7 @@ command.</p>
 
 </section>
 <section id="module-utils.pubchem_utils">
-<span id="utils-pubchem-utils-module"></span><h2>utils.pubchem_utils module<a class="headerlink" href="#module-utils.pubchem_utils" title="Permalink to this headline"></a></h2>
+<span id="utils-pubchem-utils-module"></span><h2>utils.pubchem_utils module<a class="headerlink" href="#module-utils.pubchem_utils" title="Permalink to this heading"></a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="utils.pubchem_utils.download_SID_from_bioactivity_assay">
 <span class="sig-prename descclassname"><span class="pre">utils.pubchem_utils.</span></span><span class="sig-name descname"><span class="pre">download_SID_from_bioactivity_assay</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bioassayid</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/pubchem_utils.html#download_SID_from_bioactivity_assay"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.pubchem_utils.download_SID_from_bioactivity_assay" title="Permalink to this definition"></a></dt>
@@ -2409,7 +2449,7 @@ Will return only one SMILES string per INCHIKEY.  If there are multiple values r
 
 </section>
 <section id="module-utils.rdkit_easy">
-<span id="utils-rdkit-easy-module"></span><h2>utils.rdkit_easy module<a class="headerlink" href="#module-utils.rdkit_easy" title="Permalink to this headline"></a></h2>
+<span id="utils-rdkit-easy-module"></span><h2>utils.rdkit_easy module<a class="headerlink" href="#module-utils.rdkit_easy" title="Permalink to this heading"></a></h2>
 <p>Utilities for clustering and visualizing compound structures using RDKit.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="utils.rdkit_easy.add_mol_column">
@@ -2574,7 +2614,7 @@ with HTML images rendered in table cells.</p>
 
 </section>
 <section id="module-utils.struct_utils">
-<span id="utils-struct-utils-module"></span><h2>utils.struct_utils module<a class="headerlink" href="#module-utils.struct_utils" title="Permalink to this headline"></a></h2>
+<span id="utils-struct-utils-module"></span><h2>utils.struct_utils module<a class="headerlink" href="#module-utils.struct_utils" title="Permalink to this heading"></a></h2>
 <p>Functions to manipulate and convert between various representations of chemical structures: SMILES, InChi and RDKit Mol objects.
 Many of these functions (those with a ‘workers’ argument) accept either a single SMILES or InChi string or a list of strings
 as their first argument, and return a value with the same datatype. If a list is passed and the ‘workers’ argument is &gt; 1,
@@ -2760,7 +2800,7 @@ it can be used as a unique identifier, but doesn’t hold the information needed
 
 </section>
 <section id="module-utils">
-<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-utils" title="Permalink to this headline"></a></h2>
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-utils" title="Permalink to this heading"></a></h2>
 </section>
 </section>
 

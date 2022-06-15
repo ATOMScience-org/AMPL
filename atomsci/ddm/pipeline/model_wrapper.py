@@ -24,6 +24,8 @@ from torch.utils.data import DataLoader
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import RandomForestRegressor
 
+import pdb
+
 try:
     import dgl
     import dgllife
@@ -53,7 +55,36 @@ from atomsci.ddm.pipeline import transformations as trans
 from atomsci.ddm.pipeline import perf_data as perf
 import atomsci.ddm.pipeline.parameter_parser as pp
 
+from tensorflow.python.keras.utils.layer_utils import count_params
+
 logging.basicConfig(format='%(asctime)-15s %(message)s')
+
+def get_latest_pytorch_checkpoint(model, model_dir=None):
+    '''Gets the latest torch model
+
+    Calls get_checkpoints(), sorts them, and returns the
+    latest model (the one with the biggets number)
+
+    Args:
+        model: A model that inherits DeepChem TorchModel
+        model_dir: Optional argument that directs the model
+            to a specific folder
+
+    Returns:
+        path relative to model_dir, if provided, to the latest
+        checkpoint
+
+    '''
+    chkpts = model.get_checkpoints(model_dir)
+    print(chkpts)
+    if len(chkpts) == 0:
+        raise ValueError("No 'best' checkpoint found. deepchem.Model.get_checkpoints() is empty")
+    # checkpoint with the highest number is the best one
+    latest_chkpt = max(chkpts, key=os.path.getctime)
+    print(latest_chkpt)
+
+    return latest_chkpt
+ 
 
 def dc_restore(model, checkpoint=None, model_dir=None, session=None):
     """Reload the values of all variables from a checkpoint file.
@@ -126,7 +157,10 @@ def create_model_wrapper(params, featurizer, ds_client=None):
         ValueError: Only params.model_type = 'NN', 'RF' or 'xgboost' is supported.
     """
     if params.model_type == 'NN':
-        return DCNNModelWrapper(params, featurizer, ds_client)
+        if params.featurizer == 'graphconv':
+            return GraphConvDCModelWrapper(params, featurizer, ds_client)
+        else:
+            return MultitaskDCModelWrapper(params, featurizer, ds_client)
     elif params.model_type == 'RF':
         return DCRFModelWrapper(params, featurizer, ds_client)
     elif params.model_type == 'xgboost':
@@ -757,13 +791,6 @@ class NNModelWrapper(ModelWrapper):
         os.mkdir(dest_dir)
 
     # ****************************************************************************************
-    def restore(self, **kwargs):
-        '''
-        Restores the model to the last available checkpoint
-        '''
-        raise NotImplementedError
-
-    # ****************************************************************************************
     def train(self, pipeline):
         """Trains a neural net model for multiple epochs, choose the epoch with the best validation
         set performance, refits the model for that number of epochs, and saves the tuned model.
@@ -772,7 +799,7 @@ class NNModelWrapper(ModelWrapper):
             pipeline (ModelPipeline): The ModelPipeline instance for this model run.
 
         Side effects:
-            Sets the following attributes for DCNNModelWrapper:
+            Sets the following attributes for NNModelWrapper:
                 data (ModelDataset): contains the dataset, set in pipeline
 
                 best_epoch (int): Initialized as None, keeps track of the epoch with the best validation score
@@ -806,7 +833,7 @@ class NNModelWrapper(ModelWrapper):
             pipeline (ModelPipeline): The ModelPipeline instance for this model run.
 
         Side effects:
-            Sets the following attributes for DCNNModelWrapper:
+            Sets the following attributes for NNModelWrapper:
                 data (ModelDataset): contains the dataset, set in pipeline
 
                 best_epoch (int): Initialized as None, keeps track of the epoch with the best validation score
@@ -908,7 +935,7 @@ class NNModelWrapper(ModelWrapper):
             pipeline (ModelPipeline): The ModelPipeline instance for this model run.
 
         Side effects:
-            Sets the following attributes for DCNNModelWrapper:
+            Sets the following attributes for NNModelWrapper:
                 data (ModelDataset): contains the dataset, set in pipeline
 
                 best_epoch (int): Initialized as None, keeps track of the epoch with the best validation score
@@ -964,7 +991,25 @@ class NNModelWrapper(ModelWrapper):
         '''
         Reverts model to last saved checkpoint
         '''
-        dc_restore(self.model)
+        self.model.restore()
+
+    # ****************************************************************************************
+    def _copy_model(self, dest_dir):
+        """Copies the files needed to recreate a DeepChem NN model from the current model
+        directory to a destination directory.
+
+        Looks at self.model.get_checkpoints() and assumes the last checkpoint saved is the best
+
+        Args:
+            dest_dir (str): The destination directory for the model files
+        """
+        chkpt_file = get_latest_pytorch_checkpoint(self.model)
+
+        self._clean_up_excess_files(dest_dir)
+
+        shutil.copy2(chkpt_file, dest_dir)
+        self.log.info("Saved model files to '%s'" % dest_dir)
+
 
     # ****************************************************************************************
     def generate_predictions(self, dataset):
@@ -1036,390 +1081,6 @@ class NNModelWrapper(ModelWrapper):
                     pred = pred.reshape((pred.shape[0], pred.shape[1], 1))
         return pred, std
 
-# ****************************************************************************************
-class DCNNModelWrapper(NNModelWrapper):
-    """Contains methods to load in a dataset, split and featurize the data, fit a model to the train dataset,
-    generate predictions for an input dataset, and generate performance metrics for these predictions.
-
-    Attributes:
-        Set in __init__
-            params (argparse.Namespace): The argparse.Namespace parameter object that contains all parameter information
-            featurziation (Featurization object): The featurization object created outside of model_wrapper
-
-            log (log): The logger
-
-            output_dir (str): The parent path of the model directory
-
-            transformers (list): Initialized as an empty list, stores the transformers on the response col
-
-            transformers_x (list): Initialized as an empty list, stores the transformers on the featurizers
-
-            model_dir (str): The subdirectory under output_dir that contains the model. Created in setup_model_dirs.
-
-            best_model_dir (str): The subdirectory under output_dir that contains the best model. Created in setup_model_dirs
-
-            g: The tensorflow graph object
-
-            sess: The tensor flow graph session
-
-            model: The dc.models.GraphConvModel, MultitaskRegressor, or MultitaskClassifier object, as specified by the params attribute
-
-        Created in train:
-            data (ModelDataset): contains the dataset, set in pipeline
-
-            best_epoch (int): Initialized as None, keeps track of the epoch with the best validation score
-
-            train_perf_data (np.array of PerfData): Initialized as an empty array, 
-                contains the predictions and performance of the training dataset
-
-            valid_perf_data (np.array of PerfData): Initialized as an empty array,
-                contains the predictions and performance of the validation dataset
-
-            train_epoch_perfs (np.array of dicts): Initialized as an empty array,
-                contains a list of dictionaries of predicted values and metrics on the training dataset
-
-            valid_epoch_perfs (np.array of dicts): Initialized as an empty array,
-                contains a list of dictionaries of predicted values and metrics on the validation dataset
-
-    """
-
-    def __init__(self, params, featurizer, ds_client):
-        """Initializes DCNNModelWrapper object.
-
-        Args:
-            params (Namespace object): contains all parameter information.
-
-            featurizer (Featurizer object): initialized outside of model_wrapper
-
-        Side effects:
-            params (argparse.Namespace): The argparse.Namespace parameter object that contains all parameter information
-
-            featurziation (Featurization object): The featurization object created outside of model_wrapper
-
-            log (log): The logger
-
-            output_dir (str): The parent path of the model directory
-
-            transformers (list): Initialized as an empty list, stores the transformers on the response col
-
-            transformers_x (list): Initialized as an empty list, stores the transformers on the featurizers
-
-            g: The tensorflow graph object
-
-            sess: The tensor flow graph session
-
-            model: The dc.models.GraphConvModel, MultitaskRegressor, or MultitaskClassifier object, as specified by the params attribute
-
-
-        """
-        super().__init__(params, featurizer, ds_client)
-        self.g = tf.Graph()
-        self.sess = tf.compat.v1.Session(graph=self.g)
-        n_features = self.get_num_features()
-        self.num_epochs_trained = 0
-        self.log.warning("This method is deprecated and will not be supported in the future")
-        if self.params.featurizer == 'graphconv':
-
-            # Set defaults for layer sizes and dropouts, if not specified by caller. Note that
-            # these depend on the featurizer used.
-
-            if self.params.layer_sizes is None:
-                self.params.layer_sizes = [64, 64, 128]
-            if self.params.dropouts is None:
-                if self.params.uncertainty:
-                    self.params.dropouts = [0.25] * len(self.params.layer_sizes)
-                else:
-                    self.params.dropouts = [0.0] * len(self.params.layer_sizes)
-
-            # TODO: Need to check that GraphConvModel params are actually being used
-            self.model = dc.models.GraphConvModel(
-                self.params.num_model_tasks,
-                batch_size=self.params.batch_size,
-                learning_rate=self.params.learning_rate,
-                learning_rate_decay_time=1000,
-                optimizer_type=self.params.optimizer_type,
-                beta1=0.9,
-                beta2=0.999,
-                model_dir=self.model_dir,
-                mode=self.params.prediction_type,
-                tensorboard=False,
-                uncertainty=self.params.uncertainty,
-                graph_conv_layers=self.params.layer_sizes[:-1],
-                dense_layer_size=self.params.layer_sizes[-1],
-                dropout=self.params.dropouts,
-                penalty=self.params.weight_decay_penalty,
-                penalty_type=self.params.weight_decay_penalty_type)
-
-        else:
-            # Set defaults for layer sizes and dropouts, if not specified by caller. Note that
-            # default layer sizes depend on the featurizer used.
-
-            if self.params.layer_sizes is None:
-                if self.params.featurizer == 'ecfp':
-                    self.params.layer_sizes = [1000, 500]
-                elif self.params.featurizer in ['descriptors', 'computed_descriptors']:
-                    self.params.layer_sizes = [200, 100]
-                else:
-                    # Shouldn't happen
-                    self.log.warning("You need to define default layer sizes for featurizer %s" %
-                                     self.params.featurizer)
-                    self.params.layer_sizes = [1000, 500]
-
-            if self.params.dropouts is None:
-                self.params.dropouts = [0.4] * len(self.params.layer_sizes)
-            if self.params.weight_init_stddevs is None:
-                self.params.weight_init_stddevs = [0.02] * len(self.params.layer_sizes)
-            if self.params.bias_init_consts is None:
-                self.params.bias_init_consts = [1.0] * len(self.params.layer_sizes)
-
-            if self.params.prediction_type == 'regression':
-
-                # TODO: Need to check that MultitaskRegressor params are actually being used
-                self.model = MultitaskRegressor(
-                    self.params.num_model_tasks,
-                    n_features,
-                    layer_sizes=self.params.layer_sizes,
-                    dropouts=self.params.dropouts,
-                    weight_init_stddevs=self.params.weight_init_stddevs,
-                    bias_init_consts=self.params.bias_init_consts,
-                    learning_rate=self.params.learning_rate,
-                    weight_decay_penalty=self.params.weight_decay_penalty,
-                    weight_decay_penalty_type=self.params.weight_decay_penalty_type,
-                    batch_size=self.params.batch_size,
-                    seed=123,
-                    verbosity='low',
-                    model_dir=self.model_dir,
-                    learning_rate_decay_time=1000,
-                    beta1=0.9,
-                    beta2=0.999,
-                    mode=self.params.prediction_type,
-                    tensorboard=False,
-                    uncertainty=self.params.uncertainty)
-
-                # print("JEA debug",self.params.num_model_tasks,n_features,self.params.layer_sizes,self.params.weight_init_stddevs,self.params.bias_init_consts,self.params.dropouts,self.params.weight_decay_penalty,self.params.weight_decay_penalty_type,self.params.batch_size,self.params.learning_rate)
-                # self.model = MultitaskRegressor(
-                #     self.params.num_model_tasks,
-                #     n_features,
-                #     layer_sizes=self.params.layer_sizes,
-                #     weight_init_stddevs=self.params.weight_init_stddevs,
-                #     bias_init_consts=self.params.bias_init_consts,
-                #     dropouts=self.params.dropouts,
-                #     weight_decay_penalty=self.params.weight_decay_penalty,
-                #     weight_decay_penalty_type=self.params.weight_decay_penalty_type,
-                #     batch_size=self.params.batch_size,
-                #     learning_rate=self.params.learning_rate,
-                #     seed=123)
-
-            else:
-                # TODO: Need to check that MultitaskClassifier params are actually being used
-                self.model = MultitaskClassifier(
-                    self.params.num_model_tasks,
-                    n_features,
-                    layer_sizes=self.params.layer_sizes,
-                    dropouts=self.params.dropouts,
-                    weight_init_stddevs=self.params.weight_init_stddevs,
-                    bias_init_consts=self.params.bias_init_consts,
-                    learning_rate=self.params.learning_rate,
-                    weight_decay_penalty=self.params.weight_decay_penalty,
-                    weight_decay_penalty_type=self.params.weight_decay_penalty_type,
-                    batch_size=self.params.batch_size,
-                    seed=123,
-                    verbosity='low',
-                    model_dir=self.model_dir,
-                    learning_rate_decay_time=1000,
-                    beta1=.9,
-                    beta2=.999,
-                    mode=self.params.prediction_type,
-                    tensorboard=False,
-                    n_classes=self.params.class_number)
-
-    # ****************************************************************************************
-    def recreate_model(self):
-        """
-        Creates a new DeepChem Model object of the correct type for the requested featurizer and prediction type 
-        and returns it.
-        """
-        if self.params.featurizer == 'graphconv':
-            model = dc.models.GraphConvModel(
-                self.params.num_model_tasks,
-                batch_size=self.params.batch_size,
-                learning_rate=self.params.learning_rate,
-                learning_rate_decay_time=1000,
-                optimizer_type=self.params.optimizer_type,
-                beta1=0.9,
-                beta2=0.999,
-                model_dir=self.model_dir,
-                mode=self.params.prediction_type,
-                tensorboard=False,
-                uncertainty=self.params.uncertainty,
-                graph_conv_layers=self.params.layer_sizes[:-1],
-                dense_layer_size=self.params.layer_sizes[-1],
-                dropout=self.params.dropouts,
-                penalty=self.params.weight_decay_penalty,
-                penalty_type=self.params.weight_decay_penalty_type)
-
-        else:
-            n_features = self.get_num_features()
-            if self.params.prediction_type == 'regression':
-                model = MultitaskRegressor(
-                    self.params.num_model_tasks,
-                    n_features,
-                    layer_sizes=self.params.layer_sizes,
-                    dropouts=self.params.dropouts,
-                    weight_init_stddevs=self.params.weight_init_stddevs,
-                    bias_init_consts=self.params.bias_init_consts,
-                    learning_rate=self.params.learning_rate,
-                    weight_decay_penalty=self.params.weight_decay_penalty,
-                    weight_decay_penalty_type=self.params.weight_decay_penalty_type,
-                    batch_size=self.params.batch_size,
-                    seed=123,
-                    verbosity='low',
-                    model_dir=self.model_dir,
-                    learning_rate_decay_time=1000,
-                    beta1=0.9,
-                    beta2=0.999,
-                    mode=self.params.prediction_type,
-                    tensorboard=False,
-                    uncertainty=self.params.uncertainty)
-            else:
-                model = MultitaskClassifier(
-                    self.params.num_model_tasks,
-                    n_features,
-                    layer_sizes=self.params.layer_sizes,
-                    dropouts=self.params.dropouts,
-                    weight_init_stddevs=self.params.weight_init_stddevs,
-                    bias_init_consts=self.params.bias_init_consts,
-                    learning_rate=self.params.learning_rate,
-                    weight_decay_penalty=self.params.weight_decay_penalty,
-                    weight_decay_penalty_type=self.params.weight_decay_penalty_type,
-                    batch_size=self.params.batch_size,
-                    seed=123,
-                    verbosity='low',
-                    model_dir=self.model_dir,
-                    learning_rate_decay_time=1000,
-                    beta1=.9,
-                    beta2=.999,
-                    mode=self.params.prediction_type,
-                    tensorboard=False,
-                    n_classes=self.params.class_number)
-
-        return model
-
-    # ****************************************************************************************
-    def _copy_model(self, dest_dir):
-        """Copies the files needed to recreate a DeepChem NN model from the current model
-        directory to a destination directory.
-
-        Args:
-            dest_dir (str): The destination directory for the model files
-        """
-
-        chkpt_file = os.path.join(self.model_dir, 'checkpoint')
-        with open(chkpt_file, 'r') as chkpt_in:
-            chkpt_dict = yaml.load(chkpt_in.read())
-        chkpt_prefix = chkpt_dict['model_checkpoint_path']
-        files = [chkpt_file]
-        # files.append(os.path.join(self.model_dir, 'model.pickle'))
-        files.append(os.path.join(self.model_dir, '%s.index' % chkpt_prefix))
-        # files.append(os.path.join(self.model_dir, '%s.meta' % chkpt_prefix))
-        files = files + glob.glob(os.path.join(self.model_dir, '%s.data-*' % chkpt_prefix))
-        self._clean_up_excess_files(dest_dir)
-        for file in files:
-            shutil.copy2(file, dest_dir)
-        self.log.info("Saved model files to '%s'" % dest_dir)
-
-    # ****************************************************************************************
-    def reload_model(self, reload_dir):
-        """Loads a saved neural net model from the specified directory.
-
-        Args:
-            reload_dir (str): Directory where saved model is located.
-            model_dataset (ModelDataset Object): contains the current full dataset
-
-        Side effects:
-            Resets the value of model, transformers, transformers_x and transformers_w
-        """
-        if self.params.featurizer == 'graphconv':
-            self.model = dc.models.GraphConvModel(
-                n_tasks=self.params.num_model_tasks,
-                n_features=self.get_num_features(),
-                batch_size=self.params.batch_size,
-                model_dir=reload_dir,
-                uncertainty=self.params.uncertainty,
-                graph_conv_layers=self.params.layer_sizes[:-1],
-                dense_layer_size=self.params.layer_sizes[-1],
-                dropout=self.params.dropouts,
-                learning_rate=self.params.learning_rate,
-                mode=self.params.prediction_type)
-        elif self.params.prediction_type == 'regression':
-            self.model = MultitaskRegressor(
-                self.params.num_model_tasks,
-                n_features=self.get_num_features(),
-                layer_sizes=self.params.layer_sizes,
-                dropouts=self.params.dropouts,
-                weight_init_stddevs=self.params.weight_init_stddevs,
-                bias_init_consts=self.params.bias_init_consts,
-                weight_decay_penalty=self.params.weight_decay_penalty,
-                weight_decay_penalty_type=self.params.weight_decay_penalty_type,
-                model_dir=reload_dir,
-                learning_rate=self.params.learning_rate,
-                uncertainty=self.params.uncertainty)
-        else:
-            self.model = MultitaskClassifier(
-                self.params.num_model_tasks,
-                n_features=self.get_num_features(),
-                layer_sizes=self.params.layer_sizes,
-                dropouts=self.params.dropouts,
-                weight_init_stddevs=self.params.weight_init_stddevs,
-                bias_init_consts=self.params.bias_init_consts,
-                weight_decay_penalty=self.params.weight_decay_penalty,
-                weight_decay_penalty_type=self.params.weight_decay_penalty_type,
-                model_dir=reload_dir,
-                learning_rate=self.params.learning_rate,
-                n_classes=self.params.class_number)
-        # Hack to run models trained in DeepChem 2.1 with DeepChem 2.2
-        # self.model.default_outputs = self.model.outputs
-        # Get latest checkpoint path transposed to current model dir
-        ckpt = tf.train.get_checkpoint_state(reload_dir)
-        if os.path.exists(f"{ckpt.model_checkpoint_path}.index"):
-            checkpoint = ckpt.model_checkpoint_path
-        else:
-            checkpoint = os.path.join(reload_dir, os.path.basename(ckpt.model_checkpoint_path))
-        dc_restore(self.model, checkpoint=checkpoint)
-
-
-        # Restore the transformers from the datastore or filesystem
-        self.reload_transformers()
-
-    # ****************************************************************************************
-    def restore(self):
-        dc_restore(self.model)
-
-    # ****************************************************************************************
-    def get_model_specific_metadata(self):
-        """Returns a dictionary of parameter settings for this ModelWrapper object that are specific
-        to neural network models.
-
-        Returns:
-            model_spec_metdata (dict): A dictionary of the parameter sets for the DCNNModelWrapper object.
-                Parameters are saved under the key 'nn_specific' as a subdictionary.
-        """
-        nn_metadata = dict(
-                    best_epoch = self.best_epoch,
-                    max_epochs = self.params.max_epochs,
-                    batch_size = self.params.batch_size,
-                    optimizer_type = self.params.optimizer_type,
-                    layer_sizes = self.params.layer_sizes,
-                    dropouts = self.params.dropouts,
-                    weight_init_stddevs = self.params.weight_init_stddevs,
-                    bias_init_consts = self.params.bias_init_consts,
-                    learning_rate = self.params.learning_rate,
-                    weight_decay_penalty=self.params.weight_decay_penalty,
-                    weight_decay_penalty_type=self.params.weight_decay_penalty_type
-        )
-        model_spec_metadata = dict(nn_specific = nn_metadata)
-        return model_spec_metadata
-       
 # ****************************************************************************************
 class HybridModelWrapper(NNModelWrapper):
     """A wrapper for hybrid models, contains methods to load in a dataset, split and featurize the data, fit a model to the train dataset,
@@ -2308,7 +1969,6 @@ class DCxgboostModelWrapper(ForestModelWrapper):
                                          gpu_id = -1,
                                          n_gpus = 0,
                                          max_bin = 16,
-                                         seed=0
                                          )
         else:
             xgb_model = xgb.XGBClassifier(max_depth=self.params.xgb_max_depth,
@@ -2334,7 +1994,6 @@ class DCxgboostModelWrapper(ForestModelWrapper):
                                           n_jobs=-1,                                          
                                           n_gpus = 0,
                                           max_bin = 16,
-                                          seed=0
                                          )
 
         return dc.models.sklearn_models.SklearnModel(xgb_model, model_dir=model_dir)
@@ -2445,7 +2104,6 @@ class DCxgboostModelWrapper(ForestModelWrapper):
                                          gpu_id = -1,
                                          n_gpus = 0,
                                          max_bin = 16,
-                                         seed=0
                                          )
         else:
             xgb_model = xgb.XGBClassifier(max_depth=self.params.xgb_max_depth,
@@ -2471,7 +2129,6 @@ class DCxgboostModelWrapper(ForestModelWrapper):
                                          n_jobs=-1,                                          
                                          n_gpus = 0,
                                          max_bin = 16,
-                                         seed=0
                                          )
 
         # Restore the transformers from the datastore or filesystem
@@ -2629,7 +2286,7 @@ class PytorchDeepChemModelWrapper(NNModelWrapper):
             featurizer (Featurization): Object managing the featurization of compounds
             ds_client: datastore client.
         """
-        # use NNModelWrapper init. Not DCNNModelWrapper
+        # use NNModelWrapper init. 
         super().__init__(params, featurizer, ds_client)
         self.num_epochs_trained = 0
 
@@ -2676,10 +2333,8 @@ class PytorchDeepChemModelWrapper(NNModelWrapper):
             Resets the value of model, transformers, and transformers_x
         """
         self.model = self.recreate_model(model_dir=reload_dir)
-        chkpts = self.model.get_checkpoints()
-
         # checkpoint with the highest number is the best one
-        best_chkpt = sorted(chkpts)[0] 
+        best_chkpt = get_latest_pytorch_checkpoint(self.model)
         self.model.restore(best_chkpt, reload_dir)
 
         # Restore the transformers from the datastore or filesystem
@@ -2691,7 +2346,7 @@ class PytorchDeepChemModelWrapper(NNModelWrapper):
         to neural network models.
 
         Returns:
-            model_spec_metdata (dict): A dictionary of the parameter sets for the DCNNModelWrapper object.
+            model_spec_metdata (dict): A dictionary of the parameter sets for the NNModelWrapper object.
                 Parameters are saved under the key 'nn_specific' as a subdictionary.
         """
         nn_metadata = pp.extract_model_params(self.params, strip_prefix=False)
@@ -2706,26 +2361,171 @@ class PytorchDeepChemModelWrapper(NNModelWrapper):
         '''
         self.model.restore()
 
-    # ****************************************************************************************
-    def _copy_model(self, dest_dir):
-        """Copies the files needed to recreate a DeepChem NN model from the current model
-        directory to a destination directory.
+    def count_params(self):
+        '''
+        Returns the number of trainable parameters
 
-        Looks at self.model.get_checkpoints() and assumes the last checkpoint saved is the best
+        There's no function implemented in Pytorch that does this so I'm using the
+        solution found here:https://discuss.pytorch.org/t/how-do-i-check-the-number-of-parameters-of-a-model/4325/25
 
         Args:
-            dest_dir (str): The destination directory for the model files
+            None
+
+        Returns
+            Int- the number of trainable parameters
+        '''
+        pytorch_total_params = sum(p.numel() for p in self.model.model.parameters() if p.requires_grad)
+        return pytorch_total_params
+
+# ****************************************************************************************
+class MultitaskDCModelWrapper(PytorchDeepChemModelWrapper):
+    """Contains methods to load in a dataset, split and featurize the data, fit a model to the train dataset,
+    generate predictions for an input dataset, and generate performance metrics for these predictions.
+
+    Attributes:
+        Set in __init__
+            params (argparse.Namespace): The argparse.Namespace parameter object that contains all parameter information
+            featurziation (Featurization object): The featurization object created outside of model_wrapper
+
+            log (log): The logger
+
+            output_dir (str): The parent path of the model directory
+
+            transformers (list): Initialized as an empty list, stores the transformers on the response col
+
+            transformers_x (list): Initialized as an empty list, stores the transformers on the featurizers
+
+            model_dir (str): The subdirectory under output_dir that contains the model. Created in setup_model_dirs.
+
+            best_model_dir (str): The subdirectory under output_dir that contains the best model. Created in setup_model_dirs
+
+            g: The tensorflow graph object
+
+            sess: The tensor flow graph session
+
+            model: The dc.models.GraphConvModel, MultitaskRegressor, or MultitaskClassifier object, as specified by the params attribute
+
+        Created in train:
+            data (ModelDataset): contains the dataset, set in pipeline
+
+            best_epoch (int): Initialized as None, keeps track of the epoch with the best validation score
+
+            train_perf_data (np.array of PerfData): Initialized as an empty array, 
+                contains the predictions and performance of the training dataset
+
+            valid_perf_data (np.array of PerfData): Initialized as an empty array,
+                contains the predictions and performance of the validation dataset
+
+            train_epoch_perfs (np.array of dicts): Initialized as an empty array,
+                contains a list of dictionaries of predicted values and metrics on the training dataset
+
+            valid_epoch_perfs (np.array of dicts): Initialized as an empty array,
+                contains a list of dictionaries of predicted values and metrics on the validation dataset
+
+    """
+
+    def recreate_model(self, model_dir=None):
         """
-        chkpts = sorted(self.model.get_checkpoints())
-        if len(chkpts) == 0:
-            raise ValueError("No 'best' checkpoint found. deepchem.Model.get_checkpoints() is empty")
-        chkpt_file = chkpts[0] # most recent is best
+        Creates a new DeepChem Model object of the correct type for the requested featurizer and prediction type 
+        and returns it.
 
-        self._clean_up_excess_files(dest_dir)
+        reload_dir (str): Directory where saved model is located.
+        """
+        if model_dir is None:
+            model_dir = self.model_dir
 
-        shutil.copy2(chkpt_file, dest_dir)
-        self.log.info("Saved model files to '%s'" % dest_dir)
+        n_features = self.get_num_features()
+        if self.params.layer_sizes is None:
+            if self.params.featurizer == 'ecfp':
+                self.params.layer_sizes = [1000, 500]
+            elif self.params.featurizer in ['descriptors', 'computed_descriptors']:
+                self.params.layer_sizes = [200, 100]
+            else:
+                # Shouldn't happen
+                self.log.warning("You need to define default layer sizes for featurizer %s" %
+                                    self.params.featurizer)
+                self.params.layer_sizes = [1000, 500]
 
+        if self.params.dropouts is None:
+            self.params.dropouts = [0.4] * len(self.params.layer_sizes)
+        if self.params.weight_init_stddevs is None:
+            self.params.weight_init_stddevs = [0.02] * len(self.params.layer_sizes)
+        if self.params.bias_init_consts is None:
+            self.params.bias_init_consts = [1.0] * len(self.params.layer_sizes)
+
+        if self.params.prediction_type == 'regression':
+
+            # TODO: Need to check that MultitaskRegressor params are actually being used
+            model = MultitaskRegressor(
+                self.params.num_model_tasks,
+                n_features,
+                layer_sizes=self.params.layer_sizes,
+                dropouts=self.params.dropouts,
+                weight_init_stddevs=self.params.weight_init_stddevs,
+                bias_init_consts=self.params.bias_init_consts,
+                learning_rate=self.params.learning_rate,
+                weight_decay_penalty=self.params.weight_decay_penalty,
+                weight_decay_penalty_type=self.params.weight_decay_penalty_type,
+                batch_size=self.params.batch_size,
+                verbosity='low',
+                model_dir=model_dir,
+                learning_rate_decay_time=1000,
+                beta1=0.9,
+                beta2=0.999,
+                mode=self.params.prediction_type,
+                tensorboard=False,
+                uncertainty=self.params.uncertainty)
+        else:
+            # TODO: Need to check that MultitaskClassifier params are actually being used
+            model = MultitaskClassifier(
+                self.params.num_model_tasks,
+                n_features,
+                layer_sizes=self.params.layer_sizes,
+                dropouts=self.params.dropouts,
+                weight_init_stddevs=self.params.weight_init_stddevs,
+                bias_init_consts=self.params.bias_init_consts,
+                learning_rate=self.params.learning_rate,
+                weight_decay_penalty=self.params.weight_decay_penalty,
+                weight_decay_penalty_type=self.params.weight_decay_penalty_type,
+                batch_size=self.params.batch_size,
+                verbosity='low',
+                model_dir=model_dir,
+                learning_rate_decay_time=1000,
+                beta1=.9,
+                beta2=.999,
+                mode=self.params.prediction_type,
+                tensorboard=False,
+                n_classes=self.params.class_number)
+
+        return model
+
+    # ****************************************************************************************
+    def get_model_specific_metadata(self):
+        """Returns a dictionary of parameter settings for this ModelWrapper object that are specific
+        to neural network models.
+
+        Returns:
+            model_spec_metdata (dict): A dictionary of the parameter sets for the MultitaskDCModelWrapper object.
+                Parameters are saved under the key 'nn_specific' as a subdictionary.
+        """
+        
+        nn_metadata = dict(
+                    best_epoch = self.best_epoch,
+                    max_epochs = self.params.max_epochs,
+                    batch_size = self.params.batch_size,
+                    optimizer_type = self.params.optimizer_type,
+                    layer_sizes = self.params.layer_sizes,
+                    dropouts = self.params.dropouts,
+                    weight_init_stddevs = self.params.weight_init_stddevs,
+                    bias_init_consts = self.params.bias_init_consts,
+                    learning_rate = self.params.learning_rate,
+                    weight_decay_penalty=self.params.weight_decay_penalty,
+                    weight_decay_penalty_type=self.params.weight_decay_penalty_type
+        )
+        model_spec_metadata = dict(nn_specific = nn_metadata)
+        return model_spec_metadata
+
+# ****************************************************************************************
 class KerasDeepChemModelWrapper(PytorchDeepChemModelWrapper):
     def _copy_model(self, dest_dir):
         """Copies the files needed to recreate a DeepChem NN model from the current model
@@ -2767,13 +2567,175 @@ class KerasDeepChemModelWrapper(PytorchDeepChemModelWrapper):
             checkpoint = ckpt.model_checkpoint_path
         else:
             checkpoint = os.path.join(reload_dir, os.path.basename(ckpt.model_checkpoint_path))
-        dc_restore(self.model, checkpoint=checkpoint)
+        self.restore(checkpoint=checkpoint)
 
         # Restore the transformers from the datastore or filesystem
         self.reload_transformers()
 
-    def restore(self):
+    def restore(self, checkpoint=None, model_dir=None, session=None):
         '''
         Restores this model
         '''
-        dc_restore(self.model)
+        dc_restore(self.model, checkpoint, model_dir, session)
+
+    def count_params(self):
+        '''
+        Returns the number of trainable parameters using Keras' count_params function
+
+        Args:
+            None
+
+        Returns
+            Int- the number of trainable parameters using Keras' count_params function
+        '''
+
+        return count_params(self.model.model.trainable_weights)
+
+# ****************************************************************************************
+class GraphConvDCModelWrapper(KerasDeepChemModelWrapper):
+    """Contains methods to load in a dataset, split and featurize the data, fit a model to the train dataset,
+    generate predictions for an input dataset, and generate performance metrics for these predictions.
+
+    Attributes:
+        Set in __init__
+            params (argparse.Namespace): The argparse.Namespace parameter object that contains all parameter information
+            featurziation (Featurization object): The featurization object created outside of model_wrapper
+
+            log (log): The logger
+
+            output_dir (str): The parent path of the model directory
+
+            transformers (list): Initialized as an empty list, stores the transformers on the response col
+
+            transformers_x (list): Initialized as an empty list, stores the transformers on the featurizers
+
+            model_dir (str): The subdirectory under output_dir that contains the model. Created in setup_model_dirs.
+
+            best_model_dir (str): The subdirectory under output_dir that contains the best model. Created in setup_model_dirs
+
+            g: The tensorflow graph object
+
+            sess: The tensor flow graph session
+
+            model: The dc.models.GraphConvModel, MultitaskRegressor, or MultitaskClassifier object, as specified by the params attribute
+
+        Created in train:
+            data (ModelDataset): contains the dataset, set in pipeline
+
+            best_epoch (int): Initialized as None, keeps track of the epoch with the best validation score
+
+            train_perf_data (np.array of PerfData): Initialized as an empty array, 
+                contains the predictions and performance of the training dataset
+
+            valid_perf_data (np.array of PerfData): Initialized as an empty array,
+                contains the predictions and performance of the validation dataset
+
+            train_epoch_perfs (np.array of dicts): Initialized as an empty array,
+                contains a list of dictionaries of predicted values and metrics on the training dataset
+
+            valid_epoch_perfs (np.array of dicts): Initialized as an empty array,
+                contains a list of dictionaries of predicted values and metrics on the validation dataset
+
+    """
+
+    def __init__(self, params, featurizer, ds_client):
+        """Initializes GraphConvDCModelWrapper object.
+
+        Args:
+            params (Namespace object): contains all parameter information.
+
+            featurizer (Featurizer object): initialized outside of model_wrapper
+
+        Side effects:
+            params (argparse.Namespace): The argparse.Namespace parameter object that contains all parameter information
+
+            featurziation (Featurization object): The featurization object created outside of model_wrapper
+
+            log (log): The logger
+
+            output_dir (str): The parent path of the model directory
+
+            transformers (list): Initialized as an empty list, stores the transformers on the response col
+
+            transformers_x (list): Initialized as an empty list, stores the transformers on the featurizers
+
+            g: The tensorflow graph object
+
+            sess: The tensor flow graph session
+
+            model: The dc.models.GraphConvModel, MultitaskRegressor, or MultitaskClassifier object, as specified by the params attribute
+
+
+        """
+        super().__init__(params, featurizer, ds_client)
+        self.g = tf.Graph()
+        self.sess = tf.compat.v1.Session(graph=self.g)
+        self.num_epochs_trained = 0
+
+        self.model = self.recreate_model(model_dir=self.model_dir)
+
+    # ****************************************************************************************
+    def recreate_model(self, model_dir=None):
+        """
+        Creates a new DeepChem Model object of the correct type for the requested featurizer and prediction type 
+        and returns it.
+
+        reload_dir (str): Directory where saved model is located.
+        """
+        if model_dir is None:
+            model_dir = self.model_dir
+
+        # Set defaults for layer sizes and dropouts, if not specified by caller. Note that
+        if self.params.layer_sizes is None:
+            self.params.layer_sizes = [64, 64, 128]
+        if self.params.dropouts is None:
+            if self.params.uncertainty:
+                self.params.dropouts = [0.25] * len(self.params.layer_sizes)
+            else:
+                self.params.dropouts = [0.0] * len(self.params.layer_sizes)
+
+        model = dc.models.GraphConvModel(
+            self.params.num_model_tasks,
+            batch_size=self.params.batch_size,
+            learning_rate=self.params.learning_rate,
+            learning_rate_decay_time=1000,
+            optimizer_type=self.params.optimizer_type,
+            beta1=0.9,
+            beta2=0.999,
+            model_dir=model_dir,
+            mode=self.params.prediction_type,
+            tensorboard=False,
+            uncertainty=self.params.uncertainty,
+            graph_conv_layers=self.params.layer_sizes[:-1],
+            dense_layer_size=self.params.layer_sizes[-1],
+            dropout=self.params.dropouts,
+            penalty=self.params.weight_decay_penalty,
+            penalty_type=self.params.weight_decay_penalty_type)
+        return model
+
+    # ****************************************************************************************
+    def get_model_specific_metadata(self):
+        """Returns a dictionary of parameter settings for this ModelWrapper object that are specific
+        to neural network models.
+
+        Returns:
+            model_spec_metdata (dict): A dictionary of the parameter sets for the GraphConvDCModelWrapper object.
+                Parameters are saved under the key 'nn_specific' as a subdictionary.
+        """
+        nn_metadata = dict(
+                    best_epoch = self.best_epoch,
+                    max_epochs = self.params.max_epochs,
+                    batch_size = self.params.batch_size,
+                    optimizer_type = self.params.optimizer_type,
+                    layer_sizes = self.params.layer_sizes,
+                    dropouts = self.params.dropouts,
+                    weight_init_stddevs = self.params.weight_init_stddevs,
+                    bias_init_consts = self.params.bias_init_consts,
+                    learning_rate = self.params.learning_rate,
+                    weight_decay_penalty=self.params.weight_decay_penalty,
+                    weight_decay_penalty_type=self.params.weight_decay_penalty_type
+        )
+        model_spec_metadata = dict(nn_specific = nn_metadata)
+        return model_spec_metadata
+
+

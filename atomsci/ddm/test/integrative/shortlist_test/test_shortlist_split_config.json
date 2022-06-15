@@ -8,7 +8,7 @@
     "datastore": "False",
     "system": "LC",
     "id_col": "compound_id",
-    "smiles_col": "base_rdkit_smiles",
+    "smiles_col": "rdkit_smiles",
     "collection_name": "test",
     "featurizer":"computed_descriptors",
     "descriptor_type":"rdkit_raw"

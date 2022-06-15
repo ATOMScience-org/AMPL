@@ -118,7 +118,7 @@ def train_model_from_tar(input, output, dskey=''):
 
     # make metadata path
     metadata_path = os.path.join(tmpdir, 'model_metadata.json')
-
+    
     return train_model(metadata_path, output, dskey=dskey)
 
 def train_model_from_tracker(model_uuid, output_dir):

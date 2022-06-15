@@ -26,6 +26,8 @@ Documentation in readthedocs format is available [here](https://ampl.readthedocs
 - [Getting started](#Getting-started)
   - [Prerequisites](#Prerequisites)
   - [Install](#Install)
+     - [Clone the git repository](#clone-repo)
+     - [Create conda environment](#create-conda-env)
      - [dgl and CUDA (**optional**)](#Install-dgl)
   - [Install with Docker](#Install-docker)
   - [AMPL usage survey](#AMPL-usage-survey)
@@ -62,21 +64,27 @@ AMPL is a Python 3 package that has been developed and run in a specific conda e
 
 <a name="Install"></a>
 ### Install
+<a name="clone-repo"></a>
 #### Clone the git repository
 
 `git clone https://github.com/ATOMScience-org/AMPL.git`  
 &nbsp;  
 
 #### Create conda environment
+<a name="create-conda-env"></a>
+There is a script `create_ampl_env.sh` that will automate the conda env creation and the packages install for you.
+
 ```
-cd conda
-
-conda create -y -n atomsci --file conda_package_list.txt
-
-conda activate atomsci
-
-pip install -r pip_requirements.txt
+$ source create_ampl_env.sh
 ```
+
+It will 
+
+- Prompt for a new conda environment name
+- Then run
+ - conda create 
+ - conda activate 
+ - and pip install and other fixes
 
 - *Note: Depending on system performance, creating the environment can take some time.*  
 &nbsp;  

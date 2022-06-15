@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>pipeline package &mdash; ATOM Data-Driven Modeling Pipeline 1.3.0 documentation</title>
+  <title>pipeline package &mdash; ATOM Data-Driven Modeling Pipeline 1.4.0 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -14,6 +14,7 @@
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -30,7 +31,7 @@
             <a href="index.html" class="icon icon-home"> ATOM Data-Driven Modeling Pipeline
           </a>
               <div class="version">
-                1.3.0
+                1.4.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -59,7 +60,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#module-pipeline.dist_metrics">pipeline.dist_metrics module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-pipeline.diversity_plots">pipeline.diversity_plots module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-pipeline.featurization">pipeline.featurization module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#pipeline-featurize-importance-module">pipeline.featurize_importance module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pipeline-feature-importance-module">pipeline.feature_importance module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-pipeline.model_datasets">pipeline.model_datasets module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-pipeline.model_pipeline">pipeline.model_pipeline module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-pipeline.model_tracker">pipeline.model_tracker module</a></li>
@@ -103,19 +104,19 @@
            <div itemprop="articleBody">
              
   <section id="pipeline-package">
-<h1>pipeline package<a class="headerlink" href="#pipeline-package" title="Permalink to this headline"></a></h1>
+<h1>pipeline package<a class="headerlink" href="#pipeline-package" title="Permalink to this heading"></a></h1>
 <section id="submodules">
-<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline"></a></h2>
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading"></a></h2>
 </section>
 <section id="module-pipeline.ave_splitter">
-<span id="pipeline-ave-splitter-module"></span><h2>pipeline.ave_splitter module<a class="headerlink" href="#module-pipeline.ave_splitter" title="Permalink to this headline"></a></h2>
+<span id="pipeline-ave-splitter-module"></span><h2>pipeline.ave_splitter module<a class="headerlink" href="#module-pipeline.ave_splitter" title="Permalink to this heading"></a></h2>
 <p>Code to split a DeepChem dataset in such a way as to minimize the AVE bias, as described in <a class="reference external" href="https://pubs.acs.org/doi/10.1021/acs.jcim.7b00403">this paper by Wallach &amp; Heifets</a></p>
 <p>Although the AVEMinSplitter class and its methods are public, you will typically not call them directly. Instead, they are invoked by
 setting <cite>splitter</cite> to ‘ave_min’ in the model parameters when you train a model.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="pipeline.ave_splitter.AVEMinSplitter">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pipeline.ave_splitter.</span></span><span class="sig-name descname"><span class="pre">AVEMinSplitter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'jaccard'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_workers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">300</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ndist</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/ave_splitter.html#AVEMinSplitter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.ave_splitter.AVEMinSplitter" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">deepchem.splits.splitters.Splitter</span></code></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pipeline.ave_splitter.</span></span><span class="sig-name descname"><span class="pre">AVEMinSplitter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'jaccard'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_workers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">300</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ndist</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/ave_splitter.html#AVEMinSplitter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.ave_splitter.AVEMinSplitter" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Splitter</span></code></p>
 <p>Class for splitting a DeepChem dataset in order to minimize the Asymmetric Validation Embedding bias.</p>
 <p>Uses distances between feature vectors and binary classifications to compute
 the AVE bias for a candidate split and find a split that minimizes the bias.</p>
@@ -221,7 +222,7 @@ their contents remains the same.</p>
 instance instead; please see the <span class="xref std std-ref">random-quick-start</span>.</p>
 </div>
 <dl class="simple">
-<dt>x<span class="classifier">array_like</span></dt><dd><p>The array or list to be shuffled.</p>
+<dt>x<span class="classifier">ndarray or MutableSequence</span></dt><dd><p>The array, list or mutable sequence to be shuffled.</p>
 </dd>
 </dl>
 <p>None</p>
@@ -245,7 +246,7 @@ instance instead; please see the <span class="xref std std-ref">random-quick-sta
 
 </section>
 <section id="module-pipeline.chem_diversity">
-<span id="pipeline-chem-diversity-module"></span><h2>pipeline.chem_diversity module<a class="headerlink" href="#module-pipeline.chem_diversity" title="Permalink to this headline"></a></h2>
+<span id="pipeline-chem-diversity-module"></span><h2>pipeline.chem_diversity module<a class="headerlink" href="#module-pipeline.chem_diversity" title="Permalink to this heading"></a></h2>
 <p>Functions to generate matrices or vectors of distances between compounds</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="pipeline.chem_diversity.calc_dist_diskdataset">
@@ -365,7 +366,7 @@ and is the distance between all compounds in a dataset)</p>
 
 </section>
 <section id="module-pipeline.compare_models">
-<span id="pipeline-compare-models-module"></span><h2>pipeline.compare_models module<a class="headerlink" href="#module-pipeline.compare_models" title="Permalink to this headline"></a></h2>
+<span id="pipeline-compare-models-module"></span><h2>pipeline.compare_models module<a class="headerlink" href="#module-pipeline.compare_models" title="Permalink to this heading"></a></h2>
 <p>Functions for comparing and visualizing model performance. Most of these functions rely on ATOM’s model tracker and
 datastore services, which are not part of the standard AMPL installation, but a few functions will work on collections of
 models saved as local files.</p>
@@ -707,7 +708,7 @@ parameter settings for UMAP transformer for models where they are available.</p>
 
 </section>
 <section id="module-pipeline.dist_metrics">
-<span id="pipeline-dist-metrics-module"></span><h2>pipeline.dist_metrics module<a class="headerlink" href="#module-pipeline.dist_metrics" title="Permalink to this headline"></a></h2>
+<span id="pipeline-dist-metrics-module"></span><h2>pipeline.dist_metrics module<a class="headerlink" href="#module-pipeline.dist_metrics" title="Permalink to this heading"></a></h2>
 <p>Distance metrics for compounds: Tanimoto and maximum common substructure (MCS)</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="pipeline.dist_metrics.mcs">
@@ -760,7 +761,7 @@ Otherwise, computes a matrix of distances between pairs of fingerprints in fps1 
 
 </section>
 <section id="module-pipeline.diversity_plots">
-<span id="pipeline-diversity-plots-module"></span><h2>pipeline.diversity_plots module<a class="headerlink" href="#module-pipeline.diversity_plots" title="Permalink to this headline"></a></h2>
+<span id="pipeline-diversity-plots-module"></span><h2>pipeline.diversity_plots module<a class="headerlink" href="#module-pipeline.diversity_plots" title="Permalink to this heading"></a></h2>
 <p>Plotting routines for visualizing chemical diversity of datasets</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="pipeline.diversity_plots.diversity_plots">
@@ -812,58 +813,86 @@ vectors, using the specified feature type and distance metric.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="pipeline.diversity_plots.plot_tani_dist_distr">
-<span class="sig-prename descclassname"><span class="pre">pipeline.diversity_plots.</span></span><span class="sig-name descname"><span class="pre">plot_tani_dist_distr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smiles_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ndist_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000000</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">metric_kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/diversity_plots.html#plot_tani_dist_distr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.diversity_plots.plot_tani_dist_distr" title="Permalink to this definition"></a></dt>
-<dd><p>Generate a density plot showing the distribution of distances between 
-ecfp feature vectors, using the tanimoto metric.</p>
+<span class="sig-prename descclassname"><span class="pre">pipeline.diversity_plots.</span></span><span class="sig-name descname"><span class="pre">plot_tani_dist_distr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smiles_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subset_col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'subset'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subsets</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref_subset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'train'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ndist_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">metric_kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/diversity_plots.html#plot_tani_dist_distr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.diversity_plots.plot_tani_dist_distr" title="Permalink to this definition"></a></dt>
+<dd><p>Generate a density plot showing the distribution of nearest neighbor distances between 
+ecfp feature vectors, using the Tanimoto metric. Optionally split by subset.</p>
+<dl>
+<dt>Args:</dt><dd><p>df (DataFrame): A data frame containing, at minimum, a column of SMILES strings.</p>
+<p>smiles_col (str): Name of the column containing SMILES strings.</p>
+<p>df_name (str): Name for the dataset, to be used in the plot title.</p>
+<p>radius (int): Radius parameter used to calculate ECFP fingerprints. The default is 2, meaning that ECFP4
+fingerprints are calculated.</p>
+<p>subset_col (str): Name of the column containing subset names.</p>
+<p>subsets (bool): If True, distances are only calculated for compounds not in the reference subset, and the
+distances computed are to the nearest neighbors in the reference subset.</p>
+<p>ref_subset (str): Reference subset for nearest-neighbor distances, if <cite>subsets</cite> is True.</p>
+<p>plot_width (float): Plot width in inches.</p>
+<p>ndist_max (int): Not used, included only for backward compatibility.</p>
+<p>metric_kwargs: Additional arguments to pass to metric. Not used, included only for backward compatibility.</p>
+</dd>
+<dt>Returns:</dt><dd><p>dist (DataFrame): Table of individual nearest-neighbor Tanimoto distance values. If subsets is True,
+the table will include a column indicating the subset each compound belongs to.</p>
+</dd>
+</dl>
 </dd></dl>
 
 </section>
 <section id="module-pipeline.featurization">
-<span id="pipeline-featurization-module"></span><h2>pipeline.featurization module<a class="headerlink" href="#module-pipeline.featurization" title="Permalink to this headline"></a></h2>
+<span id="pipeline-featurization-module"></span><h2>pipeline.featurization module<a class="headerlink" href="#module-pipeline.featurization" title="Permalink to this heading"></a></h2>
 <p>Classes providing different methods of featurizing compounds and other data entities</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="pipeline.featurization.ATOMAtomTypeEState">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pipeline.featurization.</span></span><span class="sig-name descname"><span class="pre">ATOMAtomTypeEState</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'count'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">estate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'sLi'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/featurization.html#ATOMAtomTypeEState"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.featurization.ATOMAtomTypeEState" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">mordred.EState.AtomTypeEState</span></code></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pipeline.featurization.</span></span><span class="sig-name descname"><span class="pre">ATOMAtomTypeEState</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'count'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">estate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'sLi'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/featurization.html#ATOMAtomTypeEState"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.featurization.ATOMAtomTypeEState" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">AtomTypeEState</span></code></p>
 <p>EState descriptors restricted to those that can be computed for most compounds</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pipeline.featurization.ATOMAtomTypeEState.my_es_types">
-<span class="sig-name descname"><span class="pre">my_es_types</span></span><em class="property"> <span class="pre">=</span> <span class="pre">['sCH3',</span> <span class="pre">'dCH2',</span> <span class="pre">'ssCH2',</span> <span class="pre">'dsCH',</span> <span class="pre">'aaCH',</span> <span class="pre">'sssCH',</span> <span class="pre">'tsC',</span> <span class="pre">'dssC',</span> <span class="pre">'aasC',</span> <span class="pre">'aaaC',</span> <span class="pre">'ssssC',</span> <span class="pre">'sNH2',</span> <span class="pre">'ssNH',</span> <span class="pre">'aaNH',</span> <span class="pre">'tN',</span> <span class="pre">'dsN',</span> <span class="pre">'aaN',</span> <span class="pre">'sssN',</span> <span class="pre">'ddsN',</span> <span class="pre">'aasN',</span> <span class="pre">'sOH',</span> <span class="pre">'dO',</span> <span class="pre">'ssO',</span> <span class="pre">'aaO',</span> <span class="pre">'sF',</span> <span class="pre">'dS',</span> <span class="pre">'ssS',</span> <span class="pre">'aaS',</span> <span class="pre">'ddssS',</span> <span class="pre">'sCl',</span> <span class="pre">'sBr']</span></em><a class="headerlink" href="#pipeline.featurization.ATOMAtomTypeEState.my_es_types" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">my_es_types</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">['sCH3',</span> <span class="pre">'dCH2',</span> <span class="pre">'ssCH2',</span> <span class="pre">'dsCH',</span> <span class="pre">'aaCH',</span> <span class="pre">'sssCH',</span> <span class="pre">'tsC',</span> <span class="pre">'dssC',</span> <span class="pre">'aasC',</span> <span class="pre">'aaaC',</span> <span class="pre">'ssssC',</span> <span class="pre">'sNH2',</span> <span class="pre">'ssNH',</span> <span class="pre">'aaNH',</span> <span class="pre">'tN',</span> <span class="pre">'dsN',</span> <span class="pre">'aaN',</span> <span class="pre">'sssN',</span> <span class="pre">'ddsN',</span> <span class="pre">'aasN',</span> <span class="pre">'sOH',</span> <span class="pre">'dO',</span> <span class="pre">'ssO',</span> <span class="pre">'aaO',</span> <span class="pre">'sF',</span> <span class="pre">'dS',</span> <span class="pre">'ssS',</span> <span class="pre">'aaS',</span> <span class="pre">'ddssS',</span> <span class="pre">'sCl',</span> <span class="pre">'sBr']</span></em><a class="headerlink" href="#pipeline.featurization.ATOMAtomTypeEState.my_es_types" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pipeline.featurization.ATOMAtomTypeEState.parameter_names">
-<span class="sig-name descname"><span class="pre">parameter_names</span></span><em class="property"> <span class="pre">=</span> <span class="pre">('type',</span> <span class="pre">'estate')</span></em><a class="headerlink" href="#pipeline.featurization.ATOMAtomTypeEState.parameter_names" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">parameter_names</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('type',</span> <span class="pre">'estate')</span></em><a class="headerlink" href="#pipeline.featurization.ATOMAtomTypeEState.parameter_names" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pipeline.featurization.ATOMAtomTypeEState.preset">
-<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">preset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">version</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/featurization.html#ATOMAtomTypeEState.preset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.featurization.ATOMAtomTypeEState.preset" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">preset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">version</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/featurization.html#ATOMAtomTypeEState.preset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.featurization.ATOMAtomTypeEState.preset" title="Permalink to this definition"></a></dt>
+<dd><p>Generate preset descriptor instances.</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>Iterable[Descriptor]: preset descriptors</p>
+</dd>
+</dl>
+</dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="pipeline.featurization.ATOMMolecularDistanceEdge">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pipeline.featurization.</span></span><span class="sig-name descname"><span class="pre">ATOMMolecularDistanceEdge</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">valence1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">valence2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">element</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'C'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/featurization.html#ATOMMolecularDistanceEdge"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.featurization.ATOMMolecularDistanceEdge" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">mordred.MolecularDistanceEdge.MolecularDistanceEdge</span></code></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pipeline.featurization.</span></span><span class="sig-name descname"><span class="pre">ATOMMolecularDistanceEdge</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">valence1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">valence2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">element</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'C'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/featurization.html#ATOMMolecularDistanceEdge"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.featurization.ATOMMolecularDistanceEdge" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">MolecularDistanceEdge</span></code></p>
 <p>MolecularDistanceEdge descriptors restricted to those that can be computed for most compounds</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pipeline.featurization.ATOMMolecularDistanceEdge.parameter_names">
-<span class="sig-name descname"><span class="pre">parameter_names</span></span><em class="property"> <span class="pre">=</span> <span class="pre">('valence1',</span> <span class="pre">'valence2',</span> <span class="pre">'element')</span></em><a class="headerlink" href="#pipeline.featurization.ATOMMolecularDistanceEdge.parameter_names" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">parameter_names</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('valence1',</span> <span class="pre">'valence2',</span> <span class="pre">'element')</span></em><a class="headerlink" href="#pipeline.featurization.ATOMMolecularDistanceEdge.parameter_names" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pipeline.featurization.ATOMMolecularDistanceEdge.preset">
-<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">preset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">version</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/featurization.html#ATOMMolecularDistanceEdge.preset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.featurization.ATOMMolecularDistanceEdge.preset" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">preset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">version</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/featurization.html#ATOMMolecularDistanceEdge.preset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.featurization.ATOMMolecularDistanceEdge.preset" title="Permalink to this definition"></a></dt>
+<dd><p>Generate preset descriptor instances.</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>Iterable[Descriptor]: preset descriptors</p>
+</dd>
+</dl>
+</dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="pipeline.featurization.ComputedDescriptorFeaturization">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pipeline.featurization.</span></span><span class="sig-name descname"><span class="pre">ComputedDescriptorFeaturization</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/featurization.html#ComputedDescriptorFeaturization"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.featurization.ComputedDescriptorFeaturization" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="#pipeline.featurization.DescriptorFeaturization" title="pipeline.featurization.DescriptorFeaturization"><code class="xref py py-class docutils literal notranslate"><span class="pre">pipeline.featurization.DescriptorFeaturization</span></code></a></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pipeline.featurization.</span></span><span class="sig-name descname"><span class="pre">ComputedDescriptorFeaturization</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/featurization.html#ComputedDescriptorFeaturization"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.featurization.ComputedDescriptorFeaturization" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pipeline.featurization.DescriptorFeaturization" title="pipeline.featurization.DescriptorFeaturization"><code class="xref py py-class docutils literal notranslate"><span class="pre">DescriptorFeaturization</span></code></a></p>
 <p>Subclass for featurizers that support online computation of descriptors, usually given SMILES
 strings or RDKit Mol objects as input rather than compound IDs. The computed descriptors may be cached
 and combined with tables of precomputed descriptors to speed up access. Featurized datasets may be
@@ -996,8 +1025,8 @@ Does not include any path information. May be derived from dataset_name.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="pipeline.featurization.DescriptorFeaturization">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pipeline.featurization.</span></span><span class="sig-name descname"><span class="pre">DescriptorFeaturization</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/featurization.html#DescriptorFeaturization"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.featurization.DescriptorFeaturization" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="#pipeline.featurization.PersistentFeaturization" title="pipeline.featurization.PersistentFeaturization"><code class="xref py py-class docutils literal notranslate"><span class="pre">pipeline.featurization.PersistentFeaturization</span></code></a></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pipeline.featurization.</span></span><span class="sig-name descname"><span class="pre">DescriptorFeaturization</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/featurization.html#DescriptorFeaturization"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.featurization.DescriptorFeaturization" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pipeline.featurization.PersistentFeaturization" title="pipeline.featurization.PersistentFeaturization"><code class="xref py py-class docutils literal notranslate"><span class="pre">PersistentFeaturization</span></code></a></p>
 <p>Subclass for featurizers that map sets of (usually) precomputed descriptors to compound IDs; the resulting merged
 dataset is persisted to the filesystem or datastore.
 Attributes:</p>
@@ -1031,17 +1060,17 @@ DeepChem transformer object holding its parameters.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pipeline.featurization.DescriptorFeaturization.desc_type_cols">
-<span class="sig-name descname"><span class="pre">desc_type_cols</span></span><em class="property"> <span class="pre">=</span> <span class="pre">{}</span></em><a class="headerlink" href="#pipeline.featurization.DescriptorFeaturization.desc_type_cols" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">desc_type_cols</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#pipeline.featurization.DescriptorFeaturization.desc_type_cols" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pipeline.featurization.DescriptorFeaturization.desc_type_scaled">
-<span class="sig-name descname"><span class="pre">desc_type_scaled</span></span><em class="property"> <span class="pre">=</span> <span class="pre">{}</span></em><a class="headerlink" href="#pipeline.featurization.DescriptorFeaturization.desc_type_scaled" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">desc_type_scaled</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#pipeline.featurization.DescriptorFeaturization.desc_type_scaled" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pipeline.featurization.DescriptorFeaturization.desc_type_source">
-<span class="sig-name descname"><span class="pre">desc_type_source</span></span><em class="property"> <span class="pre">=</span> <span class="pre">{}</span></em><a class="headerlink" href="#pipeline.featurization.DescriptorFeaturization.desc_type_source" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">desc_type_source</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#pipeline.featurization.DescriptorFeaturization.desc_type_source" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -1146,7 +1175,7 @@ Does not include any path information. May be derived from dataset_name.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pipeline.featurization.DescriptorFeaturization.load_descriptor_spec">
-<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">load_descriptor_spec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">desc_spec_bucket</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">desc_spec_key</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/featurization.html#DescriptorFeaturization.load_descriptor_spec"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.featurization.DescriptorFeaturization.load_descriptor_spec" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">load_descriptor_spec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">desc_spec_bucket</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">desc_spec_key</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/featurization.html#DescriptorFeaturization.load_descriptor_spec"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.featurization.DescriptorFeaturization.load_descriptor_spec" title="Permalink to this definition"></a></dt>
 <dd><p>Read a descriptor specification table from the datastore or the filesystem.
 The table is a CSV file with the following columns:</p>
 <p>descr_type:     A string specifying a descriptor source/program and a subset of descriptor columns</p>
@@ -1193,15 +1222,15 @@ contain SMILES strings, but one is required if the table is to be used with Comp
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pipeline.featurization.DescriptorFeaturization.supported_descriptor_types">
-<span class="sig-name descname"><span class="pre">supported_descriptor_types</span></span><em class="property"> <span class="pre">=</span> <span class="pre">[]</span></em><a class="headerlink" href="#pipeline.featurization.DescriptorFeaturization.supported_descriptor_types" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">supported_descriptor_types</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[]</span></em><a class="headerlink" href="#pipeline.featurization.DescriptorFeaturization.supported_descriptor_types" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="pipeline.featurization.DynamicFeaturization">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pipeline.featurization.</span></span><span class="sig-name descname"><span class="pre">DynamicFeaturization</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/featurization.html#DynamicFeaturization"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.featurization.DynamicFeaturization" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="#pipeline.featurization.Featurization" title="pipeline.featurization.Featurization"><code class="xref py py-class docutils literal notranslate"><span class="pre">pipeline.featurization.Featurization</span></code></a></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pipeline.featurization.</span></span><span class="sig-name descname"><span class="pre">DynamicFeaturization</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/featurization.html#DynamicFeaturization"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.featurization.DynamicFeaturization" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pipeline.featurization.Featurization" title="pipeline.featurization.Featurization"><code class="xref py py-class docutils literal notranslate"><span class="pre">Featurization</span></code></a></p>
 <p>Featurization subclass that supports on-the-fly featurization. Can be used when it is inexpensive to
 compute the features. Most DeepChem featurizers are handled through this class.</p>
 <dl class="simple">
@@ -1332,7 +1361,7 @@ Does not include any path information. May be derived from dataset_name.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="pipeline.featurization.Featurization">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pipeline.featurization.</span></span><span class="sig-name descname"><span class="pre">Featurization</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/featurization.html#Featurization"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.featurization.Featurization" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pipeline.featurization.</span></span><span class="sig-name descname"><span class="pre">Featurization</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/featurization.html#Featurization"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.featurization.Featurization" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Abstract base class for featurization code</p>
 <dl class="simple">
@@ -1446,8 +1475,8 @@ Does not include any path information. May be derived from dataset_name.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="pipeline.featurization.PersistentFeaturization">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pipeline.featurization.</span></span><span class="sig-name descname"><span class="pre">PersistentFeaturization</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/featurization.html#PersistentFeaturization"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.featurization.PersistentFeaturization" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="#pipeline.featurization.Featurization" title="pipeline.featurization.Featurization"><code class="xref py py-class docutils literal notranslate"><span class="pre">pipeline.featurization.Featurization</span></code></a></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pipeline.featurization.</span></span><span class="sig-name descname"><span class="pre">PersistentFeaturization</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/featurization.html#PersistentFeaturization"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.featurization.PersistentFeaturization" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pipeline.featurization.Featurization" title="pipeline.featurization.Featurization"><code class="xref py py-class docutils literal notranslate"><span class="pre">Featurization</span></code></a></p>
 <p>Subclass for featurizers that support persistent storage of featurized data. Used when computing or mapping
 the features is CPU- or memory-intensive, e.g. descriptors. Currently DescriptorFeaturization is the only subclass,
 but others are planned (e.g., UMAPDescriptorFeaturization).</p>
@@ -1725,16 +1754,143 @@ w: numpy array same shape as vals, where w[i,j] = 1 if vals[i,j] is nan else w[i
 </dd></dl>
 
 </section>
-<section id="pipeline-featurize-importance-module">
-<h2>pipeline.featurize_importance module<a class="headerlink" href="#pipeline-featurize-importance-module" title="Permalink to this headline"></a></h2>
+<section id="pipeline-feature-importance-module">
+<h2>pipeline.feature_importance module<a class="headerlink" href="#pipeline-feature-importance-module" title="Permalink to this heading"></a></h2>
+<span class="target" id="module-pipeline.feature_importance"></span><p>Functions to assess feature importance in AMPL models</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="pipeline.feature_importance.base_feature_importance">
+<span class="sig-prename descclassname"><span class="pre">pipeline.feature_importance.</span></span><span class="sig-name descname"><span class="pre">base_feature_importance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_pipeline</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/feature_importance.html#base_feature_importance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.feature_importance.base_feature_importance" title="Permalink to this definition"></a></dt>
+<dd><p>Minimal baseline feature importance function. Given an AMPL model (or the parameters to train a model),
+returns a data frame with a row for each feature. The columns of the data frame depend on the model type and
+prediction type. If the model is a binary classifier, the columns include  t-statistics and p-values
+for the differences between the means of the active and inactive compounds. If the model is a random forest,
+the columns will include the mean decrease in impurity (MDI) of each feature, computed by the scikit-learn
+<a href="#id9"><span class="problematic" id="id10">feature_importances_</span></a> function. See the scikit-learn documentation for warnings about interpreting the MDI
+importance. For all models, the returned data frame will include feature names, means and standard deviations
+for each feature.</p>
+<p>This function has been tested on RFs and NNs with rdkit descriptors. Other models and feature combinations
+may not be supported.</p>
+<dl>
+<dt>Args:</dt><dd><p>model_pipeline (<cite>ModelPipeline</cite>): A pipeline object for a model that was trained in the current Python session
+or loaded from the model tracker or a tarball file. Either model_pipeline or params must be provided.</p>
+<p>params (<cite>dict</cite>): Parameter dictionary for a model to be trained and analyzed. Either model_pipeline or a
+params argument must be passed; if both are passed, params is ignored and the parameters from model_pipeline
+are used.</p>
+</dd>
+<dt>Returns:</dt><dd><dl class="simple">
+<dt>(imp_df, model_pipeline, pparams) (tuple):</dt><dd><p>imp_df (<cite>DataFrame</cite>): Table of feature importance metrics.
+model_pipeline (<cite>ModelPipeline</cite>): Pipeline object for model that was passed to or trained by function.
+pparams (<cite>Namespace</cite>): Parsed parameters of model.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pipeline.feature_importance.cluster_permutation_importance">
+<span class="sig-prename descclassname"><span class="pre">pipeline.feature_importance.</span></span><span class="sig-name descname"><span class="pre">cluster_permutation_importance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_pipeline</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">score_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clust_height</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">result_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nreps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nworkers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/feature_importance.html#cluster_permutation_importance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.feature_importance.cluster_permutation_importance" title="Permalink to this definition"></a></dt>
+<dd><p>Divide the input features used in a model into correlated clusters, then assess the importance of the features
+by iterating over clusters, permuting the values of all the features in the cluster, and measuring the effect
+on the model performance metric given by score_type for the training, validation and test subsets.</p>
+<dl>
+<dt>Args:</dt><dd><p>model_pipeline (<cite>ModelPipeline</cite>): A pipeline object for a model that was trained in the current Python session
+or loaded from the model tracker or a tarball file. Either <cite>model_pipeline</cite> or <cite>params</cite> must be provided.</p>
+<p>params (<cite>dict</cite>): Parameter dictionary for a model to be trained and analyzed. Either <cite>model_pipeline</cite> or a
+<cite>params</cite> argument must be passed; if both are passed, <cite>params</cite> is ignored and the parameters from <cite>model_pipeline</cite>
+are used.</p>
+<p>clust_height (float): Height at which to cut the dendrogram branches to split features into clusters.</p>
+<p>result_file (str): Path to a CSV file where a table of features and cluster indices will be written.</p>
+<p>nreps (int): Number of repetitions of the permutation and rescoring procedure to perform for each feature; the 
+importance values returned will be averages over repetitions. More repetitions will yield better importance
+estimates at the cost of greater computing time.</p>
+<p>nworkers (int): Number of parallel worker threads to use for permutation and rescoring. Currently ignored; multithreading
+will be added in a future version.</p>
+</dd>
+<dt>Returns:</dt><dd><p>imp_df (DataFrame): Table of feature clusters and importance values</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pipeline.feature_importance.display_feature_clusters">
+<span class="sig-prename descclassname"><span class="pre">pipeline.feature_importance.</span></span><span class="sig-name descname"><span class="pre">display_feature_clusters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_pipeline</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clust_height</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">corr_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_matrix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_dendro</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/feature_importance.html#display_feature_clusters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.feature_importance.display_feature_clusters" title="Permalink to this definition"></a></dt>
+<dd><p>Cluster the input features used in the model specified by <cite>model_pipeline</cite> or <cite>params</cite>, using Spearman correlation
+as a similarity metric. Display a dendrogram and/or a correlation matrix heatmap, so the user can decide the
+height at which to cut the dendrogram in order to split the features into clusters, for input to
+<cite>cluster_permutation_importance</cite>.</p>
+<dl>
+<dt>Args:</dt><dd><p>model_pipeline (<cite>ModelPipeline</cite>): A pipeline object for a model that was trained in the current Python session
+or loaded from the model tracker or a tarball file. Either <cite>model_pipeline</cite> or <cite>params</cite> must be provided.</p>
+<p>params (<cite>dict</cite>): Parameter dictionary for a model to be trained and analyzed. Either <cite>model_pipeline</cite> or a
+<cite>params</cite> argument must be passed; if both are passed, <cite>params</cite> is ignored and the parameters from <cite>model_pipeline</cite>
+are used.</p>
+<p>clust_height (float): Height at which to draw a cut line in the dendrogram, to show how many clusters
+will be generated.</p>
+<p>corr_file (str): Path to an optional CSV file to be created containing the feature correlation matrix.</p>
+<p>show_matrix (bool): If True, plot a correlation matrix heatmap.</p>
+<p>show_dendro (bool): If True, plot the dendrogram.</p>
+</dd>
+<dt>Returns:</dt><dd><p>corr_linkage (np.ndarray): Linkage matrix from correlation clustering</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pipeline.feature_importance.permutation_feature_importance">
+<span class="sig-prename descclassname"><span class="pre">pipeline.feature_importance.</span></span><span class="sig-name descname"><span class="pre">permutation_feature_importance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_pipeline</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">score_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nreps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">60</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nworkers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">result_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/feature_importance.html#permutation_feature_importance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.feature_importance.permutation_feature_importance" title="Permalink to this definition"></a></dt>
+<dd><p>Assess the importance of each feature used by a trained model by permuting the values of each feature in succession
+in the training, validation and test sets, making predictions, computing performance metrics, and measuring the effect
+of scrambling each feature on a particular metric.</p>
+<dl>
+<dt>Args:</dt><dd><p>model_pipeline (<cite>ModelPipeline</cite>): A pipeline object for a model that was trained in the current Python session
+or loaded from the model tracker or a tarball file. Either <cite>model_pipeline</cite> or <cite>params</cite> must be provided.</p>
+<p>params (<cite>dict</cite>): Parameter dictionary for a model to be trained and analyzed. Either <cite>model_pipeline</cite> or a
+<cite>params</cite> argument must be passed; if both are passed, <cite>params</cite> is ignored and the parameters from <cite>model_pipeline</cite>
+are used.</p>
+<p>score_type (str): Name of the scoring metric to use to assess importance. This can be any of the standard values
+supported by sklearn.metrics.get_scorer; the AMPL-specific values ‘npv’, ‘mcc’, ‘kappa’, ‘mae’, ‘rmse’, ‘ppv’,
+‘cross_entropy’, ‘bal_accuracy’ and ‘avg_precision’ are also supported. Score types for which smaller
+values are better, such as ‘mae’, ‘rmse’ and ‘cross_entropy’ are mapped to their negative counterparts.</p>
+<p>nreps (int): Number of repetitions of the permutation and rescoring procedure to perform for each feature; the 
+importance values returned will be averages over repetitions. More repetitions will yield better importance
+estimates at the cost of greater computing time.</p>
+<p>nworkers (int): Number of parallel worker threads to use for permutation and rescoring.</p>
+<p>result_file (str): Optional path to a CSV file to which the importance table will be written.</p>
+</dd>
+<dt>Returns:</dt><dd><p>imp_df (DataFrame): Table of features and importance metrics. The table will include the columns returned by
+<cite>base_feature_importance</cite>, along with the permutation importance scores for each feature for the training, validation
+and test subsets.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pipeline.feature_importance.plot_feature_importances">
+<span class="sig-prename descclassname"><span class="pre">pipeline.feature_importance.</span></span><span class="sig-name descname"><span class="pre">plot_feature_importances</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">imp_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">importance_col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'valid_perm_importance_mean'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_feat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ascending</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/feature_importance.html#plot_feature_importances"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.feature_importance.plot_feature_importances" title="Permalink to this definition"></a></dt>
+<dd><p>Display a horizontal bar plot showing the relative importances of the most important features or feature clusters, according to
+the results of <cite>permutation_feature_importance</cite>, <cite>cluster_permutation_importance</cite> or a similar function.</p>
+<dl>
+<dt>Args:</dt><dd><p>imp_df (DataFrame): Table of results from <cite>permutation_feature_importance</cite>, <cite>cluster_permutation_importance</cite>,
+<cite>base_feature_importance</cite> or a similar function.</p>
+<p>importance_col (str): Name of the column in <cite>imp_df</cite> to plot values from.</p>
+<p>max_feat (int): The maximum number of features or feature clusters to plot values for.</p>
+<p>ascending (bool): Should the features be ordered by ascending values of <cite>importance_col</cite>? Defaults to False; can be set True
+for p-values or something else where small values mean greater importance.</p>
+</dd>
+<dt>Returns:</dt><dd><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 <section id="module-pipeline.model_datasets">
-<span id="pipeline-model-datasets-module"></span><h2>pipeline.model_datasets module<a class="headerlink" href="#module-pipeline.model_datasets" title="Permalink to this headline"></a></h2>
+<span id="pipeline-model-datasets-module"></span><h2>pipeline.model_datasets module<a class="headerlink" href="#module-pipeline.model_datasets" title="Permalink to this heading"></a></h2>
 <p>Classes for dealing with datasets for data-driven modeling.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="pipeline.model_datasets.DatastoreDataset">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pipeline.model_datasets.</span></span><span class="sig-name descname"><span class="pre">DatastoreDataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">featurization</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ds_client</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_datasets.html#DatastoreDataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.model_datasets.DatastoreDataset" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="#pipeline.model_datasets.ModelDataset" title="pipeline.model_datasets.ModelDataset"><code class="xref py py-class docutils literal notranslate"><span class="pre">pipeline.model_datasets.ModelDataset</span></code></a></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pipeline.model_datasets.</span></span><span class="sig-name descname"><span class="pre">DatastoreDataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">featurization</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ds_client</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_datasets.html#DatastoreDataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.model_datasets.DatastoreDataset" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pipeline.model_datasets.ModelDataset" title="pipeline.model_datasets.ModelDataset"><code class="xref py py-class docutils literal notranslate"><span class="pre">ModelDataset</span></code></a></p>
 <p>Subclass representing a dataset for data-driven modeling that lives in the datastore.</p>
 <blockquote>
 <div><p>Attributes:</p>
@@ -1850,8 +2006,8 @@ which is then passed to featurization.extract_prefeaturized_data() for processin
 
 <dl class="py class">
 <dt class="sig sig-object py" id="pipeline.model_datasets.FileDataset">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pipeline.model_datasets.</span></span><span class="sig-name descname"><span class="pre">FileDataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">featurization</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_datasets.html#FileDataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.model_datasets.FileDataset" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="#pipeline.model_datasets.ModelDataset" title="pipeline.model_datasets.ModelDataset"><code class="xref py py-class docutils literal notranslate"><span class="pre">pipeline.model_datasets.ModelDataset</span></code></a></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pipeline.model_datasets.</span></span><span class="sig-name descname"><span class="pre">FileDataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">featurization</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_datasets.html#FileDataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.model_datasets.FileDataset" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pipeline.model_datasets.ModelDataset" title="pipeline.model_datasets.ModelDataset"><code class="xref py py-class docutils literal notranslate"><span class="pre">ModelDataset</span></code></a></p>
 <p>Subclass representing a dataset for data-driven modeling that lives in the filesystem.</p>
 <p>Attributes:</p>
 <blockquote>
@@ -1961,8 +2117,8 @@ of the current dataset.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="pipeline.model_datasets.MinimalDataset">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pipeline.model_datasets.</span></span><span class="sig-name descname"><span class="pre">MinimalDataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">featurization</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">contains_responses</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_datasets.html#MinimalDataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.model_datasets.MinimalDataset" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="#pipeline.model_datasets.ModelDataset" title="pipeline.model_datasets.ModelDataset"><code class="xref py py-class docutils literal notranslate"><span class="pre">pipeline.model_datasets.ModelDataset</span></code></a></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pipeline.model_datasets.</span></span><span class="sig-name descname"><span class="pre">MinimalDataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">featurization</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">contains_responses</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_datasets.html#MinimalDataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.model_datasets.MinimalDataset" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pipeline.model_datasets.ModelDataset" title="pipeline.model_datasets.ModelDataset"><code class="xref py py-class docutils literal notranslate"><span class="pre">ModelDataset</span></code></a></p>
 <p>A lightweight dataset class that does not support persistence or splitting, and therefore can be
 used for predictions with an existing model, but not for training a model. Is not expected to
 contain response columns, i.e. the ground truth is assumed to be unknown.</p>
@@ -2031,7 +2187,7 @@ associated DeepChem Dataset object.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="pipeline.model_datasets.ModelDataset">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pipeline.model_datasets.</span></span><span class="sig-name descname"><span class="pre">ModelDataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">featurization</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_datasets.html#ModelDataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.model_datasets.ModelDataset" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pipeline.model_datasets.</span></span><span class="sig-name descname"><span class="pre">ModelDataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">featurization</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_datasets.html#ModelDataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.model_datasets.ModelDataset" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Base class representing a dataset for data-driven modeling. Subclasses are specialized for dealing with
 dataset objects persisted in the datastore or in the filesystem.</p>
@@ -2360,12 +2516,12 @@ Otherwise, group is set by hard-coded dictionary.</p>
 
 </section>
 <section id="module-pipeline.model_pipeline">
-<span id="pipeline-model-pipeline-module"></span><h2>pipeline.model_pipeline module<a class="headerlink" href="#module-pipeline.model_pipeline" title="Permalink to this headline"></a></h2>
+<span id="pipeline-model-pipeline-module"></span><h2>pipeline.model_pipeline module<a class="headerlink" href="#module-pipeline.model_pipeline" title="Permalink to this heading"></a></h2>
 <p>Contains class ModelPipeline, which loads in a dataset, splits it, trains a model, and generates predictions and output
 metrics for that model. Works for a variety of featurizers, splitters and other parameters on a generic dataset</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="pipeline.model_pipeline.ModelPipeline">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pipeline.model_pipeline.</span></span><span class="sig-name descname"><span class="pre">ModelPipeline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ds_client</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mlmt_client</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_pipeline.html#ModelPipeline"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.model_pipeline.ModelPipeline" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pipeline.model_pipeline.</span></span><span class="sig-name descname"><span class="pre">ModelPipeline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ds_client</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mlmt_client</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_pipeline.html#ModelPipeline"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.model_pipeline.ModelPipeline" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Contains methods to load in a dataset, split and featurize the data, fit a model to the train dataset,
 generate predictions for an input dataset, and generate performance metrics for these predictions.</p>
@@ -2806,17 +2962,17 @@ User is responsible for ensuring that shared_featurization is compatible with al
 
 </section>
 <section id="module-pipeline.model_tracker">
-<span id="pipeline-model-tracker-module"></span><h2>pipeline.model_tracker module<a class="headerlink" href="#module-pipeline.model_tracker" title="Permalink to this headline"></a></h2>
+<span id="pipeline-model-tracker-module"></span><h2>pipeline.model_tracker module<a class="headerlink" href="#module-pipeline.model_tracker" title="Permalink to this heading"></a></h2>
 <p>Module to interface model pipeline to model tracker service.</p>
 <dl class="py exception">
 <dt class="sig sig-object py" id="pipeline.model_tracker.DatastoreInsertionException">
-<em class="property"><span class="pre">exception</span> </em><span class="sig-prename descclassname"><span class="pre">pipeline.model_tracker.</span></span><span class="sig-name descname"><span class="pre">DatastoreInsertionException</span></span><a class="reference internal" href="_modules/pipeline/model_tracker.html#DatastoreInsertionException"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.model_tracker.DatastoreInsertionException" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pipeline.model_tracker.</span></span><span class="sig-name descname"><span class="pre">DatastoreInsertionException</span></span><a class="reference internal" href="_modules/pipeline/model_tracker.html#DatastoreInsertionException"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.model_tracker.DatastoreInsertionException" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
 </dd></dl>
 
 <dl class="py exception">
 <dt class="sig sig-object py" id="pipeline.model_tracker.MLMTClientInstantiationException">
-<em class="property"><span class="pre">exception</span> </em><span class="sig-prename descclassname"><span class="pre">pipeline.model_tracker.</span></span><span class="sig-name descname"><span class="pre">MLMTClientInstantiationException</span></span><a class="reference internal" href="_modules/pipeline/model_tracker.html#MLMTClientInstantiationException"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.model_tracker.MLMTClientInstantiationException" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pipeline.model_tracker.</span></span><span class="sig-name descname"><span class="pre">MLMTClientInstantiationException</span></span><a class="reference internal" href="_modules/pipeline/model_tracker.html#MLMTClientInstantiationException"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.model_tracker.MLMTClientInstantiationException" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
 </dd></dl>
 
@@ -2969,90 +3125,12 @@ or MongoInsertionException otherwise</p>
 
 </section>
 <section id="module-pipeline.model_wrapper">
-<span id="pipeline-model-wrapper-module"></span><h2>pipeline.model_wrapper module<a class="headerlink" href="#module-pipeline.model_wrapper" title="Permalink to this headline"></a></h2>
+<span id="pipeline-model-wrapper-module"></span><h2>pipeline.model_wrapper module<a class="headerlink" href="#module-pipeline.model_wrapper" title="Permalink to this heading"></a></h2>
 <p>Contains class ModelWrapper and its subclasses, which are wrappers for DeepChem and scikit-learn model classes.</p>
 <dl class="py class">
-<dt class="sig sig-object py" id="pipeline.model_wrapper.DCNNModelWrapper">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pipeline.model_wrapper.</span></span><span class="sig-name descname"><span class="pre">DCNNModelWrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">featurizer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ds_client</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#DCNNModelWrapper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.model_wrapper.DCNNModelWrapper" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="#pipeline.model_wrapper.NNModelWrapper" title="pipeline.model_wrapper.NNModelWrapper"><code class="xref py py-class docutils literal notranslate"><span class="pre">pipeline.model_wrapper.NNModelWrapper</span></code></a></p>
-<p>Contains methods to load in a dataset, split and featurize the data, fit a model to the train dataset,
-generate predictions for an input dataset, and generate performance metrics for these predictions.</p>
-<dl>
-<dt>Attributes:</dt><dd><dl>
-<dt>Set in __init__</dt><dd><p>params (argparse.Namespace): The argparse.Namespace parameter object that contains all parameter information
-featurziation (Featurization object): The featurization object created outside of model_wrapper</p>
-<p>log (log): The logger</p>
-<p>output_dir (str): The parent path of the model directory</p>
-<p>transformers (list): Initialized as an empty list, stores the transformers on the response col</p>
-<p>transformers_x (list): Initialized as an empty list, stores the transformers on the featurizers</p>
-<p>model_dir (str): The subdirectory under output_dir that contains the model. Created in setup_model_dirs.</p>
-<p>best_model_dir (str): The subdirectory under output_dir that contains the best model. Created in setup_model_dirs</p>
-<p>g: The tensorflow graph object</p>
-<p>sess: The tensor flow graph session</p>
-<p>model: The dc.models.GraphConvModel, MultitaskRegressor, or MultitaskClassifier object, as specified by the params attribute</p>
-</dd>
-<dt>Created in train:</dt><dd><p>data (ModelDataset): contains the dataset, set in pipeline</p>
-<p>best_epoch (int): Initialized as None, keeps track of the epoch with the best validation score</p>
-<dl class="simple">
-<dt>train_perf_data (np.array of PerfData): Initialized as an empty array, </dt><dd><p>contains the predictions and performance of the training dataset</p>
-</dd>
-<dt>valid_perf_data (np.array of PerfData): Initialized as an empty array,</dt><dd><p>contains the predictions and performance of the validation dataset</p>
-</dd>
-<dt>train_epoch_perfs (np.array of dicts): Initialized as an empty array,</dt><dd><p>contains a list of dictionaries of predicted values and metrics on the training dataset</p>
-</dd>
-<dt>valid_epoch_perfs (np.array of dicts): Initialized as an empty array,</dt><dd><p>contains a list of dictionaries of predicted values and metrics on the validation dataset</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd>
-</dl>
-<dl class="py method">
-<dt class="sig sig-object py" id="pipeline.model_wrapper.DCNNModelWrapper.get_model_specific_metadata">
-<span class="sig-name descname"><span class="pre">get_model_specific_metadata</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#DCNNModelWrapper.get_model_specific_metadata"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.model_wrapper.DCNNModelWrapper.get_model_specific_metadata" title="Permalink to this definition"></a></dt>
-<dd><p>Returns a dictionary of parameter settings for this ModelWrapper object that are specific
-to neural network models.</p>
-<dl class="simple">
-<dt>Returns:</dt><dd><dl class="simple">
-<dt>model_spec_metdata (dict): A dictionary of the parameter sets for the DCNNModelWrapper object.</dt><dd><p>Parameters are saved under the key ‘nn_specific’ as a subdictionary.</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="pipeline.model_wrapper.DCNNModelWrapper.recreate_model">
-<span class="sig-name descname"><span class="pre">recreate_model</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#DCNNModelWrapper.recreate_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.model_wrapper.DCNNModelWrapper.recreate_model" title="Permalink to this definition"></a></dt>
-<dd><p>Creates a new DeepChem Model object of the correct type for the requested featurizer and prediction type 
-and returns it.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="pipeline.model_wrapper.DCNNModelWrapper.reload_model">
-<span class="sig-name descname"><span class="pre">reload_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reload_dir</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#DCNNModelWrapper.reload_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.model_wrapper.DCNNModelWrapper.reload_model" title="Permalink to this definition"></a></dt>
-<dd><p>Loads a saved neural net model from the specified directory.</p>
-<dl class="simple">
-<dt>Args:</dt><dd><p>reload_dir (str): Directory where saved model is located.
-model_dataset (ModelDataset Object): contains the current full dataset</p>
-</dd>
-<dt>Side effects:</dt><dd><p>Resets the value of model, transformers, transformers_x and transformers_w</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="pipeline.model_wrapper.DCNNModelWrapper.restore">
-<span class="sig-name descname"><span class="pre">restore</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#DCNNModelWrapper.restore"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.model_wrapper.DCNNModelWrapper.restore" title="Permalink to this definition"></a></dt>
-<dd><p>Reverts model to last saved checkpoint</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
 <dt class="sig sig-object py" id="pipeline.model_wrapper.DCRFModelWrapper">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pipeline.model_wrapper.</span></span><span class="sig-name descname"><span class="pre">DCRFModelWrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">featurizer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ds_client</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#DCRFModelWrapper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.model_wrapper.DCRFModelWrapper" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="#pipeline.model_wrapper.ForestModelWrapper" title="pipeline.model_wrapper.ForestModelWrapper"><code class="xref py py-class docutils literal notranslate"><span class="pre">pipeline.model_wrapper.ForestModelWrapper</span></code></a></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pipeline.model_wrapper.</span></span><span class="sig-name descname"><span class="pre">DCRFModelWrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">featurizer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ds_client</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#DCRFModelWrapper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.model_wrapper.DCRFModelWrapper" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pipeline.model_wrapper.ForestModelWrapper" title="pipeline.model_wrapper.ForestModelWrapper"><code class="xref py py-class docutils literal notranslate"><span class="pre">ForestModelWrapper</span></code></a></p>
 <p>Contains methods to load in a dataset, split and featurize the data, fit a model to the train dataset,
 generate predictions for an input dataset, and generate performance metrics for these predictions.</p>
 <dl class="simple">
@@ -3136,8 +3214,8 @@ to random forest models.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="pipeline.model_wrapper.DCxgboostModelWrapper">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pipeline.model_wrapper.</span></span><span class="sig-name descname"><span class="pre">DCxgboostModelWrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">featurizer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ds_client</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#DCxgboostModelWrapper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.model_wrapper.DCxgboostModelWrapper" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="#pipeline.model_wrapper.ForestModelWrapper" title="pipeline.model_wrapper.ForestModelWrapper"><code class="xref py py-class docutils literal notranslate"><span class="pre">pipeline.model_wrapper.ForestModelWrapper</span></code></a></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pipeline.model_wrapper.</span></span><span class="sig-name descname"><span class="pre">DCxgboostModelWrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">featurizer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ds_client</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#DCxgboostModelWrapper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.model_wrapper.DCxgboostModelWrapper" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pipeline.model_wrapper.ForestModelWrapper" title="pipeline.model_wrapper.ForestModelWrapper"><code class="xref py py-class docutils literal notranslate"><span class="pre">ForestModelWrapper</span></code></a></p>
 <p>Contains methods to load in a dataset, split and featurize the data, fit a model to the train dataset,
 generate predictions for an input dataset, and generate performance metrics for these predictions.</p>
 <dl class="simple">
@@ -3269,8 +3347,8 @@ were saved with it.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="pipeline.model_wrapper.ForestModelWrapper">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pipeline.model_wrapper.</span></span><span class="sig-name descname"><span class="pre">ForestModelWrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">featurizer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ds_client</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#ForestModelWrapper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.model_wrapper.ForestModelWrapper" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="#pipeline.model_wrapper.ModelWrapper" title="pipeline.model_wrapper.ModelWrapper"><code class="xref py py-class docutils literal notranslate"><span class="pre">pipeline.model_wrapper.ModelWrapper</span></code></a></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pipeline.model_wrapper.</span></span><span class="sig-name descname"><span class="pre">ForestModelWrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">featurizer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ds_client</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#ForestModelWrapper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.model_wrapper.ForestModelWrapper" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pipeline.model_wrapper.ModelWrapper" title="pipeline.model_wrapper.ModelWrapper"><code class="xref py py-class docutils literal notranslate"><span class="pre">ModelWrapper</span></code></a></p>
 <p>Wrapper class for DCRFModelWrapper and DCxgboostModelWrapper</p>
 <p>contains code that is similar between the two tree based classes</p>
 <dl class="py method">
@@ -3355,9 +3433,69 @@ were saved with it.</p>
 </dd></dl>
 
 <dl class="py class">
+<dt class="sig sig-object py" id="pipeline.model_wrapper.GraphConvDCModelWrapper">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pipeline.model_wrapper.</span></span><span class="sig-name descname"><span class="pre">GraphConvDCModelWrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">featurizer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ds_client</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#GraphConvDCModelWrapper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.model_wrapper.GraphConvDCModelWrapper" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pipeline.model_wrapper.KerasDeepChemModelWrapper" title="pipeline.model_wrapper.KerasDeepChemModelWrapper"><code class="xref py py-class docutils literal notranslate"><span class="pre">KerasDeepChemModelWrapper</span></code></a></p>
+<p>Contains methods to load in a dataset, split and featurize the data, fit a model to the train dataset,
+generate predictions for an input dataset, and generate performance metrics for these predictions.</p>
+<dl>
+<dt>Attributes:</dt><dd><dl>
+<dt>Set in __init__</dt><dd><p>params (argparse.Namespace): The argparse.Namespace parameter object that contains all parameter information
+featurziation (Featurization object): The featurization object created outside of model_wrapper</p>
+<p>log (log): The logger</p>
+<p>output_dir (str): The parent path of the model directory</p>
+<p>transformers (list): Initialized as an empty list, stores the transformers on the response col</p>
+<p>transformers_x (list): Initialized as an empty list, stores the transformers on the featurizers</p>
+<p>model_dir (str): The subdirectory under output_dir that contains the model. Created in setup_model_dirs.</p>
+<p>best_model_dir (str): The subdirectory under output_dir that contains the best model. Created in setup_model_dirs</p>
+<p>g: The tensorflow graph object</p>
+<p>sess: The tensor flow graph session</p>
+<p>model: The dc.models.GraphConvModel, MultitaskRegressor, or MultitaskClassifier object, as specified by the params attribute</p>
+</dd>
+<dt>Created in train:</dt><dd><p>data (ModelDataset): contains the dataset, set in pipeline</p>
+<p>best_epoch (int): Initialized as None, keeps track of the epoch with the best validation score</p>
+<dl class="simple">
+<dt>train_perf_data (np.array of PerfData): Initialized as an empty array, </dt><dd><p>contains the predictions and performance of the training dataset</p>
+</dd>
+<dt>valid_perf_data (np.array of PerfData): Initialized as an empty array,</dt><dd><p>contains the predictions and performance of the validation dataset</p>
+</dd>
+<dt>train_epoch_perfs (np.array of dicts): Initialized as an empty array,</dt><dd><p>contains a list of dictionaries of predicted values and metrics on the training dataset</p>
+</dd>
+<dt>valid_epoch_perfs (np.array of dicts): Initialized as an empty array,</dt><dd><p>contains a list of dictionaries of predicted values and metrics on the validation dataset</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pipeline.model_wrapper.GraphConvDCModelWrapper.get_model_specific_metadata">
+<span class="sig-name descname"><span class="pre">get_model_specific_metadata</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#GraphConvDCModelWrapper.get_model_specific_metadata"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.model_wrapper.GraphConvDCModelWrapper.get_model_specific_metadata" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a dictionary of parameter settings for this ModelWrapper object that are specific
+to neural network models.</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><dl class="simple">
+<dt>model_spec_metdata (dict): A dictionary of the parameter sets for the GraphConvDCModelWrapper object.</dt><dd><p>Parameters are saved under the key ‘nn_specific’ as a subdictionary.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pipeline.model_wrapper.GraphConvDCModelWrapper.recreate_model">
+<span class="sig-name descname"><span class="pre">recreate_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#GraphConvDCModelWrapper.recreate_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.model_wrapper.GraphConvDCModelWrapper.recreate_model" title="Permalink to this definition"></a></dt>
+<dd><p>Creates a new DeepChem Model object of the correct type for the requested featurizer and prediction type 
+and returns it.</p>
+<p>reload_dir (str): Directory where saved model is located.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="pipeline.model_wrapper.HybridModelWrapper">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pipeline.model_wrapper.</span></span><span class="sig-name descname"><span class="pre">HybridModelWrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">featurizer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ds_client</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#HybridModelWrapper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.model_wrapper.HybridModelWrapper" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="#pipeline.model_wrapper.NNModelWrapper" title="pipeline.model_wrapper.NNModelWrapper"><code class="xref py py-class docutils literal notranslate"><span class="pre">pipeline.model_wrapper.NNModelWrapper</span></code></a></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pipeline.model_wrapper.</span></span><span class="sig-name descname"><span class="pre">HybridModelWrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">featurizer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ds_client</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#HybridModelWrapper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.model_wrapper.HybridModelWrapper" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pipeline.model_wrapper.NNModelWrapper" title="pipeline.model_wrapper.NNModelWrapper"><code class="xref py py-class docutils literal notranslate"><span class="pre">NNModelWrapper</span></code></a></p>
 <p>A wrapper for hybrid models, contains methods to load in a dataset, split and featurize the data, fit a model to the train dataset,
 generate predictions for an input dataset, and generate performance metrics for these predictions.</p>
 <dl>
@@ -3391,7 +3529,7 @@ featurziation (Featurization object): The featurization object created outside o
 </dl>
 <dl class="py class">
 <dt class="sig sig-object py" id="pipeline.model_wrapper.HybridModelWrapper.SubsetData">
-<em class="property"><span class="pre">class</span> </em><span class="sig-name descname"><span class="pre">SubsetData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dl</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_ki</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_bind</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#HybridModelWrapper.SubsetData"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.model_wrapper.HybridModelWrapper.SubsetData" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">SubsetData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dl</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_ki</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_bind</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#HybridModelWrapper.SubsetData"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.model_wrapper.HybridModelWrapper.SubsetData" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Container for DataLoader object and attributes of a dataset subset</p>
 </dd></dl>
@@ -3454,7 +3592,7 @@ set performance, refits the model for that number of epochs, and saves the tuned
 <dt>Args:</dt><dd><p>pipeline (ModelPipeline): The ModelPipeline instance for this model run.</p>
 </dd>
 <dt>Side effects:</dt><dd><dl>
-<dt>Sets the following attributes for DCNNModelWrapper:</dt><dd><p>data (ModelDataset): contains the dataset, set in pipeline</p>
+<dt>Sets the following attributes for NNModelWrapper:</dt><dd><p>data (ModelDataset): contains the dataset, set in pipeline</p>
 <p>best_epoch (int): Initialized as None, keeps track of the epoch with the best validation score</p>
 <dl class="simple">
 <dt>train_perf_data (list of PerfData): Initialized as an empty array, </dt><dd><p>contains the predictions and performance of the training dataset</p>
@@ -3476,8 +3614,20 @@ set performance, refits the model for that number of epochs, and saves the tuned
 
 <dl class="py class">
 <dt class="sig sig-object py" id="pipeline.model_wrapper.KerasDeepChemModelWrapper">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pipeline.model_wrapper.</span></span><span class="sig-name descname"><span class="pre">KerasDeepChemModelWrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">featurizer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ds_client</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#KerasDeepChemModelWrapper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.model_wrapper.KerasDeepChemModelWrapper" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="#pipeline.model_wrapper.PytorchDeepChemModelWrapper" title="pipeline.model_wrapper.PytorchDeepChemModelWrapper"><code class="xref py py-class docutils literal notranslate"><span class="pre">pipeline.model_wrapper.PytorchDeepChemModelWrapper</span></code></a></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pipeline.model_wrapper.</span></span><span class="sig-name descname"><span class="pre">KerasDeepChemModelWrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">featurizer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ds_client</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#KerasDeepChemModelWrapper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.model_wrapper.KerasDeepChemModelWrapper" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pipeline.model_wrapper.PytorchDeepChemModelWrapper" title="pipeline.model_wrapper.PytorchDeepChemModelWrapper"><code class="xref py py-class docutils literal notranslate"><span class="pre">PytorchDeepChemModelWrapper</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="pipeline.model_wrapper.KerasDeepChemModelWrapper.count_params">
+<span class="sig-name descname"><span class="pre">count_params</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#KerasDeepChemModelWrapper.count_params"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.model_wrapper.KerasDeepChemModelWrapper.count_params" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the number of trainable parameters using Keras’ count_params function</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>None</p>
+</dd>
+<dt>Returns</dt><dd><p>Int- the number of trainable parameters using Keras’ count_params function</p>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="pipeline.model_wrapper.KerasDeepChemModelWrapper.reload_model">
 <span class="sig-name descname"><span class="pre">reload_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reload_dir</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#KerasDeepChemModelWrapper.reload_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.model_wrapper.KerasDeepChemModelWrapper.reload_model" title="Permalink to this definition"></a></dt>
@@ -3493,7 +3643,7 @@ model_dataset (ModelDataset Object): contains the current full dataset</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pipeline.model_wrapper.KerasDeepChemModelWrapper.restore">
-<span class="sig-name descname"><span class="pre">restore</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#KerasDeepChemModelWrapper.restore"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.model_wrapper.KerasDeepChemModelWrapper.restore" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">restore</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">checkpoint</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">session</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#KerasDeepChemModelWrapper.restore"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.model_wrapper.KerasDeepChemModelWrapper.restore" title="Permalink to this definition"></a></dt>
 <dd><p>Restores this model</p>
 </dd></dl>
 
@@ -3501,7 +3651,7 @@ model_dataset (ModelDataset Object): contains the current full dataset</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="pipeline.model_wrapper.LCTimerIterator">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pipeline.model_wrapper.</span></span><span class="sig-name descname"><span class="pre">LCTimerIterator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pipeline</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#LCTimerIterator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.model_wrapper.LCTimerIterator" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pipeline.model_wrapper.</span></span><span class="sig-name descname"><span class="pre">LCTimerIterator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pipeline</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#LCTimerIterator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.model_wrapper.LCTimerIterator" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>This creates an iterator that keeps track of time limits</p>
 <dl class="simple">
@@ -3519,8 +3669,8 @@ given.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="pipeline.model_wrapper.LCTimerKFoldIterator">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pipeline.model_wrapper.</span></span><span class="sig-name descname"><span class="pre">LCTimerKFoldIterator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pipeline</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#LCTimerKFoldIterator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.model_wrapper.LCTimerKFoldIterator" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="#pipeline.model_wrapper.LCTimerIterator" title="pipeline.model_wrapper.LCTimerIterator"><code class="xref py py-class docutils literal notranslate"><span class="pre">pipeline.model_wrapper.LCTimerIterator</span></code></a></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pipeline.model_wrapper.</span></span><span class="sig-name descname"><span class="pre">LCTimerKFoldIterator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pipeline</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#LCTimerKFoldIterator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.model_wrapper.LCTimerKFoldIterator" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pipeline.model_wrapper.LCTimerIterator" title="pipeline.model_wrapper.LCTimerIterator"><code class="xref py py-class docutils literal notranslate"><span class="pre">LCTimerIterator</span></code></a></p>
 <p>This creates an iterator that keeps track of time limits for kfold training</p>
 <dl class="simple">
 <dt>Side Effects:</dt><dd><dl class="simple">
@@ -3537,7 +3687,7 @@ given.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="pipeline.model_wrapper.ModelWrapper">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pipeline.model_wrapper.</span></span><span class="sig-name descname"><span class="pre">ModelWrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">featurizer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ds_client</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#ModelWrapper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.model_wrapper.ModelWrapper" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pipeline.model_wrapper.</span></span><span class="sig-name descname"><span class="pre">ModelWrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">featurizer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ds_client</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#ModelWrapper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.model_wrapper.ModelWrapper" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Wrapper for DeepChem and sklearn model objects. Provides methods to train and test a model,
 generate predictions for an input dataset, and generate performance metrics for these predictions.</p>
@@ -3740,9 +3890,69 @@ the DeepChem model classes.</p>
 </dd></dl>
 
 <dl class="py class">
+<dt class="sig sig-object py" id="pipeline.model_wrapper.MultitaskDCModelWrapper">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pipeline.model_wrapper.</span></span><span class="sig-name descname"><span class="pre">MultitaskDCModelWrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">featurizer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ds_client</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#MultitaskDCModelWrapper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.model_wrapper.MultitaskDCModelWrapper" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pipeline.model_wrapper.PytorchDeepChemModelWrapper" title="pipeline.model_wrapper.PytorchDeepChemModelWrapper"><code class="xref py py-class docutils literal notranslate"><span class="pre">PytorchDeepChemModelWrapper</span></code></a></p>
+<p>Contains methods to load in a dataset, split and featurize the data, fit a model to the train dataset,
+generate predictions for an input dataset, and generate performance metrics for these predictions.</p>
+<dl>
+<dt>Attributes:</dt><dd><dl>
+<dt>Set in __init__</dt><dd><p>params (argparse.Namespace): The argparse.Namespace parameter object that contains all parameter information
+featurziation (Featurization object): The featurization object created outside of model_wrapper</p>
+<p>log (log): The logger</p>
+<p>output_dir (str): The parent path of the model directory</p>
+<p>transformers (list): Initialized as an empty list, stores the transformers on the response col</p>
+<p>transformers_x (list): Initialized as an empty list, stores the transformers on the featurizers</p>
+<p>model_dir (str): The subdirectory under output_dir that contains the model. Created in setup_model_dirs.</p>
+<p>best_model_dir (str): The subdirectory under output_dir that contains the best model. Created in setup_model_dirs</p>
+<p>g: The tensorflow graph object</p>
+<p>sess: The tensor flow graph session</p>
+<p>model: The dc.models.GraphConvModel, MultitaskRegressor, or MultitaskClassifier object, as specified by the params attribute</p>
+</dd>
+<dt>Created in train:</dt><dd><p>data (ModelDataset): contains the dataset, set in pipeline</p>
+<p>best_epoch (int): Initialized as None, keeps track of the epoch with the best validation score</p>
+<dl class="simple">
+<dt>train_perf_data (np.array of PerfData): Initialized as an empty array, </dt><dd><p>contains the predictions and performance of the training dataset</p>
+</dd>
+<dt>valid_perf_data (np.array of PerfData): Initialized as an empty array,</dt><dd><p>contains the predictions and performance of the validation dataset</p>
+</dd>
+<dt>train_epoch_perfs (np.array of dicts): Initialized as an empty array,</dt><dd><p>contains a list of dictionaries of predicted values and metrics on the training dataset</p>
+</dd>
+<dt>valid_epoch_perfs (np.array of dicts): Initialized as an empty array,</dt><dd><p>contains a list of dictionaries of predicted values and metrics on the validation dataset</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pipeline.model_wrapper.MultitaskDCModelWrapper.get_model_specific_metadata">
+<span class="sig-name descname"><span class="pre">get_model_specific_metadata</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#MultitaskDCModelWrapper.get_model_specific_metadata"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.model_wrapper.MultitaskDCModelWrapper.get_model_specific_metadata" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a dictionary of parameter settings for this ModelWrapper object that are specific
+to neural network models.</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><dl class="simple">
+<dt>model_spec_metdata (dict): A dictionary of the parameter sets for the MultitaskDCModelWrapper object.</dt><dd><p>Parameters are saved under the key ‘nn_specific’ as a subdictionary.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pipeline.model_wrapper.MultitaskDCModelWrapper.recreate_model">
+<span class="sig-name descname"><span class="pre">recreate_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#MultitaskDCModelWrapper.recreate_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.model_wrapper.MultitaskDCModelWrapper.recreate_model" title="Permalink to this definition"></a></dt>
+<dd><p>Creates a new DeepChem Model object of the correct type for the requested featurizer and prediction type 
+and returns it.</p>
+<p>reload_dir (str): Directory where saved model is located.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="pipeline.model_wrapper.NNModelWrapper">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pipeline.model_wrapper.</span></span><span class="sig-name descname"><span class="pre">NNModelWrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">featurizer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ds_client</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#NNModelWrapper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.model_wrapper.NNModelWrapper" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="#pipeline.model_wrapper.ModelWrapper" title="pipeline.model_wrapper.ModelWrapper"><code class="xref py py-class docutils literal notranslate"><span class="pre">pipeline.model_wrapper.ModelWrapper</span></code></a></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pipeline.model_wrapper.</span></span><span class="sig-name descname"><span class="pre">NNModelWrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">featurizer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ds_client</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#NNModelWrapper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.model_wrapper.NNModelWrapper" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pipeline.model_wrapper.ModelWrapper" title="pipeline.model_wrapper.ModelWrapper"><code class="xref py py-class docutils literal notranslate"><span class="pre">ModelWrapper</span></code></a></p>
 <p>Wrapper for NN models.</p>
 <p>Many NN models share similar functions. This class aggregates those similar functions
 to reduce copied code</p>
@@ -3815,7 +4025,7 @@ set performance, refits the model for that number of epochs, and saves the tuned
 <dt>Args:</dt><dd><p>pipeline (ModelPipeline): The ModelPipeline instance for this model run.</p>
 </dd>
 <dt>Side effects:</dt><dd><dl>
-<dt>Sets the following attributes for DCNNModelWrapper:</dt><dd><p>data (ModelDataset): contains the dataset, set in pipeline</p>
+<dt>Sets the following attributes for NNModelWrapper:</dt><dd><p>data (ModelDataset): contains the dataset, set in pipeline</p>
 <p>best_epoch (int): Initialized as None, keeps track of the epoch with the best validation score</p>
 <dl class="simple">
 <dt>train_perf_data (list of PerfData): Initialized as an empty array, </dt><dd><p>contains the predictions and performance of the training dataset</p>
@@ -3843,7 +4053,7 @@ a model for the same number of epochs to the combined training and validation da
 <dt>Args:</dt><dd><p>pipeline (ModelPipeline): The ModelPipeline instance for this model run.</p>
 </dd>
 <dt>Side effects:</dt><dd><dl>
-<dt>Sets the following attributes for DCNNModelWrapper:</dt><dd><p>data (ModelDataset): contains the dataset, set in pipeline</p>
+<dt>Sets the following attributes for NNModelWrapper:</dt><dd><p>data (ModelDataset): contains the dataset, set in pipeline</p>
 <p>best_epoch (int): Initialized as None, keeps track of the epoch with the best validation score</p>
 <dl class="simple">
 <dt>train_perf_data (list of PerfData): Initialized as an empty array, </dt><dd><p>contains the predictions and performance of the training dataset</p>
@@ -3873,7 +4083,7 @@ to the last saved checkpoint.</p>
 <dt>Args:</dt><dd><p>pipeline (ModelPipeline): The ModelPipeline instance for this model run.</p>
 </dd>
 <dt>Side effects:</dt><dd><dl>
-<dt>Sets the following attributes for DCNNModelWrapper:</dt><dd><p>data (ModelDataset): contains the dataset, set in pipeline</p>
+<dt>Sets the following attributes for NNModelWrapper:</dt><dd><p>data (ModelDataset): contains the dataset, set in pipeline</p>
 <p>best_epoch (int): Initialized as None, keeps track of the epoch with the best validation score</p>
 <p>best_validation_score (float): The best validation model choice score attained during training.</p>
 <dl class="simple">
@@ -3894,8 +4104,8 @@ to the last saved checkpoint.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="pipeline.model_wrapper.PytorchDeepChemModelWrapper">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pipeline.model_wrapper.</span></span><span class="sig-name descname"><span class="pre">PytorchDeepChemModelWrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">featurizer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ds_client</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#PytorchDeepChemModelWrapper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.model_wrapper.PytorchDeepChemModelWrapper" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="#pipeline.model_wrapper.NNModelWrapper" title="pipeline.model_wrapper.NNModelWrapper"><code class="xref py py-class docutils literal notranslate"><span class="pre">pipeline.model_wrapper.NNModelWrapper</span></code></a></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pipeline.model_wrapper.</span></span><span class="sig-name descname"><span class="pre">PytorchDeepChemModelWrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">featurizer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ds_client</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#PytorchDeepChemModelWrapper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.model_wrapper.PytorchDeepChemModelWrapper" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pipeline.model_wrapper.NNModelWrapper" title="pipeline.model_wrapper.NNModelWrapper"><code class="xref py py-class docutils literal notranslate"><span class="pre">NNModelWrapper</span></code></a></p>
 <p>Implementation of AttentiveFP model from Xiong et al. <a class="footnote-reference brackets" href="#id4" id="id3">1</a>. It uses a graph attention model
 to propagate information from bond and neighboring atom features across a molecule represented as
 a graph.</p>
@@ -3929,13 +4139,27 @@ valid_perfs (dict): A dictionary of predicted values and metrics on the validati
 </dd>
 </dl>
 <dl class="py method">
+<dt class="sig sig-object py" id="pipeline.model_wrapper.PytorchDeepChemModelWrapper.count_params">
+<span class="sig-name descname"><span class="pre">count_params</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#PytorchDeepChemModelWrapper.count_params"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.model_wrapper.PytorchDeepChemModelWrapper.count_params" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the number of trainable parameters</p>
+<p>There’s no function implemented in Pytorch that does this so I’m using the
+solution found here:https://discuss.pytorch.org/t/how-do-i-check-the-number-of-parameters-of-a-model/4325/25</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>None</p>
+</dd>
+<dt>Returns</dt><dd><p>Int- the number of trainable parameters</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="pipeline.model_wrapper.PytorchDeepChemModelWrapper.get_model_specific_metadata">
 <span class="sig-name descname"><span class="pre">get_model_specific_metadata</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#PytorchDeepChemModelWrapper.get_model_specific_metadata"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.model_wrapper.PytorchDeepChemModelWrapper.get_model_specific_metadata" title="Permalink to this definition"></a></dt>
 <dd><p>Returns a dictionary of parameter settings for this ModelWrapper object that are specific
 to neural network models.</p>
 <dl class="simple">
 <dt>Returns:</dt><dd><dl class="simple">
-<dt>model_spec_metdata (dict): A dictionary of the parameter sets for the DCNNModelWrapper object.</dt><dd><p>Parameters are saved under the key ‘nn_specific’ as a subdictionary.</p>
+<dt>model_spec_metdata (dict): A dictionary of the parameter sets for the NNModelWrapper object.</dt><dd><p>Parameters are saved under the key ‘nn_specific’ as a subdictionary.</p>
 </dd>
 </dl>
 </dd>
@@ -4022,12 +4246,31 @@ list of all available checkpoints.</p>
 </dl>
 </dd></dl>
 
+<dl class="py function">
+<dt class="sig sig-object py" id="pipeline.model_wrapper.get_latest_pytorch_checkpoint">
+<span class="sig-prename descclassname"><span class="pre">pipeline.model_wrapper.</span></span><span class="sig-name descname"><span class="pre">get_latest_pytorch_checkpoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#get_latest_pytorch_checkpoint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.model_wrapper.get_latest_pytorch_checkpoint" title="Permalink to this definition"></a></dt>
+<dd><p>Gets the latest torch model</p>
+<p>Calls get_checkpoints(), sorts them, and returns the
+latest model (the one with the biggets number)</p>
+<dl>
+<dt>Args:</dt><dd><p>model: A model that inherits DeepChem TorchModel
+model_dir: Optional argument that directs the model</p>
+<blockquote>
+<div><p>to a specific folder</p>
+</div></blockquote>
+</dd>
+<dt>Returns:</dt><dd><p>path relative to model_dir, if provided, to the latest
+checkpoint</p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 <section id="module-pipeline.parameter_parser">
-<span id="pipeline-parameter-parser-module"></span><h2>pipeline.parameter_parser module<a class="headerlink" href="#module-pipeline.parameter_parser" title="Permalink to this headline"></a></h2>
+<span id="pipeline-parameter-parser-module"></span><h2>pipeline.parameter_parser module<a class="headerlink" href="#module-pipeline.parameter_parser" title="Permalink to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="pipeline.parameter_parser.AutoArgumentAdder">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pipeline.parameter_parser.</span></span><span class="sig-name descname"><span class="pre">AutoArgumentAdder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/parameter_parser.html#AutoArgumentAdder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.parameter_parser.AutoArgumentAdder" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pipeline.parameter_parser.</span></span><span class="sig-name descname"><span class="pre">AutoArgumentAdder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/parameter_parser.html#AutoArgumentAdder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.parameter_parser.AutoArgumentAdder" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Finds, manages, and adds all parameters of an object to a argparse parser</p>
 <p>AutoArgumentAdder recursively finds all keyword arguments of a given object.
@@ -4520,13 +4763,13 @@ params_obj = {‘arg1’:val1, ‘arg2’:val2, ‘arg3’:val3}</p>
 
 </section>
 <section id="module-pipeline.perf_data">
-<span id="pipeline-perf-data-module"></span><h2>pipeline.perf_data module<a class="headerlink" href="#module-pipeline.perf_data" title="Permalink to this headline"></a></h2>
+<span id="pipeline-perf-data-module"></span><h2>pipeline.perf_data module<a class="headerlink" href="#module-pipeline.perf_data" title="Permalink to this heading"></a></h2>
 <p>Contains class PerfData and its subclasses, which are objects for collecting and computing model performance metrics
 and predictions</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="pipeline.perf_data.ClassificationPerfData">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pipeline.perf_data.</span></span><span class="sig-name descname"><span class="pre">ClassificationPerfData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/perf_data.html#ClassificationPerfData"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.perf_data.ClassificationPerfData" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="#pipeline.perf_data.PerfData" title="pipeline.perf_data.PerfData"><code class="xref py py-class docutils literal notranslate"><span class="pre">pipeline.perf_data.PerfData</span></code></a></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pipeline.perf_data.</span></span><span class="sig-name descname"><span class="pre">ClassificationPerfData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/perf_data.html#ClassificationPerfData"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.perf_data.ClassificationPerfData" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pipeline.perf_data.PerfData" title="pipeline.perf_data.PerfData"><code class="xref py py-class docutils literal notranslate"><span class="pre">PerfData</span></code></a></p>
 <p>Class with methods for accumulating classification model prediction data over multiple
 cross-validation folds and computing performance metrics after all folds have been run.
 Abstract class with concrete subclasses for different split strategies.</p>
@@ -4597,7 +4840,7 @@ Larger values of the score function indicate better models.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="pipeline.perf_data.EpochManager">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pipeline.perf_data.</span></span><span class="sig-name descname"><span class="pre">EpochManager</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wrapper</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subsets</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'test':</span> <span class="pre">'test',</span> <span class="pre">'train':</span> <span class="pre">'train',</span> <span class="pre">'valid':</span> <span class="pre">'valid'}</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/perf_data.html#EpochManager"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.perf_data.EpochManager" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pipeline.perf_data.</span></span><span class="sig-name descname"><span class="pre">EpochManager</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wrapper</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subsets</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'test':</span> <span class="pre">'test',</span> <span class="pre">'train':</span> <span class="pre">'train',</span> <span class="pre">'valid':</span> <span class="pre">'valid'}</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/perf_data.html#EpochManager"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.perf_data.EpochManager" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Manages lists of PerfDatas</p>
 <p>This class manages lists of PerfDatas as well as variables related to iteratively
@@ -4763,8 +5006,8 @@ on early stopping conditions, calls self._new_best_valid_score() when necessary.
 
 <dl class="py class">
 <dt class="sig sig-object py" id="pipeline.perf_data.EpochManagerKFold">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pipeline.perf_data.</span></span><span class="sig-name descname"><span class="pre">EpochManagerKFold</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wrapper</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subsets</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'test':</span> <span class="pre">'test',</span> <span class="pre">'train':</span> <span class="pre">'train',</span> <span class="pre">'valid':</span> <span class="pre">'valid'}</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/perf_data.html#EpochManagerKFold"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.perf_data.EpochManagerKFold" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="#pipeline.perf_data.EpochManager" title="pipeline.perf_data.EpochManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">pipeline.perf_data.EpochManager</span></code></a></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pipeline.perf_data.</span></span><span class="sig-name descname"><span class="pre">EpochManagerKFold</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wrapper</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subsets</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'test':</span> <span class="pre">'test',</span> <span class="pre">'train':</span> <span class="pre">'train',</span> <span class="pre">'valid':</span> <span class="pre">'valid'}</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/perf_data.html#EpochManagerKFold"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.perf_data.EpochManagerKFold" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pipeline.perf_data.EpochManager" title="pipeline.perf_data.EpochManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">EpochManager</span></code></a></p>
 <p>This class manages the training state when using KFold cross validation. This is
 necessary because this manager uses f’{subset}_epoch_perf_stds’ unlike EpochManager</p>
 <dl class="py method">
@@ -4786,8 +5029,8 @@ f’{subset}_epoch_perf_stds’</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="pipeline.perf_data.HybridPerfData">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pipeline.perf_data.</span></span><span class="sig-name descname"><span class="pre">HybridPerfData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/perf_data.html#HybridPerfData"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.perf_data.HybridPerfData" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="#pipeline.perf_data.PerfData" title="pipeline.perf_data.PerfData"><code class="xref py py-class docutils literal notranslate"><span class="pre">pipeline.perf_data.PerfData</span></code></a></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pipeline.perf_data.</span></span><span class="sig-name descname"><span class="pre">HybridPerfData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/perf_data.html#HybridPerfData"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.perf_data.HybridPerfData" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pipeline.perf_data.PerfData" title="pipeline.perf_data.PerfData"><code class="xref py py-class docutils literal notranslate"><span class="pre">PerfData</span></code></a></p>
 <p>Class with methods for accumulating regression model prediction data over multiple
 cross-validation folds and computing performance metrics after all folds have been run.
 Abstract class with concrete subclasses for different split strategies.</p>
@@ -4860,8 +5103,8 @@ the best training epoch and other hyperparameters.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="pipeline.perf_data.KFoldClassificationPerfData">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pipeline.perf_data.</span></span><span class="sig-name descname"><span class="pre">KFoldClassificationPerfData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transformers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">predict_probs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transformed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/perf_data.html#KFoldClassificationPerfData"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.perf_data.KFoldClassificationPerfData" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="#pipeline.perf_data.ClassificationPerfData" title="pipeline.perf_data.ClassificationPerfData"><code class="xref py py-class docutils literal notranslate"><span class="pre">pipeline.perf_data.ClassificationPerfData</span></code></a></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pipeline.perf_data.</span></span><span class="sig-name descname"><span class="pre">KFoldClassificationPerfData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transformers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">predict_probs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transformed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/perf_data.html#KFoldClassificationPerfData"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.perf_data.KFoldClassificationPerfData" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pipeline.perf_data.ClassificationPerfData" title="pipeline.perf_data.ClassificationPerfData"><code class="xref py py-class docutils literal notranslate"><span class="pre">ClassificationPerfData</span></code></a></p>
 <p>Class with methods for accumulating classification model performance data over multiple
 cross-validation folds and computing performance metrics after all folds have been run.</p>
 <dl class="simple">
@@ -4971,8 +5214,8 @@ ID order as get_pred_values().</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="pipeline.perf_data.KFoldRegressionPerfData">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pipeline.perf_data.</span></span><span class="sig-name descname"><span class="pre">KFoldRegressionPerfData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transformers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transformed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/perf_data.html#KFoldRegressionPerfData"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.perf_data.KFoldRegressionPerfData" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="#pipeline.perf_data.RegressionPerfData" title="pipeline.perf_data.RegressionPerfData"><code class="xref py py-class docutils literal notranslate"><span class="pre">pipeline.perf_data.RegressionPerfData</span></code></a></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pipeline.perf_data.</span></span><span class="sig-name descname"><span class="pre">KFoldRegressionPerfData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transformers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transformed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/perf_data.html#KFoldRegressionPerfData"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.perf_data.KFoldRegressionPerfData" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pipeline.perf_data.RegressionPerfData" title="pipeline.perf_data.RegressionPerfData"><code class="xref py py-class docutils literal notranslate"><span class="pre">RegressionPerfData</span></code></a></p>
 <p>Class with methods for accumulating regression model prediction data over multiple
 cross-validation folds and computing performance metrics after all folds have been run.</p>
 <dl>
@@ -5078,7 +5321,7 @@ ID order as get_pred_values().</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="pipeline.perf_data.PerfData">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pipeline.perf_data.</span></span><span class="sig-name descname"><span class="pre">PerfData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/perf_data.html#PerfData"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.perf_data.PerfData" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pipeline.perf_data.</span></span><span class="sig-name descname"><span class="pre">PerfData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/perf_data.html#PerfData"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.perf_data.PerfData" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Class with methods for accumulating prediction data over multiple cross-validation folds
 and computing performance metrics after all folds have been run. Abstract class with
@@ -5142,8 +5385,8 @@ concrete subclasses for classification and regression models.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="pipeline.perf_data.RegressionPerfData">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pipeline.perf_data.</span></span><span class="sig-name descname"><span class="pre">RegressionPerfData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/perf_data.html#RegressionPerfData"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.perf_data.RegressionPerfData" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="#pipeline.perf_data.PerfData" title="pipeline.perf_data.PerfData"><code class="xref py py-class docutils literal notranslate"><span class="pre">pipeline.perf_data.PerfData</span></code></a></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pipeline.perf_data.</span></span><span class="sig-name descname"><span class="pre">RegressionPerfData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/perf_data.html#RegressionPerfData"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.perf_data.RegressionPerfData" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pipeline.perf_data.PerfData" title="pipeline.perf_data.PerfData"><code class="xref py py-class docutils literal notranslate"><span class="pre">PerfData</span></code></a></p>
 <p>Class with methods for accumulating regression model prediction data over multiple
 cross-validation folds and computing performance metrics after all folds have been run.
 Abstract class with concrete subclasses for different split strategies.</p>
@@ -5222,8 +5465,8 @@ Larger values of the score function indicate better models.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="pipeline.perf_data.SimpleClassificationPerfData">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pipeline.perf_data.</span></span><span class="sig-name descname"><span class="pre">SimpleClassificationPerfData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transformers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">predict_probs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transformed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/perf_data.html#SimpleClassificationPerfData"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.perf_data.SimpleClassificationPerfData" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="#pipeline.perf_data.ClassificationPerfData" title="pipeline.perf_data.ClassificationPerfData"><code class="xref py py-class docutils literal notranslate"><span class="pre">pipeline.perf_data.ClassificationPerfData</span></code></a></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pipeline.perf_data.</span></span><span class="sig-name descname"><span class="pre">SimpleClassificationPerfData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transformers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">predict_probs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transformed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/perf_data.html#SimpleClassificationPerfData"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.perf_data.SimpleClassificationPerfData" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pipeline.perf_data.ClassificationPerfData" title="pipeline.perf_data.ClassificationPerfData"><code class="xref py py-class docutils literal notranslate"><span class="pre">ClassificationPerfData</span></code></a></p>
 <p>Class with methods for collecting classification model prediction and performance data from single-fold
 training and prediction runs.</p>
 <dl>
@@ -5329,8 +5572,8 @@ If nclasses == 2, the returned array has dimension (ncmpds, ntasks).</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="pipeline.perf_data.SimpleHybridPerfData">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pipeline.perf_data.</span></span><span class="sig-name descname"><span class="pre">SimpleHybridPerfData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transformers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_ki</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ki_convert_ratio</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transformed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/perf_data.html#SimpleHybridPerfData"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.perf_data.SimpleHybridPerfData" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="#pipeline.perf_data.HybridPerfData" title="pipeline.perf_data.HybridPerfData"><code class="xref py py-class docutils literal notranslate"><span class="pre">pipeline.perf_data.HybridPerfData</span></code></a></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pipeline.perf_data.</span></span><span class="sig-name descname"><span class="pre">SimpleHybridPerfData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transformers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_ki</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ki_convert_ratio</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transformed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/perf_data.html#SimpleHybridPerfData"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.perf_data.SimpleHybridPerfData" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pipeline.perf_data.HybridPerfData" title="pipeline.perf_data.HybridPerfData"><code class="xref py py-class docutils literal notranslate"><span class="pre">HybridPerfData</span></code></a></p>
 <p>Class with methods for accumulating hybrid model prediction data from training,
 validation or test sets and computing performance metrics.</p>
 <dl>
@@ -5424,8 +5667,8 @@ with compounds in the same ID order as in the return from get_pred_values().</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="pipeline.perf_data.SimpleRegressionPerfData">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pipeline.perf_data.</span></span><span class="sig-name descname"><span class="pre">SimpleRegressionPerfData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transformers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transformed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/perf_data.html#SimpleRegressionPerfData"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.perf_data.SimpleRegressionPerfData" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="#pipeline.perf_data.RegressionPerfData" title="pipeline.perf_data.RegressionPerfData"><code class="xref py py-class docutils literal notranslate"><span class="pre">pipeline.perf_data.RegressionPerfData</span></code></a></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pipeline.perf_data.</span></span><span class="sig-name descname"><span class="pre">SimpleRegressionPerfData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transformers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transformed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/perf_data.html#SimpleRegressionPerfData"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.perf_data.SimpleRegressionPerfData" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pipeline.perf_data.RegressionPerfData" title="pipeline.perf_data.RegressionPerfData"><code class="xref py py-class docutils literal notranslate"><span class="pre">RegressionPerfData</span></code></a></p>
 <p>Class with methods for accumulating regression model prediction data from training,
 validation or test sets and computing performance metrics.</p>
 <dl>
@@ -5565,7 +5808,7 @@ ValueError: prediction_type not in [‘regression’,’classification’]</p>
 
 </section>
 <section id="module-pipeline.perf_plots">
-<span id="pipeline-perf-plots-module"></span><h2>pipeline.perf_plots module<a class="headerlink" href="#module-pipeline.perf_plots" title="Permalink to this headline"></a></h2>
+<span id="pipeline-perf-plots-module"></span><h2>pipeline.perf_plots module<a class="headerlink" href="#module-pipeline.perf_plots" title="Permalink to this heading"></a></h2>
 <p>Plotting routines for visualizing performance of regression and classification models</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="pipeline.perf_plots.plot_ROC_curve">
@@ -5696,13 +5939,13 @@ or descriptors); note that <cite>jaccard</cite> is equivalent to Tanimoto distan
 
 </section>
 <section id="module-pipeline.splitting">
-<span id="pipeline-splitting-module"></span><h2>pipeline.splitting module<a class="headerlink" href="#module-pipeline.splitting" title="Permalink to this headline"></a></h2>
+<span id="pipeline-splitting-module"></span><h2>pipeline.splitting module<a class="headerlink" href="#module-pipeline.splitting" title="Permalink to this heading"></a></h2>
 <p>Encapsulates everything that depends on how datasets are split: the splitting itself, training, validation,
 testing, generation of predicted values and performance metrics.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="pipeline.splitting.KFoldSplitting">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pipeline.splitting.</span></span><span class="sig-name descname"><span class="pre">KFoldSplitting</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/splitting.html#KFoldSplitting"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.splitting.KFoldSplitting" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="#pipeline.splitting.Splitting" title="pipeline.splitting.Splitting"><code class="xref py py-class docutils literal notranslate"><span class="pre">pipeline.splitting.Splitting</span></code></a></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pipeline.splitting.</span></span><span class="sig-name descname"><span class="pre">KFoldSplitting</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/splitting.html#KFoldSplitting"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.splitting.KFoldSplitting" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pipeline.splitting.Splitting" title="pipeline.splitting.Splitting"><code class="xref py py-class docutils literal notranslate"><span class="pre">Splitting</span></code></a></p>
 <p>Subclass to deal with everything related to k-fold cross-validation splits</p>
 <dl>
 <dt>Attributes:</dt><dd><dl>
@@ -5754,7 +5997,7 @@ front of the fold description</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="pipeline.splitting.Splitting">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pipeline.splitting.</span></span><span class="sig-name descname"><span class="pre">Splitting</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/splitting.html#Splitting"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.splitting.Splitting" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pipeline.splitting.</span></span><span class="sig-name descname"><span class="pre">Splitting</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/splitting.html#Splitting"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.splitting.Splitting" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Base class for train/validation/test and k-fold dataset splitting. Wrapper for DeepChem Splitter
 classes that handle the specific splitting methods (e.g. random, scaffold, etc.).</p>
@@ -5802,8 +6045,8 @@ using scaffold or butina splits</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="pipeline.splitting.TrainValidTestSplitting">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pipeline.splitting.</span></span><span class="sig-name descname"><span class="pre">TrainValidTestSplitting</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/splitting.html#TrainValidTestSplitting"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.splitting.TrainValidTestSplitting" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="#pipeline.splitting.Splitting" title="pipeline.splitting.Splitting"><code class="xref py py-class docutils literal notranslate"><span class="pre">pipeline.splitting.Splitting</span></code></a></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pipeline.splitting.</span></span><span class="sig-name descname"><span class="pre">TrainValidTestSplitting</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/splitting.html#TrainValidTestSplitting"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.splitting.TrainValidTestSplitting" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pipeline.splitting.Splitting" title="pipeline.splitting.Splitting"><code class="xref py py-class docutils literal notranslate"><span class="pre">Splitting</span></code></a></p>
 <p>Subclass to deal with everything related to standard train/validation/test splits</p>
 <dl>
 <dt>Attributes:</dt><dd><dl>
@@ -5952,13 +6195,13 @@ against the ids in the dataset.</p>
 
 </section>
 <section id="module-pipeline.transformations">
-<span id="pipeline-transformations-module"></span><h2>pipeline.transformations module<a class="headerlink" href="#module-pipeline.transformations" title="Permalink to this headline"></a></h2>
+<span id="pipeline-transformations-module"></span><h2>pipeline.transformations module<a class="headerlink" href="#module-pipeline.transformations" title="Permalink to this heading"></a></h2>
 <p>Classes providing different methods of transforming response data and/or features in datasets, beyond those
 provided by DeepChem.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="pipeline.transformations.NormalizationTransformerHybrid">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pipeline.transformations.</span></span><span class="sig-name descname"><span class="pre">NormalizationTransformerHybrid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transform_X</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transform_y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transform_w</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">move_mean</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/transformations.html#NormalizationTransformerHybrid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.transformations.NormalizationTransformerHybrid" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">deepchem.trans.transformers.NormalizationTransformer</span></code></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pipeline.transformations.</span></span><span class="sig-name descname"><span class="pre">NormalizationTransformerHybrid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transform_X</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transform_y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transform_w</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">move_mean</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/transformations.html#NormalizationTransformerHybrid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.transformations.NormalizationTransformerHybrid" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">NormalizationTransformer</span></code></p>
 <p>Test extension to check for missing data</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="pipeline.transformations.NormalizationTransformerHybrid.transform">
@@ -6008,8 +6251,8 @@ the output dataset will be written to the specified directory.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="pipeline.transformations.NormalizationTransformerMissingData">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pipeline.transformations.</span></span><span class="sig-name descname"><span class="pre">NormalizationTransformerMissingData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transform_X</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transform_y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transform_w</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transform_gradients</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">move_mean</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/transformations.html#NormalizationTransformerMissingData"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.transformations.NormalizationTransformerMissingData" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">deepchem.trans.transformers.NormalizationTransformer</span></code></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pipeline.transformations.</span></span><span class="sig-name descname"><span class="pre">NormalizationTransformerMissingData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transform_X</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transform_y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transform_w</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transform_gradients</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">move_mean</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/transformations.html#NormalizationTransformerMissingData"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.transformations.NormalizationTransformerMissingData" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">NormalizationTransformer</span></code></p>
 <p>Test extension to check for missing data</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="pipeline.transformations.NormalizationTransformerMissingData.transform">
@@ -6045,8 +6288,8 @@ the output dataset will be written to the specified directory.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="pipeline.transformations.UMAPTransformer">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pipeline.transformations.</span></span><span class="sig-name descname"><span class="pre">UMAPTransformer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/transformations.html#UMAPTransformer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.transformations.UMAPTransformer" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">transformers.Transformer</span></code></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pipeline.transformations.</span></span><span class="sig-name descname"><span class="pre">UMAPTransformer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/transformations.html#UMAPTransformer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.transformations.UMAPTransformer" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Transformer</span></code></p>
 <p>Dimension reduction transformations using the UMAP algorithm.</p>
 <dl class="simple">
 <dt>Attributes:</dt><dd><p>mapper (UMAP) : UMAP transformer
@@ -6176,7 +6419,7 @@ created for a model with the given parameters.</p>
 
 </section>
 <section id="module-pipeline">
-<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-pipeline" title="Permalink to this headline"></a></h2>
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-pipeline" title="Permalink to this heading"></a></h2>
 </section>
 </section>
 

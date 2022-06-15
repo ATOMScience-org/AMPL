@@ -754,9 +754,10 @@ class HyperparameterSearch(object):
             assay_params['response_cols']=response_cols
             
         assay_params['dataset_name'] = assay_params['dataset_key'].split('/')[-1].replace('.csv','')
-        # use ecfp b/c it's fast and doesn't save anything to file system
-        assay_params['featurizer'] = 'ecfp'
-        assay_params['previously_featurized'] = False
+        # rdkit_raw b/c it's the fastest and won't have to be redone every split 
+        assay_params['featurizer'] = 'computed_descriptors'
+        assay_params['descriptor_type'] = 'rdkit_raw'
+        assay_params['previously_featurized'] = True
         assay_params['datastore'] = False
         
         namespace_params = parse.wrapper(assay_params)
@@ -801,7 +802,7 @@ class HyperparameterSearch(object):
         rows = []
         for assay, bucket, response_cols, collection in datasets:
             split_uuids = {'dataset_key': assay, 'bucket': bucket, 'response_cols':response_cols, 'collection':collection}
-            for splitter in ['random', 'scaffold']:
+            for splitter in ['random', 'scaffold', 'fingerprint']:
                 for split_combo in [[0.1,0.1], [0.15,0.15],[0.1,0.2],[0.2,0.2]]:
                     split_name = "%s_%d_%d" % (splitter, split_combo[0]*100, split_combo[1]*100)
                     try:
@@ -854,7 +855,7 @@ class HyperparameterSearch(object):
         rows = []
         for assay, bucket, response_cols, collection in datasets:
             split_uuids = {'dataset_key': assay, 'bucket': bucket, 'response_cols':response_cols, 'collection':collection}
-            for splitter in ['random', 'scaffold']:
+            for splitter in ['random', 'scaffold','fingerprint']:
                 for split_combo in [[0.1,0.1], [0.15,0.15],[0.1,0.2],[0.2,0.2]]:
                     split_name = "%s_%d_%d" % (splitter, split_combo[0]*100, split_combo[1]*100)
                     try:
@@ -868,7 +869,6 @@ class HyperparameterSearch(object):
         df = pd.DataFrame(rows)
         fname = self.params.shortlist_key.replace('.csv','_with_uuids.csv')
         df.to_csv(fname, index=False)
-        
 
     def get_shortlist_df(self, split_uuids=False, retry_time=60):
         """

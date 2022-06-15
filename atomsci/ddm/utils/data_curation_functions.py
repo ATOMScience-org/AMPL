@@ -10,14 +10,13 @@ import os
 import sys
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-from matplotlib_venn import venn3
-import seaborn as sns
+
 import pdb
 
-from atomsci.ddm.utils.struct_utils import base_smiles_from_smiles
+from rdkit import Chem
+
+from atomsci.ddm.utils.struct_utils import base_smiles_from_smiles, mols_from_smiles
 import atomsci.ddm.utils.datastore_functions as dsf
-#from atomsci.ddm.utils import datastore_functions as dsf
 from atomsci.ddm.utils import curate_data as curate
 import atomsci.ddm.utils.struct_utils as struct_utils
 import atomsci.ddm.utils.curate_data as curate_data, imp
@@ -59,12 +58,36 @@ pub_dsets = dict(
     JAK3 = dict(IC50="jak3"),
 )
 
+# The following list includes the nonmetals commonly found in organic molecules, along with alkali and alkaline earth
+# metals commonly found in salts (Na, Mg, K, Ca).
+organic_atomic_nums = [1, 5, 6, 7, 8, 9, 11, 12, 14, 15, 16, 17, 19, 20, 33, 34, 35, 53]
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Generic functions for all datasets
 # ----------------------------------------------------------------------------------------------------------------------
 
 # Note: Functions freq_table and labeled_freq_table have been moved to ddm.utils.curate_data module.
+
+def is_organometallic(mol):
+    """
+    Returns True if the molecule is organometallic
+    """
+    if mol is None:
+        return True
+    for at in mol.GetAtoms():
+        if not (at.GetAtomicNum() in organic_atomic_nums):
+            return True
+    return False
+
+# ----------------------------------------------------------------------------------------------------------------------
+def exclude_organometallics(df, smiles_col='rdkit_smiles'):
+    """
+    Filters data frame df based on column smiles_col to exclude organometallic compounds
+    """
+    mols = mols_from_smiles(df[smiles_col].values.tolist(), workers=16)
+    include = np.array([not is_organometallic(mol) for mol in mols])
+    return df[include].copy()
+
 
 # ----------------------------------------------------------------------------------------------------------------------
 def standardize_relations(dset_df, db='DTC'):
@@ -73,7 +96,7 @@ def standardize_relations(dset_df, db='DTC'):
     Standardize the censoring operators to =, < or >, and remove any rows whose operators
     don't map to a standard one. There is a special case for db='ChEMBL' that strips
     the extra "'"s around relationship symbols. Assumes relationship columns are 
-    'Standard Relation' and 'standard_relation' for ChEMBL and DTC respectively.
+    'Standard Relation', 'standard_relation' and 'activity_prefix' for ChEMBL, DTC and GoStar respectively.
 
     This function makes the following mappings: ">" to ">", ">=" to ">", "<" to "<",
     "<=" to "<", and "=" to "=". All other relations are removed from the DataFrame.
@@ -82,30 +105,56 @@ def standardize_relations(dset_df, db='DTC'):
         dset_df (DataFrame): Input DataFrame. Must contain either 'Standard Relation'
             or 'standard_relation'
 
-        db (str): Source database. Must be either 'DTC' or 'ChEMBL'
+        db (str): Source database. Must be either 'GoStar', 'DTC' or 'ChEMBL'. Required if rel_col is not specified.
+        
+        rel_col (str): Column containing relational operators. If specified, overrides the default relation column 
+            for db.
+        
+        output_rel_col (str): If specified, put the standardized operators in a new column with this name and leave
+            the original operator column unchanged.
+        
+        invert (bool): If true, replace the inequality operators with their inverses. This is useful when a reported
+            value such as IC50 is converted to its negative log such as pIC50.
 
     Returns:
         DataFrame: Dataframe with the standardized relationship sybmols
 
     """
-    relation_cols = dict(ChEMBL='Standard Relation', DTC='standard_relation')
-    rel_col = relation_cols[db]
+    if rel_col is None:
+        relation_cols = dict(ChEMBL='standard_relation', DTC='standard_relation', GoStar='activity_prefix')
+        try:
+            rel_col = relation_cols[db]
+        except KeyError:
+            raise ValueError(f"Unknown database {db} for standardize_relations") 
 
-    dset_df[rel_col].fillna('=', inplace=True)
+    if output_rel_col is None:
+        output_rel_col = rel_col
+
+    try:
+        dset_df[rel_col].fillna('=', inplace=True)
+    except KeyError:
+        raise ValueError(f"Dataset doesn't contain relation column {rel_col} expected for source database {db}")
     ops = dset_df[rel_col].values
     if db == 'ChEMBL':
         # Remove annoying quotes around operators
         ops = [op.lstrip("'").rstrip("'") for op in ops]
     op_dict = {
-        ">": ">",
         ">=": ">",
         "<": "<",
         "<=": "<",
+        ">R": ">",
+        ">=R": ">",
+        "<R": "<",
+        "<=R": "<",
+        "~": "=",
         "=": "="
     }
     ops = np.array([op_dict.get(op, "@") for op in ops])
-    dset_df[rel_col] = ops
-    dset_df = dset_df[dset_df[rel_col] != "@"]
+    if invert:
+        inv_op = {'>': '<', '<': '>'}
+        ops = np.array([inv_op.get(op, op) for op in ops])
+    dset_df[output_rel_col] = ops
+    dset_df = dset_df[dset_df[output_rel_col] != "@"].copy()
     return dset_df
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -237,7 +286,7 @@ def ic50topic50(x) :
     Calculates pIC50 from IC50
 
     Args:
-        x (float): An IC50.
+        x (float): An IC50 in nanomolar (nM) units.
 
     Returns:
         float: The pIC50.

@@ -65,12 +65,12 @@ def curate():
         curated_df[column_class+'2'] = curated_df[column_class]
 
         # Check distribution of response values
-        assert (curated_df.shape[0] == 1117), 'Error: Incorrect number of compounds'
+        assert (curated_df.shape[0] == 1116), 'Error: Incorrect number of compounds'
 
         curated_df.to_csv('delaney-processed_curated.csv')
 
         # Create second test set by reproducible index for prediction
-        curated_df.tail(1000).to_csv('delaney-processed_curated_fit.csv')
+        curated_df.tail(999).to_csv('delaney-processed_curated_fit.csv')
         curated_df.head(117).to_csv('delaney-processed_curated_external.csv')
 
     assert (os.path.isfile('delaney-processed_curated.csv'))
@@ -205,7 +205,7 @@ def train_and_predict(train_json_f, prefix='delaney-processed'):
     # Check training statistics
     # -------------------------
     if prediction_type == 'regression':
-        threshold = 0.6
+        threshold = 0.4
         if 'perf_threshold' in config:
             threshold = float(config['perf_threshold'])
 

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>pipeline.splitting &mdash; ATOM Data-Driven Modeling Pipeline 1.3.0 documentation</title>
+  <title>pipeline.splitting &mdash; ATOM Data-Driven Modeling Pipeline 1.4.0 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -13,6 +13,7 @@
         <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
         <script src="../../_static/jquery.js"></script>
         <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../../_static/doctools.js"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
@@ -27,7 +28,7 @@
             <a href="../../index.html" class="icon icon-home"> ATOM Data-Driven Modeling Pipeline
           </a>
               <div class="version">
-                1.3.0
+                1.4.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
@@ -91,6 +92,7 @@
 <span class="kn">from</span> <span class="nn">deepchem.data</span> <span class="kn">import</span> <span class="n">DiskDataset</span>
 <span class="kn">from</span> <span class="nn">atomsci.ddm.pipeline.ave_splitter</span> <span class="kn">import</span> <span class="n">AVEMinSplitter</span>
 <span class="kn">from</span> <span class="nn">atomsci.ddm.pipeline.temporal_splitter</span> <span class="kn">import</span> <span class="n">TemporalSplitter</span>
+<span class="kn">from</span> <span class="nn">atomsci.ddm.pipeline.MultitaskScaffoldSplit</span> <span class="kn">import</span> <span class="n">MultitaskScaffoldSplitter</span>
 <span class="kn">import</span> <span class="nn">collections</span>
 
 <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="nb">format</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%(asctime)-15s</span><span class="s1"> </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">)</span>
@@ -101,7 +103,9 @@
 
 <span class="c1"># List of model parameters related to splitting. Make sure to update this list if we add more parameters.</span>
 <span class="n">split_params</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;splitter&#39;</span><span class="p">,</span> <span class="s1">&#39;split_strategy&#39;</span><span class="p">,</span> <span class="s1">&#39;split_valid_frac&#39;</span><span class="p">,</span> <span class="s1">&#39;split_test_frac&#39;</span><span class="p">,</span> <span class="s1">&#39;butina_cutoff&#39;</span><span class="p">,</span>
-                <span class="s1">&#39;num_folds&#39;</span><span class="p">,</span> <span class="s1">&#39;base_splitter&#39;</span><span class="p">,</span> <span class="s1">&#39;cutoff_date&#39;</span><span class="p">,</span> <span class="s1">&#39;date_col&#39;</span><span class="p">,</span> <span class="s1">&#39;previously_split&#39;</span><span class="p">]</span>
+                <span class="s1">&#39;num_folds&#39;</span><span class="p">,</span> <span class="s1">&#39;base_splitter&#39;</span><span class="p">,</span> <span class="s1">&#39;cutoff_date&#39;</span><span class="p">,</span> <span class="s1">&#39;date_col&#39;</span><span class="p">,</span> <span class="s1">&#39;previously_split&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;mtss_num_super_scaffolds&#39;</span><span class="p">,</span> <span class="s1">&#39;mtss_num_generations&#39;</span><span class="p">,</span> <span class="s1">&#39;mtss_train_test_dist_weight&#39;</span><span class="p">,</span> 
+                <span class="s1">&#39;mtss_train_valid_dist_weight&#39;</span><span class="p">,</span> <span class="s1">&#39;mtss_split_fraction_weight&#39;</span><span class="p">,</span> <span class="s1">&#39;mtss_num_pop&#39;</span><span class="p">]</span>
 
 <div class="viewcode-block" id="create_splitting"><a class="viewcode-back" href="../../pipeline.html#pipeline.splitting.create_splitting">[docs]</a><span class="k">def</span> <span class="nf">create_splitting</span><span class="p">(</span><span class="n">params</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Factory function to create appropriate type of Splitting object, based on dataset parameters</span>
@@ -274,6 +278,8 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">splitter</span> <span class="o">=</span> <span class="n">dc</span><span class="o">.</span><span class="n">splits</span><span class="o">.</span><span class="n">RandomSplitter</span><span class="p">()</span>
         <span class="k">elif</span> <span class="n">params</span><span class="o">.</span><span class="n">splitter</span> <span class="o">==</span> <span class="s1">&#39;scaffold&#39;</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">splitter</span> <span class="o">=</span> <span class="n">dc</span><span class="o">.</span><span class="n">splits</span><span class="o">.</span><span class="n">ScaffoldSplitter</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="n">params</span><span class="o">.</span><span class="n">splitter</span> <span class="o">==</span> <span class="s1">&#39;multitaskscaffold&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">splitter</span> <span class="o">=</span> <span class="n">MultitaskScaffoldSplitter</span><span class="p">()</span>
         <span class="k">elif</span> <span class="n">params</span><span class="o">.</span><span class="n">splitter</span> <span class="o">==</span> <span class="s1">&#39;stratified&#39;</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">splitter</span> <span class="o">=</span> <span class="n">dc</span><span class="o">.</span><span class="n">splits</span><span class="o">.</span><span class="n">RandomStratifiedSplitter</span><span class="p">()</span>
         <span class="k">elif</span> <span class="n">params</span><span class="o">.</span><span class="n">splitter</span> <span class="o">==</span> <span class="s1">&#39;butina&#39;</span><span class="p">:</span>
@@ -445,7 +451,7 @@
             <span class="n">train_cv_pairs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">splitter</span><span class="o">.</span><span class="n">k_fold_split</span><span class="p">(</span><span class="n">train_cv</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_folds</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># TODO: Add special handling for AVE splitter</span>
-            <span class="n">train_cv</span><span class="p">,</span> <span class="n">test</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">splitter</span><span class="o">.</span><span class="n">train_test_split</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">123</span><span class="p">),</span> <span class="n">frac_train</span><span class="o">=</span><span class="n">train_frac</span><span class="p">)</span>
+            <span class="n">train_cv</span><span class="p">,</span> <span class="n">test</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">splitter</span><span class="o">.</span><span class="n">train_test_split</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">frac_train</span><span class="o">=</span><span class="n">train_frac</span><span class="p">)</span>
             <span class="n">train_cv_pairs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">splitter</span><span class="o">.</span><span class="n">k_fold_split</span><span class="p">(</span><span class="n">train_cv</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_folds</span><span class="p">)</span>
 
         <span class="n">train_valid_dsets</span> <span class="o">=</span> <span class="p">[]</span>
@@ -602,7 +608,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">splitter</span> <span class="o">=</span> <span class="n">dc</span><span class="o">.</span><span class="n">splits</span><span class="o">.</span><span class="n">ScaffoldSplitter</span><span class="p">()</span>
             <span class="c1"># With Butina splitting, we don&#39;t have control over the size of the test set</span>
             <span class="n">train_frac</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">split_valid_frac</span>
-            <span class="n">train</span><span class="p">,</span> <span class="n">valid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">splitter</span><span class="o">.</span><span class="n">train_test_split</span><span class="p">(</span><span class="n">train_valid</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">123</span><span class="p">),</span> <span class="n">frac_train</span><span class="o">=</span><span class="n">train_frac</span><span class="p">)</span>
+            <span class="n">train</span><span class="p">,</span> <span class="n">valid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">splitter</span><span class="o">.</span><span class="n">train_test_split</span><span class="p">(</span><span class="n">train_valid</span><span class="p">,</span> <span class="n">frac_train</span><span class="o">=</span><span class="n">train_frac</span><span class="p">)</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">split</span> <span class="o">==</span> <span class="s1">&#39;ave_min&#39;</span><span class="p">:</span>
             <span class="c1"># AVEMinSplitter also only does train-valid splits, but at least nested splits seem to work.</span>
             <span class="c1"># TODO: Change this if we modify AVE splitter to do 3-way splits internally.</span>
@@ -623,11 +629,24 @@
             <span class="n">train_frac</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">split_valid_frac</span>
             <span class="n">train</span><span class="p">,</span> <span class="n">valid</span><span class="p">,</span> <span class="n">test</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">splitter</span><span class="o">.</span><span class="n">train_valid_test_split</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">attr_df</span><span class="o">=</span><span class="n">attr_df</span><span class="p">,</span>
                                 <span class="n">frac_train</span><span class="o">=</span><span class="n">train_frac</span><span class="p">,</span> <span class="n">frac_valid</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">split_valid_frac</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">split</span> <span class="o">==</span> <span class="s1">&#39;multitaskscaffold&#39;</span><span class="p">:</span>
+            <span class="c1"># perform multitask scaffold split</span>
+            <span class="n">train_frac</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">split_valid_frac</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">split_test_frac</span>
+            <span class="n">train</span><span class="p">,</span> <span class="n">valid</span><span class="p">,</span> <span class="n">test</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">splitter</span><span class="o">.</span><span class="n">train_valid_test_split</span><span class="p">(</span>
+                <span class="n">dataset</span><span class="p">,</span> 
+                <span class="n">frac_train</span><span class="o">=</span><span class="n">train_frac</span><span class="p">,</span> 
+                <span class="n">frac_valid</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">split_valid_frac</span><span class="p">,</span> 
+                <span class="n">frac_test</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">split_test_frac</span><span class="p">,</span> 
+                <span class="n">diff_fitness_weight_tvt</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">mtss_train_test_dist_weight</span><span class="p">,</span>
+                <span class="n">diff_fitness_weight_tvv</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">mtss_train_valid_dist_weight</span><span class="p">,</span>
+                <span class="n">ratio_fitness_weight</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">mtss_split_fraction_weight</span><span class="p">,</span>
+                <span class="n">num_super_scaffolds</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">mtss_num_super_scaffolds</span><span class="p">,</span>
+                <span class="n">num_pop</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">mtss_num_pop</span><span class="p">,</span>
+                <span class="n">num_generations</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">mtss_num_generations</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">train_frac</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">split_valid_frac</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">split_test_frac</span>
             <span class="n">train</span><span class="p">,</span> <span class="n">valid</span><span class="p">,</span> <span class="n">test</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">splitter</span><span class="o">.</span><span class="n">train_valid_test_split</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> 
-                <span class="n">frac_train</span><span class="o">=</span><span class="n">train_frac</span><span class="p">,</span> <span class="n">frac_valid</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">split_valid_frac</span><span class="p">,</span> <span class="n">frac_test</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">split_test_frac</span><span class="p">,</span>
-                <span class="n">seed</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">123</span><span class="p">))</span>
+                <span class="n">frac_train</span><span class="o">=</span><span class="n">train_frac</span><span class="p">,</span> <span class="n">frac_valid</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">split_valid_frac</span><span class="p">,</span> <span class="n">frac_test</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">split_test_frac</span><span class="p">)</span>
 
         <span class="c1"># Extract the ID-to_SMILES maps from attr_df for each subset.</span>
         <span class="c1"># assign the subsets to the original dataset if duplicated compounds exist</span>

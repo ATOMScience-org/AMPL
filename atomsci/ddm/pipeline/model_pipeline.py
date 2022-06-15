@@ -24,6 +24,7 @@ import pdb
 import copy
 
 from atomsci.ddm.utils import datastore_functions as dsf
+import atomsci.ddm.utils.model_version_utils as mu
 
 import pkg_resources
 if ('site-packages' in dsf.__file__) or ('dist-packages' in dsf.__file__): # install_dev.sh points to github directory
@@ -52,10 +53,6 @@ from atomsci.ddm.pipeline import model_tracker as trkr
 from atomsci.ddm.pipeline import transformations as trans
 
 logging.basicConfig(format='%(asctime)-15s %(message)s')
-
-# Only for debug!
-np.random.seed(123)
-
 
 # ---------------------------------------------
 def calc_AD_kmean_dist(train_dset, pred_dset, k, train_dset_pair_distance=None, dist_metric="euclidean"):
@@ -1239,6 +1236,8 @@ def create_prediction_pipeline_from_file(params, reload_dir, model_path=None, mo
 
     # Unpack the model tar archive if one is specified
     if model_path is not None:
+        # if mismatch, it will raise an exception
+        matched = mu.check_version_compatible(model_path, ignore_check=False)
         if reload_dir is None:
             # Create a temporary directory
             reload_dir = tempfile.mkdtemp()

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>pipeline.compare_models &mdash; ATOM Data-Driven Modeling Pipeline 1.3.0 documentation</title>
+  <title>pipeline.compare_models &mdash; ATOM Data-Driven Modeling Pipeline 1.4.0 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -13,6 +13,7 @@
         <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
         <script src="../../_static/jquery.js"></script>
         <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../../_static/doctools.js"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
@@ -27,7 +28,7 @@
             <a href="../../index.html" class="icon icon-home"> ATOM Data-Driven Modeling Pipeline
           </a>
               <div class="version">
-                1.3.0
+                1.4.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
@@ -100,8 +101,6 @@
 <span class="kn">import</span> <span class="nn">atomsci.ddm.pipeline.parameter_parser</span> <span class="k">as</span> <span class="nn">parse</span>
 <span class="kn">import</span> <span class="nn">atomsci.ddm.pipeline.model_wrapper</span> <span class="k">as</span> <span class="nn">mw</span>
 <span class="kn">import</span> <span class="nn">atomsci.ddm.pipeline.featurization</span> <span class="k">as</span> <span class="nn">feat</span>
-
-<span class="kn">from</span> <span class="nn">tensorflow.python.keras.utils.layer_utils</span> <span class="kn">import</span> <span class="n">count_params</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;ATOM&#39;</span><span class="p">)</span>
 <span class="n">mlmt_supported</span> <span class="o">=</span> <span class="kc">True</span>
@@ -400,8 +399,8 @@
     <span class="k">if</span> <span class="s1">&#39;nn_specific&#39;</span> <span class="ow">in</span> <span class="n">metadata_dict</span><span class="p">:</span>
         <span class="n">model_metadata</span> <span class="o">=</span> <span class="n">metadata_dict</span><span class="p">[</span><span class="s1">&#39;nn_specific&#39;</span><span class="p">]</span>
         <span class="c1"># include learning rate, max_epochs, and best_epoch for convenience </span>
-        <span class="n">model_info</span><span class="p">[</span><span class="s1">&#39;max_epochs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">model_metadata</span><span class="p">[</span><span class="s1">&#39;max_epochs&#39;</span><span class="p">]</span>
-        <span class="n">model_info</span><span class="p">[</span><span class="s1">&#39;best_epoch&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">model_metadata</span><span class="p">[</span><span class="s1">&#39;best_epoch&#39;</span><span class="p">]</span>
+        <span class="n">model_info</span><span class="p">[</span><span class="s1">&#39;max_epochs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">model_metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;max_epochs&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+        <span class="n">model_info</span><span class="p">[</span><span class="s1">&#39;best_epoch&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">model_metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;best_epoch&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
         <span class="n">learning_rate_col</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">model_metadata</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;learning_rate&#39;</span><span class="p">)]</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">learning_rate_col</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
             <span class="n">model_info</span><span class="p">[</span><span class="s1">&#39;learning_rate&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">model_metadata</span><span class="p">[</span><span class="n">learning_rate_col</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
@@ -2204,22 +2203,27 @@
     <span class="n">model_params</span> <span class="o">=</span> <span class="n">parse</span><span class="o">.</span><span class="n">wrapper</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
 
     <span class="c1"># Is this an NN model</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">model_params</span><span class="o">.</span><span class="n">model_type</span> <span class="o">==</span> <span class="s1">&#39;NN&#39;</span><span class="p">:</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">model_params</span><span class="o">.</span><span class="n">model_type</span> <span class="o">==</span> <span class="s1">&#39;NN&#39;</span> <span class="ow">or</span> <span class="n">model_params</span><span class="o">.</span><span class="n">model_type</span> <span class="ow">in</span> <span class="n">parse</span><span class="o">.</span><span class="n">model_wl</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Saved model is not a neural network. Recieved </span><span class="si">%s</span><span class="s1">&#39;</span><span class="o">%</span><span class="n">model_params</span><span class="o">.</span><span class="n">model_type</span><span class="p">)</span>
 
     <span class="n">model_params</span><span class="o">.</span><span class="n">save_results</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="n">model_params</span><span class="o">.</span><span class="n">output_dir</span> <span class="o">=</span> <span class="n">reload_dir</span>
 
-    <span class="n">featurization</span> <span class="o">=</span> <span class="n">feat</span><span class="o">.</span><span class="n">create_featurization</span><span class="p">(</span><span class="n">model_params</span><span class="p">)</span>
+    <span class="c1"># some models need to be &#39;built&#39; (graphconv models for one) </span>
+    <span class="c1"># before you can count the paramters</span>
+    <span class="c1"># The only sure way to do this with DeepChem is to make some predictions.</span>
+    <span class="c1"># This code is adapted from predict_from_model</span>
+    <span class="n">pred_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="p">{</span><span class="n">model_params</span><span class="o">.</span><span class="n">id_col</span><span class="p">:[</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="s1">&#39;c&#39;</span><span class="p">],</span>
+        <span class="n">model_params</span><span class="o">.</span><span class="n">smiles_col</span><span class="p">:[</span><span class="s1">&#39;OC(CCN1CCCCC1)(c1ccccc1)C1CC2C=CC1C2&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;COC(=O)CC1CCCCCC1N1CCN(C(=O)C(C)Cc2ccc(Cl)cc2Cl)CC1&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;O=C(O)c1ccc2cccnc2c1N1CCN(CCc2ccc(OCCCN3CCCCCC3)cc2)CC1&#39;</span><span class="p">]})</span>
+    <span class="n">pipe</span> <span class="o">=</span> <span class="n">mp</span><span class="o">.</span><span class="n">create_prediction_pipeline_from_file</span><span class="p">(</span><span class="n">model_params</span><span class="p">,</span> 
+        <span class="n">reload_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">model_path</span><span class="o">=</span><span class="n">tar_path</span><span class="p">)</span>
+    <span class="n">pred_df</span> <span class="o">=</span> <span class="n">pipe</span><span class="o">.</span><span class="n">predict_full_dataset</span><span class="p">(</span><span class="n">pred_df</span><span class="p">,</span> <span class="n">contains_responses</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> 
+                                        <span class="n">is_featurized</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                                        <span class="n">dset_params</span><span class="o">=</span><span class="n">model_params</span><span class="p">)</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Featurization = </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">featurization</span><span class="p">))</span>
-    <span class="c1"># Create a ModelPipeline object</span>
-    <span class="n">pipeline</span> <span class="o">=</span> <span class="n">mp</span><span class="o">.</span><span class="n">ModelPipeline</span><span class="p">(</span><span class="n">model_params</span><span class="p">)</span>
-
-    <span class="c1"># Create the ModelWrapper object.</span>
-    <span class="n">pipeline</span><span class="o">.</span><span class="n">model_wrapper</span> <span class="o">=</span> <span class="n">mw</span><span class="o">.</span><span class="n">create_model_wrapper</span><span class="p">(</span><span class="n">pipeline</span><span class="o">.</span><span class="n">params</span><span class="p">,</span> <span class="n">featurization</span><span class="p">)</span>
-
-    <span class="k">return</span> <span class="n">count_params</span><span class="p">(</span><span class="n">pipeline</span><span class="o">.</span><span class="n">model_wrapper</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">trainable_weights</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">pipe</span><span class="o">.</span><span class="n">model_wrapper</span><span class="o">.</span><span class="n">count_params</span><span class="p">()</span></div>
 </pre></div>
 
            </div>

@@ -16,6 +16,7 @@ from atomsci.ddm.utils import datastore_functions as dsf
 from pathlib import Path
 import getpass
 import traceback
+import sys
 
 feather_supported = True
 try:
@@ -554,10 +555,8 @@ class ModelDataset(object):
         try:
             split_df, split_kv = self.load_dataset_split_table(directory)
         except Exception as e:
-            self.log.warning("Error when loading dataset split table:\n%s" % str(e))
-            # Create a new split_uuid if we failed to find a split table based on the old one
-            self.split_uuid = str(uuid.uuid4())
-            return False
+            self.log.error("Error when loading dataset split table:\n%s" % str(e))
+            sys.exit(1)
 
         self.train_valid_attr = []
         self.train_valid_dsets = []
