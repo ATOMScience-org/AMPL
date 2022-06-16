@@ -72,22 +72,45 @@ AMPL is a Python 3 package that has been developed and run in a specific conda e
 
 #### Create conda environment
 <a name="create-conda-env"></a>
+
+There are two options:
+##### Option 1: do it manually.
+
+```
+cd conda
+
+conda create -y -n atomsci --file conda_package_list.txt
+
+conda activate atomsci
+
+pip install -r pip_requirements.txt
+
+# This is to fix the error:
+#
+# 'tensorflow.python.training.experimental.mixed_precision' has no attribute '_register_wrapper_optimizer_cls'
+
+pip uninstall -y keras
+
+pip install -U tensorflow==2.8.0 keras==2.8.0
+```
+
+##### Option 2: use a script.
 There is a script `create_ampl_env.sh` that will automate the conda env creation and the packages install for you.
 
 ```
 $ source create_ampl_env.sh
 ```
 
-It will 
+It will
 
 - Prompt for a new conda environment name
 - Then run
- - conda create 
- - conda activate 
+ - conda create
+ - conda activate
  - and pip install and other fixes
 
-- *Note: Depending on system performance, creating the environment can take some time.*  
-&nbsp;  
+- *Note: Depending on system performance, creating the environment can take some time.*
+&nbsp;
 
 #### Install AMPL
 Go to the `AMPL` root directory and install the AMPL package:
