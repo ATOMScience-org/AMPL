@@ -126,6 +126,36 @@ def dc_restore(model, checkpoint=None, model_dir=None, session=None):
         # inference only.
         model._checkpoint.restore(checkpoint).expect_partial().run_restore_ops(session)
 
+def dc_torch_restore(model, checkpoint= None, model_dir = None):
+    """Reload the values of all variables from a checkpoint file. 
+
+    This is copied from deepchem 2.6.1 to explicitly set the torch loading device to 
+    'cpu' if cuda devices aren't available when reloading the model.
+
+    Parameters
+    ----------
+    model: the torch model to restore
+    checkpoint: str
+      the path to the checkpoint file to load.  If this is None, the most recent
+      checkpoint will be chosen automatically.  Call get_checkpoints() to get a
+      list of all available checkpoints.
+    model_dir: str, default None
+      Directory to restore checkpoint from. If None, use self.model_dir.  If
+      checkpoint is not None, this is ignored.
+    """
+    model._ensure_built()
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu") # set torch device
+    if checkpoint is None:
+      checkpoints = sorted(model.get_checkpoints(model_dir))
+      if len(checkpoints) == 0:
+        raise ValueError('No checkpoint found')
+      checkpoint = checkpoints[0]
+    data = torch.load(checkpoint, map_location=device) # include map_location to transfer a gpu model to cpu
+    model.model.load_state_dict(data['model_state_dict'])
+    model._pytorch_optimizer.load_state_dict(data['optimizer_state_dict'])
+    model._global_step = data['global_step']
+
+
 def all_bases(model):
     '''
     Given a model, return all bases
@@ -987,11 +1017,11 @@ class NNModelWrapper(ModelWrapper):
         self._copy_model(self.best_model_dir)
         self.log.info(f"Best model from epoch {self.best_epoch} saved to {self.best_model_dir}")
 
-    def restore(self):
+    def restore(self, checkpoint=None, model_dir=None):
         '''
-        Reverts model to last saved checkpoint
+        Restores this model
         '''
-        self.model.restore()
+        dc_torch_restore(self.model, checkpoint, model_dir)
 
     # ****************************************************************************************
     def _copy_model(self, dest_dir):
@@ -2355,11 +2385,11 @@ class PytorchDeepChemModelWrapper(NNModelWrapper):
         model_spec_metadata = dict(nn_specific = nn_metadata)
         return model_spec_metadata
 
-    def restore(self):
+    def restore(self, checkpoint=None, model_dir=None):
         '''
-        Restores model to the last saved checkpoint
+        Restores this model
         '''
-        self.model.restore()
+        dc_torch_restore(self.model, checkpoint, model_dir)
 
     def count_params(self):
         '''
