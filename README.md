@@ -76,6 +76,8 @@ AMPL is a Python 3 package that has been developed and run in a specific conda e
 There are two options:
 ##### Option 1: do it manually.
 
+> ***Note***: *`atomsci` is an example Conda environment name used here*.
+
 ```
 cd conda
 
@@ -109,7 +111,7 @@ It will
  - conda activate
  - and pip install and other fixes
 
-- *Note: Depending on system performance, creating the environment can take some time.*
+> ***Note***: *Depending on system performance, creating the environment can take some time.*
 &nbsp;
 
 #### Install AMPL
@@ -209,9 +211,7 @@ cd atomsci/ddm/test/integrative/delaney_RF
 
 pytest
 ```
-- *Note: This test generally takes a few minutes on a modern system*  
-&nbsp;  
-&nbsp;  
+> ***Note***: *This test generally takes a few minutes on a modern system*  
 
 The important files for this test are listed below:
 
