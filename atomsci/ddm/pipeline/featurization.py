@@ -13,10 +13,13 @@ import numpy as np
 import deepchem as dc
 import pandas as pd
 import deepchem.data.data_loader as dl
+from deepchem.data import NumpyDataset
 
 from atomsci.ddm.utils import datastore_functions as dsf
 from atomsci.ddm.pipeline import transformations as trans
 from atomsci.ddm.pipeline import parameter_parser as pp
+from atomsci.ddm.pipeline import model_datasets as md
+from atomsci.ddm.pipeline import model_pipeline as mp
 
 from rdkit import Chem
 from rdkit.Chem import AllChem
@@ -97,6 +100,8 @@ def create_featurization(params):
     if params.featurizer in ('ecfp', 'graphconv', 'molvae') \
             or params.featurizer in pp.featurizer_wl:
         return DynamicFeaturization(params)
+    elif params.featurizer == 'embedding':
+        return EmbeddingFeaturization(params)
     elif params.featurizer in ('descriptors'):
         return DescriptorFeaturization(params)
     elif params.featurizer in ('computed_descriptors'):
@@ -659,6 +664,10 @@ class DynamicFeaturization(Featurization):
         elif self.feat_type in pp.featurizer_wl:
             kwargs = pp.extract_featurizer_params(params)
             self.featurizer_obj = pp.featurizer_wl[self.feat_type](**kwargs)
+        elif self.feat_type == 'embedding':
+            # EmbeddingFeaturization doesn't map directly to a DeepChem featurizer
+            self.featurizer_obj = None
+
         #TODO: MoleculeVAEFeaturizer is not working currently. Will be replaced by JT-VAE and cWAE
         # featurizers eventually.
         #elif self.feat_type == 'molvae':
@@ -698,9 +707,6 @@ class DynamicFeaturization(Featurization):
         return None, None, None, None
 
     # ****************************************************************************************
-    # TODO: Replace model_dataset in this function with params; make params.response_cols required.
-    # TODO: MJT, make params.response_cols required?
-    # TODO: MJT, test featurize data after refactoring out model_dataset.
     def featurize_data(self, dset_df, model_dataset):
         """Perform featurization on the given dataset.
 
@@ -733,12 +739,6 @@ class DynamicFeaturization(Featurization):
         nrows = sum(is_valid)
         ncols = len(params.response_cols)
         if model_dataset.contains_responses:
-            ##JEA: ORIG code below
-            ##vals = dset_df[params.response_cols].values[is_valid,:]
-            ##JEA: UPDATED code below
-            ##JEA: the W's need to be initialized here, the function below
-            ##JEA: will set weights to 0 for missing values
-            ##JEA: Featurize task results iff they exist.
             dset_df=dset_df.replace(np.nan, "", regex=True)
             vals, w = dl._convert_df_to_numpy(dset_df, params.response_cols) #, self.id_field)
             # Filter out examples where featurization failed.
@@ -857,6 +857,176 @@ class DynamicFeaturization(Featurization):
         elif self.feat_type in pp.featurizer_wl:
             feat_metadata['auto_featurizer_specific'] = pp.extract_featurizer_params(params, strip_prefix=False)
         return feat_metadata
+
+# ****************************************************************************************
+class EmbeddingFeaturization(DynamicFeaturization):
+    """
+    Featurizer that uses a pretrained AMPL neural network model to compute features consisting
+    of the activations from the "embedding" layer of the network. For this to work, the underlying
+    DeepChem model must implement the predict_embedding function.
+    """
+
+    def __init__(self, params):
+        """Initializes an EmbeddingFeaturization object.
+
+        Args:
+            params (Namespace): Contains parameters to be used to instantiate the featurizer.
+
+        Raises:
+            ValueError if neither embedding_model_uuid or embedding_model_path is specified in params.
+
+        Side effects:
+            Sets the following EmbeddingFeaturization attributes:
+                embedding_pipeline: A ModelPipeline object for the embedding model.
+        """
+        super().__init__(params)
+        log_level = log.getEffectiveLevel()
+        if params.embedding_model_path is not None:
+            self.embedding_pipeline = mp.create_prediction_pipeline_from_file(params, reload_dir=None,
+                                        model_path=params.embedding_model_path)
+        elif params.embedding_model_uuid is not None:
+            self.embedding_pipeline = mp.create_prediction_pipeline(params, params.embedding_model_uuid,
+                                        collection_name=params.embedding_model_collection)
+        else:
+            raise ValueError("EmbeddingFeaturizer: must specify either embedding_model_uuid or embedding_model_path")
+        # Restore the logging level, which may have been changed by the create_prediction_pipeline function
+        log.setLevel(log_level)
+
+
+    # ****************************************************************************************
+    def __str__(self):
+        """Returns a human-readable description of this Featurization object.
+
+        Returns:
+            (str): Describes the featurization type
+        """
+        return f"EmbeddingFeaturization based on model UUID {self.embedding_pipeline.model_uuid}"
+
+    # ****************************************************************************************
+    def featurize(self,mols) :
+        """Calls DeepChem featurize() object
+        """
+
+        # TODO Does this actually get called externally?
+        raise NotImplementedError
+
+    # ****************************************************************************************
+    def featurize_data(self, dset_df, model_dataset):
+        """Perform featurization on the given dataset.
+
+        Args:
+            dset_df (DataFrame): A table of data to be featurized. At minimum, should include columns
+            for the compound ID and SMILES string
+
+            model_dataset (ModelDataset): Contains the dataset that will receive the featurized 
+            molecules.
+
+        Returns:
+            Tuple of (features, ids, vals, attr).
+
+                features (np.array): Feature matrix.
+
+                ids (pd.DataFrame): compound IDs or SMILES strings if needed for splitting.
+
+                vals (np.array): array of response values.
+
+                attr (pd.DataFrame): dataframe containing SMILES strings indexed by compound IDs.
+        """
+        params = model_dataset.params
+        attr = get_dataset_attributes(dset_df, params)
+
+        # First featurize the molecules in dset_df using the featurizer of the embedding model. Since some
+        # SMILES strings may not be featurizable, also generate an array of binaries indicating which 
+        # were "valid" (i.e., successfully featurized).
+
+        input_featurization = self.embedding_pipeline.model_wrapper.featurization
+        self.embedding_pipeline.featurization = input_featurization
+        input_featurizer = input_featurization.featurizer_obj
+
+        smiles_strs = dset_df[params.smiles_col].values
+
+        feature_list = []
+        for ind, smiles in enumerate(smiles_strs):
+            mol = Chem.MolFromSmiles(smiles)
+            if mol is not None:
+                new_order = rdmolfiles.CanonicalRankAtoms(mol)
+                mol = rdmolops.RenumberAtoms(mol, new_order)
+            feature_list.append(input_featurizer.featurize([mol]))
+        is_valid = np.array([(elt.size > 0) for elt in feature_list], dtype=bool)
+        valid_dset_df = dset_df[is_valid]
+        input_features = np.array([elt for (is_valid, elt) in zip(is_valid, feature_list) if is_valid])
+        if len(input_features.shape) > 1:
+            input_features = np.squeeze(input_features, axis=1)
+
+        if input_features is None:
+            raise Exception("Featurization failed for dataset")
+
+        # Now create a temporary dataset for the input features to the embedding model
+
+        nrows = input_features.shape[0]
+        ncols = len(params.response_cols)
+        if model_dataset.contains_responses:
+            # ksm: Unclear why we have the following line. It only makes sense to do this for string columns.
+            dset_df=dset_df.replace(np.nan, "", regex=True)
+            vals, w = dl._convert_df_to_numpy(valid_dset_df, params.response_cols)
+        else:
+            vals = np.zeros((nrows,ncols))
+            w = np.ones((nrows,ncols))
+
+        attr = attr[is_valid]
+        ids = dset_df.loc[is_valid, params.id_col].values
+        assert len(input_features) == len(ids) == len(vals) == len(w)
+        input_dataset = NumpyDataset(input_features, vals, ids)
+
+        # Run the embedding model to generate features. 
+        embedding = self.embedding_pipeline.model_wrapper.generate_embeddings(input_dataset)
+
+        # The DeepChem predict_embedding methods pad their outputs to multiples of the batch size.
+        # Strip off this extra padding.
+        embedding = embedding[:nrows,:]
+
+        return embedding, ids, vals, attr, w
+
+    # ****************************************************************************************
+    def get_feature_count(self):
+        """Returns the number of feature columns associated with this Featurization instance.
+
+        Args:
+            None
+
+        Returns:
+            (int): The number of feature columns for the DynamicFeaturization subclass, feat_type specific
+        """
+        # For GraphConv models, the embedding layer is the next to last one. For other NN models,
+        # it's the last one.
+        if self.embedding_pipeline.params.featurizer == 'graphconv':
+            return self.embedding_pipeline.params.layer_sizes[-2]
+        else:
+            return self.embedding_pipeline.params.layer_sizes[-1]
+
+
+    # ****************************************************************************************
+    def get_feature_specific_metadata(self, params):
+        """Returns a dictionary of parameter settings for this Featurization object that are specific
+        to the feature type.
+
+        Args:
+            params (Namespace): Argparse Namespace object containing the parameter list
+
+        Returns
+            dict: Dictionary containing featurizer specific metadata as a subdict under the key
+            'embedding_specific'.
+        """
+        feat_metadata = {}
+
+        embedding_params = dict(
+            embedding_model_uuid = params.embedding_model_uuid,
+            embedding_model_collection = params.embedding_model_collection,
+            embedding_model_path = params.embedding_model_path)
+        feat_metadata['embedding_specific'] = embedding_params
+
+        return feat_metadata
+
 
 # ****************************************************************************************
 

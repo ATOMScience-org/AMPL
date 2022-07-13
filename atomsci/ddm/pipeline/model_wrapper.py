@@ -559,6 +559,17 @@ class ModelWrapper(object):
         """
         raise NotImplementedError
 
+    def generate_embeddings(self, dataset):
+        """
+
+        Args:
+            dataset:
+
+        Returns:
+
+        """
+        raise NotImplementedError
+
     def reload_model(self, reload_dir):
         """
 
@@ -2500,6 +2511,21 @@ class MultitaskDCModelWrapper(PytorchDeepChemModelWrapper):
         return model
 
     # ****************************************************************************************
+    def generate_embeddings(self, dataset):
+        """
+        Generate the output of the final embedding layer of a GraphConv model for the given dataset.
+
+        Args:
+            dataset:
+
+        Returns:
+            embedding (np.ndarray): An array of outputs from the nodes in the embedding layer.
+
+        """
+        return self.model.predict_embedding(dataset)
+
+
+    # ****************************************************************************************
     def get_model_specific_metadata(self):
         """Returns a dictionary of parameter settings for this ModelWrapper object that are specific
         to neural network models.
@@ -2712,6 +2738,21 @@ class GraphConvDCModelWrapper(KerasDeepChemModelWrapper):
             penalty=self.params.weight_decay_penalty,
             penalty_type=self.params.weight_decay_penalty_type)
         return model
+
+    # ****************************************************************************************
+    def generate_embeddings(self, dataset):
+        """
+        Generate the output of the final embedding layer of a GraphConv model for the given dataset.
+
+        Args:
+            dataset:
+
+        Returns:
+            embedding (np.ndarray): An array of outputs from the nodes in the embedding layer.
+
+        """
+        return self.model.predict_embedding(dataset)
+
 
     # ****************************************************************************************
     def get_model_specific_metadata(self):
