@@ -382,7 +382,7 @@ class ModelDataset(object):
         self.check_task_columns(dset_df)
         features, ids, self.vals, self.attr, w = self.featurization.featurize_data(dset_df, self)
         self.n_features = self.featurization.get_feature_count()
-        print("number of features: " + str(self.n_features))
+        print("Number of features: " + str(self.n_features))
            
         # Create the DeepChem dataset       
         self.dataset = DiskDataset.from_numpy(features, self.vals, ids=ids, w=w)
