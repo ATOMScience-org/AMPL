@@ -935,57 +935,31 @@ class EmbeddingFeaturization(DynamicFeaturization):
         params = model_dataset.params
         attr = get_dataset_attributes(dset_df, params)
 
-        # First featurize the molecules in dset_df using the featurizer of the embedding model. Since some
-        # SMILES strings may not be featurizable, also generate an array of binaries indicating which 
-        # were "valid" (i.e., successfully featurized).
+        # First featurize the molecules in dset_df using the featurizer of the embedding model. 
 
         input_featurization = self.embedding_pipeline.model_wrapper.featurization
         self.embedding_pipeline.featurization = input_featurization
-        input_featurizer = input_featurization.featurizer_obj
 
-        smiles_strs = dset_df[params.smiles_col].values
+        input_model_dataset = md.create_minimal_dataset(self.embedding_pipeline.params,
+                                    input_featurization, contains_responses=model_dataset.contains_responses)
 
-        feature_list = []
-        for ind, smiles in enumerate(smiles_strs):
-            mol = Chem.MolFromSmiles(smiles)
-            if mol is not None:
-                new_order = rdmolfiles.CanonicalRankAtoms(mol)
-                mol = rdmolops.RenumberAtoms(mol, new_order)
-            feature_list.append(input_featurizer.featurize([mol]))
-        is_valid = np.array([(elt.size > 0) for elt in feature_list], dtype=bool)
-        valid_dset_df = dset_df[is_valid]
-        input_features = np.array([elt for (is_valid, elt) in zip(is_valid, feature_list) if is_valid])
-        if len(input_features.shape) > 1:
-            input_features = np.squeeze(input_features, axis=1)
-
-        if input_features is None:
-            raise Exception("Featurization failed for dataset")
-
-        # Now create a temporary dataset for the input features to the embedding model
-
-        nrows = input_features.shape[0]
-        ncols = len(params.response_cols)
-        if model_dataset.contains_responses:
-            # ksm: Unclear why we have the following line. It only makes sense to do this for string columns.
-            dset_df=dset_df.replace(np.nan, "", regex=True)
-            vals, w = dl._convert_df_to_numpy(valid_dset_df, params.response_cols)
-        else:
-            vals = np.zeros((nrows,ncols))
-            w = np.ones((nrows,ncols))
-
-        attr = attr[is_valid]
-        ids = dset_df.loc[is_valid, params.id_col].values
-        assert len(input_features) == len(ids) == len(vals) == len(w)
-        input_dataset = NumpyDataset(input_features, vals, ids)
+        input_model_dataset.get_featurized_data(dset_df)
+        input_dataset = input_model_dataset.dataset
+        input_features = input_dataset.X
+        ids = input_dataset.ids
+        vals = input_dataset.y
+        weights = input_dataset.w
+        attr = input_model_dataset.attr
 
         # Run the embedding model to generate features. 
         embedding = self.embedding_pipeline.model_wrapper.generate_embeddings(input_dataset)
 
         # The DeepChem predict_embedding methods pad their outputs to multiples of the batch size.
         # Strip off this extra padding.
+        nrows = input_features.shape[0]
         embedding = embedding[:nrows,:]
 
-        return embedding, ids, vals, attr, w
+        return embedding, ids, vals, attr, weights
 
     # ****************************************************************************************
     def get_feature_count(self):
@@ -1934,7 +1908,7 @@ class ComputedDescriptorFeaturization(DescriptorFeaturization):
                 scaled_df[scaled_col] = desc_df[unscaled_col].values / a_count
             else:
                 scaled_df[scaled_col] = desc_df[unscaled_col].values
-        return scaled_df
+        return scaled_df.copy()
 
 # ****************************************************************************************
 def get_user_specified_features(df, featurizer, verbose=False):
