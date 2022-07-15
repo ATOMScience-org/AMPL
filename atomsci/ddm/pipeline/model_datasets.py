@@ -813,11 +813,16 @@ class MinimalDataset(ModelDataset):
         # values for MinimalDataset objects.
         #self.dataset = NumpyDataset(features, self.vals, ids=ids)
 
-        if self.params.splitter == 'scaffold':
-            self.dataset = DiskDataset.from_numpy(features, self.vals, 
-                                                  ids=dset_df[params.smiles_col].values)
-        else:
-            self.dataset = DiskDataset.from_numpy(features, self.vals, ids=ids)
+        # =-= ksm: This makes no sense, since MinimalDataset doesn't get used for training, so the splitting
+        # =-= parameter is irrelevant. Looks like I made this change on 10/2/2019 at the same time I implemented
+        # =-= the temporal splitter. For now I'm commenting out the code, because it breaks the 
+        # =-= EmbeddingFeaturization with input descriptor features.
+        #if self.params.splitter == 'scaffold':
+        #    self.dataset = DiskDataset.from_numpy(features, self.vals, 
+        #                                          ids=dset_df[params.smiles_col].values)
+        #else:
+        #    self.dataset = DiskDataset.from_numpy(features, self.vals, ids=ids)
+        self.dataset = DiskDataset.from_numpy(features, self.vals, ids=ids)
 
     # ****************************************************************************************
     def save_featurized_data(self, featurized_dset_df):
