@@ -16,7 +16,7 @@ colors = ["#7682A4","#A7DDD8","#373C50","#694691","#BE2369","#EB1E23","#6EC8BE",
 pal=sns.color_palette(colors)
 sns.set_palette(pal)
 
-regselmets=selmets = [
+regselmets=[
  'r2_score',
  'mae_score',
  'rms_score',
@@ -33,6 +33,12 @@ classselmets = [
  'bal_accuracy',
 ]
 
+def get_score_types():
+    """
+    Helper function to show score type choices.
+    """
+    print(classselmets)
+    print(regselmets)
 
 def _prep_perf_df(df):
     """
@@ -49,7 +55,7 @@ def _prep_perf_df(df):
     """
     perf_track_df=df.copy()
     
-    if 'dropouts' in perf_track_df.columns:
+    if 'NN' in perf_track_df.model_type.unique():
         perf_track_df['plot_dropout'] = perf_track_df.dropouts.astype(str).str.strip('[]').str.split(pat=',',n=1, expand=True)[0]
         perf_track_df['plot_dropout'] = perf_track_df.plot_dropout.astype(float)
         perf_track_df['layer_sizes'] = perf_track_df.layer_sizes.astype(str).str.strip('[]')
@@ -113,12 +119,13 @@ def plot_rf_perf(df, scoretype='r2_score',subset='valid'):
     """
     sns.set_context('poster')
     perf_track_df=df.copy().reset_index(drop=True)
+    plot_df=perf_track_df[perf_track_df.model_type=='RF']
     winnertype= f'best_{subset}_{scoretype}'
     
-    if 'rf_estimators' in perf_track_df.columns:
+    if len(plot_df)>0:
         feat1 = 'rf_max_features'; feat2 = 'rf_max_depth'; feat3 = 'rf_estimators'
         hue=feat3
-        plot_df=perf_track_df[perf_track_df.model_type=='RF']
+        
         plot_df = plot_df.sort_values([feat3, feat1, feat2])
         plot_df[f'{feat1}/{feat2}'] = ['%s / %s' % (mf,est) for mf,est in zip(plot_df[feat1], plot_df[feat2])]
         with sns.axes_style("whitegrid"):
@@ -147,12 +154,12 @@ def plot_nn_perf(df, scoretype='r2_score',subset='valid'):
     """
     sns.set_context('poster')
     perf_track_df=_prep_perf_df(df).reset_index(drop=True)
+    plot_df=perf_track_df[perf_track_df.model_type=='NN']
     winnertype= f'best_{subset}_{scoretype}'
     
-    if 'dropouts' in perf_track_df.columns:
+    if len(plot_df)>0:
         feat1 = 'learning_rate'; feat2 = 'plot_dropout'; feat3 = 'layer_sizes'
         hue=feat3
-        plot_df=perf_track_df[perf_track_df.model_type=='NN']
         plot_df = plot_df.sort_values([feat3, feat1, feat2])
         plot_df[f'{feat1}/{feat2}'] = ['%s / %s' % (mf,est) for mf,est in zip(plot_df[feat1], plot_df[feat2])]
         with sns.axes_style("whitegrid"):
@@ -181,11 +188,11 @@ def plot_xg_perf(df, scoretype='r2_score',subset='valid'):
     """
     sns.set_context('poster')
     perf_track_df=df.copy().reset_index(drop=True)
+    plot_df=perf_track_df[perf_track_df.model_type=='xgboost']
     winnertype= f'best_{subset}_{scoretype}'
-    if 'xgb_gamma' in perf_track_df.columns:
+    if len(plot_df)>0:
         feat1 = 'xgb_learning_rate'; feat2 = 'xgb_gamma'
         hue=feat2
-        plot_df=perf_track_df[perf_track_df.model_type=='xgboost']
         plot_df = plot_df.sort_values([feat1, feat2])
         #plot_df[f'{feat1}/{feat2}'] = ['%s / %s' % (mf,est) for mf,est in zip(plot_df[feat1], plot_df[feat2])]
         with sns.axes_style("whitegrid"):
@@ -227,16 +234,16 @@ def plot_rf_nn_xg_perf(df, scoretype='r2_score',subset='valid'):
     
     plotdf2=perf_track_df
     fig, ax = plt.subplots(4,3, figsize=(16,12))
-    if 'dropouts' in perf_track_df.columns:
+    if 'NN' in perf_track_df.model_type.unique():
         sns.boxplot(x=feat1, y=winnertype, palette=sns.cubehelix_palette(len(plotdf2[feat1].unique()), rot=0, start=0.40), data=plotdf2,    ax=ax[0,0]); ax[0,0].tick_params(rotation=0);  ax[0,0].set_xlabel('NN dropouts')
         sns.boxplot(x=feat2, y=winnertype, palette=sns.cubehelix_palette(len(plotdf2[feat2].unique()), rot=0, start=0.40), data=plotdf2,    ax=ax[0,1]); ax[0,1].tick_params(rotation=30); ax[0,1].set_xlabel('NN learning rate')#ax[0,1].legend_.remove(); ax[0,1].title.set_text(f"Hyperparameters colored by {feat1}")
         plotdf=perf_track_df[perf_track_df[feat3]>0]
         sns.boxplot(x=feat3, y=winnertype, palette=sns.cubehelix_palette(len(plotdf[feat3].unique()), rot=0, start=0.40), data=plotdf,    ax=ax[0,2]); ax[0,2].tick_params(rotation=30); ax[0,2].set_xlabel('NN number of parameters in hidden layers')#ax[0,2].legend_.remove()#(bbox_to_anchor=(1,1), title=feat1)#, prop={'size': 12})
         sns.boxplot(x=feat4, y=winnertype, palette=sns.cubehelix_palette(len(plotdf2[feat4].unique()), rot=0, start=0.40), data=plotdf2,    ax=ax[1,0]); ax[1,0].tick_params(rotation=0);  ax[1,0].set_xlabel('NN number of layers')#ax[1,0].legend_.remove(); ax[1,0].tick_params(rotation=45)
-    if 'xgb_gamma' in perf_track_df.columns:
+    if 'xgboost' in perf_track_df.model_type.unique():
         sns.boxplot(x=feat8, y=winnertype, palette=sns.cubehelix_palette(len(plotdf2[feat8].unique()), rot=0, start=2.75), data=plotdf2,    ax=ax[1,1]); ax[1,1].tick_params(rotation=0);  ax[1,1].set_xlabel('XGBoost gamma')#ax[1,1].title.set_text(f"Hyperparameters colored by {feat2}")
         sns.boxplot(x=feat9, y=winnertype, palette=sns.cubehelix_palette(len(plotdf2[feat9].unique()), rot=0, start=2.75), data=plotdf2,    ax=ax[1,2]); ax[1,2].tick_params(rotation=0);  ax[1,2].set_xlabel('XGBoost learning rate')#ax[1,2].legend_.remove()#(bbox_to_anchor=(1,1), title=feat2)
-    if 'rf_estimators' in perf_track_df.columns:
+    if 'RF' in perf_track_df.model_type.unique():
         sns.boxplot(x=plotdf2.loc[~plotdf2[feat7].isna(),feat7].astype(int), y=winnertype, palette=sns.cubehelix_palette(len(plotdf2[feat7].unique()), rot=0, start=2.00), data=plotdf2,    ax=ax[2,0]); ax[2,0].tick_params(rotation=0); ax[2,0].set_xlabel('RF number of trees')#ax[2,0].legend_.remove(); ax[2,0].tick_params(rotation=45)
         sns.boxplot(x=plotdf2.loc[~plotdf2[feat5].isna(),feat5].astype(int), y=winnertype, palette=sns.cubehelix_palette(len(plotdf2[feat5].unique()), rot=0, start=2.00), data=plotdf2,    ax=ax[2,1]); ax[2,1].tick_params(rotation=0); ax[2,1].set_xlabel('RF max depth')#ax[2,1].legend_.remove(); ax[2,1].title.set_text(f"Hyperparameters colored by {feat3}")
         sns.boxplot(x=plotdf2.loc[~plotdf2[feat6].isna(),feat6].astype(int), y=winnertype, palette=sns.cubehelix_palette(len(plotdf2[feat6].unique()), rot=0, start=2.00), data=plotdf2,    ax=ax[2,2]); ax[2,2].tick_params(rotation=0); ax[2,2].set_xlabel('RF max features per node')#ax[2,2].legend(bbox_to_anchor=(1,1), title=feat3);
