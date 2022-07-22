@@ -941,9 +941,10 @@ class EmbeddingFeaturization(DynamicFeaturization):
         self.embedding_pipeline.featurization = input_featurization
 
         input_model_dataset = md.create_minimal_dataset(self.embedding_pipeline.params,
-                                    input_featurization, contains_responses=model_dataset.contains_responses)
+                                    input_featurization, contains_responses=True)
 
-        input_model_dataset.get_featurized_data(dset_df)
+        input_dset_df = dset_df.rename(columns={params.response_cols[0]: self.embedding_pipeline.params.response_cols[0]})
+        input_model_dataset.get_featurized_data(input_dset_df)
         input_dataset = input_model_dataset.dataset
         input_features = input_dataset.X
         ids = input_dataset.ids
@@ -959,6 +960,7 @@ class EmbeddingFeaturization(DynamicFeaturization):
         nrows = input_features.shape[0]
         embedding = embedding[:nrows,:]
 
+        pdb.set_trace()
         return embedding, ids, vals, attr, weights
 
     # ****************************************************************************************
