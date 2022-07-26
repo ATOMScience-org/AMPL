@@ -960,7 +960,6 @@ class EmbeddingFeaturization(DynamicFeaturization):
         nrows = input_features.shape[0]
         embedding = embedding[:nrows,:]
 
-        pdb.set_trace()
         return embedding, ids, vals, attr, weights
 
     # ****************************************************************************************
@@ -973,10 +972,11 @@ class EmbeddingFeaturization(DynamicFeaturization):
         Returns:
             (int): The number of feature columns for the DynamicFeaturization subclass, feat_type specific
         """
-        # For GraphConv models, the embedding layer is the next to last one. For other NN models,
-        # it's the last one.
+        # For GraphConv models, the embedding layer is a GraphGather layer that effectively doubles the number 
+        # of nodes in the final Dense layer, which is given by the last element of params.layer_sizes.
+        # For other NN models, the embedding layer has the number of nodes specified by that last element.
         if self.embedding_pipeline.params.featurizer == 'graphconv':
-            return self.embedding_pipeline.params.layer_sizes[-2]
+            return 2*self.embedding_pipeline.params.layer_sizes[-1]
         else:
             return self.embedding_pipeline.params.layer_sizes[-1]
 
