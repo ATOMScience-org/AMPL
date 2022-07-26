@@ -24,7 +24,6 @@ from torch.utils.data import DataLoader
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import RandomForestRegressor
 
-import pdb
 
 try:
     import dgl
@@ -2513,7 +2512,7 @@ class MultitaskDCModelWrapper(PytorchDeepChemModelWrapper):
     # ****************************************************************************************
     def generate_embeddings(self, dataset):
         """
-        Generate the output of the final embedding layer of a GraphConv model for the given dataset.
+        Generate the output of the final embedding layer of a fully connected NN model for the given dataset.
 
         Args:
             dataset:
@@ -2694,6 +2693,7 @@ class GraphConvDCModelWrapper(KerasDeepChemModelWrapper):
 
         """
         super().__init__(params, featurizer, ds_client)
+        # TODO (ksm): The next two attributes aren't used; suggest we drop them.
         self.g = tf.Graph()
         self.sess = tf.compat.v1.Session(graph=self.g)
         self.num_epochs_trained = 0
