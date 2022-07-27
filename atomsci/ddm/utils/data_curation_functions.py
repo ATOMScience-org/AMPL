@@ -90,7 +90,7 @@ def exclude_organometallics(df, smiles_col='rdkit_smiles'):
 
 
 # ----------------------------------------------------------------------------------------------------------------------
-def standardize_relations(dset_df, db='DTC', rel_col=None, output_rel_col=None, invert=False):
+def standardize_relations(dset_df, db=None, rel_col=None, output_rel_col=None, invert=False):
     """ Standardizes censoring operators
 
     Standardize the censoring operators to =, < or >, and remove any rows whose operators
@@ -142,6 +142,7 @@ def standardize_relations(dset_df, db='DTC', rel_col=None, output_rel_col=None, 
         ">=": ">",
         "<": "<",
         "<=": "<",
+        ">": ">",
         ">R": ">",
         ">=R": ">",
         "<R": "<",

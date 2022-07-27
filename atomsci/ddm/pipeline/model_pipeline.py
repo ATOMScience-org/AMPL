@@ -900,6 +900,38 @@ class ModelPipeline:
 
         return result_df
 
+    # ****************************************************************************************
+    def predict_embedding(self, dset_df, dset_params=None):
+        """
+        Compute embeddings from a pretrained model on a set of compounds listed in a data frame. The data 
+        frame should contain, at minimum, a column of compound IDs and a column of SMILES strings.
+        """
+
+        self.run_mode = 'prediction'
+        self.featurization = self.model_wrapper.featurization
+
+        # Change the dataset ID, SMILES and response columns to match the ones in the current model
+        dset_df = dset_df.copy()
+        if dset_params is not None:
+            coldict = {
+                        dset_params.id_col: self.params.id_col,
+                        dset_params.smiles_col: self.params.smiles_col}
+            dset_df = dset_df.rename(columns=coldict)
+
+        self.data = model_datasets.create_minimal_dataset(self.params, self.featurization)
+        self.data.get_featurized_data(dset_df, is_featurized=False)
+        # Not sure the following is necessary
+        self.data.dataset = self.model_wrapper.transform_dataset(self.data.dataset)
+
+        # Get the embeddings as a numpy array
+        embeddings = self.model_wrapper.generate_embeddings(self.data.dataset)
+        # Truncate the embeddings array to the length of the input dataset. The array returned by the DeepChem 
+        # predict_embedding function is padded to multiples of the batch size.
+        embeddings = embeddings[:len(dset_df),:]
+
+        return embeddings
+
+
 # ****************************************************************************************
 def run_models(params, shared_featurization=None, generator=False):
     """Query the model tracker for models matching the criteria in params.model_filter. Run
