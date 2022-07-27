@@ -24,7 +24,6 @@ from torch.utils.data import DataLoader
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import RandomForestRegressor
 
-import pdb
 
 try:
     import dgl
@@ -579,6 +578,17 @@ class ModelWrapper(object):
         return perf_data.get_prediction_results()
 
     def generate_predictions(self, dataset):
+        """
+
+        Args:
+            dataset:
+
+        Returns:
+
+        """
+        raise NotImplementedError
+
+    def generate_embeddings(self, dataset):
         """
 
         Args:
@@ -2530,6 +2540,21 @@ class MultitaskDCModelWrapper(PytorchDeepChemModelWrapper):
         return model
 
     # ****************************************************************************************
+    def generate_embeddings(self, dataset):
+        """
+        Generate the output of the final embedding layer of a fully connected NN model for the given dataset.
+
+        Args:
+            dataset:
+
+        Returns:
+            embedding (np.ndarray): An array of outputs from the nodes in the embedding layer.
+
+        """
+        return self.model.predict_embedding(dataset)
+
+
+    # ****************************************************************************************
     def get_model_specific_metadata(self):
         """Returns a dictionary of parameter settings for this ModelWrapper object that are specific
         to neural network models.
@@ -2698,6 +2723,7 @@ class GraphConvDCModelWrapper(KerasDeepChemModelWrapper):
 
         """
         super().__init__(params, featurizer, ds_client)
+        # TODO (ksm): The next two attributes aren't used; suggest we drop them.
         self.g = tf.Graph()
         self.sess = tf.compat.v1.Session(graph=self.g)
         self.num_epochs_trained = 0
@@ -2742,6 +2768,21 @@ class GraphConvDCModelWrapper(KerasDeepChemModelWrapper):
             penalty=self.params.weight_decay_penalty,
             penalty_type=self.params.weight_decay_penalty_type)
         return model
+
+    # ****************************************************************************************
+    def generate_embeddings(self, dataset):
+        """
+        Generate the output of the final embedding layer of a GraphConv model for the given dataset.
+
+        Args:
+            dataset:
+
+        Returns:
+            embedding (np.ndarray): An array of outputs from the nodes in the embedding layer.
+
+        """
+        return self.model.predict_embedding(dataset)
+
 
     # ****************************************************************************************
     def get_model_specific_metadata(self):

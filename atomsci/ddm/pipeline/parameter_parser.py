@@ -990,11 +990,26 @@ def get_parser():
         help='Size of ECFP bit vectors')
 
     # **********************************************************************************************************
+    # model building parameters: embedding featurizer
+    parser.add_argument(
+        '--embedding_model_uuid', dest='embedding_model_uuid', type=str, default=None,
+        help='Model UUID for pretrained model used to compute embedding features')
+
+    parser.add_argument(
+        '--embedding_model_collection', dest='embedding_model_collection', type=str, default=None,
+        help='Model tracker collection name for pretrained model used to compute embedding features')
+
+    parser.add_argument(
+        '--embedding_model_path', dest='embedding_model_path', type=str, default=None,
+        help='File path for pretrained model used to compute embedding features')
+
+
+    # **********************************************************************************************************
     # model_building_parameters: general
     parser.add_argument(
         '--featurizer', '-f', dest='featurizer', default=None, type=str,
         help='Type of featurizer to use on chemical structures. Current supported options: '
-             '["ecfp","graphconv","molvae","computed_descriptors","descriptors"]. Further information on '
+             '["ecfp","graphconv","molvae","computed_descriptors","descriptors","embedding"]. Further information on '
              'descriptors are in descriptor_type. Options are used to set the featurization subclass in the '
              'create_featurization method of featurization.py. Can be input as a comma separated list for '
              'hyperparameter search (e.g. \'ecfp\',\'molvae\')')
