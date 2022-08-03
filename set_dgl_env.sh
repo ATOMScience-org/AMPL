@@ -17,7 +17,7 @@ env=$1
 
 if [ "$env" = "" ];
 then
-    echo -n "Enter the current cond environment: "
+    echo -n "Enter the current conda environment: "
     read env
 fi
 
