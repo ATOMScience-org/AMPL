@@ -76,15 +76,17 @@ def make_weights(vals):
     w = np.ones_like(vals, dtype=np.float32)
     
     # sometimes instead of nan, '' is used for missing values
-    vals[vals==''] = np.nan
-    vals = vals.astype(np.float32)
-
-    nan_indexes = np.argwhere(np.isnan(vals))
     out_vals = np.copy(vals)
+    if not np.issubdtype(out_vals.dtype, np.number):
+        # there might be strings or other objects in this array
+        out_vals[out_vals==''] = np.nan
+    
+    out_vals = out_vals.astype(float)
+
+    nan_indexes = np.argwhere(np.isnan(out_vals))
 
     for r,c in nan_indexes:
         w[r, c] = 0
-        out_vals[r, c] = 0
 
     return out_vals, w
 
