@@ -76,10 +76,8 @@ def make_weights(vals):
     w = np.ones_like(vals, dtype=np.float32)
     nan_indexes = np.argwhere(np.isnan(vals))
     w[nan_indexes] = 0
-    out_vals = np.copy(vals)
-    out_vals[nan_indexes] = 0
 
-    return out_vals, w
+    return vals, w
 
 
 # ****************************************************************************************
@@ -739,10 +737,8 @@ class DynamicFeaturization(Featurization):
         nrows = sum(is_valid)
         ncols = len(params.response_cols)
         if model_dataset.contains_responses:
-            dset_df=dset_df.replace(np.nan, "", regex=True)
-            vals, w = dl._convert_df_to_numpy(dset_df, params.response_cols) #, self.id_field)
-            # Filter out examples where featurization failed.
-            vals, w = (vals[is_valid], w[is_valid])
+            vals = dset_df[params.response_cols].values
+            vals, w = make_weights(vals)
         else:
             vals = np.zeros((nrows,ncols))
             w = np.ones((nrows,ncols)) ## JEA
