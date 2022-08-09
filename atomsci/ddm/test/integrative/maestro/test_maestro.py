@@ -131,11 +131,8 @@ def test():
 
     result_df = cm.get_filesystem_perf_results(pparams.result_dir, pparams.prediction_type)
     assert not result_df is None # Timed out
-    if 'test_r2_score' in result_df.columns:
-        assert max(result_df['test_r2_score'].values) > 0.6 # should do at least this well. I saw values like 0.687
-    if 'best_test_r2_score' in result_df.columns:
-        assert max(result_df['best_test_r2_score'].values) > 0.6 # should do at least this well. I saw values like 0.687
-
+    assert max(result_df.loc[:,result_df.columns.str.contains("test_r2_score")].values) > 0.6 # should do at least this well. I saw values like 0.687
+    
     print('waiting for maestro to finish')
     time.sleep(60)
 
