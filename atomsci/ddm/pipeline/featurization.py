@@ -73,8 +73,6 @@ def make_weights(vals):
         vals: numpy array same as input vals, but nans are replaced with 0
         w: numpy array same shape as vals, where w[i,j] = 1 if vals[i,j] is nan else w[i,j] = 0
     """
-    w = np.ones_like(vals, dtype=np.float32)
-    
     # sometimes instead of nan, '' is used for missing values
     out_vals = np.copy(vals)
     if not np.issubdtype(out_vals.dtype, np.number):
@@ -82,11 +80,7 @@ def make_weights(vals):
         out_vals[out_vals==''] = np.nan
     
     out_vals = out_vals.astype(float)
-
-    nan_indexes = np.argwhere(np.isnan(out_vals))
-
-    for r,c in nan_indexes:
-        w[r, c] = 0
+    w = np.where(np.isnan(out_vals), 0, 1).astype(float)
 
     return out_vals, w
 
