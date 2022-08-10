@@ -748,7 +748,6 @@ class DynamicFeaturization(Featurization):
         nrows = sum(is_valid)
         ncols = len(params.response_cols)
         if model_dataset.contains_responses:
-            dset_df=dset_df.replace(np.nan, "", regex=True)
             vals, w = make_weights(dset_df[params.response_cols].values) #, self.id_field)
             # Filter out examples where featurization failed.
             vals, w = (vals[is_valid], w[is_valid])
