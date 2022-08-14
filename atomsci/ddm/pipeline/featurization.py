@@ -73,11 +73,14 @@ def make_weights(vals):
         vals: numpy array same as input vals, but nans are replaced with 0
         w: numpy array same shape as vals, where w[i,j] = 1 if vals[i,j] is nan else w[i,j] = 0
     """
-    w = np.ones_like(vals, dtype=np.float32)
-    nan_indexes = np.argwhere(np.isnan(vals))
-    w[nan_indexes] = 0
+    # sometimes instead of nan, '' is used for missing values
     out_vals = np.copy(vals)
-    out_vals[nan_indexes] = 0
+    if not np.issubdtype(out_vals.dtype, np.number):
+        # there might be strings or other objects in this array
+        out_vals[out_vals==''] = np.nan
+    
+    out_vals = out_vals.astype(float)
+    w = np.where(np.isnan(out_vals), 0, 1).astype(float)
 
     return out_vals, w
 
@@ -739,8 +742,7 @@ class DynamicFeaturization(Featurization):
         nrows = sum(is_valid)
         ncols = len(params.response_cols)
         if model_dataset.contains_responses:
-            dset_df=dset_df.replace(np.nan, "", regex=True)
-            vals, w = dl._convert_df_to_numpy(dset_df, params.response_cols) #, self.id_field)
+            vals, w = make_weights(dset_df[params.response_cols].values) #, self.id_field)
             # Filter out examples where featurization failed.
             vals, w = (vals[is_valid], w[is_valid])
         else:
