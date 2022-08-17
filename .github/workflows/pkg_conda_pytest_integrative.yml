@@ -2,7 +2,7 @@ name: : Run Conda Env, Pytest for integegrative test
 
 on:
   push:
-    branches: [ master ]
+    branches: [ master, setup_ci_workflow ]
 
 jobs:
   test-integration-default:

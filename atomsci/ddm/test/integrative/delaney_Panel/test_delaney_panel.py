@@ -11,6 +11,7 @@ import atomsci.ddm.pipeline.predict_from_model as pfm
 import atomsci.ddm.pipeline.parameter_parser as parse
 import atomsci.ddm.utils.curate_data as curate_data
 import atomsci.ddm.utils.struct_utils as struct_utils
+from atomsci.ddm.utils import llnl_utils
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 import integrative_utilities
@@ -345,23 +346,28 @@ def test_multi_reg_config_delaney_fit_NN_graphconv():
 # -------
 def test_reg_config_H1_fit_XGB_moe():
     H1_init()
-    train_and_predict('jsons/reg_config_H1_fit_XGB_moe.json', prefix='H1')
+    if llnl_utils.is_lc_system():
+        train_and_predict('jsons/reg_config_H1_fit_XGB_moe.json', prefix='H1')
 
 def test_reg_config_H1_fit_NN_moe():
     H1_init()
-    train_and_predict('jsons/reg_config_H1_fit_NN_moe.json', prefix='H1')
+    if llnl_utils.is_lc_system():
+        train_and_predict('jsons/reg_config_H1_fit_NN_moe.json', prefix='H1')
 
 def test_reg_config_H1_double_fit_NN_moe():
     H1_double_init()
-    train_and_predict('jsons/reg_config_H1_double_fit_NN_moe.json', prefix='H1_double')
+    if llnl_utils.is_lc_system():
+        train_and_predict('jsons/reg_config_H1_double_fit_NN_moe.json', prefix='H1_double')
 
 def test_multi_class_random_config_H1_fit_NN_moe():
     H1_init()
-    train_and_predict('jsons/multi_class_config_H1_fit_NN_moe.json', prefix='H1')
+    if llnl_utils.is_lc_system():
+        train_and_predict('jsons/multi_class_config_H1_fit_NN_moe.json', prefix='H1')
 
 def test_class_config_H1_fit_NN_moe():
     H1_init()
-    train_and_predict('jsons/class_config_H1_fit_NN_moe.json', prefix='H1')
+    if llnl_utils.is_lc_system():
+        train_and_predict('jsons/class_config_H1_fit_NN_moe.json', prefix='H1')
 
 if __name__ == '__main__':
     test_reg_kfold_config_delaney_fit_NN_graphconv()

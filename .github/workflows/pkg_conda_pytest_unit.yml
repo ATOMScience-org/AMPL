@@ -2,7 +2,7 @@ name: Run Conda Env, Pytest for unit tests
 
 on:
   push:
-    branches: [ master ]
+    branches: [ master, setup_ci_workflow ]
 
 jobs:
   test-integration-default:
