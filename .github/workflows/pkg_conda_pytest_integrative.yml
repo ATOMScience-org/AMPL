@@ -1,4 +1,4 @@
-name: : Run Conda Env, Pytest for integegrative test
+name: Run Conda Env, Pytest for integegrative test
 
 on:
   push:
@@ -46,5 +46,6 @@ jobs:
           pip install -U tensorflow keras
           # step 10): build 
           ./build.sh && ./install_dev.sh
+          # step 11): run test 
           cd atomsci/ddm/test/integrative
           bash integrative_batch_tests.sh
