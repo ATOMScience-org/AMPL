@@ -3,6 +3,7 @@ from atomsci.ddm.pipeline import model_pipeline as mp
 from atomsci.ddm.pipeline import parameter_parser as parse
 import pandas as pd
 import sklearn.metrics as skm
+from atomsci.ddm.utils import llnl_utils
 
 '''
 make sure that the various ways of making predictions return
@@ -14,6 +15,9 @@ def test_predict_from_model():
     test that predict_from_model makes predictions in the same
     order as the input
     '''
+    if not llnl_utils.is_lc_system():
+        assert True
+        return
 
     model_path = '../../examples/BSEP/models/bsep_classif_scaffold_split.tar.gz'
     csv_path = '../../examples/BSEP/data/ChEMBL25_BSEP_curated_data.csv'
@@ -46,6 +50,9 @@ def test_predict_on_dataframe():
     test that predict_from_model makes predictions in the same
     order as the input
     '''
+    if not llnl_utils.is_lc_system():
+        assert True
+        return
 
     model_path = '../../examples/BSEP/models/bsep_classif_scaffold_split.tar.gz'
     csv_path = '../../examples/BSEP/data/ChEMBL25_BSEP_curated_data.csv'
