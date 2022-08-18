@@ -270,7 +270,8 @@ def test_required_vals_namespace(caplog):
 
 def test_undefined_param_namespace(caplog):
     params = parse.wrapper(undefined_inputs_namespace)
-    assert caplog.records[0].levelname == 'WARNING'
+    for record in caplog.records:
+        assert record.levelname == 'WARNING'
     params = parse.wrapper(undefined_inputs_dict)
     for record in caplog.records:
         assert record.levelname == 'WARNING'
