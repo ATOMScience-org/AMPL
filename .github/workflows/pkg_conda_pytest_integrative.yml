@@ -2,7 +2,11 @@ name: Run Conda Env, Pytest for integegrative test
 
 on:
   push:
-    branches: [ master, setup_ci_workflow ]
+    branches: [ master, 1.4.2 ]
+    paths: # the job will run when these files pushed
+      - '**.py'
+      - '**.sh'
+      - '**.yml'
 
 jobs:
   test-integration-default:
