@@ -9,6 +9,7 @@ import time
 import atomsci.ddm.pipeline.parameter_parser as parse
 import atomsci.ddm.pipeline.compare_models as cm
 import glob
+from atomsci.ddm.utils import llnl_utils
 
 def clean():
     """
@@ -119,6 +120,10 @@ def test():
     # -----
     clean()
 
+    if not llnl_utils.is_lc_system():
+        assert True
+        return
+        
     # Run ECFP NN hyperparam search
     # ------------
     json_file = "nn_ecfp.json"

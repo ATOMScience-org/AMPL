@@ -146,14 +146,16 @@ def test_default_params_json():
     
 def test_dupe_params_json(caplog):
     params = parse.wrapper(currentdir + '/config_dupe_inputs.json')
-    assert caplog.records[0].levelname == 'WARNING'
+    for record in caplog.records:
+        assert record.levelname == 'WARNING'
     
 def test_incorrect_params_json(caplog):
 
    # with pytest.raises(ValueError):
     #with pytest.log(UserWarning):
     params = parse.wrapper(currentdir + '/config_wrong_inputs.json')
-    assert caplog.records[0].levelname == 'WARNING'
+    for record in caplog.records:
+        assert record.levelname == 'WARNING'
         
 
 def test_correct_input_mixed_command_line_types():
@@ -268,9 +270,11 @@ def test_required_vals_namespace(caplog):
 
 def test_undefined_param_namespace(caplog):
     params = parse.wrapper(undefined_inputs_namespace)
-    assert caplog.records[0].levelname == 'WARNING'
+    for record in caplog.records:
+        assert record.levelname == 'WARNING'
     params = parse.wrapper(undefined_inputs_dict)
-    assert caplog.records[0].levelname == 'WARNING'
+    for record in caplog.records:
+        assert record.levelname == 'WARNING'
 
     
 def test_correct_input_type_namespace():

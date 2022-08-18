@@ -8,6 +8,7 @@ import sys
 
 import atomsci.ddm.pipeline.parameter_parser as parse
 from atomsci.ddm.pipeline import model_pipeline as mp
+from atomsci.ddm.utils import llnl_utils
 
 from sklearn.metrics import r2_score
 
@@ -29,6 +30,10 @@ def test():
     # Clean
     # -----
     clean()
+
+    if not llnl_utils.is_lc_system():
+        assert True
+        return
 
     # Run HyperOpt
     # ------------
