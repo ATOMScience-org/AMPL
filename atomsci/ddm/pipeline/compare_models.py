@@ -936,16 +936,21 @@ def get_filesystem_perf_results(result_dir, pred_type='classification'):
     for dirpath, dirnames, filenames in os.walk(result_dir):
         # collect all tars for later
         tar_list = tar_list + [os.path.join(dirpath, f) for f in filenames if f.endswith('.tar.gz')]
+        
         if ('model_metadata.json' in filenames) and ('model_metrics.json' in filenames):
+#             print(dirpath)
             meta_path = os.path.join(dirpath, 'model_metadata.json')
-            with open(meta_path, 'r') as meta_fp:
-                meta_dict = json.load(meta_fp)
-            if meta_dict['model_parameters']['prediction_type']==pred_type:
-                model_list.append(meta_dict)
-                metrics_path = os.path.join(dirpath, 'model_metrics.json')
-                with open(metrics_path, 'r') as metrics_fp:
-                    metrics_dicts = json.load(metrics_fp)
-                metrics_list.append(metrics_dicts)
+            try:
+                with open(meta_path, 'r') as meta_fp:
+                    meta_dict = json.load(meta_fp)
+                if meta_dict['model_parameters']['prediction_type']==pred_type:
+                    model_list.append(meta_dict)
+                    metrics_path = os.path.join(dirpath, 'model_metrics.json')
+                    with open(metrics_path, 'r') as metrics_fp:
+                        metrics_dicts = json.load(metrics_fp)
+                    metrics_list.append(metrics_dicts)
+            except:
+                print(f"Can't access model {dirpath}")
 
     print("Found data for %d models under %s" % (len(model_list), result_dir))
 
@@ -1005,20 +1010,21 @@ def get_filesystem_perf_results(result_dir, pred_type='classification'):
                     ampl_version=ampl_version_list,
                     model_type=model_type_list,
                     dataset_key=dataset_key_list,
-                    featurizer=featurizer_list,
+                    features=featurizer_list,
                     splitter=splitter_list,
                     model_score_type=model_score_type_list,
                     feature_transform_type=feature_transform_type_list))
 
-    perf_df = perf_df.merge(param_df, on='model_uuid', how='inner')
-
     perf_df['model_choice_score'] = score_dict['valid']['model_choice_score']
     for subset in subsets:
         for metric in metrics:
-            metric_col = '%s_%s' % (subset, metric)
+            metric_col = 'best_%s_%s' % (subset, metric)
             perf_df[metric_col] = score_dict[subset][metric]
+    perf_df = perf_df.merge(param_df, on='model_uuid', how='inner')
     sort_by = 'model_choice_score'
     perf_df = perf_df.sort_values(sort_by, ascending=False)
+    
+    logger.warn('Warning: column names have been changed to align with get_multitask_perf_from_tracker(): featurizer is now features and <subset>_<metric> has been changed to best_<subset>_<metric>.')
     return perf_df
 
 def get_filesystem_models(result_dir, pred_type):
@@ -1773,14 +1779,17 @@ def get_multitask_perf_from_files_new(result_dir, pred_type='regression'):
     metrics_list = []
     for dirpath, dirnames, filenames in os.walk(result_dir):
         if ('model_metadata.json' in filenames) and ('model_metrics.json' in filenames):
-            meta_path = os.path.join(dirpath, 'model_metadata.json')
-            with open(meta_path, 'r') as meta_fp:
-                meta_dict = json.load(meta_fp)
-            model_list.append(meta_dict)
-            metrics_path = os.path.join(dirpath, 'model_metrics.json')
-            with open(metrics_path, 'r') as metrics_fp:
-                metrics_dicts = json.load(metrics_fp)
-            metrics_list.append(metrics_dicts)
+            try:
+                meta_path = os.path.join(dirpath, 'model_metadata.json')
+                with open(meta_path, 'r') as meta_fp:
+                    meta_dict = json.load(meta_fp)
+                model_list.append(meta_dict)
+                metrics_path = os.path.join(dirpath, 'model_metrics.json')
+                with open(metrics_path, 'r') as metrics_fp:
+                    metrics_dicts = json.load(metrics_fp)
+                metrics_list.append(metrics_dicts)
+            except:
+                print(f'Cannot access model {dirpath}')
 
     print("Found data for %d models under %s" % (len(model_list), result_dir))
 

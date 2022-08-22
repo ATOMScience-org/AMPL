@@ -24,7 +24,6 @@ from torch.utils.data import DataLoader
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import RandomForestRegressor
 
-import pdb
 
 try:
     import dgl
@@ -125,6 +124,36 @@ def dc_restore(model, checkpoint=None, model_dir=None, session=None):
         # expect_partial() silences warnings when this model is restored for
         # inference only.
         model._checkpoint.restore(checkpoint).expect_partial().run_restore_ops(session)
+
+def dc_torch_restore(model, checkpoint= None, model_dir = None):
+    """Reload the values of all variables from a checkpoint file. 
+
+    This is copied from deepchem 2.6.1 to explicitly set the torch loading device to 
+    'cpu' if cuda devices aren't available when reloading the model.
+
+    Parameters
+    ----------
+    model: the torch model to restore
+    checkpoint: str
+      the path to the checkpoint file to load.  If this is None, the most recent
+      checkpoint will be chosen automatically.  Call get_checkpoints() to get a
+      list of all available checkpoints.
+    model_dir: str, default None
+      Directory to restore checkpoint from. If None, use self.model_dir.  If
+      checkpoint is not None, this is ignored.
+    """
+    model._ensure_built()
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu") # set torch device
+    if checkpoint is None:
+      checkpoints = sorted(model.get_checkpoints(model_dir))
+      if len(checkpoints) == 0:
+        raise ValueError('No checkpoint found')
+      checkpoint = checkpoints[0]
+    data = torch.load(checkpoint, map_location=device) # include map_location to transfer a gpu model to cpu
+    model.model.load_state_dict(data['model_state_dict'])
+    model._pytorch_optimizer.load_state_dict(data['optimizer_state_dict'])
+    model._global_step = data['global_step']
+
 
 def all_bases(model):
     '''
@@ -549,6 +578,17 @@ class ModelWrapper(object):
         return perf_data.get_prediction_results()
 
     def generate_predictions(self, dataset):
+        """
+
+        Args:
+            dataset:
+
+        Returns:
+
+        """
+        raise NotImplementedError
+
+    def generate_embeddings(self, dataset):
         """
 
         Args:
@@ -987,11 +1027,11 @@ class NNModelWrapper(ModelWrapper):
         self._copy_model(self.best_model_dir)
         self.log.info(f"Best model from epoch {self.best_epoch} saved to {self.best_model_dir}")
 
-    def restore(self):
+    def restore(self, checkpoint=None, model_dir=None):
         '''
-        Reverts model to last saved checkpoint
+        Restores this model
         '''
-        self.model.restore()
+        dc_torch_restore(self.model, checkpoint, model_dir)
 
     # ****************************************************************************************
     def _copy_model(self, dest_dir):
@@ -2355,11 +2395,11 @@ class PytorchDeepChemModelWrapper(NNModelWrapper):
         model_spec_metadata = dict(nn_specific = nn_metadata)
         return model_spec_metadata
 
-    def restore(self):
+    def restore(self, checkpoint=None, model_dir=None):
         '''
-        Restores model to the last saved checkpoint
+        Restores this model
         '''
-        self.model.restore()
+        dc_torch_restore(self.model, checkpoint, model_dir)
 
     def count_params(self):
         '''
@@ -2498,6 +2538,21 @@ class MultitaskDCModelWrapper(PytorchDeepChemModelWrapper):
                 n_classes=self.params.class_number)
 
         return model
+
+    # ****************************************************************************************
+    def generate_embeddings(self, dataset):
+        """
+        Generate the output of the final embedding layer of a fully connected NN model for the given dataset.
+
+        Args:
+            dataset:
+
+        Returns:
+            embedding (np.ndarray): An array of outputs from the nodes in the embedding layer.
+
+        """
+        return self.model.predict_embedding(dataset)
+
 
     # ****************************************************************************************
     def get_model_specific_metadata(self):
@@ -2668,6 +2723,7 @@ class GraphConvDCModelWrapper(KerasDeepChemModelWrapper):
 
         """
         super().__init__(params, featurizer, ds_client)
+        # TODO (ksm): The next two attributes aren't used; suggest we drop them.
         self.g = tf.Graph()
         self.sess = tf.compat.v1.Session(graph=self.g)
         self.num_epochs_trained = 0
@@ -2712,6 +2768,21 @@ class GraphConvDCModelWrapper(KerasDeepChemModelWrapper):
             penalty=self.params.weight_decay_penalty,
             penalty_type=self.params.weight_decay_penalty_type)
         return model
+
+    # ****************************************************************************************
+    def generate_embeddings(self, dataset):
+        """
+        Generate the output of the final embedding layer of a GraphConv model for the given dataset.
+
+        Args:
+            dataset:
+
+        Returns:
+            embedding (np.ndarray): An array of outputs from the nodes in the embedding layer.
+
+        """
+        return self.model.predict_embedding(dataset)
+
 
     # ****************************************************************************************
     def get_model_specific_metadata(self):

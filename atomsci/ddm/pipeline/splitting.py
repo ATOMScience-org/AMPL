@@ -21,7 +21,7 @@ logging.basicConfig(format='%(asctime)-15s %(message)s')
 log = logging.getLogger('ATOM')
 
 # List of splitter types that require SMILES strings as compound IDs
-smiles_splits = ['scaffold', 'butina', 'fingerprint']
+smiles_splits = ['scaffold', 'multitaskscaffold', 'butina', 'fingerprint']
 
 # List of model parameters related to splitting. Make sure to update this list if we add more parameters.
 split_params = ['splitter', 'split_strategy', 'split_valid_frac', 'split_test_frac', 'butina_cutoff',

@@ -1,11 +1,16 @@
 import os
 
 from atomsci.ddm.pipeline import compare_models as cm
+from atomsci.ddm.utils import llnl_utils
 
 def clean():
     pass
 
 def test():
+    if not llnl_utils.is_lc_system():
+        assert True
+        return
+    
     tar_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 
         '../../examples/BSEP/models/bsep_classif_scaffold_split.tar.gz')
     print(tar_file)

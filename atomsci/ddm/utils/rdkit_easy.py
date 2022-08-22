@@ -240,7 +240,6 @@ def mol_to_svg(mol, size=(400,200)):
 
     """
     img_wd, img_ht = size
-    AllChem.Compute2DCoords(mol)
     try:
         mol.GetAtomWithIdx(0).GetExplicitValence()
     except RuntimeError:

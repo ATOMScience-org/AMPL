@@ -12,6 +12,7 @@ import atomsci.ddm.pipeline.model_pipeline as mp
 import atomsci.ddm.pipeline.parameter_parser as parse
 import atomsci.ddm.utils.curate_data as curate_data
 import atomsci.ddm.utils.struct_utils as struct_utils
+from atomsci.ddm.utils import llnl_utils
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 import integrative_utilities
@@ -21,6 +22,10 @@ def clean():
     """
     Clean test files
     """
+    if not llnl_utils.is_lc_system():
+        assert True
+        return
+        
     for f in ['hlm_clearance_curated_predict.csv',
               'hlm_clearance_curated_external.csv',
               'hlm_clearance_curated_fit.csv',

@@ -27,8 +27,9 @@ def test_get_ampl_version_by_dir():
    versions = mu.get_ampl_version_from_dir(example_models_dir)
    version_tokens = versions.split('\n')
    assert len(version_tokens) >= 2
-   result_tokens = version_tokens[0].split(',')
-   assert result_tokens[1].strip() == '1.2.0'
+   for f in versions:
+       if f.startswith('cyp3a4'):
+         assert '1.2.0' in f
 
 def test_check_versions_compatible():
     matched = mu.check_version_compatible(example_model_file)
