@@ -171,7 +171,6 @@ def mol_to_html(mol, name='', type='svg', directory='rdkit_svg', embed=False, wi
         return
     
     if embed:
-        log.info("Warning: embed=True will result in large data structures if you have a lot of molecules.")
         if type.lower() == 'png':
             img=mol_to_pil(mol, size=(width,height))
             imgByteArr = io.BytesIO()
