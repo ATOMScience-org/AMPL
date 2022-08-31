@@ -2,7 +2,7 @@ name: Run Conda Env, Pytest for unit tests
 
 on:
   push:
-    branches: [ master, 1.5.0 ]
+    branches: [ 1.5.0 ]
     paths: # the job will run when these files pushed
       - '**.py'
       - '**.sh'
