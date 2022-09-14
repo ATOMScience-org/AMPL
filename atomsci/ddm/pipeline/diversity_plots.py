@@ -132,7 +132,11 @@ def plot_tani_dist_distr(df, smiles_col, df_name, radius=2, subset_col='subset',
     dist_metric = 'tanimoto'
     if not subsets:
         smiles_arr1 = df[smiles_col].values
-        dists=cd.calc_dist_smiles(feat_type, dist_metric, smiles_arr1, calc_type='nearest', num_nearest=1)
+        #dists=cd.calc_dist_smiles(feat_type, dist_metric, smiles_arr1, calc_type='nearest', num_nearest=1)
+        dists=cd.calc_dist_smiles(feat_type, dist_metric, smiles_arr1, calc_type='all')
+        #print(len(smiles_arr1), dists.shape)
+        # flatten dists
+        dists = dists.flatten()
         subs=['all']*len(dists)
         dists=pd.DataFrame(zip(dists,subs), columns=['dist','subset'])
     elif subsets:
@@ -141,7 +145,11 @@ def plot_tani_dist_distr(df, smiles_col, df_name, radius=2, subset_col='subset',
             if subs==ref_subset: continue
             smiles_arr1 = df.loc[df[subset_col]==ref_subset, smiles_col].values
             smiles_arr2 = df.loc[df[subset_col]==subs, smiles_col].values
-            diststmp = cd.calc_dist_smiles(feat_type, dist_metric, smiles_arr2, smiles_arr2=smiles_arr1, calc_type='nearest', num_nearest=1)
+            #diststmp = cd.calc_dist_smiles(feat_type, dist_metric, smiles_arr2, smiles_arr2=smiles_arr1, calc_type='nearest', num_nearest=1)
+            diststmp = cd.calc_dist_smiles(feat_type, dist_metric, smiles_arr2, smiles_arr2=smiles_arr1, calc_type='all')
+            #print(subs, diststmp.shape)
+            # flatten dists
+            diststmp = diststmp.flatten()
             substmp=[subs]*len(diststmp)
             diststmp = pd.DataFrame(zip(diststmp,substmp), columns=['dist','subset'])
             dists=pd.concat([dists,diststmp])
