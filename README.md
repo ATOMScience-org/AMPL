@@ -158,7 +158,11 @@ Go to the `AMPL` root directory and install the AMPL package:
 ```
 conda activate atomsci
 
-source set_dgl_env.sh $test_env
+# load cuda, if on LC machine 
+module load cuda/11.1
+
+# add your conda/envs path to LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$HOME/.conda/$test_env/$test_env/lib:$LD_LIBRARY_PATH 
 ```
 
 where `$test_env` is the name of the your current Conda environment to run [dgl](https://www.dgl.ai/) in.
