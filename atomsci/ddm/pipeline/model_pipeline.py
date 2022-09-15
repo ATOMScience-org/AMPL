@@ -1239,7 +1239,7 @@ def create_prediction_pipeline(params, model_uuid, collection_name=None, featuri
 
 # ****************************************************************************************
 def create_prediction_pipeline_from_file(params, reload_dir, model_path=None, model_type='best_model', featurization=None,
-                                         verbose=True):
+                                         verbose=True, ignore_version_check=False):
     """
     Create a ModelPipeline object to be used for running blind predictions on datasets, given a pretrained model stored
     in the filesystem. The model may be stored either as a gzipped tar archive or as a directory.
@@ -1269,7 +1269,7 @@ def create_prediction_pipeline_from_file(params, reload_dir, model_path=None, mo
     # Unpack the model tar archive if one is specified
     if model_path is not None:
         # if mismatch, it will raise an exception
-        matched = mu.check_version_compatible(model_path, ignore_check=False)
+        matched = mu.check_version_compatible(model_path, ignore_check=ignore_version_check)
         if reload_dir is None:
             # Create a temporary directory
             reload_dir = tempfile.mkdtemp()
