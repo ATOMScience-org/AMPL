@@ -63,7 +63,7 @@ mordred==1.2.0
 msgpack==1.0.2
 munkres==1.1.4
 numba==0.52.0
-oauthlib==3.1.1
+oauthlib==3.2.1
 opt-einsum==3.3.0
 packaging==20.8
 parso==0.8.1
