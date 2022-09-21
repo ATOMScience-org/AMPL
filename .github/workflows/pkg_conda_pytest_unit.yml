@@ -8,8 +8,6 @@ on:
       - '**.sh'
       - '**.yml'
       - 'conda/**'
-    paths-ignore:
-      - 'atomsci/ddm/docs/**'
 jobs:
   test-integration-default:
     name: Default settings
