@@ -52,7 +52,7 @@ Keras-Preprocessing==1.1.2
 lazy-object-proxy==1.5.2
 libclang==13.0.0
 llvmlite==0.35.0
-maestrowf==1.1.8
+maestrowf==1.1.9
 Markdown==3.3.4
 MarkupSafe==2.0.1
 matplotlib-venn==0.11.6
@@ -86,9 +86,9 @@ pytest==6.2.1
 python-dateutil==2.8.1
 PyYAML==5.4
 pyzmq==22.0.3
-rdkit-pypi==2022.3.1
 requests-oauthlib==1.3.0
 rfc3987==1.3.8
+rich==12.5.1
 rsa==4.7.2
 simplejson==3.17.2
 six==1.15.0
