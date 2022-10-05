@@ -96,6 +96,9 @@ def get_ampl_version_from_model(filename):
     logger.info('{}, {}'.format(filename, version))
     return version
 
+def get_major_version(full_version):
+    return '.'.join(full_version.split('.')[:2])
+
 def get_ampl_version_from_json(metadata_path):
     """
     Parse model_metadata.json to get the AMPL version
@@ -134,15 +137,15 @@ def check_version_compatible(input, ignore_check=False):
     model_ampl_version = ""
     # if the input is a tar file, extract it to get the version string
     if (os.path.isfile(input)):
-        model_ampl_version = get_ampl_version_from_model(input).strip()[:3]
+        model_ampl_version = get_major_version(get_ampl_version_from_model(input).strip())
     else:
         # if the input is not a file. try to parse string like '1.5.0'
         validate_version(input)
-        model_ampl_version = input[:3]
+        model_ampl_version = get_major_version(input)
 
-    ampl_version = get_ampl_version()[:3]
+    ampl_version = get_major_version(get_ampl_version())
     logger.info('Version compatible check: {} version = "{}", AMPL version = "{}"'.format(input, model_ampl_version, ampl_version))
-    match = (comp_dict[ampl_version]==comp_dict[model_ampl_version])
+    match = (comp_dict.get(ampl_version, ampl_version)==comp_dict.get(model_ampl_version, model_ampl_version))
     
     # raise an exception if not match and we don't want to ignore
     if not match:
