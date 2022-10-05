@@ -194,11 +194,6 @@ class ModelPipeline:
         self.run_mode = 'training'  # default, can be overridden later
         self.start_time = time.time()
 
-        # if model is NN, set the uncertainty to False.
-        # https://github.com/deepchem/deepchem/issues/2422
-        if self.params.model_type == 'NN':
-            self.params.uncertainty = False
-
         # Default dataset_name parameter from dataset_key
         if params.dataset_name is None:
             self.params.dataset_name = build_dataset_name(self.params.dataset_key)
