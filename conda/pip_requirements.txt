@@ -18,8 +18,8 @@ coloredlogs==15.0.1
 cycler==0.10.0
 dataclasses==0.6
 decorator==4.4.2
-dgl==0.7.2
-dgllife==0.2.6
+dgl==0.9.1
+dgllife==0.3.0
 dill==0.3.4
 entrypoints==0.3
 feather-format==0.4.1
@@ -106,7 +106,7 @@ tensorflow-io-gcs-filesystem==0.24.0
 termcolor==1.1.0
 toml==0.10.2
 toolz==0.11.2
-torch==1.7.0
+torch==1.9.1
 traitlets==4.3.3
 umap-learn==0.4.6
 urllib3==1.26.7
