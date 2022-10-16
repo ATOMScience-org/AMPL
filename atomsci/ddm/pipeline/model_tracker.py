@@ -305,7 +305,26 @@ def extract_datastore_model_tarball(model_uuid, model_bucket, output_dir, model_
 
     with ds_client.open_bucket_dataset(model_bucket, model_dataset_key, mode='b') as dstore_fp:
         with tarfile.open(fileobj=dstore_fp, mode='r:gz') as tfile:
-            tfile.extractall(path=extract_dir)
+            def is_within_directory(directory, target):
+                
+                abs_directory = os.path.abspath(directory)
+                abs_target = os.path.abspath(target)
+            
+                prefix = os.path.commonprefix([abs_directory, abs_target])
+                
+                return prefix == abs_directory
+            
+            def safe_extract(tar, path=".", members=None, *, numeric_owner=False):
+            
+                for member in tar.getmembers():
+                    member_path = os.path.join(path, member.name)
+                    if not is_within_directory(path, member_path):
+                        raise Exception("Attempted Path Traversal in Tar File")
+            
+                tar.extractall(path, members, numeric_owner=numeric_owner) 
+                
+            
+            safe_extract(tfile, path=extract_dir)
     logger.info(f"Extracted model tarball contents to {extract_dir}")
     return extract_dir
 
