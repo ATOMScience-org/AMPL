@@ -266,7 +266,7 @@ class ModelPipeline:
 
         # ****************************************************************************************
 
-    def load_featurize_data(self):
+    def load_featurize_data(self, params=None):
         """Loads the dataset from the datastore or the file system and featurizes it. If we are training
         a new model, split the dataset into training, validation and test sets.
 
@@ -274,21 +274,28 @@ class ModelPipeline:
 
         Assumes a ModelWrapper object has already been created.
 
+        Args:
+            params (Namespace): Optional set of parameters to be used for featurization; by default this function
+            uses the parameters used when the pipeline was created.
+            
+
         Side effects:
             Sets the following attributes of the ModelPipeline
                 data (ModelDataset object): A data object that featurizes and splits the dataset
                     data.dataset(dc.DiskDataset): The transformed, featurized, and split dataset
         """
-        self.data = model_datasets.create_model_dataset(self.params, self.featurization, self.ds_client)
-        self.data.get_featurized_data()
+        if params is None:
+            params = self.params
+        self.data = model_datasets.create_model_dataset(params, self.featurization, self.ds_client)
+        self.data.get_featurized_data(params)
         if self.run_mode == 'training':
-            if not (self.params.previously_split and self.data.load_presplit_dataset()):
+            if not (params.previously_split and self.data.load_presplit_dataset()):
                 self.data.split_dataset()
                 self.data.save_split_dataset()
         # We now create transformers after splitting, to allow for the case where the transformer
         # is fitted to the training data only. The transformers are then applied to the training,
         # validation and test sets separately.
-        if not self.params.split_only:
+        if not params.split_only:
             self.model_wrapper.create_transformers(self.data)
         else:
             self.run_mode = ''
@@ -760,7 +767,8 @@ class ModelPipeline:
         return res
 
     # ****************************************************************************************
-    def predict_full_dataset(self, dset_df, is_featurized=False, contains_responses=False, dset_params=None, AD_method=None, k=5, dist_metric="euclidean"):
+    def predict_full_dataset(self, dset_df, is_featurized=False, contains_responses=False, dset_params=None, AD_method=None, k=5, dist_metric="euclidean",
+                             max_train_records_for_AD=1000):
         """
         Compute predicted responses from a pretrained model on a set of compounds listed in
         a data frame. The data frame should contain, at minimum, a column of compound IDs; if
@@ -794,6 +802,9 @@ class ModelPipeline:
             k (int): number of the neareast neighbors to evaluate the AD index, default is 5.
 
             dist_metric (str): distance metrics, valid values are 'cityblock', 'cosine', 'euclidean', 'jaccard', 'manhattan'
+
+            max_train_records_for_AD (int): Maximum number of training data rows to use for AD calculation. Note that the AD calculation time
+            scales as the square of the number of training records used.
 
         Returns:
             result_df (DataFrame): Data frame indexed by compound IDs containing a column of SMILES
@@ -829,8 +840,15 @@ class ModelPipeline:
         if not self.data.get_dataset_tasks(dset_df):
             # Shouldn't happen
             raise Exception("response_cols missing from model params")
+        # Get features for each compound and construct a DeepChem Dataset from them
         self.data.get_featurized_data(dset_df, is_featurized)
+        # Transform the features and responses if needed
         self.data.dataset = self.model_wrapper.transform_dataset(self.data.dataset)
+
+        # Note that at this point, the dataset may contain fewer rows than the input. Typically this happens because
+        # of invalid SMILES strings. Remove any rows from the input dataframe corresponding to SMILES strings that were
+        # dropped.
+        dset_df = dset_df[dset_df[self.params.id_col].isin(self.data.dataset.ids.tolist())]
 
         # Get the predictions and standard deviations, if calculated, as numpy arrays
         preds, stds = self.model_wrapper.generate_predictions(self.data.dataset)
@@ -865,34 +883,60 @@ class ModelPipeline:
             result_df["pred"] = preds[:, 0]
 
         if AD_method is not None:
-            if self.featurization.feat_type != "graphconv":
+            # Calculate applicability domain index
+
+            if self.featurization.feat_type == "graphconv":
+                # For graphconv models, compute embeddings and treat them as features
+                pred_data = self.predict_embedding(dset_df, dset_params=dset_params)
+            else:
                 pred_data = copy.deepcopy(self.data.dataset.X)
-                self.run_mode = 'training'
-                try:
-                    print("Featurizing training data for AD calculation.")
-                    self.load_featurize_data()
-                    print("Calculating AD index.")
+
+            try:
+                if not hasattr(self, 'featurized_train_data'):
+                    self.log.info("Featurizing training data for AD calculation.")
+                    self.run_mode = 'training'
+                    # Have to featurize training data using original params (smiles_col, compound_id)
+                    self.load_featurize_data(params=self.orig_params)
+                    self.run_mode = 'prediction'
                     if len(self.data.train_valid_dsets) > 1:
                         # combine train and valid set for k-fold CV models
-                        train_data = np.concatenate((self.data.train_valid_dsets[0][0].X, self.data.train_valid_dsets[0][1].X))
+                        train_X = np.concatenate((self.data.train_valid_dsets[0][0].X, self.data.train_valid_dsets[0][1].X))
                     else:
-                        train_data = self.data.train_valid_dsets[0][0].X
-                    if not hasattr(self, "train_pair_dis") or not hasattr(self, "train_pair_dis_metric") or self.train_pair_dis_metric != dist_metric:
-                        self.calc_train_dset_pair_dis(metric=dist_metric)
+                        train_X = self.data.train_valid_dsets[0][0].X
+    
+                    # If training data is too big to compute distances in a reasonable time, use a sample of the data
+                    if train_X.shape[0] > max_train_records_for_AD:
+                        train_X = train_X[np.random.choice(train_X.shape[0], max_train_records_for_AD, replace=False)]
 
-                    if AD_method == "local_density":
-                        result_df["AD_index"] = calc_AD_kmean_local_density(train_data, pred_data, k, train_dset_pair_distance=self.train_pair_dis, dist_metric=dist_metric)
+                    if self.featurization.feat_type == "graphconv":
+                        self.log.info("Computing training data embeddings for AD calculation.")
+                        train_dset = dc.data.NumpyDataset(train_X)
+                        self.featurized_train_data = self.model_wrapper.generate_embeddings(train_dset)
                     else:
-                        result_df["AD_index"] = calc_AD_kmean_dist(train_data, pred_data, k, train_dset_pair_distance=self.train_pair_dis, dist_metric=dist_metric)
-                except:
-                    print("Cannot find original training data, AD not calculated")
-            else:
-                self.log.warning("GraphConv features are not plain vectors, AD index cannot be calculated.")
+                        self.featurized_train_data = train_X
+
+                if not hasattr(self, "train_pair_dis") or not hasattr(self, "train_pair_dis_metric") or self.train_pair_dis_metric != dist_metric:
+                    self.train_pair_dis = pairwise_distances(X=self.featurized_train_data, metric=dist_metric)
+                    self.train_pair_dis_metric = dist_metric
+
+                self.log.info("Calculating AD index.")
+
+
+                if AD_method == "local_density":
+                    result_df["AD_index"] = calc_AD_kmean_local_density(self.featurized_train_data, pred_data, k, train_dset_pair_distance=self.train_pair_dis, dist_metric=dist_metric)
+                else:
+                    result_df["AD_index"] = calc_AD_kmean_dist(self.featurized_train_data, pred_data, k, train_dset_pair_distance=self.train_pair_dis, dist_metric=dist_metric)
+
+            except:
+                self.log.info("AD index calculation failed")
+                # xxx re-raise for debugging
+                raise
 
         # insert any missing ids
-        missing_ids = set(new_ids).difference(result_df[self.params.id_col])
-        for mi in missing_ids:
-            result_df.append({self.params.id_col:mi})
+        missing_ids = list(set(new_ids).difference(result_df[self.params.id_col]))
+        if len(missing_ids) > 0:
+            missing_df = pd.DataFrame({self.params.id_col: missing_ids})
+            result_df = pd.concat([result_df, missing_df], ignore_index=True)
         # sort in ascending order, recovering the original order
         result_df.sort_values(by=[self.params.id_col], ascending=True, inplace=True)
         # map back to original id values
@@ -947,6 +991,7 @@ def run_models(params, shared_featurization=None, generator=False):
     """
     mlmt_client = dsf.initialize_model_tracker()
     ds_client = dsf.config_client()
+    log = logging.getLogger('ATOM')
 
     exclude_fields = [
         "training_metrics",
@@ -968,13 +1013,13 @@ def run_models(params, shared_featurization=None, generator=False):
     model_count = next(metadata_iter)
 
     if not model_count:
-        print("No matching models returned")
+        log.error("No matching models returned")
         return
 
     for metadata_dict in metadata_iter:
         model_uuid = metadata_dict['model_uuid']
 
-        print("Got metadata for model UUID %s" % model_uuid)
+        log.info("Got metadata for model UUID %s" % model_uuid)
 
         # Parse the saved model metadata to obtain the parameters used to train the model
         model_params = parse.wrapper(metadata_dict)
@@ -1060,15 +1105,16 @@ def regenerate_results(result_dir, params=None, metadata_dict=None, shared_featu
 
     mlmt_client = dsf.initialize_model_tracker()
     ds_client = dsf.config_client()
+    log = logging.getLogger('ATOM')
 
     if metadata_dict is None:
         if params is None:
-            print("Must either provide params or metadata_dict")
+            log.error("Must either provide params or metadata_dict")
             return
         metadata_dict = trkr.get_metadata_by_uuid(params.model_uuid,
                                                   collection_name=params.collection_name)
         if metadata_dict is None:
-            print("No matching models returned")
+            log.error("No matching models returned")
             return
 
     # Parse the saved model metadata to obtain the parameters used to train the model
@@ -1081,7 +1127,7 @@ def regenerate_results(result_dir, params=None, metadata_dict=None, shared_featu
 
     model_uuid = model_params.model_uuid
 
-    print("Got metadata for model UUID %s" % model_uuid)
+    log.info("Got metadata for model UUID %s" % model_uuid)
 
     model_params.result_dir = result_dir
 
@@ -1103,7 +1149,7 @@ def regenerate_results(result_dir, params=None, metadata_dict=None, shared_featu
     else:
         featurization = shared_featurization
 
-    print("Featurization = %s" % str(featurization))
+    log.info("Featurization = %s" % str(featurization))
     # Create the ModelWrapper object.
 
     pipeline.model_wrapper = model_wrapper.create_model_wrapper(pipeline.params, featurization,
@@ -1164,10 +1210,9 @@ def create_prediction_pipeline(params, model_uuid, collection_name=None, featuri
     if not metadata_dict:
         raise Exception("No model found with UUID %s in collection %s" % (model_uuid, collection_name))
 
-    print("Got metadata for model UUID %s" % model_uuid)
-
     # Parse the saved model metadata to obtain the parameters used to train the model
     model_params = parse.wrapper(metadata_dict)
+    orig_params = copy.deepcopy(model_params)
 
     # Override selected model training data parameters with parameters for current dataset
 
@@ -1212,6 +1257,7 @@ def create_prediction_pipeline(params, model_uuid, collection_name=None, featuri
 
     # Create a ModelPipeline object
     pipeline = ModelPipeline(model_params, ds_client, mlmt_client)
+    pipeline.orig_params = orig_params
 
     # Create the ModelWrapper object.
     pipeline.model_wrapper = model_wrapper.create_model_wrapper(pipeline.params, featurization,
@@ -1265,6 +1311,7 @@ def create_prediction_pipeline_from_file(params, reload_dir, model_path=None, mo
     Returns:
         pipeline (ModelPipeline): A pipeline object to be used for making predictions.
     """
+    log = logging.getLogger('ATOM')
 
     # Unpack the model tar archive if one is specified
     if model_path is not None:
@@ -1295,7 +1342,7 @@ def create_prediction_pipeline_from_file(params, reload_dir, model_path=None, mo
 
     # Parse the saved model metadata to obtain the parameters used to train the model
     model_params = parse.wrapper(config)
-    #print("Featurizer = %s" % model_params.featurizer)
+    orig_params = copy.deepcopy(model_params)
 
     # Override selected model training data parameters with parameters for current dataset
 
@@ -1323,9 +1370,10 @@ def create_prediction_pipeline_from_file(params, reload_dir, model_path=None, mo
     if featurization is None:
         featurization = feat.create_featurization(model_params)
 
-    print("Featurization = %s" % str(featurization))
+    log.info("Featurization = %s" % str(featurization))
     # Create a ModelPipeline object
     pipeline = ModelPipeline(model_params)
+    pipeline.orig_params = orig_params
 
     # Create the ModelWrapper object.
     pipeline.model_wrapper = model_wrapper.create_model_wrapper(pipeline.params, featurization)
@@ -1372,9 +1420,9 @@ def load_from_tracker(model_uuid, collection_name=None, client=None, verbose=Fal
             pparams (Namespace): Parsed parameter namespace from the requested model.
     """
 
+    logger = logging.getLogger('ATOM')
     if not verbose:
         os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1'
-        logger = logging.getLogger('ATOM')
         logger.setLevel(logging.CRITICAL)
         sys.stdout = io.StringIO()
         import warnings
@@ -1387,7 +1435,7 @@ def load_from_tracker(model_uuid, collection_name=None, client=None, verbose=Fal
     if not metadata_dict:
         raise Exception("No model found with UUID %s in collection %s" % (model_uuid, collection_name))
 
-    print("Got metadata for model UUID %s" % model_uuid)
+    logger.info("Got metadata for model UUID %s" % model_uuid)
 
     # Parse the saved model metadata to obtain the parameters used to train the model
     pparams = parse.wrapper(metadata_dict)
@@ -1439,6 +1487,7 @@ def ensemble_predict(model_uuids, collections, dset_df, labels=None, dset_params
 
     # Get the singleton MLMTClient instance
     mlmt_client = dsf.initialize_model_tracker()
+    log = logging.getLogger('ATOM')
 
     pred_df = None
 
@@ -1450,12 +1499,12 @@ def ensemble_predict(model_uuids, collections, dset_df, labels=None, dset_params
 
     ok_labels = []
     for i, (model_uuid, collection_name, label) in enumerate(zip(model_uuids, collections, labels)):
-        print("Loading model %s from collection %s" % (model_uuid, collection_name))
+        log.info("Loading model %s from collection %s" % (model_uuid, collection_name))
         metadata_dict = trkr.get_metadata_by_uuid(model_uuid, collection_name=collection_name)
         if not metadata_dict:
             raise Exception("No model found with UUID %s in collection %s" % (model_uuid, collection_name))
 
-        print("Got metadata for model UUID %s" % model_uuid)
+        log.info("Got metadata for model UUID %s" % model_uuid)
 
         # Parse the saved model metadata to obtain the parameters used to train the model
         model_pparams = parse.wrapper(metadata_dict)
@@ -1465,7 +1514,7 @@ def ensemble_predict(model_uuids, collections, dset_df, labels=None, dset_params
 
         if splitters is not None:
             if model_pparams.splitter != splitters[i]:
-                print("Replacing %s splitter in stored model with %s" % (model_pparams.splitter, splitters[i]))
+                log.info("Replacing %s splitter in stored model with %s" % (model_pparams.splitter, splitters[i]))
                 model_pparams.splitter = splitters[i]
 
         if dset_params is not None:
@@ -1504,7 +1553,7 @@ def ensemble_predict(model_uuids, collections, dset_df, labels=None, dset_params
         try:
             preds, stds = pipe.model_wrapper.generate_predictions(pipe.data.dataset)
         except ValueError:
-            print("\n***** Prediction failed for model %s %s\n" % (label, model_uuid))
+            log.error("\n***** Prediction failed for model %s %s\n" % (label, model_uuid))
             continue
         i = 0
         if pipe.params.prediction_type == 'regression':
@@ -1546,7 +1595,7 @@ def ensemble_predict(model_uuids, collections, dset_df, labels=None, dset_params
         pred_df["ensemble_class_prob"] = agg_pred
         pred_df["ensemble_pred"] = [int(p >= 0.5) for p in agg_pred]
 
-    print("Done with ensemble prediction")
+    log.info("Done with ensemble prediction")
     return pred_df
 
 
@@ -1573,10 +1622,11 @@ def retrain_model(model_uuid, collection_name=None, result_dir=None, mt_client=N
         pipeline (ModelPipeline): A pipeline object containing data from the model training.
     """
 
+    log = logging.getLogger('ATOM')
     if not result_dir:
         mlmt_client = dsf.initialize_model_tracker()
 
-        print("Loading model %s from collection %s" % (model_uuid, collection_name))
+        log.info("Loading model %s from collection %s" % (model_uuid, collection_name))
         metadata_dict = trkr.get_metadata_by_uuid(model_uuid, collection_name=collection_name)
         if not metadata_dict:
             raise Exception("No model found with UUID %s in collection %s" % (model_uuid, collection_name))
@@ -1589,7 +1639,7 @@ def retrain_model(model_uuid, collection_name=None, result_dir=None, mt_client=N
         with open(os.path.join(model_dir, 'model_metadata.json')) as f:
             metadata_dict = json.load(f)
 
-    print("Got metadata for model UUID %s" % model_uuid)
+    log.info("Got metadata for model UUID %s" % model_uuid)
 
     # Parse the saved model metadata to obtain the parameters used to train the model
     model_pparams = parse.wrapper(metadata_dict)
@@ -1607,7 +1657,6 @@ def main():
     """Entry point when script is run from a shell"""
 
     params = parse.wrapper(sys.argv[1:])
-    # print(params)
     # model_filter parameter determines whether you are loading pretrained models and running
     # predictions on them, or training a new model
     if 'model_filter' in params.__dict__ and params.model_filter is not None:
