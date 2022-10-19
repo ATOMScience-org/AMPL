@@ -7,7 +7,7 @@ on:
       - '**.py'
       - '**.sh'
       - '**.yml'
- 
+      - 'conda/**'
 jobs:
   test-integration-default:
     name: Default settings

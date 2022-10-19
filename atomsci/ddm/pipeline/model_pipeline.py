@@ -26,25 +26,6 @@ import copy
 from atomsci.ddm.utils import datastore_functions as dsf
 import atomsci.ddm.utils.model_version_utils as mu
 
-import pkg_resources
-if ('site-packages' in dsf.__file__) or ('dist-packages' in dsf.__file__): # install_dev.sh points to github directory
-    import subprocess
-    import json
-    data = subprocess.check_output(["pip", "list", "--format", "json"])
-    parsed_results = json.loads(data)
-    ampl_version=next(item for item in parsed_results if item["name"] == "atomsci-ampl")['version']
-else:
-    try:
-        VERSION_fn = os.path.join(
-            os.path.dirname(pkg_resources.resource_filename('atomsci', '')),
-            'VERSION')
-    except:
-        VERSION_fn = dsf.__file__.rsplit('/', maxsplit=4)[0]+'/VERSION'
-
-    f=open(VERSION_fn, 'r')
-    ampl_version = f.read().strip()
-    f.close()
-
 from atomsci.ddm.pipeline import model_datasets as model_datasets
 from atomsci.ddm.pipeline import model_wrapper as model_wrapper
 from atomsci.ddm.pipeline import featurization as feat
@@ -213,11 +194,6 @@ class ModelPipeline:
         self.run_mode = 'training'  # default, can be overridden later
         self.start_time = time.time()
 
-        # if model is NN, set the uncertainty to False.
-        # https://github.com/deepchem/deepchem/issues/2422
-        if self.params.model_type == 'NN':
-            self.params.uncertainty = False
-
         # Default dataset_name parameter from dataset_key
         if params.dataset_name is None:
             self.params.dataset_name = build_dataset_name(self.params.dataset_key)
@@ -350,7 +326,7 @@ class ModelPipeline:
             time_generated=time.time(),
             save_results=self.params.save_results,
             hyperparam_uuid=self.params.hyperparam_uuid,
-            ampl_version=ampl_version
+            ampl_version=mu.get_ampl_version()
         )
 
         splitting_metadata = self.data.get_split_metadata()
@@ -1166,6 +1142,9 @@ def create_prediction_pipeline(params, model_uuid, collection_name=None, featuri
 
     print("Got metadata for model UUID %s" % model_uuid)
 
+    model_ampl_version = metadata_dict['model_parameters']['ampl_version']
+    # check the model version to make sure it's compatible with the running ampl version
+    mu.check_version_compatible(model_ampl_version)
     # Parse the saved model metadata to obtain the parameters used to train the model
     model_params = parse.wrapper(metadata_dict)
 
@@ -1269,7 +1248,7 @@ def create_prediction_pipeline_from_file(params, reload_dir, model_path=None, mo
     # Unpack the model tar archive if one is specified
     if model_path is not None:
         # if mismatch, it will raise an exception
-        matched = mu.check_version_compatible(model_path, ignore_check=False)
+        matched = mu.check_version_compatible(model_path)
         if reload_dir is None:
             # Create a temporary directory
             reload_dir = tempfile.mkdtemp()
