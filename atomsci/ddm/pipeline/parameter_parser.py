@@ -16,6 +16,7 @@ import inspect
 
 import os.path
 import atomsci.ddm.utils.checksum_utils as cu
+import atomsci.ddm.utils.one_to_one as oto
 
 from packaging.version import parse
 
@@ -1698,6 +1699,12 @@ def postprocess_args(parsed_args):
         parsed_args.num_model_tasks = len(parsed_args.response_cols)
     else:
         raise Exception(f'Unexpected type for response_cols {type(parsed_args.response_cols)}')
+
+    # Make sure that there is a one to one mapping between SMILES and compound ids
+    # this can raise 3 exceptions. OneToOneException, NANCompoundID, or NANSMILES
+    # we should not proceed in any of these cases.
+    if vars(parsed_args).get('dataset_key') and os.path.exists(parsed_args.dataset_key):
+        _ = oto.one_to_one(fn=parsed_args.dataset_key, smiles_col=parsed_args.smiles_col, id_col=parsed_args.id_col)
 
     return parsed_args
 
