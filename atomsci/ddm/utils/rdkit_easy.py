@@ -141,7 +141,7 @@ def cluster_fingerprints(fps, cutoff=0.2):
     return cs
 
 
-def mol_to_html(mol, name='', type='svg', directory='rdkit_svg', embed=False, width=400, height=200):
+def mol_to_html(mol, highlight=None, name='', type='svg', directory='rdkit_svg', embed=False, width=400, height=200):
     """
     Creates an image displaying the given molecule's 2D structure, and generates an HTML
     tag for it. The image can be embedded directly into the HTML tag or saved to a file.
@@ -172,7 +172,7 @@ def mol_to_html(mol, name='', type='svg', directory='rdkit_svg', embed=False, wi
     
     if embed:
         if type.lower() == 'png':
-            img=mol_to_pil(mol, size=(width,height))
+            img=mol_to_pil(mol, size=(width,height), highlight=highlight)
             imgByteArr = io.BytesIO()
             img.save(imgByteArr, format=img.format)
             imgByteArr = imgByteArr.getvalue()
@@ -191,7 +191,7 @@ def mol_to_html(mol, name='', type='svg', directory='rdkit_svg', embed=False, wi
             save_svg(mol, img_file, size=(width,height))
         return f"<img src='{img_file}' style='width:{width}px;'>"
 
-def mol_to_pil(mol, size=(400, 200)):
+def mol_to_pil(mol, size=(400, 200), highlight=None):
     """
     Returns a Python Image Library (PIL) object containing an image of the given molecule's structure.
 
@@ -199,12 +199,25 @@ def mol_to_pil(mol, size=(400, 200)):
         mol (rdkit.Chem.Mol): Object representing molecule.
 
         size (tuple): Width and height of bounding box of image.
+        
+        highlight (rdkit.Chem.Mol): Object representing substructure to highlight on molecule.
 
     Returns:
         PIL.PngImageFile: An object containing an image of the molecule's structure.
 
     """
-    pil = MolToImage(mol, size=(size[0], size[1]))
+    if highlight is not None:
+        all_ats = list(mol.GetSubstructMatches(highlight))
+        hit_bonds = []
+        for hit_ats in all_ats:
+            for bond in highlight.GetBonds():
+                aid1 = hit_ats[bond.GetBeginAtomIdx()]
+                aid2 = hit_ats[bond.GetEndAtomIdx()]
+                hit_bonds.append(mol.GetBondBetweenAtoms(aid1,aid2).GetIdx())
+        hit_ats=list(sum(all_ats, ()))
+        pil = MolToImage(mol, size=(size[0], size[1]), highlightAtoms=hit_ats, highlightBonds=hit_bonds)
+    else:
+        pil=MolToImage(mol, size=(size[0], size[1]))
     return pil
 
 
