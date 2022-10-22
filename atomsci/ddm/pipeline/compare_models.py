@@ -1000,7 +1000,10 @@ def get_filesystem_perf_results(result_dir, pred_type='classification'):
 
         for subset in subsets:
             for metric in metrics:
-                score_dict[subset][metric].append(subset_metrics[subset][metric])
+                try:
+                    score_dict[subset][metric].append(subset_metrics[subset][metric])
+                except:
+                    score_dict[subset][metric].append(np.nan)
         score_dict['valid']['model_choice_score'].append(subset_metrics['valid']['model_choice_score'])
 
     param_df = pd.DataFrame(param_list)
