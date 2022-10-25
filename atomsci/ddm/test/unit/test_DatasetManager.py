@@ -5,6 +5,7 @@ from atomsci.ddm.pipeline.splitting import DatasetManager, _copy_DiskDataset
 import pdb
 
 def make_test_dataset_and_attr():
+    ids = ['a', 'a', 'b', 'b', 'c']
     dd = DiskDataset.from_numpy(
         X=np.ones((5, 10)),
         y=np.ones((5, 4)),
@@ -15,15 +16,18 @@ def make_test_dataset_and_attr():
             [0, 0, 1, 0,],
             [0, 0, 0, 1,],
         ]),
-        ids=['a', 'a', 'b', 'b', 'c']
+        ids=ids
     )
 
     smiles_col = 'smiles'
-    attr_df = pd.DataFrame({smiles_col:['aaa', 'aaa', 'bbb', 'bbb', 'ccc']})
+    id_col = 'compound_ids'
+    attr_df = pd.DataFrame({smiles_col:['aaa', 'aaa', 'bbb', 'bbb', 'ccc'], id_col:ids})
+    attr_df = attr_df.set_index(id_col)
 
     return dd, attr_df, smiles_col
 
 def make_test_dataset_and_attrB():
+    ids = ['a', 'b', 'c', 'd', 'e']
     dd = DiskDataset.from_numpy(
         X=np.ones((5, 10)),
         y=np.ones((5, 4)),
@@ -34,11 +38,13 @@ def make_test_dataset_and_attrB():
             [0, 0, 1, 0,],
             [0, 0, 0, 1,],
         ]),
-        ids=['a', 'b', 'c', 'd', 'e']
+        ids=ids
     )
 
     smiles_col = 'smiles'
-    attr_df = pd.DataFrame({smiles_col:['aaa', 'bbb', 'ccc', 'ddd', 'eee']})
+    id_col = 'compound_ids'
+    attr_df = pd.DataFrame({smiles_col:['aaa', 'bbb', 'ccc', 'ddd', 'eee'], id_col:ids})
+    attr_df = attr_df.set_index(id_col)
 
     return dd, attr_df, smiles_col
 

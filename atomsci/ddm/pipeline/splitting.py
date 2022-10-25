@@ -587,6 +587,11 @@ class DatasetManager:
 
         self.dataset_dup = False
 
+        # sometimes the ids in dataset_ori is already a SMILES string.
+        # since we assume that dataset_ori.ids are compound ids, we replace them with attr_df.index
+        if self.needs_smiles:
+            self.dataset_ori = _copy_DiskDataset(self.dataset_ori, ids=self.attr_df.index)
+
         # self.id_df will be used to map compound_ids or smiles to a set of indices to be used
         # with self.dataset_ori to map back to an expanded dataset after splitting
         self.id_df = pd.DataFrame({
