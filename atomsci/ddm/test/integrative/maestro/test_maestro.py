@@ -75,6 +75,11 @@ def wait_to_finish(maestro_run_command, max_time=600):
 
     # make sure that there's a status file
     status_file = os.path.join(maestro_folder, 'status.csv')
+    
+    # wait for the file to be available
+    while not os.path.exists(status_file):
+        time.sleep(2)
+
     assert os.path.exists(status_file)
 
     print('status found')
