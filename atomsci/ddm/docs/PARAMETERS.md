@@ -149,7 +149,7 @@ The AMPL pipeline contains many parameters and options to fit models and make pr
   
 |||
 |-|-|
-|*Description:*|User specified number of classes. TODO: Currently ingested in model\_wrapper, but unused.|
+|*Description:*|User specified number of classes. This is required for NN models but inferred for RF and XGBoost models.|
 |*Default:*|2|
 |*Type:*|int|
   
