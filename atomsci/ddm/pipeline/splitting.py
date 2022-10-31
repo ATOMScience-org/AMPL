@@ -15,6 +15,7 @@ from deepchem.data import DiskDataset
 from atomsci.ddm.pipeline.ave_splitter import AVEMinSplitter
 from atomsci.ddm.pipeline.temporal_splitter import TemporalSplitter
 from atomsci.ddm.pipeline.MultitaskScaffoldSplit import MultitaskScaffoldSplitter
+from atomsci.ddm.utils.many_to_one import many_to_one_df
 import collections
 
 logging.basicConfig(format='%(asctime)-15s %(message)s')
@@ -347,7 +348,7 @@ class KFoldSplitting(Splitting):
         """
 
         # Duplicate SMILES and compound_ids are merged into single compounds
-        # in DatasetManager. The first instance of each is kept. Assumes one to one 
+        # in DatasetManager. The first instance of each is kept. Assumes many to one 
         # mapping of compound_ids and SMILES. dataset.ids is either compound_id or
         # SMILES depending on the call to self.needs_smiles(). Later expand_selection
         # will expect SMILES or compound_ids in dataset.ids depending on needs_smiles
@@ -479,7 +480,7 @@ class TrainValidTestSplitting(Splitting):
         log.warning("Splitting data by %s" % self.params.splitter)
 
         # Duplicate SMILES and compound_ids are merged into single compounds
-        # in DatasetManager. The first instance of each is kept. Assumes one to one 
+        # in DatasetManager. The first instance of each is kept. Assumes many to one 
         # mapping of compound_ids and SMILES. dataset.ids is either compound_id or
         # SMILES depending on the call to self.needs_smiles(). Later expand_selection
         # will expect SMILES or compound_ids in dataset.ids depending on needs_smiles
@@ -603,6 +604,9 @@ class DatasetManager:
         self.w_cols = [f'w{c}' for c in range(ws.shape[1])]
         for i, col in enumerate(self.w_cols):
             self.id_df[col] = ws[:,i]
+
+        # check many to one assumption.
+        many_to_one_df(self.id_df, id_col='compound_id', smiles_col='smiles')
 
     def compact_dataset(self):
         '''
