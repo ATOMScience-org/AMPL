@@ -613,8 +613,8 @@ class DatasetManager:
         Returns a dataset with no duplicate compounds ids and smiles strings in the
         id column if necessary.
 
-        Builds a new dataset that drops duplicate compound ids. This assumes that all compounds 
-        with the same ID has the same SMILES string and vice versa.
+        Builds a new dataset with no duplicates in ids (compounds or smiles). This assumes 
+        a many to one mapping between SMILES and compound ids
         '''
         sub_dataset = self.dataset_ori
         sel_df = self.id_df
@@ -631,9 +631,13 @@ class DatasetManager:
             w_agg_func = lambda x: np.clip(np.sum(x, axis=0), a_min=0, a_max=1)
             agg_dict = {col:w_agg_func for col in self.w_cols}
             agg_dict['indices'] = 'first'
-            agg_dict['compound_id'] = 'first' # they're all the same
-            agg_dict['smiles'] = 'first' # they're all the same
-            sel_df = self.id_df.groupby('compound_id', as_index=False).agg(agg_dict)
+            agg_dict['compound_id'] = 'first' # Either they're all the same or they're not used
+            agg_dict['smiles'] = 'first' # they're all the same in a group
+
+            if self.needs_smiles:
+                sel_df = self.id_df.groupby('smiles', as_index=False).agg(agg_dict)
+            else:
+                sel_df = self.id_df.groupby('compound_id', as_index=False).agg(agg_dict)
             
             # sub_dataset no longer contains duplicate compounds
             sub_dataset = sub_dataset.select(sel_df.indices.values)
@@ -662,7 +666,7 @@ class DatasetManager:
             A subset of self.dataset_ori and subset of self.attr_df
         '''
         # are we using SMILES or compound_ids as the ID column
-        id_col = 'smiles'if self.needs_smiles else 'compound_id'
+        id_col = 'smiles' if self.needs_smiles else 'compound_id'
         sel_df = self.id_df[self.id_df[id_col].isin(ids)]
 
         data_subset = self.dataset_ori.select(sel_df.indices.values)
