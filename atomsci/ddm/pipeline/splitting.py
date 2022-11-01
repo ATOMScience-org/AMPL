@@ -15,6 +15,7 @@ from deepchem.data import DiskDataset
 from atomsci.ddm.pipeline.ave_splitter import AVEMinSplitter
 from atomsci.ddm.pipeline.temporal_splitter import TemporalSplitter
 from atomsci.ddm.pipeline.MultitaskScaffoldSplit import MultitaskScaffoldSplitter
+from atomsci.ddm.utils.many_to_one import many_to_one_df
 import collections
 
 logging.basicConfig(format='%(asctime)-15s %(message)s')
@@ -347,7 +348,7 @@ class KFoldSplitting(Splitting):
         """
 
         # Duplicate SMILES and compound_ids are merged into single compounds
-        # in DatasetManager. The first instance of each is kept. Assumes one to one 
+        # in DatasetManager. The first instance of each is kept. Assumes many to one 
         # mapping of compound_ids and SMILES. dataset.ids is either compound_id or
         # SMILES depending on the call to self.needs_smiles(). Later expand_selection
         # will expect SMILES or compound_ids in dataset.ids depending on needs_smiles
@@ -479,7 +480,7 @@ class TrainValidTestSplitting(Splitting):
         log.warning("Splitting data by %s" % self.params.splitter)
 
         # Duplicate SMILES and compound_ids are merged into single compounds
-        # in DatasetManager. The first instance of each is kept. Assumes one to one 
+        # in DatasetManager. The first instance of each is kept. Assumes many to one 
         # mapping of compound_ids and SMILES. dataset.ids is either compound_id or
         # SMILES depending on the call to self.needs_smiles(). Later expand_selection
         # will expect SMILES or compound_ids in dataset.ids depending on needs_smiles
@@ -587,6 +588,11 @@ class DatasetManager:
 
         self.dataset_dup = False
 
+        # sometimes the ids in dataset_ori is already a SMILES string.
+        # since we assume that dataset_ori.ids are compound ids, we replace them with attr_df.index
+        if self.needs_smiles:
+            self.dataset_ori = _copy_DiskDataset(self.dataset_ori, ids=self.attr_df.index)
+
         # self.id_df will be used to map compound_ids or smiles to a set of indices to be used
         # with self.dataset_ori to map back to an expanded dataset after splitting
         self.id_df = pd.DataFrame({
@@ -599,13 +605,16 @@ class DatasetManager:
         for i, col in enumerate(self.w_cols):
             self.id_df[col] = ws[:,i]
 
+        # check many to one assumption.
+        many_to_one_df(self.id_df, id_col='compound_id', smiles_col='smiles')
+
     def compact_dataset(self):
         '''
         Returns a dataset with no duplicate compounds ids and smiles strings in the
         id column if necessary.
 
-        Builds a new dataset that drops duplicate compound ids. This assumes that all compounds 
-        with the same ID has the same SMILES string and vice versa.
+        Builds a new dataset with no duplicates in ids (compounds or smiles). This assumes 
+        a many to one mapping between SMILES and compound ids
         '''
         sub_dataset = self.dataset_ori
         sel_df = self.id_df
@@ -622,9 +631,13 @@ class DatasetManager:
             w_agg_func = lambda x: np.clip(np.sum(x, axis=0), a_min=0, a_max=1)
             agg_dict = {col:w_agg_func for col in self.w_cols}
             agg_dict['indices'] = 'first'
-            agg_dict['compound_id'] = 'first' # they're all the same
-            agg_dict['smiles'] = 'first' # they're all the same
-            sel_df = self.id_df.groupby('compound_id', as_index=False).agg(agg_dict)
+            agg_dict['compound_id'] = 'first' # Either they're all the same or they're not used
+            agg_dict['smiles'] = 'first' # they're all the same in a group
+
+            if self.needs_smiles:
+                sel_df = self.id_df.groupby('smiles', as_index=False).agg(agg_dict)
+            else:
+                sel_df = self.id_df.groupby('compound_id', as_index=False).agg(agg_dict)
             
             # sub_dataset no longer contains duplicate compounds
             sub_dataset = sub_dataset.select(sel_df.indices.values)
@@ -653,7 +666,7 @@ class DatasetManager:
             A subset of self.dataset_ori and subset of self.attr_df
         '''
         # are we using SMILES or compound_ids as the ID column
-        id_col = 'smiles'if self.needs_smiles else 'compound_id'
+        id_col = 'smiles' if self.needs_smiles else 'compound_id'
         sel_df = self.id_df[self.id_df[id_col].isin(ids)]
 
         data_subset = self.dataset_ori.select(sel_df.indices.values)

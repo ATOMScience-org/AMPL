@@ -14,11 +14,11 @@ def no_nan_ids_or_smiles(df, smiles_col, id_col):
 
     return True
 
-def one_to_one(fn, smiles_col, id_col):
+def many_to_one(fn, smiles_col, id_col):
     df = pd.read_csv(fn)
-    return one_to_one_df(df, smiles_col, id_col)
+    return many_to_one_df(df, smiles_col, id_col)
 
-def one_to_one_df(df, smiles_col, id_col):
+def many_to_one_df(df, smiles_col, id_col):
     '''
     AMPL requires that SMILES and compound_ids have a one to one mapping. 
     This function opens the dataset and checks this restraint. It will also
@@ -37,16 +37,15 @@ def one_to_one_df(df, smiles_col, id_col):
     '''
     no_nan_ids_or_smiles(df, smiles_col, id_col)
 
-    # courtesy of https://stackoverflow.com/questions/50643386/easy-way-to-see-if-two-columns-are-one-to-one-in-pandas
-    first = df.drop_duplicates([smiles_col, id_col]).groupby(smiles_col)[id_col].count().max()
-    second = df.drop_duplicates([smiles_col, id_col]).groupby(id_col)[smiles_col].count().max()
+    # if a compound id is associated with more than one SMILES
+    id_one = df.drop_duplicates(subset=[smiles_col, id_col]).groupby(id_col)[smiles_col].count().max()
+    if id_one > 1:
+        raise ManyToOneException('SMILES and Compound IDs do not have a one to one mapping.')
 
-    if first + second == 2:
-        return
-    else:
-        raise OneToOneException('SMILES and Compound IDs do not have a one to one mapping.')
+    # SMILES can be associated with many compound ids no need to check them
+    return True
 
-class OneToOneException(Exception):
+class ManyToOneException(Exception):
     pass
 
 class NANCompoundIDException(Exception):
