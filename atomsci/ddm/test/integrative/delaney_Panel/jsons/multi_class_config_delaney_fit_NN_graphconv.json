@@ -19,6 +19,7 @@
                         "measured log solubility in mols per litre_class2"],
     "num_model_tasks": 2,
     "prediction_type": "classification",
+    "uncertainty": "False",
 
     "comment": "Features",
     "comment": "----------------------------------------",
