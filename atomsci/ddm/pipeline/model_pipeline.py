@@ -25,6 +25,7 @@ import copy
 
 from atomsci.ddm.utils import datastore_functions as dsf
 import atomsci.ddm.utils.model_version_utils as mu
+import atomsci.ddm.utils.file_utils as futils
 
 from atomsci.ddm.pipeline import model_datasets as model_datasets
 from atomsci.ddm.pipeline import model_wrapper as model_wrapper
@@ -1254,9 +1255,8 @@ def create_prediction_pipeline_from_file(params, reload_dir, model_path=None, mo
             reload_dir = tempfile.mkdtemp()
         else:
             os.makedirs(reload_dir, exist_ok=True)
-        model_fp = tarfile.open(model_path, mode='r:gz')
-        model_fp.extractall(path=reload_dir)
-        model_fp.close()
+        with tarfile.open(model_path, mode='r:gz') as tar:
+            futils.safe_extract(tar, path=reload_dir)
     elif reload_dir is None:
         raise ValueError("Either reload_dir or model_path must be specified.")
 
