@@ -27,6 +27,7 @@ import logging
 import pandas as pd
 import pdb
 import re
+import atomsci.ddm.utils.file_utils as futils
 
 logging.basicConfig()
 
@@ -86,9 +87,8 @@ def get_ampl_version_from_model(filename):
     """
     tmpdir = tempfile.mkdtemp()
         
-    model_fp = tarfile.open(filename, mode='r:gz')
-    model_fp.extractall(path=tmpdir)
-    model_fp.close()
+    with tarfile.open(filename, mode='r:gz') as tar:
+        futils.safe_extract(tar, path=tmpdir)
         
     # make metadata path
     metadata_path = os.path.join(tmpdir, 'model_metadata.json')
