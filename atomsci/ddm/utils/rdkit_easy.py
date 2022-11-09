@@ -4,6 +4,7 @@ Utilities for clustering and visualizing compound structures using RDKit.
 # Mostly written by Logan Van Ravenswaay, with additions and edits by Ben Madej and Kevin McLoughlin.
 
 import os
+import pdb
 
 from IPython.display import SVG, HTML, display
 from base64 import b64encode
@@ -192,9 +193,9 @@ def mol_to_html(mol, highlight=None, name='', type='svg', directory='rdkit_svg',
         img_file = '%s/%s' % (directory, name)
         os.makedirs(directory, exist_ok=True)
         if type.lower() == 'png':
-            save_png(mol, img_file, size=(width,height))
+            save_png(mol, img_file, size=(width,height), highlight=highlight)
         elif type.lower()=='svg':
-            save_svg(mol, img_file, size=(width,height))
+            save_svg(mol, img_file, size=(width,height), highlight=highlight)
         return f"<img src='{img_file}' style='width:{width}px;'>"
 
 def matching_atoms_and_bonds(mol, match_mol):
@@ -217,10 +218,11 @@ def matching_atoms_and_bonds(mol, match_mol):
     match_bonds = []
     if match_mol is not None:
         match_atoms = list(mol.GetSubstructMatch(match_mol))
-        for bond in match_mol.GetBonds():
-           aid1 = match_atoms[bond.GetBeginAtomIdx()]
-           aid2 = match_atoms[bond.GetEndAtomIdx()]
-           match_bonds.append(mol.GetBondBetweenAtoms(aid1,aid2).GetIdx())
+        if len(match_atoms) > 1:
+            for bond in match_mol.GetBonds():
+               aid1 = match_atoms[bond.GetBeginAtomIdx()]
+               aid2 = match_atoms[bond.GetEndAtomIdx()]
+               match_bonds.append(mol.GetBondBetweenAtoms(aid1,aid2).GetIdx())
     return match_atoms, match_bonds
 
 
@@ -241,6 +243,7 @@ def mol_to_pil(mol, size=(400, 200), highlight=None):
     """
     highlight_atoms, highlight_bonds = matching_atoms_and_bonds(mol, highlight)
     pil = MolToImage(mol, size=(size[0], size[1]), highlightAtoms=highlight_atoms, highlightBonds=highlight_bonds)
+    return pil
 
 
 def save_png(mol, name, size=(400, 200), highlight=None):
