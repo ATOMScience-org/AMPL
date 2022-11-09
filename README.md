@@ -159,7 +159,7 @@ Go to the `AMPL` root directory and install the AMPL package:
 conda activate atomsci
 
 # load cuda, if on LC machine 
-module load cuda/11.1
+module load cuda/11.3
 
 # add your conda/envs path to LD_LIBRARY_PATH
 export LD_LIBRARY_PATH=$HOME/.conda/envs/$test_env/lib:$LD_LIBRARY_PATH 

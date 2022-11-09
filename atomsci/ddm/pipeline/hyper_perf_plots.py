@@ -59,11 +59,14 @@ def _prep_perf_df(df):
         perf_track_df['plot_dropout'] = perf_track_df.dropouts.astype(str).str.strip('[]').str.split(pat=',',n=1, expand=True)[0]
         perf_track_df['plot_dropout'] = perf_track_df.plot_dropout.astype(float)
         perf_track_df['layer_sizes'] = perf_track_df.layer_sizes.astype(str).str.strip('[]')
-        perf_track_df[['dummy_nodes_1','dummy_nodes_2','dummy_nodes_3']]=perf_track_df.layer_sizes.str.split(pat=',', n=3, expand=True).astype(float)
-        perf_track_df['num_layers'] = 3-perf_track_df[['dummy_nodes_1','dummy_nodes_2','dummy_nodes_3']].isna().sum(axis=1)
-        perf_track_df[['dummy_nodes_1','dummy_nodes_2','dummy_nodes_3']]=perf_track_df[['dummy_nodes_1','dummy_nodes_2','dummy_nodes_3']].fillna(value=1).astype(int)
-        perf_track_df['num_nodes']=perf_track_df.dummy_nodes_1 * perf_track_df.dummy_nodes_2 * perf_track_df.dummy_nodes_3
-        perf_track_df=perf_track_df.drop(columns=['dummy_nodes_1','dummy_nodes_2','dummy_nodes_3'])
+        cols=['dummy_nodes_1','dummy_nodes_2','dummy_nodes_3']
+        tmp=perf_track_df.layer_sizes.str.split(pat=',', expand=True).astype(float)
+        n=len(tmp.columns)
+        perf_track_df[cols[0:n]]=tmp
+        perf_track_df['num_layers'] = n-perf_track_df[cols[0:n]].isna().sum(axis=1)
+        perf_track_df[cols[0:n]]=perf_track_df[cols[0:n]].fillna(value=1).astype(int)
+        perf_track_df['num_nodes']=perf_track_df[cols[0:n]].product(axis=1)
+        perf_track_df=perf_track_df.drop(columns=cols[0:n])
         perf_track_df.loc[perf_track_df.model_type != "NN", 'layer_sizes']=np.nan
         perf_track_df.loc[perf_track_df.model_type != "NN", 'num_layers']=np.nan
         perf_track_df.loc[perf_track_df.model_type != "NN", 'num_nodes']=np.nan
@@ -245,7 +248,10 @@ def plot_rf_nn_xg_perf(df, scoretype='r2_score',subset='valid'):
         sns.boxplot(x=feat9, y=winnertype, palette=sns.cubehelix_palette(len(plotdf2[feat9].unique()), rot=0, start=2.75), data=plotdf2,    ax=ax[1,2]); ax[1,2].tick_params(rotation=0);  ax[1,2].set_xlabel('XGBoost learning rate')#ax[1,2].legend_.remove()#(bbox_to_anchor=(1,1), title=feat2)
     if 'RF' in perf_track_df.model_type.unique():
         sns.boxplot(x=plotdf2.loc[~plotdf2[feat7].isna(),feat7].astype(int), y=winnertype, palette=sns.cubehelix_palette(len(plotdf2[feat7].unique()), rot=0, start=2.00), data=plotdf2,    ax=ax[2,0]); ax[2,0].tick_params(rotation=0); ax[2,0].set_xlabel('RF number of trees')#ax[2,0].legend_.remove(); ax[2,0].tick_params(rotation=45)
-        sns.boxplot(x=plotdf2.loc[~plotdf2[feat5].isna(),feat5].astype(int), y=winnertype, palette=sns.cubehelix_palette(len(plotdf2[feat5].unique()), rot=0, start=2.00), data=plotdf2,    ax=ax[2,1]); ax[2,1].tick_params(rotation=0); ax[2,1].set_xlabel('RF max depth')#ax[2,1].legend_.remove(); ax[2,1].title.set_text(f"Hyperparameters colored by {feat3}")
+        try:
+            sns.boxplot(x=plotdf2.loc[~plotdf2[feat5].isna(),feat5].astype(int), y=winnertype, palette=sns.cubehelix_palette(len(plotdf2[feat5].unique()), rot=0, start=2.00), data=plotdf2,    ax=ax[2,1]); ax[2,1].tick_params(rotation=0)
+        except: pass
+        ax[2,1].set_xlabel('RF max depth')#ax[2,1].legend_.remove(); ax[2,1].title.set_text(f"Hyperparameters colored by {feat3}")
         sns.boxplot(x=plotdf2.loc[~plotdf2[feat6].isna(),feat6].astype(int), y=winnertype, palette=sns.cubehelix_palette(len(plotdf2[feat6].unique()), rot=0, start=2.00), data=plotdf2,    ax=ax[2,2]); ax[2,2].tick_params(rotation=0); ax[2,2].set_xlabel('RF max features per node')#ax[2,2].legend(bbox_to_anchor=(1,1), title=feat3);
     #general
     plotdf2=plotdf2.sort_values(feat10)

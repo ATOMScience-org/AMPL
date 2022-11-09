@@ -16,7 +16,7 @@ import inspect
 
 import os.path
 import atomsci.ddm.utils.checksum_utils as cu
-import atomsci.ddm.utils.one_to_one as oto
+import atomsci.ddm.utils.many_to_one as mto
 
 from packaging.version import parse
 
@@ -1704,7 +1704,7 @@ def postprocess_args(parsed_args):
     # this can raise 3 exceptions. OneToOneException, NANCompoundID, or NANSMILES
     # we should not proceed in any of these cases.
     if vars(parsed_args).get('dataset_key') and os.path.exists(parsed_args.dataset_key):
-        _ = oto.one_to_one(fn=parsed_args.dataset_key, smiles_col=parsed_args.smiles_col, id_col=parsed_args.id_col)
+        _ = mto.many_to_one(fn=parsed_args.dataset_key, smiles_col=parsed_args.smiles_col, id_col=parsed_args.id_col)
 
     return parsed_args
 
