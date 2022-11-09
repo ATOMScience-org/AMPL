@@ -1700,7 +1700,7 @@ def postprocess_args(parsed_args):
     else:
         raise Exception(f'Unexpected type for response_cols {type(parsed_args.response_cols)}')
 
-    # Make sure that there is a one to one mapping between SMILES and compound ids
+    # Make sure that there is a many to one mapping between SMILES and compound ids
     # this can raise 3 exceptions. OneToOneException, NANCompoundID, or NANSMILES
     # we should not proceed in any of these cases.
     if vars(parsed_args).get('dataset_key') and os.path.exists(parsed_args.dataset_key):
