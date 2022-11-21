@@ -99,7 +99,7 @@ tabulate==0.8.9
 tensorboard==2.8.0
 tensorboard-data-server==0.6.1
 tensorboard-plugin-wit==1.8.1
-tensorflow==2.8.0
+tensorflow==2.9.3
 tensorflow-estimator==2.8.0
 tensorflow-gpu==2.8.0
 tensorflow-io-gcs-filesystem==0.24.0
