@@ -622,7 +622,7 @@ class ClassificationPerfData(PerfData):
     """
     # ****************************************************************************************
     # class ClassificationPerfData
-    def __init__(self, model_dataset, subset):
+    def __init__(self, model_dataset, subset, is_ordinal):
         """Initialize any attributes that are common to all ClassificationPerfData subclasses
         
         Side effects:
@@ -648,6 +648,7 @@ class ClassificationPerfData(PerfData):
         self.perf_metrics = []
         self.model_score = None
         self.weights = None
+        self.is_ordinal = is_ordinal
 
     # ****************************************************************************************
     def accumulate_preds(self, predicted_vals, ids, pred_stds=None):
@@ -804,10 +805,15 @@ class ClassificationPerfData(PerfData):
                 recalls.append(float(recall_score(task_real_vals, task_pred_classes, average='binary')))
                 npvs.append(negative_predictive_value(task_real_vals, task_pred_classes))
 
+            if self.is_ordinal: #STB
+                kappas.append(float(cohen_kappa_score(task_real_classes, task_pred_classes, weights='quadratic')))
+            else:
+                kappas.append(float(cohen_kappa_score(task_real_classes, task_pred_classes)))
+
             cross_entropies.append(log_loss(task_real_vals, task_class_probs))
             accuracies.append(accuracy_score(task_real_classes, task_pred_classes))
             bal_accs.append(balanced_accuracy_score(task_real_classes, task_pred_classes))
-            kappas.append(float(cohen_kappa_score(task_real_classes, task_pred_classes)))
+            
             matthews_ccs.append(float(matthews_corrcoef(task_real_classes, task_pred_classes)))
             confusion_matrices.append(confusion_matrix(task_real_classes, task_pred_classes).tolist())
 
@@ -1621,7 +1627,7 @@ class SimpleClassificationPerfData(ClassificationPerfData):
 
     # ****************************************************************************************
     # class SimpleClassificationPerfData
-    def __init__(self, model_dataset, transformers, subset, predict_probs=True, transformed=True):
+    def __init__(self, model_dataset, transformers, subset, predict_probs=True, transformed=True, is_ordinal=False):
         """ Initialize any attributes that are common to all SimpleClassificationPerfData subclasses
         
         Args:
@@ -1713,6 +1719,7 @@ class SimpleClassificationPerfData(ClassificationPerfData):
         else:
             self.real_vals = dataset.y.reshape((-1,self.num_tasks))
 
+        self.is_ordinal = is_ordinal
 
     # ****************************************************************************************
     # class SimpleClassificationPerfData

@@ -1041,6 +1041,11 @@ def get_parser():
         '--verbose', dest='verbose', action='store_true',
         help='True/False flag for setting verbosity')
     parser.set_defaults(verbose=False)
+    parser.add_argument(   # STB
+        '--is_ordinal', dest='is_ordinal', 
+        help='True/False flag for identifying if the predicted feature is ordinal'
+    )
+    parser.set_defaults(is_ordinal=False)
 
     # **********************************************************************************************************
     # model_building_parameters: graphconv

@@ -556,7 +556,7 @@ class ModelWrapper(object):
             # indicate that we are training a hybrid model
             perf_data = perf.create_perf_data("hybrid", model_dataset, self.transformers, 'full', is_ki=self.params.is_ki, ki_convert_ratio=self.params.ki_convert_ratio, transformed=False)
         else:
-            perf_data = perf.create_perf_data(self.params.prediction_type, model_dataset, self.transformers, 'full', transformed=False)
+            perf_data = perf.create_perf_data(self.params.prediction_type, model_dataset, self.transformers, 'full', transformed=False, is_ordinal=self.params.isordinal) # STB
         full_preds, full_stds = self.generate_predictions(model_dataset.dataset)
         _ = perf_data.accumulate_preds(full_preds, model_dataset.dataset.ids, full_stds)
         return perf_data
