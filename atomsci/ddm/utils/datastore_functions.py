@@ -27,7 +27,7 @@ import atomsci.ddm.utils.file_utils as futils
 
 feather_supported = True
 try:
-    import feather
+    import pyarrow.feather as feather
 except (ImportError, AttributeError, ModuleNotFoundError):
     feather_supported = False
 
