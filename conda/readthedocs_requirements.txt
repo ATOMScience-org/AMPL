@@ -1,5 +1,4 @@
 deepchem
-feather-format
 joblib
 matplotlib
 molvs
