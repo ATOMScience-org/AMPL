@@ -1,0 +1,55 @@
+# Minimal pip requirement list for AMPL. This includes only the packages directly imported by AMPL code, plus a few others
+# commonly used during development.
+
+# Install atomsci.clients from local LLNL gitlab repo. Comment this out for external installations.
+#-e git+ssh://git@czgitlab.llnl.gov:7999/atom/clients.git@efb03672cfb549abb1481b465432a90a1d77386d#egg=atomsci_clients
+#-e git+https://lc.llnl.gov/gitlab/atom/clients.git@efb03672cfb549abb1481b465432a90a1d77386d#egg=atomsci_clients
+bokeh==2.3.3
+bravado==11.0.2
+deepchem==2.6.1
+-f https://data.dgl.ai/wheels/repo.html
+dgl-cu111==0.9.1
+dglgo==0.0.2
+# dgllife requires scikit-learn<1.0, which may conflict with other packages. I think this is bogus. The custom wheel file below changes
+# the requirement to scikit-learn>=0.22.0.
+#dgllife==0.3.0
+/usr/workspace/atom/ampl_gmd_environments/wheels/dgllife-0.3.0-2-py3-none-any.whl
+# feather is now maintained as part of pyarrow. Need to change all code in AMPL that imports feather
+# to instead use 'import pyarrow.feather as feather', and get rid of the feather-format requirement.
+feather-format==0.4.1
+future==0.18.2
+hyperopt==0.2.5
+ipykernel==5.5.0
+ipython==7.16.1
+ipython-genutils==0.2.0
+joblib==1.0.1
+maestrowf==1.1.9
+matplotlib==3.5.1
+matplotlib-venn==0.11.6
+MolVS==0.1.1
+mordred==1.2.0
+numba==0.52.0
+numpy>=1.21.0
+packaging==20.8
+pandas==1.2.4
+protobuf==3.17.1
+pyaml==20.4.0
+pyarrow==2.0.0
+pycairo==1.20.0
+pytest==6.2.1
+PyYAML==5.4
+rdkit-pypi==2022.3.5
+requests==2.22.0
+scipy==1.6.3
+seaborn==0.11.0
+scikit-learn==1.0.2
+tensorflow-gpu==2.8.0
+tensorboard==2.8.0
+tensorboard-data-server==0.6.1
+tensorboard-plugin-wit==1.8.1
+tensorflow-estimator==2.8.0
+tensorflow-io-gcs-filesystem==0.24.0
+torch==1.9.1
+umap-learn==0.4.6
+urllib3==1.25.11
+xgboost==1.4.2
