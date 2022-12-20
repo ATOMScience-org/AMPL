@@ -14,9 +14,6 @@ dglgo==0.0.2
 # the requirement to scikit-learn>=0.22.0.
 #dgllife==0.3.0
 /usr/workspace/atom/ampl_gmd_environments/wheels/dgllife-0.3.0-2-py3-none-any.whl
-# feather is now maintained as part of pyarrow. Need to change all code in AMPL that imports feather
-# to instead use 'import pyarrow.feather as feather', and get rid of the feather-format requirement.
-feather-format==0.4.1
 future==0.18.2
 hyperopt==0.2.5
 ipykernel==5.5.0
