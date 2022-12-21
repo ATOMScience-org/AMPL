@@ -42,7 +42,7 @@ def calc_AD_kmean_dist(train_dset, pred_dset, k, train_dset_pair_distance=None, 
     train_dset and pred_dset should be in 2D numpy array format where each row is a compound.
     """
     if train_dset_pair_distance is None:
-        # calcualate the pairwise distance of training set
+        # calculate the pairwise distance of training set
         train_dset_pair_distance = pairwise_distances(X=train_dset, metric=dist_metric)
     train_kmean_dis = []
     for i in range(len(train_dset_pair_distance)):
@@ -66,7 +66,7 @@ def calc_AD_kmean_local_density(train_dset, pred_dset, k, train_dset_pair_distan
     Evaluate the AD of pred data by comparing the distance betweenthe unseen object and its k nearest neighbors in the training set to the distance between these k nearest neighbors and their k nearest neighbors in the training set. Return the distance ratio. Greater than 1 means the pred data is far from the domain.
     """
     if train_dset_pair_distance is None:
-        # calcualate the pair-wise distance of training set
+        # calculate the pair-wise distance of training set
         train_dset_pair_distance = pairwise_distances(X=train_dset, metric=dist_metric)
     # pairwise distance between train and pred set
     pred_size = len(pred_dset)
@@ -871,8 +871,11 @@ class ModelPipeline:
                 if not hasattr(self, 'featurized_train_data'):
                     self.log.info("Featurizing training data for AD calculation.")
                     self.run_mode = 'training'
-                    # Have to featurize training data using original params (smiles_col, compound_id)
-                    self.load_featurize_data(params=self.orig_params)
+                    # If training data is too big to compute distances in a reasonable time, use a sample of the data
+                    train_data_params = copy.deepcopy(self.orig_params)
+                    train_data_params.max_dataset_rows = max_train_records_for_AD
+
+                    self.load_featurize_data(params=train_data_params)
                     self.run_mode = 'prediction'
                     if len(self.data.train_valid_dsets) > 1:
                         # combine train and valid set for k-fold CV models
@@ -880,10 +883,6 @@ class ModelPipeline:
                     else:
                         train_X = self.data.train_valid_dsets[0][0].X
     
-                    # If training data is too big to compute distances in a reasonable time, use a sample of the data
-                    if train_X.shape[0] > max_train_records_for_AD:
-                        train_X = train_X[np.random.choice(train_X.shape[0], max_train_records_for_AD, replace=False)]
-
                     if self.featurization.feat_type == "graphconv":
                         self.log.info("Computing training data embeddings for AD calculation.")
                         train_dset = dc.data.NumpyDataset(train_X)

@@ -357,6 +357,8 @@ class ModelDataset(object):
             try:
                 self.log.debug("Attempting to load featurized dataset")
                 featurized_dset_df = self.load_featurized_data()
+                if (params.max_dataset_rows > 0) and (len(featurized_dset_df) > params.max_dataset_rows):
+                    featurized_dset_df = featurized_dset_df.sample(n=params.max_dataset_rows)
                 featurized_dset_df[params.id_col] = featurized_dset_df[params.id_col].astype(str)
                 self.log.debug("Got dataset, attempting to extract data")
                 features, ids, self.vals, self.attr = self.featurization.extract_prefeaturized_data(
@@ -383,6 +385,10 @@ class ModelDataset(object):
         else:
             self.log.info("Creating new featurized dataset for dataset %s" % self.dataset_name)
         dset_df = self.load_full_dataset()
+        sample_only = False
+        if (params.max_dataset_rows > 0) and (len(dset_df) > params.max_dataset_rows):
+            dset_df = dset_df.sample(n=params.max_dataset_rows)
+            sample_only = True
         check_task_columns(params, dset_df)
         #features, ids, self.vals, self.attr, w, featurized_dset_df = self.featurization.featurize_data(dset_df, params, self.contains_responses)
         featurized_data = self.featurization.featurize_data(dset_df, params, self.contains_responses)
@@ -393,7 +399,8 @@ class ModelDataset(object):
         w = featurized_data[4]
         if len(featurized_data) > 5:
             featurized_dset_df = featurized_data[5]
-            self.save_featurized_data(featurized_dset_df)
+            if not sample_only:
+                self.save_featurized_data(featurized_dset_df)
 
         self.n_features = self.featurization.get_feature_count()
         print("Number of features: " + str(self.n_features))
