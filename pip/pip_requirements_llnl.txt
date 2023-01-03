@@ -12,8 +12,8 @@ dgl-cu111==0.9.1
 dglgo==0.0.2
 # dgllife requires scikit-learn<1.0, which may conflict with other packages. I think this is bogus. The custom wheel file below changes
 # the requirement to scikit-learn>=0.22.0.
-#dgllife==0.3.0
-/usr/workspace/atom/ampl_gmd_environments/wheels/dgllife-0.3.0-2-py3-none-any.whl
+dgllife==0.3.1
+#/usr/workspace/atom/ampl_gmd_environments/wheels/dgllife-0.3.0-2-py3-none-any.whl
 future==0.18.2
 hyperopt==0.2.5
 ipykernel==5.5.0
