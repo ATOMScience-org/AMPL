@@ -398,7 +398,10 @@ class MultitaskScaffoldSplitter(Splitter):
             A float between 0 and 1. 1 best 0 is worst
         """
         start = timeit.default_timer()
+        # total_counts is the number of labels per task
         total_counts = np.sum(self.dataset.w, axis=0)
+
+        # subset_counts is number of labels per task per subset
         subset_counts = [np.sum(self.dataset.w[subset], axis=0) for subset in \
                             self.split_chromosome_to_compound_split(split_chromosome)]
 
@@ -537,7 +540,6 @@ class MultitaskScaffoldSplitter(Splitter):
         """
         if seed is not None:
             np.random.seed(seed)
-
         self.dataset = dataset
         self.diff_fitness_weight_tvt = diff_fitness_weight_tvt
         self.diff_fitness_weight_tvv = diff_fitness_weight_tvv

@@ -23,10 +23,11 @@ import tempfile
 import getpass
 
 from atomsci.ddm.utils.llnl_utils import is_lc_system
+import atomsci.ddm.utils.file_utils as futils
 
 feather_supported = True
 try:
-    import feather
+    import pyarrow.feather as feather
 except (ImportError, AttributeError, ModuleNotFoundError):
     feather_supported = False
 
@@ -449,9 +450,8 @@ def retrieve_dataset_by_datasetkey(dataset_key, bucket, client=None, return_meta
     elif file_type == 'gz' or file_type == 'tgz':
         # tar.gz (tarball) file. Extract to path specified and return path.
         fp = client.open_bucket_dataset (bucket, dataset_key, mode='b')
-        fp = tarfile.open(fileobj=fp, mode='r:gz')
-        fp.extractall(path=tarpath)
-        fp.close()
+        with tarfile.open(fileobj=fp, mode='r:gz') as tar:
+            futils.safe_extract(tar, path=tarpath)
 
         #get new folder name and return full path
         extracted_dir = all_metadata['distribution'].get('filename')
@@ -560,9 +560,8 @@ def retrieve_dataset_by_dataset_oid(dataset_oid, client=None, return_metadata=Fa
     elif file_type == 'gz' or file_type == 'tgz':
         # tar.gz (tarball) file. Extract to path specified and return path.
         fp = client.open_dataset (dataset_oid, mode='b')
-        fp = tarfile.open(fileobj=fp, mode='r:gz')
-        fp.extractall(path=tarpath)
-        fp.close()
+        with tarfile.open(fileobj=fp, mode='r:gz') as tar:
+            futils.safe_extract(tar, path=tarpath)
 
         #get new folder name and return full path
         extracted_dir = all_metadata['distribution'].get('filename')

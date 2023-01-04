@@ -25,11 +25,11 @@ fi
 if [ -d "/p/vast1" ]
 then
     echo "Run on LC. Load CUDA."
-    module load cuda/11.1
+    module load cuda/11.3
 else
     echo "Not running on LC. Suggestions: "
     echo "   1) Install CUDA"
-    echo "      https://developer.nvidia.com/cuda-11.1.0-download-archive"
+    echo "      https://developer.nvidia.com/cuda-11.3.0-download-archive"
     echo "   2) Set up an environment variable to use CPU instead of GPU"
     echo "      $ export CUDA_VISIBLE_DEVICES=''"
 fi

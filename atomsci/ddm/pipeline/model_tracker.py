@@ -15,6 +15,7 @@ logger = logging.getLogger('ATOM')
 from atomsci.ddm.utils import datastore_functions as dsf
 from atomsci.ddm.pipeline import parameter_parser as parse
 from atomsci.ddm.pipeline import transformations as trans
+import atomsci.ddm.utils.file_utils as futils
 
 mlmt_supported = True
 try:
@@ -305,7 +306,7 @@ def extract_datastore_model_tarball(model_uuid, model_bucket, output_dir, model_
 
     with ds_client.open_bucket_dataset(model_bucket, model_dataset_key, mode='b') as dstore_fp:
         with tarfile.open(fileobj=dstore_fp, mode='r:gz') as tfile:
-            tfile.extractall(path=extract_dir)
+            futils.safe_extract(tfile, path=extract_dir)
     logger.info(f"Extracted model tarball contents to {extract_dir}")
     return extract_dir
 
