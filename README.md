@@ -27,7 +27,7 @@ Documentation in readthedocs format is available [here](https://ampl.readthedocs
   - [Prerequisites](#Prerequisites)
   - [Install](#Install)
      - [Clone the git repository](#clone-repo)
-     - [Create conda environment](#create-conda-env)
+     - [Create pip environment](#create-pip-env)
      - [dgl and CUDA (**optional**)](#Install-dgl)
   - [Install with Docker](#Install-docker)
   - [AMPL usage survey](#AMPL-usage-survey)
@@ -70,69 +70,88 @@ AMPL is a Python 3 package that has been developed and run in a specific conda e
 `git clone https://github.com/ATOMScience-org/AMPL.git`  
 &nbsp;  
 
-#### Create conda environment
-<a name="create-conda-env"></a>
+#### Create pip environment
+<a name="create-pip-env"></a>
 
-There are two options:
-##### Option 1: do it manually.
+##### Create a virtual env.
 
-> ***Note***: *`atomsci` is an example Conda environment name used here*.
+> ***Note***:
+> *We use `ampl15_toss3 `as an example here.*
 
-```
-cd conda
+1. Go to the directory that will be the parent of the installation directory.
 
-conda create -y -n atomsci --file conda_package_list.txt
+   1.1 Define an environment variable - `ENVROOT`. For example:
 
-conda activate atomsci
-
-pip install -r pip_requirements.txt
-
-# This is to fix the error:
-#
-# 'tensorflow.python.training.experimental.mixed_precision' has no attribute '_register_wrapper_optimizer_cls'
-
-pip uninstall -y keras
-
-pip install -U tensorflow==2.8.0 keras==2.8.0
+```bash
+export ENVROOT=/home/<user>
+cd $ENVROOT
 ```
 
-##### Option 2: use a script.
-There is a script `create_ampl_env.sh` that will automate the conda env creation and the packages install for you.
+2. Use python 3.7 (required)
 
+   2.1 Install python 3.7 *WITHOUT* using `conda`; or
+
+   2.2 Point your PATH to an existing python 3.7 installation.
+
+> ***Note***:
+> For LLNL users, put python 3.7 in your PATH. For example:
+
+```bash
+module load python/3.7.2
 ```
-$ source create_ampl_env.sh
+
+3. Create the virtual environment:
+
+> ***Note***:
+> Only use `--system-site-packages` if you need to allow overriding packages with local versions (see below).
+
+If you are going to install/modify packages within the virtualenv, you __do not__ need this flag.
+
+For example:
+```bash
+python3 -m venv ampl15_toss3
 ```
 
-It will
+4. Activate the environment
+```bash
+source $ENVROOT/ampl15_toss3/bin/activate
+```
+5. Setup `PYTHONUSERBASE` environment variable
 
-- Prompt for a new conda environment name
-- Then run
- - conda create
- - conda activate
- - and pip install and other fixes
+```bash
+export PYTHONUSERBASE=$ENVROOT/ampl15_toss3
+```
+
+6. Update pip, then use pip to install AMPL dependencies
+```bash
+python3 -m pip install pip --upgrade
+```
+
+7. Clone AMPL if you have not done so. See [instruction](#Install)
+
+8. Go to $AMPL_HOME/pip directory
+
+```bash
+cd $AMPL_HOME/pip
+pip3 install --force-reinstall --no-use-pep517 -r [pip_requirements_llnl.txt|pip_requirements_external.txt]
+```
+> ***Note***:
+> * If you are on LLNL LC machines, use `pip_requirements_llnl.txt` to install. It will clone `atomsci-clients` source repo
+> * For users outside of LLNL, use `pip_requirements_external.txt`.
 
 > ***Note***: *Depending on system performance, creating the environment can take some time.*
 &nbsp;
 
 #### Install AMPL
-Go to the `AMPL` root directory and install the AMPL package:
-```
-conda activate atomsci
+If you're an `AMPL` developer and want the installed `AMPL` package to link back to your cloned git repo, Run the following to build. 
 
-cd ..
+Here `$GITHOME` refers to the parent of your `AMPL` git working directory.
 
-./build.sh && ./install.sh system
+```bash
+cd $GITHOME/AMPL
+./build.sh
+pip3 install -e .
 ```
-
-#### Create jupyter notebook kernel (optional)
-With your environment activated:
-```
-python -m ipykernel install --user --name atomsci
-```
-- The `install.sh system` command installs AMPL directly in the conda environment. If `install.sh` alone is used, then AMPL is installed in the `$HOME/.local` directory.
-
-- After this process, you will have an `atomsci` conda environment with all dependencies installed. The name of the AMPL package is `atomsci-ampl` and is installed in the `install.sh` script to the environment with conda's `pip`.
-&nbsp;  
 
 #### More installation information
 - More details on installation can be found in [Advanced installation](#Advanced-installation).  
@@ -154,18 +173,20 @@ $ export CUDA_VISIBLE_DEVICES=''
 
 ##### If your machine has CUDA,
 
-Go to the `AMPL` root directory and install the AMPL package:
 ```
-conda activate atomsci
-
 # load cuda, if on LC machine 
 module load cuda/11.3
-
-# add your conda/envs path to LD_LIBRARY_PATH
-export LD_LIBRARY_PATH=$HOME/.conda/envs/$test_env/lib:$LD_LIBRARY_PATH 
 ```
 
-where `$test_env` is the name of the your current Conda environment to run [dgl](https://www.dgl.ai/) in.
+#### Create jupyter notebook kernel (optional)
+With your environment activated:
+```
+python -m ipykernel install --user --name atomsci
+```
+- The `install.sh system` command installs AMPL directly in the conda environment. If `install.sh` alone is used, then AMPL is installed in the `$HOME/.local` directory.
+
+- After this process, you will have an `atomsci` conda environment with all dependencies installed. The name of the AMPL package is `atomsci-ampl` and is installed in the `install.sh` script to the environment with conda's `pip`.
+&nbsp;  
 
 <a name="Install-docker"></a>
 ### Install with Docker
