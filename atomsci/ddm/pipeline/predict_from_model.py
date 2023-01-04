@@ -32,6 +32,10 @@ def predict_from_tracker_model(model_uuid, collection, input_df, id_col='compoun
 
         conc_col (str): Name of an optional column containing the concentration for single concentration activity (% binding) 
         prediction in hybrid models.
+        
+        is_featurized (bool): True if input_df contains precomputed feature columns. If so, input_df must contain *all*
+        of the feature columns defined by the featurizer that was used when the model was trained. Default is False which
+        tells AMPL to compute the necessary descriptors.
 
         dont_standardize (bool): By default, SMILES strings are salt-stripped and standardized using RDKit; 
         if you have already done this, or don't want them to be standardized, set dont_standardize to True.
@@ -81,7 +85,11 @@ def predict_from_model_file(model_path, input_df, id_col='compound_id', smiles_c
 
         conc_col (str): Name of an optional column containing the concentration for single concentration activity (% binding) 
         prediction in hybrid models.
-
+        
+        is_featurized (bool): True if input_df contains precomputed feature columns. If so, input_df must contain *all*
+        of the feature columns defined by the featurizer that was used when the model was trained. Default is False which
+        tells AMPL to compute the necessary descriptors.
+        
         dont_standardize (bool): By default, SMILES strings are salt-stripped and standardized using RDKit; 
         if you have already done this, or don't want them to be standardized, set dont_standardize to True.
 
