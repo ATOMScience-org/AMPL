@@ -10,7 +10,8 @@ from atomsci.ddm.utils.struct_utils import base_smiles_from_smiles
 
 # =====================================================================================================
 def predict_from_tracker_model(model_uuid, collection, input_df, id_col='compound_id', smiles_col='rdkit_smiles',
-                     response_col=None, conc_col=None, is_featurized=False, dont_standardize=False, AD_method=None, k=5, dist_metric="euclidean"):
+                     response_col=None, conc_col=None, is_featurized=False, dont_standardize=False, AD_method=None, k=5, 
+                     dist_metric="euclidean", max_train_records_for_AD=1000):
     """
     Loads a pretrained model from the model tracker database and runs predictions on compounds in an input
     data frame.
@@ -36,32 +37,46 @@ def predict_from_tracker_model(model_uuid, collection, input_df, id_col='compoun
         dont_standardize (bool): By default, SMILES strings are salt-stripped and standardized using RDKit; 
         if you have already done this, or don't want them to be standardized, set dont_standardize to True.
 
-        AD_method (str): with default, Applicable domain (AD) index will not be calcualted, use 
-        z_score or local_density to choose the method to calculate AD index.
-        
-        k (int): number of the neareast neighbors to evaluate the AD index, default is 5.
+        AD_method (str or None): Method to use to compute applicability domain (AD) index; may be
+        'z_score', 'local_density' or None (the default). With the default value, AD indices
+        will not be calculated.
 
-        dist_metric (str): distance metrics, valid values are 'cityblock', 'cosine', 'euclidean', 'jaccard', 'manhattan'
+        k (int): Number of nearest neighbors of each training data point used to evaluate the AD index.
+
+        dist_metric (str): Metric used to compute distances between feature vectors for AD index calculation. 
+        Valid values are 'cityblock', 'cosine', 'euclidean', 'jaccard', and 'manhattan'. If binary
+        features such as fingerprints are used in model, 'jaccard' (equivalent to Tanimoto distance) may
+        be a better choice than the other metrics which operate on continuous features.
+
+        max_train_records_for_AD (int): Maximum number of training data rows to use for AD calculation. 
+        Note that the AD calculation time scales as the square of the number of training records used.
+        If the training dataset is larger than `max_train_records_for_AD`, a random sample of rows with
+        this size is used instead for the AD calculations.
+
     Return: 
-        A data frame with compound IDs, SMILES strings and predicted response values. Actual response values
-        will be included if response_col is provided. Standard prediction error estimates will be included
-        if the model was trained with uncertainty=True. Note that the predicted and actual response
-        columns will be labeled according to the response_col setting in the original training data,
-        not the response_col passed to this function; e.g. if the original model response_col was 'pIC50',
-        the returned data frame will contain columns 'pIC50_actual', 'pIC50_pred' and 'pIC50_std'.
+        A data frame with compound IDs, SMILES strings, predicted response values, and (optionally) uncertainties
+        and/or AD indices. In addition, actual response values will be included if `response_col` is specified. 
+        Standard prediction error estimates will be included if the model was trained with uncertainty=True. 
+        Note that the predicted and actual response columns and standard errors will be labeled according to the 
+        `response_col` setting in the original training data, not the `response_col` passed to this function. For example,
+        if the original model response_col was 'pIC50', the returned data frame will contain columns 'pIC50_actual', 
+        'pIC50_pred' and 'pIC50_std'. 
+        
+        For proper AD index calculation, the original data column names must be the same for the new data.
     """
     input_df, pred_params = _prepare_input_data(input_df, id_col, smiles_col, response_col, conc_col, dont_standardize)
     has_responses = ('response_cols' in pred_params)
     pred_params = parse.wrapper(pred_params)
     pipe = mp.create_prediction_pipeline(pred_params, model_uuid, collection)
     pred_df = pipe.predict_full_dataset(input_df, contains_responses=has_responses, is_featurized=is_featurized,
-                                        dset_params=pred_params, AD_method=AD_method, k=k, dist_metric=dist_metric)
+                                        dset_params=pred_params, AD_method=AD_method, k=k, dist_metric=dist_metric,
+                                        max_train_records_for_AD=max_train_records_for_AD)
     return pred_df
 
 # =====================================================================================================
 def predict_from_model_file(model_path, input_df, id_col='compound_id', smiles_col='rdkit_smiles',
                      response_col=None, conc_col=None, is_featurized=False, dont_standardize=False, AD_method=None, k=5, dist_metric="euclidean",
-                     external_training_data=None):
+                     external_training_data=None, max_train_records_for_AD=1000):
     """
     Loads a pretrained model from a model tarball file and runs predictions on compounds in an input
     data frame.
@@ -85,23 +100,40 @@ def predict_from_model_file(model_path, input_df, id_col='compound_id', smiles_c
         dont_standardize (bool): By default, SMILES strings are salt-stripped and standardized using RDKit; 
         if you have already done this, or don't want them to be standardized, set dont_standardize to True.
 
-        AD_method (str): with default, Applicable domain (AD) index will not be calcualted, use 
-        z_score or local_density to choose the method to calculate AD index.
-        
-        k (int): number of the neareast neighbors to evaluate the AD index, default is 5.
+        AD_method (str or None): Method to use to compute applicability domain (AD) index; may be
+        'z_score', 'local_density' or None (the default). With the default value, AD indices
+        will not be calculated.
 
-        dist_metric (str): distance metrics, valid values are 'cityblock', 'cosine', 'euclidean', 'jaccard', 'manhattan'
+        k (int): Number of nearest neighbors of each training data point used to evaluate the AD index.
+
+        dist_metric (str): Metric used to compute distances between feature vectors for AD index calculation. 
+        Valid values are 'cityblock', 'cosine', 'euclidean', 'jaccard', and 'manhattan'. If binary
+        features such as fingerprints are used in model, 'jaccard' (equivalent to Tanimoto distance) may
+        be a better choice than the other metrics which operate on continuous features.
+
+        external_training_data (str): Path to a copy of the model training dataset. Used for AD index computation in
+        the case where the model was trained on a different computing system, or more generally when the training
+        data is not accessible at the path saved in the model metadata.
+
+        max_train_records_for_AD (int): Maximum number of training data rows to use for AD calculation. 
+        Note that the AD calculation time scales as the square of the number of training records used.
+        If the training dataset is larger than `max_train_records_for_AD`, a random sample of rows with
+        this size is used instead for the AD calculations.
         
-        external_training_data (str): path to where the dataset is if the model was originally trained elsewhere. For AD_index calc.
     Return: 
-        A data frame with compound IDs, SMILES strings and predicted response values. Actual response values
-        will be included if response_col is provided. Standard prediction error estimates will be included
-        if the model was trained with uncertainty=True. Note that the predicted and actual response
-        columns will be labeled according to the response_col setting in the original training data,
-        not the response_col passed to this function; e.g. if the original model response_col was 'pIC50',
-        the returned data frame will contain columns 'pIC50_actual', 'pIC50_pred' and 'pIC50_std'. For proper
-        ADI calculation, the original data column names must be the same for the new data.
+        A data frame with compound IDs, SMILES strings, predicted response values, and (optionally) uncertainties
+        and/or AD indices. In addition, actual response values will be included if `response_col` is specified. 
+        Standard prediction error estimates will be included if the model was trained with uncertainty=True. 
+        Note that the predicted and actual response columns and standard errors will be labeled according to the 
+        `response_col` setting in the original training data, not the `response_col` passed to this function. For example,
+        if the original model response_col was 'pIC50', the returned data frame will contain columns 'pIC50_actual', 
+        'pIC50_pred' and 'pIC50_std'. 
+        
+        For proper AD index calculation, the original data column names must be the same for the new data.
     """
+
+    # TODO (ksm): How to deal with response_col in the case of multitask models? User would have to provide a map
+    # from the original response column names to the column names in the provided data frame.
 
     input_df, pred_params = _prepare_input_data(input_df, id_col, smiles_col, response_col, conc_col, dont_standardize)
 
@@ -112,7 +144,8 @@ def predict_from_model_file(model_path, input_df, id_col='compound_id', smiles_c
     if external_training_data is not None:
         pipe.params.dataset_key=external_training_data
     pred_df = pipe.predict_full_dataset(input_df, contains_responses=has_responses, is_featurized=is_featurized,
-                                        dset_params=pred_params, AD_method=AD_method, k=k, dist_metric=dist_metric)
+                                        dset_params=pred_params, AD_method=AD_method, k=k, dist_metric=dist_metric,
+                                        max_train_records_for_AD=max_train_records_for_AD)
     pred_df=input_df.merge(pred_df)
     return pred_df
 
