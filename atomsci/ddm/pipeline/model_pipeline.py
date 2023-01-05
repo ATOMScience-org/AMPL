@@ -705,12 +705,16 @@ class ModelPipeline:
 
             verbose (boolean): A switch for disabling informational messages
 
-            AD_method (str): with default, Applicable domain (AD) index will not be calcualted, use 
-            z_score or local_density to choose the method to calculate AD index.
+            AD_method (str or None): Method to use to compute applicability domain (AD) index; may be
+            'z_score', 'local_density' or None (the default). With the default value, AD indices
+            will not be calculated.
 
-            k (int): number of the neareast neighbors to evaluate the AD index, default is 5.
+            k (int): Number of nearest neighbors of each training data point used to evaluate the AD index.
 
-            dist_metric (str): distance metrics, valid values are 'cityblock', 'cosine', 'euclidean', 'jaccard', 'manhattan'
+            dist_metric (str): Metric used to compute distances between feature vectors for AD index calculation. 
+            Valid values are 'cityblock', 'cosine', 'euclidean', 'jaccard', and 'manhattan'. If binary
+            features such as fingerprints are used in model, 'jaccard' (equivalent to Tanimoto distance) may
+            be a better choice than the other metrics which operate on continuous features.
 
         Returns:
             res (DataFrame): Data frame indexed by compound IDs containing a column of SMILES
@@ -773,15 +777,21 @@ class ModelPipeline:
             and optionally, response_cols. If not provided, id_col, smiles_col and response_cols are
             assumed to be same as in the pretrained model.
 
-            AD_method (str): with default, Applicable domain (AD) index will not be calcualted, use 
-            z_score or local_density to choose the method to calculate AD index.
+            AD_method (str or None): Method to use to compute applicability domain (AD) index; may be
+            'z_score', 'local_density' or None (the default). With the default value, AD indices
+            will not be calculated.
 
-            k (int): number of the neareast neighbors to evaluate the AD index, default is 5.
+            k (int): Number of nearest neighbors of each training data point used to evaluate the AD index.
 
-            dist_metric (str): distance metrics, valid values are 'cityblock', 'cosine', 'euclidean', 'jaccard', 'manhattan'
+            dist_metric (str): Metric used to compute distances between feature vectors for AD index calculation. 
+            Valid values are 'cityblock', 'cosine', 'euclidean', 'jaccard', and 'manhattan'. If binary
+            features such as fingerprints are used in model, 'jaccard' (equivalent to Tanimoto distance) may
+            be a better choice than the other metrics which operate on continuous features.
 
-            max_train_records_for_AD (int): Maximum number of training data rows to use for AD calculation. Note that the AD calculation time
-            scales as the square of the number of training records used.
+            max_train_records_for_AD (int): Maximum number of training data rows to use for AD calculation. 
+            Note that the AD calculation time scales as the square of the number of training records used.
+            If the training dataset is larger than `max_train_records_for_AD`, a random sample of rows with
+            this size is used instead for the AD calculations.
 
         Returns:
             result_df (DataFrame): Data frame indexed by compound IDs containing a column of SMILES
