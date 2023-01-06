@@ -390,20 +390,12 @@ class ModelDataset(object):
             dset_df = dset_df.sample(n=params.max_dataset_rows)
             sample_only = True
         check_task_columns(params, dset_df)
-        #features, ids, self.vals, self.attr, w, featurized_dset_df = self.featurization.featurize_data(dset_df, params, self.contains_responses)
-        featurized_data = self.featurization.featurize_data(dset_df, params, self.contains_responses)
-        features = featurized_data[0]
-        ids = featurized_data[1]
-        self.vals = featurized_data[2]
-        self.attr = featurized_data[3]
-        w = featurized_data[4]
-        if len(featurized_data) > 5:
-            featurized_dset_df = featurized_data[5]
-            if not sample_only:
-                self.save_featurized_data(featurized_dset_df)
+        features, ids, self.vals, self.attr, w, featurized_dset_df = self.featurization.featurize_data(dset_df, params, self.contains_responses)
+        if not sample_only:
+            self.save_featurized_data(featurized_dset_df)
 
         self.n_features = self.featurization.get_feature_count()
-        print("Number of features: " + str(self.n_features))
+        self.log.debug("Number of features: " + str(self.n_features))
            
         # Create the DeepChem dataset       
         self.dataset = DiskDataset.from_numpy(features, self.vals, ids=ids, w=w)
@@ -820,8 +812,8 @@ class MinimalDataset(ModelDataset):
             self.log.warning("Done")
         else:
             self.log.warning("Featurizing data...")
-            #JEA
-            features, ids, self.vals, self.attr, _ = self.featurization.featurize_data(dset_df, params, self.contains_responses)
+            features, ids, self.vals, self.attr, weights, featurized_dset_df  = self.featurization.featurize_data(dset_df, 
+                                                                                    params, self.contains_responses)
             self.log.warning("Done")
         self.n_features = self.featurization.get_feature_count()
         print("number of features: " + str(self.n_features))
@@ -1281,7 +1273,12 @@ class FileDataset(ModelDataset):
                 featurized_dset_df (pd.DataFrame): Dataset as a DataFrame that contains the featurized data
         """
 
-        featurized_dset_name = self.featurization.get_featurized_dset_name(self.dataset_name)
+        try:
+            featurized_dset_name = self.featurization.get_featurized_dset_name(self.dataset_name)
+        except NotImplementedError:
+            # Featurizer is non-persistent, so do nothing
+            return
+
         dataset_dir = os.path.dirname(self.params.dataset_key)
         data_dir = os.path.join(dataset_dir, self.featurization.get_featurized_data_subdir())
         featurized_dset_path = os.path.join(data_dir, featurized_dset_name)
