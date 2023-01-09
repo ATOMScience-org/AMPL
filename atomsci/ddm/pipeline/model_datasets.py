@@ -387,7 +387,7 @@ class ModelDataset(object):
         dset_df = self.load_full_dataset()
         sample_only = False
         if (params.max_dataset_rows > 0) and (len(dset_df) > params.max_dataset_rows):
-            dset_df = dset_df.sample(n=params.max_dataset_rows)
+            dset_df = dset_df.sample(n=params.max_dataset_rows).reset_index(drop=True)
             sample_only = True
         check_task_columns(params, dset_df)
         features, ids, self.vals, self.attr, w, featurized_dset_df = self.featurization.featurize_data(dset_df, params, self.contains_responses)
