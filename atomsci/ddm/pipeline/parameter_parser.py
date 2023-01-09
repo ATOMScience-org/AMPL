@@ -901,7 +901,7 @@ def get_parser():
         help='OID of the model dataset inserted into the datastore. Specific to LLNL datastore system.')
     parser.add_argument(
         '--datastore', dest='datastore', action='store_true',
-        help='Boolean flag for using an input file from the LLNL specific datastore system based on a key of'
+        help='Boolean flag for using an input file from the LLNL specific datastore system based on a key of '
              'dataset_key')
     parser.set_defaults(datastore=False)
     parser.add_argument(
@@ -909,7 +909,7 @@ def get_parser():
         help='Name of column containing compound IDs. Will default to compound_id if not specified')
     parser.add_argument(
         '--min_compound_number', dest='min_compound_number', default=200, type=int,
-        help='Minimum number of dataset compounds considered adequate for model training. A warning message will be'
+        help='Minimum number of dataset compounds considered adequate for model training. A warning message will be '
              'issued if the dataset size is less than this.')
     parser.add_argument(
         '--response_cols', '-y', dest='response_cols', type=str,
@@ -922,6 +922,11 @@ def get_parser():
     parser.add_argument(
         '--smiles_col', dest='smiles_col', default='rdkit_smiles',
         help='Name of column containing SMILES strings. Will default to "rdkit_smiles" if not specified')
+    parser.add_argument(
+        '--max_dataset_rows', dest='max_dataset_rows', default=0, type=int,
+        help='Maximum number of dataset records to be used for training. By default all records are used. '
+             'If a nonzero value is specified and the dataset is larger than the given value, a random sample '
+             'will be used.')
 
     # **********************************************************************************************************
     # model_building_parameters: autoencoders
