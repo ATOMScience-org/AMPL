@@ -293,20 +293,29 @@ def extract_datastore_model_tarball(model_uuid, model_bucket, output_dir, model_
     ds_client = dsf.config_client()
     model_dataset_key = 'model_%s_tarball' % model_uuid
 
+    # Download the tarball to a temporary file so we can analyze it and extract its contents. Unfortunately the tarfile
+    # module prevents us from using the datastore client stream directly because it requires that the stream be seekable.
+    tarfile_fp = tempfile.NamedTemporaryFile(suffix='.tar.gz', delete=False)
+    tarfile_path = tarfile_fp.name
+    with ds_client.open_bucket_dataset(model_bucket, model_dataset_key, mode='b') as dstore_fp:
+        for chunk in dstore_fp:
+            if chunk:
+                tarfile_fp.write(chunk)
+    tarfile_fp.close()
+
     # Look at the tarball contents and figure out which format it's in. If it already has the metadata.json
     # and transformers, extract it into output_dir; otherwise into model_dir.
-    with ds_client.open_bucket_dataset(model_bucket, model_dataset_key, mode='b') as dstore_fp:
-        with tarfile.open(fileobj=dstore_fp, mode='r:gz') as tfile:
+    with open(tarfile_path, 'rb') as tarfile_fp:
+        with tarfile.open(fileobj=tarfile_fp, mode='r:gz') as tfile:
             tar_contents = tfile.getnames()
-    if './model_metadata.json' in tar_contents:
-        extract_dir = output_dir
-    else:
-        extract_dir = model_dir
-    os.makedirs(extract_dir, exist_ok=True)
-
-    with ds_client.open_bucket_dataset(model_bucket, model_dataset_key, mode='b') as dstore_fp:
-        with tarfile.open(fileobj=dstore_fp, mode='r:gz') as tfile:
+            if './model_metadata.json' in tar_contents:
+                extract_dir = output_dir
+            else:
+                extract_dir = model_dir
+            os.makedirs(extract_dir, exist_ok=True)
             futils.safe_extract(tfile, path=extract_dir)
+
+    os.remove(tarfile_path)
     logger.info(f"Extracted model tarball contents to {extract_dir}")
     return extract_dir
 

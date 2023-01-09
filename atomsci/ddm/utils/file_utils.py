@@ -1,6 +1,6 @@
 """
 file_utils.py
-Utilities for files related functions
+Utilities for file related functions
 """
 
 import tarfile
@@ -18,17 +18,17 @@ def is_within_directory(directory, target):
    return prefix == abs_directory
 
 def safe_extract(tar, path=".", members=None, numeric_owner=False):
-   """Fix the vulnerability of the path traversal attact in extract() and 
-   extrall() functions.
+   """Fix the vulnerability of the path traversal attack in extract() and 
+   extractall() functions.
    
    @see bugs -  CVE-2007-4559
    https://www.trellix.com/en-us/about/newsroom/stories/research/tarfile-exploiting-the-world.html
 
    Args:
-      tar: An input location of the tgz file as string
-      path: Output location path
-      members: members of the subset list returned by getmembers()
-      numberic_owner: if True, use the uid and gid number from the tar file to set owner/group of the extracted files 
+      tar (tarfile.TarFile): A TarFile object representing an open tar archive.
+      path: Output file path where the archive is to be extracted.
+      members: Relative paths for the members of the tar archive to be extracted.
+      numeric_owner: If True, use the uid and gid number from the tar file to set owner/group of the extracted files.
    """
    for member in tar.getmembers():
         member_path = os.path.join(path, member.name)

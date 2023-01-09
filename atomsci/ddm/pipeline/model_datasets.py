@@ -68,6 +68,28 @@ def create_minimal_dataset(params, featurization, contains_responses=False):
     return MinimalDataset(params, featurization, contains_responses)
 
 # ****************************************************************************************
+def check_task_columns(params, dset_df):
+    """Check that the data frame dset_df contains all the columns listed in params.response_cols.
+
+    Args:
+        params (Namespace): Parsed parameter structure; must include response_cols parameter at minimum.
+
+        dset_df (pd.DataFrame): Dataset as a DataFrame that contains columns for the prediction tasks
+        
+    Raises:
+        Exception:
+            If response columns not set in params.
+            If input dataset is missing response columns
+
+    """
+    if params.response_cols is None:
+        raise Exception("Unable to determine prediction tasks for dataset")
+    missing_tasks = list(set(params.response_cols) - set(dset_df.columns.values))
+    if len(missing_tasks) > 0:
+        raise Exception(f"Requested prediction task columns {missing_tasks} are missing from training dataset")
+
+
+# ****************************************************************************************
 def set_group_permissions(system, path, data_owner='public', data_owner_group='public'):
     """Set file group and permissions to standard values for a dataset containing proprietary
     or public data, as indicated by 'data_owner'.
@@ -304,26 +326,6 @@ class ModelDataset(object):
         raise NotImplementedError
 
     # ****************************************************************************************
-    def check_task_columns(self, dset_df):
-        """Check that the data frame dset_df contains columns for the requested prediction tasks.
-
-        Args:
-            dset_df (pd.DataFrame): Dataset as a DataFrame that contains columns for the prediction tasks
-            
-        Raises:
-            Exception:
-                If self.get_dataset_tasks(dset_df) cannot retrieve prediction tasks for the dtaset
-                If missing prediction task columns from the input dataset
-
-        """
-        if not self.get_dataset_tasks(dset_df):
-            raise Exception("Unable to determine prediction tasks for dataset %s" % self.dataset_name)
-        missing_tasks = list(set(self.tasks) - set(dset_df.columns.values))
-        if len(missing_tasks) > 0:
-            raise Exception("Requested prediction task columns %s are missing from dataset %s" % (
-                ", ".join(missing_tasks), self.dataset_name))
-
-    # ****************************************************************************************
     def load_featurized_data(self):
         """Loads prefeaturized data from the datastore or filesystem. Returns a data frame,
         which is then passed to featurization.extract_prefeaturized_data() for processing.
@@ -335,7 +337,7 @@ class ModelDataset(object):
         raise NotImplementedError
 
     # ****************************************************************************************
-    def get_featurized_data(self):
+    def get_featurized_data(self, params=None):
         """Does whatever is necessary to prepare a featurized dataset.
         Loads an existing prefeaturized dataset if one exists and if parameter previously_featurized is
         set True; otherwise loads a raw dataset and featurizes it. Creates an associated DeepChem Dataset
@@ -349,24 +351,28 @@ class ModelDataset(object):
                 attr: A pd.dataframe containing the compound ids and smiles
         """
         
-        if self.params.previously_featurized:
+        if params is None:
+            params = self.params
+        if params.previously_featurized:
             try:
                 self.log.debug("Attempting to load featurized dataset")
                 featurized_dset_df = self.load_featurized_data()
-                featurized_dset_df[self.params.id_col] = featurized_dset_df[self.params.id_col].astype(str)
+                if (params.max_dataset_rows > 0) and (len(featurized_dset_df) > params.max_dataset_rows):
+                    featurized_dset_df = featurized_dset_df.sample(n=params.max_dataset_rows)
+                featurized_dset_df[params.id_col] = featurized_dset_df[params.id_col].astype(str)
                 self.log.debug("Got dataset, attempting to extract data")
                 features, ids, self.vals, self.attr = self.featurization.extract_prefeaturized_data(
-                                                           featurized_dset_df, self)
+                                                           featurized_dset_df, params)
                 self.n_features = self.featurization.get_feature_count()
                 self.log.debug("Creating deepchem dataset")
                 
                 # don't do make_weights which convert all NaN rows into 0 for hybrid model
-                if self.params.model_type != "hybrid":
+                if params.model_type != "hybrid":
                     self.vals, w = feat.make_weights(self.vals)
                 else:
                     w = np.ones_like(self.vals)
 
-                if self.params.prediction_type=='classification':
+                if params.prediction_type=='classification':
                     w = w.astype(np.float32)
 
                 self.dataset = DiskDataset.from_numpy(features, self.vals, ids=ids, w=w)
@@ -379,22 +385,27 @@ class ModelDataset(object):
         else:
             self.log.info("Creating new featurized dataset for dataset %s" % self.dataset_name)
         dset_df = self.load_full_dataset()
-        self.check_task_columns(dset_df)
-        features, ids, self.vals, self.attr, w = self.featurization.featurize_data(dset_df, self)
+        sample_only = False
+        if (params.max_dataset_rows > 0) and (len(dset_df) > params.max_dataset_rows):
+            dset_df = dset_df.sample(n=params.max_dataset_rows)
+            sample_only = True
+        check_task_columns(params, dset_df)
+        features, ids, self.vals, self.attr, w, featurized_dset_df = self.featurization.featurize_data(dset_df, params, self.contains_responses)
+        if not sample_only:
+            self.save_featurized_data(featurized_dset_df)
+
         self.n_features = self.featurization.get_feature_count()
-        print("Number of features: " + str(self.n_features))
+        self.log.debug("Number of features: " + str(self.n_features))
            
         # Create the DeepChem dataset       
         self.dataset = DiskDataset.from_numpy(features, self.vals, ids=ids, w=w)
         # Checking for minimum number of rows
-        if len(self.dataset) < self.params.min_compound_number:
-            self.log.warning("Dataset of length %i is shorter than the required length %i" % (len(self.dataset), self.params.min_compound_number))
+        if len(self.dataset) < params.min_compound_number:
+            self.log.warning("Dataset of length %i is shorter than the required length %i" % (len(self.dataset), params.min_compound_number))
 
     # ****************************************************************************************
     def get_dataset_tasks(self, dset_df):
-        """Sets self.tasks to the list of prediction task columns defined for this dataset. If the dataset is in the datastore,
-        these should be available in the metadata. Otherwise we guess by looking at the column names in dset_df
-        and excluding features, compound IDs, SMILES string columns, etc.
+        """Sets self.tasks to the list of prediction task (response) columns defined by the current model parameters. 
         
         Args:
             dset_df (pd.DataFrame): Dataset as a DataFrame that contains columns for the prediction tasks
@@ -801,8 +812,8 @@ class MinimalDataset(ModelDataset):
             self.log.warning("Done")
         else:
             self.log.warning("Featurizing data...")
-            #JEA
-            features, ids, self.vals, self.attr, _ = self.featurization.featurize_data(dset_df, self)
+            features, ids, self.vals, self.attr, weights, featurized_dset_df  = self.featurization.featurize_data(dset_df, 
+                                                                                    params, self.contains_responses)
             self.log.warning("Done")
         self.n_features = self.featurization.get_feature_count()
         print("number of features: " + str(self.n_features))
@@ -936,6 +947,7 @@ class DatastoreDataset(ModelDataset):
         """Sets self.tasks to the list of prediction task columns defined for this dataset. If the dataset is in the datastore,
         these should be available in the metadata. Otherwise we guess by looking at the column names in dset_df
         and excluding features, compound IDs, SMILES string columns, etc.
+
         
         Args:
             dset_df (pd.DataFrame): Dataset containing the prediction tasks
@@ -946,6 +958,9 @@ class DatastoreDataset(ModelDataset):
         Side effects:
             Sets the task attribute of the DatastoreDataset object to a list of task names.
         """
+        # TODO (ksm): Can we get rid of this function and just call the superclass version (which gets the tasks from response_cols)?
+        # response_cols is a required parameter now, so there's no need for guessing.
+
         if super().get_dataset_tasks(dset_df):
             return True
         else:
@@ -1258,7 +1273,12 @@ class FileDataset(ModelDataset):
                 featurized_dset_df (pd.DataFrame): Dataset as a DataFrame that contains the featurized data
         """
 
-        featurized_dset_name = self.featurization.get_featurized_dset_name(self.dataset_name)
+        try:
+            featurized_dset_name = self.featurization.get_featurized_dset_name(self.dataset_name)
+        except NotImplementedError:
+            # Featurizer is non-persistent, so do nothing
+            return
+
         dataset_dir = os.path.dirname(self.params.dataset_key)
         data_dir = os.path.join(dataset_dir, self.featurization.get_featurized_data_subdir())
         featurized_dset_path = os.path.join(data_dir, featurized_dset_name)
