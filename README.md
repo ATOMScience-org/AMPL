@@ -76,14 +76,16 @@ AMPL is a Python 3 package that has been developed and run in a specific conda e
 ##### Create a virtual env.
 
 > ***Note***:
-> *We use `ampl15_toss3 `as an example here.*
+> *We use `atomsci `as an example here.*
 
 1. Go to the directory that will be the parent of the installation directory.
 
    1.1 Define an environment variable - `ENVROOT`. For example:
 
 ```bash
-export ENVROOT=/home/<user>
+export ENVROOT=~/workspace # for LLNL LC users
+or
+export ENVROOT=~ # for other users
 cd $ENVROOT
 ```
 
@@ -109,17 +111,17 @@ If you are going to install/modify packages within the virtualenv, you __do not_
 
 For example:
 ```bash
-python3 -m venv ampl15_toss3
+python3 -m venv atomsci
 ```
 
 4. Activate the environment
 ```bash
-source $ENVROOT/ampl15_toss3/bin/activate
+source $ENVROOT/atomsci/bin/activate
 ```
 5. Setup `PYTHONUSERBASE` environment variable
 
 ```bash
-export PYTHONUSERBASE=$ENVROOT/ampl15_toss3
+export PYTHONUSERBASE=$ENVROOT/atomsci
 ```
 
 6. Update pip, then use pip to install AMPL dependencies
@@ -127,7 +129,7 @@ export PYTHONUSERBASE=$ENVROOT/ampl15_toss3
 python3 -m pip install pip --upgrade
 ```
 
-7. Clone AMPL if you have not done so. See [instruction](#Install)
+7. Clone AMPL repository if you have not done so. See [instruction](#Install)
 
 8. Go to $AMPL_HOME/pip directory
 
@@ -138,6 +140,7 @@ pip3 install --force-reinstall --no-use-pep517 -r [pip_requirements_llnl.txt|pip
 > ***Note***:
 > * If you are on LLNL LC machines, use `pip_requirements_llnl.txt` to install. It will clone `atomsci-clients` source repo
 > * For users outside of LLNL, use `pip_requirements_external.txt`.
+
 
 > ***Note***: *Depending on system performance, creating the environment can take some time.*
 &nbsp;
@@ -183,9 +186,9 @@ With your environment activated:
 ```
 python -m ipykernel install --user --name atomsci
 ```
-- The `install.sh system` command installs AMPL directly in the conda environment. If `install.sh` alone is used, then AMPL is installed in the `$HOME/.local` directory.
+- The `install.sh system` command installs AMPL directly in the pip environment. If `install.sh` alone is used, then AMPL is installed in the `$HOME/.local` directory.
 
-- After this process, you will have an `atomsci` conda environment with all dependencies installed. The name of the AMPL package is `atomsci-ampl` and is installed in the `install.sh` script to the environment with conda's `pip`.
+- After this process, you will have an `atomsci` pip environment with all dependencies installed. The name of the AMPL package is `atomsci-ampl` and is installed in the `install.sh` script to the environment.
 &nbsp;  
 
 <a name="Install-docker"></a>
@@ -230,7 +233,7 @@ AMPL includes a suite of software tests. This section explains how to run a very
 
 To run the Delaney Python script that curates a dataset, fits a model, and makes predictions, run the following commands:
 ```
-conda activate atomsci
+source $ENVROOT/atomsci/bin/activate # activate your pip environment. `atomcsi` is an example here.
 
 cd atomsci/ddm/test/integrative/delaney_RF
 
@@ -412,17 +415,9 @@ AMPL has been developed and tested on the following Linux systems:
 &nbsp;  
 
 ### Uninstallation
-To remove AMPL from a conda environment use:
+To remove AMPL from a pip environment use:
 ```
-conda activate atomsci
 pip uninstall atomsci-ampl
-```
-&nbsp;  
-
-To remove the atomsci conda environment entirely from a system use:
-```
-conda deactivate
-conda remove --name atomsci --all
 ```
 &nbsp;  
 &nbsp;  
@@ -434,7 +429,7 @@ conda remove --name atomsci --all
 ### Running all tests
 To run the full set of tests, use Pytest from the test directory:
 ```
-conda activate atomsci
+source $ENVROOT/atomsci/bin/activate # activate your pip environment. `atomsci` is an example here.
 
 cd atomsci/ddm/test
 
@@ -446,7 +441,7 @@ pytest
 Several of the tests take some time to fit. These tests can be submitted to a SLURM cluster as a batch job. Example general SLURM submit scripts are included as `pytest_slurm.sh`.
 
 ```
-conda activate atomsci
+source $ENVROOT/atomsci/bin/activate # activate your pip environment. `atomsci` is an example here.
 
 cd atomsci/ddm/test/integrative/delaney_NN
 
@@ -485,12 +480,12 @@ cd ../../..
 ### Installing the AMPL for development
 To install the AMPL for development, use the following commands instead:
 ```
-conda activate atomsci
+source $ENVROOT/atomsci/bin/activate # activate your pip environment. `atomsci` is an example here.
 ./build.sh && ./install_dev.sh
 ```
 &nbsp;  
 
-This will create a namespace package in your conda  directory that points back to your git working directory, so every time you reimport a module you'll be in sync with your working code. Since site-packages is already in your sys.path, you won't have to fuss with PYTHONPATH or setting sys.path in your notebooks.  
+This will create a namespace package in your environment directory that points back to your git working directory, so every time you reimport a module you'll be in sync with your working code. Since site-packages is already in your sys.path, you won't have to fuss with PYTHONPATH or setting sys.path in your notebooks.  
 &nbsp;  
 
 ### Versioning
