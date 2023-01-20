@@ -604,6 +604,7 @@ class ModelPipeline:
         # Save the model metadata in the model tracker or the filesystem
         self.model_metadata['training_metrics'] = training_metrics
         self.save_model_metadata()
+        self.orig_params = self.params
 
 
     # ****************************************************************************************
