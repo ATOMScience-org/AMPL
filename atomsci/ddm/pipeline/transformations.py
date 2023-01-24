@@ -262,6 +262,51 @@ class NormalizationTransformerMissingData(NormalizationTransformer):
                 y = np.nan_to_num(y / self.y_stds)
         return (X, y, w, ids)
 
+    def untransform(self, z: np.ndarray) -> np.ndarray:
+        """
+        Undo transformation on provided data.
+
+        Overrides DeepChem NormalizationTransformer method to fix issue #1821.
+
+        Parameters
+        ----------
+        z: np.ndarray
+            Array to transform back
+
+        Returns
+        -------
+        z_out: np.ndarray
+            Array with normalization undone.
+        """
+        if self.transform_X:
+            if not hasattr(self, 'move_mean') or self.move_mean:
+                return z * self.X_stds + self.X_means
+            else:
+                return z * self.X_stds
+        elif self.transform_y:
+            y_stds = self.y_stds
+            y_means = self.y_means
+            # Handle case with 1 task correctly
+            if len(self.y_stds.shape) == 0:
+                n_tasks = 1
+            else:
+                n_tasks = self.y_stds.shape[0]
+            z_shape = list(z.shape)
+            # Get the reversed shape of z: (..., n_tasks, batch_size)
+            z_shape.reverse()
+            # Find the task dimension of z
+            for ind, dim in enumerate(z_shape):
+                if ind < (len(z_shape) - 1) and dim == 1:
+                    # Prevent broadcasting on wrong dimension
+                    y_stds = np.expand_dims(y_stds, -1)
+                    y_means = np.expand_dims(y_means, -1)
+            if not hasattr(self, 'move_mean') or self.move_mean:
+                return z * y_stds + y_means
+            else:
+                return z * y_stds
+        else:
+            return z
+
 # ****************************************************************************************
 
 class NormalizationTransformerHybrid(NormalizationTransformer):
