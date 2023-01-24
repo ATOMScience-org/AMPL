@@ -754,7 +754,7 @@ class DynamicFeaturization(Featurization):
             dset_cols += params.response_cols
         if params.date_col is not None:
             dset_cols.append(params.date_col)
-        keep_df = dset_df[dset_cols][is_valid]
+        keep_df = dset_df[dset_cols][is_valid].reset_index(drop=True)
         if len(features.shape) > 1:
             feat_df = pd.DataFrame(features, columns=[f"c{i}" for i in range(features.shape[1])])
         else:
