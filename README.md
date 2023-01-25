@@ -29,6 +29,7 @@ Documentation in readthedocs format is available [here](https://ampl.readthedocs
      - [Clone the git repository](#clone-repo)
      - [Create pip environment](#create-pip-env)
      - [dgl and CUDA (**optional**)](#Install-dgl)
+     - [Installation quick summary](#install-summary)
   - [Install with Docker](#Install-docker)
   - [AMPL usage survey](#AMPL-usage-survey)
 - [Tutorials](#AMPL-tutorials)
@@ -89,17 +90,17 @@ export ENVROOT=~ # for other users
 cd $ENVROOT
 ```
 
-2. Use python 3.7 (required)
+2. Use python 3.8 (required)
 
-   2.1 Install python 3.7 *WITHOUT* using `conda`; or
+   2.1 Install python 3.8 *WITHOUT* using `conda`; or
 
-   2.2 Point your PATH to an existing python 3.7 installation.
+   2.2 Point your PATH to an existing python 3.8 installation.
 
 > ***Note***:
-> For LLNL users, put python 3.7 in your PATH. For example:
+> For LLNL users, put python 3.8 in your PATH. For example:
 
 ```bash
-module load python/3.7.2
+module load python/3.8.2
 ```
 
 3. Create the virtual environment:
@@ -152,6 +153,28 @@ Here `$GITHOME` refers to the parent of your `AMPL` git working directory.
 
 ```bash
 cd $GITHOME/AMPL
+./build.sh
+pip3 install -e .
+```
+<a name="install-summary"></a>
+#### Installation Quick Summary
+```bash
+export ENVROOT=~/workspace # set ENVROOT example
+cd $ENVROOT
+module load python/3.8.2 # use python 3.8.2
+python3 -m venv atomsci # create a new pip env
+source $ENVROOT/atomsci/bin/activate # activate the environemt
+
+export PYTHONUSERBASE=$ENVROOT/atomsci # set PYTHONUSERBASE
+
+python3 -m pip install pip --upgrade
+cd $AMPL_HOME/pip # cd to AMPL repo's pip directory
+
+pip3 install --force-reinstall --no-use-pep517 -r pip_requirements_llnl.txt # use pip_requirements_external.txt for non-LLNL users
+
+module load cuda/11.3 # setup for cuda
+export LD_LIBRARY_PATH=/usr/<user>/atomsci/lib:$LD_LIBRARY_PATH # add your env/lib to LD_LIBRARY_PATH
+cd .. # go to AMPL repo directory and run build
 ./build.sh
 pip3 install -e .
 ```
