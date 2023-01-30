@@ -2,7 +2,7 @@ mkdir github
 cd github
 git clone https://github.com/ATOMScience-org/AMPL.git
 cd AMPL
-git checkout dc271
+git checkout master
 
 PATH=/content/AMPL/bin:$PATH
 PYTHONPATH=
