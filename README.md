@@ -24,7 +24,6 @@ Documentation in readthedocs format is available [here](https://ampl.readthedocs
 ---
 ## Table of contents
 - [Getting started](#Getting-started)
-  - [Prerequisites](#Prerequisites)
   - [Install](#Install)
      - [Clone the git repository](#clone-repo)
      - [Create pip environment](#create-pip-env)
@@ -54,13 +53,6 @@ Documentation in readthedocs format is available [here](https://ampl.readthedocs
 <a name="Getting-started"></a>
 ## Getting started
 Welcome to the ATOM Modeling PipeLine (AMPL) for Drug Discovery! These instructions will explain how to install this pipeline for model fitting and prediction.  
-&nbsp;  
-
-<a name="Prerequisites"></a>
-### Prerequisites
-AMPL is a Python 3 package that has been developed and run in a specific conda environment. The following prerequisites are necessary to install AMPL:
-
-- conda (Anaconda 3 or Miniconda 3, Python 3)  
 &nbsp;  
 
 <a name="Install"></a>
