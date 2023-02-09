@@ -102,10 +102,6 @@ The goal of the workshop is to take single target binding assay data collected f
 * ExCAPE-DB: https://solr.ideaconsult.net/search/excape/
 * DrugBank: https://go.drugbank.com/
 
-### AMPL Survey
-- The ATOM team actively uses feedback to develop the best possible drug discovery modeling
- pipeline. We like to hear your experiences in using the software.  Click [here](https://docs.google.com/forms/d/e/1FAIpQLSdM7mRXsvRr4MXUIoWgh9hQSmAOFgwXD3nLA4sLpNygec6hzA/viewform?usp=sf_link) for a 5 minutes survey link. Thank you for the feedback.
-
 ## Acknowledgements
 Most of the tutorial code chunks came from multple Jupyter notebooks generously shared by the ATOM team. 
 * Amanda Paulson
