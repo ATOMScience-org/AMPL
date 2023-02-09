@@ -30,7 +30,6 @@ Documentation in readthedocs format is available [here](https://ampl.readthedocs
      - [dgl and CUDA (**optional**)](#Install-dgl)
      - [Installation quick summary](#install-summary)
   - [Install with Docker](#Install-docker)
-  - [AMPL usage survey](#AMPL-usage-survey)
 - [Tutorials](#AMPL-tutorials)
 - [Tests](#Tests)
 - [AMPL Features](#AMPL-Features)
@@ -40,6 +39,7 @@ Documentation in readthedocs format is available [here](https://ampl.readthedocs
 - [Advanced testing](#Advanced-testing)
 - [Development](#Development)
 - [Project information](#Project-information)  
+- [Suggestions or Report Issues](#suggestions-issues)
 &nbsp;  
 
 ## Useful links
@@ -227,11 +227,6 @@ python -m ipykernel install --user --name atomsci
 - Be sure to save any work you want to be permanent in your workspace folder. If the container is shut down, you'll lose anything not in that folder.
 &nbsp; 
 
-<a name="AMPL-usage-survey"></a>
-### AMPL usage survey 
-- The ATOM team would like to hear your experiences in using the AMPL software. The team actively uses feedback to develop the best possible drug discovery modeling pipeline. Click [here](https://docs.google.com/forms/d/e/1FAIpQLSdM7mRXsvRr4MXUIoWgh9hQSmAOFgwXD3nLA4sLpNygec6hzA/viewform?usp=sf_link) to access the survey link. The survey typically takes 5 minutes to complete. Thank you for providing your feedback. 
-&nbsp;
-&nbsp;
 
 ---
 <a name="AMPL-tutorials"></a>
@@ -515,7 +510,6 @@ Versions are managed through GitHub tags on this repository.
 &nbsp;  
 &nbsp;  
 
-
 ---
 <a name="Project-information"></a>
 ## Project information
@@ -545,6 +539,11 @@ Versions are managed through GitHub tags on this repository.
 ### Support
 Please contact the AMPL repository owners for bug reports, questions, and comments.  
 &nbsp;  
+
+<a name="suggestions-issues"></a>
+### Suggestions or Report Issues
+- If you have suggestions or like to report issues, please click [here](https://github.com/ATOMScience-org/AMPL/issues).
+&nbsp;
 
 ### Contributing
 Thank you for contributing to AMPL!
