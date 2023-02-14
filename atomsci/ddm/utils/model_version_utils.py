@@ -41,7 +41,7 @@ except ImportError:
 
 
 # ampl versions compatible groups
-comp_dict = { '1.2': 'group1', '1.3': 'group1', '1.4': 'group2', '1.5': 'group2' }
+comp_dict = { '1.2': 'group1', '1.3': 'group1', '1.4': 'group2', '1.5': 'group3' }
 version_pattern = re.compile(r"[\d.]+")
 
 def get_ampl_version():
