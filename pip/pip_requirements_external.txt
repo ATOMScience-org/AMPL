@@ -9,7 +9,7 @@ cachetools==5.2.1
 certifi==2022.12.7
 charset-normalizer==3.0.1
 deepchem==2.7.1
---f https://data.dgl.ai/wheels/repo.html
+-f https://data.dgl.ai/wheels/repo.html
 dgl-cu111==0.9.1
 dglgo==0.0.2
 dgllife==0.3.1
