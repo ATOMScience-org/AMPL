@@ -5,7 +5,7 @@
 import logging
 import os
 import shutil
-from deepchem.data import DiskDataset
+from deepchem.data import NumpyDataset
 import numpy as np
 import pandas as pd
 import deepchem as dc
@@ -245,11 +245,11 @@ class ModelDataset(object):
             
             splitting (Splitting object): A splitting object created by the ModelDataset intiailization method
             
-            combined_train_valid_data (dc.DiskDataset): A dataset object (initialized as None), of the merged train
+            combined_train_valid_data (dc.Dataset): A dataset object (initialized as None), of the merged train
             and valid splits
 
         set in get_featurized_data:
-            dataset: A new featurized DeepChem DiskDataset.
+            dataset: A new featurized DeepChem Dataset.
             
             n_features: The count of features (int)
             
@@ -345,7 +345,7 @@ class ModelDataset(object):
 
         Side effects:
             Sets the following attributes in the ModelDataset object:
-                dataset: A new featurized DeepChem DiskDataset.
+                dataset: A new featurized DeepChem Dataset.
                 n_features: The count of features (int)
                 vals: The response col after featurization (np.array)
                 attr: A pd.dataframe containing the compound ids and smiles
@@ -375,7 +375,7 @@ class ModelDataset(object):
                 if params.prediction_type=='classification':
                     w = w.astype(np.float32)
 
-                self.dataset = DiskDataset.from_numpy(features, self.vals, ids=ids, w=w)
+                self.dataset = NumpyDataset(features, self.vals, ids=ids, w=w)
                 self.log.info("Using prefeaturized data; number of features = " + str(self.n_features))
                 return
             except Exception as e:
@@ -398,7 +398,7 @@ class ModelDataset(object):
         self.log.debug("Number of features: " + str(self.n_features))
            
         # Create the DeepChem dataset       
-        self.dataset = DiskDataset.from_numpy(features, self.vals, ids=ids, w=w)
+        self.dataset = NumpyDataset(features, self.vals, ids=ids, w=w)
         # Checking for minimum number of rows
         if len(self.dataset) < params.min_compound_number:
             self.log.warning("Dataset of length %i is shorter than the required length %i" % (len(self.dataset), params.min_compound_number))
@@ -618,7 +618,7 @@ class ModelDataset(object):
         """Returns a DeepChem Dataset object containing data for the combined training & validation compounds.
 
         Returns:
-            combined_dataset (dc.data.DiskDataset): Dataset containing the combined training
+            combined_dataset (dc.data.Dataset): Dataset containing the combined training
             and validation data.
             
         Side effects:
@@ -632,7 +632,7 @@ class ModelDataset(object):
             combined_y = np.concatenate((train.y, valid.y), axis=0)
             combined_w = np.concatenate((train.w, valid.w), axis=0)
             combined_ids = np.concatenate((train.ids, valid.ids))
-            self.combined_train_valid_data = DiskDataset.from_numpy(combined_X, combined_y, w=combined_w, ids=combined_ids)
+            self.combined_train_valid_data = NumpyDataset(combined_X, combined_y, w=combined_w, ids=combined_ids)
         return self.combined_train_valid_data
 
     # ****************************************************************************************
@@ -725,7 +725,7 @@ class MinimalDataset(ModelDataset):
             featurization (Featurization object): The featurization object created by ModelDataset or input as an optional argument in the factory function.
 
         set in get_featurized_data:
-            dataset: A new featurized DeepChem DiskDataset.
+            dataset: A new featurized DeepChem Dataset.
             n_features: The count of features (int)
             attr: A pd.dataframe containing the compound ids and smiles
 
@@ -816,24 +816,7 @@ class MinimalDataset(ModelDataset):
                                                                                     params, self.contains_responses)
             self.log.warning("Done")
         self.n_features = self.featurization.get_feature_count()
-        print("number of features: " + str(self.n_features))
-        # Create the DeepChem dataset
-        # TODO: Try this with NumpyDataset instead. It may require special handling in ModelWrapper
-        # classes, because NumpyDataset.y has different dimensionality than DiskDataset.y for the
-        # same singletask dataset. Or it may not, since we aren't comparing predictions against real
-        # values for MinimalDataset objects.
-        #self.dataset = NumpyDataset(features, self.vals, ids=ids)
-
-        # =-= ksm: This makes no sense, since MinimalDataset doesn't get used for training, so the splitting
-        # =-= parameter is irrelevant. Looks like I made this change on 10/2/2019 at the same time I implemented
-        # =-= the temporal splitter. For now I'm commenting out the code, because it breaks the 
-        # =-= EmbeddingFeaturization with input descriptor features.
-        #if self.params.splitter == 'scaffold':
-        #    self.dataset = DiskDataset.from_numpy(features, self.vals, 
-        #                                          ids=dset_df[params.smiles_col].values)
-        #else:
-        #    self.dataset = DiskDataset.from_numpy(features, self.vals, ids=ids)
-        self.dataset = DiskDataset.from_numpy(features, self.vals, ids=ids)
+        self.dataset = NumpyDataset(features, self.vals, ids=ids)
 
     # ****************************************************************************************
     def save_featurized_data(self, featurized_dset_df):
@@ -866,11 +849,11 @@ class DatastoreDataset(ModelDataset):
 
             splitting (Splitting object): A splitting object created by the ModelDataset intiailization method
 
-            combined_train_valid_data (dc.DiskDataset): A dataset object (initialized as None), of the merged train and valid splits
+            combined_train_valid_data (dc.Dataset): A dataset object (initialized as None), of the merged train and valid splits
             ds_client (datastore client):
 
         set in get_featurized_data:
-            dataset: A new featurized DeepChem DiskDataset.
+            dataset: A new featurized DeepChem Dataset.
 
             n_features: The count of features (int)
 
@@ -1164,13 +1147,13 @@ class FileDataset(ModelDataset):
             
             splitting (Splitting object): A splitting object created by the ModelDataset intiailization method
             
-            combined_train_valid_data (dc.DiskDataset): A dataset object (initialized as None), of the merged train and
+            combined_train_valid_data (dc.Dataset): A dataset object (initialized as None), of the merged train and
             valid splits
             
             ds_client (datastore client):
 
         set in get_featurized_data:
-            dataset: A new featurized DeepChem DiskDataset.
+            dataset: A new featurized DeepChem Dataset.
             
             n_features: The count of features (int)
             
