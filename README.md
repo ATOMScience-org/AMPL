@@ -57,6 +57,9 @@ Welcome to the ATOM Modeling PipeLine (AMPL) for Drug Discovery! These instructi
 
 <a name="Install"></a>
 ### Install
+
+For a quick install summary, see [here](#install-summary).
+
 <a name="clone-repo"></a>
 #### Clone the git repository
 
@@ -76,7 +79,7 @@ Welcome to the ATOM Modeling PipeLine (AMPL) for Drug Discovery! These instructi
    1.1 Define an environment variable - `ENVROOT`. For example:
 
 ```bash
-export ENVROOT=~/workspace # for LLNL LC users
+export ENVROOT=~/workspace # for LLNL LC users, use your workspace
 or
 export ENVROOT=~ # for other users
 cd $ENVROOT
@@ -126,14 +129,22 @@ python3 -m pip install pip --upgrade
 
 8. Go to $AMPL_HOME/pip directory
 
+There are two install options.
+
+  * For the LLNL developers,
+
 ```bash
 cd $AMPL_HOME/pip
-pip3 install --force-reinstall --no-use-pep517 -r [pip_requirements_llnl.txt|pip_requirements_external.txt]
+pip3 install --force-reinstall --no-use-pep517 -r clients_requirements.txt # install atomsci.clients
+pip3 install --force-reinstall --no-use-pep517 -r requirements.txt # install packages
 ```
-> ***Note***:
-> * If you are on LLNL LC machines, use `pip_requirements_llnl.txt` to install. It will clone `atomsci-clients` source repo
-> * For users outside of LLNL, use `pip_requirements_external.txt`.
 
+  * For the external developers,
+
+```bash
+cd $AMPL_HOME/pip
+pip3 install --force-reinstall --no-use-pep517 -r requirements.txt
+```
 
 > ***Note***: *Depending on system performance, creating the environment can take some time.*
 &nbsp;
@@ -162,7 +173,8 @@ export PYTHONUSERBASE=$ENVROOT/atomsci # set PYTHONUSERBASE
 python3 -m pip install pip --upgrade
 cd $AMPL_HOME/pip # cd to AMPL repo's pip directory
 
-pip3 install --force-reinstall --no-use-pep517 -r pip_requirements_llnl.txt # use pip_requirements_external.txt for non-LLNL users
+pip3 install --force-reinstall --no-use-pep517 -r clients_requirements.txt # (Optional) for LLNL developers only
+pip3 install --force-reinstall --no-use-pep517 -r requirements.txt 
 
 module load cuda/11.3 # setup for cuda
 export LD_LIBRARY_PATH=/usr/<user>/atomsci/lib:$LD_LIBRARY_PATH # add your env/lib to LD_LIBRARY_PATH

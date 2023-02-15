@@ -1,10 +1,6 @@
 # Minimal pip requirement list for AMPL. This includes only the packages directly imported by AMPL code, plus a few others
 # commonly used during development.
 
-# Install atomsci.clients from local LLNL gitlab repo. Comment this out for external installations.
--e git+ssh://git@czgitlab.llnl.gov:7999/atom/clients.git@efb03672cfb549abb1481b465432a90a1d77386d#egg=atomsci_clients
-#-e git+https://lc.llnl.gov/gitlab/atom/clients.git@efb03672cfb549abb1481b465432a90a1d77386d#egg=atomsci_clients
-
 absl-py==1.4.0
 astunparse==1.6.3
 bokeh==2.3.3
