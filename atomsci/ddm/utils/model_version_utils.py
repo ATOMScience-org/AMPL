@@ -1,7 +1,8 @@
 """
 model_version_utils.py
 
-Misc utilities to get the AMPL model version:
+Misc utilities to get the AMPL version(s) used to train one or more models and check them
+for compatibility with the currently running version of AMPL.:
 
 To check the model version
 
@@ -22,12 +23,10 @@ import os
 from pathlib import Path
 import sys
 import tarfile
-import tempfile
 import logging
 import pandas as pd
 import pdb
 import re
-import atomsci.ddm.utils.file_utils as futils
 
 logging.basicConfig()
 
@@ -55,7 +54,8 @@ def get_ampl_version():
 
 def get_ampl_version_from_dir(dirname):
     """
-    Get the AMPL versions from a directory
+    Get the AMPL versions for all the models stored under the given directory and its subdirectories,
+    recursively.
 
     Args:
         dirname (str): directory
@@ -85,14 +85,15 @@ def get_ampl_version_from_model(filename):
     Returns:
         the AMPL version number
     """
-    tmpdir = tempfile.mkdtemp()
-        
     with tarfile.open(filename, mode='r:gz') as tar:
-        futils.safe_extract(tar, path=tmpdir)
-        
-    # make metadata path
-    metadata_path = os.path.join(tmpdir, 'model_metadata.json')
-    version = get_ampl_version_from_json(metadata_path)
+        try:
+            meta_info = tar.getmember('./model_metadata.json')
+        except KeyError:
+            print(f"{filename} is not an AMPL model tarball")
+            return None
+        with tar.extractfile(meta_info) as meta_fd:
+            metadata_dict = json.loads(meta_fd.read())
+            version = metadata_dict.get("model_parameters").get("ampl_version", 'probably 1.0.0')
     logger.info('{}, {}'.format(filename, version))
     return version
 

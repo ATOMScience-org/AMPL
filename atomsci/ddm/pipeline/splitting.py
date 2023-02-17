@@ -11,7 +11,7 @@ import copy
 import deepchem as dc
 import numpy as np
 import pandas as pd
-from deepchem.data import DiskDataset
+from deepchem.data import NumpyDataset, Dataset
 from atomsci.ddm.pipeline.ave_splitter import AVEMinSplitter
 from atomsci.ddm.pipeline.temporal_splitter import TemporalSplitter
 from atomsci.ddm.pipeline.MultitaskScaffoldSplit import MultitaskScaffoldSplitter
@@ -58,12 +58,12 @@ def select_dset_by_attr_ids(dataset, attr_df):
     against the ids in the dataset.
     
     Args:
-        dataset (DiskDataset): The deepchem dataset, should have matching ids with ids in attr_df
+        dataset (Dataset): The deepchem dataset, should have matching ids with ids in attr_df
         
         attr_df (DataFrame): Contains the compound ids to subset the dataset. Ids should match with dataset
         
     Returns:
-        subset (DiskDataset): A subset of the deepchem dataset as determined by the ids in attr_df
+        subset (Dataset): A subset of the deepchem dataset as determined by the ids in attr_df
         
     """
     id_df = pd.DataFrame({'indices' : np.arange(len(dataset.ids), dtype=np.int32)}, index=[str(e) for e in dataset.ids])
@@ -77,12 +77,12 @@ def select_dset_by_id_list(dataset, id_list):
     against the ids in the dataset.
     
     Args:
-        dataset (DiskDataset): The deepchem dataset, should have matching ids with ids in id_list
+        dataset (Dataset): The deepchem dataset, should have matching ids with ids in id_list
 
         id_list (list): Contains a list of compound ids to subset the dataset. Ids should match with dataset
         
     Returns:
-        subset (DiskDataset): A subset of the deepchem dataset as determined by the ids in id_list
+        subset (Dataset): A subset of the deepchem dataset as determined by the ids in id_list
         
     """
     #TODO: Need to test
@@ -98,7 +98,7 @@ def select_attrs_by_dset_ids(dataset, attr_df):
     against the ids in the dc.data.Dataset object dataset.
     
     Args:
-        dataset (DiskDataset): The deepchem dataset, should have matching ids with ids in attr_df
+        dataset (Dataset): The deepchem dataset, should have matching ids with ids in attr_df
 
         attr_df (DataFrame): Contains the compound ids. Ids should match with dataset
         
@@ -117,7 +117,7 @@ def select_attrs_by_dset_smiles(dataset, attr_df, smiles_col):
     against the ids in the dc.data.Dataset object dataset.
     
     Args:
-        dataset (DiskDataset): The deepchem dataset, should have matching ids with ids in attr_df
+        dataset (Dataset): The deepchem dataset, should have matching ids with ids in attr_df
 
         attr_df (DataFrame): Contains the compound ids. Ids should match with dataset. Should contain a column
         of SMILES strings under the smiles_col
@@ -544,19 +544,19 @@ class TrainValidTestSplitting(Splitting):
         # KFoldSplitting.split_dataset().
         return [(train, valid)], test, [(train_attr, valid_attr)], test_attr
 
-def _copy_DiskDataset(dataset, **kwargs):
+def _copy_modify_NumpyDataset(dataset, **kwargs):
     '''
-    This uses from_numpy to copy a dataset EXCEPT for the given kwargs. This is useful
-    for updating attributes like dataset.w or dataset.id
+    Create a copy of the DeepChem Dataset object `dataset` and then modify it based on the given keyword arguments.
+    This is useful for updating attributes like dataset.w or dataset.id
     '''
     args = {'X':dataset.X,
         'y':dataset.y,
         'w':dataset.w,
         'ids':dataset.ids,
-        'tasks':dataset.tasks,
-        'data_dir':dataset.data_dir}
+        'n_tasks':dataset.y.shape[1]
+        }
     args.update(kwargs)
-    return DiskDataset.from_numpy(**args)
+    return NumpyDataset(**args)
 
 class DatasetManager:
     '''
@@ -591,7 +591,7 @@ class DatasetManager:
         # sometimes the ids in dataset_ori is already a SMILES string.
         # since we assume that dataset_ori.ids are compound ids, we replace them with attr_df.index
         if self.needs_smiles:
-            self.dataset_ori = _copy_DiskDataset(self.dataset_ori, ids=self.attr_df.index)
+            self.dataset_ori = _copy_modify_NumpyDataset(self.dataset_ori, ids=self.attr_df.index)
 
         # self.id_df will be used to map compound_ids or smiles to a set of indices to be used
         # with self.dataset_ori to map back to an expanded dataset after splitting
@@ -643,12 +643,12 @@ class DatasetManager:
             sub_dataset = sub_dataset.select(sel_df.indices.values)
 
             # update weight values
-            sub_dataset = _copy_DiskDataset(sub_dataset, w=sel_df[self.w_cols].values)
+            sub_dataset = _copy_modify_NumpyDataset(sub_dataset, w=sel_df[self.w_cols].values)
 
         if self.needs_smiles:
             # Some DeepChem splitters require compound IDs in dataset to be SMILES strings. Swap in the
             # SMILES strings now; we'll reverse this later.
-            sub_dataset = _copy_DiskDataset(sub_dataset, ids=sel_df.smiles.values)
+            sub_dataset = _copy_modify_NumpyDataset(sub_dataset, ids=sel_df.smiles.values)
 
         return sub_dataset
 

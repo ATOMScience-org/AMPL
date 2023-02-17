@@ -11,7 +11,7 @@ from tqdm import tqdm
 from functools import partial
 
 import deepchem as dc
-from deepchem.data import Dataset, DiskDataset
+from deepchem.data import Dataset, NumpyDataset
 from deepchem.splits import Splitter
 from deepchem.splits.splitters import _generate_scaffold
 
@@ -716,16 +716,16 @@ class MultitaskScaffoldSplitter(Splitter):
         train_dir: str, optional (default None)
             If specified, the directory in which the generated
             training dataset should be stored. This is only
-            considered if `isinstance(dataset, dc.data.DiskDataset)`
+            considered if `isinstance(dataset, dc.data.Dataset)`
         valid_dir: str, optional (default None)
             If specified, the directory in which the generated
             valid dataset should be stored. This is only
-            considered if `isinstance(dataset, dc.data.DiskDataset)`
+            considered if `isinstance(dataset, dc.data.Dataset)`
             is True.
         test_dir: str, optional (default None)
             If specified, the directory in which the generated
             test dataset should be stored. This is only
-            considered if `isinstance(dataset, dc.data.DiskDataset)`
+            considered if `isinstance(dataset, dc.data.Dataset)`
             is True.
 
         Returns
@@ -752,7 +752,7 @@ class MultitaskScaffoldSplitter(Splitter):
         train_dataset = dataset.select(train_inds, train_dir)
         valid_dataset = dataset.select(valid_inds, valid_dir)
         test_dataset = dataset.select(test_inds, test_dir)
-        if isinstance(train_dataset, DiskDataset):
+        if isinstance(train_dataset, Dataset):
             train_dataset.memory_cache_size = 40 * (1 << 20)  # 40 MB
 
         return train_dataset, valid_dataset, test_dataset
@@ -878,7 +878,7 @@ def split_using_MultitaskScaffoldSplit(df: pd.DataFrame,
     ids = df[smiles_col].values
 
     # build deepchem Dataset
-    dataset = dc.data.DiskDataset.from_numpy(X, y, w=w, ids=ids)
+    dataset = dc.data.NumpyDataset(X, y, w=w, ids=ids)
     mss = MultitaskScaffoldSplitter()
     splits = mss.split(dataset, **kwargs)
 
@@ -902,7 +902,7 @@ def split_with(df, splitter, smiles_col, id_col, response_cols, **kwargs):
     y, w = make_y_w(df, response_cols)
     ids = df[smiles_col].values
 
-    dataset = dc.data.DiskDataset.from_numpy(X, y, w=w, ids=ids)
+    dataset = dc.data.NumpyDataset(X, y, w=w, ids=ids)
 
     splits = splitter.split(dataset, **kwargs)
 
