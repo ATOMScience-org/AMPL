@@ -17,7 +17,7 @@ import pdb
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 
 # test models
-example_model_file = os.path.abspath('../../../ddm/examples/tutorials/models/aurka_union_trainset_base_smiles_model_2fb9ae80-26d4-4f27-af28-2e9e9db594de.tar.gz')
+example_model_file = os.path.abspath('../../../ddm/examples/tutorials/models/aurka_union_trainset_base_smiles_model_ampl_120_2fb9ae80-26d4-4f27-af28-2e9e9db594de.tar.gz')
 example_models_dir = os.path.abspath('../../../ddm/examples/tutorials/models')
 
 def test_get_ampl_version_by_file():
