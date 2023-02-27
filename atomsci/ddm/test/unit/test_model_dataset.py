@@ -44,7 +44,7 @@ if not datastore_is_down:
     df_datastore = ds.retrieve_dataset_by_datasetkey(params_from_ds.dataset_key,params_from_ds.bucket)
     
 
-DD = dc.data.datasets.DiskDataset
+DD = dc.data.datasets.NumpyDataset
 
 
 
@@ -203,11 +203,10 @@ def test_get_featurized_data():
     dataset_obj_from_file.get_featurized_data()
     test_list = []
     test_list.append(dataset_obj_from_file.n_features == params_from_file.ecfp_size)
-    test_list.append(isinstance(dataset_obj_from_file.dataset, dc.data.datasets.DiskDataset))
+    test_list.append(isinstance(dataset_obj_from_file.dataset, dc.data.datasets.NumpyDataset)) 
     test_list.append(len(dataset_obj_from_file.dataset) == len(df_delaney))
     test_list.append(dataset_obj_from_file.n_features == dataset_obj_from_file.params.ecfp_size)
     assert all(test_list)
-
 
 #***********************************************************************************
 
@@ -223,7 +222,7 @@ def test_get_featurized_data_scaffold():
 
     test_list = []
 
-    test_list.append(isinstance(dataset_obj_from_file_scaffold.dataset, dc.data.datasets.DiskDataset))
+    test_list.append(isinstance(dataset_obj_from_file_scaffold.dataset, dc.data.datasets.NumpyDataset))
     test_list.append(len(dataset_obj_from_file_scaffold.dataset) == len(df_delaney))
     test_list.append(dataset_obj_from_file.n_features == dataset_obj_from_file.params.ecfp_size)
     test_list.append(len(dataset_obj_from_file.dataset.y) == len(dataset_obj_from_file.dataset.ids))

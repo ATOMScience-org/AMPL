@@ -3,18 +3,17 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>utils.hyperparam_search_wrapper &mdash; ATOM Data-Driven Modeling Pipeline 1.4.0 documentation</title>
+  <title>utils.hyperparam_search_wrapper &mdash; ATOM Data-Driven Modeling Pipeline 1.5.0 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
         <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-        <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/underscore.js"></script>
-        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" /> 
@@ -25,14 +24,18 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../../index.html" class="icon icon-home"> ATOM Data-Driven Modeling Pipeline
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            ATOM Data-Driven Modeling Pipeline
           </a>
               <div class="version">
-                1.4.0
+                1.5.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -64,9 +67,9 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="../index.html">Module code</a> &raquo;</li>
-      <li>utils.hyperparam_search_wrapper</li>
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">utils.hyperparam_search_wrapper</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -121,7 +124,7 @@
 
 
 <div class="viewcode-block" id="run_command"><a class="viewcode-back" href="../../utils.html#utils.hyperparam_search_wrapper.run_command">[docs]</a><span class="k">def</span> <span class="nf">run_command</span><span class="p">(</span><span class="n">shell_script</span><span class="p">,</span> <span class="n">python_path</span><span class="p">,</span> <span class="n">script_dir</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Function to submit jobs on a slurm system</span>
 
 <span class="sd">    Args:</span>
@@ -149,7 +152,7 @@
     <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="n">slurm_command</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="gen_maestro_command"><a class="viewcode-back" href="../../utils.html#utils.hyperparam_search_wrapper.gen_maestro_command">[docs]</a><span class="k">def</span> <span class="nf">gen_maestro_command</span><span class="p">(</span><span class="n">python_path</span><span class="p">,</span> <span class="n">script_dir</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Generates a string that can be fed into a command line.</span>
 
 <span class="sd">    Side Effects:</span>
@@ -182,7 +185,7 @@
     <span class="k">return</span> <span class="n">slurm_command</span></div>
 
 <div class="viewcode-block" id="run_cmd"><a class="viewcode-back" href="../../utils.html#utils.hyperparam_search_wrapper.run_cmd">[docs]</a><span class="k">def</span> <span class="nf">run_cmd</span><span class="p">(</span><span class="n">cmd</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Function to submit a job using subprocess</span>
 
 <span class="sd">    Args:</span>
@@ -199,7 +202,7 @@
 
 
 <div class="viewcode-block" id="reformat_filter_dict"><a class="viewcode-back" href="../../utils.html#utils.hyperparam_search_wrapper.reformat_filter_dict">[docs]</a><span class="k">def</span> <span class="nf">reformat_filter_dict</span><span class="p">(</span><span class="n">filter_dict</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Function to reformat a filter dictionary to match the Model Tracker metadata structure. Updated 9/2020 by A. Paulson</span>
 <span class="sd">    for new LC model tracker.</span>
 
@@ -259,7 +262,7 @@
 
 
 <div class="viewcode-block" id="permutate_NNlayer_combo_params"><a class="viewcode-back" href="../../utils.html#utils.hyperparam_search_wrapper.permutate_NNlayer_combo_params">[docs]</a><span class="k">def</span> <span class="nf">permutate_NNlayer_combo_params</span><span class="p">(</span><span class="n">layer_nums</span><span class="p">,</span> <span class="n">node_nums</span><span class="p">,</span> <span class="n">dropout_list</span><span class="p">,</span> <span class="n">max_final_layer_size</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    to generate combos of layer_sizes(str) and dropouts(str) params from the layer_nums (list), node_nums (list), dropout_list (list).</span>
 
 <span class="sd">    The permutation will make the NN funnel shaped, so that the next layer can only be smaller or of the same size of the current layer.</span>
@@ -312,7 +315,7 @@
 
 
 <div class="viewcode-block" id="get_num_params"><a class="viewcode-back" href="../../utils.html#utils.hyperparam_search_wrapper.get_num_params">[docs]</a><span class="k">def</span> <span class="nf">get_num_params</span><span class="p">(</span><span class="n">combo</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calculates the number of parameters in a fully-connected neural networ</span>
 
 <span class="sd">    Args:</span>
@@ -346,11 +349,11 @@
 
 
 <div class="viewcode-block" id="HyperparameterSearch"><a class="viewcode-back" href="../../utils.html#utils.hyperparam_search_wrapper.HyperparameterSearch">[docs]</a><span class="k">class</span> <span class="nc">HyperparameterSearch</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    The class for generating and running all hyperparameter combinations based on the input params given</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            params: The input hyperparameter parameters</span>
@@ -442,7 +445,7 @@
                     <span class="s1">&#39;runtime=$((end-start))</span><span class="se">\n</span><span class="s1">echo &quot;runtime: &quot; $runtime&#39;</span><span class="p">)</span>
 
 <div class="viewcode-block" id="HyperparameterSearch.generate_param_combos"><a class="viewcode-back" href="../../utils.html#utils.hyperparam_search_wrapper.HyperparameterSearch.generate_param_combos">[docs]</a>    <span class="k">def</span> <span class="nf">generate_param_combos</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Performs additional parsing of parameters and generates all combinations</span>
 
 <span class="sd">        Returns:</span>
@@ -549,7 +552,7 @@
                         <span class="bp">self</span><span class="o">.</span><span class="n">param_combos</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">generate_combos</span><span class="p">(</span><span class="n">subcombo</span><span class="p">))</span></div>
 
 <div class="viewcode-block" id="HyperparameterSearch.generate_combos"><a class="viewcode-back" href="../../utils.html#utils.hyperparam_search_wrapper.HyperparameterSearch.generate_combos">[docs]</a>    <span class="k">def</span> <span class="nf">generate_combos</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params_dict</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Calls sub-function generate_combo and then uses itertools.product to generate all desired combinations</span>
 
 <span class="sd">        Args:</span>
@@ -571,7 +574,7 @@
         <span class="k">return</span> <span class="n">hyperparam_combos</span></div>
 
 <div class="viewcode-block" id="HyperparameterSearch.assemble_layers"><a class="viewcode-back" href="../../utils.html#utils.hyperparam_search_wrapper.HyperparameterSearch.assemble_layers">[docs]</a>    <span class="k">def</span> <span class="nf">assemble_layers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Reformats layer parameters</span>
 
 <span class="sd">        Returns:</span>
@@ -593,7 +596,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">hyperparam_keys</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;layers&#39;</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="HyperparameterSearch.generate_assay_list"><a class="viewcode-back" href="../../utils.html#utils.hyperparam_search_wrapper.HyperparameterSearch.generate_assay_list">[docs]</a>    <span class="k">def</span> <span class="nf">generate_assay_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Generates the list of datasets to build models for, with their key, bucket, split, and split uuid</span>
 
 <span class="sd">        Returns:</span>
@@ -624,7 +627,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">assays</span> <span class="o">=</span> <span class="p">[(</span><span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span> <span class="n">t</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span> <span class="n">t</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">t</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span> <span class="n">t</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span> <span class="n">t</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">assays</span><span class="p">]</span></div>
 
 <div class="viewcode-block" id="HyperparameterSearch.get_dataset_metadata"><a class="viewcode-back" href="../../utils.html#utils.hyperparam_search_wrapper.HyperparameterSearch.get_dataset_metadata">[docs]</a>    <span class="k">def</span> <span class="nf">get_dataset_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">assay_params</span><span class="p">,</span> <span class="n">retry_time</span><span class="o">=</span><span class="mi">60</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Gather the required metadata for a dataset</span>
 
 <span class="sd">        Args:</span>
@@ -675,7 +678,7 @@
         <span class="n">assay_params</span><span class="p">[</span><span class="s1">&#39;hyperparam_uuid&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hyperparam_uuid</span></div>
 
 <div class="viewcode-block" id="HyperparameterSearch.split_and_save_dataset"><a class="viewcode-back" href="../../utils.html#utils.hyperparam_search_wrapper.HyperparameterSearch.split_and_save_dataset">[docs]</a>    <span class="k">def</span> <span class="nf">split_and_save_dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">assay_params</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Splits a given dataset, saves it, and sets the split_uuid in the metadata</span>
 
 <span class="sd">        Args:</span>
@@ -698,7 +701,7 @@
         <span class="n">assay_params</span><span class="p">[</span><span class="s1">&#39;split_uuid&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">split_uuid</span></div>
 
 <div class="viewcode-block" id="HyperparameterSearch.return_split_uuid"><a class="viewcode-back" href="../../utils.html#utils.hyperparam_search_wrapper.HyperparameterSearch.return_split_uuid">[docs]</a>    <span class="k">def</span> <span class="nf">return_split_uuid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset_key</span><span class="p">,</span> <span class="n">bucket</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">splitter</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">split_combo</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">retry_time</span><span class="o">=</span><span class="mi">60</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Loads a dataset, splits it, saves it, and returns the split_uuid</span>
 
 <span class="sd">        Args:</span>
@@ -792,7 +795,7 @@
                     <span class="k">return</span> <span class="kc">None</span></div>
 
 <div class="viewcode-block" id="HyperparameterSearch.return_split_uuid_file"><a class="viewcode-back" href="../../utils.html#utils.hyperparam_search_wrapper.HyperparameterSearch.return_split_uuid_file">[docs]</a>    <span class="k">def</span> <span class="nf">return_split_uuid_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset_key</span><span class="p">,</span> <span class="n">response_cols</span><span class="p">,</span> <span class="n">bucket</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">splitter</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">split_combo</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">retry_time</span><span class="o">=</span><span class="mi">60</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Loads a dataset, splits it, saves it, and returns the split_uuid.</span>
 
 <span class="sd">        Args:</span>
@@ -850,7 +853,7 @@
             
     
 <div class="viewcode-block" id="HyperparameterSearch.generate_split_shortlist"><a class="viewcode-back" href="../../utils.html#utils.hyperparam_search_wrapper.HyperparameterSearch.generate_split_shortlist">[docs]</a>    <span class="k">def</span> <span class="nf">generate_split_shortlist</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">retry_time</span><span class="o">=</span><span class="mi">60</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Processes a shortlist, generates splits for each dataset on the list, and uploads a new shortlist file with the</span>
 <span class="sd">        split_uuids included. Generates splits for the split_combos [[0.1,0.1], [0.1,0.2],[0.2,0.2]], [random, scaffold]</span>
 
@@ -920,7 +923,7 @@
                     <span class="n">retry</span> <span class="o">=</span> <span class="kc">False</span></div>
     
 <div class="viewcode-block" id="HyperparameterSearch.generate_split_shortlist_file"><a class="viewcode-back" href="../../utils.html#utils.hyperparam_search_wrapper.HyperparameterSearch.generate_split_shortlist_file">[docs]</a>    <span class="k">def</span> <span class="nf">generate_split_shortlist_file</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Processes a shortlist, generates splits for each dataset on the list, and uploads a new shortlist file with the</span>
 <span class="sd">        split_uuids included. Generates splits for the split_combos [[0.1,0.1], [0.15,0.15], [0.1,0.2], [0.2,0.2]], [random, scaffold]</span>
 
@@ -949,7 +952,7 @@
         <span class="n">df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="HyperparameterSearch.get_shortlist_df"><a class="viewcode-back" href="../../utils.html#utils.hyperparam_search_wrapper.HyperparameterSearch.get_shortlist_df">[docs]</a>    <span class="k">def</span> <span class="nf">get_shortlist_df</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">split_uuids</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">retry_time</span><span class="o">=</span><span class="mi">60</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            split_uuids: Boolean value saying if you want just datasets returned or the split_uuids as well</span>
@@ -1036,7 +1039,7 @@
         <span class="k">return</span> <span class="n">assays</span></div>
 
 <div class="viewcode-block" id="HyperparameterSearch.build_jobs"><a class="viewcode-back" href="../../utils.html#utils.hyperparam_search_wrapper.HyperparameterSearch.build_jobs">[docs]</a>    <span class="k">def</span> <span class="nf">build_jobs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Builds jobs.</span>
 <span class="sd">        Reformats parameters as necessary</span>
 
@@ -1086,7 +1089,7 @@
         <span class="k">return</span> <span class="n">result_assay_params</span></div>
 
 <div class="viewcode-block" id="HyperparameterSearch.filter_jobs"><a class="viewcode-back" href="../../utils.html#utils.hyperparam_search_wrapper.HyperparameterSearch.filter_jobs">[docs]</a>    <span class="k">def</span> <span class="nf">filter_jobs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">job_list</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Removes jobs that should not be run</span>
 
 <span class="sd">        Returns:</span>
@@ -1107,7 +1110,7 @@
         <span class="k">return</span> <span class="n">result_list</span></div>
 
 <div class="viewcode-block" id="HyperparameterSearch.submit_jobs"><a class="viewcode-back" href="../../utils.html#utils.hyperparam_search_wrapper.HyperparameterSearch.submit_jobs">[docs]</a>    <span class="k">def</span> <span class="nf">submit_jobs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">job_list</span><span class="p">,</span> <span class="n">retry_time</span><span class="o">=</span><span class="mi">60</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Reformats parameters as necessary and then calls run_command in a loop to submit a job for each param combo</span>
 
 <span class="sd">        Returns:</span>
@@ -1125,7 +1128,7 @@
                 <span class="n">run_command</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shell_script</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">python_path</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">script_dir</span><span class="p">,</span> <span class="n">assay_params</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="HyperparameterSearch.already_run"><a class="viewcode-back" href="../../utils.html#utils.hyperparam_search_wrapper.HyperparameterSearch.already_run">[docs]</a>    <span class="k">def</span> <span class="nf">already_run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">assay_params</span><span class="p">,</span> <span class="n">retry_time</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Checks to see if a model with a given metadata combination has already been built</span>
 
 <span class="sd">        Args:</span>
@@ -1163,14 +1166,14 @@
         <span class="k">return</span> <span class="kc">False</span></div>
 
 <div class="viewcode-block" id="HyperparameterSearch.generate_combo"><a class="viewcode-back" href="../../utils.html#utils.hyperparam_search_wrapper.HyperparameterSearch.generate_combo">[docs]</a>    <span class="k">def</span> <span class="nf">generate_combo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params_dict</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        This is implemented in the specific sub-classes</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
 
 <div class="viewcode-block" id="HyperparameterSearch.run_search"><a class="viewcode-back" href="../../utils.html#utils.hyperparam_search_wrapper.HyperparameterSearch.run_search">[docs]</a>    <span class="k">def</span> <span class="nf">run_search</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The driver code for generating hyperparameter combinations and submitting jobs</span>
 
 <span class="sd">        Returns:</span>
@@ -1182,7 +1185,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">submit_jobs</span><span class="p">(</span><span class="n">job_list</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="HyperparameterSearch.generate_searches"><a class="viewcode-back" href="../../utils.html#utils.hyperparam_search_wrapper.HyperparameterSearch.generate_searches">[docs]</a>    <span class="k">def</span> <span class="nf">generate_searches</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Generate a list of training jobs</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Generate a list of training jobs</span>
 
 <span class="sd">        Generates a list of model training jobs that spans</span>
 <span class="sd">        the hyperparameter search space. This function</span>
@@ -1207,7 +1210,7 @@
         <span class="k">return</span> <span class="n">job_list</span></div>
 
 <div class="viewcode-block" id="HyperparameterSearch.generate_maestro_commands"><a class="viewcode-back" href="../../utils.html#utils.hyperparam_search_wrapper.HyperparameterSearch.generate_maestro_commands">[docs]</a>    <span class="k">def</span> <span class="nf">generate_maestro_commands</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Generates commands that can be used by maestro</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Generates commands that can be used by maestro</span>
 
 <span class="sd">        Generates a list of commands that can be put directly into</span>
 <span class="sd">        the shell to run model training.</span>
@@ -1226,7 +1229,7 @@
         <span class="k">return</span> <span class="n">commands</span></div></div>
 
 <div class="viewcode-block" id="GridSearch"><a class="viewcode-back" href="../../utils.html#utils.hyperparam_search_wrapper.GridSearch">[docs]</a><span class="k">class</span> <span class="nc">GridSearch</span><span class="p">(</span><span class="n">HyperparameterSearch</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Generates fixed steps on a grid for a given hyperparameter range</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -1243,7 +1246,7 @@
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">generate_assay_list</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="GridSearch.generate_combo"><a class="viewcode-back" href="../../utils.html#utils.hyperparam_search_wrapper.GridSearch.generate_combo">[docs]</a>    <span class="k">def</span> <span class="nf">generate_combo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params_dict</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Method to generate all combinations from a given set of key-value pairs</span>
 
 <span class="sd">        Args:</span>
@@ -1273,7 +1276,7 @@
         <span class="k">return</span> <span class="n">new_dict</span></div></div>
 
 <div class="viewcode-block" id="RandomSearch"><a class="viewcode-back" href="../../utils.html#utils.hyperparam_search_wrapper.RandomSearch">[docs]</a><span class="k">class</span> <span class="nc">RandomSearch</span><span class="p">(</span><span class="n">HyperparameterSearch</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Generates the specified number of random parameter values for within the specified range</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -1290,7 +1293,7 @@
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">generate_assay_list</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="RandomSearch.generate_combo"><a class="viewcode-back" href="../../utils.html#utils.hyperparam_search_wrapper.RandomSearch.generate_combo">[docs]</a>    <span class="k">def</span> <span class="nf">generate_combo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params_dict</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Method to generate all combinations from a given set of key-value pairs</span>
 
 <span class="sd">        Args:</span>
@@ -1319,7 +1322,7 @@
         <span class="k">return</span> <span class="n">new_dict</span></div></div>
 
 <div class="viewcode-block" id="GeometricSearch"><a class="viewcode-back" href="../../utils.html#utils.hyperparam_search_wrapper.GeometricSearch">[docs]</a><span class="k">class</span> <span class="nc">GeometricSearch</span><span class="p">(</span><span class="n">HyperparameterSearch</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Generates parameter values in logistic steps, rather than linear like GridSearch does</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -1336,7 +1339,7 @@
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">generate_assay_list</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="GeometricSearch.generate_combo"><a class="viewcode-back" href="../../utils.html#utils.hyperparam_search_wrapper.GeometricSearch.generate_combo">[docs]</a>    <span class="k">def</span> <span class="nf">generate_combo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params_dict</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Method to generate all combinations from a given set of key-value pairs</span>
 
 <span class="sd">        Args:</span>
@@ -1366,7 +1369,7 @@
         <span class="k">return</span> <span class="n">new_dict</span></div></div>
 
 <div class="viewcode-block" id="UserSpecifiedSearch"><a class="viewcode-back" href="../../utils.html#utils.hyperparam_search_wrapper.UserSpecifiedSearch">[docs]</a><span class="k">class</span> <span class="nc">UserSpecifiedSearch</span><span class="p">(</span><span class="n">HyperparameterSearch</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Generates combinations using the user-specified steps</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -1383,7 +1386,7 @@
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">generate_assay_list</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="UserSpecifiedSearch.generate_combo"><a class="viewcode-back" href="../../utils.html#utils.hyperparam_search_wrapper.UserSpecifiedSearch.generate_combo">[docs]</a>    <span class="k">def</span> <span class="nf">generate_combo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params_dict</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Method to generate all combinations from a given set of key-value pairs</span>
 
 <span class="sd">        Args:</span>
@@ -1411,7 +1414,7 @@
         <span class="k">return</span> <span class="n">new_dict</span></div></div>
 
 <div class="viewcode-block" id="build_hyperopt_search_domain"><a class="viewcode-back" href="../../utils.html#utils.hyperparam_search_wrapper.build_hyperopt_search_domain">[docs]</a><span class="k">def</span> <span class="nf">build_hyperopt_search_domain</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">param_list</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Generate HyperOpt search domain object from method and parameters, layer_nums is only for NN models.</span>
 <span class="sd">    This function is used by the HyperOptSearch class, not intended for standalone usage.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -1427,7 +1430,7 @@
         <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Method </span><span class="si">{</span><span class="n">method</span><span class="si">}</span><span class="s2"> is not supported, choose from &#39;choice, uniform, loguniform, uniformint&#39;.&quot;</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="HyperOptSearch"><a class="viewcode-back" href="../../utils.html#utils.hyperparam_search_wrapper.HyperOptSearch">[docs]</a><span class="k">class</span> <span class="nc">HyperOptSearch</span><span class="p">():</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Perform hyperparameter search with Bayesian Optmization (Tree Parzen Estimator)</span>
 
 <span class="sd">    To use HyperOptSearch, modify the config json file as follows:</span>
@@ -1727,11 +1730,11 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">prediction_type</span> <span class="o">==</span> <span class="s2">&quot;regression&quot;</span><span class="p">:</span>
             <span class="n">best_trial</span> <span class="o">=</span> <span class="n">perf</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="s2">&quot;valid_r2&quot;</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">)[</span><span class="s2">&quot;trial&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
             <span class="n">best_model</span> <span class="o">=</span> <span class="n">trials</span><span class="o">.</span><span class="n">trials</span><span class="p">[</span><span class="n">best_trial</span><span class="p">][</span><span class="s2">&quot;result&quot;</span><span class="p">][</span><span class="s2">&quot;model&quot;</span><span class="p">]</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Best model: </span><span class="si">{</span><span class="n">best_model</span><span class="si">}</span><span class="s1">, valid R2: </span><span class="si">{</span><span class="n">perf</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="s2">&quot;valid_r2&quot;</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">)[</span><span class="s2">&quot;valid_r2&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Best model: </span><span class="si">{</span><span class="n">best_model</span><span class="si">}</span><span class="s1">, valid R2: </span><span class="si">{</span><span class="n">perf</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="s2">&quot;valid_r2&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">)[</span><span class="s2">&quot;valid_r2&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">best_trial</span> <span class="o">=</span> <span class="n">perf</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="s2">&quot;valid_roc_auc&quot;</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">)[</span><span class="s2">&quot;trial&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
             <span class="n">best_model</span> <span class="o">=</span> <span class="n">trials</span><span class="o">.</span><span class="n">trials</span><span class="p">[</span><span class="n">best_trial</span><span class="p">][</span><span class="s2">&quot;result&quot;</span><span class="p">][</span><span class="s2">&quot;model&quot;</span><span class="p">]</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Best model: </span><span class="si">{</span><span class="n">best_model</span><span class="si">}</span><span class="s1">, valid ROC_AUC: </span><span class="si">{</span><span class="n">perf</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="s2">&quot;valid_roc_auc&quot;</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">)[</span><span class="s2">&quot;valid_roc_auc&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Best model: </span><span class="si">{</span><span class="n">best_model</span><span class="si">}</span><span class="s1">, valid ROC_AUC: </span><span class="si">{</span><span class="n">perf</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="s2">&quot;valid_roc_auc&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">)[</span><span class="s2">&quot;valid_roc_auc&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
 
         <span class="n">bmodel_prefix</span> <span class="o">=</span> <span class="s2">&quot;_&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">best_model</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
         <span class="n">bmodel_uuid</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">best_model</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
@@ -1743,7 +1746,7 @@
                                               <span class="sa">f</span><span class="s2">&quot;best_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">prediction_type</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">bmodel_prefix</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">model_type</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">fd</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">bmodel_uuid</span><span class="si">}</span><span class="s2">.tar.gz&quot;</span><span class="p">))</span></div></div>
 
 <div class="viewcode-block" id="parse_params"><a class="viewcode-back" href="../../utils.html#utils.hyperparam_search_wrapper.parse_params">[docs]</a><span class="k">def</span> <span class="nf">parse_params</span><span class="p">(</span><span class="n">param_list</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Parse paramters</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Parse paramters</span>
 
 <span class="sd">    Parses parameters using parameter_parser.wrapper and </span>
 <span class="sd">    filters out unnecessary parameters. Returns what an</span>
@@ -1788,7 +1791,7 @@
     <span class="k">return</span> <span class="n">params</span></div>
 
 <div class="viewcode-block" id="build_search"><a class="viewcode-back" href="../../utils.html#utils.hyperparam_search_wrapper.build_search">[docs]</a><span class="k">def</span> <span class="nf">build_search</span><span class="p">(</span><span class="n">params</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Builds HyperparamterSearch object</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Builds HyperparamterSearch object</span>
 
 <span class="sd">        Looks at params.search_type and builds a HyperparamSearch object</span>
 <span class="sd">        of the correct flavor. Will exit if the search_type is not</span>
@@ -1818,7 +1821,7 @@
     <span class="k">return</span> <span class="n">hs</span></div>
 
 <div class="viewcode-block" id="main"><a class="viewcode-back" href="../../utils.html#utils.hyperparam_search_wrapper.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
-    <span class="sd">&quot;&quot;&quot;Entry point when script is run</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Entry point when script is run</span>
 <span class="sd">    </span>
 <span class="sd">    Args:</span>
 <span class="sd">        None</span>
@@ -1850,7 +1853,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2022, ATOM DDM Team.</p>
+    <p>&#169; Copyright 2023, ATOM DDM Team.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

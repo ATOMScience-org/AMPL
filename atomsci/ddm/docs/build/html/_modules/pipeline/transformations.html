@@ -3,18 +3,17 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>pipeline.transformations &mdash; ATOM Data-Driven Modeling Pipeline 1.4.0 documentation</title>
+  <title>pipeline.transformations &mdash; ATOM Data-Driven Modeling Pipeline 1.5.0 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
         <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-        <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/underscore.js"></script>
-        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" /> 
@@ -25,14 +24,18 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../../index.html" class="icon icon-home"> ATOM Data-Driven Modeling Pipeline
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            ATOM Data-Driven Modeling Pipeline
           </a>
               <div class="version">
-                1.4.0
+                1.5.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -64,9 +67,9 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="../index.html">Module code</a> &raquo;</li>
-      <li>pipeline.transformations</li>
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">pipeline.transformations</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -104,7 +107,7 @@
 
 <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="transformers_needed"><a class="viewcode-back" href="../../pipeline.html#pipeline.transformations.transformers_needed">[docs]</a><span class="k">def</span> <span class="nf">transformers_needed</span><span class="p">(</span><span class="n">params</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns a boolean indicating whether response and/or feature transformers would be</span>
 <span class="sd">    created for a model with the given parameters.</span>
 
@@ -119,7 +122,7 @@
 
 <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="get_statistics_missing_ydata"><a class="viewcode-back" href="../../pipeline.html#pipeline.transformations.get_statistics_missing_ydata">[docs]</a><span class="k">def</span> <span class="nf">get_statistics_missing_ydata</span><span class="p">(</span><span class="n">dataset</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Compute and return statistics of this dataset.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute and return statistics of this dataset.</span>
 
 <span class="sd">       This updated version gives the option to check for and ignore missing</span>
 <span class="sd">       values for the y variable only. The x variable still assumes no</span>
@@ -149,7 +152,7 @@
 
 <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="create_feature_transformers"><a class="viewcode-back" href="../../pipeline.html#pipeline.transformations.create_feature_transformers">[docs]</a><span class="k">def</span> <span class="nf">create_feature_transformers</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">model_dataset</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Fit a scaling and centering transformation to the feature matrix of the given dataset, and return a</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Fit a scaling and centering transformation to the feature matrix of the given dataset, and return a</span>
 <span class="sd">    DeepChem transformer object holding its parameters.</span>
 
 <span class="sd">    Args:</span>
@@ -179,7 +182,7 @@
 
 <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="create_weight_transformers"><a class="viewcode-back" href="../../pipeline.html#pipeline.transformations.create_weight_transformers">[docs]</a><span class="k">def</span> <span class="nf">create_weight_transformers</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">model_dataset</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Fit an optional balancing transformation to the weight matrix of the given dataset, and return a</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Fit an optional balancing transformation to the weight matrix of the given dataset, and return a</span>
 <span class="sd">    DeepChem transformer object holding its parameters.</span>
 
 <span class="sd">    Args:</span>
@@ -203,7 +206,7 @@
 
 <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="get_transformer_specific_metadata"><a class="viewcode-back" href="../../pipeline.html#pipeline.transformations.get_transformer_specific_metadata">[docs]</a><span class="k">def</span> <span class="nf">get_transformer_specific_metadata</span><span class="p">(</span><span class="n">params</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Returns a dictionary of parameters related to the currently selected transformer(s).</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Returns a dictionary of parameters related to the currently selected transformer(s).</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        params (argparse.namespace: Object containing the parameter list</span>
@@ -226,7 +229,7 @@
 <span class="c1"># ****************************************************************************************</span>
 
 <div class="viewcode-block" id="UMAPTransformer"><a class="viewcode-back" href="../../pipeline.html#pipeline.transformations.UMAPTransformer">[docs]</a><span class="k">class</span> <span class="nc">UMAPTransformer</span><span class="p">(</span><span class="n">Transformer</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Dimension reduction transformations using the UMAP algorithm.</span>
 
 <span class="sd">    Attributes:</span>
@@ -235,7 +238,7 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">dataset</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Initializes a UMAPTransformer object.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initializes a UMAPTransformer object.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            params (Namespace): Contains parameters used to instantiate the transformer.</span>
@@ -276,7 +279,7 @@
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="UMAPTransformer.untransform"><a class="viewcode-back" href="../../pipeline.html#pipeline.transformations.UMAPTransformer.untransform">[docs]</a>    <span class="k">def</span> <span class="nf">untransform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">z</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Reverses stored transformation on provided data.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Reverses stored transformation on provided data.&quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Can&#39;t reverse a UMAP transformation&quot;</span><span class="p">)</span></div></div>
     <span class="c1"># ****************************************************************************************</span>
 
@@ -284,7 +287,7 @@
 <span class="c1"># ****************************************************************************************</span>
 
 <div class="viewcode-block" id="NormalizationTransformerMissingData"><a class="viewcode-back" href="../../pipeline.html#pipeline.transformations.NormalizationTransformerMissingData">[docs]</a><span class="k">class</span> <span class="nc">NormalizationTransformerMissingData</span><span class="p">(</span><span class="n">NormalizationTransformer</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Test extension to check for missing data</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
@@ -324,7 +327,7 @@
         <span class="k">return</span> <span class="n">dataset</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="NormalizationTransformerMissingData.transform_array"><a class="viewcode-back" href="../../pipeline.html#pipeline.transformations.NormalizationTransformerMissingData.transform_array">[docs]</a>    <span class="k">def</span> <span class="nf">transform_array</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">ids</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Transform the data in a set of (X, y, w) arrays.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Transform the data in a set of (X, y, w) arrays.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">transform_X</span><span class="p">:</span>
             <span class="n">zero_std_pos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">X_stds</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
             <span class="n">X_weight</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">X_stds</span><span class="p">)</span>
@@ -338,12 +341,57 @@
                 <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan_to_num</span><span class="p">((</span><span class="n">y</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_means</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_stds</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan_to_num</span><span class="p">(</span><span class="n">y</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_stds</span><span class="p">)</span>
-        <span class="k">return</span> <span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">ids</span><span class="p">)</span></div></div>
+        <span class="k">return</span> <span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">ids</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="NormalizationTransformerMissingData.untransform"><a class="viewcode-back" href="../../pipeline.html#pipeline.transformations.NormalizationTransformerMissingData.untransform">[docs]</a>    <span class="k">def</span> <span class="nf">untransform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">z</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Undo transformation on provided data.</span>
+
+<span class="sd">        Overrides DeepChem NormalizationTransformer method to fix issue #1821.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        z: np.ndarray</span>
+<span class="sd">            Array to transform back</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        z_out: np.ndarray</span>
+<span class="sd">            Array with normalization undone.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">transform_X</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;move_mean&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">move_mean</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">z</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">X_stds</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">X_means</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">z</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">X_stds</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">transform_y</span><span class="p">:</span>
+            <span class="n">y_stds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_stds</span>
+            <span class="n">y_means</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_means</span>
+            <span class="c1"># Handle case with 1 task correctly</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">y_stds</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">n_tasks</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">n_tasks</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_stds</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">z_shape</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">z</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+            <span class="c1"># Get the reversed shape of z: (..., n_tasks, batch_size)</span>
+            <span class="n">z_shape</span><span class="o">.</span><span class="n">reverse</span><span class="p">()</span>
+            <span class="c1"># Find the task dimension of z</span>
+            <span class="k">for</span> <span class="n">ind</span><span class="p">,</span> <span class="n">dim</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">z_shape</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">ind</span> <span class="o">&lt;</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">z_shape</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="ow">and</span> <span class="n">dim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="c1"># Prevent broadcasting on wrong dimension</span>
+                    <span class="n">y_stds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">y_stds</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+                    <span class="n">y_means</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">y_means</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;move_mean&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">move_mean</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">z</span> <span class="o">*</span> <span class="n">y_stds</span> <span class="o">+</span> <span class="n">y_means</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">z</span> <span class="o">*</span> <span class="n">y_stds</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">z</span></div></div>
 
 <span class="c1"># ****************************************************************************************</span>
 
 <div class="viewcode-block" id="NormalizationTransformerHybrid"><a class="viewcode-back" href="../../pipeline.html#pipeline.transformations.NormalizationTransformerHybrid">[docs]</a><span class="k">class</span> <span class="nc">NormalizationTransformerHybrid</span><span class="p">(</span><span class="n">NormalizationTransformer</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Test extension to check for missing data</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
@@ -384,7 +432,7 @@
         <span class="k">return</span> <span class="n">dataset</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="NormalizationTransformerHybrid.transform_array"><a class="viewcode-back" href="../../pipeline.html#pipeline.transformations.NormalizationTransformerHybrid.transform_array">[docs]</a>    <span class="k">def</span> <span class="nf">transform_array</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">ids</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Transform the data in a set of (X, y, w) arrays.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Transform the data in a set of (X, y, w) arrays.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">transform_X</span><span class="p">:</span>
             <span class="n">zero_std_pos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">X_stds</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
             <span class="n">X_weight</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">X_stds</span><span class="p">)</span>
@@ -437,7 +485,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2022, ATOM DDM Team.</p>
+    <p>&#169; Copyright 2023, ATOM DDM Team.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

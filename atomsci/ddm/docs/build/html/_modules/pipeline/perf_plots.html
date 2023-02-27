@@ -3,18 +3,17 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>pipeline.perf_plots &mdash; ATOM Data-Driven Modeling Pipeline 1.4.0 documentation</title>
+  <title>pipeline.perf_plots &mdash; ATOM Data-Driven Modeling Pipeline 1.5.0 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
         <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-        <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/underscore.js"></script>
-        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" /> 
@@ -25,14 +24,18 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../../index.html" class="icon icon-home"> ATOM Data-Driven Modeling Pipeline
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            ATOM Data-Driven Modeling Pipeline
           </a>
               <div class="version">
-                1.4.0
+                1.5.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -64,9 +67,9 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="../index.html">Module code</a> &raquo;</li>
-      <li>pipeline.perf_plots</li>
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">pipeline.perf_plots</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -104,7 +107,7 @@
 
 <span class="c1">#------------------------------------------------------------------------------------------------------------------------</span>
 <div class="viewcode-block" id="plot_pred_vs_actual"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_plots.plot_pred_vs_actual">[docs]</a><span class="k">def</span> <span class="nf">plot_pred_vs_actual</span><span class="p">(</span><span class="n">MP</span><span class="p">,</span> <span class="n">epoch_label</span><span class="o">=</span><span class="s1">&#39;best&#39;</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">error_bars</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">pdf_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Plot predicted vs actual values from a trained regression model for each split subset (train,</span>
 <span class="sd">    valid, and test).</span>
 
@@ -225,7 +228,7 @@
 
 <span class="c1">#------------------------------------------------------------------------------------------------------------------------</span>
 <div class="viewcode-block" id="plot_perf_vs_epoch"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_plots.plot_perf_vs_epoch">[docs]</a><span class="k">def</span> <span class="nf">plot_perf_vs_epoch</span><span class="p">(</span><span class="n">MP</span><span class="p">,</span> <span class="n">pdf_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Plot the current NN model&#39;s standard performance metric (r2_score or roc_auc_score) vs epoch number for the training,</span>
 <span class="sd">    validation and test subsets. If the model was trained with k-fold CV, plot shading for the validation set out to += 1 SD from the mean</span>
 <span class="sd">    score metric values, and plot the training and test set metrics from the final model retraining rather than the cross-validation</span>
@@ -313,7 +316,7 @@
 
 <span class="c1">#------------------------------------------------------------------------------------------------------------------------</span>
 <span class="k">def</span> <span class="nf">_get_perf_curve_data</span><span class="p">(</span><span class="n">MP</span><span class="p">,</span> <span class="n">epoch_label</span><span class="p">,</span> <span class="n">curve_type</span><span class="o">=</span><span class="s1">&#39;ROC&#39;</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Common code for ROC and precision-recall curves. Returns true classes and active class probabilities</span>
 <span class="sd">    for each training/test data subset.</span>
 
@@ -362,7 +365,7 @@
 
 <span class="c1">#------------------------------------------------------------------------------------------------------------------------</span>
 <div class="viewcode-block" id="plot_ROC_curve"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_plots.plot_ROC_curve">[docs]</a><span class="k">def</span> <span class="nf">plot_ROC_curve</span><span class="p">(</span><span class="n">MP</span><span class="p">,</span> <span class="n">epoch_label</span><span class="o">=</span><span class="s1">&#39;best&#39;</span><span class="p">,</span> <span class="n">pdf_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Plot ROC curves for a classification model.</span>
 
 <span class="sd">    Args:</span>
@@ -417,7 +420,7 @@
 
 <span class="c1">#------------------------------------------------------------------------------------------------------------------------</span>
 <div class="viewcode-block" id="plot_prec_recall_curve"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_plots.plot_prec_recall_curve">[docs]</a><span class="k">def</span> <span class="nf">plot_prec_recall_curve</span><span class="p">(</span><span class="n">MP</span><span class="p">,</span> <span class="n">epoch_label</span><span class="o">=</span><span class="s1">&#39;best&#39;</span><span class="p">,</span> <span class="n">pdf_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Plot precision-recall curves for a classification model.</span>
 
 <span class="sd">    Args:</span>
@@ -474,7 +477,7 @@
                                   <span class="n">fit_to_train</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                                   <span class="n">dist_metric</span><span class="o">=</span><span class="s1">&#39;euclidean&#39;</span><span class="p">,</span> <span class="n">dist_metric_kwds</span><span class="o">=</span><span class="p">{},</span> 
                                   <span class="n">target_weight</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">random_seed</span><span class="o">=</span><span class="mi">17</span><span class="p">,</span> <span class="n">pdf_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Projects features of a model&#39;s input dataset using UMAP to 2D or 3D coordinates and draws a scatterplot.</span>
 <span class="sd">    Shape-codes plot markers to indicate whether the associated compound was in the training, validation or</span>
 <span class="sd">    test set. For classification models, also uses the marker shape to indicate whether the compound&#39;s class was correctly</span>
@@ -681,7 +684,7 @@
 <div class="viewcode-block" id="plot_umap_train_set_neighbors"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_plots.plot_umap_train_set_neighbors">[docs]</a><span class="k">def</span> <span class="nf">plot_umap_train_set_neighbors</span><span class="p">(</span><span class="n">MP</span><span class="p">,</span> <span class="n">num_neighbors</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">min_dist</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> 
                                   <span class="n">dist_metric</span><span class="o">=</span><span class="s1">&#39;euclidean&#39;</span><span class="p">,</span> <span class="n">dist_metric_kwds</span><span class="o">=</span><span class="p">{},</span> 
                                   <span class="n">random_seed</span><span class="o">=</span><span class="mi">17</span><span class="p">,</span> <span class="n">pdf_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Project features of whole dataset to 2 dimensions, without regard to response values. Plot training &amp; validation set</span>
 <span class="sd">    or training and test set compounds, color- and symbol-coded according to actual classification and split set.</span>
 <span class="sd">    The plot does not take predicted values into account at all. Does not work with regression data.</span>
@@ -839,7 +842,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2022, ATOM DDM Team.</p>
+    <p>&#169; Copyright 2023, ATOM DDM Team.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

@@ -4,6 +4,30 @@ utils package
 Submodules
 ----------
 
+utils.checksum\_utils module
+-------------------------------------
+
+.. automodule:: utils.checksum_utils
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+utils.compare\_split\_csv module
+-------------------------------------
+
+.. automodule:: utils.compare_split_csv
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+utils.compare\_splits\_plots module
+-------------------------------------
+
+.. automodule:: utils.compare_splits_plots
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 utils.curate\_data module
 -------------------------------------
 
@@ -24,6 +48,14 @@ utils.datastore\_functions module
 ---------------------------------------------
 
 .. automodule:: utils.datastore_functions
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+utils.file\_utils module
+---------------------------------------------
+
+.. automodule:: utils.file_utils
    :members:
    :undoc-members:
    :show-inheritance:
@@ -52,10 +84,26 @@ utils.llnl\_utils module
    :undoc-members:
    :show-inheritance:
 
+utils.many\_to\_one module
+------------------------------------
+
+.. automodule:: utils.many_to_one
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 utils.model\_retrain module
 ---------------------------------------
 
 .. automodule:: utils.model_retrain
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+utils.model\_version\_utils module
+---------------------------------------
+
+.. automodule:: utils.model_version_utils
    :members:
    :undoc-members:
    :show-inheritance:

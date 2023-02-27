@@ -3,18 +3,17 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>pipeline.feature_importance &mdash; ATOM Data-Driven Modeling Pipeline 1.4.0 documentation</title>
+  <title>pipeline.feature_importance &mdash; ATOM Data-Driven Modeling Pipeline 1.5.0 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
         <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-        <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/underscore.js"></script>
-        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" /> 
@@ -25,14 +24,18 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../../index.html" class="icon icon-home"> ATOM Data-Driven Modeling Pipeline
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            ATOM Data-Driven Modeling Pipeline
           </a>
               <div class="version">
-                1.4.0
+                1.5.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -64,9 +67,9 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="../index.html">Module code</a> &raquo;</li>
-      <li>pipeline.feature_importance</li>
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">pipeline.feature_importance</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -117,7 +120,7 @@
 
 
 <span class="k">class</span> <span class="nc">_SklearnRegressorWrapper</span><span class="p">(</span><span class="n">BaseEstimator</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Class that implements the parts of the scikit-learn Estimator interface needed by the</span>
 <span class="sd">    permutation importance code for AMPL regression models.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -134,7 +137,7 @@
         <span class="k">return</span> <span class="n">y_pred</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
 
 <span class="k">class</span> <span class="nc">_SklearnClassifierWrapper</span><span class="p">(</span><span class="n">BaseEstimator</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Class that implements the parts of the scikit-learn Estimator interface needed by the</span>
 <span class="sd">    permutation importance code for AMPL classification models.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -162,7 +165,7 @@
 
 
 <span class="k">def</span> <span class="nf">_get_estimator</span><span class="p">(</span><span class="n">model_pipeline</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Given an AMPL ModelPipeline object, returns an object that supports the scikit-learn estimator interface (in particular, </span>
 <span class="sd">    the predict and predict_proba methods), for the purpose of running the permutation_importance function.</span>
 
@@ -193,7 +196,7 @@
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unsupported model type </span><span class="si">{</span><span class="n">pparams</span><span class="o">.</span><span class="n">model_type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
 <span class="k">def</span> <span class="nf">_get_scorer</span><span class="p">(</span><span class="n">score_type</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns an sklearn.metrics.Scorer object that can be used to get model performance scores for</span>
 <span class="sd">    various input feature sets.</span>
 
@@ -231,7 +234,7 @@
 
 <span class="c1"># ===================================================================================================</span>
 <div class="viewcode-block" id="base_feature_importance"><a class="viewcode-back" href="../../pipeline.html#pipeline.feature_importance.base_feature_importance">[docs]</a><span class="k">def</span> <span class="nf">base_feature_importance</span><span class="p">(</span><span class="n">model_pipeline</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Minimal baseline feature importance function. Given an AMPL model (or the parameters to train a model),</span>
 <span class="sd">    returns a data frame with a row for each feature. The columns of the data frame depend on the model type and</span>
 <span class="sd">    prediction type. If the model is a binary classifier, the columns include  t-statistics and p-values</span>
@@ -319,7 +322,7 @@
 <span class="c1"># ===================================================================================================</span>
 <div class="viewcode-block" id="permutation_feature_importance"><a class="viewcode-back" href="../../pipeline.html#pipeline.feature_importance.permutation_feature_importance">[docs]</a><span class="k">def</span> <span class="nf">permutation_feature_importance</span><span class="p">(</span><span class="n">model_pipeline</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">score_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nreps</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span> <span class="n">nworkers</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
                                    <span class="n">result_file</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Assess the importance of each feature used by a trained model by permuting the values of each feature in succession</span>
 <span class="sd">    in the training, validation and test sets, making predictions, computing performance metrics, and measuring the effect</span>
 <span class="sd">    of scrambling each feature on a particular metric.</span>
@@ -378,7 +381,7 @@
 
 <span class="c1"># ===================================================================================================</span>
 <div class="viewcode-block" id="plot_feature_importances"><a class="viewcode-back" href="../../pipeline.html#pipeline.feature_importance.plot_feature_importances">[docs]</a><span class="k">def</span> <span class="nf">plot_feature_importances</span><span class="p">(</span><span class="n">imp_df</span><span class="p">,</span> <span class="n">importance_col</span><span class="o">=</span><span class="s1">&#39;valid_perm_importance_mean&#39;</span><span class="p">,</span> <span class="n">max_feat</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Display a horizontal bar plot showing the relative importances of the most important features or feature clusters, according to</span>
 <span class="sd">    the results of `permutation_feature_importance`, `cluster_permutation_importance` or a similar function.</span>
 
@@ -407,7 +410,7 @@
 <span class="c1"># ===================================================================================================</span>
 <div class="viewcode-block" id="display_feature_clusters"><a class="viewcode-back" href="../../pipeline.html#pipeline.feature_importance.display_feature_clusters">[docs]</a><span class="k">def</span> <span class="nf">display_feature_clusters</span><span class="p">(</span><span class="n">model_pipeline</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">clust_height</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> 
                                    <span class="n">corr_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">show_matrix</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">show_dendro</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Cluster the input features used in the model specified by `model_pipeline` or `params`, using Spearman correlation</span>
 <span class="sd">    as a similarity metric. Display a dendrogram and/or a correlation matrix heatmap, so the user can decide the</span>
 <span class="sd">    height at which to cut the dendrogram in order to split the features into clusters, for input to</span>
@@ -494,7 +497,7 @@
 <span class="c1"># ===================================================================================================</span>
 <div class="viewcode-block" id="cluster_permutation_importance"><a class="viewcode-back" href="../../pipeline.html#pipeline.feature_importance.cluster_permutation_importance">[docs]</a><span class="k">def</span> <span class="nf">cluster_permutation_importance</span><span class="p">(</span><span class="n">model_pipeline</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">score_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">clust_height</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> 
                                    <span class="n">result_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nreps</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">nworkers</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Divide the input features used in a model into correlated clusters, then assess the importance of the features</span>
 <span class="sd">    by iterating over clusters, permuting the values of all the features in the cluster, and measuring the effect</span>
 <span class="sd">    on the model performance metric given by score_type for the training, validation and test subsets.</span>
@@ -597,7 +600,7 @@
 
 <span class="c1"># ===================================================================================================</span>
 <span class="k">def</span> <span class="nf">_calc_cluster_permutation_scores</span><span class="p">(</span><span class="n">estimator</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">col_indices</span><span class="p">,</span> <span class="n">random_state</span><span class="p">,</span> <span class="n">n_repeats</span><span class="p">,</span> <span class="n">scorer</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calculate score of estimator when `col_indices` are all permuted randomly.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Work on a copy of X to to ensure thread-safety in case of threading based</span>
@@ -625,7 +628,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2022, ATOM DDM Team.</p>
+    <p>&#169; Copyright 2023, ATOM DDM Team.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

@@ -43,7 +43,7 @@ general_params = {'dataset_key' : './delaney-processed.csv',
 
 
 
-DD = dc.data.datasets.DiskDataset
+DD = dc.data.datasets.NumpyDataset
 
 #***********************************************************************************
 def test_create_model_wrapper():

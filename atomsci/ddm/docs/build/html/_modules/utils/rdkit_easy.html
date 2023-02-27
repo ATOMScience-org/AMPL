@@ -3,18 +3,17 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>utils.rdkit_easy &mdash; ATOM Data-Driven Modeling Pipeline 1.4.0 documentation</title>
+  <title>utils.rdkit_easy &mdash; ATOM Data-Driven Modeling Pipeline 1.5.0 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
         <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-        <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/underscore.js"></script>
-        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" /> 
@@ -25,14 +24,18 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../../index.html" class="icon icon-home"> ATOM Data-Driven Modeling Pipeline
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            ATOM Data-Driven Modeling Pipeline
           </a>
               <div class="version">
-                1.4.0
+                1.5.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -64,9 +67,9 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="../index.html">Module code</a> &raquo;</li>
-      <li>utils.rdkit_easy</li>
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">utils.rdkit_easy</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -82,6 +85,7 @@
 <span class="c1"># Mostly written by Logan Van Ravenswaay, with additions and edits by Ben Madej and Kevin McLoughlin.</span>
 
 <span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">pdb</span>
 
 <span class="kn">from</span> <span class="nn">IPython.display</span> <span class="kn">import</span> <span class="n">SVG</span><span class="p">,</span> <span class="n">HTML</span><span class="p">,</span> <span class="n">display</span>
 <span class="kn">from</span> <span class="nn">base64</span> <span class="kn">import</span> <span class="n">b64encode</span>
@@ -102,7 +106,7 @@
 <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="nb">format</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%(asctime)-15s</span><span class="s1"> </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">)</span>
 
 <div class="viewcode-block" id="setup_notebook"><a class="viewcode-back" href="../../utils.html#utils.rdkit_easy.setup_notebook">[docs]</a><span class="k">def</span> <span class="nf">setup_notebook</span><span class="p">():</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Set up current notebook for displaying plots and Bokeh output using full width of window</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">from</span> <span class="nn">bokeh.plotting</span> <span class="kn">import</span> <span class="n">output_notebook</span>
@@ -116,7 +120,7 @@
     <span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s1">&#39;max_seq_items&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="add_mol_column"><a class="viewcode-back" href="../../utils.html#utils.rdkit_easy.add_mol_column">[docs]</a><span class="k">def</span> <span class="nf">add_mol_column</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">smiles_col</span><span class="p">,</span> <span class="n">molecule_col</span><span class="o">=</span><span class="s1">&#39;mol&#39;</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Converts SMILES strings in a data frame to RDKit Mol objects and adds them as a new column in the data frame.</span>
 
 <span class="sd">    Args:</span>
@@ -135,7 +139,7 @@
 
 
 <div class="viewcode-block" id="calculate_descriptors"><a class="viewcode-back" href="../../utils.html#utils.rdkit_easy.calculate_descriptors">[docs]</a><span class="k">def</span> <span class="nf">calculate_descriptors</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">molecule_column</span><span class="o">=</span><span class="s1">&#39;mol&#39;</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Uses RDKit to compute various descriptors for compounds specified by Mol objects in the given data frame.</span>
 
 <span class="sd">    Args:</span>
@@ -157,7 +161,7 @@
 
 
 <div class="viewcode-block" id="cluster_dataframe"><a class="viewcode-back" href="../../utils.html#utils.rdkit_easy.cluster_dataframe">[docs]</a><span class="k">def</span> <span class="nf">cluster_dataframe</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">molecule_column</span><span class="o">=</span><span class="s1">&#39;mol&#39;</span><span class="p">,</span> <span class="n">cluster_column</span><span class="o">=</span><span class="s1">&#39;cluster&#39;</span><span class="p">,</span> <span class="n">cutoff</span><span class="o">=</span><span class="mf">0.2</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Performs Butina clustering on compounds specified by Mol objects in a data frame.</span>
 
 <span class="sd">    Modifies the input dataframe to add a column &#39;cluster_column&#39; containing the cluster</span>
@@ -192,7 +196,7 @@
 
 
 <div class="viewcode-block" id="cluster_fingerprints"><a class="viewcode-back" href="../../utils.html#utils.rdkit_easy.cluster_fingerprints">[docs]</a><span class="k">def</span> <span class="nf">cluster_fingerprints</span><span class="p">(</span><span class="n">fps</span><span class="p">,</span> <span class="n">cutoff</span><span class="o">=</span><span class="mf">0.2</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Performs Butina clustering on compounds specified by a list of fingerprint bit vectors.</span>
 
 <span class="sd">    From RDKit cookbook http://rdkit.org/docs_temp/Cookbook.html.</span>
@@ -219,13 +223,16 @@
     <span class="k">return</span> <span class="n">cs</span></div>
 
 
-<div class="viewcode-block" id="mol_to_html"><a class="viewcode-back" href="../../utils.html#utils.rdkit_easy.mol_to_html">[docs]</a><span class="k">def</span> <span class="nf">mol_to_html</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;svg&#39;</span><span class="p">,</span> <span class="n">directory</span><span class="o">=</span><span class="s1">&#39;rdkit_svg&#39;</span><span class="p">,</span> <span class="n">embed</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">400</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">200</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="mol_to_html"><a class="viewcode-back" href="../../utils.html#utils.rdkit_easy.mol_to_html">[docs]</a><span class="k">def</span> <span class="nf">mol_to_html</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">highlight</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;svg&#39;</span><span class="p">,</span> <span class="n">directory</span><span class="o">=</span><span class="s1">&#39;rdkit_svg&#39;</span><span class="p">,</span> <span class="n">embed</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">400</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">200</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Creates an image displaying the given molecule&#39;s 2D structure, and generates an HTML</span>
 <span class="sd">    tag for it. The image can be embedded directly into the HTML tag or saved to a file.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        mol (rdkit.Chem.Mol): Object representing molecule.</span>
+
+<span class="sd">        highlight (rdkit.Chem.Mol): Optional object representing a set of atoms and bonds to be highlighted in</span>
+<span class="sd">        the image.</span>
 
 <span class="sd">        name (str): Filename of image file to create, relative to &#39;directory&#39;; only used if embed=False.</span>
 
@@ -233,6 +240,9 @@
 
 <span class="sd">        directory (str): Path relative to notebook directory of subdirectory where image file will be written. </span>
 <span class="sd">        The directory will be created if necessary. Note that absolute paths will not work in notebooks. Ignored if embed=True.</span>
+
+<span class="sd">        embed (bool): If True, image data will be embedded in the generated HTML tag. Otherwise it will be written to a</span>
+<span class="sd">        file determined by the `directory` and `name` arguments.</span>
 
 <span class="sd">        width (int): Width of image bounding box.</span>
 
@@ -249,15 +259,14 @@
         <span class="k">return</span>
     
     <span class="k">if</span> <span class="n">embed</span><span class="p">:</span>
-        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Warning: embed=True will result in large data structures if you have a lot of molecules.&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">type</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;png&#39;</span><span class="p">:</span>
-            <span class="n">img</span><span class="o">=</span><span class="n">mol_to_pil</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">width</span><span class="p">,</span><span class="n">height</span><span class="p">))</span>
+            <span class="n">img</span><span class="o">=</span><span class="n">mol_to_pil</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">width</span><span class="p">,</span><span class="n">height</span><span class="p">),</span> <span class="n">highlight</span><span class="o">=</span><span class="n">highlight</span><span class="p">)</span>
             <span class="n">imgByteArr</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">()</span>
             <span class="n">img</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">imgByteArr</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="n">img</span><span class="o">.</span><span class="n">format</span><span class="p">)</span>
             <span class="n">imgByteArr</span> <span class="o">=</span> <span class="n">imgByteArr</span><span class="o">.</span><span class="n">getvalue</span><span class="p">()</span>
             <span class="n">data_url</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;data:image/png;base64,&#39;</span> <span class="o">+</span> <span class="n">b64encode</span><span class="p">(</span><span class="n">imgByteArr</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span>
         <span class="k">elif</span> <span class="nb">type</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;svg&#39;</span><span class="p">:</span>
-            <span class="n">img</span><span class="o">=</span><span class="n">mol_to_svg</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">width</span><span class="p">,</span><span class="n">height</span><span class="p">))</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
+            <span class="n">img</span><span class="o">=</span><span class="n">mol_to_svg</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">width</span><span class="p">,</span><span class="n">height</span><span class="p">),</span> <span class="n">highlight</span><span class="o">=</span><span class="n">highlight</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
             <span class="n">data_url</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;data:image/svg+xml;base64,&#39;</span> <span class="o">+</span> <span class="n">b64encode</span><span class="p">(</span><span class="n">img</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span>
         <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;&lt;img src=&#39;</span><span class="si">{</span><span class="n">data_url</span><span class="si">}</span><span class="s2">&#39; style=&#39;width:</span><span class="si">{</span><span class="n">width</span><span class="si">}</span><span class="s2">px;&#39;&gt;&quot;</span> 
     
@@ -265,30 +274,61 @@
         <span class="n">img_file</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">/</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
         <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">type</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;png&#39;</span><span class="p">:</span>
-            <span class="n">save_png</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">img_file</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">width</span><span class="p">,</span><span class="n">height</span><span class="p">))</span>
+            <span class="n">save_png</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">img_file</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">width</span><span class="p">,</span><span class="n">height</span><span class="p">),</span> <span class="n">highlight</span><span class="o">=</span><span class="n">highlight</span><span class="p">)</span>
         <span class="k">elif</span> <span class="nb">type</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">==</span><span class="s1">&#39;svg&#39;</span><span class="p">:</span>
-            <span class="n">save_svg</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">img_file</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">width</span><span class="p">,</span><span class="n">height</span><span class="p">))</span>
+            <span class="n">save_svg</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">img_file</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">width</span><span class="p">,</span><span class="n">height</span><span class="p">),</span> <span class="n">highlight</span><span class="o">=</span><span class="n">highlight</span><span class="p">)</span>
         <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;&lt;img src=&#39;</span><span class="si">{</span><span class="n">img_file</span><span class="si">}</span><span class="s2">&#39; style=&#39;width:</span><span class="si">{</span><span class="n">width</span><span class="si">}</span><span class="s2">px;&#39;&gt;&quot;</span></div>
 
-<div class="viewcode-block" id="mol_to_pil"><a class="viewcode-back" href="../../utils.html#utils.rdkit_easy.mol_to_pil">[docs]</a><span class="k">def</span> <span class="nf">mol_to_pil</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">400</span><span class="p">,</span> <span class="mi">200</span><span class="p">)):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="matching_atoms_and_bonds"><a class="viewcode-back" href="../../utils.html#utils.rdkit_easy.matching_atoms_and_bonds">[docs]</a><span class="k">def</span> <span class="nf">matching_atoms_and_bonds</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">match_mol</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns lists of indices of atoms and bonds within molecule `mol` that are part of the substructure</span>
+<span class="sd">    matched by `match_mol`.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        mol (rdkit.Chem.Mol): Object representing molecule.</span>
+
+<span class="sd">        match_mol (rdkit.Chem.Mol): Object representing a substructure or SMARTS pattern to be</span>
+<span class="sd">        compared against `mol`, typically created by `Chem.MolFromSmiles()` or `Chem.MolFromSmarts()`.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        match_atoms, match_bonds (tuple(list(int), list(int))): Lists of indices of atoms and bonds</span>
+<span class="sd">        within `mol` contained in the substructure (if any) matched by `match_mol`. Returns empty lists</span>
+<span class="sd">        if there is no match.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">match_atoms</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">match_bonds</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="n">match_mol</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">match_atoms</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">mol</span><span class="o">.</span><span class="n">GetSubstructMatch</span><span class="p">(</span><span class="n">match_mol</span><span class="p">))</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">match_atoms</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">bond</span> <span class="ow">in</span> <span class="n">match_mol</span><span class="o">.</span><span class="n">GetBonds</span><span class="p">():</span>
+               <span class="n">aid1</span> <span class="o">=</span> <span class="n">match_atoms</span><span class="p">[</span><span class="n">bond</span><span class="o">.</span><span class="n">GetBeginAtomIdx</span><span class="p">()]</span>
+               <span class="n">aid2</span> <span class="o">=</span> <span class="n">match_atoms</span><span class="p">[</span><span class="n">bond</span><span class="o">.</span><span class="n">GetEndAtomIdx</span><span class="p">()]</span>
+               <span class="n">match_bonds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mol</span><span class="o">.</span><span class="n">GetBondBetweenAtoms</span><span class="p">(</span><span class="n">aid1</span><span class="p">,</span><span class="n">aid2</span><span class="p">)</span><span class="o">.</span><span class="n">GetIdx</span><span class="p">())</span>
+    <span class="k">return</span> <span class="n">match_atoms</span><span class="p">,</span> <span class="n">match_bonds</span></div>
+
+
+<div class="viewcode-block" id="mol_to_pil"><a class="viewcode-back" href="../../utils.html#utils.rdkit_easy.mol_to_pil">[docs]</a><span class="k">def</span> <span class="nf">mol_to_pil</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">400</span><span class="p">,</span> <span class="mi">200</span><span class="p">),</span> <span class="n">highlight</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns a Python Image Library (PIL) object containing an image of the given molecule&#39;s structure.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        mol (rdkit.Chem.Mol): Object representing molecule.</span>
 
 <span class="sd">        size (tuple): Width and height of bounding box of image.</span>
+<span class="sd">        </span>
+<span class="sd">        highlight (rdkit.Chem.Mol): Object representing substructure to highlight on molecule.</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        PIL.PngImageFile: An object containing an image of the molecule&#39;s structure.</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">pil</span> <span class="o">=</span> <span class="n">MolToImage</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+    <span class="n">highlight_atoms</span><span class="p">,</span> <span class="n">highlight_bonds</span> <span class="o">=</span> <span class="n">matching_atoms_and_bonds</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">highlight</span><span class="p">)</span>
+    <span class="n">pil</span> <span class="o">=</span> <span class="n">MolToImage</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">highlightAtoms</span><span class="o">=</span><span class="n">highlight_atoms</span><span class="p">,</span> <span class="n">highlightBonds</span><span class="o">=</span><span class="n">highlight_bonds</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">pil</span></div>
 
 
-<div class="viewcode-block" id="save_png"><a class="viewcode-back" href="../../utils.html#utils.rdkit_easy.save_png">[docs]</a><span class="k">def</span> <span class="nf">save_png</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">400</span><span class="p">,</span> <span class="mi">200</span><span class="p">)):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="save_png"><a class="viewcode-back" href="../../utils.html#utils.rdkit_easy.save_png">[docs]</a><span class="k">def</span> <span class="nf">save_png</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">400</span><span class="p">,</span> <span class="mi">200</span><span class="p">),</span> <span class="n">highlight</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Draws the molecule mol into a PNG file with filename &#39;name&#39; and with the given size</span>
 <span class="sd">    in pixels.</span>
 
@@ -298,27 +338,31 @@
 <span class="sd">        name (str): Path to write PNG file to.</span>
 
 <span class="sd">        size (tuple): Width and height of bounding box of image.</span>
+<span class="sd">        </span>
+<span class="sd">        highlight (rdkit.Chem.Mol): Object representing substructure to highlight on molecule.</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">pil</span> <span class="o">=</span> <span class="n">mol_to_pil</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">size</span><span class="p">)</span>
+    <span class="n">pil</span> <span class="o">=</span> <span class="n">mol_to_pil</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">highlight</span><span class="o">=</span><span class="n">highlight</span><span class="p">)</span>
     <span class="n">pil</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="s1">&#39;PNG&#39;</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="mol_to_svg"><a class="viewcode-back" href="../../utils.html#utils.rdkit_easy.mol_to_svg">[docs]</a><span class="k">def</span> <span class="nf">mol_to_svg</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">400</span><span class="p">,</span><span class="mi">200</span><span class="p">)):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="mol_to_svg"><a class="viewcode-back" href="../../utils.html#utils.rdkit_easy.mol_to_svg">[docs]</a><span class="k">def</span> <span class="nf">mol_to_svg</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">400</span><span class="p">,</span><span class="mi">200</span><span class="p">),</span> <span class="n">highlight</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns a RDKit MolDraw2DSVG object containing an image of the given molecule&#39;s structure.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        mol (rdkit.Chem.Mol): Object representing molecule.</span>
 
 <span class="sd">        size (tuple): Width and height of bounding box of image.</span>
+<span class="sd">        </span>
+<span class="sd">        highlight (rdkit.Chem.Mol): Object representing substructure to highlight on molecule.</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">       RDKit.rdMolDraw2D.MolDraw2DSVG text (str): An SVG object containing an image of the molecule&#39;s structure.</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">img_wd</span><span class="p">,</span> <span class="n">img_ht</span> <span class="o">=</span> <span class="n">size</span>
-    <span class="n">AllChem</span><span class="o">.</span><span class="n">Compute2DCoords</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>
+    <span class="n">highlight_atoms</span><span class="p">,</span> <span class="n">highlight_bonds</span> <span class="o">=</span> <span class="n">matching_atoms_and_bonds</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">highlight</span><span class="p">)</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">mol</span><span class="o">.</span><span class="n">GetAtomWithIdx</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">GetExplicitValence</span><span class="p">()</span>
     <span class="k">except</span> <span class="ne">RuntimeError</span><span class="p">:</span>
@@ -329,7 +373,8 @@
         <span class="c1"># can happen on a kekulization failure</span>
         <span class="n">mc_mol</span> <span class="o">=</span> <span class="n">rdMolDraw2D</span><span class="o">.</span><span class="n">PrepareMolForDrawing</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">kekulize</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="n">drawer</span> <span class="o">=</span> <span class="n">rdMolDraw2D</span><span class="o">.</span><span class="n">MolDraw2DSVG</span><span class="p">(</span><span class="n">img_wd</span><span class="p">,</span> <span class="n">img_ht</span><span class="p">)</span>
-    <span class="n">drawer</span><span class="o">.</span><span class="n">DrawMolecule</span><span class="p">(</span><span class="n">mc_mol</span><span class="p">)</span>
+    <span class="n">rdMolDraw2D</span><span class="o">.</span><span class="n">PrepareAndDrawMolecule</span><span class="p">(</span><span class="n">drawer</span><span class="p">,</span> <span class="n">mc_mol</span><span class="p">,</span> <span class="n">highlightAtoms</span><span class="o">=</span><span class="n">highlight_atoms</span><span class="p">,</span>
+                                                    <span class="n">highlightBonds</span><span class="o">=</span><span class="n">highlight_bonds</span><span class="p">)</span>
     <span class="n">drawer</span><span class="o">.</span><span class="n">FinishDrawing</span><span class="p">()</span>
     <span class="n">svg</span> <span class="o">=</span> <span class="n">drawer</span><span class="o">.</span><span class="n">GetDrawingText</span><span class="p">()</span>
     <span class="n">svg</span> <span class="o">=</span> <span class="n">svg</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;svg:&#39;</span><span class="p">,</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
@@ -337,8 +382,8 @@
     <span class="k">return</span> <span class="n">svg</span></div>
 
 
-<div class="viewcode-block" id="save_svg"><a class="viewcode-back" href="../../utils.html#utils.rdkit_easy.save_svg">[docs]</a><span class="k">def</span> <span class="nf">save_svg</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">400</span><span class="p">,</span><span class="mi">200</span><span class="p">)):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="save_svg"><a class="viewcode-back" href="../../utils.html#utils.rdkit_easy.save_svg">[docs]</a><span class="k">def</span> <span class="nf">save_svg</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">400</span><span class="p">,</span><span class="mi">200</span><span class="p">),</span> <span class="n">highlight</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Draws the molecule mol into an SVG file with filename &#39;name&#39; and with the given size</span>
 <span class="sd">    in pixels.</span>
 
@@ -348,15 +393,17 @@
 <span class="sd">        name (str): Path to write SVG file to.</span>
 
 <span class="sd">        size (tuple): Width and height of bounding box of image.</span>
+<span class="sd">        </span>
+<span class="sd">        highlight (rdkit.Chem.Mol): Object representing substructure to highlight on molecule.</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">svg</span> <span class="o">=</span> <span class="n">mol_to_svg</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">size</span><span class="p">)</span>
+    <span class="n">svg</span> <span class="o">=</span> <span class="n">mol_to_svg</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">highlight</span><span class="o">=</span><span class="n">highlight</span><span class="p">)</span>
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">img_out</span><span class="p">:</span>
         <span class="n">img_out</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">svg</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="show_df"><a class="viewcode-back" href="../../utils.html#utils.rdkit_easy.show_df">[docs]</a><span class="k">def</span> <span class="nf">show_df</span><span class="p">(</span><span class="n">df</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Convenience function to display a pandas DataFrame in the current notebook window</span>
 <span class="sd">    with HTML images rendered in table cells.</span>
 
@@ -371,7 +418,7 @@
 
 
 <div class="viewcode-block" id="show_html"><a class="viewcode-back" href="../../utils.html#utils.rdkit_easy.show_html">[docs]</a><span class="k">def</span> <span class="nf">show_html</span><span class="p">(</span><span class="n">html</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Convenience function to display an HTML image specified by image tag &#39;html&#39;.</span>
 
 <span class="sd">    Args:</span>
@@ -392,7 +439,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2022, ATOM DDM Team.</p>
+    <p>&#169; Copyright 2023, ATOM DDM Team.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

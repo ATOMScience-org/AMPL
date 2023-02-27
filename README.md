@@ -136,7 +136,7 @@ There are two install options.
 ```bash
 cd $AMPL_HOME/pip
 pip3 install --force-reinstall --no-use-pep517 -r clients_requirements.txt # install atomsci.clients
-pip3 install --force-reinstall --no-use-pep517 -r requirements.txt # install packages
+pip3 install --force-reinstall --no-use-pep517 -r requirements.txt # install library packages
 ```
 
   * For the external developers,
@@ -177,7 +177,7 @@ pip3 install --force-reinstall --no-use-pep517 -r clients_requirements.txt # (Op
 pip3 install --force-reinstall --no-use-pep517 -r requirements.txt 
 
 module load cuda/11.3 # setup for cuda
-export LD_LIBRARY_PATH=/usr/<user>/atomsci/lib:$LD_LIBRARY_PATH # add your env/lib to LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$ENVROOT/atomsci/lib:$LD_LIBRARY_PATH # add your env/lib to LD_LIBRARY_PATH
 cd .. # go to AMPL repo directory and run build
 ./build.sh
 pip3 install -e .

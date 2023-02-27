@@ -3,18 +3,17 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>pipeline.ave_splitter &mdash; ATOM Data-Driven Modeling Pipeline 1.4.0 documentation</title>
+  <title>pipeline.ave_splitter &mdash; ATOM Data-Driven Modeling Pipeline 1.5.0 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
         <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-        <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/underscore.js"></script>
-        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" /> 
@@ -25,14 +24,18 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../../index.html" class="icon icon-home"> ATOM Data-Driven Modeling Pipeline
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            ATOM Data-Driven Modeling Pipeline
           </a>
               <div class="version">
-                1.4.0
+                1.5.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -64,9 +67,9 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="../index.html">Module code</a> &raquo;</li>
-      <li>pipeline.ave_splitter</li>
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">pipeline.ave_splitter</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -136,7 +139,7 @@
 
 <span class="c1">#*******************************************************************************************************************************************</span>
 <span class="k">def</span> <span class="nf">_Cdist</span><span class="p">(</span><span class="n">params</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Single-argument wrapper for scipy.spatial.distance.cdist, to be called from Pool.map()</span>
 
 <span class="sd">    Args:</span>
@@ -151,7 +154,7 @@
 
 <span class="c1">#*******************************************************************************************************************************************</span>
 <span class="k">def</span> <span class="nf">_calc_dist_mat</span><span class="p">(</span><span class="n">feat1</span><span class="p">,</span> <span class="n">feat2</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">pool</span><span class="p">,</span> <span class="n">num_workers</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calculate distance matrix between rows of feat1 and rows of feat2</span>
 
 <span class="sd">    Args:</span>
@@ -181,7 +184,7 @@
 
 <span class="c1">#*******************************************************************************************************************************************</span>
 <div class="viewcode-block" id="analyze_split"><a class="viewcode-back" href="../../pipeline.html#pipeline.ave_splitter.analyze_split">[docs]</a><span class="k">def</span> <span class="nf">analyze_split</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">id_col</span><span class="o">=</span><span class="s1">&#39;compound_id&#39;</span><span class="p">,</span> <span class="n">smiles_col</span><span class="o">=</span><span class="s1">&#39;rdkit_smiles&#39;</span><span class="p">,</span> <span class="n">active_col</span><span class="o">=</span><span class="s1">&#39;active&#39;</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Evaluate the AVE bias for the training/validation and training/test set splits of the given dataset.</span>
 
 <span class="sd">    Also show the active frequencies in each subset and for the dataset as a whole.</span>
@@ -346,7 +349,7 @@
 
 <span class="c1">#*******************************************************************************************************************************************</span>
 <span class="k">def</span> <span class="nf">_check_split_similarity</span><span class="p">(</span> <span class="n">params</span> <span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Compare index sets given by params[0:4] against the corresponding sets given by params[4] and return True if</span>
 <span class="sd">    any have more than a certain fraction of molecules in common.</span>
 
@@ -368,7 +371,7 @@
 
 <span class="c1">#*******************************************************************************************************************************************</span>
 <span class="k">def</span> <span class="nf">_calc_bias</span><span class="p">(</span><span class="n">params</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Compute the AVE bias objective function for the split set given by params[0], based on the distance matrices in the remaining params</span>
 
 <span class="sd">    Args:</span>
@@ -412,7 +415,7 @@
 
 <span class="c1">#*******************************************************************************************************************************************</span>
 <span class="k">def</span> <span class="nf">_plot_nn_dist_distr</span><span class="p">(</span><span class="n">params</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Plot distributions of nearest neighbor distances</span>
 
 <span class="sd">    Args:</span>
@@ -449,7 +452,7 @@
 
 <span class="c1">#*******************************************************************************************************************************************</span>
 <span class="k">def</span> <span class="nf">_plot_bias</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">niter</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Plot nearest neighbor functions used to compute AVE bias. Used in place of _calc_bias for debugging splitter code.</span>
 
 <span class="sd">    Args:</span>
@@ -522,7 +525,7 @@
 
 <span class="c1">#*******************************************************************************************************************************************</span>
 <div class="viewcode-block" id="AVEMinSplitter"><a class="viewcode-back" href="../../pipeline.html#pipeline.ave_splitter.AVEMinSplitter">[docs]</a><span class="k">class</span> <span class="nc">AVEMinSplitter</span><span class="p">(</span><span class="n">Splitter</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Class for splitting a DeepChem dataset in order to minimize the Asymmetric Validation Embedding bias.</span>
 
 <span class="sd">    Uses distances between feature vectors and binary classifications to compute</span>
@@ -564,7 +567,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">calc_bias_pool</span> <span class="o">=</span> <span class="kc">None</span>
 
 <div class="viewcode-block" id="AVEMinSplitter.split"><a class="viewcode-back" href="../../pipeline.html#pipeline.ave_splitter.AVEMinSplitter.split">[docs]</a>    <span class="k">def</span> <span class="nf">split</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="p">,</span> <span class="n">frac_train</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">frac_valid</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">frac_test</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">log_every_n</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Split dataset into training and validation sets that minimize the AVE bias. A test set is not generated;</span>
 <span class="sd">        to do a 3-way split, call this function twice.</span>
 
@@ -816,7 +819,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2022, ATOM DDM Team.</p>
+    <p>&#169; Copyright 2023, ATOM DDM Team.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

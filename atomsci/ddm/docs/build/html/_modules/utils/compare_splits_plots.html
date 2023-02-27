@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>utils.compare_splits_plots &mdash; ATOM Data-Driven Modeling Pipeline 1.5.0 documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            ATOM Data-Driven Modeling Pipeline
+          </a>
+              <div class="version">
+                1.5.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/getting_started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/tests.html">Tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/running_ampl.html">Running AMPL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/advanced_ampl_usage.html">Advanced AMPL Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/advanced_installation.html">Advanced Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/advanced_testing.html">Advanced Testing</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">atomsci</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">ATOM Data-Driven Modeling Pipeline</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">utils.compare_splits_plots</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for utils.compare_splits_plots</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">argparse</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">atomsci.ddm.pipeline</span> <span class="kn">import</span> <span class="n">chem_diversity</span> <span class="k">as</span> <span class="n">cd</span>
+<span class="kn">from</span> <span class="nn">atomsci.ddm.pipeline</span> <span class="kn">import</span> <span class="n">MultitaskScaffoldSplit</span> <span class="k">as</span> <span class="n">mss</span>
+
+<span class="kn">import</span> <span class="nn">seaborn</span> <span class="k">as</span> <span class="nn">sns</span>
+<span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">pyplot</span>
+<span class="kn">from</span> <span class="nn">rdkit</span> <span class="kn">import</span> <span class="n">Chem</span>
+<span class="kn">from</span> <span class="nn">rdkit.Chem</span> <span class="kn">import</span> <span class="n">AllChem</span>
+<span class="kn">import</span> <span class="nn">umap</span>
+
+<div class="viewcode-block" id="SplitStats"><a class="viewcode-back" href="../../utils.html#utils.compare_splits_plots.SplitStats">[docs]</a><span class="k">class</span> <span class="nc">SplitStats</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This object manages a dataset and a given split dataframe.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">total_df</span><span class="p">,</span> <span class="n">split_df</span><span class="p">,</span> <span class="n">smiles_col</span><span class="p">,</span> <span class="n">id_col</span><span class="p">,</span> <span class="n">response_cols</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculates compount to compount Tanomoto distances between training and</span>
+<span class="sd">        test subsets. Counts the number of samples for each subset, for each task</span>
+<span class="sd">        and calculates the train_frac, valid_frac, and test_frac.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            total_df (DataFrame): Pandas DataFrame.</span>
+<span class="sd">            split_df (DataFrame): AMPL split data frame. Must contain </span>
+<span class="sd">                &#39;cmpd_id&#39; and &#39;subset&#39; columns.</span>
+<span class="sd">            smiles_col (str): SMILES column in total_df.</span>
+<span class="sd">            id_col (str): ID column in total_df.</span>
+<span class="sd">            response_cols (str): Response columns in total_df.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">smiles_col</span> <span class="o">=</span> <span class="n">smiles_col</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">id_col</span> <span class="o">=</span> <span class="n">id_col</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">response_cols</span> <span class="o">=</span> <span class="n">response_cols</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">total_df</span> <span class="o">=</span> <span class="n">total_df</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">split_df</span> <span class="o">=</span> <span class="n">split_df</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">train_df</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">test_df</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">valid_df</span> <span class="o">=</span> <span class="n">split</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">total_df</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">split_df</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">id_col</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">total_y</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">total_w</span> <span class="o">=</span> <span class="n">mss</span><span class="o">.</span><span class="n">make_y_w</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">total_df</span><span class="p">,</span> <span class="n">response_cols</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">train_y</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">train_w</span> <span class="o">=</span> <span class="n">mss</span><span class="o">.</span><span class="n">make_y_w</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">train_df</span><span class="p">,</span> <span class="n">response_cols</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">test_y</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">test_w</span> <span class="o">=</span> <span class="n">mss</span><span class="o">.</span><span class="n">make_y_w</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">test_df</span><span class="p">,</span> <span class="n">response_cols</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">valid_y</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">valid_w</span> <span class="o">=</span> <span class="n">mss</span><span class="o">.</span><span class="n">make_y_w</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">valid_df</span><span class="p">,</span> <span class="n">response_cols</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">dists_tvt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_dists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">train_df</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">test_df</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dists_tvv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_dists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">train_df</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">valid_df</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">train_fracs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">valid_fracs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">test_fracs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_split_ratios</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_get_dists</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df_a</span><span class="p">,</span> <span class="n">df_b</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Calculate pairwise compound distances between training and test subsets.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            df_a: choice of self.train_df, self.test_df, self.valid_df</span>
+<span class="sd">            df_b: choice of self.train_df, self.test_df, self.valid_df</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Array of floats. Pairwise Tanimoto distances between training and test subsets.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="n">cd</span><span class="o">.</span><span class="n">calc_dist_smiles</span><span class="p">(</span><span class="s1">&#39;ECFP&#39;</span><span class="p">,</span> <span class="s1">&#39;tanimoto&#39;</span><span class="p">,</span> <span class="n">df_a</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">smiles_col</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> 
+                    <span class="n">df_b</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">smiles_col</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">_split_ratios</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Calculates the fraction of samples belonging to training, validation, and test subsets.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            None</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            train_fracs (array of flots), valid_fracs (array of floats), test_fracs (array of floats)</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">train_fracs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">train_w</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">total_w</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">valid_fracs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">valid_w</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">total_w</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">test_fracs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">test_w</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">total_w</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    
+        <span class="k">return</span> <span class="n">train_fracs</span><span class="p">,</span> <span class="n">valid_fracs</span><span class="p">,</span> <span class="n">test_fracs</span>
+
+<div class="viewcode-block" id="SplitStats.print_stats"><a class="viewcode-back" href="../../utils.html#utils.compare_splits_plots.SplitStats.print_stats">[docs]</a>    <span class="k">def</span> <span class="nf">print_stats</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Prints useful statistics to stdout</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;dist tvt mean: </span><span class="si">%0.2f</span><span class="s2">, median: </span><span class="si">%0.2f</span><span class="s2">, std: </span><span class="si">%0.2f</span><span class="s2">&quot;</span><span class="o">%</span>\
+            <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dists_tvt</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dists_tvt</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dists_tvt</span><span class="p">)))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;dist tvv mean: </span><span class="si">%0.2f</span><span class="s2">, median: </span><span class="si">%0.2f</span><span class="s2">, std: </span><span class="si">%0.2f</span><span class="s2">&quot;</span><span class="o">%</span>\
+            <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dists_tvv</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dists_tvv</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dists_tvv</span><span class="p">)))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;train frac mean: </span><span class="si">%0.2f</span><span class="s2">, median: </span><span class="si">%0.2f</span><span class="s2">, std: </span><span class="si">%0.2f</span><span class="s2">&quot;</span><span class="o">%</span>\
+           <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">train_fracs</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">train_fracs</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">train_fracs</span><span class="p">)))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;test frac mean: </span><span class="si">%0.2f</span><span class="s2">, median: </span><span class="si">%0.2f</span><span class="s2">, std: </span><span class="si">%0.2f</span><span class="s2">&quot;</span><span class="o">%</span>\
+            <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">test_fracs</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">test_fracs</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">test_fracs</span><span class="p">)))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;valid frac mean: </span><span class="si">%0.2f</span><span class="s2">, median: </span><span class="si">%0.2f</span><span class="s2">, std: </span><span class="si">%0.2f</span><span class="s2">&quot;</span><span class="o">%</span>\
+            <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">valid_fracs</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">valid_fracs</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">valid_fracs</span><span class="p">)))</span></div>
+
+
+<div class="viewcode-block" id="SplitStats.dist_hist_plot"><a class="viewcode-back" href="../../utils.html#utils.compare_splits_plots.SplitStats.dist_hist_plot">[docs]</a>    <span class="k">def</span> <span class="nf">dist_hist_plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dists</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">dist_path</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Creates a histogram of pairwise Tanimoto distances between training</span>
+<span class="sd">        and test sets</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dist_path (str): Optional Where to save the plot. The string &#39;_dist_hist&#39; will be</span>
+<span class="sd">                appended to this input</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># plot compound distance histogram</span>
+        <span class="n">pyplot</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+        <span class="n">g</span> <span class="o">=</span> <span class="n">sns</span><span class="o">.</span><span class="n">distplot</span><span class="p">(</span><span class="n">dists</span><span class="p">,</span> <span class="n">kde</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Tanimoto Distance&#39;</span><span class="p">,</span><span class="n">fontsize</span><span class="o">=</span><span class="mi">13</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;# Compound Pairs&#39;</span><span class="p">,</span><span class="n">fontsize</span><span class="o">=</span><span class="mi">13</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">title</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dist_path</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">save_figure</span><span class="p">(</span><span class="n">dist_path</span><span class="o">+</span><span class="s1">&#39;_dist_hist&#39;</span><span class="p">)</span>
+        <span class="n">pyplot</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="SplitStats.umap_plot"><a class="viewcode-back" href="../../utils.html#utils.compare_splits_plots.SplitStats.umap_plot">[docs]</a>    <span class="k">def</span> <span class="nf">umap_plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dist_path</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Plots the first 10000 samples in Umap space using Morgan Fingerprints</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dist_path (str): Optional Where to save the plot. The string &#39;_umap_scatter&#39; will be</span>
+<span class="sd">                appended to this input</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># umap of a subset</span>
+        <span class="n">sub_sample_df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">split_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">permutation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">split_df</span><span class="o">.</span><span class="n">index</span><span class="p">)[:</span><span class="mi">10000</span><span class="p">]]</span>
+        <span class="c1"># add subset column to total_df</span>
+        <span class="n">sub_total_df</span> <span class="o">=</span> <span class="n">sub_sample_df</span><span class="p">[[</span><span class="s1">&#39;cmpd_id&#39;</span><span class="p">,</span> <span class="s1">&#39;subset&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">total_df</span><span class="p">,</span> <span class="n">left_on</span><span class="o">=</span><span class="s1">&#39;cmpd_id&#39;</span><span class="p">,</span> <span class="n">right_on</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">id_col</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;inner&#39;</span><span class="p">)</span>
+        <span class="n">fp</span> <span class="o">=</span> <span class="p">[</span><span class="n">AllChem</span><span class="o">.</span><span class="n">GetMorganFingerprintAsBitVect</span><span class="p">(</span><span class="n">Chem</span><span class="o">.</span><span class="n">MolFromSmiles</span><span class="p">(</span><span class="n">s</span><span class="p">),</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1024</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">sub_total_df</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">smiles_col</span><span class="p">]]</span>
+        <span class="n">fp_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">fp</span><span class="p">)</span>
+
+        <span class="n">embedded</span> <span class="o">=</span> <span class="n">umap</span><span class="o">.</span><span class="n">UMAP</span><span class="p">()</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">fp_array</span><span class="p">)</span>
+        <span class="n">sub_total_df</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">embedded</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">sub_total_df</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">embedded</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">pyplot</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+        <span class="n">sns</span><span class="o">.</span><span class="n">scatterplot</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="n">hue</span><span class="o">=</span><span class="s1">&#39;subset&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">sub_total_df</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dist_path</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">save_figure</span><span class="p">(</span><span class="n">dist_path</span><span class="o">+</span><span class="s1">&#39;_umap_scatter&#39;</span><span class="p">)</span>
+
+        <span class="n">pyplot</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="SplitStats.subset_frac_plot"><a class="viewcode-back" href="../../utils.html#utils.compare_splits_plots.SplitStats.subset_frac_plot">[docs]</a>    <span class="k">def</span> <span class="nf">subset_frac_plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dist_path</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Makes a box plot of the subset fractions</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dist_path (str): Optional Where to save the plot. The string &#39;_frac_box&#39; will be</span>
+<span class="sd">                appended to this input</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">dicts</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">train_fracs</span><span class="p">:</span>
+            <span class="n">dicts</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s1">&#39;frac&#39;</span><span class="p">:</span><span class="n">f</span><span class="p">,</span> <span class="s1">&#39;subset&#39;</span><span class="p">:</span><span class="s1">&#39;train&#39;</span><span class="p">})</span>
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">test_fracs</span><span class="p">:</span>
+            <span class="n">dicts</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s1">&#39;frac&#39;</span><span class="p">:</span><span class="n">f</span><span class="p">,</span> <span class="s1">&#39;subset&#39;</span><span class="p">:</span><span class="s1">&#39;test&#39;</span><span class="p">})</span>
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">valid_fracs</span><span class="p">:</span>
+            <span class="n">dicts</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s1">&#39;frac&#39;</span><span class="p">:</span><span class="n">f</span><span class="p">,</span> <span class="s1">&#39;subset&#39;</span><span class="p">:</span><span class="s1">&#39;valid&#39;</span><span class="p">})</span>
+
+        <span class="n">frac_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">dicts</span><span class="p">)</span>
+
+        <span class="n">pyplot</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+        <span class="n">g</span> <span class="o">=</span> <span class="n">sns</span><span class="o">.</span><span class="n">boxplot</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="s1">&#39;subset&#39;</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s1">&#39;frac&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">frac_df</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dist_path</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">save_figure</span><span class="p">(</span><span class="n">dist_path</span><span class="o">+</span><span class="s1">&#39;_frac_box&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SplitStats.make_all_plots"><a class="viewcode-back" href="../../utils.html#utils.compare_splits_plots.SplitStats.make_all_plots">[docs]</a>    <span class="k">def</span> <span class="nf">make_all_plots</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dist_path</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Makes a series of diagnostic plots</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dist_path (str): Optional Where to save the plot. The string &#39;_frac_box&#39; will be</span>
+<span class="sd">                appended to this input</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># histogram of compound distances between training, valid, and test subsets</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dist_hist_plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dists_tvt</span><span class="p">,</span> <span class="s1">&#39;Train vs Test pairwise Tanimoto Distance&#39;</span><span class="p">,</span>
+            <span class="n">dist_path</span><span class="o">=</span><span class="n">dist_path</span><span class="o">+</span><span class="s1">&#39;_tvt&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dist_hist_plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dists_tvv</span><span class="p">,</span> <span class="s1">&#39;Train vs Valid pairwise Tanimoto Distance&#39;</span><span class="p">,</span>
+            <span class="n">dist_path</span><span class="o">=</span><span class="n">dist_path</span><span class="o">+</span><span class="s1">&#39;_tvv&#39;</span><span class="p">)</span>
+
+        <span class="c1"># umap on ecfp fingerprints. visualizes clusters of training/valid/testing split</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">umap_plot</span><span class="p">(</span><span class="n">dist_path</span><span class="p">)</span>
+
+        <span class="c1"># box plot of fractions</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">subset_frac_plot</span><span class="p">(</span><span class="n">dist_path</span><span class="p">)</span></div></div>
+
+<div class="viewcode-block" id="split"><a class="viewcode-back" href="../../utils.html#utils.compare_splits_plots.split">[docs]</a><span class="k">def</span> <span class="nf">split</span><span class="p">(</span><span class="n">total_df</span><span class="p">,</span> <span class="n">split_df</span><span class="p">,</span> <span class="n">id_col</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Splits a dataset into training, test and validation sets using a given split.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        total_df (DataFrame): A pandas dataframe.</span>
+<span class="sd">        split_df (DataFrame): A split dataframe containing &#39;cmpd_id&#39; and &#39;subset&#39; columns.</span>
+<span class="sd">        id_col (str): The ID column in total_df</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        (DataFrame, DataFrame, DataFrame): Three dataframes for train, test, and valid </span>
+<span class="sd">            respectively.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">train_df</span> <span class="o">=</span> <span class="n">total_df</span><span class="p">[</span><span class="n">total_df</span><span class="p">[</span><span class="n">id_col</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">split_df</span><span class="p">[</span><span class="n">split_df</span><span class="p">[</span><span class="s1">&#39;subset&#39;</span><span class="p">]</span><span class="o">==</span><span class="s1">&#39;train&#39;</span><span class="p">][</span><span class="s1">&#39;cmpd_id&#39;</span><span class="p">])]</span>
+    <span class="n">test_df</span> <span class="o">=</span> <span class="n">total_df</span><span class="p">[</span><span class="n">total_df</span><span class="p">[</span><span class="n">id_col</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">split_df</span><span class="p">[</span><span class="n">split_df</span><span class="p">[</span><span class="s1">&#39;subset&#39;</span><span class="p">]</span><span class="o">==</span><span class="s1">&#39;test&#39;</span><span class="p">][</span><span class="s1">&#39;cmpd_id&#39;</span><span class="p">])]</span>
+    <span class="n">valid_df</span> <span class="o">=</span> <span class="n">total_df</span><span class="p">[</span><span class="n">total_df</span><span class="p">[</span><span class="n">id_col</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">split_df</span><span class="p">[</span><span class="n">split_df</span><span class="p">[</span><span class="s1">&#39;subset&#39;</span><span class="p">]</span><span class="o">==</span><span class="s1">&#39;valid&#39;</span><span class="p">][</span><span class="s1">&#39;cmpd_id&#39;</span><span class="p">])]</span>
+    
+    <span class="k">return</span> <span class="n">train_df</span><span class="p">,</span> <span class="n">test_df</span><span class="p">,</span> <span class="n">valid_df</span></div>
+
+<div class="viewcode-block" id="save_figure"><a class="viewcode-back" href="../../utils.html#utils.compare_splits_plots.save_figure">[docs]</a><span class="k">def</span> <span class="nf">save_figure</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Saves a figure to disk. Saves both png and svg formats.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        filename (str): The name of the figure.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">pyplot</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+    <span class="n">pyplot</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">filename</span><span class="o">+</span><span class="s1">&#39;.png&#39;</span><span class="p">)</span>
+    <span class="n">pyplot</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">filename</span><span class="o">+</span><span class="s1">&#39;.svg&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="parse_args"><a class="viewcode-back" href="../../utils.html#utils.compare_splits_plots.parse_args">[docs]</a><span class="k">def</span> <span class="nf">parse_args</span><span class="p">():</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">()</span>
+
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;csv&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Source dataset csv.&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;id_col&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;ID column for source dataset&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;smiles_col&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;SMILES column for source dataset&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;split_a&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Split A. A split csv generated by AMPL&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;split_b&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Split B. A split csv generated by AMPL&#39;</span><span class="p">)</span>
+
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;output_dir&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Output directory for plots&#39;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span></div>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">parse_args</span><span class="p">()</span>
+
+    <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">csv</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="p">{</span><span class="n">args</span><span class="o">.</span><span class="n">id_col</span><span class="p">:</span><span class="nb">str</span><span class="p">})</span>
+
+    <span class="n">split_a</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">split_a</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;cmpd_id&#39;</span><span class="p">:</span><span class="nb">str</span><span class="p">})</span>
+    <span class="n">ss</span> <span class="o">=</span> <span class="n">SplitStats</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">split_a</span><span class="p">,</span> <span class="n">smiles_col</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">smiles_col</span><span class="p">,</span> <span class="n">id_col</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">id_col</span><span class="p">)</span>
+    <span class="n">ss</span><span class="o">.</span><span class="n">make_all_plots</span><span class="p">(</span><span class="n">dist_path</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">output_dir</span><span class="p">,</span> <span class="s1">&#39;split_a&#39;</span><span class="p">))</span>
+
+
+    <span class="n">split_b</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">split_b</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;cmpd_id&#39;</span><span class="p">:</span><span class="nb">str</span><span class="p">})</span>
+    <span class="n">ss</span> <span class="o">=</span> <span class="n">SplitStats</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">split_b</span><span class="p">,</span> <span class="n">smiles_col</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">smiles_col</span><span class="p">,</span> <span class="n">id_col</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">id_col</span><span class="p">)</span>
+    <span class="n">ss</span><span class="o">.</span><span class="n">make_all_plots</span><span class="p">(</span><span class="n">dist_path</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">output_dir</span><span class="p">,</span> <span class="s1">&#39;split_b&#39;</span><span class="p">))</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, ATOM DDM Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

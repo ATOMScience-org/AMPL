@@ -1,21 +1,20 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>utils package &mdash; ATOM Data-Driven Modeling Pipeline 1.4.0 documentation</title>
+  <title>utils package &mdash; ATOM Data-Driven Modeling Pipeline 1.5.0 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -27,14 +26,18 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="index.html" class="icon icon-home"> ATOM Data-Driven Modeling Pipeline
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            ATOM Data-Driven Modeling Pipeline
           </a>
               <div class="version">
-                1.4.0
+                1.5.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -54,18 +57,221 @@
 <li class="toctree-l2"><a class="reference internal" href="pipeline.html">pipeline package</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">utils package</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#submodules">Submodules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-utils.curate_data">utils.curate_data module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-utils.data_curation_functions">utils.data_curation_functions module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-utils.datastore_functions">utils.datastore_functions module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-utils.genTestset">utils.genTestset module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-utils.hyperparam_search_wrapper">utils.hyperparam_search_wrapper module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-utils.llnl_utils">utils.llnl_utils module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-utils.model_retrain">utils.model_retrain module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-utils.checksum_utils">utils.checksum_utils module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#utils.checksum_utils.create_checksum"><code class="docutils literal notranslate"><span class="pre">create_checksum()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.checksum_utils.get_dataset_hash_from_tar"><code class="docutils literal notranslate"><span class="pre">get_dataset_hash_from_tar()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.checksum_utils.uses_same_training_data_by_datasets"><code class="docutils literal notranslate"><span class="pre">uses_same_training_data_by_datasets()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.checksum_utils.uses_same_training_data_by_tarballs"><code class="docutils literal notranslate"><span class="pre">uses_same_training_data_by_tarballs()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-utils.compare_split_csv">utils.compare_split_csv module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#utils.compare_split_csv.compare_split_files"><code class="docutils literal notranslate"><span class="pre">compare_split_files()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.compare_split_csv.compare_splits"><code class="docutils literal notranslate"><span class="pre">compare_splits()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.compare_split_csv.parse_args"><code class="docutils literal notranslate"><span class="pre">parse_args()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-utils.compare_splits_plots">utils.compare_splits_plots module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#utils.compare_splits_plots.SplitStats"><code class="docutils literal notranslate"><span class="pre">SplitStats</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.compare_splits_plots.parse_args"><code class="docutils literal notranslate"><span class="pre">parse_args()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.compare_splits_plots.save_figure"><code class="docutils literal notranslate"><span class="pre">save_figure()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.compare_splits_plots.split"><code class="docutils literal notranslate"><span class="pre">split()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-utils.curate_data">utils.curate_data module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#utils.curate_data.add_classification_column"><code class="docutils literal notranslate"><span class="pre">add_classification_column()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.curate_data.aggregate_assay_data"><code class="docutils literal notranslate"><span class="pre">aggregate_assay_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.curate_data.average_and_remove_duplicates"><code class="docutils literal notranslate"><span class="pre">average_and_remove_duplicates()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.curate_data.create_new_rows_for_extra_results"><code class="docutils literal notranslate"><span class="pre">create_new_rows_for_extra_results()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.curate_data.filter_in_by_column_values"><code class="docutils literal notranslate"><span class="pre">filter_in_by_column_values()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.curate_data.filter_in_out_by_column_values"><code class="docutils literal notranslate"><span class="pre">filter_in_out_by_column_values()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.curate_data.filter_out_by_column_values"><code class="docutils literal notranslate"><span class="pre">filter_out_by_column_values()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.curate_data.filter_out_comments"><code class="docutils literal notranslate"><span class="pre">filter_out_comments()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.curate_data.freq_table"><code class="docutils literal notranslate"><span class="pre">freq_table()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.curate_data.get_rdkit_smiles_parent"><code class="docutils literal notranslate"><span class="pre">get_rdkit_smiles_parent()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.curate_data.labeled_freq_table"><code class="docutils literal notranslate"><span class="pre">labeled_freq_table()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.curate_data.mle_censored_mean"><code class="docutils literal notranslate"><span class="pre">mle_censored_mean()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.curate_data.remove_outlier_replicates"><code class="docutils literal notranslate"><span class="pre">remove_outlier_replicates()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.curate_data.replicate_rmsd"><code class="docutils literal notranslate"><span class="pre">replicate_rmsd()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.curate_data.set_group_permissions"><code class="docutils literal notranslate"><span class="pre">set_group_permissions()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.curate_data.summarize_data"><code class="docutils literal notranslate"><span class="pre">summarize_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.curate_data.xc50topxc50_for_nm"><code class="docutils literal notranslate"><span class="pre">xc50topxc50_for_nm()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-utils.data_curation_functions">utils.data_curation_functions module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#utils.data_curation_functions.atom_curation"><code class="docutils literal notranslate"><span class="pre">atom_curation()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.data_curation_functions.atom_curation_excape"><code class="docutils literal notranslate"><span class="pre">atom_curation_excape()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.data_curation_functions.down_select"><code class="docutils literal notranslate"><span class="pre">down_select()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.data_curation_functions.exclude_organometallics"><code class="docutils literal notranslate"><span class="pre">exclude_organometallics()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.data_curation_functions.filter_dtc_data"><code class="docutils literal notranslate"><span class="pre">filter_dtc_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.data_curation_functions.get_smiles_4dtc_data"><code class="docutils literal notranslate"><span class="pre">get_smiles_4dtc_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.data_curation_functions.get_smiles_dtc_data"><code class="docutils literal notranslate"><span class="pre">get_smiles_dtc_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.data_curation_functions.get_smiles_excape_data"><code class="docutils literal notranslate"><span class="pre">get_smiles_excape_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.data_curation_functions.ic50topic50"><code class="docutils literal notranslate"><span class="pre">ic50topic50()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.data_curation_functions.is_organometallic"><code class="docutils literal notranslate"><span class="pre">is_organometallic()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.data_curation_functions.set_data_root"><code class="docutils literal notranslate"><span class="pre">set_data_root()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.data_curation_functions.standardize_relations"><code class="docutils literal notranslate"><span class="pre">standardize_relations()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.data_curation_functions.upload_df_dtc_base_smiles_all"><code class="docutils literal notranslate"><span class="pre">upload_df_dtc_base_smiles_all()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.data_curation_functions.upload_df_dtc_mleqonly"><code class="docutils literal notranslate"><span class="pre">upload_df_dtc_mleqonly()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.data_curation_functions.upload_df_dtc_mleqonly_class"><code class="docutils literal notranslate"><span class="pre">upload_df_dtc_mleqonly_class()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.data_curation_functions.upload_df_dtc_smiles"><code class="docutils literal notranslate"><span class="pre">upload_df_dtc_smiles()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.data_curation_functions.upload_df_dtc_smiles_regr_all_class"><code class="docutils literal notranslate"><span class="pre">upload_df_dtc_smiles_regr_all_class()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.data_curation_functions.upload_df_excape_mleqonly"><code class="docutils literal notranslate"><span class="pre">upload_df_excape_mleqonly()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.data_curation_functions.upload_df_excape_mleqonly_class"><code class="docutils literal notranslate"><span class="pre">upload_df_excape_mleqonly_class()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.data_curation_functions.upload_df_excape_smiles"><code class="docutils literal notranslate"><span class="pre">upload_df_excape_smiles()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.data_curation_functions.upload_file_dtc_raw_data"><code class="docutils literal notranslate"><span class="pre">upload_file_dtc_raw_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.data_curation_functions.upload_file_dtc_smiles_regr_all"><code class="docutils literal notranslate"><span class="pre">upload_file_dtc_smiles_regr_all()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.data_curation_functions.upload_file_excape_raw_data"><code class="docutils literal notranslate"><span class="pre">upload_file_excape_raw_data()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-utils.datastore_functions">utils.datastore_functions module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#utils.datastore_functions.bulk_export_kv_for_files"><code class="docutils literal notranslate"><span class="pre">bulk_export_kv_for_files()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.datastore_functions.bulk_update_kv"><code class="docutils literal notranslate"><span class="pre">bulk_update_kv()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.datastore_functions.check_key_val"><code class="docutils literal notranslate"><span class="pre">check_key_val()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.datastore_functions.config_client"><code class="docutils literal notranslate"><span class="pre">config_client()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.datastore_functions.copy_datasets_to_bucket"><code class="docutils literal notranslate"><span class="pre">copy_datasets_to_bucket()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.datastore_functions.dataset_key_exists"><code class="docutils literal notranslate"><span class="pre">dataset_key_exists()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.datastore_functions.filter_datasets_interactive"><code class="docutils literal notranslate"><span class="pre">filter_datasets_interactive()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.datastore_functions.get_key_val"><code class="docutils literal notranslate"><span class="pre">get_key_val()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.datastore_functions.get_keyval"><code class="docutils literal notranslate"><span class="pre">get_keyval()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.datastore_functions.initialize_model_tracker"><code class="docutils literal notranslate"><span class="pre">initialize_model_tracker()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.datastore_functions.key_exists"><code class="docutils literal notranslate"><span class="pre">key_exists()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.datastore_functions.list_key_values"><code class="docutils literal notranslate"><span class="pre">list_key_values()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.datastore_functions.repeat_defined_search"><code class="docutils literal notranslate"><span class="pre">repeat_defined_search()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.datastore_functions.retrieve_bucket_names"><code class="docutils literal notranslate"><span class="pre">retrieve_bucket_names()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.datastore_functions.retrieve_columns_from_dataset"><code class="docutils literal notranslate"><span class="pre">retrieve_columns_from_dataset()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.datastore_functions.retrieve_dataset_by_dataset_oid"><code class="docutils literal notranslate"><span class="pre">retrieve_dataset_by_dataset_oid()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.datastore_functions.retrieve_dataset_by_datasetkey"><code class="docutils literal notranslate"><span class="pre">retrieve_dataset_by_datasetkey()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.datastore_functions.retrieve_keys"><code class="docutils literal notranslate"><span class="pre">retrieve_keys()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.datastore_functions.retrieve_values_for_key"><code class="docutils literal notranslate"><span class="pre">retrieve_values_for_key()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.datastore_functions.search_datasets_by_key_value"><code class="docutils literal notranslate"><span class="pre">search_datasets_by_key_value()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.datastore_functions.search_files_interactive"><code class="docutils literal notranslate"><span class="pre">search_files_interactive()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.datastore_functions.string_to_dict"><code class="docutils literal notranslate"><span class="pre">string_to_dict()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.datastore_functions.string_to_list"><code class="docutils literal notranslate"><span class="pre">string_to_list()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.datastore_functions.summarize_datasets"><code class="docutils literal notranslate"><span class="pre">summarize_datasets()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.datastore_functions.update_distribution_kv"><code class="docutils literal notranslate"><span class="pre">update_distribution_kv()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.datastore_functions.update_kv"><code class="docutils literal notranslate"><span class="pre">update_kv()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.datastore_functions.upload_df_to_DS"><code class="docutils literal notranslate"><span class="pre">upload_df_to_DS()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.datastore_functions.upload_file_to_DS"><code class="docutils literal notranslate"><span class="pre">upload_file_to_DS()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.datastore_functions.upload_pickle_to_DS"><code class="docutils literal notranslate"><span class="pre">upload_pickle_to_DS()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-utils.file_utils">utils.file_utils module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#utils.file_utils.is_within_directory"><code class="docutils literal notranslate"><span class="pre">is_within_directory()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.file_utils.safe_extract"><code class="docutils literal notranslate"><span class="pre">safe_extract()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-utils.genTestset">utils.genTestset module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#utils.genTestset.Union"><code class="docutils literal notranslate"><span class="pre">Union()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.genTestset.aggregate_basesmiles"><code class="docutils literal notranslate"><span class="pre">aggregate_basesmiles()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.genTestset.genUnionSet"><code class="docutils literal notranslate"><span class="pre">genUnionSet()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.genTestset.generateTestset"><code class="docutils literal notranslate"><span class="pre">generateTestset()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.genTestset.intersection"><code class="docutils literal notranslate"><span class="pre">intersection()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-utils.hyperparam_search_wrapper">utils.hyperparam_search_wrapper module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#utils.hyperparam_search_wrapper.GeometricSearch"><code class="docutils literal notranslate"><span class="pre">GeometricSearch</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.hyperparam_search_wrapper.GridSearch"><code class="docutils literal notranslate"><span class="pre">GridSearch</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.hyperparam_search_wrapper.HyperOptSearch"><code class="docutils literal notranslate"><span class="pre">HyperOptSearch</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.hyperparam_search_wrapper.HyperparameterSearch"><code class="docutils literal notranslate"><span class="pre">HyperparameterSearch</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.hyperparam_search_wrapper.RandomSearch"><code class="docutils literal notranslate"><span class="pre">RandomSearch</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.hyperparam_search_wrapper.UserSpecifiedSearch"><code class="docutils literal notranslate"><span class="pre">UserSpecifiedSearch</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.hyperparam_search_wrapper.build_hyperopt_search_domain"><code class="docutils literal notranslate"><span class="pre">build_hyperopt_search_domain()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.hyperparam_search_wrapper.build_search"><code class="docutils literal notranslate"><span class="pre">build_search()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.hyperparam_search_wrapper.gen_maestro_command"><code class="docutils literal notranslate"><span class="pre">gen_maestro_command()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.hyperparam_search_wrapper.get_num_params"><code class="docutils literal notranslate"><span class="pre">get_num_params()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.hyperparam_search_wrapper.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.hyperparam_search_wrapper.parse_params"><code class="docutils literal notranslate"><span class="pre">parse_params()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.hyperparam_search_wrapper.permutate_NNlayer_combo_params"><code class="docutils literal notranslate"><span class="pre">permutate_NNlayer_combo_params()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.hyperparam_search_wrapper.reformat_filter_dict"><code class="docutils literal notranslate"><span class="pre">reformat_filter_dict()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.hyperparam_search_wrapper.run_cmd"><code class="docutils literal notranslate"><span class="pre">run_cmd()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.hyperparam_search_wrapper.run_command"><code class="docutils literal notranslate"><span class="pre">run_command()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-utils.llnl_utils">utils.llnl_utils module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#utils.llnl_utils.get_command_output"><code class="docutils literal notranslate"><span class="pre">get_command_output()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.llnl_utils.get_my_username"><code class="docutils literal notranslate"><span class="pre">get_my_username()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.llnl_utils.is_lc_system"><code class="docutils literal notranslate"><span class="pre">is_lc_system()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.llnl_utils.throttle_jobs"><code class="docutils literal notranslate"><span class="pre">throttle_jobs()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-utils.many_to_one">utils.many_to_one module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#utils.many_to_one.ManyToOneException"><code class="docutils literal notranslate"><span class="pre">ManyToOneException</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.many_to_one.NANCompoundIDException"><code class="docutils literal notranslate"><span class="pre">NANCompoundIDException</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.many_to_one.NANSMILESException"><code class="docutils literal notranslate"><span class="pre">NANSMILESException</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.many_to_one.has_nans"><code class="docutils literal notranslate"><span class="pre">has_nans()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.many_to_one.many_to_one"><code class="docutils literal notranslate"><span class="pre">many_to_one()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.many_to_one.many_to_one_df"><code class="docutils literal notranslate"><span class="pre">many_to_one_df()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.many_to_one.no_nan_ids_or_smiles"><code class="docutils literal notranslate"><span class="pre">no_nan_ids_or_smiles()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-utils.model_retrain">utils.model_retrain module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#utils.model_retrain.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.model_retrain.train_model"><code class="docutils literal notranslate"><span class="pre">train_model()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.model_retrain.train_model_from_tar"><code class="docutils literal notranslate"><span class="pre">train_model_from_tar()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.model_retrain.train_model_from_tracker"><code class="docutils literal notranslate"><span class="pre">train_model_from_tracker()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.model_retrain.train_models_from_dataset_keys"><code class="docutils literal notranslate"><span class="pre">train_models_from_dataset_keys()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-utils.model_version_utils">utils.model_version_utils module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#utils.model_version_utils.check_version_compatible"><code class="docutils literal notranslate"><span class="pre">check_version_compatible()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.model_version_utils.get_ampl_version"><code class="docutils literal notranslate"><span class="pre">get_ampl_version()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.model_version_utils.get_ampl_version_from_dir"><code class="docutils literal notranslate"><span class="pre">get_ampl_version_from_dir()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.model_version_utils.get_ampl_version_from_json"><code class="docutils literal notranslate"><span class="pre">get_ampl_version_from_json()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.model_version_utils.get_ampl_version_from_model"><code class="docutils literal notranslate"><span class="pre">get_ampl_version_from_model()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.model_version_utils.get_major_version"><code class="docutils literal notranslate"><span class="pre">get_major_version()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.model_version_utils.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.model_version_utils.validate_version"><code class="docutils literal notranslate"><span class="pre">validate_version()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="#utils-open-docs-module">utils.open-docs module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-utils.process_slurm">utils.process_slurm module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-utils.pubchem_utils">utils.pubchem_utils module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-utils.rdkit_easy">utils.rdkit_easy module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-utils.struct_utils">utils.struct_utils module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-utils.process_slurm">utils.process_slurm module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#utils.process_slurm.get_timings"><code class="docutils literal notranslate"><span class="pre">get_timings()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.process_slurm.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.process_slurm.move_failed_slurm"><code class="docutils literal notranslate"><span class="pre">move_failed_slurm()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.process_slurm.rerun_failed"><code class="docutils literal notranslate"><span class="pre">rerun_failed()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.process_slurm.run_cmd"><code class="docutils literal notranslate"><span class="pre">run_cmd()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.process_slurm.run_command"><code class="docutils literal notranslate"><span class="pre">run_command()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-utils.pubchem_utils">utils.pubchem_utils module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#utils.pubchem_utils.download_SID_from_bioactivity_assay"><code class="docutils literal notranslate"><span class="pre">download_SID_from_bioactivity_assay()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.pubchem_utils.download_activitytype"><code class="docutils literal notranslate"><span class="pre">download_activitytype()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.pubchem_utils.download_bioactivity_assay"><code class="docutils literal notranslate"><span class="pre">download_bioactivity_assay()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.pubchem_utils.download_dose_response_from_bioactivity"><code class="docutils literal notranslate"><span class="pre">download_dose_response_from_bioactivity()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.pubchem_utils.download_smiles"><code class="docutils literal notranslate"><span class="pre">download_smiles()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-utils.rdkit_easy">utils.rdkit_easy module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#utils.rdkit_easy.add_mol_column"><code class="docutils literal notranslate"><span class="pre">add_mol_column()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.rdkit_easy.calculate_descriptors"><code class="docutils literal notranslate"><span class="pre">calculate_descriptors()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.rdkit_easy.cluster_dataframe"><code class="docutils literal notranslate"><span class="pre">cluster_dataframe()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.rdkit_easy.cluster_fingerprints"><code class="docutils literal notranslate"><span class="pre">cluster_fingerprints()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.rdkit_easy.matching_atoms_and_bonds"><code class="docutils literal notranslate"><span class="pre">matching_atoms_and_bonds()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.rdkit_easy.mol_to_html"><code class="docutils literal notranslate"><span class="pre">mol_to_html()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.rdkit_easy.mol_to_pil"><code class="docutils literal notranslate"><span class="pre">mol_to_pil()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.rdkit_easy.mol_to_svg"><code class="docutils literal notranslate"><span class="pre">mol_to_svg()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.rdkit_easy.save_png"><code class="docutils literal notranslate"><span class="pre">save_png()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.rdkit_easy.save_svg"><code class="docutils literal notranslate"><span class="pre">save_svg()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.rdkit_easy.setup_notebook"><code class="docutils literal notranslate"><span class="pre">setup_notebook()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.rdkit_easy.show_df"><code class="docutils literal notranslate"><span class="pre">show_df()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.rdkit_easy.show_html"><code class="docutils literal notranslate"><span class="pre">show_html()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-utils.struct_utils">utils.struct_utils module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#utils.struct_utils.base_mol_from_inchi"><code class="docutils literal notranslate"><span class="pre">base_mol_from_inchi()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.struct_utils.base_mol_from_smiles"><code class="docutils literal notranslate"><span class="pre">base_mol_from_smiles()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.struct_utils.base_smiles_from_inchi"><code class="docutils literal notranslate"><span class="pre">base_smiles_from_inchi()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.struct_utils.base_smiles_from_smiles"><code class="docutils literal notranslate"><span class="pre">base_smiles_from_smiles()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.struct_utils.draw_structure"><code class="docutils literal notranslate"><span class="pre">draw_structure()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.struct_utils.fix_moe_smiles"><code class="docutils literal notranslate"><span class="pre">fix_moe_smiles()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.struct_utils.get_rdkit_smiles"><code class="docutils literal notranslate"><span class="pre">get_rdkit_smiles()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.struct_utils.kekulize_smiles"><code class="docutils literal notranslate"><span class="pre">kekulize_smiles()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.struct_utils.mol_wt_from_smiles"><code class="docutils literal notranslate"><span class="pre">mol_wt_from_smiles()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.struct_utils.mols_from_smiles"><code class="docutils literal notranslate"><span class="pre">mols_from_smiles()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.struct_utils.rdkit_smiles_from_smiles"><code class="docutils literal notranslate"><span class="pre">rdkit_smiles_from_smiles()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.struct_utils.smiles_to_inchi_key"><code class="docutils literal notranslate"><span class="pre">smiles_to_inchi_key()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="#module-utils">Module contents</a></li>
 </ul>
 </li>
@@ -86,9 +292,9 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="modules.html">atomsci</a> &raquo;</li>
-      <li>utils package</li>
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">atomsci</a></li>
+      <li class="breadcrumb-item active">utils package</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/utils.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -102,6 +308,180 @@
 <h1>utils package<a class="headerlink" href="#utils-package" title="Permalink to this heading"></a></h1>
 <section id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading"></a></h2>
+</section>
+<section id="module-utils.checksum_utils">
+<span id="utils-checksum-utils-module"></span><h2>utils.checksum_utils module<a class="headerlink" href="#module-utils.checksum_utils" title="Permalink to this heading"></a></h2>
+<p>checksum_utils.py</p>
+<p>Utilities for checksum related functions</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="utils.checksum_utils.create_checksum">
+<span class="sig-prename descclassname"><span class="pre">utils.checksum_utils.</span></span><span class="sig-name descname"><span class="pre">create_checksum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/checksum_utils.html#create_checksum"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.checksum_utils.create_checksum" title="Permalink to this definition"></a></dt>
+<dd><p>Calculates hash of the file</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>filename (str): path to the dataset file</p>
+</dd>
+<dt>Returns:</dt><dd><p>returns the checksum</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utils.checksum_utils.get_dataset_hash_from_tar">
+<span class="sig-prename descclassname"><span class="pre">utils.checksum_utils.</span></span><span class="sig-name descname"><span class="pre">get_dataset_hash_from_tar</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tar</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/checksum_utils.html#get_dataset_hash_from_tar"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.checksum_utils.get_dataset_hash_from_tar" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utils.checksum_utils.uses_same_training_data_by_datasets">
+<span class="sig-prename descclassname"><span class="pre">utils.checksum_utils.</span></span><span class="sig-name descname"><span class="pre">uses_same_training_data_by_datasets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ds1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ds2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/checksum_utils.html#uses_same_training_data_by_datasets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.checksum_utils.uses_same_training_data_by_datasets" title="Permalink to this definition"></a></dt>
+<dd><p>Checks if the two input files’ checksums match.</p>
+<dl>
+<dt>Args:</dt><dd><p>ds1 (str): dataset 1</p>
+<p>ds2 (str): dataset 2</p>
+</dd>
+<dt>Return:</dt><dd><p>True if the checksums of the two input match</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utils.checksum_utils.uses_same_training_data_by_tarballs">
+<span class="sig-prename descclassname"><span class="pre">utils.checksum_utils.</span></span><span class="sig-name descname"><span class="pre">uses_same_training_data_by_tarballs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tar1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tar2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/checksum_utils.html#uses_same_training_data_by_tarballs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.checksum_utils.uses_same_training_data_by_tarballs" title="Permalink to this definition"></a></dt>
+<dd><p>Checks if the two input files’ checksums match.</p>
+<dl>
+<dt>Args:</dt><dd><p>tar1 (str): path to the first tar file</p>
+<p>tar2 (str):  path to the second tar file</p>
+</dd>
+<dt>Return:</dt><dd><p>True if the checksums of the two input files match
+False if</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p>the two checksums don’t match</p></li>
+<li><p>one of the file doesn’t have checksums (will generate a warning)</p></li>
+</ol>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-utils.compare_split_csv">
+<span id="utils-compare-split-csv-module"></span><h2>utils.compare_split_csv module<a class="headerlink" href="#module-utils.compare_split_csv" title="Permalink to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="utils.compare_split_csv.compare_split_files">
+<span class="sig-prename descclassname"><span class="pre">utils.compare_split_csv.</span></span><span class="sig-name descname"><span class="pre">compare_split_files</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">split1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">split2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/compare_split_csv.html#compare_split_files"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.compare_split_csv.compare_split_files" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utils.compare_split_csv.compare_splits">
+<span class="sig-prename descclassname"><span class="pre">utils.compare_split_csv.</span></span><span class="sig-name descname"><span class="pre">compare_splits</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">split1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">split2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/compare_split_csv.html#compare_splits"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.compare_split_csv.compare_splits" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utils.compare_split_csv.parse_args">
+<span class="sig-prename descclassname"><span class="pre">utils.compare_split_csv.</span></span><span class="sig-name descname"><span class="pre">parse_args</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/compare_split_csv.html#parse_args"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.compare_split_csv.parse_args" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-utils.compare_splits_plots">
+<span id="utils-compare-splits-plots-module"></span><h2>utils.compare_splits_plots module<a class="headerlink" href="#module-utils.compare_splits_plots" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="utils.compare_splits_plots.SplitStats">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">utils.compare_splits_plots.</span></span><span class="sig-name descname"><span class="pre">SplitStats</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">total_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">split_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smiles_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">response_cols</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/compare_splits_plots.html#SplitStats"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.compare_splits_plots.SplitStats" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>This object manages a dataset and a given split dataframe.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="utils.compare_splits_plots.SplitStats.dist_hist_plot">
+<span class="sig-name descname"><span class="pre">dist_hist_plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dists</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dist_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/compare_splits_plots.html#SplitStats.dist_hist_plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.compare_splits_plots.SplitStats.dist_hist_plot" title="Permalink to this definition"></a></dt>
+<dd><p>Creates a histogram of pairwise Tanimoto distances between training
+and test sets</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>dist_path (str): Optional Where to save the plot. The string ‘_dist_hist’ will be</dt><dd><p>appended to this input</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="utils.compare_splits_plots.SplitStats.make_all_plots">
+<span class="sig-name descname"><span class="pre">make_all_plots</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dist_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/compare_splits_plots.html#SplitStats.make_all_plots"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.compare_splits_plots.SplitStats.make_all_plots" title="Permalink to this definition"></a></dt>
+<dd><p>Makes a series of diagnostic plots</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>dist_path (str): Optional Where to save the plot. The string ‘_frac_box’ will be</dt><dd><p>appended to this input</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="utils.compare_splits_plots.SplitStats.print_stats">
+<span class="sig-name descname"><span class="pre">print_stats</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/compare_splits_plots.html#SplitStats.print_stats"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.compare_splits_plots.SplitStats.print_stats" title="Permalink to this definition"></a></dt>
+<dd><p>Prints useful statistics to stdout</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="utils.compare_splits_plots.SplitStats.subset_frac_plot">
+<span class="sig-name descname"><span class="pre">subset_frac_plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dist_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/compare_splits_plots.html#SplitStats.subset_frac_plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.compare_splits_plots.SplitStats.subset_frac_plot" title="Permalink to this definition"></a></dt>
+<dd><p>Makes a box plot of the subset fractions</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>dist_path (str): Optional Where to save the plot. The string ‘_frac_box’ will be</dt><dd><p>appended to this input</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="utils.compare_splits_plots.SplitStats.umap_plot">
+<span class="sig-name descname"><span class="pre">umap_plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dist_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/compare_splits_plots.html#SplitStats.umap_plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.compare_splits_plots.SplitStats.umap_plot" title="Permalink to this definition"></a></dt>
+<dd><p>Plots the first 10000 samples in Umap space using Morgan Fingerprints</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>dist_path (str): Optional Where to save the plot. The string ‘_umap_scatter’ will be</dt><dd><p>appended to this input</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utils.compare_splits_plots.parse_args">
+<span class="sig-prename descclassname"><span class="pre">utils.compare_splits_plots.</span></span><span class="sig-name descname"><span class="pre">parse_args</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/compare_splits_plots.html#parse_args"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.compare_splits_plots.parse_args" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utils.compare_splits_plots.save_figure">
+<span class="sig-prename descclassname"><span class="pre">utils.compare_splits_plots.</span></span><span class="sig-name descname"><span class="pre">save_figure</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/compare_splits_plots.html#save_figure"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.compare_splits_plots.save_figure" title="Permalink to this definition"></a></dt>
+<dd><p>Saves a figure to disk. Saves both png and svg formats.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>filename (str): The name of the figure.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utils.compare_splits_plots.split">
+<span class="sig-prename descclassname"><span class="pre">utils.compare_splits_plots.</span></span><span class="sig-name descname"><span class="pre">split</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">total_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">split_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_col</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/compare_splits_plots.html#split"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.compare_splits_plots.split" title="Permalink to this definition"></a></dt>
+<dd><p>Splits a dataset into training, test and validation sets using a given split.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>total_df (DataFrame): A pandas dataframe.
+split_df (DataFrame): A split dataframe containing ‘cmpd_id’ and ‘subset’ columns.
+id_col (str): The ID column in total_df</p>
+</dd>
+<dt>Returns:</dt><dd><dl class="simple">
+<dt>(DataFrame, DataFrame, DataFrame): Three dataframes for train, test, and valid </dt><dd><p>respectively.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 <section id="module-utils.curate_data">
 <span id="utils-curate-data-module"></span><h2>utils.curate_data module<a class="headerlink" href="#module-utils.curate_data" title="Permalink to this heading"></a></h2>
@@ -673,7 +1053,7 @@ to directores calcuated from ‘data_root’</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="utils.data_curation_functions.standardize_relations">
-<span class="sig-prename descclassname"><span class="pre">utils.data_curation_functions.</span></span><span class="sig-name descname"><span class="pre">standardize_relations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dset_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">db</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'DTC'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/data_curation_functions.html#standardize_relations"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.data_curation_functions.standardize_relations" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">utils.data_curation_functions.</span></span><span class="sig-name descname"><span class="pre">standardize_relations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dset_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">db</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rel_col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_rel_col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">invert</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/data_curation_functions.html#standardize_relations"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.data_curation_functions.standardize_relations" title="Permalink to this definition"></a></dt>
 <dd><p>Standardizes censoring operators</p>
 <p>Standardize the censoring operators to =, &lt; or &gt;, and remove any rows whose operators
 don’t map to a standard one. There is a special case for db=’ChEMBL’ that strips
@@ -1516,6 +1896,33 @@ csv returns a DataFrame</p>
 </dd></dl>
 
 </section>
+<section id="module-utils.file_utils">
+<span id="utils-file-utils-module"></span><h2>utils.file_utils module<a class="headerlink" href="#module-utils.file_utils" title="Permalink to this heading"></a></h2>
+<p>file_utils.py
+Utilities for file related functions</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="utils.file_utils.is_within_directory">
+<span class="sig-prename descclassname"><span class="pre">utils.file_utils.</span></span><span class="sig-name descname"><span class="pre">is_within_directory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">directory</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/file_utils.html#is_within_directory"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.file_utils.is_within_directory" title="Permalink to this definition"></a></dt>
+<dd><p>Check if the member target is within the directory</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utils.file_utils.safe_extract">
+<span class="sig-prename descclassname"><span class="pre">utils.file_utils.</span></span><span class="sig-name descname"><span class="pre">safe_extract</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tar</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">members</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">numeric_owner</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/file_utils.html#safe_extract"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.file_utils.safe_extract" title="Permalink to this definition"></a></dt>
+<dd><p>Fix the vulnerability of the path traversal attack in extract() and 
+extractall() functions.</p>
+<p>&#64;see bugs -  CVE-2007-4559
+<a class="reference external" href="https://www.trellix.com/en-us/about/newsroom/stories/research/tarfile-exploiting-the-world.html">https://www.trellix.com/en-us/about/newsroom/stories/research/tarfile-exploiting-the-world.html</a></p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>tar (tarfile.TarFile): A TarFile object representing an open tar archive.
+path: Output file path where the archive is to be extracted.
+members: Relative paths for the members of the tar archive to be extracted.
+numeric_owner: If True, use the uid and gid number from the tar file to set owner/group of the extracted files.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
 <section id="module-utils.genTestset">
 <span id="utils-gentestset-module"></span><h2>utils.genTestset module<a class="headerlink" href="#module-utils.genTestset" title="Permalink to this heading"></a></h2>
 <dl class="py function">
@@ -1536,23 +1943,23 @@ Compute an MLE estimate of the mean value over rep</p>
 <dt>or each unique base </dt><dd><blockquote>
 <div><p>SMILES string, to be used in an ML-ready dataset.</p>
 <dl class="field-list simple">
-<dt class="field-odd">param assay_df</dt>
+<dt class="field-odd">param assay_df<span class="colon">:</span></dt>
 <dd class="field-odd"><p>The input data frame to be processed.</p>
 </dd>
-<dt class="field-even">param value_col</dt>
+<dt class="field-even">param value_col<span class="colon">:</span></dt>
 <dd class="field-even"><p>The column in the data frame containing assay values to be averaged.</p>
 </dd>
-<dt class="field-odd">param output_value_col</dt>
+<dt class="field-odd">param output_value_col<span class="colon">:</span></dt>
 <dd class="field-odd"><p>Optional; the column name to use in the output data frame for the averaged data.</p>
 </dd>
-<dt class="field-even">param label_actives</dt>
+<dt class="field-even">param label_actives<span class="colon">:</span></dt>
 <dd class="field-even"><p>If True, generate an additional column ‘active’ indicating whether the mean value is above</p>
 </dd>
 </dl>
 </div></blockquote>
 <dl>
 <dt>a threshold specified by active_thresh.</dt><dd><dl class="field-list simple">
-<dt class="field-odd">param active_thresh</dt>
+<dt class="field-odd">param active_thresh<span class="colon">:</span></dt>
 <dd class="field-odd"><p>The threshold to be used for labeling compounds as active or inactive.</p>
 </dd>
 </dl>
@@ -2279,6 +2686,65 @@ command.</p>
 </dd></dl>
 
 </section>
+<section id="module-utils.many_to_one">
+<span id="utils-many-to-one-module"></span><h2>utils.many_to_one module<a class="headerlink" href="#module-utils.many_to_one" title="Permalink to this heading"></a></h2>
+<dl class="py exception">
+<dt class="sig sig-object py" id="utils.many_to_one.ManyToOneException">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">utils.many_to_one.</span></span><span class="sig-name descname"><span class="pre">ManyToOneException</span></span><a class="reference internal" href="_modules/utils/many_to_one.html#ManyToOneException"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.many_to_one.ManyToOneException" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="utils.many_to_one.NANCompoundIDException">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">utils.many_to_one.</span></span><span class="sig-name descname"><span class="pre">NANCompoundIDException</span></span><a class="reference internal" href="_modules/utils/many_to_one.html#NANCompoundIDException"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.many_to_one.NANCompoundIDException" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="utils.many_to_one.NANSMILESException">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">utils.many_to_one.</span></span><span class="sig-name descname"><span class="pre">NANSMILESException</span></span><a class="reference internal" href="_modules/utils/many_to_one.html#NANSMILESException"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.many_to_one.NANSMILESException" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utils.many_to_one.has_nans">
+<span class="sig-prename descclassname"><span class="pre">utils.many_to_one.</span></span><span class="sig-name descname"><span class="pre">has_nans</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">col</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/many_to_one.html#has_nans"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.many_to_one.has_nans" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utils.many_to_one.many_to_one">
+<span class="sig-prename descclassname"><span class="pre">utils.many_to_one.</span></span><span class="sig-name descname"><span class="pre">many_to_one</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fn</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smiles_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_col</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/many_to_one.html#many_to_one"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.many_to_one.many_to_one" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utils.many_to_one.many_to_one_df">
+<span class="sig-prename descclassname"><span class="pre">utils.many_to_one.</span></span><span class="sig-name descname"><span class="pre">many_to_one_df</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smiles_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_col</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/many_to_one.html#many_to_one_df"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.many_to_one.many_to_one_df" title="Permalink to this definition"></a></dt>
+<dd><p>AMPL requires that SMILES and compound_ids have a many to one mapping. 
+This function opens the dataset and checks this restraint. It will also
+check if any SMILES or compound_ids are empty/nan</p>
+<dl class="simple">
+<dt>Arguments:</dt><dd><p>df (pd.DataFrame): The DataFrame in question.
+smiles_col (str): The column containing SMILES.
+id_col (str): The column containing compound ids</p>
+</dd>
+<dt>Returns:</dt><dd><dl class="simple">
+<dt>True if there is a many to one mapping. Raises one of 3 errors if it:</dt><dd><ul class="simple">
+<li><p>Has nan compound_ids</p></li>
+<li><p>Has nan SMILES</p></li>
+<li><p>Is not a many to one mapping between compound_ids and SMILES</p></li>
+</ul>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utils.many_to_one.no_nan_ids_or_smiles">
+<span class="sig-prename descclassname"><span class="pre">utils.many_to_one.</span></span><span class="sig-name descname"><span class="pre">no_nan_ids_or_smiles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smiles_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_col</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/many_to_one.html#no_nan_ids_or_smiles"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.many_to_one.no_nan_ids_or_smiles" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
 <section id="module-utils.model_retrain">
 <span id="utils-model-retrain-module"></span><h2>utils.model_retrain module<a class="headerlink" href="#module-utils.model_retrain" title="Permalink to this heading"></a></h2>
 <dl class="py function">
@@ -2340,6 +2806,106 @@ command.</p>
 </dd>
 </dl>
 </dd></dl>
+
+</section>
+<section id="module-utils.model_version_utils">
+<span id="utils-model-version-utils-module"></span><h2>utils.model_version_utils module<a class="headerlink" href="#module-utils.model_version_utils" title="Permalink to this heading"></a></h2>
+<p>model_version_utils.py</p>
+<p>Misc utilities to get the AMPL version(s) used to train one or more models and check them
+for compatibility with the currently running version of AMPL.:</p>
+<p>To check the model version</p>
+<blockquote>
+<div><p>usage: model_version_utils.py [-h] -i INPUT</p>
+<dl>
+<dt>optional arguments:</dt><dd><blockquote>
+<div><dl class="option-list">
+<dt><kbd><span class="option">-h</span>, <span class="option">--help</span></kbd></dt>
+<dd><p>show this help message and exit</p>
+</dd>
+</dl>
+</div></blockquote>
+<dl class="option-list">
+<dt><kbd><span class="option">-i <var>INPUT</var></span>, <span class="option">--input <var>INPUT</var></span></kbd></dt>
+<dd><p>input directory/file (required)</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</div></blockquote>
+<dl class="py function">
+<dt class="sig sig-object py" id="utils.model_version_utils.check_version_compatible">
+<span class="sig-prename descclassname"><span class="pre">utils.model_version_utils.</span></span><span class="sig-name descname"><span class="pre">check_version_compatible</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_check</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/model_version_utils.html#check_version_compatible"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.model_version_utils.check_version_compatible" title="Permalink to this definition"></a></dt>
+<dd><p>Compare the input file’s version against the running AMPL version to see if
+they are compatible</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>filename (str): file or version number</p>
+</dd>
+<dt>Returns:</dt><dd><p>True if the input model version matches the compatible AMPL version group</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utils.model_version_utils.get_ampl_version">
+<span class="sig-prename descclassname"><span class="pre">utils.model_version_utils.</span></span><span class="sig-name descname"><span class="pre">get_ampl_version</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/model_version_utils.html#get_ampl_version"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.model_version_utils.get_ampl_version" title="Permalink to this definition"></a></dt>
+<dd><p>Get the running ampl version</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>the AMPL version</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utils.model_version_utils.get_ampl_version_from_dir">
+<span class="sig-prename descclassname"><span class="pre">utils.model_version_utils.</span></span><span class="sig-name descname"><span class="pre">get_ampl_version_from_dir</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dirname</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/model_version_utils.html#get_ampl_version_from_dir"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.model_version_utils.get_ampl_version_from_dir" title="Permalink to this definition"></a></dt>
+<dd><p>Get the AMPL versions for all the models stored under the given directory and its subdirectories,
+recursively.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>dirname (str): directory</p>
+</dd>
+<dt>Returns:</dt><dd><p>list of AMPL versions</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utils.model_version_utils.get_ampl_version_from_json">
+<span class="sig-prename descclassname"><span class="pre">utils.model_version_utils.</span></span><span class="sig-name descname"><span class="pre">get_ampl_version_from_json</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metadata_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/model_version_utils.html#get_ampl_version_from_json"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.model_version_utils.get_ampl_version_from_json" title="Permalink to this definition"></a></dt>
+<dd><p>Parse model_metadata.json to get the AMPL version</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>filename (str): tar file</p>
+</dd>
+<dt>Returns:</dt><dd><p>the AMPL version number</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utils.model_version_utils.get_ampl_version_from_model">
+<span class="sig-prename descclassname"><span class="pre">utils.model_version_utils.</span></span><span class="sig-name descname"><span class="pre">get_ampl_version_from_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/model_version_utils.html#get_ampl_version_from_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.model_version_utils.get_ampl_version_from_model" title="Permalink to this definition"></a></dt>
+<dd><p>Get the AMPL version from the tar file’s model_metadata.json</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>filename (str): tar file</p>
+</dd>
+<dt>Returns:</dt><dd><p>the AMPL version number</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utils.model_version_utils.get_major_version">
+<span class="sig-prename descclassname"><span class="pre">utils.model_version_utils.</span></span><span class="sig-name descname"><span class="pre">get_major_version</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">full_version</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/model_version_utils.html#get_major_version"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.model_version_utils.get_major_version" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utils.model_version_utils.main">
+<span class="sig-prename descclassname"><span class="pre">utils.model_version_utils.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">argv</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/model_version_utils.html#main"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.model_version_utils.main" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utils.model_version_utils.validate_version">
+<span class="sig-prename descclassname"><span class="pre">utils.model_version_utils.</span></span><span class="sig-name descname"><span class="pre">validate_version</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/model_version_utils.html#validate_version"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.model_version_utils.validate_version" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
 
 </section>
 <section id="utils-open-docs-module">
@@ -2511,16 +3077,37 @@ index for each molecule.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="utils.rdkit_easy.matching_atoms_and_bonds">
+<span class="sig-prename descclassname"><span class="pre">utils.rdkit_easy.</span></span><span class="sig-name descname"><span class="pre">matching_atoms_and_bonds</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">match_mol</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/rdkit_easy.html#matching_atoms_and_bonds"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.rdkit_easy.matching_atoms_and_bonds" title="Permalink to this definition"></a></dt>
+<dd><p>Returns lists of indices of atoms and bonds within molecule <cite>mol</cite> that are part of the substructure
+matched by <cite>match_mol</cite>.</p>
+<dl>
+<dt>Args:</dt><dd><p>mol (rdkit.Chem.Mol): Object representing molecule.</p>
+<p>match_mol (rdkit.Chem.Mol): Object representing a substructure or SMARTS pattern to be
+compared against <cite>mol</cite>, typically created by <cite>Chem.MolFromSmiles()</cite> or <cite>Chem.MolFromSmarts()</cite>.</p>
+</dd>
+<dt>Returns:</dt><dd><p>match_atoms, match_bonds (tuple(list(int), list(int))): Lists of indices of atoms and bonds
+within <cite>mol</cite> contained in the substructure (if any) matched by <cite>match_mol</cite>. Returns empty lists
+if there is no match.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="utils.rdkit_easy.mol_to_html">
-<span class="sig-prename descclassname"><span class="pre">utils.rdkit_easy.</span></span><span class="sig-name descname"><span class="pre">mol_to_html</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'svg'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">directory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'rdkit_svg'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">400</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">200</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/rdkit_easy.html#mol_to_html"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.rdkit_easy.mol_to_html" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">utils.rdkit_easy.</span></span><span class="sig-name descname"><span class="pre">mol_to_html</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">highlight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'svg'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">directory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'rdkit_svg'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">400</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">200</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/rdkit_easy.html#mol_to_html"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.rdkit_easy.mol_to_html" title="Permalink to this definition"></a></dt>
 <dd><p>Creates an image displaying the given molecule’s 2D structure, and generates an HTML
 tag for it. The image can be embedded directly into the HTML tag or saved to a file.</p>
 <dl>
 <dt>Args:</dt><dd><p>mol (rdkit.Chem.Mol): Object representing molecule.</p>
+<p>highlight (rdkit.Chem.Mol): Optional object representing a set of atoms and bonds to be highlighted in
+the image.</p>
 <p>name (str): Filename of image file to create, relative to ‘directory’; only used if embed=False.</p>
 <p>type (str): Image format; must be ‘png’ or ‘svg’.</p>
 <p>directory (str): Path relative to notebook directory of subdirectory where image file will be written. 
 The directory will be created if necessary. Note that absolute paths will not work in notebooks. Ignored if embed=True.</p>
+<p>embed (bool): If True, image data will be embedded in the generated HTML tag. Otherwise it will be written to a
+file determined by the <cite>directory</cite> and <cite>name</cite> arguments.</p>
 <p>width (int): Width of image bounding box.</p>
 <p>height (int): Height of image bounding box.</p>
 </dd>
@@ -2531,11 +3118,12 @@ The directory will be created if necessary. Note that absolute paths will not wo
 
 <dl class="py function">
 <dt class="sig sig-object py" id="utils.rdkit_easy.mol_to_pil">
-<span class="sig-prename descclassname"><span class="pre">utils.rdkit_easy.</span></span><span class="sig-name descname"><span class="pre">mol_to_pil</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(400,</span> <span class="pre">200)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/rdkit_easy.html#mol_to_pil"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.rdkit_easy.mol_to_pil" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">utils.rdkit_easy.</span></span><span class="sig-name descname"><span class="pre">mol_to_pil</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(400,</span> <span class="pre">200)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">highlight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/rdkit_easy.html#mol_to_pil"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.rdkit_easy.mol_to_pil" title="Permalink to this definition"></a></dt>
 <dd><p>Returns a Python Image Library (PIL) object containing an image of the given molecule’s structure.</p>
 <dl>
 <dt>Args:</dt><dd><p>mol (rdkit.Chem.Mol): Object representing molecule.</p>
 <p>size (tuple): Width and height of bounding box of image.</p>
+<p>highlight (rdkit.Chem.Mol): Object representing substructure to highlight on molecule.</p>
 </dd>
 <dt>Returns:</dt><dd><p>PIL.PngImageFile: An object containing an image of the molecule’s structure.</p>
 </dd>
@@ -2544,11 +3132,12 @@ The directory will be created if necessary. Note that absolute paths will not wo
 
 <dl class="py function">
 <dt class="sig sig-object py" id="utils.rdkit_easy.mol_to_svg">
-<span class="sig-prename descclassname"><span class="pre">utils.rdkit_easy.</span></span><span class="sig-name descname"><span class="pre">mol_to_svg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(400,</span> <span class="pre">200)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/rdkit_easy.html#mol_to_svg"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.rdkit_easy.mol_to_svg" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">utils.rdkit_easy.</span></span><span class="sig-name descname"><span class="pre">mol_to_svg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(400,</span> <span class="pre">200)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">highlight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/rdkit_easy.html#mol_to_svg"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.rdkit_easy.mol_to_svg" title="Permalink to this definition"></a></dt>
 <dd><p>Returns a RDKit MolDraw2DSVG object containing an image of the given molecule’s structure.</p>
 <dl>
 <dt>Args:</dt><dd><p>mol (rdkit.Chem.Mol): Object representing molecule.</p>
 <p>size (tuple): Width and height of bounding box of image.</p>
+<p>highlight (rdkit.Chem.Mol): Object representing substructure to highlight on molecule.</p>
 </dd>
 <dt>Returns:</dt><dd><p>RDKit.rdMolDraw2D.MolDraw2DSVG text (str): An SVG object containing an image of the molecule’s structure.</p>
 </dd>
@@ -2557,26 +3146,28 @@ The directory will be created if necessary. Note that absolute paths will not wo
 
 <dl class="py function">
 <dt class="sig sig-object py" id="utils.rdkit_easy.save_png">
-<span class="sig-prename descclassname"><span class="pre">utils.rdkit_easy.</span></span><span class="sig-name descname"><span class="pre">save_png</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(400,</span> <span class="pre">200)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/rdkit_easy.html#save_png"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.rdkit_easy.save_png" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">utils.rdkit_easy.</span></span><span class="sig-name descname"><span class="pre">save_png</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(400,</span> <span class="pre">200)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">highlight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/rdkit_easy.html#save_png"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.rdkit_easy.save_png" title="Permalink to this definition"></a></dt>
 <dd><p>Draws the molecule mol into a PNG file with filename ‘name’ and with the given size
 in pixels.</p>
 <dl>
 <dt>Args:</dt><dd><p>mol (rdkit.Chem.Mol): Object representing molecule.</p>
 <p>name (str): Path to write PNG file to.</p>
 <p>size (tuple): Width and height of bounding box of image.</p>
+<p>highlight (rdkit.Chem.Mol): Object representing substructure to highlight on molecule.</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="utils.rdkit_easy.save_svg">
-<span class="sig-prename descclassname"><span class="pre">utils.rdkit_easy.</span></span><span class="sig-name descname"><span class="pre">save_svg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(400,</span> <span class="pre">200)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/rdkit_easy.html#save_svg"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.rdkit_easy.save_svg" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">utils.rdkit_easy.</span></span><span class="sig-name descname"><span class="pre">save_svg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(400,</span> <span class="pre">200)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">highlight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/rdkit_easy.html#save_svg"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.rdkit_easy.save_svg" title="Permalink to this definition"></a></dt>
 <dd><p>Draws the molecule mol into an SVG file with filename ‘name’ and with the given size
 in pixels.</p>
 <dl>
 <dt>Args:</dt><dd><p>mol (rdkit.Chem.Mol): Object representing molecule.</p>
 <p>name (str): Path to write SVG file to.</p>
 <p>size (tuple): Width and height of bounding box of image.</p>
+<p>highlight (rdkit.Chem.Mol): Object representing substructure to highlight on molecule.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -2814,7 +3405,7 @@ it can be used as a unique identifier, but doesn’t hold the information needed
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2022, ATOM DDM Team.</p>
+    <p>&#169; Copyright 2023, ATOM DDM Team.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

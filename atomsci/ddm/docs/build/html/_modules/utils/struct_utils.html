@@ -3,18 +3,17 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>utils.struct_utils &mdash; ATOM Data-Driven Modeling Pipeline 1.4.0 documentation</title>
+  <title>utils.struct_utils &mdash; ATOM Data-Driven Modeling Pipeline 1.5.0 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
         <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-        <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/underscore.js"></script>
-        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" /> 
@@ -25,14 +24,18 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../../index.html" class="icon icon-home"> ATOM Data-Driven Modeling Pipeline
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            ATOM Data-Driven Modeling Pipeline
           </a>
               <div class="version">
-                1.4.0
+                1.5.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -64,9 +67,9 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="../index.html">Module code</a> &raquo;</li>
-      <li>utils.struct_utils</li>
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">utils.struct_utils</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -98,7 +101,7 @@
 
 
 <div class="viewcode-block" id="get_rdkit_smiles"><a class="viewcode-back" href="../../utils.html#utils.struct_utils.get_rdkit_smiles">[docs]</a><span class="k">def</span> <span class="nf">get_rdkit_smiles</span><span class="p">(</span><span class="n">orig_smiles</span><span class="p">,</span> <span class="n">useIsomericSmiles</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Given a SMILES string, regenerate a &quot;canonical&quot; SMILES string for the same molecule</span>
 <span class="sd">    using the implementation in RDKit.</span>
 
@@ -119,7 +122,7 @@
 
 
 <div class="viewcode-block" id="rdkit_smiles_from_smiles"><a class="viewcode-back" href="../../utils.html#utils.struct_utils.rdkit_smiles_from_smiles">[docs]</a><span class="k">def</span> <span class="nf">rdkit_smiles_from_smiles</span><span class="p">(</span><span class="n">orig_smiles</span><span class="p">,</span> <span class="n">useIsomericSmiles</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">workers</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Parallel version of get_rdkit_smiles. If orig_smiles is a list and workers is &gt; 1, spawn &#39;workers&#39;</span>
 <span class="sd">    threads to convert input SMILES strings to standardized RDKit format.</span>
 
@@ -158,7 +161,7 @@
 
 
 <div class="viewcode-block" id="mols_from_smiles"><a class="viewcode-back" href="../../utils.html#utils.struct_utils.mols_from_smiles">[docs]</a><span class="k">def</span> <span class="nf">mols_from_smiles</span><span class="p">(</span><span class="n">orig_smiles</span><span class="p">,</span> <span class="n">workers</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Parallel function to create RDKit Mol objects for a list of SMILES strings. If orig_smiles is a list</span>
 <span class="sd">    and workers is &gt; 1, spawn &#39;workers&#39; threads to convert input SMILES strings to Mol objects.</span>
 
@@ -191,7 +194,7 @@
 
 
 <div class="viewcode-block" id="base_smiles_from_smiles"><a class="viewcode-back" href="../../utils.html#utils.struct_utils.base_smiles_from_smiles">[docs]</a><span class="k">def</span> <span class="nf">base_smiles_from_smiles</span><span class="p">(</span><span class="n">orig_smiles</span><span class="p">,</span> <span class="n">useIsomericSmiles</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">removeCharges</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">workers</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Generate standardized SMILES strings for the largest fragments of each molecule specified by</span>
 <span class="sd">    orig_smiles. Strips salt groups and replaces any rare isotopes with the most common ones for each element.</span>
 
@@ -232,7 +235,7 @@
 
 
 <div class="viewcode-block" id="kekulize_smiles"><a class="viewcode-back" href="../../utils.html#utils.struct_utils.kekulize_smiles">[docs]</a><span class="k">def</span> <span class="nf">kekulize_smiles</span><span class="p">(</span><span class="n">orig_smiles</span><span class="p">,</span> <span class="n">useIsomericSmiles</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">workers</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Generate Kekulized SMILES strings for the molecules specified by orig_smiles. Kekulized SMILES strings</span>
 <span class="sd">    are ones in which aromatic rings are represented by uppercase letters with alternating single and</span>
 <span class="sd">    double bonds, rather than lowercase letters; they are needed by some external applications.</span>
@@ -272,7 +275,7 @@
 
 
 <div class="viewcode-block" id="base_mol_from_smiles"><a class="viewcode-back" href="../../utils.html#utils.struct_utils.base_mol_from_smiles">[docs]</a><span class="k">def</span> <span class="nf">base_mol_from_smiles</span><span class="p">(</span><span class="n">orig_smiles</span><span class="p">,</span> <span class="n">useIsomericSmiles</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">removeCharges</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Generate a standardized RDKit Mol object for the largest fragment of the molecule specified by</span>
 <span class="sd">    orig_smiles. Replace any rare isotopes with the most common ones for each element.</span>
 <span class="sd">    If removeCharges is True, add hydrogens as needed to eliminate charges.</span>
@@ -302,7 +305,7 @@
 
 
 <div class="viewcode-block" id="base_smiles_from_inchi"><a class="viewcode-back" href="../../utils.html#utils.struct_utils.base_smiles_from_inchi">[docs]</a><span class="k">def</span> <span class="nf">base_smiles_from_inchi</span><span class="p">(</span><span class="n">inchi_str</span><span class="p">,</span> <span class="n">useIsomericSmiles</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">removeCharges</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">workers</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Generate standardized salt-stripped SMILES strings for the largest fragments of each molecule represented by</span>
 <span class="sd">    InChi string(s) inchi_str. Replaces any rare isotopes with the most common ones for each element.</span>
 
@@ -343,7 +346,7 @@
 
 
 <div class="viewcode-block" id="base_mol_from_inchi"><a class="viewcode-back" href="../../utils.html#utils.struct_utils.base_mol_from_inchi">[docs]</a><span class="k">def</span> <span class="nf">base_mol_from_inchi</span><span class="p">(</span><span class="n">inchi_str</span><span class="p">,</span> <span class="n">useIsomericSmiles</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">removeCharges</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Generate a standardized RDKit Mol object for the largest fragment of the molecule specified by</span>
 <span class="sd">    InChi string inchi_str. Replace any rare isotopes with the most common ones for each element.</span>
 <span class="sd">    If removeCharges is True, add hydrogens as needed to eliminate charges.</span>
@@ -373,7 +376,7 @@
 
 
 <div class="viewcode-block" id="draw_structure"><a class="viewcode-back" href="../../utils.html#utils.struct_utils.draw_structure">[docs]</a><span class="k">def</span> <span class="nf">draw_structure</span><span class="p">(</span><span class="n">smiles_str</span><span class="p">,</span> <span class="n">image_path</span><span class="p">,</span> <span class="n">image_size</span><span class="o">=</span><span class="mi">500</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Draw structure for the compound with the given SMILES string as a PNG file.</span>
 
 <span class="sd">    Note that there are more flexible functions for drawing structures in the rdkit_easy module.</span>
@@ -399,7 +402,7 @@
 
 
 <span class="k">def</span> <span class="nf">_standardize_chemistry</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">standard</span><span class="o">=</span><span class="s1">&#39;rdkit&#39;</span><span class="p">,</span> <span class="n">smiles_col</span><span class="o">=</span><span class="s1">&#39;rdkit_smiles&#39;</span><span class="p">,</span> <span class="n">workers</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Function used by merge_dataframes_by_smiles. Converts SMILES strings in a given column of a data frame</span>
 <span class="sd">    into either standardized salt-stripped SMILES strings or InChi strings.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -427,7 +430,7 @@
 
 
 <span class="k">def</span> <span class="nf">_merge_values</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">strategy</span><span class="o">=</span><span class="s1">&#39;list&#39;</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Function used by merge_dataframes_by_smiles. Returns a summary of the values in &#39;values&#39;, unless</span>
 <span class="sd">    &#39;strategy&#39; == &#39;list&#39;, in which case it returns values itself.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -464,7 +467,7 @@
 
 <span class="k">def</span> <span class="nf">_merge_dataframes_by_smiles</span><span class="p">(</span><span class="n">dataframes</span><span class="p">,</span> <span class="n">smiles_col</span><span class="o">=</span><span class="s1">&#39;rdkit_smiles&#39;</span><span class="p">,</span> <span class="n">id_col</span><span class="o">=</span><span class="s1">&#39;compound_id&#39;</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;outer&#39;</span><span class="p">,</span> <span class="n">comparetype</span><span class="o">=</span><span class="s1">&#39;rdkit&#39;</span><span class="p">,</span>
                                <span class="n">columnmerge</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">workers</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Merge two dataframes labeled by SMILEs strings on a rdkit or InCHI canonicalization to identify shared compounds</span>
 
 <span class="sd">    DEPRECATED. This function was added by a developer no longer at ATOM and doesn&#39;t appear to be used by any</span>
@@ -497,7 +500,7 @@
 
 
 <div class="viewcode-block" id="smiles_to_inchi_key"><a class="viewcode-back" href="../../utils.html#utils.struct_utils.smiles_to_inchi_key">[docs]</a><span class="k">def</span> <span class="nf">smiles_to_inchi_key</span><span class="p">(</span><span class="n">smiles</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Generates an InChI key from a SMILES string.  Note that an InChI key is different from an InChI *string*;</span>
 <span class="sd">    it can be used as a unique identifier, but doesn&#39;t hold the information needed to reconstruct a molecule.</span>
 
@@ -519,7 +522,7 @@
 
 
 <div class="viewcode-block" id="fix_moe_smiles"><a class="viewcode-back" href="../../utils.html#utils.struct_utils.fix_moe_smiles">[docs]</a><span class="k">def</span> <span class="nf">fix_moe_smiles</span><span class="p">(</span><span class="n">smiles</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Correct the SMILES strings generated by MOE to standardize the representation of protonated atoms,</span>
 <span class="sd">    so that RDKit can read them.</span>
 
@@ -544,7 +547,7 @@
 
 
 <div class="viewcode-block" id="mol_wt_from_smiles"><a class="viewcode-back" href="../../utils.html#utils.struct_utils.mol_wt_from_smiles">[docs]</a><span class="k">def</span> <span class="nf">mol_wt_from_smiles</span><span class="p">(</span><span class="n">smiles</span><span class="p">,</span> <span class="n">workers</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calculate molecular weights for molecules represented by SMILES strings.</span>
 
 <span class="sd">    Args:</span>
@@ -585,7 +588,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2022, ATOM DDM Team.</p>
+    <p>&#169; Copyright 2023, ATOM DDM Team.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>utils.checksum_utils &mdash; ATOM Data-Driven Modeling Pipeline 1.5.0 documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            ATOM Data-Driven Modeling Pipeline
+          </a>
+              <div class="version">
+                1.5.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/getting_started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/tests.html">Tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/running_ampl.html">Running AMPL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/advanced_ampl_usage.html">Advanced AMPL Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/advanced_installation.html">Advanced Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/advanced_testing.html">Advanced Testing</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">atomsci</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">ATOM Data-Driven Modeling Pipeline</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">utils.checksum_utils</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for utils.checksum_utils</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">checksum_utils.py</span>
+
+<span class="sd">Utilities for checksum related functions</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">hashlib</span>
+<span class="kn">import</span> <span class="nn">tarfile</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+
+<span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<div class="viewcode-block" id="create_checksum"><a class="viewcode-back" href="../../utils.html#utils.checksum_utils.create_checksum">[docs]</a><span class="k">def</span> <span class="nf">create_checksum</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates hash of the file</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        filename (str): path to the dataset file</span>
+<span class="sd">    </span>
+<span class="sd">    Returns:</span>
+<span class="sd">        returns the checksum</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># https://docs.python.org/3/library/hashlib.html#hash-algorithms</span>
+    <span class="nb">hash</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">md5</span><span class="p">()</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="nb">iter</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="n">fh</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">8192</span><span class="p">),</span> <span class="sa">b</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+            <span class="nb">hash</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">hash</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="uses_same_training_data_by_datasets"><a class="viewcode-back" href="../../utils.html#utils.checksum_utils.uses_same_training_data_by_datasets">[docs]</a><span class="k">def</span> <span class="nf">uses_same_training_data_by_datasets</span><span class="p">(</span><span class="n">ds1</span><span class="p">,</span> <span class="n">ds2</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Checks if the two input files&#39; checksums match.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ds1 (str): dataset 1</span>
+<span class="sd">    </span>
+<span class="sd">        ds2 (str): dataset 2</span>
+
+<span class="sd">    Return:</span>
+<span class="sd">        True if the checksums of the two input match</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">hash1</span> <span class="o">=</span> <span class="n">create_checksum</span><span class="p">(</span><span class="n">ds1</span><span class="p">)</span>
+    <span class="n">hash2</span> <span class="o">=</span> <span class="n">create_checksum</span><span class="p">(</span><span class="n">ds2</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">hash1</span> <span class="o">==</span> <span class="n">hash2</span></div>
+
+<div class="viewcode-block" id="uses_same_training_data_by_tarballs"><a class="viewcode-back" href="../../utils.html#utils.checksum_utils.uses_same_training_data_by_tarballs">[docs]</a><span class="k">def</span> <span class="nf">uses_same_training_data_by_tarballs</span><span class="p">(</span><span class="n">tar1</span><span class="p">,</span> <span class="n">tar2</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Checks if the two input files&#39; checksums match.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        tar1 (str): path to the first tar file</span>
+<span class="sd">    </span>
+<span class="sd">        tar2 (str):  path to the second tar file</span>
+
+<span class="sd">    Return:</span>
+<span class="sd">        True if the checksums of the two input files match</span>
+<span class="sd">        False if </span>
+<span class="sd">               1) the two checksums don&#39;t match </span>
+<span class="sd">               2) one of the file doesn&#39;t have checksums (will generate a warning)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ds_hash1</span> <span class="o">=</span> <span class="n">get_dataset_hash_from_tar</span><span class="p">(</span><span class="n">tar1</span><span class="p">)</span>
+    <span class="n">ds_hash2</span> <span class="o">=</span> <span class="n">get_dataset_hash_from_tar</span><span class="p">(</span><span class="n">tar2</span><span class="p">)</span>
+    
+    <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Compare two tars hashes. ds_hash1 = </span><span class="si">%s</span><span class="s1"> ds_dash2 = </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">ds_hash1</span><span class="p">,</span> <span class="n">ds_hash2</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">ds_hash1</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> does not have a dataset hash.&quot;</span><span class="p">,</span> <span class="n">tar1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    
+    <span class="k">if</span> <span class="n">ds_hash2</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> does not have a dataset hash.&quot;</span><span class="p">,</span> <span class="n">tar2</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">return</span> <span class="n">ds_hash1</span> <span class="o">==</span> <span class="n">ds_hash2</span></div>
+
+<div class="viewcode-block" id="get_dataset_hash_from_tar"><a class="viewcode-back" href="../../utils.html#utils.checksum_utils.get_dataset_hash_from_tar">[docs]</a><span class="k">def</span> <span class="nf">get_dataset_hash_from_tar</span><span class="p">(</span><span class="n">tar</span><span class="p">):</span>
+    <span class="c1"># extract the model_metadata.json from tar</span>
+    <span class="n">model_fp</span> <span class="o">=</span> <span class="n">tarfile</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">tar</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;r:gz&#39;</span><span class="p">)</span>
+    <span class="n">metadata_file</span> <span class="o">=</span> <span class="n">model_fp</span><span class="o">.</span><span class="n">getmember</span><span class="p">(</span><span class="s2">&quot;./model_metadata.json&quot;</span><span class="p">)</span>
+    <span class="n">ext_metadata</span> <span class="o">=</span> <span class="n">model_fp</span><span class="o">.</span><span class="n">extractfile</span><span class="p">(</span><span class="n">metadata_file</span><span class="p">)</span>
+      
+    <span class="n">meta_json</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">ext_metadata</span><span class="p">)</span>
+    <span class="n">model_fp</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">meta_json</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;training_dataset&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;dataset_hash&#39;</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, ATOM DDM Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

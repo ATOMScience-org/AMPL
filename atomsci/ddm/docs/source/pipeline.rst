@@ -53,7 +53,7 @@ pipeline.featurization module
     :show-inheritance:
 
 pipeline.feature\_importance module
------------------------------
+-----------------------------------
 
 .. automodule:: pipeline.feature_importance
     :members:

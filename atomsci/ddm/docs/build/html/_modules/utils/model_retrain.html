@@ -3,18 +3,17 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>utils.model_retrain &mdash; ATOM Data-Driven Modeling Pipeline 1.4.0 documentation</title>
+  <title>utils.model_retrain &mdash; ATOM Data-Driven Modeling Pipeline 1.5.0 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
         <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-        <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/underscore.js"></script>
-        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" /> 
@@ -25,14 +24,18 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../../index.html" class="icon icon-home"> ATOM Data-Driven Modeling Pipeline
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            ATOM Data-Driven Modeling Pipeline
           </a>
               <div class="version">
-                1.4.0
+                1.5.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -64,9 +67,9 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="../index.html">Module code</a> &raquo;</li>
-      <li>utils.model_retrain</li>
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">utils.model_retrain</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -118,6 +121,7 @@
 <span class="kn">import</span> <span class="nn">atomsci.ddm.pipeline.model_tracker</span> <span class="k">as</span> <span class="nn">mt</span>
 <span class="kn">import</span> <span class="nn">atomsci.ddm.utils.datastore_functions</span> <span class="k">as</span> <span class="nn">dsf</span>
 <span class="kn">from</span> <span class="nn">atomsci.ddm.pipeline</span> <span class="kn">import</span> <span class="n">compare_models</span> <span class="k">as</span> <span class="n">cmp</span>
+<span class="kn">import</span> <span class="nn">atomsci.ddm.utils.file_utils</span> <span class="k">as</span> <span class="nn">futils</span>
 
 <span class="kn">import</span> <span class="nn">resource</span>
 <span class="n">resource</span><span class="o">.</span><span class="n">setrlimit</span><span class="p">(</span><span class="n">resource</span><span class="o">.</span><span class="n">RLIMIT_NOFILE</span><span class="p">,</span> <span class="p">(</span><span class="mi">65536</span><span class="p">,</span> <span class="mi">65536</span><span class="p">))</span>
@@ -132,7 +136,7 @@
 
 
 <div class="viewcode-block" id="train_model"><a class="viewcode-back" href="../../utils.html#utils.model_retrain.train_model">[docs]</a><span class="k">def</span> <span class="nf">train_model</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">dskey</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Retrain a model saved in a model_metadata.json file</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Retrain a model saved in a model_metadata.json file</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        input (str): path to model_metadata.json file</span>
@@ -176,7 +180,7 @@
     <span class="k">return</span> <span class="n">model</span></div>
 
 <div class="viewcode-block" id="train_model_from_tar"><a class="viewcode-back" href="../../utils.html#utils.model_retrain.train_model_from_tar">[docs]</a><span class="k">def</span> <span class="nf">train_model_from_tar</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">dskey</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Retrain a model saved in a tar.gz file</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Retrain a model saved in a tar.gz file</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        input (str): path to a tar.gz file</span>
@@ -190,9 +194,8 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">tmpdir</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">()</span>
 
-    <span class="n">model_fp</span> <span class="o">=</span> <span class="n">tarfile</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;r:gz&#39;</span><span class="p">)</span>
-    <span class="n">model_fp</span><span class="o">.</span><span class="n">extractall</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">tmpdir</span><span class="p">)</span>
-    <span class="n">model_fp</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">with</span> <span class="n">tarfile</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;r:gz&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">tar</span><span class="p">:</span>
+        <span class="n">futils</span><span class="o">.</span><span class="n">safe_extract</span><span class="p">(</span><span class="n">tar</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="n">tmpdir</span><span class="p">)</span>
 
     <span class="c1"># make metadata path</span>
     <span class="n">metadata_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmpdir</span><span class="p">,</span> <span class="s1">&#39;model_metadata.json&#39;</span><span class="p">)</span>
@@ -200,7 +203,7 @@
     <span class="k">return</span> <span class="n">train_model</span><span class="p">(</span><span class="n">metadata_path</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">dskey</span><span class="o">=</span><span class="n">dskey</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="train_model_from_tracker"><a class="viewcode-back" href="../../utils.html#utils.model_retrain.train_model_from_tracker">[docs]</a><span class="k">def</span> <span class="nf">train_model_from_tracker</span><span class="p">(</span><span class="n">model_uuid</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Retrain a model saved in the model tracker, but save it to output_dir and don&#39;t insert it into the model tracker</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Retrain a model saved in the model tracker, but save it to output_dir and don&#39;t insert it into the model tracker</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        model_uuid (str): model tracker model_uuid file</span>
@@ -253,7 +256,7 @@
     <span class="k">return</span> <span class="n">model</span></div>
 
 <div class="viewcode-block" id="train_models_from_dataset_keys"><a class="viewcode-back" href="../../utils.html#utils.model_retrain.train_models_from_dataset_keys">[docs]</a><span class="k">def</span> <span class="nf">train_models_from_dataset_keys</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">pred_type</span><span class="o">=</span><span class="s1">&#39;regression&#39;</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Retrain a list of models from an input file</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Retrain a list of models from an input file</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        input (str): path to an Excel or csv file. the required columns are &#39;dataset_key&#39; and &#39;bucket&#39; (public, private_file or Filesystem).</span>
@@ -377,7 +380,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2022, ATOM DDM Team.</p>
+    <p>&#169; Copyright 2023, ATOM DDM Team.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

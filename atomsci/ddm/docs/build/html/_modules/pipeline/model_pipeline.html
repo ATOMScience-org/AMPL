@@ -3,18 +3,17 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>pipeline.model_pipeline &mdash; ATOM Data-Driven Modeling Pipeline 1.4.0 documentation</title>
+  <title>pipeline.model_pipeline &mdash; ATOM Data-Driven Modeling Pipeline 1.5.0 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
         <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-        <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/underscore.js"></script>
-        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" /> 
@@ -25,14 +24,18 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../../index.html" class="icon icon-home"> ATOM Data-Driven Modeling Pipeline
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            ATOM Data-Driven Modeling Pipeline
           </a>
               <div class="version">
-                1.4.0
+                1.5.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -64,9 +67,9 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="../index.html">Module code</a> &raquo;</li>
-      <li>pipeline.model_pipeline</li>
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">pipeline.model_pipeline</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -103,25 +106,7 @@
 
 <span class="kn">from</span> <span class="nn">atomsci.ddm.utils</span> <span class="kn">import</span> <span class="n">datastore_functions</span> <span class="k">as</span> <span class="n">dsf</span>
 <span class="kn">import</span> <span class="nn">atomsci.ddm.utils.model_version_utils</span> <span class="k">as</span> <span class="nn">mu</span>
-
-<span class="kn">import</span> <span class="nn">pkg_resources</span>
-<span class="k">if</span> <span class="p">(</span><span class="s1">&#39;site-packages&#39;</span> <span class="ow">in</span> <span class="n">dsf</span><span class="o">.</span><span class="vm">__file__</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="s1">&#39;dist-packages&#39;</span> <span class="ow">in</span> <span class="n">dsf</span><span class="o">.</span><span class="vm">__file__</span><span class="p">):</span> <span class="c1"># install_dev.sh points to github directory</span>
-    <span class="kn">import</span> <span class="nn">subprocess</span>
-    <span class="kn">import</span> <span class="nn">json</span>
-    <span class="n">data</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">check_output</span><span class="p">([</span><span class="s2">&quot;pip&quot;</span><span class="p">,</span> <span class="s2">&quot;list&quot;</span><span class="p">,</span> <span class="s2">&quot;--format&quot;</span><span class="p">,</span> <span class="s2">&quot;json&quot;</span><span class="p">])</span>
-    <span class="n">parsed_results</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
-    <span class="n">ampl_version</span><span class="o">=</span><span class="nb">next</span><span class="p">(</span><span class="n">item</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">parsed_results</span> <span class="k">if</span> <span class="n">item</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;atomsci-ampl&quot;</span><span class="p">)[</span><span class="s1">&#39;version&#39;</span><span class="p">]</span>
-<span class="k">else</span><span class="p">:</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">VERSION_fn</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
-            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">pkg_resources</span><span class="o">.</span><span class="n">resource_filename</span><span class="p">(</span><span class="s1">&#39;atomsci&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)),</span>
-            <span class="s1">&#39;VERSION&#39;</span><span class="p">)</span>
-    <span class="k">except</span><span class="p">:</span>
-        <span class="n">VERSION_fn</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="vm">__file__</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">,</span> <span class="n">maxsplit</span><span class="o">=</span><span class="mi">4</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="s1">&#39;/VERSION&#39;</span>
-
-    <span class="n">f</span><span class="o">=</span><span class="nb">open</span><span class="p">(</span><span class="n">VERSION_fn</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
-    <span class="n">ampl_version</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-    <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+<span class="kn">import</span> <span class="nn">atomsci.ddm.utils.file_utils</span> <span class="k">as</span> <span class="nn">futils</span>
 
 <span class="kn">from</span> <span class="nn">atomsci.ddm.pipeline</span> <span class="kn">import</span> <span class="n">model_datasets</span> <span class="k">as</span> <span class="n">model_datasets</span>
 <span class="kn">from</span> <span class="nn">atomsci.ddm.pipeline</span> <span class="kn">import</span> <span class="n">model_wrapper</span> <span class="k">as</span> <span class="n">model_wrapper</span>
@@ -134,12 +119,12 @@
 
 <span class="c1"># ---------------------------------------------</span>
 <div class="viewcode-block" id="calc_AD_kmean_dist"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_pipeline.calc_AD_kmean_dist">[docs]</a><span class="k">def</span> <span class="nf">calc_AD_kmean_dist</span><span class="p">(</span><span class="n">train_dset</span><span class="p">,</span> <span class="n">pred_dset</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">train_dset_pair_distance</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dist_metric</span><span class="o">=</span><span class="s2">&quot;euclidean&quot;</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    calculate the probability of the prediction dataset fall in the the domain of traning set. Use Euclidean distance of the K nearest neighbours.</span>
 <span class="sd">    train_dset and pred_dset should be in 2D numpy array format where each row is a compound.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">train_dset_pair_distance</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="c1"># calcualate the pairwise distance of training set</span>
+        <span class="c1"># calculate the pairwise distance of training set</span>
         <span class="n">train_dset_pair_distance</span> <span class="o">=</span> <span class="n">pairwise_distances</span><span class="p">(</span><span class="n">X</span><span class="o">=</span><span class="n">train_dset</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="n">dist_metric</span><span class="p">)</span>
     <span class="n">train_kmean_dis</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">train_dset_pair_distance</span><span class="p">)):</span>
@@ -159,11 +144,11 @@
 
 <span class="c1"># ---------------------------------------------</span>
 <div class="viewcode-block" id="calc_AD_kmean_local_density"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_pipeline.calc_AD_kmean_local_density">[docs]</a><span class="k">def</span> <span class="nf">calc_AD_kmean_local_density</span><span class="p">(</span><span class="n">train_dset</span><span class="p">,</span> <span class="n">pred_dset</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">train_dset_pair_distance</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dist_metric</span><span class="o">=</span><span class="s2">&quot;euclidean&quot;</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Evaluate the AD of pred data by comparing the distance betweenthe unseen object and its k nearest neighbors in the training set to the distance between these k nearest neighbors and their k nearest neighbors in the training set. Return the distance ratio. Greater than 1 means the pred data is far from the domain.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">train_dset_pair_distance</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="c1"># calcualate the pair-wise distance of training set</span>
+        <span class="c1"># calculate the pair-wise distance of training set</span>
         <span class="n">train_dset_pair_distance</span> <span class="o">=</span> <span class="n">pairwise_distances</span><span class="p">(</span><span class="n">X</span><span class="o">=</span><span class="n">train_dset</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="n">dist_metric</span><span class="p">)</span>
     <span class="c1"># pairwise distance between train and pred set</span>
     <span class="n">pred_size</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">pred_dset</span><span class="p">)</span>
@@ -186,7 +171,7 @@
 
 <span class="c1"># ---------------------------------------------</span>
 <div class="viewcode-block" id="build_tarball_name"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_pipeline.build_tarball_name">[docs]</a><span class="k">def</span> <span class="nf">build_tarball_name</span><span class="p">(</span><span class="n">dataset_name</span><span class="p">,</span> <span class="n">model_uuid</span><span class="p">,</span> <span class="n">result_dir</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; format for building model tarball names</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; format for building model tarball names</span>
 <span class="sd">    Creates the file name for a model tarball from dataset key and model_uuid</span>
 <span class="sd">    with optional result_dir.</span>
 
@@ -203,7 +188,7 @@
 
 <span class="c1"># ---------------------------------------------</span>
 <div class="viewcode-block" id="build_dataset_name"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_pipeline.build_dataset_name">[docs]</a><span class="k">def</span> <span class="nf">build_dataset_name</span><span class="p">(</span><span class="n">dataset_key</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Returns dataset_name when given dataset_key</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Returns dataset_name when given dataset_key</span>
 <span class="sd">    Returns the dataset_name when given a dataset_key. Assumes that the dataset_name is a path</span>
 <span class="sd">    and ends with an extension</span>
 
@@ -218,7 +203,7 @@
 <span class="c1"># ******************************************************************************************************************************</span>
 
 <div class="viewcode-block" id="ModelPipeline"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_pipeline.ModelPipeline">[docs]</a><span class="k">class</span> <span class="nc">ModelPipeline</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Contains methods to load in a dataset, split and featurize the data, fit a model to the train dataset,</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Contains methods to load in a dataset, split and featurize the data, fit a model to the train dataset,</span>
 <span class="sd">    generate predictions for an input dataset, and generate performance metrics for these predictions.</span>
 
 <span class="sd">    Attributes:</span>
@@ -257,7 +242,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">ds_client</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mlmt_client</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Initializes ModelPipeline object.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initializes ModelPipeline object.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            params (Namespace object): contains all parameter information.</span>
@@ -290,11 +275,6 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;ATOM&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">run_mode</span> <span class="o">=</span> <span class="s1">&#39;training&#39;</span>  <span class="c1"># default, can be overridden later</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
-
-        <span class="c1"># if model is NN, set the uncertainty to False.</span>
-        <span class="c1"># https://github.com/deepchem/deepchem/issues/2422</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">model_type</span> <span class="o">==</span> <span class="s1">&#39;NN&#39;</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">uncertainty</span> <span class="o">=</span> <span class="kc">False</span>
 
         <span class="c1"># Default dataset_name parameter from dataset_key</span>
         <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">dataset_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -344,29 +324,36 @@
 
         <span class="c1"># ****************************************************************************************</span>
 
-<div class="viewcode-block" id="ModelPipeline.load_featurize_data"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_pipeline.ModelPipeline.load_featurize_data">[docs]</a>    <span class="k">def</span> <span class="nf">load_featurize_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Loads the dataset from the datastore or the file system and featurizes it. If we are training</span>
+<div class="viewcode-block" id="ModelPipeline.load_featurize_data"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_pipeline.ModelPipeline.load_featurize_data">[docs]</a>    <span class="k">def</span> <span class="nf">load_featurize_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Loads the dataset from the datastore or the file system and featurizes it. If we are training</span>
 <span class="sd">        a new model, split the dataset into training, validation and test sets.</span>
 
 <span class="sd">        The data is also split into training, validation, and test sets and saved to the filesystem or datastore.</span>
 
 <span class="sd">        Assumes a ModelWrapper object has already been created.</span>
 
+<span class="sd">        Args:</span>
+<span class="sd">            params (Namespace): Optional set of parameters to be used for featurization; by default this function</span>
+<span class="sd">            uses the parameters used when the pipeline was created.</span>
+<span class="sd">            </span>
+
 <span class="sd">        Side effects:</span>
 <span class="sd">            Sets the following attributes of the ModelPipeline</span>
 <span class="sd">                data (ModelDataset object): A data object that featurizes and splits the dataset</span>
 <span class="sd">                    data.dataset(dc.DiskDataset): The transformed, featurized, and split dataset</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">model_datasets</span><span class="o">.</span><span class="n">create_model_dataset</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">featurization</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ds_client</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">get_featurized_data</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">params</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">model_datasets</span><span class="o">.</span><span class="n">create_model_dataset</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">featurization</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ds_client</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">get_featurized_data</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">run_mode</span> <span class="o">==</span> <span class="s1">&#39;training&#39;</span><span class="p">:</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">previously_split</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">load_presplit_dataset</span><span class="p">()):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">previously_split</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">load_presplit_dataset</span><span class="p">()):</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">split_dataset</span><span class="p">()</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">save_split_dataset</span><span class="p">()</span>
         <span class="c1"># We now create transformers after splitting, to allow for the case where the transformer</span>
         <span class="c1"># is fitted to the training data only. The transformers are then applied to the training,</span>
         <span class="c1"># validation and test sets separately.</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">split_only</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">params</span><span class="o">.</span><span class="n">split_only</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">model_wrapper</span><span class="o">.</span><span class="n">create_transformers</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">run_mode</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
@@ -381,7 +368,7 @@
         <span class="c1"># ****************************************************************************************</span>
 
 <div class="viewcode-block" id="ModelPipeline.create_model_metadata"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_pipeline.ModelPipeline.create_model_metadata">[docs]</a>    <span class="k">def</span> <span class="nf">create_model_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Initializes a data structure describing the current model, to be saved in the model zoo.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initializes a data structure describing the current model, to be saved in the model zoo.</span>
 <span class="sd">        This should include everything necessary to reproduce a model run.</span>
 
 <span class="sd">        Side effect:</span>
@@ -428,7 +415,7 @@
             <span class="n">time_generated</span><span class="o">=</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">(),</span>
             <span class="n">save_results</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">save_results</span><span class="p">,</span>
             <span class="n">hyperparam_uuid</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">hyperparam_uuid</span><span class="p">,</span>
-            <span class="n">ampl_version</span><span class="o">=</span><span class="n">ampl_version</span>
+            <span class="n">ampl_version</span><span class="o">=</span><span class="n">mu</span><span class="o">.</span><span class="n">get_ampl_version</span><span class="p">()</span>
         <span class="p">)</span>
 
         <span class="n">splitting_metadata</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">get_split_metadata</span><span class="p">()</span>
@@ -453,7 +440,7 @@
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="ModelPipeline.save_model_metadata"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_pipeline.ModelPipeline.save_model_metadata">[docs]</a>    <span class="k">def</span> <span class="nf">save_model_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">retries</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">sleep_sec</span><span class="o">=</span><span class="mi">60</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Saves the data needed to reload the model in the model tracker DB or in a local tarball file.</span>
 
 <span class="sd">        Inserts the model metadata into the model tracker DB, if self.params.save_results is True.</span>
@@ -504,7 +491,7 @@
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="ModelPipeline.create_prediction_metadata"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_pipeline.ModelPipeline.create_prediction_metadata">[docs]</a>    <span class="k">def</span> <span class="nf">create_prediction_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prediction_results</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Initializes a data structure to hold performance metrics from a model run on a new dataset,</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initializes a data structure to hold performance metrics from a model run on a new dataset,</span>
 <span class="sd">        to be stored in the model tracker DB. Note that this isn&#39;t used</span>
 <span class="sd">        for the training run metadata; the training_metrics section is created by the train_model() function.</span>
 
@@ -533,7 +520,7 @@
     <span class="c1"># ****************************************************************************************</span>
 
 <div class="viewcode-block" id="ModelPipeline.get_metrics"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_pipeline.ModelPipeline.get_metrics">[docs]</a>    <span class="k">def</span> <span class="nf">get_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Retrieve the model performance metrics from any previous training and prediction runs</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Retrieve the model performance metrics from any previous training and prediction runs</span>
 <span class="sd">        from the model tracker</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">save_results</span><span class="p">:</span>
@@ -550,7 +537,7 @@
     <span class="c1"># ****************************************************************************************</span>
 
 <div class="viewcode-block" id="ModelPipeline.save_metrics"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_pipeline.ModelPipeline.save_metrics">[docs]</a>    <span class="k">def</span> <span class="nf">save_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_metrics</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">retries</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">sleep_sec</span><span class="o">=</span><span class="mi">60</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Saves the given model_metrics dictionary to a JSON file on disk, and also to the model tracker </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Saves the given model_metrics dictionary to a JSON file on disk, and also to the model tracker </span>
 <span class="sd">        database if we&#39;re using it.</span>
 
 <span class="sd">        If writing to disk, outputs to a JSON file &lt;prefix&gt;_model_metrics.json in the current output directory.</span>
@@ -607,7 +594,7 @@
     <span class="c1"># ****************************************************************************************</span>
 
 <div class="viewcode-block" id="ModelPipeline.split_dataset"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_pipeline.ModelPipeline.split_dataset">[docs]</a>    <span class="k">def</span> <span class="nf">split_dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">featurization</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Load, featurize and split the dataset according to the current model parameter settings,</span>
 <span class="sd">        but don&#39;t actually train a model. Returns the split_uuid for the dataset split.</span>
 
@@ -631,7 +618,7 @@
     <span class="c1"># ****************************************************************************************</span>
 
 <div class="viewcode-block" id="ModelPipeline.train_model"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_pipeline.ModelPipeline.train_model">[docs]</a>    <span class="k">def</span> <span class="nf">train_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">featurization</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Build model described by self.params on the training dataset described by self.params.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Build model described by self.params on the training dataset described by self.params.</span>
 
 <span class="sd">        Generate predictions for the training, validation, and test datasets, and save the predictions and</span>
 <span class="sd">        performance metrics in the model results DB or in a JSON file.</span>
@@ -697,12 +684,13 @@
 
         <span class="c1"># Save the model metadata in the model tracker or the filesystem</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">model_metadata</span><span class="p">[</span><span class="s1">&#39;training_metrics&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">training_metrics</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">save_model_metadata</span><span class="p">()</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">save_model_metadata</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">orig_params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span></div>
 
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="ModelPipeline.run_predictions"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_pipeline.ModelPipeline.run_predictions">[docs]</a>    <span class="k">def</span> <span class="nf">run_predictions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">featurization</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Instantiate a previously trained model, and use it to run predictions on a new dataset.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Instantiate a previously trained model, and use it to run predictions on a new dataset.</span>
 
 <span class="sd">        Generate predictions for a specified dataset, and save the predictions and performance</span>
 <span class="sd">        metrics in the model results DB or in a JSON file.</span>
@@ -745,7 +733,7 @@
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="ModelPipeline.calc_train_dset_pair_dis"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_pipeline.ModelPipeline.calc_train_dset_pair_dis">[docs]</a>    <span class="k">def</span> <span class="nf">calc_train_dset_pair_dis</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="s2">&quot;euclidean&quot;</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Calculate the pairwise distance for training set compound feature vectors, needed for AD calculation.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         
@@ -761,7 +749,7 @@
     
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="ModelPipeline.predict_on_dataframe"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_pipeline.ModelPipeline.predict_on_dataframe">[docs]</a>    <span class="k">def</span> <span class="nf">predict_on_dataframe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dset_df</span><span class="p">,</span> <span class="n">is_featurized</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">contains_responses</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">AD_method</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">dist_metric</span><span class="o">=</span><span class="s2">&quot;euclidean&quot;</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;DEPRECATED</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;DEPRECATED</span>
 <span class="sd">        Call predict_full_dataset instead.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;predict_on_dataframe is deprecated. Please call predict_full_dataset instead.&quot;</span><span class="p">)</span>
@@ -792,19 +780,23 @@
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="ModelPipeline.predict_on_smiles"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_pipeline.ModelPipeline.predict_on_smiles">[docs]</a>    <span class="k">def</span> <span class="nf">predict_on_smiles</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">smiles</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">AD_method</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">dist_metric</span><span class="o">=</span><span class="s2">&quot;euclidean&quot;</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Compute predicted responses from a pretrained model on a set of compounds given as a list of SMILES strings.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute predicted responses from a pretrained model on a set of compounds given as a list of SMILES strings.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            smiles (list): A list containting valid SMILES strings</span>
 
 <span class="sd">            verbose (boolean): A switch for disabling informational messages</span>
 
-<span class="sd">            AD_method (str): with default, Applicable domain (AD) index will not be calcualted, use </span>
-<span class="sd">            z_score or local_density to choose the method to calculate AD index.</span>
+<span class="sd">            AD_method (str or None): Method to use to compute applicability domain (AD) index; may be</span>
+<span class="sd">            &#39;z_score&#39;, &#39;local_density&#39; or None (the default). With the default value, AD indices</span>
+<span class="sd">            will not be calculated.</span>
 
-<span class="sd">            k (int): number of the neareast neighbors to evaluate the AD index, default is 5.</span>
+<span class="sd">            k (int): Number of nearest neighbors of each training data point used to evaluate the AD index.</span>
 
-<span class="sd">            dist_metric (str): distance metrics, valid values are &#39;cityblock&#39;, &#39;cosine&#39;, &#39;euclidean&#39;, &#39;jaccard&#39;, &#39;manhattan&#39;</span>
+<span class="sd">            dist_metric (str): Metric used to compute distances between feature vectors for AD index calculation. </span>
+<span class="sd">            Valid values are &#39;cityblock&#39;, &#39;cosine&#39;, &#39;euclidean&#39;, &#39;jaccard&#39;, and &#39;manhattan&#39;. If binary</span>
+<span class="sd">            features such as fingerprints are used in model, &#39;jaccard&#39; (equivalent to Tanimoto distance) may</span>
+<span class="sd">            be a better choice than the other metrics which operate on continuous features.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            res (DataFrame): Data frame indexed by compound IDs containing a column of SMILES</span>
@@ -838,8 +830,9 @@
         <span class="k">return</span> <span class="n">res</span></div>
 
     <span class="c1"># ****************************************************************************************</span>
-<div class="viewcode-block" id="ModelPipeline.predict_full_dataset"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_pipeline.ModelPipeline.predict_full_dataset">[docs]</a>    <span class="k">def</span> <span class="nf">predict_full_dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dset_df</span><span class="p">,</span> <span class="n">is_featurized</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">contains_responses</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">dset_params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">AD_method</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">dist_metric</span><span class="o">=</span><span class="s2">&quot;euclidean&quot;</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="ModelPipeline.predict_full_dataset"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_pipeline.ModelPipeline.predict_full_dataset">[docs]</a>    <span class="k">def</span> <span class="nf">predict_full_dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dset_df</span><span class="p">,</span> <span class="n">is_featurized</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">contains_responses</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">dset_params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">AD_method</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">dist_metric</span><span class="o">=</span><span class="s2">&quot;euclidean&quot;</span><span class="p">,</span>
+                             <span class="n">max_train_records_for_AD</span><span class="o">=</span><span class="mi">1000</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Compute predicted responses from a pretrained model on a set of compounds listed in</span>
 <span class="sd">        a data frame. The data frame should contain, at minimum, a column of compound IDs; if</span>
 <span class="sd">        SMILES strings are needed to compute features, they should be provided as well. Feature</span>
@@ -866,12 +859,21 @@
 <span class="sd">            and optionally, response_cols. If not provided, id_col, smiles_col and response_cols are</span>
 <span class="sd">            assumed to be same as in the pretrained model.</span>
 
-<span class="sd">            AD_method (str): with default, Applicable domain (AD) index will not be calcualted, use </span>
-<span class="sd">            z_score or local_density to choose the method to calculate AD index.</span>
+<span class="sd">            AD_method (str or None): Method to use to compute applicability domain (AD) index; may be</span>
+<span class="sd">            &#39;z_score&#39;, &#39;local_density&#39; or None (the default). With the default value, AD indices</span>
+<span class="sd">            will not be calculated.</span>
 
-<span class="sd">            k (int): number of the neareast neighbors to evaluate the AD index, default is 5.</span>
+<span class="sd">            k (int): Number of nearest neighbors of each training data point used to evaluate the AD index.</span>
 
-<span class="sd">            dist_metric (str): distance metrics, valid values are &#39;cityblock&#39;, &#39;cosine&#39;, &#39;euclidean&#39;, &#39;jaccard&#39;, &#39;manhattan&#39;</span>
+<span class="sd">            dist_metric (str): Metric used to compute distances between feature vectors for AD index calculation. </span>
+<span class="sd">            Valid values are &#39;cityblock&#39;, &#39;cosine&#39;, &#39;euclidean&#39;, &#39;jaccard&#39;, and &#39;manhattan&#39;. If binary</span>
+<span class="sd">            features such as fingerprints are used in model, &#39;jaccard&#39; (equivalent to Tanimoto distance) may</span>
+<span class="sd">            be a better choice than the other metrics which operate on continuous features.</span>
+
+<span class="sd">            max_train_records_for_AD (int): Maximum number of training data rows to use for AD calculation. </span>
+<span class="sd">            Note that the AD calculation time scales as the square of the number of training records used.</span>
+<span class="sd">            If the training dataset is larger than `max_train_records_for_AD`, a random sample of rows with</span>
+<span class="sd">            this size is used instead for the AD calculations.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            result_df (DataFrame): Data frame indexed by compound IDs containing a column of SMILES</span>
@@ -907,8 +909,15 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">get_dataset_tasks</span><span class="p">(</span><span class="n">dset_df</span><span class="p">):</span>
             <span class="c1"># Shouldn&#39;t happen</span>
             <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;response_cols missing from model params&quot;</span><span class="p">)</span>
+        <span class="c1"># Get features for each compound and construct a DeepChem Dataset from them</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">get_featurized_data</span><span class="p">(</span><span class="n">dset_df</span><span class="p">,</span> <span class="n">is_featurized</span><span class="p">)</span>
+        <span class="c1"># Transform the features and responses if needed</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">dataset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_wrapper</span><span class="o">.</span><span class="n">transform_dataset</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">dataset</span><span class="p">)</span>
+
+        <span class="c1"># Note that at this point, the dataset may contain fewer rows than the input. Typically this happens because</span>
+        <span class="c1"># of invalid SMILES strings. Remove any rows from the input dataframe corresponding to SMILES strings that were</span>
+        <span class="c1"># dropped.</span>
+        <span class="n">dset_df</span> <span class="o">=</span> <span class="n">dset_df</span><span class="p">[</span><span class="n">dset_df</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">id_col</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">ids</span><span class="o">.</span><span class="n">tolist</span><span class="p">())]</span>
 
         <span class="c1"># Get the predictions and standard deviations, if calculated, as numpy arrays</span>
         <span class="n">preds</span><span class="p">,</span> <span class="n">stds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_wrapper</span><span class="o">.</span><span class="n">generate_predictions</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">dataset</span><span class="p">)</span>
@@ -943,44 +952,101 @@
             <span class="n">result_df</span><span class="p">[</span><span class="s2">&quot;pred&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">preds</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span>
 
         <span class="k">if</span> <span class="n">AD_method</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">featurization</span><span class="o">.</span><span class="n">feat_type</span> <span class="o">!=</span> <span class="s2">&quot;graphconv&quot;</span><span class="p">:</span>
+            <span class="c1"># Calculate applicability domain index</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">featurization</span><span class="o">.</span><span class="n">feat_type</span> <span class="o">==</span> <span class="s2">&quot;graphconv&quot;</span><span class="p">:</span>
+                <span class="c1"># For graphconv models, compute embeddings and treat them as features</span>
+                <span class="n">pred_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">predict_embedding</span><span class="p">(</span><span class="n">dset_df</span><span class="p">,</span> <span class="n">dset_params</span><span class="o">=</span><span class="n">dset_params</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
                 <span class="n">pred_data</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">X</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">run_mode</span> <span class="o">=</span> <span class="s1">&#39;training&#39;</span>
-                <span class="k">try</span><span class="p">:</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Featurizing training data for AD calculation.&quot;</span><span class="p">)</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">load_featurize_data</span><span class="p">()</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Calculating AD index.&quot;</span><span class="p">)</span>
+
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;featurized_train_data&#39;</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Featurizing training data for AD calculation.&quot;</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">run_mode</span> <span class="o">=</span> <span class="s1">&#39;training&#39;</span>
+                    <span class="c1"># If training data is too big to compute distances in a reasonable time, use a sample of the data</span>
+                    <span class="n">train_data_params</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">orig_params</span><span class="p">)</span>
+                    <span class="n">train_data_params</span><span class="o">.</span><span class="n">max_dataset_rows</span> <span class="o">=</span> <span class="n">max_train_records_for_AD</span>
+
+                    <span class="bp">self</span><span class="o">.</span><span class="n">load_featurize_data</span><span class="p">(</span><span class="n">params</span><span class="o">=</span><span class="n">train_data_params</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">run_mode</span> <span class="o">=</span> <span class="s1">&#39;prediction&#39;</span>
                     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">train_valid_dsets</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
                         <span class="c1"># combine train and valid set for k-fold CV models</span>
-                        <span class="n">train_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">train_valid_dsets</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">train_valid_dsets</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">X</span><span class="p">))</span>
+                        <span class="n">train_X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">train_valid_dsets</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">train_valid_dsets</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">X</span><span class="p">))</span>
                     <span class="k">else</span><span class="p">:</span>
-                        <span class="n">train_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">train_valid_dsets</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">X</span>
-                    <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;train_pair_dis&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;train_pair_dis_metric&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">train_pair_dis_metric</span> <span class="o">!=</span> <span class="n">dist_metric</span><span class="p">:</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">calc_train_dset_pair_dis</span><span class="p">(</span><span class="n">metric</span><span class="o">=</span><span class="n">dist_metric</span><span class="p">)</span>
+                        <span class="n">train_X</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">train_valid_dsets</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">X</span>
+    
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">featurization</span><span class="o">.</span><span class="n">feat_type</span> <span class="o">==</span> <span class="s2">&quot;graphconv&quot;</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Computing training data embeddings for AD calculation.&quot;</span><span class="p">)</span>
+                        <span class="n">train_dset</span> <span class="o">=</span> <span class="n">dc</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">NumpyDataset</span><span class="p">(</span><span class="n">train_X</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">featurized_train_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_wrapper</span><span class="o">.</span><span class="n">generate_embeddings</span><span class="p">(</span><span class="n">train_dset</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">featurized_train_data</span> <span class="o">=</span> <span class="n">train_X</span>
 
-                    <span class="k">if</span> <span class="n">AD_method</span> <span class="o">==</span> <span class="s2">&quot;local_density&quot;</span><span class="p">:</span>
-                        <span class="n">result_df</span><span class="p">[</span><span class="s2">&quot;AD_index&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">calc_AD_kmean_local_density</span><span class="p">(</span><span class="n">train_data</span><span class="p">,</span> <span class="n">pred_data</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">train_dset_pair_distance</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">train_pair_dis</span><span class="p">,</span> <span class="n">dist_metric</span><span class="o">=</span><span class="n">dist_metric</span><span class="p">)</span>
-                    <span class="k">else</span><span class="p">:</span>
-                        <span class="n">result_df</span><span class="p">[</span><span class="s2">&quot;AD_index&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">calc_AD_kmean_dist</span><span class="p">(</span><span class="n">train_data</span><span class="p">,</span> <span class="n">pred_data</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">train_dset_pair_distance</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">train_pair_dis</span><span class="p">,</span> <span class="n">dist_metric</span><span class="o">=</span><span class="n">dist_metric</span><span class="p">)</span>
-                <span class="k">except</span><span class="p">:</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Cannot find original training data, AD not calculated&quot;</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;GraphConv features are not plain vectors, AD index cannot be calculated.&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;train_pair_dis&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;train_pair_dis_metric&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">train_pair_dis_metric</span> <span class="o">!=</span> <span class="n">dist_metric</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">train_pair_dis</span> <span class="o">=</span> <span class="n">pairwise_distances</span><span class="p">(</span><span class="n">X</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">featurized_train_data</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="n">dist_metric</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">train_pair_dis_metric</span> <span class="o">=</span> <span class="n">dist_metric</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Calculating AD index.&quot;</span><span class="p">)</span>
+
+
+                <span class="k">if</span> <span class="n">AD_method</span> <span class="o">==</span> <span class="s2">&quot;local_density&quot;</span><span class="p">:</span>
+                    <span class="n">result_df</span><span class="p">[</span><span class="s2">&quot;AD_index&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">calc_AD_kmean_local_density</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">featurized_train_data</span><span class="p">,</span> <span class="n">pred_data</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">train_dset_pair_distance</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">train_pair_dis</span><span class="p">,</span> <span class="n">dist_metric</span><span class="o">=</span><span class="n">dist_metric</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">result_df</span><span class="p">[</span><span class="s2">&quot;AD_index&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">calc_AD_kmean_dist</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">featurized_train_data</span><span class="p">,</span> <span class="n">pred_data</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">train_dset_pair_distance</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">train_pair_dis</span><span class="p">,</span> <span class="n">dist_metric</span><span class="o">=</span><span class="n">dist_metric</span><span class="p">)</span>
+
+            <span class="k">except</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;AD index calculation failed&quot;</span><span class="p">)</span>
+                <span class="c1"># xxx re-raise for debugging</span>
+                <span class="k">raise</span>
 
         <span class="c1"># insert any missing ids</span>
-        <span class="n">missing_ids</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">new_ids</span><span class="p">)</span><span class="o">.</span><span class="n">difference</span><span class="p">(</span><span class="n">result_df</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">id_col</span><span class="p">])</span>
-        <span class="k">for</span> <span class="n">mi</span> <span class="ow">in</span> <span class="n">missing_ids</span><span class="p">:</span>
-            <span class="n">result_df</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">id_col</span><span class="p">:</span><span class="n">mi</span><span class="p">})</span>
+        <span class="n">missing_ids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">new_ids</span><span class="p">)</span><span class="o">.</span><span class="n">difference</span><span class="p">(</span><span class="n">result_df</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">id_col</span><span class="p">]))</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">missing_ids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">missing_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">id_col</span><span class="p">:</span> <span class="n">missing_ids</span><span class="p">})</span>
+            <span class="n">result_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">result_df</span><span class="p">,</span> <span class="n">missing_df</span><span class="p">],</span> <span class="n">ignore_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="c1"># sort in ascending order, recovering the original order</span>
         <span class="n">result_df</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">id_col</span><span class="p">],</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="c1"># map back to original id values</span>
         <span class="n">result_df</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">id_col</span><span class="p">]</span> <span class="o">=</span> <span class="n">result_df</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">id_col</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">id_map</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">result_df</span></div></div>
+        <span class="k">return</span> <span class="n">result_df</span></div>
+
+    <span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="ModelPipeline.predict_embedding"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_pipeline.ModelPipeline.predict_embedding">[docs]</a>    <span class="k">def</span> <span class="nf">predict_embedding</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dset_df</span><span class="p">,</span> <span class="n">dset_params</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute embeddings from a pretrained model on a set of compounds listed in a data frame. The data </span>
+<span class="sd">        frame should contain, at minimum, a column of compound IDs and a column of SMILES strings.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">run_mode</span> <span class="o">=</span> <span class="s1">&#39;prediction&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">featurization</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_wrapper</span><span class="o">.</span><span class="n">featurization</span>
+
+        <span class="c1"># Change the dataset ID, SMILES and response columns to match the ones in the current model</span>
+        <span class="n">dset_df</span> <span class="o">=</span> <span class="n">dset_df</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">dset_params</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">coldict</span> <span class="o">=</span> <span class="p">{</span>
+                        <span class="n">dset_params</span><span class="o">.</span><span class="n">id_col</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">id_col</span><span class="p">,</span>
+                        <span class="n">dset_params</span><span class="o">.</span><span class="n">smiles_col</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">smiles_col</span><span class="p">}</span>
+            <span class="n">dset_df</span> <span class="o">=</span> <span class="n">dset_df</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="n">coldict</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">model_datasets</span><span class="o">.</span><span class="n">create_minimal_dataset</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">featurization</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">get_featurized_data</span><span class="p">(</span><span class="n">dset_df</span><span class="p">,</span> <span class="n">is_featurized</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="c1"># Not sure the following is necessary</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">dataset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_wrapper</span><span class="o">.</span><span class="n">transform_dataset</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">dataset</span><span class="p">)</span>
+
+        <span class="c1"># Get the embeddings as a numpy array</span>
+        <span class="n">embeddings</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_wrapper</span><span class="o">.</span><span class="n">generate_embeddings</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">dataset</span><span class="p">)</span>
+        <span class="c1"># Truncate the embeddings array to the length of the input dataset. The array returned by the DeepChem </span>
+        <span class="c1"># predict_embedding function is padded to multiples of the batch size.</span>
+        <span class="n">embeddings</span> <span class="o">=</span> <span class="n">embeddings</span><span class="p">[:</span><span class="nb">len</span><span class="p">(</span><span class="n">dset_df</span><span class="p">),:]</span>
+
+        <span class="k">return</span> <span class="n">embeddings</span></div></div>
+
 
 <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="run_models"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_pipeline.run_models">[docs]</a><span class="k">def</span> <span class="nf">run_models</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">shared_featurization</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">generator</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Query the model tracker for models matching the criteria in params.model_filter. Run</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Query the model tracker for models matching the criteria in params.model_filter. Run</span>
 <span class="sd">    predictions with each model using the dataset specified by the remaining parameters.</span>
 
 <span class="sd">    Args:</span>
@@ -993,6 +1059,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">mlmt_client</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">initialize_model_tracker</span><span class="p">()</span>
     <span class="n">ds_client</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">config_client</span><span class="p">()</span>
+    <span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;ATOM&#39;</span><span class="p">)</span>
 
     <span class="n">exclude_fields</span> <span class="o">=</span> <span class="p">[</span>
         <span class="s2">&quot;training_metrics&quot;</span><span class="p">,</span>
@@ -1014,13 +1081,13 @@
     <span class="n">model_count</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">metadata_iter</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="n">model_count</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;No matching models returned&quot;</span><span class="p">)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;No matching models returned&quot;</span><span class="p">)</span>
         <span class="k">return</span>
 
     <span class="k">for</span> <span class="n">metadata_dict</span> <span class="ow">in</span> <span class="n">metadata_iter</span><span class="p">:</span>
         <span class="n">model_uuid</span> <span class="o">=</span> <span class="n">metadata_dict</span><span class="p">[</span><span class="s1">&#39;model_uuid&#39;</span><span class="p">]</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Got metadata for model UUID </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">model_uuid</span><span class="p">)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Got metadata for model UUID </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">model_uuid</span><span class="p">)</span>
 
         <span class="c1"># Parse the saved model metadata to obtain the parameters used to train the model</span>
         <span class="n">model_params</span> <span class="o">=</span> <span class="n">parse</span><span class="o">.</span><span class="n">wrapper</span><span class="p">(</span><span class="n">metadata_dict</span><span class="p">)</span>
@@ -1085,7 +1152,7 @@
 
 <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="regenerate_results"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_pipeline.regenerate_results">[docs]</a><span class="k">def</span> <span class="nf">regenerate_results</span><span class="p">(</span><span class="n">result_dir</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">metadata_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">shared_featurization</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">system</span><span class="o">=</span><span class="s1">&#39;twintron-blue&#39;</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Query the model tracker for models matching the criteria in params.model_filter. Run</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Query the model tracker for models matching the criteria in params.model_filter. Run</span>
 <span class="sd">    predictions with each model using the dataset specified by the remaining parameters.</span>
 
 <span class="sd">    Args:</span>
@@ -1106,15 +1173,16 @@
 
     <span class="n">mlmt_client</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">initialize_model_tracker</span><span class="p">()</span>
     <span class="n">ds_client</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">config_client</span><span class="p">()</span>
+    <span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;ATOM&#39;</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">metadata_dict</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">params</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Must either provide params or metadata_dict&quot;</span><span class="p">)</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Must either provide params or metadata_dict&quot;</span><span class="p">)</span>
             <span class="k">return</span>
         <span class="n">metadata_dict</span> <span class="o">=</span> <span class="n">trkr</span><span class="o">.</span><span class="n">get_metadata_by_uuid</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">model_uuid</span><span class="p">,</span>
                                                   <span class="n">collection_name</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">collection_name</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">metadata_dict</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;No matching models returned&quot;</span><span class="p">)</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;No matching models returned&quot;</span><span class="p">)</span>
             <span class="k">return</span>
 
     <span class="c1"># Parse the saved model metadata to obtain the parameters used to train the model</span>
@@ -1127,7 +1195,7 @@
 
     <span class="n">model_uuid</span> <span class="o">=</span> <span class="n">model_params</span><span class="o">.</span><span class="n">model_uuid</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Got metadata for model UUID </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">model_uuid</span><span class="p">)</span>
+    <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Got metadata for model UUID </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">model_uuid</span><span class="p">)</span>
 
     <span class="n">model_params</span><span class="o">.</span><span class="n">result_dir</span> <span class="o">=</span> <span class="n">result_dir</span>
 
@@ -1149,7 +1217,7 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="n">featurization</span> <span class="o">=</span> <span class="n">shared_featurization</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Featurization = </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">featurization</span><span class="p">))</span>
+    <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Featurization = </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">featurization</span><span class="p">))</span>
     <span class="c1"># Create the ModelWrapper object.</span>
 
     <span class="n">pipeline</span><span class="o">.</span><span class="n">model_wrapper</span> <span class="o">=</span> <span class="n">model_wrapper</span><span class="o">.</span><span class="n">create_model_wrapper</span><span class="p">(</span><span class="n">pipeline</span><span class="o">.</span><span class="n">params</span><span class="p">,</span> <span class="n">featurization</span><span class="p">,</span>
@@ -1176,7 +1244,7 @@
 
 <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="create_prediction_pipeline"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_pipeline.create_prediction_pipeline">[docs]</a><span class="k">def</span> <span class="nf">create_prediction_pipeline</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">model_uuid</span><span class="p">,</span> <span class="n">collection_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">featurization</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">alt_bucket</span><span class="o">=</span><span class="s1">&#39;CRADA&#39;</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Create a ModelPipeline object to be used for running blind predictions on datasets</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a ModelPipeline object to be used for running blind predictions on datasets</span>
 <span class="sd">    where the ground truth is not known, given a pretrained model in the model tracker database.</span>
 
 <span class="sd">    Args:</span>
@@ -1212,8 +1280,12 @@
 
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Got metadata for model UUID </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">model_uuid</span><span class="p">)</span>
 
+    <span class="n">model_ampl_version</span> <span class="o">=</span> <span class="n">metadata_dict</span><span class="p">[</span><span class="s1">&#39;model_parameters&#39;</span><span class="p">][</span><span class="s1">&#39;ampl_version&#39;</span><span class="p">]</span>
+    <span class="c1"># check the model version to make sure it&#39;s compatible with the running ampl version</span>
+    <span class="n">mu</span><span class="o">.</span><span class="n">check_version_compatible</span><span class="p">(</span><span class="n">model_ampl_version</span><span class="p">)</span>
     <span class="c1"># Parse the saved model metadata to obtain the parameters used to train the model</span>
     <span class="n">model_params</span> <span class="o">=</span> <span class="n">parse</span><span class="o">.</span><span class="n">wrapper</span><span class="p">(</span><span class="n">metadata_dict</span><span class="p">)</span>
+    <span class="n">orig_params</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">model_params</span><span class="p">)</span>
 
     <span class="c1"># Override selected model training data parameters with parameters for current dataset</span>
 
@@ -1258,6 +1330,7 @@
 
     <span class="c1"># Create a ModelPipeline object</span>
     <span class="n">pipeline</span> <span class="o">=</span> <span class="n">ModelPipeline</span><span class="p">(</span><span class="n">model_params</span><span class="p">,</span> <span class="n">ds_client</span><span class="p">,</span> <span class="n">mlmt_client</span><span class="p">)</span>
+    <span class="n">pipeline</span><span class="o">.</span><span class="n">orig_params</span> <span class="o">=</span> <span class="n">orig_params</span>
 
     <span class="c1"># Create the ModelWrapper object.</span>
     <span class="n">pipeline</span><span class="o">.</span><span class="n">model_wrapper</span> <span class="o">=</span> <span class="n">model_wrapper</span><span class="o">.</span><span class="n">create_model_wrapper</span><span class="p">(</span><span class="n">pipeline</span><span class="o">.</span><span class="n">params</span><span class="p">,</span> <span class="n">featurization</span><span class="p">,</span>
@@ -1286,7 +1359,7 @@
 <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="create_prediction_pipeline_from_file"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_pipeline.create_prediction_pipeline_from_file">[docs]</a><span class="k">def</span> <span class="nf">create_prediction_pipeline_from_file</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">reload_dir</span><span class="p">,</span> <span class="n">model_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">model_type</span><span class="o">=</span><span class="s1">&#39;best_model&#39;</span><span class="p">,</span> <span class="n">featurization</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                                          <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Create a ModelPipeline object to be used for running blind predictions on datasets, given a pretrained model stored</span>
 <span class="sd">    in the filesystem. The model may be stored either as a gzipped tar archive or as a directory.</span>
 
@@ -1311,19 +1384,19 @@
 <span class="sd">    Returns:</span>
 <span class="sd">        pipeline (ModelPipeline): A pipeline object to be used for making predictions.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;ATOM&#39;</span><span class="p">)</span>
 
     <span class="c1"># Unpack the model tar archive if one is specified</span>
     <span class="k">if</span> <span class="n">model_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="c1"># if mismatch, it will raise an exception</span>
-        <span class="n">matched</span> <span class="o">=</span> <span class="n">mu</span><span class="o">.</span><span class="n">check_version_compatible</span><span class="p">(</span><span class="n">model_path</span><span class="p">,</span> <span class="n">ignore_check</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">matched</span> <span class="o">=</span> <span class="n">mu</span><span class="o">.</span><span class="n">check_version_compatible</span><span class="p">(</span><span class="n">model_path</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">reload_dir</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># Create a temporary directory</span>
             <span class="n">reload_dir</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">reload_dir</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="n">model_fp</span> <span class="o">=</span> <span class="n">tarfile</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">model_path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;r:gz&#39;</span><span class="p">)</span>
-        <span class="n">model_fp</span><span class="o">.</span><span class="n">extractall</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">reload_dir</span><span class="p">)</span>
-        <span class="n">model_fp</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">with</span> <span class="n">tarfile</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">model_path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;r:gz&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">tar</span><span class="p">:</span>
+            <span class="n">futils</span><span class="o">.</span><span class="n">safe_extract</span><span class="p">(</span><span class="n">tar</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="n">reload_dir</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">reload_dir</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Either reload_dir or model_path must be specified.&quot;</span><span class="p">)</span>
 
@@ -1341,7 +1414,7 @@
 
     <span class="c1"># Parse the saved model metadata to obtain the parameters used to train the model</span>
     <span class="n">model_params</span> <span class="o">=</span> <span class="n">parse</span><span class="o">.</span><span class="n">wrapper</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
-    <span class="c1">#print(&quot;Featurizer = %s&quot; % model_params.featurizer)</span>
+    <span class="n">orig_params</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">model_params</span><span class="p">)</span>
 
     <span class="c1"># Override selected model training data parameters with parameters for current dataset</span>
 
@@ -1369,9 +1442,10 @@
     <span class="k">if</span> <span class="n">featurization</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">featurization</span> <span class="o">=</span> <span class="n">feat</span><span class="o">.</span><span class="n">create_featurization</span><span class="p">(</span><span class="n">model_params</span><span class="p">)</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Featurization = </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">featurization</span><span class="p">))</span>
+    <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Featurization = </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">featurization</span><span class="p">))</span>
     <span class="c1"># Create a ModelPipeline object</span>
     <span class="n">pipeline</span> <span class="o">=</span> <span class="n">ModelPipeline</span><span class="p">(</span><span class="n">model_params</span><span class="p">)</span>
+    <span class="n">pipeline</span><span class="o">.</span><span class="n">orig_params</span> <span class="o">=</span> <span class="n">orig_params</span>
 
     <span class="c1"># Create the ModelWrapper object.</span>
     <span class="n">pipeline</span><span class="o">.</span><span class="n">model_wrapper</span> <span class="o">=</span> <span class="n">model_wrapper</span><span class="o">.</span><span class="n">create_model_wrapper</span><span class="p">(</span><span class="n">pipeline</span><span class="o">.</span><span class="n">params</span><span class="p">,</span> <span class="n">featurization</span><span class="p">)</span>
@@ -1393,7 +1467,7 @@
 <span class="c1"># ****************************************************************************************</span>
 
 <div class="viewcode-block" id="load_from_tracker"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_pipeline.load_from_tracker">[docs]</a><span class="k">def</span> <span class="nf">load_from_tracker</span><span class="p">(</span><span class="n">model_uuid</span><span class="p">,</span> <span class="n">collection_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">client</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">alt_bucket</span><span class="o">=</span><span class="s1">&#39;CRADA&#39;</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    DEPRECATED. Use the function create_prediction_pipeline() directly, or use the higher-level function</span>
 <span class="sd">    predict_from_model.predict_from_tracker_model().</span>
 
@@ -1418,9 +1492,9 @@
 <span class="sd">            pparams (Namespace): Parsed parameter namespace from the requested model.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
+    <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;ATOM&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">verbose</span><span class="p">:</span>
         <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;TF_CPP_MIN_LOG_LEVEL&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;1&#39;</span>
-        <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;ATOM&#39;</span><span class="p">)</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">CRITICAL</span><span class="p">)</span>
         <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">StringIO</span><span class="p">()</span>
         <span class="kn">import</span> <span class="nn">warnings</span>
@@ -1433,7 +1507,7 @@
     <span class="k">if</span> <span class="ow">not</span> <span class="n">metadata_dict</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;No model found with UUID </span><span class="si">%s</span><span class="s2"> in collection </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">model_uuid</span><span class="p">,</span> <span class="n">collection_name</span><span class="p">))</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Got metadata for model UUID </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">model_uuid</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Got metadata for model UUID </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">model_uuid</span><span class="p">)</span>
 
     <span class="c1"># Parse the saved model metadata to obtain the parameters used to train the model</span>
     <span class="n">pparams</span> <span class="o">=</span> <span class="n">parse</span><span class="o">.</span><span class="n">wrapper</span><span class="p">(</span><span class="n">metadata_dict</span><span class="p">)</span>
@@ -1453,7 +1527,7 @@
 <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="ensemble_predict"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_pipeline.ensemble_predict">[docs]</a><span class="k">def</span> <span class="nf">ensemble_predict</span><span class="p">(</span><span class="n">model_uuids</span><span class="p">,</span> <span class="n">collections</span><span class="p">,</span> <span class="n">dset_df</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dset_params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">splitters</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                      <span class="n">mt_client</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">aggregate</span><span class="o">=</span><span class="s2">&quot;mean&quot;</span><span class="p">,</span> <span class="n">contains_responses</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Load a series of pretrained models and predict responses with each model; then aggregate</span>
 <span class="sd">    the predicted responses into one prediction per compound.</span>
 
@@ -1485,6 +1559,7 @@
 
     <span class="c1"># Get the singleton MLMTClient instance</span>
     <span class="n">mlmt_client</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">initialize_model_tracker</span><span class="p">()</span>
+    <span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;ATOM&#39;</span><span class="p">)</span>
 
     <span class="n">pred_df</span> <span class="o">=</span> <span class="kc">None</span>
 
@@ -1496,12 +1571,12 @@
 
     <span class="n">ok_labels</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">model_uuid</span><span class="p">,</span> <span class="n">collection_name</span><span class="p">,</span> <span class="n">label</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">model_uuids</span><span class="p">,</span> <span class="n">collections</span><span class="p">,</span> <span class="n">labels</span><span class="p">)):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Loading model </span><span class="si">%s</span><span class="s2"> from collection </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">model_uuid</span><span class="p">,</span> <span class="n">collection_name</span><span class="p">))</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Loading model </span><span class="si">%s</span><span class="s2"> from collection </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">model_uuid</span><span class="p">,</span> <span class="n">collection_name</span><span class="p">))</span>
         <span class="n">metadata_dict</span> <span class="o">=</span> <span class="n">trkr</span><span class="o">.</span><span class="n">get_metadata_by_uuid</span><span class="p">(</span><span class="n">model_uuid</span><span class="p">,</span> <span class="n">collection_name</span><span class="o">=</span><span class="n">collection_name</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">metadata_dict</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;No model found with UUID </span><span class="si">%s</span><span class="s2"> in collection </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">model_uuid</span><span class="p">,</span> <span class="n">collection_name</span><span class="p">))</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Got metadata for model UUID </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">model_uuid</span><span class="p">)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Got metadata for model UUID </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">model_uuid</span><span class="p">)</span>
 
         <span class="c1"># Parse the saved model metadata to obtain the parameters used to train the model</span>
         <span class="n">model_pparams</span> <span class="o">=</span> <span class="n">parse</span><span class="o">.</span><span class="n">wrapper</span><span class="p">(</span><span class="n">metadata_dict</span><span class="p">)</span>
@@ -1511,7 +1586,7 @@
 
         <span class="k">if</span> <span class="n">splitters</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">model_pparams</span><span class="o">.</span><span class="n">splitter</span> <span class="o">!=</span> <span class="n">splitters</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Replacing </span><span class="si">%s</span><span class="s2"> splitter in stored model with </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">model_pparams</span><span class="o">.</span><span class="n">splitter</span><span class="p">,</span> <span class="n">splitters</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Replacing </span><span class="si">%s</span><span class="s2"> splitter in stored model with </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">model_pparams</span><span class="o">.</span><span class="n">splitter</span><span class="p">,</span> <span class="n">splitters</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
                 <span class="n">model_pparams</span><span class="o">.</span><span class="n">splitter</span> <span class="o">=</span> <span class="n">splitters</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
 
         <span class="k">if</span> <span class="n">dset_params</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -1550,7 +1625,7 @@
         <span class="k">try</span><span class="p">:</span>
             <span class="n">preds</span><span class="p">,</span> <span class="n">stds</span> <span class="o">=</span> <span class="n">pipe</span><span class="o">.</span><span class="n">model_wrapper</span><span class="o">.</span><span class="n">generate_predictions</span><span class="p">(</span><span class="n">pipe</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">dataset</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">***** Prediction failed for model </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">model_uuid</span><span class="p">))</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">***** Prediction failed for model </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">model_uuid</span><span class="p">))</span>
             <span class="k">continue</span>
         <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">if</span> <span class="n">pipe</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">prediction_type</span> <span class="o">==</span> <span class="s1">&#39;regression&#39;</span><span class="p">:</span>
@@ -1592,13 +1667,13 @@
         <span class="n">pred_df</span><span class="p">[</span><span class="s2">&quot;ensemble_class_prob&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">agg_pred</span>
         <span class="n">pred_df</span><span class="p">[</span><span class="s2">&quot;ensemble_pred&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">p</span> <span class="o">&gt;=</span> <span class="mf">0.5</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">agg_pred</span><span class="p">]</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Done with ensemble prediction&quot;</span><span class="p">)</span>
+    <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Done with ensemble prediction&quot;</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">pred_df</span></div>
 
 
 <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="retrain_model"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_pipeline.retrain_model">[docs]</a><span class="k">def</span> <span class="nf">retrain_model</span><span class="p">(</span><span class="n">model_uuid</span><span class="p">,</span> <span class="n">collection_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">result_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mt_client</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Obtain model parameters from the metadata in the model tracker, given the model_uuid,</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Obtain model parameters from the metadata in the model tracker, given the model_uuid,</span>
 <span class="sd">    and train a new model using exactly the same parameters (except for result_dir). Returns</span>
 <span class="sd">    the resulting ModelPipeline object. The pipeline object can then be used as input for</span>
 <span class="sd">    performance plots and other analyses that can&#39;t be done using just the metrics stored</span>
@@ -1619,10 +1694,11 @@
 <span class="sd">        pipeline (ModelPipeline): A pipeline object containing data from the model training.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
+    <span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;ATOM&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">result_dir</span><span class="p">:</span>
         <span class="n">mlmt_client</span> <span class="o">=</span> <span class="n">dsf</span><span class="o">.</span><span class="n">initialize_model_tracker</span><span class="p">()</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Loading model </span><span class="si">%s</span><span class="s2"> from collection </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">model_uuid</span><span class="p">,</span> <span class="n">collection_name</span><span class="p">))</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Loading model </span><span class="si">%s</span><span class="s2"> from collection </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">model_uuid</span><span class="p">,</span> <span class="n">collection_name</span><span class="p">))</span>
         <span class="n">metadata_dict</span> <span class="o">=</span> <span class="n">trkr</span><span class="o">.</span><span class="n">get_metadata_by_uuid</span><span class="p">(</span><span class="n">model_uuid</span><span class="p">,</span> <span class="n">collection_name</span><span class="o">=</span><span class="n">collection_name</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">metadata_dict</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;No model found with UUID </span><span class="si">%s</span><span class="s2"> in collection </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">model_uuid</span><span class="p">,</span> <span class="n">collection_name</span><span class="p">))</span>
@@ -1635,7 +1711,7 @@
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">model_dir</span><span class="p">,</span> <span class="s1">&#39;model_metadata.json&#39;</span><span class="p">))</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="n">metadata_dict</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Got metadata for model UUID </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">model_uuid</span><span class="p">)</span>
+    <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Got metadata for model UUID </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">model_uuid</span><span class="p">)</span>
 
     <span class="c1"># Parse the saved model metadata to obtain the parameters used to train the model</span>
     <span class="n">model_pparams</span> <span class="o">=</span> <span class="n">parse</span><span class="o">.</span><span class="n">wrapper</span><span class="p">(</span><span class="n">metadata_dict</span><span class="p">)</span>
@@ -1650,10 +1726,9 @@
 
 <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="main"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_pipeline.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
-    <span class="sd">&quot;&quot;&quot;Entry point when script is run from a shell&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Entry point when script is run from a shell&quot;&quot;&quot;</span>
 
     <span class="n">params</span> <span class="o">=</span> <span class="n">parse</span><span class="o">.</span><span class="n">wrapper</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
-    <span class="c1"># print(params)</span>
     <span class="c1"># model_filter parameter determines whether you are loading pretrained models and running</span>
     <span class="c1"># predictions on them, or training a new model</span>
     <span class="k">if</span> <span class="s1">&#39;model_filter&#39;</span> <span class="ow">in</span> <span class="n">params</span><span class="o">.</span><span class="vm">__dict__</span> <span class="ow">and</span> <span class="n">params</span><span class="o">.</span><span class="n">model_filter</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -1691,7 +1766,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2022, ATOM DDM Team.</p>
+    <p>&#169; Copyright 2023, ATOM DDM Team.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

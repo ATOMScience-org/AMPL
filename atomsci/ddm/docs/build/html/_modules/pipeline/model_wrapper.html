@@ -3,18 +3,17 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>pipeline.model_wrapper &mdash; ATOM Data-Driven Modeling Pipeline 1.4.0 documentation</title>
+  <title>pipeline.model_wrapper &mdash; ATOM Data-Driven Modeling Pipeline 1.5.0 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
         <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-        <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/underscore.js"></script>
-        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" /> 
@@ -25,14 +24,18 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../../index.html" class="icon icon-home"> ATOM Data-Driven Modeling Pipeline
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            ATOM Data-Driven Modeling Pipeline
           </a>
               <div class="version">
-                1.4.0
+                1.5.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -64,9 +67,9 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="../index.html">Module code</a> &raquo;</li>
-      <li>pipeline.model_wrapper</li>
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">pipeline.model_wrapper</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -102,7 +105,6 @@
 <span class="kn">from</span> <span class="nn">sklearn.ensemble</span> <span class="kn">import</span> <span class="n">RandomForestClassifier</span>
 <span class="kn">from</span> <span class="nn">sklearn.ensemble</span> <span class="kn">import</span> <span class="n">RandomForestRegressor</span>
 
-<span class="kn">import</span> <span class="nn">pdb</span>
 
 <span class="k">try</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">dgl</span>
@@ -138,7 +140,7 @@
 <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="nb">format</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%(asctime)-15s</span><span class="s1"> </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">)</span>
 
 <div class="viewcode-block" id="get_latest_pytorch_checkpoint"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.get_latest_pytorch_checkpoint">[docs]</a><span class="k">def</span> <span class="nf">get_latest_pytorch_checkpoint</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">model_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;Gets the latest torch model</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;Gets the latest torch model</span>
 
 <span class="sd">    Calls get_checkpoints(), sorts them, and returns the</span>
 <span class="sd">    latest model (the one with the biggets number)</span>
@@ -165,7 +167,7 @@
  
 
 <div class="viewcode-block" id="dc_restore"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.dc_restore">[docs]</a><span class="k">def</span> <span class="nf">dc_restore</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">checkpoint</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">model_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">session</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Reload the values of all variables from a checkpoint file.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Reload the values of all variables from a checkpoint file.</span>
 
 <span class="sd">    copied from DeepChem 2.3 keras_model.py to silence warnings caused</span>
 <span class="sd">    when a model is loaded in inference mode.</span>
@@ -204,8 +206,38 @@
         <span class="c1"># inference only.</span>
         <span class="n">model</span><span class="o">.</span><span class="n">_checkpoint</span><span class="o">.</span><span class="n">restore</span><span class="p">(</span><span class="n">checkpoint</span><span class="p">)</span><span class="o">.</span><span class="n">expect_partial</span><span class="p">()</span><span class="o">.</span><span class="n">run_restore_ops</span><span class="p">(</span><span class="n">session</span><span class="p">)</span></div>
 
+<div class="viewcode-block" id="dc_torch_restore"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.dc_torch_restore">[docs]</a><span class="k">def</span> <span class="nf">dc_torch_restore</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">checkpoint</span><span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">model_dir</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Reload the values of all variables from a checkpoint file. </span>
+
+<span class="sd">    This is copied from deepchem 2.6.1 to explicitly set the torch loading device to </span>
+<span class="sd">    &#39;cpu&#39; if cuda devices aren&#39;t available when reloading the model.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    model: the torch model to restore</span>
+<span class="sd">    checkpoint: str</span>
+<span class="sd">      the path to the checkpoint file to load.  If this is None, the most recent</span>
+<span class="sd">      checkpoint will be chosen automatically.  Call get_checkpoints() to get a</span>
+<span class="sd">      list of all available checkpoints.</span>
+<span class="sd">    model_dir: str, default None</span>
+<span class="sd">      Directory to restore checkpoint from. If None, use self.model_dir.  If</span>
+<span class="sd">      checkpoint is not None, this is ignored.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">_ensure_built</span><span class="p">()</span>
+    <span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s2">&quot;cuda:0&quot;</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s2">&quot;cpu&quot;</span><span class="p">)</span> <span class="c1"># set torch device</span>
+    <span class="k">if</span> <span class="n">checkpoint</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="n">checkpoints</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">get_checkpoints</span><span class="p">(</span><span class="n">model_dir</span><span class="p">))</span>
+      <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">checkpoints</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;No checkpoint found&#39;</span><span class="p">)</span>
+      <span class="n">checkpoint</span> <span class="o">=</span> <span class="n">checkpoints</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">checkpoint</span><span class="p">,</span> <span class="n">map_location</span><span class="o">=</span><span class="n">device</span><span class="p">)</span> <span class="c1"># include map_location to transfer a gpu model to cpu</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;model_state_dict&#39;</span><span class="p">])</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">_pytorch_optimizer</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;optimizer_state_dict&#39;</span><span class="p">])</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">_global_step</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;global_step&#39;</span><span class="p">]</span></div>
+
+
 <div class="viewcode-block" id="all_bases"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.all_bases">[docs]</a><span class="k">def</span> <span class="nf">all_bases</span><span class="p">(</span><span class="n">model</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Given a model, return all bases</span>
 <span class="sd">    &#39;&#39;&#39;</span>
     <span class="n">result</span> <span class="o">=</span> <span class="p">[</span><span class="n">model</span><span class="p">]</span>
@@ -219,7 +251,7 @@
 
 <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="create_model_wrapper"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.create_model_wrapper">[docs]</a><span class="k">def</span> <span class="nf">create_model_wrapper</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">featurizer</span><span class="p">,</span> <span class="n">ds_client</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Factory function for creating Model objects of the correct subclass for params.model_type.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Factory function for creating Model objects of the correct subclass for params.model_type.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        params (Namespace): Parameters passed to the model pipeline</span>
@@ -276,7 +308,7 @@
 <span class="c1"># ****************************************************************************************</span>
 
 <div class="viewcode-block" id="ModelWrapper"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.ModelWrapper">[docs]</a><span class="k">class</span> <span class="nc">ModelWrapper</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Wrapper for DeepChem and sklearn model objects. Provides methods to train and test a model,</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Wrapper for DeepChem and sklearn model objects. Provides methods to train and test a model,</span>
 <span class="sd">    generate predictions for an input dataset, and generate performance metrics for these predictions.</span>
 
 <span class="sd">        Attributes:</span>
@@ -300,7 +332,7 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">featurizer</span><span class="p">,</span> <span class="n">ds_client</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Initializes ModelWrapper object.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initializes ModelWrapper object.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            params (Namespace object): contains all parameter information.</span>
@@ -340,7 +372,7 @@
         <span class="c1"># ****************************************************************************************</span>
 
 <div class="viewcode-block" id="ModelWrapper.setup_model_dirs"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.ModelWrapper.setup_model_dirs">[docs]</a>    <span class="k">def</span> <span class="nf">setup_model_dirs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Sets up paths and directories for persisting models at particular training epochs, used by</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Sets up paths and directories for persisting models at particular training epochs, used by</span>
 <span class="sd">        the DeepChem model classes.</span>
 
 <span class="sd">        Side effects:</span>
@@ -352,7 +384,7 @@
         <span class="c1"># ****************************************************************************************</span>
 
 <div class="viewcode-block" id="ModelWrapper.train"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.ModelWrapper.train">[docs]</a>    <span class="k">def</span> <span class="nf">train</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pipeline</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Trains a model (for multiple epochs if applicable), and saves the tuned model.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Trains a model (for multiple epochs if applicable), and saves the tuned model.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            pipeline (ModelPipeline): The ModelPipeline instance for this model run.</span>
@@ -365,7 +397,7 @@
         <span class="c1"># ****************************************************************************************</span>
 
 <div class="viewcode-block" id="ModelWrapper.get_model_specific_metadata"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.ModelWrapper.get_model_specific_metadata">[docs]</a>    <span class="k">def</span> <span class="nf">get_model_specific_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns a dictionary of parameter settings for this ModelWrapper object that are specific</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns a dictionary of parameter settings for this ModelWrapper object that are specific</span>
 <span class="sd">        to the model type.</span>
 
 <span class="sd">        Raises:</span>
@@ -375,7 +407,7 @@
 
         <span class="c1"># ****************************************************************************************</span>
     <span class="k">def</span> <span class="nf">_create_output_transformers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_dataset</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initialize transformers for responses and persist them for later.</span>
 
 <span class="sd">        Args:</span>
@@ -392,7 +424,7 @@
         <span class="c1"># ****************************************************************************************</span>
 
     <span class="k">def</span> <span class="nf">_create_feature_transformers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_dataset</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initialize transformers for features, and persist them for later.</span>
 
 <span class="sd">        Args:</span>
@@ -408,7 +440,7 @@
         <span class="c1"># ****************************************************************************************</span>
 
 <div class="viewcode-block" id="ModelWrapper.create_transformers"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.ModelWrapper.create_transformers">[docs]</a>    <span class="k">def</span> <span class="nf">create_transformers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_dataset</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initialize transformers for responses, features and weights, and persist them for later.</span>
 
 <span class="sd">        Args:</span>
@@ -445,7 +477,7 @@
         <span class="c1"># ****************************************************************************************</span>
 
 <div class="viewcode-block" id="ModelWrapper.reload_transformers"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.ModelWrapper.reload_transformers">[docs]</a>    <span class="k">def</span> <span class="nf">reload_transformers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Load response, feature and weight transformers from datastore objects or files. Before AMPL v1.2 these</span>
 <span class="sd">        were persisted as separate datastore objects when the model tracker was used; subsequently they</span>
 <span class="sd">        are included in model tarballs, which should have been unpacked before this function gets called.</span>
@@ -485,7 +517,7 @@
         <span class="c1"># ****************************************************************************************</span>
 
 <div class="viewcode-block" id="ModelWrapper.transform_dataset"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.ModelWrapper.transform_dataset">[docs]</a>    <span class="k">def</span> <span class="nf">transform_dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Transform the responses and/or features in the given DeepChem dataset using the current transformers.</span>
 
 <span class="sd">        Args:</span>
@@ -513,7 +545,7 @@
         <span class="c1"># ****************************************************************************************</span>
 
 <div class="viewcode-block" id="ModelWrapper.get_num_features"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.ModelWrapper.get_num_features">[docs]</a>    <span class="k">def</span> <span class="nf">get_num_features</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns the number of dimensions of the feature space, taking both featurization method</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the number of dimensions of the feature space, taking both featurization method</span>
 <span class="sd">        and transformers into account.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">feature_transform_type</span> <span class="o">==</span> <span class="s1">&#39;umap&#39;</span><span class="p">:</span>
@@ -524,7 +556,7 @@
         <span class="c1"># ****************************************************************************************</span>
 
 <div class="viewcode-block" id="ModelWrapper.get_train_valid_pred_results"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.ModelWrapper.get_train_valid_pred_results">[docs]</a>    <span class="k">def</span> <span class="nf">get_train_valid_pred_results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">perf_data</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns predicted values and metrics for the training, validation or test set</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns predicted values and metrics for the training, validation or test set</span>
 <span class="sd">        associated with the PerfData object perf_data. Results are returned as a dictionary </span>
 <span class="sd">        of parameter, value pairs in the format expected by the model tracker.</span>
 
@@ -539,7 +571,7 @@
 
         <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="ModelWrapper.get_test_perf_data"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.ModelWrapper.get_test_perf_data">[docs]</a>    <span class="k">def</span> <span class="nf">get_test_perf_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_dir</span><span class="p">,</span> <span class="n">model_dataset</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns the predicted values and metrics for the current test dataset against</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the predicted values and metrics for the current test dataset against</span>
 <span class="sd">        the version of the model stored in model_dir, as a PerfData object.</span>
 
 <span class="sd">        Args:</span>
@@ -570,7 +602,7 @@
 
         <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="ModelWrapper.get_test_pred_results"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.ModelWrapper.get_test_pred_results">[docs]</a>    <span class="k">def</span> <span class="nf">get_test_pred_results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_dir</span><span class="p">,</span> <span class="n">model_dataset</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns predicted values and metrics for the current test dataset against the version</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns predicted values and metrics for the current test dataset against the version</span>
 <span class="sd">        of the model stored in model_dir, as a dictionary in the format expected by the model tracker.</span>
 
 <span class="sd">        Args:</span>
@@ -585,7 +617,7 @@
 
         <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="ModelWrapper.get_full_dataset_perf_data"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.ModelWrapper.get_full_dataset_perf_data">[docs]</a>    <span class="k">def</span> <span class="nf">get_full_dataset_perf_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_dataset</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns the predicted values and metrics from the current model for the full current dataset,</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the predicted values and metrics from the current model for the full current dataset,</span>
 <span class="sd">        as a PerfData object.</span>
 
 <span class="sd">        Args:</span>
@@ -612,7 +644,7 @@
 
         <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="ModelWrapper.get_full_dataset_pred_results"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.ModelWrapper.get_full_dataset_pred_results">[docs]</a>    <span class="k">def</span> <span class="nf">get_full_dataset_pred_results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_dataset</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns predicted values and metrics from the current model for the full current dataset,</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns predicted values and metrics from the current model for the full current dataset,</span>
 <span class="sd">        as a dictionary in the format expected by the model tracker.</span>
 
 <span class="sd">        Args:</span>
@@ -627,7 +659,18 @@
         <span class="k">return</span> <span class="n">perf_data</span><span class="o">.</span><span class="n">get_prediction_results</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="ModelWrapper.generate_predictions"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.ModelWrapper.generate_predictions">[docs]</a>    <span class="k">def</span> <span class="nf">generate_predictions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dataset:</span>
+
+<span class="sd">        Returns:</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+<div class="viewcode-block" id="ModelWrapper.generate_embeddings"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.ModelWrapper.generate_embeddings">[docs]</a>    <span class="k">def</span> <span class="nf">generate_embeddings</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            dataset:</span>
@@ -638,7 +681,7 @@
         <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
 
 <div class="viewcode-block" id="ModelWrapper.reload_model"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.ModelWrapper.reload_model">[docs]</a>    <span class="k">def</span> <span class="nf">reload_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reload_dir</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            reload_dir:</span>
@@ -651,7 +694,7 @@
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="ModelWrapper.model_save"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.ModelWrapper.model_save">[docs]</a>    <span class="k">def</span> <span class="nf">model_save</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;A wrapper function to save a model  due to the `DeepChem model.save()` has inconsistent implementation.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;A wrapper function to save a model  due to the `DeepChem model.save()` has inconsistent implementation.</span>
 
 <span class="sd">        The `SKlearnModel()` class and xgboost model in DeepChem use `model.save()`,</span>
 <span class="sd">        while the `MultitaskRegressor` class uses `model.save_checkpoint()`. The</span>
@@ -666,7 +709,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Error when saving model:</span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span></div></div>
 
 <div class="viewcode-block" id="LCTimerIterator"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.LCTimerIterator">[docs]</a><span class="k">class</span> <span class="nc">LCTimerIterator</span><span class="p">:</span>
-    <span class="sd">&#39;&#39;&#39;</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    This creates an iterator that keeps track of time limits</span>
 
 <span class="sd">    Side Effects:</span>
@@ -677,7 +720,7 @@
 <span class="sd">    &#39;&#39;&#39;</span>
     <span class="c1"># ****************************************************************************************</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">pipeline</span><span class="p">,</span> <span class="n">log</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
 <span class="sd">            params (argparse.Namespace): The argparse.Namespace parameter object that contains all </span>
 <span class="sd">               parameter information</span>
@@ -700,7 +743,7 @@
         
     <span class="c1"># ****************************************************************************************</span>
     <span class="k">def</span> <span class="fm">__next__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns epoch index or stops when the have been enough iterations.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ei</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ei</span> <span class="o">+</span> <span class="mi">1</span>
@@ -728,7 +771,7 @@
 
     <span class="c1"># ****************************************************************************************</span>
     <span class="k">def</span> <span class="nf">_time_needed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">training_time</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Calculates the time needed to complete another epoch given the training time</span>
 
 <span class="sd">        Args:</span>
@@ -741,7 +784,7 @@
         <span class="k">return</span> <span class="n">training_time</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">ei</span></div>
 
 <div class="viewcode-block" id="LCTimerKFoldIterator"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.LCTimerKFoldIterator">[docs]</a><span class="k">class</span> <span class="nc">LCTimerKFoldIterator</span><span class="p">(</span><span class="n">LCTimerIterator</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    This creates an iterator that keeps track of time limits for kfold training</span>
 
 <span class="sd">    Side Effects:</span>
@@ -753,7 +796,7 @@
 
     <span class="c1"># ****************************************************************************************</span>
     <span class="k">def</span> <span class="nf">_time_needed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">training_time</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Calculates the time needed to complete another epoch given the training time.</span>
 
 <span class="sd">        epochs_remaining is how many epochs we have to run if we do one more across all folds,</span>
@@ -775,7 +818,7 @@
 
 <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="NNModelWrapper"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.NNModelWrapper">[docs]</a><span class="k">class</span> <span class="nc">NNModelWrapper</span><span class="p">(</span><span class="n">ModelWrapper</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Wrapper for NN models.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Wrapper for NN models.</span>
 
 <span class="sd">    Many NN models share similar functions. This class aggregates those similar functions</span>
 <span class="sd">    to reduce copied code</span>
@@ -784,7 +827,7 @@
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="NNModelWrapper.get_perf_data"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.NNModelWrapper.get_perf_data">[docs]</a>    <span class="k">def</span> <span class="nf">get_perf_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subset</span><span class="p">,</span> <span class="n">epoch_label</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns predicted values and metrics from a training, validation or test subset</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns predicted values and metrics from a training, validation or test subset</span>
 <span class="sd">        of the current dataset, or the full dataset. subset may be &#39;train&#39;, &#39;valid&#39;, &#39;test&#39; or &#39;full&#39;,</span>
 <span class="sd">        epoch_label indicates the training epoch we want results for; currently the</span>
 <span class="sd">        only option for this is &#39;best&#39;. Results are returned as a PerfData object of the appropriate class </span>
@@ -824,7 +867,7 @@
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="NNModelWrapper.get_pred_results"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.NNModelWrapper.get_pred_results">[docs]</a>    <span class="k">def</span> <span class="nf">get_pred_results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subset</span><span class="p">,</span> <span class="n">epoch_label</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns predicted values and metrics from a training, validation or test subset</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns predicted values and metrics from a training, validation or test subset</span>
 <span class="sd">        of the current dataset, or the full dataset. subset may be &#39;train&#39;, &#39;valid&#39;, &#39;test&#39;</span>
 <span class="sd">        accordingly.  epoch_label indicates the training epoch we want results for; currently the</span>
 <span class="sd">        only option for this is &#39;best&#39;.  Results are returned as a dictionary of parameter, value pairs.</span>
@@ -860,7 +903,7 @@
 
     <span class="c1"># ****************************************************************************************</span>
     <span class="k">def</span> <span class="nf">_clean_up_excess_files</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dest_dir</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Function to clean up extra model files left behind in the training process.</span>
 <span class="sd">        Only removes self.model_dir</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -870,7 +913,7 @@
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="NNModelWrapper.train"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.NNModelWrapper.train">[docs]</a>    <span class="k">def</span> <span class="nf">train</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pipeline</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Trains a neural net model for multiple epochs, choose the epoch with the best validation</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Trains a neural net model for multiple epochs, choose the epoch with the best validation</span>
 <span class="sd">        set performance, refits the model for that number of epochs, and saves the tuned model.</span>
 
 <span class="sd">        Args:</span>
@@ -903,7 +946,7 @@
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="NNModelWrapper.train_kfold_cv"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.NNModelWrapper.train_kfold_cv">[docs]</a>    <span class="k">def</span> <span class="nf">train_kfold_cv</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pipeline</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Trains a neural net model with K-fold cross-validation for a specified number of epochs.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Trains a neural net model with K-fold cross-validation for a specified number of epochs.</span>
 <span class="sd">        Finds the epoch with the best validation set performance averaged over folds, then refits </span>
 <span class="sd">        a model for the same number of epochs to the combined training and validation data.</span>
 
@@ -1003,7 +1046,7 @@
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="NNModelWrapper.train_with_early_stopping"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.NNModelWrapper.train_with_early_stopping">[docs]</a>    <span class="k">def</span> <span class="nf">train_with_early_stopping</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pipeline</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Trains a neural net model for up to self.params.max_epochs epochs, while tracking the validation</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Trains a neural net model for up to self.params.max_epochs epochs, while tracking the validation</span>
 <span class="sd">        set metric given by params.model_choice_score_type. Saves a model checkpoint each time the metric</span>
 <span class="sd">        is improved over its previous saved value by more than a threshold percentage. If the metric fails to</span>
 <span class="sd">        improve for more than a specified &#39;patience&#39; number of epochs, stop training and revert the model state</span>
@@ -1065,15 +1108,15 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_copy_model</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">best_model_dir</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Best model from epoch </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">best_epoch</span><span class="si">}</span><span class="s2"> saved to </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">best_model_dir</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="NNModelWrapper.restore"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.NNModelWrapper.restore">[docs]</a>    <span class="k">def</span> <span class="nf">restore</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">        Reverts model to last saved checkpoint</span>
+<div class="viewcode-block" id="NNModelWrapper.restore"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.NNModelWrapper.restore">[docs]</a>    <span class="k">def</span> <span class="nf">restore</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">checkpoint</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">model_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Restores this model</span>
 <span class="sd">        &#39;&#39;&#39;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">restore</span><span class="p">()</span></div>
+        <span class="n">dc_torch_restore</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="n">checkpoint</span><span class="p">,</span> <span class="n">model_dir</span><span class="p">)</span></div>
 
     <span class="c1"># ****************************************************************************************</span>
     <span class="k">def</span> <span class="nf">_copy_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dest_dir</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Copies the files needed to recreate a DeepChem NN model from the current model</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Copies the files needed to recreate a DeepChem NN model from the current model</span>
 <span class="sd">        directory to a destination directory.</span>
 
 <span class="sd">        Looks at self.model.get_checkpoints() and assumes the last checkpoint saved is the best</span>
@@ -1091,7 +1134,7 @@
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="NNModelWrapper.generate_predictions"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.NNModelWrapper.generate_predictions">[docs]</a>    <span class="k">def</span> <span class="nf">generate_predictions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Generates predictions for specified dataset with current model, as well as standard deviations</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Generates predictions for specified dataset with current model, as well as standard deviations</span>
 <span class="sd">        if params.uncertainty=True</span>
 
 <span class="sd">        Args:</span>
@@ -1161,7 +1204,7 @@
 
 <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="HybridModelWrapper"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.HybridModelWrapper">[docs]</a><span class="k">class</span> <span class="nc">HybridModelWrapper</span><span class="p">(</span><span class="n">NNModelWrapper</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;A wrapper for hybrid models, contains methods to load in a dataset, split and featurize the data, fit a model to the train dataset,</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A wrapper for hybrid models, contains methods to load in a dataset, split and featurize the data, fit a model to the train dataset,</span>
 <span class="sd">    generate predictions for an input dataset, and generate performance metrics for these predictions.</span>
 
 <span class="sd">    Attributes:</span>
@@ -1204,7 +1247,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">featurizer</span><span class="p">,</span> <span class="n">ds_client</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Initializes HybridModelWrapper object.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initializes HybridModelWrapper object.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            params (Namespace object): contains all parameter information.</span>
@@ -1244,10 +1287,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">dropouts</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.4</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">layer_sizes</span><span class="p">)</span>
 
         <span class="n">n_features</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_num_features</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">socket</span><span class="o">.</span><span class="n">gethostname</span><span class="p">()[:</span><span class="mi">3</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;sur&quot;</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">dev</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s2">&quot;cpu&quot;</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">dev</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s2">&quot;cuda&quot;</span><span class="p">)</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s2">&quot;cpu&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dev</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s2">&quot;cuda&quot;</span><span class="p">)</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s2">&quot;cpu&quot;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">prediction_type</span> <span class="o">==</span> <span class="s1">&#39;regression&#39;</span><span class="p">:</span>
             <span class="n">model_dict</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">([</span>
@@ -1270,7 +1310,7 @@
             <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Hybrid model only support regression prediction.&quot;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_predict_binding</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">activity</span><span class="p">,</span> <span class="n">conc</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Predict measurements of fractional binding/inhibition of target receptors by a compound with the given activity,</span>
 <span class="sd">        in -Log scale, at the specified concentration in nM. If the given activity is pKi, a ratio to convert Ki into IC50</span>
 <span class="sd">        is needed. It can be the ratio of concentration and Kd of the radioligand in a competitive binding assay, or the concentration</span>
@@ -1289,7 +1329,7 @@
         <span class="k">return</span> <span class="n">pred_frac</span>
 
     <span class="k">def</span> <span class="nf">_l2_loss</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">yp</span><span class="p">,</span> <span class="n">yr</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Da&#39;s loss function, based on L2 terms for both pKi and percent binding values</span>
 <span class="sd">        This function is not appropriate for model fitting, but can be used for R^2 calculation.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -1311,7 +1351,7 @@
         <span class="k">return</span> <span class="n">loss_ki</span><span class="p">,</span> <span class="n">loss_bind</span>
 
     <span class="k">def</span> <span class="nf">_poisson_hybrid_loss</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">yp</span><span class="p">,</span> <span class="n">yr</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Hybrid loss function based on L2 losses for deviations of predicted and measured pKi values</span>
 <span class="sd">        and Poisson losses for predicted vs measured binding values. The idea is to choose loss terms</span>
 <span class="sd">        that when minimized maximize the likelihood.</span>
@@ -1347,7 +1387,7 @@
         <span class="k">return</span> <span class="n">loss_ki</span><span class="p">,</span> <span class="n">loss_bind</span>
 
     <span class="k">def</span> <span class="nf">_loss_batch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">loss_func</span><span class="p">,</span> <span class="n">xb</span><span class="p">,</span> <span class="n">yb</span><span class="p">,</span> <span class="n">opt</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Compute loss_func for the batch xb, yb. If opt is provided, perform a training</span>
 <span class="sd">        step on the model weights.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -1363,7 +1403,7 @@
         <span class="k">return</span> <span class="n">loss_ki</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span> <span class="n">loss_bind</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span> <span class="nb">len</span><span class="p">(</span><span class="n">xb</span><span class="p">)</span>
 
 <div class="viewcode-block" id="HybridModelWrapper.SubsetData"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.HybridModelWrapper.SubsetData">[docs]</a>    <span class="k">class</span> <span class="nc">SubsetData</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Container for DataLoader object and attributes of a dataset subset</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ds</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">n_ki</span><span class="p">,</span> <span class="n">n_bind</span><span class="p">):</span>
@@ -1376,7 +1416,7 @@
             <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_load_hybrid_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Convert the DeepChem dataset into the SubsetData for hybrid model.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">train_valid_dsets</span> <span class="o">=</span> <span class="p">[]</span>
@@ -1429,7 +1469,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">test_data</span> <span class="o">=</span> <span class="n">test_data</span>
     
 <div class="viewcode-block" id="HybridModelWrapper.save_model"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.HybridModelWrapper.save_model">[docs]</a>    <span class="k">def</span> <span class="nf">save_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">checkpoint_file</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">opt</span><span class="p">,</span> <span class="n">epoch</span><span class="p">,</span> <span class="n">model_dict</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Save a model to a checkpoint file.</span>
 <span class="sd">        Include epoch, model_dict in checkpoint dict.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -1520,7 +1560,7 @@
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="HybridModelWrapper.reload_model"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.HybridModelWrapper.reload_model">[docs]</a>    <span class="k">def</span> <span class="nf">reload_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reload_dir</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Loads a saved neural net model from the specified directory.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Loads a saved neural net model from the specified directory.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            reload_dir (str): Directory where saved model is located.</span>
@@ -1545,7 +1585,7 @@
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="HybridModelWrapper.generate_predictions"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.HybridModelWrapper.generate_predictions">[docs]</a>    <span class="k">def</span> <span class="nf">generate_predictions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Generates predictions for specified dataset with current model, as well as standard deviations</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Generates predictions for specified dataset with current model, as well as standard deviations</span>
 <span class="sd">        if params.uncertainty=True</span>
 
 <span class="sd">        Args:</span>
@@ -1599,7 +1639,7 @@
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="HybridModelWrapper.get_model_specific_metadata"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.HybridModelWrapper.get_model_specific_metadata">[docs]</a>    <span class="k">def</span> <span class="nf">get_model_specific_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns a dictionary of parameter settings for this ModelWrapper object that are specific</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns a dictionary of parameter settings for this ModelWrapper object that are specific</span>
 <span class="sd">        to hybrid models.</span>
 
 <span class="sd">        Returns:</span>
@@ -1619,7 +1659,7 @@
 
     <span class="c1"># ****************************************************************************************</span>
     <span class="k">def</span> <span class="nf">_create_output_transformers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_dataset</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initialize transformers for responses and persist them for later.</span>
 
 <span class="sd">        Args:</span>
@@ -1635,12 +1675,12 @@
 
 <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="ForestModelWrapper"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.ForestModelWrapper">[docs]</a><span class="k">class</span> <span class="nc">ForestModelWrapper</span><span class="p">(</span><span class="n">ModelWrapper</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Wrapper class for DCRFModelWrapper and DCxgboostModelWrapper</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Wrapper class for DCRFModelWrapper and DCxgboostModelWrapper</span>
 
 <span class="sd">    contains code that is similar between the two tree based classes</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">featurizer</span><span class="p">,</span> <span class="n">ds_client</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Initializes DCRFModelWrapper object.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initializes DCRFModelWrapper object.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            params (Namespace object): contains all parameter information.</span>
@@ -1657,7 +1697,7 @@
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="ForestModelWrapper.train"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.ForestModelWrapper.train">[docs]</a>    <span class="k">def</span> <span class="nf">train</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pipeline</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Trains a forest model and saves the trained model.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Trains a forest model and saves the trained model.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            pipeline (ModelPipeline): The ModelPipeline instance for this model run.</span>
@@ -1723,7 +1763,7 @@
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="ForestModelWrapper.make_dc_model"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.ForestModelWrapper.make_dc_model">[docs]</a>    <span class="k">def</span> <span class="nf">make_dc_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_dir</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Build a DeepChem model.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Build a DeepChem model.</span>
 
 <span class="sd">        Builds a model, wraps it in DeepChem&#39;s wrapper and returns it</span>
 
@@ -1737,7 +1777,7 @@
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="ForestModelWrapper.reload_model"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.ForestModelWrapper.reload_model">[docs]</a>    <span class="k">def</span> <span class="nf">reload_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reload_dir</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Loads a saved random forest model from the specified directory. Also loads any transformers that</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Loads a saved random forest model from the specified directory. Also loads any transformers that</span>
 <span class="sd">        were saved with it.</span>
 
 <span class="sd">        Args:</span>
@@ -1756,7 +1796,7 @@
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="ForestModelWrapper.get_pred_results"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.ForestModelWrapper.get_pred_results">[docs]</a>    <span class="k">def</span> <span class="nf">get_pred_results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subset</span><span class="p">,</span> <span class="n">epoch_label</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns predicted values and metrics from a training, validation or test subset</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns predicted values and metrics from a training, validation or test subset</span>
 <span class="sd">        of the current dataset, or the full dataset.</span>
 
 <span class="sd">        Args:</span>
@@ -1785,7 +1825,7 @@
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="ForestModelWrapper.get_perf_data"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.ForestModelWrapper.get_perf_data">[docs]</a>    <span class="k">def</span> <span class="nf">get_perf_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subset</span><span class="p">,</span> <span class="n">epoch_label</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns predicted values and metrics from a training, validation or test subset</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns predicted values and metrics from a training, validation or test subset</span>
 <span class="sd">        of the current dataset, or the full dataset.</span>
 
 <span class="sd">        Args:</span>
@@ -1814,7 +1854,7 @@
 
     <span class="c1"># ****************************************************************************************</span>
     <span class="k">def</span> <span class="nf">_clean_up_excess_files</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dest_dir</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Function to clean up extra model files left behind in the training process.</span>
 <span class="sd">        Does not apply to Forest models.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -1822,7 +1862,7 @@
 
 <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="DCRFModelWrapper"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.DCRFModelWrapper">[docs]</a><span class="k">class</span> <span class="nc">DCRFModelWrapper</span><span class="p">(</span><span class="n">ForestModelWrapper</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Contains methods to load in a dataset, split and featurize the data, fit a model to the train dataset,</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Contains methods to load in a dataset, split and featurize the data, fit a model to the train dataset,</span>
 <span class="sd">    generate predictions for an input dataset, and generate performance metrics for these predictions.</span>
 
 
@@ -1849,7 +1889,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">featurizer</span><span class="p">,</span> <span class="n">ds_client</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Initializes DCRFModelWrapper object.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initializes DCRFModelWrapper object.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            params (Namespace object): contains all parameter information.</span>
@@ -1861,7 +1901,7 @@
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="DCRFModelWrapper.make_dc_model"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.DCRFModelWrapper.make_dc_model">[docs]</a>    <span class="k">def</span> <span class="nf">make_dc_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_dir</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Build a DeepChem model.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Build a DeepChem model.</span>
 
 <span class="sd">        Builds a model, wraps it in DeepChem&#39;s wrapper and returns it</span>
 
@@ -1886,7 +1926,7 @@
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="DCRFModelWrapper.train"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.DCRFModelWrapper.train">[docs]</a>    <span class="k">def</span> <span class="nf">train</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pipeline</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Trains a random forest model and saves the trained model.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Trains a random forest model and saves the trained model.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            pipeline (ModelPipeline): The ModelPipeline instance for this model run.</span>
@@ -1912,7 +1952,7 @@
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="DCRFModelWrapper.generate_predictions"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.DCRFModelWrapper.generate_predictions">[docs]</a>    <span class="k">def</span> <span class="nf">generate_predictions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Generates predictions for specified dataset, as well as uncertainty values if params.uncertainty=True</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Generates predictions for specified dataset, as well as uncertainty values if params.uncertainty=True</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            dataset: the deepchem DiskDataset to generate predictions for</span>
@@ -1956,7 +1996,7 @@
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="DCRFModelWrapper.get_model_specific_metadata"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.DCRFModelWrapper.get_model_specific_metadata">[docs]</a>    <span class="k">def</span> <span class="nf">get_model_specific_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns a dictionary of parameter settings for this ModelWrapper object that are specific</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns a dictionary of parameter settings for this ModelWrapper object that are specific</span>
 <span class="sd">        to random forest models.</span>
 
 <span class="sd">        Returns:</span>
@@ -1973,7 +2013,7 @@
     
 <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="DCxgboostModelWrapper"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.DCxgboostModelWrapper">[docs]</a><span class="k">class</span> <span class="nc">DCxgboostModelWrapper</span><span class="p">(</span><span class="n">ForestModelWrapper</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Contains methods to load in a dataset, split and featurize the data, fit a model to the train dataset,</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Contains methods to load in a dataset, split and featurize the data, fit a model to the train dataset,</span>
 <span class="sd">    generate predictions for an input dataset, and generate performance metrics for these predictions.</span>
 
 
@@ -2001,7 +2041,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">featurizer</span><span class="p">,</span> <span class="n">ds_client</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Initializes RunModel object.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initializes RunModel object.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            params (Namespace object): contains all parameter information.</span>
@@ -2013,7 +2053,7 @@
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="DCxgboostModelWrapper.make_dc_model"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.DCxgboostModelWrapper.make_dc_model">[docs]</a>    <span class="k">def</span> <span class="nf">make_dc_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_dir</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Build a DeepChem model.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Build a DeepChem model.</span>
 
 <span class="sd">        Builds a model, wraps it in DeepChem&#39;s wrapper and returns it</span>
 
@@ -2078,7 +2118,7 @@
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="DCxgboostModelWrapper.train"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.DCxgboostModelWrapper.train">[docs]</a>    <span class="k">def</span> <span class="nf">train</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pipeline</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Trains a xgboost model and saves the trained model.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Trains a xgboost model and saves the trained model.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            pipeline (ModelPipeline): The ModelPipeline instance for this model run.</span>
@@ -2145,7 +2185,7 @@
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="DCxgboostModelWrapper.reload_model"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.DCxgboostModelWrapper.reload_model">[docs]</a>    <span class="k">def</span> <span class="nf">reload_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reload_dir</span><span class="p">):</span>
 
-        <span class="sd">&quot;&quot;&quot;Loads a saved xgboost model from the specified directory. Also loads any transformers that</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Loads a saved xgboost model from the specified directory. Also loads any transformers that</span>
 <span class="sd">        were saved with it.</span>
 
 <span class="sd">        Args:</span>
@@ -2217,7 +2257,7 @@
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="DCxgboostModelWrapper.get_pred_results"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.DCxgboostModelWrapper.get_pred_results">[docs]</a>    <span class="k">def</span> <span class="nf">get_pred_results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subset</span><span class="p">,</span> <span class="n">epoch_label</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns predicted values and metrics from a training, validation or test subset</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns predicted values and metrics from a training, validation or test subset</span>
 <span class="sd">        of the current dataset, or the full dataset.</span>
 
 <span class="sd">        Args:</span>
@@ -2246,7 +2286,7 @@
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="DCxgboostModelWrapper.get_perf_data"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.DCxgboostModelWrapper.get_perf_data">[docs]</a>    <span class="k">def</span> <span class="nf">get_perf_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subset</span><span class="p">,</span> <span class="n">epoch_label</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns predicted values and metrics from a training, validation or test subset</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns predicted values and metrics from a training, validation or test subset</span>
 <span class="sd">        of the current dataset, or the full dataset.</span>
 
 <span class="sd">        Args:</span>
@@ -2275,7 +2315,7 @@
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="DCxgboostModelWrapper.generate_predictions"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.DCxgboostModelWrapper.generate_predictions">[docs]</a>    <span class="k">def</span> <span class="nf">generate_predictions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Generates predictions for specified dataset, as well as uncertainty values if params.uncertainty=True</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Generates predictions for specified dataset, as well as uncertainty values if params.uncertainty=True</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            dataset: the deepchem DiskDataset to generate predictions for</span>
@@ -2296,7 +2336,7 @@
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="DCxgboostModelWrapper.get_model_specific_metadata"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.DCxgboostModelWrapper.get_model_specific_metadata">[docs]</a>    <span class="k">def</span> <span class="nf">get_model_specific_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns a dictionary of parameter settings for this ModelWrapper object that are specific</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns a dictionary of parameter settings for this ModelWrapper object that are specific</span>
 <span class="sd">        to xgboost models.</span>
 
 <span class="sd">        Returns:</span>
@@ -2316,7 +2356,7 @@
 
     <span class="c1"># ****************************************************************************************</span>
     <span class="k">def</span> <span class="nf">_clean_up_excess_files</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dest_dir</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Function to clean up extra model files left behind in the training process.</span>
 <span class="sd">        Does not apply to xgboost</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -2324,7 +2364,7 @@
 
 <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="PytorchDeepChemModelWrapper"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.PytorchDeepChemModelWrapper">[docs]</a><span class="k">class</span> <span class="nc">PytorchDeepChemModelWrapper</span><span class="p">(</span><span class="n">NNModelWrapper</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Implementation of AttentiveFP model from Xiong et al. [1]_. It uses a graph attention model</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Implementation of AttentiveFP model from Xiong et al. [1]_. It uses a graph attention model</span>
 <span class="sd">    to propagate information from bond and neighboring atom features across a molecule represented as</span>
 <span class="sd">    a graph.</span>
 
@@ -2356,7 +2396,7 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">featurizer</span><span class="p">,</span> <span class="n">ds_client</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Initializes AttentiveFPModelWrapper object. Creates the underlying DeepChem AttentiveFPModel instance.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initializes AttentiveFPModelWrapper object. Creates the underlying DeepChem AttentiveFPModel instance.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            params (Namespace object): contains all parameter information.</span>
@@ -2372,7 +2412,7 @@
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="PytorchDeepChemModelWrapper.recreate_model"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.PytorchDeepChemModelWrapper.recreate_model">[docs]</a>    <span class="k">def</span> <span class="nf">recreate_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Creates a new DeepChem Model object of the correct type for the requested featurizer and prediction type </span>
 <span class="sd">        and returns it.</span>
 
@@ -2401,7 +2441,7 @@
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="PytorchDeepChemModelWrapper.reload_model"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.PytorchDeepChemModelWrapper.reload_model">[docs]</a>    <span class="k">def</span> <span class="nf">reload_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reload_dir</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Loads a saved neural net model from the specified directory.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Loads a saved neural net model from the specified directory.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            reload_dir (str): Directory where saved model is located.</span>
@@ -2413,14 +2453,14 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">recreate_model</span><span class="p">(</span><span class="n">model_dir</span><span class="o">=</span><span class="n">reload_dir</span><span class="p">)</span>
         <span class="c1"># checkpoint with the highest number is the best one</span>
         <span class="n">best_chkpt</span> <span class="o">=</span> <span class="n">get_latest_pytorch_checkpoint</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">restore</span><span class="p">(</span><span class="n">best_chkpt</span><span class="p">,</span> <span class="n">reload_dir</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">restore</span><span class="p">(</span><span class="n">best_chkpt</span><span class="p">,</span> <span class="n">reload_dir</span><span class="p">)</span>
 
         <span class="c1"># Restore the transformers from the datastore or filesystem</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">reload_transformers</span><span class="p">()</span></div>
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="PytorchDeepChemModelWrapper.get_model_specific_metadata"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.PytorchDeepChemModelWrapper.get_model_specific_metadata">[docs]</a>    <span class="k">def</span> <span class="nf">get_model_specific_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns a dictionary of parameter settings for this ModelWrapper object that are specific</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns a dictionary of parameter settings for this ModelWrapper object that are specific</span>
 <span class="sd">        to neural network models.</span>
 
 <span class="sd">        Returns:</span>
@@ -2433,14 +2473,14 @@
         <span class="n">model_spec_metadata</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">nn_specific</span> <span class="o">=</span> <span class="n">nn_metadata</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">model_spec_metadata</span></div>
 
-<div class="viewcode-block" id="PytorchDeepChemModelWrapper.restore"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.PytorchDeepChemModelWrapper.restore">[docs]</a>    <span class="k">def</span> <span class="nf">restore</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">        Restores model to the last saved checkpoint</span>
+<div class="viewcode-block" id="PytorchDeepChemModelWrapper.restore"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.PytorchDeepChemModelWrapper.restore">[docs]</a>    <span class="k">def</span> <span class="nf">restore</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">checkpoint</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">model_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Restores this model</span>
 <span class="sd">        &#39;&#39;&#39;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">restore</span><span class="p">()</span></div>
+        <span class="n">dc_torch_restore</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="n">checkpoint</span><span class="p">,</span> <span class="n">model_dir</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="PytorchDeepChemModelWrapper.count_params"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.PytorchDeepChemModelWrapper.count_params">[docs]</a>    <span class="k">def</span> <span class="nf">count_params</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&#39;&#39;&#39;</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Returns the number of trainable parameters</span>
 
 <span class="sd">        There&#39;s no function implemented in Pytorch that does this so I&#39;m using the</span>
@@ -2457,7 +2497,7 @@
 
 <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="MultitaskDCModelWrapper"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.MultitaskDCModelWrapper">[docs]</a><span class="k">class</span> <span class="nc">MultitaskDCModelWrapper</span><span class="p">(</span><span class="n">PytorchDeepChemModelWrapper</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Contains methods to load in a dataset, split and featurize the data, fit a model to the train dataset,</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Contains methods to load in a dataset, split and featurize the data, fit a model to the train dataset,</span>
 <span class="sd">    generate predictions for an input dataset, and generate performance metrics for these predictions.</span>
 
 <span class="sd">    Attributes:</span>
@@ -2503,7 +2543,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="MultitaskDCModelWrapper.recreate_model"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.MultitaskDCModelWrapper.recreate_model">[docs]</a>    <span class="k">def</span> <span class="nf">recreate_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Creates a new DeepChem Model object of the correct type for the requested featurizer and prediction type </span>
 <span class="sd">        and returns it.</span>
 
@@ -2569,8 +2609,8 @@
                 <span class="n">verbosity</span><span class="o">=</span><span class="s1">&#39;low&#39;</span><span class="p">,</span>
                 <span class="n">model_dir</span><span class="o">=</span><span class="n">model_dir</span><span class="p">,</span>
                 <span class="n">learning_rate_decay_time</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
-                <span class="n">beta1</span><span class="o">=.</span><span class="mi">9</span><span class="p">,</span>
-                <span class="n">beta2</span><span class="o">=.</span><span class="mi">999</span><span class="p">,</span>
+                <span class="n">beta1</span><span class="o">=</span><span class="mf">.9</span><span class="p">,</span>
+                <span class="n">beta2</span><span class="o">=</span><span class="mf">.999</span><span class="p">,</span>
                 <span class="n">mode</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">prediction_type</span><span class="p">,</span>
                 <span class="n">tensorboard</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                 <span class="n">n_classes</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">class_number</span><span class="p">)</span>
@@ -2578,8 +2618,23 @@
         <span class="k">return</span> <span class="n">model</span></div>
 
     <span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="MultitaskDCModelWrapper.generate_embeddings"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.MultitaskDCModelWrapper.generate_embeddings">[docs]</a>    <span class="k">def</span> <span class="nf">generate_embeddings</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generate the output of the final embedding layer of a fully connected NN model for the given dataset.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dataset:</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            embedding (np.ndarray): An array of outputs from the nodes in the embedding layer.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">predict_embedding</span><span class="p">(</span><span class="n">dataset</span><span class="p">)</span></div>
+
+
+    <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="MultitaskDCModelWrapper.get_model_specific_metadata"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.MultitaskDCModelWrapper.get_model_specific_metadata">[docs]</a>    <span class="k">def</span> <span class="nf">get_model_specific_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns a dictionary of parameter settings for this ModelWrapper object that are specific</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns a dictionary of parameter settings for this ModelWrapper object that are specific</span>
 <span class="sd">        to neural network models.</span>
 
 <span class="sd">        Returns:</span>
@@ -2606,7 +2661,7 @@
 <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="KerasDeepChemModelWrapper"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.KerasDeepChemModelWrapper">[docs]</a><span class="k">class</span> <span class="nc">KerasDeepChemModelWrapper</span><span class="p">(</span><span class="n">PytorchDeepChemModelWrapper</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">_copy_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dest_dir</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Copies the files needed to recreate a DeepChem NN model from the current model</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Copies the files needed to recreate a DeepChem NN model from the current model</span>
 <span class="sd">        directory to a destination directory.</span>
 
 <span class="sd">        Args:</span>
@@ -2628,7 +2683,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Saved model files to &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">dest_dir</span><span class="p">)</span>
 
 <div class="viewcode-block" id="KerasDeepChemModelWrapper.reload_model"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.KerasDeepChemModelWrapper.reload_model">[docs]</a>    <span class="k">def</span> <span class="nf">reload_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reload_dir</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Loads a saved neural net model from the specified directory.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Loads a saved neural net model from the specified directory.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            reload_dir (str): Directory where saved model is located.</span>
@@ -2651,13 +2706,13 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">reload_transformers</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="KerasDeepChemModelWrapper.restore"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.KerasDeepChemModelWrapper.restore">[docs]</a>    <span class="k">def</span> <span class="nf">restore</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">checkpoint</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">model_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">session</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&#39;&#39;&#39;</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Restores this model</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">dc_restore</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="n">checkpoint</span><span class="p">,</span> <span class="n">model_dir</span><span class="p">,</span> <span class="n">session</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="KerasDeepChemModelWrapper.count_params"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.KerasDeepChemModelWrapper.count_params">[docs]</a>    <span class="k">def</span> <span class="nf">count_params</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&#39;&#39;&#39;</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Returns the number of trainable parameters using Keras&#39; count_params function</span>
 
 <span class="sd">        Args:</span>
@@ -2671,7 +2726,7 @@
 
 <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="GraphConvDCModelWrapper"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.GraphConvDCModelWrapper">[docs]</a><span class="k">class</span> <span class="nc">GraphConvDCModelWrapper</span><span class="p">(</span><span class="n">KerasDeepChemModelWrapper</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Contains methods to load in a dataset, split and featurize the data, fit a model to the train dataset,</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Contains methods to load in a dataset, split and featurize the data, fit a model to the train dataset,</span>
 <span class="sd">    generate predictions for an input dataset, and generate performance metrics for these predictions.</span>
 
 <span class="sd">    Attributes:</span>
@@ -2717,7 +2772,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">featurizer</span><span class="p">,</span> <span class="n">ds_client</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Initializes GraphConvDCModelWrapper object.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initializes GraphConvDCModelWrapper object.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            params (Namespace object): contains all parameter information.</span>
@@ -2746,6 +2801,7 @@
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">featurizer</span><span class="p">,</span> <span class="n">ds_client</span><span class="p">)</span>
+        <span class="c1"># TODO (ksm): The next two attributes aren&#39;t used; suggest we drop them.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">g</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">Graph</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">sess</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">compat</span><span class="o">.</span><span class="n">v1</span><span class="o">.</span><span class="n">Session</span><span class="p">(</span><span class="n">graph</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">g</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">num_epochs_trained</span> <span class="o">=</span> <span class="mi">0</span>
@@ -2754,7 +2810,7 @@
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="GraphConvDCModelWrapper.recreate_model"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.GraphConvDCModelWrapper.recreate_model">[docs]</a>    <span class="k">def</span> <span class="nf">recreate_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Creates a new DeepChem Model object of the correct type for the requested featurizer and prediction type </span>
 <span class="sd">        and returns it.</span>
 
@@ -2792,8 +2848,23 @@
         <span class="k">return</span> <span class="n">model</span></div>
 
     <span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="GraphConvDCModelWrapper.generate_embeddings"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.GraphConvDCModelWrapper.generate_embeddings">[docs]</a>    <span class="k">def</span> <span class="nf">generate_embeddings</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generate the output of the final embedding layer of a GraphConv model for the given dataset.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dataset:</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            embedding (np.ndarray): An array of outputs from the nodes in the embedding layer.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">predict_embedding</span><span class="p">(</span><span class="n">dataset</span><span class="p">)</span></div>
+
+
+    <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="GraphConvDCModelWrapper.get_model_specific_metadata"><a class="viewcode-back" href="../../pipeline.html#pipeline.model_wrapper.GraphConvDCModelWrapper.get_model_specific_metadata">[docs]</a>    <span class="k">def</span> <span class="nf">get_model_specific_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns a dictionary of parameter settings for this ModelWrapper object that are specific</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns a dictionary of parameter settings for this ModelWrapper object that are specific</span>
 <span class="sd">        to neural network models.</span>
 
 <span class="sd">        Returns:</span>
@@ -2826,7 +2897,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2022, ATOM DDM Team.</p>
+    <p>&#169; Copyright 2023, ATOM DDM Team.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

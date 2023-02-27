@@ -3,18 +3,17 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>pipeline.perf_data &mdash; ATOM Data-Driven Modeling Pipeline 1.4.0 documentation</title>
+  <title>pipeline.perf_data &mdash; ATOM Data-Driven Modeling Pipeline 1.5.0 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
         <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-        <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/underscore.js"></script>
-        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" /> 
@@ -25,14 +24,18 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../../index.html" class="icon icon-home"> ATOM Data-Driven Modeling Pipeline
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            ATOM Data-Driven Modeling Pipeline
           </a>
               <div class="version">
-                1.4.0
+                1.5.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -64,9 +67,9 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="../index.html">Module code</a> &raquo;</li>
-      <li>pipeline.perf_data</li>
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">pipeline.perf_data</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -100,7 +103,7 @@
 
 <span class="c1"># ******************************************************************************************************************************</span>
 <div class="viewcode-block" id="rms_error"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.rms_error">[docs]</a><span class="k">def</span> <span class="nf">rms_error</span><span class="p">(</span><span class="n">y_real</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Calculates the root mean squared error. Score function used for model selection.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Calculates the root mean squared error. Score function used for model selection.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        y_real (np.array): Array of ground truth values</span>
@@ -115,7 +118,7 @@
 
 <span class="c1"># ---------------------------------------------</span>
 <div class="viewcode-block" id="negative_predictive_value"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.negative_predictive_value">[docs]</a><span class="k">def</span> <span class="nf">negative_predictive_value</span><span class="p">(</span><span class="n">y_real</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Computes negative predictive value of a binary classification model: NPV = TN/(TN+FN).</span>
 
 <span class="sd">    Args:</span>
@@ -160,7 +163,7 @@
 
 <span class="c1"># ******************************************************************************************************************************</span>
 <div class="viewcode-block" id="create_perf_data"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.create_perf_data">[docs]</a><span class="k">def</span> <span class="nf">create_perf_data</span><span class="p">(</span><span class="n">prediction_type</span><span class="p">,</span> <span class="n">model_dataset</span><span class="p">,</span> <span class="n">transformers</span><span class="p">,</span> <span class="n">subset</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Factory function that creates the right kind of PerfData object for the given subset,</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Factory function that creates the right kind of PerfData object for the given subset,</span>
 <span class="sd">    prediction_type (classification or regression) and split strategy (k-fold or train/valid/test).</span>
 
 <span class="sd">    Args:</span>
@@ -207,18 +210,18 @@
 
 <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="PerfData"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.PerfData">[docs]</a><span class="k">class</span> <span class="nc">PerfData</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Class with methods for accumulating prediction data over multiple cross-validation folds</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Class with methods for accumulating prediction data over multiple cross-validation folds</span>
 <span class="sd">    and computing performance metrics after all folds have been run. Abstract class with</span>
 <span class="sd">    concrete subclasses for classification and regression models.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># ****************************************************************************************</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_dataset</span><span class="p">,</span> <span class="n">subset</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Initialize any attributes that are common to all PerfData subclasses</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize any attributes that are common to all PerfData subclasses</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="PerfData.accumulate_preds"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.PerfData.accumulate_preds">[docs]</a>    <span class="k">def</span> <span class="nf">accumulate_preds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">predicted_vals</span><span class="p">,</span> <span class="n">ids</span><span class="p">,</span> <span class="n">pred_stds</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Raises:</span>
 <span class="sd">            NotImplementedError: The method is implemented by subclasses</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -226,7 +229,7 @@
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="PerfData.get_pred_values"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.PerfData.get_pred_values">[docs]</a>    <span class="k">def</span> <span class="nf">get_pred_values</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Raises:</span>
 <span class="sd">            NotImplementedError: The method is implemented by subclasses</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -234,7 +237,7 @@
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="PerfData.get_real_values"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.PerfData.get_real_values">[docs]</a>    <span class="k">def</span> <span class="nf">get_real_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ids</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Raises:</span>
 <span class="sd">            NotImplementedError: The method is implemented by subclasses</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -242,7 +245,7 @@
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="PerfData.get_weights"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.PerfData.get_weights">[docs]</a>    <span class="k">def</span> <span class="nf">get_weights</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ids</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns the dataset response weights as an (ncmpds, ntasks) array</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the dataset response weights as an (ncmpds, ntasks) array</span>
 
 <span class="sd">        Raises:</span>
 <span class="sd">            NotImplementedError: The method is implemented by subclasses</span>
@@ -252,7 +255,7 @@
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="PerfData.compute_perf_metrics"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.PerfData.compute_perf_metrics">[docs]</a>    <span class="k">def</span> <span class="nf">compute_perf_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">per_task</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Raises:</span>
 <span class="sd">            NotImplementedError: The method is implemented by subclasses</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -260,7 +263,7 @@
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="PerfData.get_prediction_results"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.PerfData.get_prediction_results">[docs]</a>    <span class="k">def</span> <span class="nf">get_prediction_results</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Raises:</span>
 <span class="sd">            NotImplementedError: The method is implemented by subclasses</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -268,7 +271,7 @@
 
     <span class="c1"># ****************************************************************************************</span>
     <span class="k">def</span> <span class="nf">_reshape_preds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">predicted_vals</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Raises:</span>
 <span class="sd">            NotImplementedError: The method is implemented by subclasses</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -277,7 +280,7 @@
 
 <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="RegressionPerfData"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.RegressionPerfData">[docs]</a><span class="k">class</span> <span class="nc">RegressionPerfData</span><span class="p">(</span><span class="n">PerfData</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Class with methods for accumulating regression model prediction data over multiple</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Class with methods for accumulating regression model prediction data over multiple</span>
 <span class="sd">    cross-validation folds and computing performance metrics after all folds have been run.</span>
 <span class="sd">    Abstract class with concrete subclasses for different split strategies.</span>
 <span class="sd">    </span>
@@ -291,7 +294,7 @@
     <span class="c1"># ****************************************************************************************</span>
     <span class="c1"># class RegressionPerfData</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_dataset</span><span class="p">,</span> <span class="n">subset</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Initialize any attributes that are common to all RegressionPerfData subclasses.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize any attributes that are common to all RegressionPerfData subclasses.</span>
 <span class="sd">        </span>
 <span class="sd">        Side effects:</span>
 <span class="sd">            num_tasks (int) is set as a RegressionPerfData attribute</span>
@@ -309,7 +312,7 @@
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="RegressionPerfData.accumulate_preds"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.RegressionPerfData.accumulate_preds">[docs]</a>    <span class="k">def</span> <span class="nf">accumulate_preds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">predicted_vals</span><span class="p">,</span> <span class="n">ids</span><span class="p">,</span> <span class="n">pred_stds</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Raises:</span>
 <span class="sd">            NotImplementedError: The method is implemented by subclasses</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -317,7 +320,7 @@
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="RegressionPerfData.get_pred_values"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.RegressionPerfData.get_pred_values">[docs]</a>    <span class="k">def</span> <span class="nf">get_pred_values</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Raises:</span>
 <span class="sd">            NotImplementedError: The method is implemented by subclasses</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -325,7 +328,7 @@
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="RegressionPerfData.compute_perf_metrics"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.RegressionPerfData.compute_perf_metrics">[docs]</a>    <span class="k">def</span> <span class="nf">compute_perf_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">per_task</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Raises:</span>
 <span class="sd">            NotImplementedError: The method is implemented by subclasses</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -335,7 +338,7 @@
     <span class="c1"># ****************************************************************************************</span>
     <span class="c1"># class RegressionPerfData</span>
 <div class="viewcode-block" id="RegressionPerfData.model_choice_score"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.RegressionPerfData.model_choice_score">[docs]</a>    <span class="k">def</span> <span class="nf">model_choice_score</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">score_type</span><span class="o">=</span><span class="s1">&#39;r2&#39;</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Computes a score function based on the accumulated predicted values, to be used for selecting</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Computes a score function based on the accumulated predicted values, to be used for selecting</span>
 <span class="sd">        the best training epoch and other hyperparameters.</span>
 <span class="sd">        </span>
 <span class="sd">        Args:</span>
@@ -369,7 +372,7 @@
     <span class="c1"># ****************************************************************************************</span>
     <span class="c1"># class RegressionPerfData</span>
 <div class="viewcode-block" id="RegressionPerfData.get_prediction_results"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.RegressionPerfData.get_prediction_results">[docs]</a>    <span class="k">def</span> <span class="nf">get_prediction_results</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns a dictionary of performance metrics for a regression model.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns a dictionary of performance metrics for a regression model.</span>
 <span class="sd">        The dictionary values should contain only primitive Python types, so that it can</span>
 <span class="sd">        be easily JSONified.</span>
 <span class="sd">        </span>
@@ -433,7 +436,7 @@
     <span class="c1"># ****************************************************************************************</span>
     <span class="c1"># class RegressionPerfData</span>
     <span class="k">def</span> <span class="nf">_reshape_preds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">predicted_vals</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Reshape an array of regression model predictions to a standard (ncmpds, ntasks)</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Reshape an array of regression model predictions to a standard (ncmpds, ntasks)</span>
 <span class="sd">        format. Checks that the task dimension matches what we expect for the dataset.</span>
 
 <span class="sd">        Args:</span>
@@ -469,7 +472,7 @@
 
 <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="HybridPerfData"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.HybridPerfData">[docs]</a><span class="k">class</span> <span class="nc">HybridPerfData</span><span class="p">(</span><span class="n">PerfData</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Class with methods for accumulating regression model prediction data over multiple</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Class with methods for accumulating regression model prediction data over multiple</span>
 <span class="sd">    cross-validation folds and computing performance metrics after all folds have been run.</span>
 <span class="sd">    Abstract class with concrete subclasses for different split strategies.</span>
 <span class="sd">    </span>
@@ -483,7 +486,7 @@
     <span class="c1"># ****************************************************************************************</span>
     <span class="c1"># class HybridPerfData</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_dataset</span><span class="p">,</span> <span class="n">subset</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Initialize any attributes that are common to all HybridPerfData subclasses.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize any attributes that are common to all HybridPerfData subclasses.</span>
 <span class="sd">        </span>
 <span class="sd">        Side effects:</span>
 <span class="sd">            num_tasks (int) is set as a HybridPerfData attribute</span>
@@ -501,7 +504,7 @@
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="HybridPerfData.accumulate_preds"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.HybridPerfData.accumulate_preds">[docs]</a>    <span class="k">def</span> <span class="nf">accumulate_preds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">predicted_vals</span><span class="p">,</span> <span class="n">ids</span><span class="p">,</span> <span class="n">pred_stds</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Raises:</span>
 <span class="sd">            NotImplementedError: The method is implemented by subclasses</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -509,7 +512,7 @@
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="HybridPerfData.get_pred_values"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.HybridPerfData.get_pred_values">[docs]</a>    <span class="k">def</span> <span class="nf">get_pred_values</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Raises:</span>
 <span class="sd">            NotImplementedError: The method is implemented by subclasses</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -517,7 +520,7 @@
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="HybridPerfData.compute_perf_metrics"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.HybridPerfData.compute_perf_metrics">[docs]</a>    <span class="k">def</span> <span class="nf">compute_perf_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">per_task</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Raises:</span>
 <span class="sd">            NotImplementedError: The method is implemented by subclasses</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -527,7 +530,7 @@
     <span class="c1"># ****************************************************************************************</span>
     <span class="c1"># class HybridPerfData</span>
 <div class="viewcode-block" id="HybridPerfData.model_choice_score"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.HybridPerfData.model_choice_score">[docs]</a>    <span class="k">def</span> <span class="nf">model_choice_score</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">score_type</span><span class="o">=</span><span class="s1">&#39;r2&#39;</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Computes a score function based on the accumulated predicted values, to be used for selecting</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Computes a score function based on the accumulated predicted values, to be used for selecting</span>
 <span class="sd">        the best training epoch and other hyperparameters.</span>
 <span class="sd">        </span>
 <span class="sd">        Args:</span>
@@ -575,7 +578,7 @@
     <span class="c1"># ****************************************************************************************</span>
     <span class="c1"># class HybridPerfData</span>
 <div class="viewcode-block" id="HybridPerfData.get_prediction_results"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.HybridPerfData.get_prediction_results">[docs]</a>    <span class="k">def</span> <span class="nf">get_prediction_results</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns a dictionary of performance metrics for a regression model.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns a dictionary of performance metrics for a regression model.</span>
 <span class="sd">        The dictionary values should contain only primitive Python types, so that it can</span>
 <span class="sd">        be easily JSONified.</span>
 <span class="sd">        </span>
@@ -664,7 +667,7 @@
     <span class="c1"># ****************************************************************************************</span>
     <span class="c1"># class HybridPerfData</span>
     <span class="k">def</span> <span class="nf">_reshape_preds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">predicted_vals</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Reshape an array of regression model predictions to a standard (ncmpds, ntasks)</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Reshape an array of regression model predictions to a standard (ncmpds, ntasks)</span>
 <span class="sd">        format. Checks that the task dimension matches what we expect for the dataset.</span>
 
 <span class="sd">        Args:</span>
@@ -685,7 +688,7 @@
 
 <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="ClassificationPerfData"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.ClassificationPerfData">[docs]</a><span class="k">class</span> <span class="nc">ClassificationPerfData</span><span class="p">(</span><span class="n">PerfData</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Class with methods for accumulating classification model prediction data over multiple</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Class with methods for accumulating classification model prediction data over multiple</span>
 <span class="sd">    cross-validation folds and computing performance metrics after all folds have been run.</span>
 <span class="sd">    Abstract class with concrete subclasses for different split strategies.</span>
 <span class="sd">    </span>
@@ -701,7 +704,7 @@
     <span class="c1"># ****************************************************************************************</span>
     <span class="c1"># class ClassificationPerfData</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_dataset</span><span class="p">,</span> <span class="n">subset</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Initialize any attributes that are common to all ClassificationPerfData subclasses</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize any attributes that are common to all ClassificationPerfData subclasses</span>
 <span class="sd">        </span>
 <span class="sd">        Side effects:</span>
 <span class="sd">            num_tasks (int) is set as a ClassificationPerfData attribute</span>
@@ -729,7 +732,7 @@
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="ClassificationPerfData.accumulate_preds"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.ClassificationPerfData.accumulate_preds">[docs]</a>    <span class="k">def</span> <span class="nf">accumulate_preds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">predicted_vals</span><span class="p">,</span> <span class="n">ids</span><span class="p">,</span> <span class="n">pred_stds</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Raises:</span>
 <span class="sd">            NotImplementedError: The method is implemented by subclasses</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -737,7 +740,7 @@
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="ClassificationPerfData.get_pred_values"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.ClassificationPerfData.get_pred_values">[docs]</a>    <span class="k">def</span> <span class="nf">get_pred_values</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Raises:</span>
 <span class="sd">            NotImplementedError: The method is implemented by subclasses</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -747,7 +750,7 @@
     <span class="c1"># ****************************************************************************************</span>
     <span class="c1"># class ClassificationPerfData</span>
 <div class="viewcode-block" id="ClassificationPerfData.model_choice_score"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.ClassificationPerfData.model_choice_score">[docs]</a>    <span class="k">def</span> <span class="nf">model_choice_score</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">score_type</span><span class="o">=</span><span class="s1">&#39;roc_auc&#39;</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Computes a score function based on the accumulated predicted values, to be used for selecting</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Computes a score function based on the accumulated predicted values, to be used for selecting</span>
 <span class="sd">        the best training epoch and other hyperparameters.</span>
 <span class="sd">        </span>
 <span class="sd">        Args:</span>
@@ -808,7 +811,7 @@
     <span class="c1"># ****************************************************************************************</span>
     <span class="c1"># class ClassificationPerfData</span>
 <div class="viewcode-block" id="ClassificationPerfData.get_prediction_results"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.ClassificationPerfData.get_prediction_results">[docs]</a>    <span class="k">def</span> <span class="nf">get_prediction_results</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns a dictionary of performance metrics for a classification model.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns a dictionary of performance metrics for a classification model.</span>
 <span class="sd">        The dictionary values will contain only primitive Python types, so that it can</span>
 <span class="sd">        be easily JSONified.</span>
 <span class="sd">        </span>
@@ -938,7 +941,7 @@
     <span class="c1"># ****************************************************************************************</span>
     <span class="c1"># class ClassificationPerfData</span>
     <span class="k">def</span> <span class="nf">_reshape_preds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">predicted_vals</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Reshape an array of classification model predictions to a standard (ncmpds, ntasks, nclasses)</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Reshape an array of classification model predictions to a standard (ncmpds, ntasks, nclasses)</span>
 <span class="sd">        format. Checks that the task and class dimensions match what we expect for the dataset.</span>
 
 <span class="sd">        Args:</span>
@@ -971,7 +974,7 @@
 
 <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="KFoldRegressionPerfData"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.KFoldRegressionPerfData">[docs]</a><span class="k">class</span> <span class="nc">KFoldRegressionPerfData</span><span class="p">(</span><span class="n">RegressionPerfData</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Class with methods for accumulating regression model prediction data over multiple</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Class with methods for accumulating regression model prediction data over multiple</span>
 <span class="sd">    cross-validation folds and computing performance metrics after all folds have been run.</span>
 <span class="sd">    </span>
 <span class="sd">    Arguments:</span>
@@ -995,7 +998,7 @@
     <span class="c1"># ****************************************************************************************</span>
     <span class="c1"># class KFoldRegressionPerfData</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_dataset</span><span class="p">,</span> <span class="n">transformers</span><span class="p">,</span> <span class="n">subset</span><span class="p">,</span> <span class="n">transformed</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        # Initialize any attributes that are common to all KFoldRegressionPerfData subclasses</span>
 <span class="sd">        Args:</span>
 <span class="sd">            model_dataset (ModelDataset object): contains the dataset and related methods</span>
@@ -1051,7 +1054,7 @@
     <span class="c1"># ****************************************************************************************</span>
     <span class="c1"># class KFoldRegressionPerfData</span>
 <div class="viewcode-block" id="KFoldRegressionPerfData.accumulate_preds"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.KFoldRegressionPerfData.accumulate_preds">[docs]</a>    <span class="k">def</span> <span class="nf">accumulate_preds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">predicted_vals</span><span class="p">,</span> <span class="n">ids</span><span class="p">,</span> <span class="n">pred_stds</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Add training, validation or test set predictions from the current fold to the data structure</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Add training, validation or test set predictions from the current fold to the data structure</span>
 <span class="sd">        where we keep track of them.</span>
 
 <span class="sd">        Args:</span>
@@ -1111,7 +1114,7 @@
     <span class="c1"># ****************************************************************************************</span>
     <span class="c1"># class KFoldRegressionPerfData</span>
 <div class="viewcode-block" id="KFoldRegressionPerfData.get_pred_values"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.KFoldRegressionPerfData.get_pred_values">[docs]</a>    <span class="k">def</span> <span class="nf">get_pred_values</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns the predicted values accumulated over training, with any transformations undone.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the predicted values accumulated over training, with any transformations undone.</span>
 <span class="sd">        If self.subset is &#39;train&#39; or &#39;test&#39;, the function will return averages over the training folds for each compound</span>
 <span class="sd">        along with standard deviations when there are predictions from multiple folds. Otherwise, returns a</span>
 <span class="sd">        single predicted value for each compound. </span>
@@ -1144,7 +1147,7 @@
     <span class="c1"># ****************************************************************************************</span>
     <span class="c1"># class KFoldRegressionPerfData</span>
 <div class="viewcode-block" id="KFoldRegressionPerfData.get_real_values"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.KFoldRegressionPerfData.get_real_values">[docs]</a>    <span class="k">def</span> <span class="nf">get_real_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ids</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns the real dataset response values, with any transformations undone, as an (ncmpds, ntasks) array</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the real dataset response values, with any transformations undone, as an (ncmpds, ntasks) array</span>
 <span class="sd">        in the same ID order as get_pred_values() (unless ids is specified).</span>
 <span class="sd">        </span>
 <span class="sd">        Args:</span>
@@ -1164,7 +1167,7 @@
     <span class="c1"># ****************************************************************************************</span>
     <span class="c1"># class KFoldRegressionPerfData</span>
 <div class="viewcode-block" id="KFoldRegressionPerfData.get_weights"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.KFoldRegressionPerfData.get_weights">[docs]</a>    <span class="k">def</span> <span class="nf">get_weights</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ids</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns the dataset response weights, as an (ncmpds, ntasks) array</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the dataset response weights, as an (ncmpds, ntasks) array</span>
 <span class="sd">        in the same ID order as get_pred_values() (unless ids is specified).</span>
 <span class="sd">        </span>
 <span class="sd">        Args:</span>
@@ -1184,7 +1187,7 @@
     <span class="c1"># ****************************************************************************************</span>
     <span class="c1"># class KFoldRegressionPerfData</span>
 <div class="viewcode-block" id="KFoldRegressionPerfData.compute_perf_metrics"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.KFoldRegressionPerfData.compute_perf_metrics">[docs]</a>    <span class="k">def</span> <span class="nf">compute_perf_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">per_task</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Computes the R-squared metrics for each task based on the accumulated values, averaged over</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Computes the R-squared metrics for each task based on the accumulated values, averaged over</span>
 <span class="sd">        training folds, along with standard deviations of the scores. If per_task is False, the scores </span>
 <span class="sd">        are averaged over tasks and the overall standard deviation is reported instead.</span>
 <span class="sd">        </span>
@@ -1212,7 +1215,7 @@
 
 <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="KFoldClassificationPerfData"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.KFoldClassificationPerfData">[docs]</a><span class="k">class</span> <span class="nc">KFoldClassificationPerfData</span><span class="p">(</span><span class="n">ClassificationPerfData</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Class with methods for accumulating classification model performance data over multiple</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Class with methods for accumulating classification model performance data over multiple</span>
 <span class="sd">    cross-validation folds and computing performance metrics after all folds have been run.</span>
 <span class="sd">    </span>
 <span class="sd">    Attributes:</span>
@@ -1231,7 +1234,7 @@
     <span class="c1"># ****************************************************************************************</span>
     <span class="c1"># class KFoldClassificationPerfData</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_dataset</span><span class="p">,</span> <span class="n">transformers</span><span class="p">,</span> <span class="n">subset</span><span class="p">,</span> <span class="n">predict_probs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">transformed</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Initialize any attributes that are common to all KFoldClassificationPerfData subclasses</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Initialize any attributes that are common to all KFoldClassificationPerfData subclasses</span>
 <span class="sd">        </span>
 <span class="sd">         Args:</span>
 <span class="sd">            model_dataset (ModelDataset object): contains the dataset and related methods</span>
@@ -1316,7 +1319,7 @@
     <span class="c1"># ****************************************************************************************</span>
     <span class="c1"># class KFoldClassificationPerfData</span>
 <div class="viewcode-block" id="KFoldClassificationPerfData.accumulate_preds"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.KFoldClassificationPerfData.accumulate_preds">[docs]</a>    <span class="k">def</span> <span class="nf">accumulate_preds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">predicted_vals</span><span class="p">,</span> <span class="n">ids</span><span class="p">,</span> <span class="n">pred_stds</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Add training, validation or test set predictions from the current fold to the data structure</span>
 <span class="sd">        where we keep track of them.</span>
 <span class="sd">        </span>
@@ -1367,7 +1370,7 @@
     <span class="c1"># ****************************************************************************************</span>
     <span class="c1"># class KFoldClassificationPerfData</span>
 <div class="viewcode-block" id="KFoldClassificationPerfData.get_pred_values"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.KFoldClassificationPerfData.get_pred_values">[docs]</a>    <span class="k">def</span> <span class="nf">get_pred_values</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns the predicted values accumulated over training, with any transformations undone.  If self.subset </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the predicted values accumulated over training, with any transformations undone.  If self.subset </span>
 <span class="sd">        is &#39;train&#39;, &#39;train_valid&#39; or &#39;test&#39;, the function will return the means and standard deviations of the class probabilities </span>
 <span class="sd">        over the training folds for each compound, for each task.  Otherwise, returns a single set of predicted probabilites for </span>
 <span class="sd">        each validation set compound. For all subsets, returns the compound IDs and the most probable classes for each task. </span>
@@ -1403,7 +1406,7 @@
     <span class="c1"># ****************************************************************************************</span>
     <span class="c1"># class KFoldClassificationPerfData</span>
 <div class="viewcode-block" id="KFoldClassificationPerfData.get_real_values"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.KFoldClassificationPerfData.get_real_values">[docs]</a>    <span class="k">def</span> <span class="nf">get_real_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ids</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns the real dataset response values as an (ncmpds, ntasks, nclasses) array of indicator bits</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the real dataset response values as an (ncmpds, ntasks, nclasses) array of indicator bits</span>
 <span class="sd">        (if nclasses &gt; 2) or an (ncmpds, ntasks) array of binary classes (if nclasses == 2),</span>
 <span class="sd">        with compound IDs in the same order as in the return from get_pred_values() (unless ids is specified).</span>
 <span class="sd">        </span>
@@ -1424,7 +1427,7 @@
     <span class="c1"># ****************************************************************************************</span>
     <span class="c1"># class KFoldClassificationPerfData</span>
 <div class="viewcode-block" id="KFoldClassificationPerfData.get_weights"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.KFoldClassificationPerfData.get_weights">[docs]</a>    <span class="k">def</span> <span class="nf">get_weights</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ids</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns the dataset response weights, as an (ncmpds, ntasks) array</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the dataset response weights, as an (ncmpds, ntasks) array</span>
 <span class="sd">        in the same ID order as get_pred_values() (unless ids is specified).</span>
 <span class="sd">        </span>
 <span class="sd">        Args:</span>
@@ -1443,7 +1446,7 @@
     <span class="c1"># ****************************************************************************************</span>
     <span class="c1"># class KFoldClassificationPerfData</span>
 <div class="viewcode-block" id="KFoldClassificationPerfData.compute_perf_metrics"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.KFoldClassificationPerfData.compute_perf_metrics">[docs]</a>    <span class="k">def</span> <span class="nf">compute_perf_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">per_task</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Computes the ROC AUC metrics for each task based on the accumulated values, averaged over</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Computes the ROC AUC metrics for each task based on the accumulated values, averaged over</span>
 <span class="sd">        training folds, along with standard deviations of the scores. If per_task is False, the scores </span>
 <span class="sd">        are averaged over tasks and the overall standard deviation is reported instead.</span>
 <span class="sd">        </span>
@@ -1472,7 +1475,7 @@
 
 <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="SimpleRegressionPerfData"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.SimpleRegressionPerfData">[docs]</a><span class="k">class</span> <span class="nc">SimpleRegressionPerfData</span><span class="p">(</span><span class="n">RegressionPerfData</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Class with methods for accumulating regression model prediction data from training,</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Class with methods for accumulating regression model prediction data from training,</span>
 <span class="sd">    validation or test sets and computing performance metrics.</span>
 <span class="sd">    </span>
 <span class="sd">    Attributes:</span>
@@ -1496,7 +1499,7 @@
     <span class="c1"># ****************************************************************************************</span>
     <span class="c1"># class SimpleRegressionPerfData</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_dataset</span><span class="p">,</span> <span class="n">transformers</span><span class="p">,</span> <span class="n">subset</span><span class="p">,</span> <span class="n">transformed</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Initialize any attributes that are common to all SimpleRegressionPerfData subclasses</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Initialize any attributes that are common to all SimpleRegressionPerfData subclasses</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            model_dataset (ModelDataset object): contains the dataset and related methods</span>
@@ -1557,7 +1560,7 @@
     <span class="c1"># ****************************************************************************************</span>
     <span class="c1"># class SimpleRegressionPerfData</span>
 <div class="viewcode-block" id="SimpleRegressionPerfData.accumulate_preds"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.SimpleRegressionPerfData.accumulate_preds">[docs]</a>    <span class="k">def</span> <span class="nf">accumulate_preds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">predicted_vals</span><span class="p">,</span> <span class="n">ids</span><span class="p">,</span> <span class="n">pred_stds</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Add training, validation or test set predictions to the data structure</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Add training, validation or test set predictions to the data structure</span>
 <span class="sd">        where we keep track of them.</span>
 <span class="sd">        </span>
 <span class="sd">        Args:</span>
@@ -1591,7 +1594,7 @@
     <span class="c1"># ****************************************************************************************</span>
     <span class="c1"># class SimpleRegressionPerfData</span>
 <div class="viewcode-block" id="SimpleRegressionPerfData.get_pred_values"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.SimpleRegressionPerfData.get_pred_values">[docs]</a>    <span class="k">def</span> <span class="nf">get_pred_values</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns the predicted values accumulated over training, with any transformations undone.  Returns</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the predicted values accumulated over training, with any transformations undone.  Returns</span>
 <span class="sd">        a tuple (ids, values, stds), where ids is the list of compound IDs, values is a (ncmpds, ntasks) array</span>
 <span class="sd">        of predictions, and stds is always None for this class.</span>
 <span class="sd">        </span>
@@ -1619,7 +1622,7 @@
     <span class="c1"># ****************************************************************************************</span>
     <span class="c1"># class SimpleRegressionPerfData</span>
 <div class="viewcode-block" id="SimpleRegressionPerfData.get_real_values"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.SimpleRegressionPerfData.get_real_values">[docs]</a>    <span class="k">def</span> <span class="nf">get_real_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ids</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns the real dataset response values, with any transformations undone, as an (ncmpds, ntasks) array</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the real dataset response values, with any transformations undone, as an (ncmpds, ntasks) array</span>
 <span class="sd">        with compounds in the same ID order as in the return from get_pred_values().</span>
 <span class="sd">        </span>
 <span class="sd">        Args:</span>
@@ -1635,7 +1638,7 @@
     <span class="c1"># ****************************************************************************************</span>
     <span class="c1"># class SimpleRegressionPerfData</span>
 <div class="viewcode-block" id="SimpleRegressionPerfData.get_weights"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.SimpleRegressionPerfData.get_weights">[docs]</a>    <span class="k">def</span> <span class="nf">get_weights</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ids</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns the dataset response weights as an (ncmpds, ntasks) array</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the dataset response weights as an (ncmpds, ntasks) array</span>
 <span class="sd">        </span>
 <span class="sd">        Args:</span>
 <span class="sd">            ids: Ignored for this class</span>
@@ -1650,7 +1653,7 @@
     <span class="c1"># ****************************************************************************************</span>
     <span class="c1"># class SimpleRegressionPerfData</span>
 <div class="viewcode-block" id="SimpleRegressionPerfData.compute_perf_metrics"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.SimpleRegressionPerfData.compute_perf_metrics">[docs]</a>    <span class="k">def</span> <span class="nf">compute_perf_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">per_task</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns the R-squared metrics for each task or averaged over tasks based on the accumulated values</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the R-squared metrics for each task or averaged over tasks based on the accumulated values</span>
 <span class="sd">        </span>
 <span class="sd">        Args:</span>
 <span class="sd">            per_task (bool): True if calculating per-task metrics, False otherwise.</span>
@@ -1672,7 +1675,7 @@
 
 <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="SimpleClassificationPerfData"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.SimpleClassificationPerfData">[docs]</a><span class="k">class</span> <span class="nc">SimpleClassificationPerfData</span><span class="p">(</span><span class="n">ClassificationPerfData</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Class with methods for collecting classification model prediction and performance data from single-fold</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Class with methods for collecting classification model prediction and performance data from single-fold</span>
 <span class="sd">    training and prediction runs.</span>
 <span class="sd">        </span>
 <span class="sd">    Attributes:</span>
@@ -1700,7 +1703,7 @@
     <span class="c1"># ****************************************************************************************</span>
     <span class="c1"># class SimpleClassificationPerfData</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_dataset</span><span class="p">,</span> <span class="n">transformers</span><span class="p">,</span> <span class="n">subset</span><span class="p">,</span> <span class="n">predict_probs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">transformed</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Initialize any attributes that are common to all SimpleClassificationPerfData subclasses</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Initialize any attributes that are common to all SimpleClassificationPerfData subclasses</span>
 <span class="sd">        </span>
 <span class="sd">        Args:</span>
 <span class="sd">            model_dataset (ModelDataset object): contains the dataset and related methods</span>
@@ -1795,7 +1798,7 @@
     <span class="c1"># ****************************************************************************************</span>
     <span class="c1"># class SimpleClassificationPerfData</span>
 <div class="viewcode-block" id="SimpleClassificationPerfData.accumulate_preds"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.SimpleClassificationPerfData.accumulate_preds">[docs]</a>    <span class="k">def</span> <span class="nf">accumulate_preds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">predicted_vals</span><span class="p">,</span> <span class="n">ids</span><span class="p">,</span> <span class="n">pred_stds</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Add training, validation or test set predictions from the current dataset to the data structure</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Add training, validation or test set predictions from the current dataset to the data structure</span>
 <span class="sd">        where we keep track of them.</span>
 <span class="sd">        </span>
 <span class="sd">        Arguments:</span>
@@ -1839,7 +1842,7 @@
     <span class="c1"># ****************************************************************************************</span>
     <span class="c1"># class SimpleClassificationPerfData</span>
 <div class="viewcode-block" id="SimpleClassificationPerfData.get_pred_values"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.SimpleClassificationPerfData.get_pred_values">[docs]</a>    <span class="k">def</span> <span class="nf">get_pred_values</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns the predicted values accumulated over training, with any transformations undone.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the predicted values accumulated over training, with any transformations undone.</span>
 <span class="sd">        If self.subset is &#39;train&#39;, the function will average class probabilities over the k-1 folds in which each</span>
 <span class="sd">        compound was part of the training set, and return the most probable class. Otherwise, there should be a</span>
 <span class="sd">        single set of predicted probabilites for each validation or test set compound. Returns a tuple (ids,</span>
@@ -1868,7 +1871,7 @@
     <span class="c1"># ****************************************************************************************</span>
     <span class="c1"># class SimpleClassificationPerfData</span>
 <div class="viewcode-block" id="SimpleClassificationPerfData.get_real_values"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.SimpleClassificationPerfData.get_real_values">[docs]</a>    <span class="k">def</span> <span class="nf">get_real_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ids</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns the real dataset response values as an (ncmpds, ntasks, nclasses) array of indicator bits.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the real dataset response values as an (ncmpds, ntasks, nclasses) array of indicator bits.</span>
 <span class="sd">        If nclasses == 2, the returned array has dimension (ncmpds, ntasks).</span>
 <span class="sd">        </span>
 <span class="sd">        Args:</span>
@@ -1884,7 +1887,7 @@
     <span class="c1"># ****************************************************************************************</span>
     <span class="c1"># class SimpleClassificationPerfData</span>
 <div class="viewcode-block" id="SimpleClassificationPerfData.get_weights"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.SimpleClassificationPerfData.get_weights">[docs]</a>    <span class="k">def</span> <span class="nf">get_weights</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ids</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns the dataset response weights</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the dataset response weights</span>
 <span class="sd">        </span>
 <span class="sd">        Args:</span>
 <span class="sd">            ids: Ignored for this class</span>
@@ -1899,7 +1902,7 @@
     <span class="c1"># ****************************************************************************************</span>
     <span class="c1"># class SimpleClassificationPerfData</span>
 <div class="viewcode-block" id="SimpleClassificationPerfData.compute_perf_metrics"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.SimpleClassificationPerfData.compute_perf_metrics">[docs]</a>    <span class="k">def</span> <span class="nf">compute_perf_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">per_task</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns the ROC_AUC metrics for each task based on the accumulated predictions. If</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the ROC_AUC metrics for each task based on the accumulated predictions. If</span>
 <span class="sd">        per_task is False, returns the average ROC AUC over tasks.</span>
 <span class="sd">        </span>
 <span class="sd">        Args:</span>
@@ -1922,7 +1925,7 @@
 
 <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="SimpleHybridPerfData"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.SimpleHybridPerfData">[docs]</a><span class="k">class</span> <span class="nc">SimpleHybridPerfData</span><span class="p">(</span><span class="n">HybridPerfData</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Class with methods for accumulating hybrid model prediction data from training,</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Class with methods for accumulating hybrid model prediction data from training,</span>
 <span class="sd">    validation or test sets and computing performance metrics.</span>
 <span class="sd">    </span>
 <span class="sd">    Attributes:</span>
@@ -1946,7 +1949,7 @@
     <span class="c1"># ****************************************************************************************</span>
     <span class="c1"># class SimpleHybridPerfData</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_dataset</span><span class="p">,</span> <span class="n">transformers</span><span class="p">,</span> <span class="n">subset</span><span class="p">,</span> <span class="n">is_ki</span><span class="p">,</span> <span class="n">ki_convert_ratio</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">transformed</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Initialize any attributes that are common to all SimpleRegressionPerfData subclasses</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Initialize any attributes that are common to all SimpleRegressionPerfData subclasses</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            model_dataset (ModelDataset object): contains the dataset and related methods</span>
@@ -2015,7 +2018,7 @@
     <span class="c1"># ****************************************************************************************</span>
     <span class="c1"># class SimpleHybridPerfData</span>
 <div class="viewcode-block" id="SimpleHybridPerfData.accumulate_preds"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.SimpleHybridPerfData.accumulate_preds">[docs]</a>    <span class="k">def</span> <span class="nf">accumulate_preds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">predicted_vals</span><span class="p">,</span> <span class="n">ids</span><span class="p">,</span> <span class="n">pred_stds</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Add training, validation or test set predictions to the data structure</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Add training, validation or test set predictions to the data structure</span>
 <span class="sd">        where we keep track of them.</span>
 <span class="sd">        </span>
 <span class="sd">        Args:</span>
@@ -2067,7 +2070,7 @@
     <span class="c1"># ****************************************************************************************</span>
     <span class="c1"># class SimpleHybridPerfData</span>
     <span class="k">def</span> <span class="nf">_predict_binding</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">activity</span><span class="p">,</span> <span class="n">conc</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Predict measurements of fractional binding/inhibition of target receptors by a compound with the given activity,</span>
 <span class="sd">        in -Log scale, at the specified concentration in nM. If the given activity is pKi, a ratio to convert Ki into IC50</span>
 <span class="sd">        is needed. It can be the ratio of concentration and Kd of the radioligand in a competitive binding assay, or the concentration</span>
@@ -2088,7 +2091,7 @@
     <span class="c1"># ****************************************************************************************</span>
     <span class="c1"># class SimpleHybridPerfData</span>
 <div class="viewcode-block" id="SimpleHybridPerfData.get_pred_values"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.SimpleHybridPerfData.get_pred_values">[docs]</a>    <span class="k">def</span> <span class="nf">get_pred_values</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns the predicted values accumulated over training, with any transformations undone.  Returns</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the predicted values accumulated over training, with any transformations undone.  Returns</span>
 <span class="sd">        a tuple (ids, values, stds), where ids is the list of compound IDs, values is a (ncmpds, ntasks) array</span>
 <span class="sd">        of predictions, and stds is always None for this class.</span>
 <span class="sd">        </span>
@@ -2111,7 +2114,7 @@
     <span class="c1"># ****************************************************************************************</span>
     <span class="c1"># class SimpleHybridPerfData</span>
 <div class="viewcode-block" id="SimpleHybridPerfData.get_real_values"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.SimpleHybridPerfData.get_real_values">[docs]</a>    <span class="k">def</span> <span class="nf">get_real_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ids</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns the real dataset response values, with any transformations undone, as an (ncmpds, ntasks) array</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the real dataset response values, with any transformations undone, as an (ncmpds, ntasks) array</span>
 <span class="sd">        with compounds in the same ID order as in the return from get_pred_values().</span>
 <span class="sd">        </span>
 <span class="sd">        Args:</span>
@@ -2127,7 +2130,7 @@
     <span class="c1"># ****************************************************************************************</span>
     <span class="c1"># class SimpleHybridPerfData</span>
 <div class="viewcode-block" id="SimpleHybridPerfData.get_weights"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.SimpleHybridPerfData.get_weights">[docs]</a>    <span class="k">def</span> <span class="nf">get_weights</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ids</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns the dataset response weights as an (ncmpds, ntasks) array</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the dataset response weights as an (ncmpds, ntasks) array</span>
 <span class="sd">        </span>
 <span class="sd">        Args:</span>
 <span class="sd">            ids: Ignored for this class</span>
@@ -2142,7 +2145,7 @@
     <span class="c1"># ****************************************************************************************</span>
     <span class="c1"># class SimpleHybridPerfData</span>
 <div class="viewcode-block" id="SimpleHybridPerfData.compute_perf_metrics"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.SimpleHybridPerfData.compute_perf_metrics">[docs]</a>    <span class="k">def</span> <span class="nf">compute_perf_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">per_task</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns the R-squared metrics for each task or averaged over tasks based on the accumulated values</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the R-squared metrics for each task or averaged over tasks based on the accumulated values</span>
 <span class="sd">        </span>
 <span class="sd">        Args:</span>
 <span class="sd">            per_task (bool): True if calculating per-task metrics, False otherwise.</span>
@@ -2163,7 +2166,7 @@
 
 <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="EpochManager"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.EpochManager">[docs]</a><span class="k">class</span> <span class="nc">EpochManager</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot; Manages lists of PerfDatas</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Manages lists of PerfDatas</span>
 
 <span class="sd">    This class manages lists of PerfDatas as well as variables related to iteratively</span>
 <span class="sd">    training a model over several epochs. This class sets several varaibles in a given</span>
@@ -2192,7 +2195,7 @@
     <span class="c1"># class EpochManager</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wrapper</span><span class="p">,</span>
             <span class="n">subsets</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;train&#39;</span><span class="p">:</span><span class="s1">&#39;train&#39;</span><span class="p">,</span>  <span class="s1">&#39;valid&#39;</span><span class="p">:</span><span class="s1">&#39;valid&#39;</span><span class="p">,</span> <span class="s1">&#39;test&#39;</span><span class="p">:</span><span class="s1">&#39;test&#39;</span><span class="p">},</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Initialize EpochManager</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Initialize EpochManager</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            wrapper (ModelWrapper): The ModelWrapper that&#39;s doing the training</span>
@@ -2256,7 +2259,7 @@
     <span class="c1"># ****************************************************************************************</span>
     <span class="c1"># class EpochManager</span>
 <div class="viewcode-block" id="EpochManager.should_stop"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.EpochManager.should_stop">[docs]</a>    <span class="k">def</span> <span class="nf">should_stop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; </span>
 <span class="sd">        Returns True when the training loop should stop</span>
 
 <span class="sd">        Returns:</span>
@@ -2267,7 +2270,7 @@
     <span class="c1"># ****************************************************************************************</span>
     <span class="c1"># class EpochManager</span>
 <div class="viewcode-block" id="EpochManager.update_epoch"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.EpochManager.update_epoch">[docs]</a>    <span class="k">def</span> <span class="nf">update_epoch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ei</span><span class="p">,</span> <span class="n">train_dset</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">valid_dset</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">test_dset</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Update training state after an epoch</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Update training state after an epoch</span>
 
 <span class="sd">        This function updates train/valid/test_perf_data. Call this function once</span>
 <span class="sd">        per epoch. Call self.should_stop() after calling this function to see if you should</span>
@@ -2301,7 +2304,7 @@
     <span class="c1"># ****************************************************************************************</span>
     <span class="c1"># class EpochManager</span>
 <div class="viewcode-block" id="EpochManager.accumulate"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.EpochManager.accumulate">[docs]</a>    <span class="k">def</span> <span class="nf">accumulate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ei</span><span class="p">,</span> <span class="n">subset</span><span class="p">,</span> <span class="n">dset</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Accumulate predictions</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Accumulate predictions</span>
 <span class="sd">        </span>
 <span class="sd">        Makes predictions, accumulate predictions and calculate the performance metric. Calls PerfData.accumulate_preds</span>
 <span class="sd">        belonging to the epoch, subset, and given dataset.</span>
@@ -2323,7 +2326,7 @@
     <span class="c1"># ****************************************************************************************</span>
     <span class="c1"># class EpochManager</span>
 <div class="viewcode-block" id="EpochManager.compute"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.EpochManager.compute">[docs]</a>    <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ei</span><span class="p">,</span> <span class="n">subset</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Computes performance metrics</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Computes performance metrics</span>
 
 <span class="sd">        This calls PerfData.compute_perf_metrics and saves the result in </span>
 <span class="sd">        f&#39;{subset}_epoch_perfs&#39;</span>
@@ -2343,7 +2346,7 @@
     <span class="c1"># ****************************************************************************************</span>
     <span class="c1"># class EpochManager</span>
 <div class="viewcode-block" id="EpochManager.update_valid"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.EpochManager.update_valid">[docs]</a>    <span class="k">def</span> <span class="nf">update_valid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ei</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Checks validation score</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Checks validation score</span>
 
 <span class="sd">        Checks validation performance of the given epoch index. Updates self._should_stop, checks</span>
 <span class="sd">        on early stopping conditions, calls self._new_best_valid_score() when necessary.</span>
@@ -2376,7 +2379,7 @@
     <span class="c1"># ****************************************************************************************</span>
     <span class="c1"># class EpochManager</span>
 <div class="viewcode-block" id="EpochManager.update"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.EpochManager.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ei</span><span class="p">,</span> <span class="n">subset</span><span class="p">,</span> <span class="n">dset</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Update training state</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Update training state</span>
 
 <span class="sd">        Updates the training state for a given subset and epoch index with the given dataset.</span>
 
@@ -2405,7 +2408,7 @@
     <span class="c1"># ****************************************************************************************</span>
     <span class="c1"># class EpochManager</span>
 <div class="viewcode-block" id="EpochManager.set_make_pred"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.EpochManager.set_make_pred">[docs]</a>    <span class="k">def</span> <span class="nf">set_make_pred</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">functional</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Sets the function used to make predictions</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Sets the function used to make predictions</span>
 
 <span class="sd">        Sets the function used to make predictions. This must be called before invoking</span>
 <span class="sd">        self.update and self.accumulate</span>
@@ -2426,7 +2429,7 @@
     <span class="c1"># ****************************************************************************************</span>
     <span class="c1"># class EpochManager</span>
 <div class="viewcode-block" id="EpochManager.on_new_best_valid"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.EpochManager.on_new_best_valid">[docs]</a>    <span class="k">def</span> <span class="nf">on_new_best_valid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">functional</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Sets the function called when a new best validation score is achieved</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Sets the function called when a new best validation score is achieved</span>
 
 <span class="sd">        Saves the function called when there&#39;s a new best validation score.</span>
 
@@ -2446,7 +2449,7 @@
 
 <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="EpochManagerKFold"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.EpochManagerKFold">[docs]</a><span class="k">class</span> <span class="nc">EpochManagerKFold</span><span class="p">(</span><span class="n">EpochManager</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        This class manages the training state when using KFold cross validation. This is</span>
 <span class="sd">        necessary because this manager uses f&#39;{subset}_epoch_perf_stds&#39; unlike EpochManager</span>
 
@@ -2454,7 +2457,7 @@
     <span class="c1"># ****************************************************************************************</span>
     <span class="c1"># class EpochManagerKFold</span>
 <div class="viewcode-block" id="EpochManagerKFold.compute"><a class="viewcode-back" href="../../pipeline.html#pipeline.perf_data.EpochManagerKFold.compute">[docs]</a>    <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ei</span><span class="p">,</span> <span class="n">subset</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Calls PerfData.compute_perf_metrics()</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Calls PerfData.compute_perf_metrics()</span>
 <span class="sd">        </span>
 <span class="sd">        This differs from EpochManager.compute in that it saves the results into</span>
 <span class="sd">        f&#39;{subset}_epoch_perf_stds&#39;</span>
@@ -2479,7 +2482,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2022, ATOM DDM Team.</p>
+    <p>&#169; Copyright 2023, ATOM DDM Team.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

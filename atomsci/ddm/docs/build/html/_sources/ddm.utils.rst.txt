@@ -60,14 +60,6 @@ ddm.utils.model\_retrain module
    :undoc-members:
    :show-inheritance:
 
-ddm.utils.open\-docs module
----------------------------
-
-.. automodule:: ddm.utils.open-docs
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 ddm.utils.process\_slurm module
 -------------------------------
 
