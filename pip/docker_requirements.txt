@@ -9,7 +9,7 @@ certifi==2022.12.7
 charset-normalizer==3.0.1
 deepchem==2.7.1
 flatbuffers==23.1.4
-future==0.18.2
+future==0.18.3
 gast==0.4.0
 google-auth==2.16.0
 google-auth-oauthlib==0.4.6
