@@ -39,7 +39,7 @@ matplotlib-venn==0.11.6
 MolVS==0.1.1
 mordred==1.2.0
 numba==0.52.0
-numpy==1.21.6
+numpy==1.22.0
 nvidia-cublas-cu11==11.10.3.66
 nvidia-cuda-nvrtc-cu11==11.7.99
 nvidia-cuda-runtime-cu11==11.7.99
