@@ -1,0 +1,11 @@
+compound_id,SMILES,has_aniline
+206_1350,C=C(C)C(=C)C1=CC23C(=C(N)NC2(C)Cc2c(Cl)ccc(Cl)c23)C1=C,False
+170_2203,C=CC1=C(C)C(=C2C=C(C3=C(Cl)Nc4c(N)ccc(F)c4C3)CC2)CC1,True
+226_229,C=C(C)C(=C)C1=CC(=C2C=CC3(N)c4c(Cl)ccc(F)c4NC23)CC1,False
+230_908,C=C(C=C1C(C)=Cc2c(F)cc(F)c(N)c21)C1=C(F)C(Cl)CC1,True
+216_788,C=C(C)C(=C)C1=CC(=C2C=CC3(N)c4c(F)ccc(Cl)c4NC23)CC1,False
+224_302,C=C(C)C1=C(C)C(=C2C=C(C3=C(Cl)Nc4c(F)ccc(N)c4C3)CC2)CC1,True
+183_234,C=C(C)C(=C)C1=CC(=C2C=CC3(N)c4c(Cl)ccc(Cl)c4NC23)CC1,False
+241_94,CC=C(C)C1=CC(=C2C=CC3(N)c4c(F)ccc(Cl)c4NC23)CC1,False
+197_1234,C=C1CC2=Cc3c(N)ccc(Cl)c3C2=C1C1=CC(=C(C)C)CC1,True
+237_2140,C=C(C)C1=Cc2c(Cl)ccc(N)c2C1=CC1=C(F)C(Cl)CC1,True

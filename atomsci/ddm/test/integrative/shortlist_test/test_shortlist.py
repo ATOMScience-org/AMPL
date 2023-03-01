@@ -14,6 +14,7 @@ import json
 import atomsci.ddm.pipeline.parameter_parser as parse
 import atomsci.ddm.pipeline.compare_models as cm
 from atomsci.ddm.utils import llnl_utils
+import atomsci.ddm.utils.file_utils as futils
 
 def init_data():
     '''
@@ -202,9 +203,8 @@ def extract_split_uuid(tar_file):
 
     tmpdir = tempfile.mkdtemp()
 
-    model_fp = tarfile.open(tar_file, mode='r:gz')
-    model_fp.extractall(path=tmpdir)
-    model_fp.close()
+    with tarfile.open(tar_file, mode='r:gz') as tar:
+        futils.safe_extract(tar, path=tmpdir)
 
     # make metadata path
     metadata_path = os.path.join(tmpdir, 'model_metadata.json')

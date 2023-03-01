@@ -3,18 +3,17 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Index &mdash; ATOM Data-Driven Modeling Pipeline 1.4.0 documentation</title>
+  <title>Index &mdash; ATOM Data-Driven Modeling Pipeline 1.5.0 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="#" />
     <link rel="search" title="Search" href="search.html" /> 
@@ -25,14 +24,18 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="index.html" class="icon icon-home"> ATOM Data-Driven Modeling Pipeline
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            ATOM Data-Driven Modeling Pipeline
           </a>
               <div class="version">
-                1.4.0
+                1.5.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -64,8 +67,8 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-      <li>Index</li>
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Index</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -97,6 +100,7 @@
  | <a href="#S"><strong>S</strong></a>
  | <a href="#T"><strong>T</strong></a>
  | <a href="#U"><strong>U</strong></a>
+ | <a href="#V"><strong>V</strong></a>
  | <a href="#W"><strong>W</strong></a>
  | <a href="#X"><strong>X</strong></a>
  
@@ -228,7 +232,9 @@
 </li>
       <li><a href="utils.html#utils.datastore_functions.check_key_val">check_key_val() (in module utils.datastore_functions)</a>
 </li>
-      <li><a href="pipeline.html#pipeline.model_datasets.ModelDataset.check_task_columns">check_task_columns() (pipeline.model_datasets.ModelDataset method)</a>
+      <li><a href="pipeline.html#pipeline.model_datasets.check_task_columns">check_task_columns() (in module pipeline.model_datasets)</a>
+</li>
+      <li><a href="utils.html#utils.model_version_utils.check_version_compatible">check_version_compatible() (in module utils.model_version_utils)</a>
 </li>
       <li><a href="pipeline.html#pipeline.perf_data.ClassificationPerfData">ClassificationPerfData (class in pipeline.perf_data)</a>
 </li>
@@ -239,6 +245,12 @@
       <li><a href="pipeline.html#pipeline.feature_importance.cluster_permutation_importance">cluster_permutation_importance() (in module pipeline.feature_importance)</a>
 </li>
       <li><a href="pipeline.html#pipeline.model_datasets.ModelDataset.combined_training_data">combined_training_data() (pipeline.model_datasets.ModelDataset method)</a>
+</li>
+      <li><a href="pipeline.html#pipeline.splitting.DatasetManager.compact_dataset">compact_dataset() (pipeline.splitting.DatasetManager method)</a>
+</li>
+      <li><a href="utils.html#utils.compare_split_csv.compare_split_files">compare_split_files() (in module utils.compare_split_csv)</a>
+</li>
+      <li><a href="utils.html#utils.compare_split_csv.compare_splits">compare_splits() (in module utils.compare_split_csv)</a>
 </li>
       <li><a href="pipeline.html#pipeline.perf_data.EpochManager.compute">compute() (pipeline.perf_data.EpochManager method)</a>
 
@@ -302,6 +314,8 @@
         <li><a href="pipeline.html#pipeline.model_wrapper.PytorchDeepChemModelWrapper.count_params">(pipeline.model_wrapper.PytorchDeepChemModelWrapper method)</a>
 </li>
       </ul></li>
+      <li><a href="utils.html#utils.checksum_utils.create_checksum">create_checksum() (in module utils.checksum_utils)</a>
+</li>
       <li><a href="pipeline.html#pipeline.model_datasets.ModelDataset.create_dataset_split_table">create_dataset_split_table() (pipeline.model_datasets.ModelDataset method)</a>
 </li>
       <li><a href="pipeline.html#pipeline.featurization.DescriptorFeaturization.create_feature_transformer">create_feature_transformer() (pipeline.featurization.DescriptorFeaturization method)</a>
@@ -352,11 +366,15 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="utils.html#utils.datastore_functions.dataset_key_exists">dataset_key_exists() (in module utils.datastore_functions)</a>
 </li>
+      <li><a href="pipeline.html#pipeline.splitting.DatasetManager">DatasetManager (class in pipeline.splitting)</a>
+</li>
       <li><a href="pipeline.html#pipeline.model_datasets.DatastoreDataset">DatastoreDataset (class in pipeline.model_datasets)</a>
 </li>
       <li><a href="pipeline.html#pipeline.model_tracker.DatastoreInsertionException">DatastoreInsertionException</a>
 </li>
       <li><a href="pipeline.html#pipeline.model_wrapper.dc_restore">dc_restore() (in module pipeline.model_wrapper)</a>
+</li>
+      <li><a href="pipeline.html#pipeline.model_wrapper.dc_torch_restore">dc_torch_restore() (in module pipeline.model_wrapper)</a>
 </li>
       <li><a href="pipeline.html#pipeline.model_wrapper.DCRFModelWrapper">DCRFModelWrapper (class in pipeline.model_wrapper)</a>
 </li>
@@ -370,13 +388,15 @@
 </li>
       <li><a href="pipeline.html#pipeline.featurization.DescriptorFeaturization.desc_type_source">desc_type_source (pipeline.featurization.DescriptorFeaturization attribute)</a>
 </li>
-      <li><a href="pipeline.html#pipeline.featurization.DescriptorFeaturization">DescriptorFeaturization (class in pipeline.featurization)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="pipeline.html#pipeline.featurization.DescriptorFeaturization">DescriptorFeaturization (class in pipeline.featurization)</a>
+</li>
       <li><a href="pipeline.html#pipeline.parameter_parser.dict_to_list">dict_to_list() (in module pipeline.parameter_parser)</a>
 </li>
       <li><a href="pipeline.html#pipeline.feature_importance.display_feature_clusters">display_feature_clusters() (in module pipeline.feature_importance)</a>
+</li>
+      <li><a href="utils.html#utils.compare_splits_plots.SplitStats.dist_hist_plot">dist_hist_plot() (utils.compare_splits_plots.SplitStats method)</a>
 </li>
       <li><a href="pipeline.html#pipeline.diversity_plots.diversity_plots">diversity_plots() (in module pipeline.diversity_plots)</a>
 </li>
@@ -402,6 +422,8 @@
 <h2 id="E">E</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="pipeline.html#pipeline.featurization.EmbeddingFeaturization">EmbeddingFeaturization (class in pipeline.featurization)</a>
+</li>
       <li><a href="pipeline.html#pipeline.model_pipeline.ensemble_predict">ensemble_predict() (in module pipeline.model_pipeline)</a>
 </li>
       <li><a href="pipeline.html#pipeline.perf_data.EpochManager">EpochManager (class in pipeline.perf_data)</a>
@@ -410,14 +432,16 @@
 </li>
       <li><a href="utils.html#utils.data_curation_functions.exclude_organometallics">exclude_organometallics() (in module utils.data_curation_functions)</a>
 </li>
+      <li><a href="pipeline.html#pipeline.splitting.DatasetManager.expand_selection">expand_selection() (pipeline.splitting.DatasetManager method)</a>
+</li>
       <li><a href="pipeline.html#pipeline.model_tracker.export_model">export_model() (in module pipeline.model_tracker)</a>
 </li>
       <li><a href="pipeline.html#pipeline.compare_models.extract_collection_perf_metrics">extract_collection_perf_metrics() (in module pipeline.compare_models)</a>
 </li>
-      <li><a href="pipeline.html#pipeline.model_tracker.extract_datastore_model_tarball">extract_datastore_model_tarball() (in module pipeline.model_tracker)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="pipeline.html#pipeline.model_tracker.extract_datastore_model_tarball">extract_datastore_model_tarball() (in module pipeline.model_tracker)</a>
+</li>
       <li><a href="pipeline.html#pipeline.parameter_parser.extract_featurizer_params">extract_featurizer_params() (in module pipeline.parameter_parser)</a>
 </li>
       <li><a href="pipeline.html#pipeline.compare_models.extract_model_and_feature_parameters">extract_model_and_feature_parameters() (in module pipeline.compare_models)</a>
@@ -445,13 +469,19 @@
       <li><a href="pipeline.html#pipeline.featurization.Featurization">Featurization (class in pipeline.featurization)</a>
 </li>
       <li><a href="pipeline.html#pipeline.featurization.DynamicFeaturization.featurize">featurize() (pipeline.featurization.DynamicFeaturization method)</a>
+
+      <ul>
+        <li><a href="pipeline.html#pipeline.featurization.EmbeddingFeaturization.featurize">(pipeline.featurization.EmbeddingFeaturization method)</a>
 </li>
+      </ul></li>
       <li><a href="pipeline.html#pipeline.featurization.ComputedDescriptorFeaturization.featurize_data">featurize_data() (pipeline.featurization.ComputedDescriptorFeaturization method)</a>
 
       <ul>
         <li><a href="pipeline.html#pipeline.featurization.DescriptorFeaturization.featurize_data">(pipeline.featurization.DescriptorFeaturization method)</a>
 </li>
         <li><a href="pipeline.html#pipeline.featurization.DynamicFeaturization.featurize_data">(pipeline.featurization.DynamicFeaturization method)</a>
+</li>
+        <li><a href="pipeline.html#pipeline.featurization.EmbeddingFeaturization.featurize_data">(pipeline.featurization.EmbeddingFeaturization method)</a>
 </li>
         <li><a href="pipeline.html#pipeline.featurization.Featurization.featurize_data">(pipeline.featurization.Featurization method)</a>
 </li>
@@ -462,10 +492,10 @@
 </li>
       <li><a href="pipeline.html#pipeline.model_datasets.FileDataset">FileDataset (class in pipeline.model_datasets)</a>
 </li>
-      <li><a href="utils.html#utils.datastore_functions.filter_datasets_interactive">filter_datasets_interactive() (in module utils.datastore_functions)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="utils.html#utils.datastore_functions.filter_datasets_interactive">filter_datasets_interactive() (in module utils.datastore_functions)</a>
+</li>
       <li><a href="utils.html#utils.data_curation_functions.filter_dtc_data">filter_dtc_data() (in module utils.data_curation_functions)</a>
 </li>
       <li><a href="utils.html#utils.curate_data.filter_in_by_column_values">filter_in_by_column_values() (in module utils.curate_data)</a>
@@ -520,6 +550,14 @@
       </ul></li>
       <li><a href="utils.html#utils.hyperparam_search_wrapper.HyperparameterSearch.generate_combos">generate_combos() (utils.hyperparam_search_wrapper.HyperparameterSearch method)</a>
 </li>
+      <li><a href="pipeline.html#pipeline.model_wrapper.GraphConvDCModelWrapper.generate_embeddings">generate_embeddings() (pipeline.model_wrapper.GraphConvDCModelWrapper method)</a>
+
+      <ul>
+        <li><a href="pipeline.html#pipeline.model_wrapper.ModelWrapper.generate_embeddings">(pipeline.model_wrapper.ModelWrapper method)</a>
+</li>
+        <li><a href="pipeline.html#pipeline.model_wrapper.MultitaskDCModelWrapper.generate_embeddings">(pipeline.model_wrapper.MultitaskDCModelWrapper method)</a>
+</li>
+      </ul></li>
       <li><a href="utils.html#utils.hyperparam_search_wrapper.HyperparameterSearch.generate_maestro_commands">generate_maestro_commands() (utils.hyperparam_search_wrapper.HyperparameterSearch method)</a>
 </li>
       <li><a href="utils.html#utils.hyperparam_search_wrapper.GeometricSearch.generate_param_combos">generate_param_combos() (utils.hyperparam_search_wrapper.GeometricSearch method)</a>
@@ -562,6 +600,14 @@
 </li>
       <li><a href="pipeline.html#pipeline.featurization.get_3d_mols">get_3d_mols() (in module pipeline.featurization)</a>
 </li>
+      <li><a href="utils.html#utils.model_version_utils.get_ampl_version">get_ampl_version() (in module utils.model_version_utils)</a>
+</li>
+      <li><a href="utils.html#utils.model_version_utils.get_ampl_version_from_dir">get_ampl_version_from_dir() (in module utils.model_version_utils)</a>
+</li>
+      <li><a href="utils.html#utils.model_version_utils.get_ampl_version_from_json">get_ampl_version_from_json() (in module utils.model_version_utils)</a>
+</li>
+      <li><a href="utils.html#utils.model_version_utils.get_ampl_version_from_model">get_ampl_version_from_model() (in module utils.model_version_utils)</a>
+</li>
       <li><a href="pipeline.html#pipeline.compare_models.get_best_models_info">get_best_models_info() (in module pipeline.compare_models)</a>
 </li>
       <li><a href="pipeline.html#pipeline.compare_models.get_best_perf_table">get_best_perf_table() (in module pipeline.compare_models)</a>
@@ -571,6 +617,8 @@
       <li><a href="utils.html#utils.llnl_utils.get_command_output">get_command_output() (in module utils.llnl_utils)</a>
 </li>
       <li><a href="pipeline.html#pipeline.featurization.get_dataset_attributes">get_dataset_attributes() (in module pipeline.featurization)</a>
+</li>
+      <li><a href="utils.html#utils.checksum_utils.get_dataset_hash_from_tar">get_dataset_hash_from_tar() (in module utils.checksum_utils)</a>
 </li>
       <li><a href="utils.html#utils.hyperparam_search_wrapper.HyperparameterSearch.get_dataset_metadata">get_dataset_metadata() (utils.hyperparam_search_wrapper.HyperparameterSearch method)</a>
 </li>
@@ -599,6 +647,8 @@
       <ul>
         <li><a href="pipeline.html#pipeline.featurization.DynamicFeaturization.get_feature_count">(pipeline.featurization.DynamicFeaturization method)</a>
 </li>
+        <li><a href="pipeline.html#pipeline.featurization.EmbeddingFeaturization.get_feature_count">(pipeline.featurization.EmbeddingFeaturization method)</a>
+</li>
         <li><a href="pipeline.html#pipeline.featurization.Featurization.get_feature_count">(pipeline.featurization.Featurization method)</a>
 </li>
       </ul></li>
@@ -606,6 +656,8 @@
 
       <ul>
         <li><a href="pipeline.html#pipeline.featurization.DynamicFeaturization.get_feature_specific_metadata">(pipeline.featurization.DynamicFeaturization method)</a>
+</li>
+        <li><a href="pipeline.html#pipeline.featurization.EmbeddingFeaturization.get_feature_specific_metadata">(pipeline.featurization.EmbeddingFeaturization method)</a>
 </li>
         <li><a href="pipeline.html#pipeline.featurization.Featurization.get_feature_specific_metadata">(pipeline.featurization.Featurization method)</a>
 </li>
@@ -654,16 +706,18 @@
 </li>
       <li><a href="pipeline.html#pipeline.parameter_parser.AutoArgumentAdder.get_list_args">get_list_args() (pipeline.parameter_parser.AutoArgumentAdder method)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="pipeline.html#pipeline.parameter_parser.AutoArgumentAdder.get_list_float_args">get_list_float_args() (pipeline.parameter_parser.AutoArgumentAdder method)</a>
 </li>
       <li><a href="pipeline.html#pipeline.parameter_parser.AutoArgumentAdder.get_list_int_args">get_list_int_args() (pipeline.parameter_parser.AutoArgumentAdder method)</a>
+</li>
+      <li><a href="utils.html#utils.model_version_utils.get_major_version">get_major_version() (in module utils.model_version_utils)</a>
 </li>
       <li><a href="pipeline.html#pipeline.model_tracker.get_metadata_by_uuid">get_metadata_by_uuid() (in module pipeline.model_tracker)</a>
 </li>
       <li><a href="pipeline.html#pipeline.model_pipeline.ModelPipeline.get_metrics">get_metrics() (pipeline.model_pipeline.ModelPipeline method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="pipeline.html#pipeline.model_tracker.get_model_collection_by_uuid">get_model_collection_by_uuid() (in module pipeline.model_tracker)</a>
 </li>
       <li><a href="pipeline.html#pipeline.model_wrapper.DCRFModelWrapper.get_model_specific_metadata">get_model_specific_metadata() (pipeline.model_wrapper.DCRFModelWrapper method)</a>
@@ -838,12 +892,14 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="pipeline.html#pipeline.model_datasets.ModelDataset.has_all_feature_columns">has_all_feature_columns() (pipeline.model_datasets.ModelDataset method)</a>
 </li>
-      <li><a href="pipeline.html#pipeline.model_wrapper.HybridModelWrapper">HybridModelWrapper (class in pipeline.model_wrapper)</a>
+      <li><a href="utils.html#utils.many_to_one.has_nans">has_nans() (in module utils.many_to_one)</a>
 </li>
-      <li><a href="pipeline.html#pipeline.model_wrapper.HybridModelWrapper.SubsetData">HybridModelWrapper.SubsetData (class in pipeline.model_wrapper)</a>
+      <li><a href="pipeline.html#pipeline.model_wrapper.HybridModelWrapper">HybridModelWrapper (class in pipeline.model_wrapper)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="pipeline.html#pipeline.model_wrapper.HybridModelWrapper.SubsetData">HybridModelWrapper.SubsetData (class in pipeline.model_wrapper)</a>
+</li>
       <li><a href="pipeline.html#pipeline.perf_data.HybridPerfData">HybridPerfData (class in pipeline.perf_data)</a>
 </li>
       <li><a href="utils.html#utils.hyperparam_search_wrapper.HyperOptSearch">HyperOptSearch (class in utils.hyperparam_search_wrapper)</a>
@@ -864,10 +920,10 @@
 </li>
       <li><a href="utils.html#utils.llnl_utils.is_lc_system">is_lc_system() (in module utils.llnl_utils)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="pipeline.html#pipeline.parameter_parser.is_list">is_list() (in module pipeline.parameter_parser)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="pipeline.html#pipeline.parameter_parser.is_list_float">is_list_float() (in module pipeline.parameter_parser)</a>
 </li>
       <li><a href="pipeline.html#pipeline.parameter_parser.is_list_int">is_list_int() (in module pipeline.parameter_parser)</a>
@@ -875,6 +931,8 @@
       <li><a href="utils.html#utils.data_curation_functions.is_organometallic">is_organometallic() (in module utils.data_curation_functions)</a>
 </li>
       <li><a href="pipeline.html#pipeline.parameter_parser.is_primative_type">is_primative_type() (in module pipeline.parameter_parser)</a>
+</li>
+      <li><a href="utils.html#utils.file_utils.is_within_directory">is_within_directory() (in module utils.file_utils)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -963,9 +1021,13 @@
 </li>
         <li><a href="utils.html#utils.model_retrain.main">(in module utils.model_retrain)</a>
 </li>
+        <li><a href="utils.html#utils.model_version_utils.main">(in module utils.model_version_utils)</a>
+</li>
         <li><a href="utils.html#utils.process_slurm.main">(in module utils.process_slurm)</a>
 </li>
       </ul></li>
+      <li><a href="utils.html#utils.compare_splits_plots.SplitStats.make_all_plots">make_all_plots() (utils.compare_splits_plots.SplitStats method)</a>
+</li>
       <li><a href="pipeline.html#pipeline.parameter_parser.make_dataset_key_absolute">make_dataset_key_absolute() (in module pipeline.parameter_parser)</a>
 </li>
       <li><a href="pipeline.html#pipeline.model_wrapper.DCRFModelWrapper.make_dc_model">make_dc_model() (pipeline.model_wrapper.DCRFModelWrapper method)</a>
@@ -977,6 +1039,14 @@
 </li>
       </ul></li>
       <li><a href="pipeline.html#pipeline.featurization.make_weights">make_weights() (in module pipeline.featurization)</a>
+</li>
+      <li><a href="utils.html#utils.many_to_one.many_to_one">many_to_one() (in module utils.many_to_one)</a>
+</li>
+      <li><a href="utils.html#utils.many_to_one.many_to_one_df">many_to_one_df() (in module utils.many_to_one)</a>
+</li>
+      <li><a href="utils.html#utils.many_to_one.ManyToOneException">ManyToOneException</a>
+</li>
+      <li><a href="utils.html#utils.rdkit_easy.matching_atoms_and_bonds">matching_atoms_and_bonds() (in module utils.rdkit_easy)</a>
 </li>
       <li><a href="pipeline.html#pipeline.dist_metrics.mcs">mcs() (in module pipeline.dist_metrics)</a>
 </li>
@@ -1042,11 +1112,19 @@
 </li>
         <li><a href="utils.html#module-utils">utils</a>
 </li>
+        <li><a href="utils.html#module-utils.checksum_utils">utils.checksum_utils</a>
+</li>
+        <li><a href="utils.html#module-utils.compare_split_csv">utils.compare_split_csv</a>
+</li>
+        <li><a href="utils.html#module-utils.compare_splits_plots">utils.compare_splits_plots</a>
+</li>
         <li><a href="utils.html#module-utils.curate_data">utils.curate_data</a>
 </li>
         <li><a href="utils.html#module-utils.data_curation_functions">utils.data_curation_functions</a>
 </li>
         <li><a href="utils.html#module-utils.datastore_functions">utils.datastore_functions</a>
+</li>
+        <li><a href="utils.html#module-utils.file_utils">utils.file_utils</a>
 </li>
         <li><a href="utils.html#module-utils.genTestset">utils.genTestset</a>
 </li>
@@ -1054,7 +1132,11 @@
 </li>
         <li><a href="utils.html#module-utils.llnl_utils">utils.llnl_utils</a>
 </li>
+        <li><a href="utils.html#module-utils.many_to_one">utils.many_to_one</a>
+</li>
         <li><a href="utils.html#module-utils.model_retrain">utils.model_retrain</a>
+</li>
+        <li><a href="utils.html#module-utils.model_version_utils">utils.model_version_utils</a>
 </li>
         <li><a href="utils.html#module-utils.process_slurm">utils.process_slurm</a>
 </li>
@@ -1089,14 +1171,20 @@
 <h2 id="N">N</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="utils.html#utils.many_to_one.NANCompoundIDException">NANCompoundIDException</a>
+</li>
+      <li><a href="utils.html#utils.many_to_one.NANSMILESException">NANSMILESException</a>
+</li>
       <li><a href="pipeline.html#pipeline.splitting.Splitting.needs_smiles">needs_smiles() (pipeline.splitting.Splitting method)</a>
 </li>
       <li><a href="pipeline.html#pipeline.perf_data.negative_predictive_value">negative_predictive_value() (in module pipeline.perf_data)</a>
 </li>
-      <li><a href="pipeline.html#pipeline.model_wrapper.NNModelWrapper">NNModelWrapper (class in pipeline.model_wrapper)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="pipeline.html#pipeline.model_wrapper.NNModelWrapper">NNModelWrapper (class in pipeline.model_wrapper)</a>
+</li>
+      <li><a href="utils.html#utils.many_to_one.no_nan_ids_or_smiles">no_nan_ids_or_smiles() (in module utils.many_to_one)</a>
+</li>
       <li><a href="pipeline.html#pipeline.transformations.NormalizationTransformerHybrid">NormalizationTransformerHybrid (class in pipeline.transformations)</a>
 </li>
       <li><a href="pipeline.html#pipeline.transformations.NormalizationTransformerMissingData">NormalizationTransformerMissingData (class in pipeline.transformations)</a>
@@ -1121,6 +1209,12 @@
 
       <ul>
         <li><a href="pipeline.html#pipeline.featurization.ATOMMolecularDistanceEdge.parameter_names">(pipeline.featurization.ATOMMolecularDistanceEdge attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="utils.html#utils.compare_split_csv.parse_args">parse_args() (in module utils.compare_split_csv)</a>
+
+      <ul>
+        <li><a href="utils.html#utils.compare_splits_plots.parse_args">(in module utils.compare_splits_plots)</a>
 </li>
       </ul></li>
       <li><a href="pipeline.html#pipeline.parameter_parser.parse_command_line">parse_command_line() (in module pipeline.parameter_parser)</a>
@@ -1282,6 +1376,8 @@
 </li>
       <li><a href="pipeline.html#pipeline.parameter_parser.postprocess_args">postprocess_args() (in module pipeline.parameter_parser)</a>
 </li>
+      <li><a href="pipeline.html#pipeline.model_pipeline.ModelPipeline.predict_embedding">predict_embedding() (pipeline.model_pipeline.ModelPipeline method)</a>
+</li>
       <li><a href="pipeline.html#pipeline.model_pipeline.ModelPipeline.predict_full_dataset">predict_full_dataset() (pipeline.model_pipeline.ModelPipeline method)</a>
 </li>
       <li><a href="pipeline.html#pipeline.model_pipeline.ModelPipeline.predict_on_dataframe">predict_on_dataframe() (pipeline.model_pipeline.ModelPipeline method)</a>
@@ -1295,6 +1391,8 @@
 </li>
       </ul></li>
       <li><a href="pipeline.html#pipeline.parameter_parser.primative_type_only">primative_type_only() (in module pipeline.parameter_parser)</a>
+</li>
+      <li><a href="utils.html#utils.compare_splits_plots.SplitStats.print_stats">print_stats() (utils.compare_splits_plots.SplitStats method)</a>
 </li>
       <li><a href="pipeline.html#pipeline.parameter_parser.prune_defaults">prune_defaults() (in module pipeline.parameter_parser)</a>
 </li>
@@ -1410,6 +1508,8 @@
 <h2 id="S">S</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="utils.html#utils.file_utils.safe_extract">safe_extract() (in module utils.file_utils)</a>
+</li>
       <li><a href="pipeline.html#pipeline.model_datasets.DatastoreDataset.save_featurized_data">save_featurized_data() (pipeline.model_datasets.DatastoreDataset method)</a>
 
       <ul>
@@ -1418,6 +1518,8 @@
         <li><a href="pipeline.html#pipeline.model_datasets.MinimalDataset.save_featurized_data">(pipeline.model_datasets.MinimalDataset method)</a>
 </li>
       </ul></li>
+      <li><a href="utils.html#utils.compare_splits_plots.save_figure">save_figure() (in module utils.compare_splits_plots)</a>
+</li>
       <li><a href="pipeline.html#pipeline.model_datasets.save_joined_dataset">save_joined_dataset() (in module pipeline.model_datasets)</a>
 </li>
       <li><a href="pipeline.html#pipeline.model_pipeline.ModelPipeline.save_metrics">save_metrics() (pipeline.model_pipeline.ModelPipeline method)</a>
@@ -1470,10 +1572,10 @@
 </li>
       <li><a href="utils.html#utils.rdkit_easy.setup_notebook">setup_notebook() (in module utils.rdkit_easy)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="pipeline.html#pipeline.perf_data.EpochManager.should_stop">should_stop() (pipeline.perf_data.EpochManager method)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="utils.html#utils.rdkit_easy.show_df">show_df() (in module utils.rdkit_easy)</a>
 </li>
       <li><a href="utils.html#utils.rdkit_easy.show_html">show_html() (in module utils.rdkit_easy)</a>
@@ -1488,8 +1590,12 @@
 </li>
       <li><a href="utils.html#utils.struct_utils.smiles_to_inchi_key">smiles_to_inchi_key() (in module utils.struct_utils)</a>
 </li>
-      <li><a href="pipeline.html#pipeline.ave_splitter.AVEMinSplitter.split">split() (pipeline.ave_splitter.AVEMinSplitter method)</a>
+      <li><a href="utils.html#utils.compare_splits_plots.split">split() (in module utils.compare_splits_plots)</a>
+
+      <ul>
+        <li><a href="pipeline.html#pipeline.ave_splitter.AVEMinSplitter.split">(pipeline.ave_splitter.AVEMinSplitter method)</a>
 </li>
+      </ul></li>
       <li><a href="utils.html#utils.hyperparam_search_wrapper.GeometricSearch.split_and_save_dataset">split_and_save_dataset() (utils.hyperparam_search_wrapper.GeometricSearch method)</a>
 
       <ul>
@@ -1514,6 +1620,8 @@
         <li><a href="pipeline.html#pipeline.splitting.TrainValidTestSplitting.split_dataset">(pipeline.splitting.TrainValidTestSplitting method)</a>
 </li>
       </ul></li>
+      <li><a href="utils.html#utils.compare_splits_plots.SplitStats">SplitStats (class in utils.compare_splits_plots)</a>
+</li>
       <li><a href="pipeline.html#pipeline.splitting.Splitting">Splitting (class in pipeline.splitting)</a>
 </li>
       <li><a href="utils.html#utils.data_curation_functions.standardize_relations">standardize_relations() (in module utils.data_curation_functions)</a>
@@ -1523,6 +1631,8 @@
       <li><a href="utils.html#utils.datastore_functions.string_to_list">string_to_list() (in module utils.datastore_functions)</a>
 </li>
       <li><a href="utils.html#utils.hyperparam_search_wrapper.HyperparameterSearch.submit_jobs">submit_jobs() (utils.hyperparam_search_wrapper.HyperparameterSearch method)</a>
+</li>
+      <li><a href="utils.html#utils.compare_splits_plots.SplitStats.subset_frac_plot">subset_frac_plot() (utils.compare_splits_plots.SplitStats method)</a>
 </li>
       <li><a href="utils.html#utils.curate_data.summarize_data">summarize_data() (in module utils.curate_data)</a>
 </li>
@@ -1604,6 +1714,8 @@
 <h2 id="U">U</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="utils.html#utils.compare_splits_plots.SplitStats.umap_plot">umap_plot() (utils.compare_splits_plots.SplitStats method)</a>
+</li>
       <li><a href="pipeline.html#pipeline.transformations.UMAPTransformer">UMAPTransformer (class in pipeline.transformations)</a>
 </li>
       <li><a href="utils.html#utils.genTestset.Union">Union() (in module utils.genTestset)</a>
@@ -1611,6 +1723,8 @@
       <li><a href="pipeline.html#pipeline.transformations.NormalizationTransformerHybrid.untransform">untransform() (pipeline.transformations.NormalizationTransformerHybrid method)</a>
 
       <ul>
+        <li><a href="pipeline.html#pipeline.transformations.NormalizationTransformerMissingData.untransform">(pipeline.transformations.NormalizationTransformerMissingData method)</a>
+</li>
         <li><a href="pipeline.html#pipeline.transformations.UMAPTransformer.untransform">(pipeline.transformations.UMAPTransformer method)</a>
 </li>
       </ul></li>
@@ -1654,15 +1768,40 @@
 </li>
       <li><a href="utils.html#utils.datastore_functions.upload_pickle_to_DS">upload_pickle_to_DS() (in module utils.datastore_functions)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="utils.html#utils.hyperparam_search_wrapper.UserSpecifiedSearch">UserSpecifiedSearch (class in utils.hyperparam_search_wrapper)</a>
+</li>
+      <li><a href="utils.html#utils.checksum_utils.uses_same_training_data_by_datasets">uses_same_training_data_by_datasets() (in module utils.checksum_utils)</a>
+</li>
+      <li><a href="utils.html#utils.checksum_utils.uses_same_training_data_by_tarballs">uses_same_training_data_by_tarballs() (in module utils.checksum_utils)</a>
 </li>
       <li>
     utils
 
       <ul>
         <li><a href="utils.html#module-utils">module</a>
+</li>
+      </ul></li>
+      <li>
+    utils.checksum_utils
+
+      <ul>
+        <li><a href="utils.html#module-utils.checksum_utils">module</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li>
+    utils.compare_split_csv
+
+      <ul>
+        <li><a href="utils.html#module-utils.compare_split_csv">module</a>
+</li>
+      </ul></li>
+      <li>
+    utils.compare_splits_plots
+
+      <ul>
+        <li><a href="utils.html#module-utils.compare_splits_plots">module</a>
 </li>
       </ul></li>
       <li>
@@ -1687,6 +1826,13 @@
 </li>
       </ul></li>
       <li>
+    utils.file_utils
+
+      <ul>
+        <li><a href="utils.html#module-utils.file_utils">module</a>
+</li>
+      </ul></li>
+      <li>
     utils.genTestset
 
       <ul>
@@ -1708,10 +1854,24 @@
 </li>
       </ul></li>
       <li>
+    utils.many_to_one
+
+      <ul>
+        <li><a href="utils.html#module-utils.many_to_one">module</a>
+</li>
+      </ul></li>
+      <li>
     utils.model_retrain
 
       <ul>
         <li><a href="utils.html#module-utils.model_retrain">module</a>
+</li>
+      </ul></li>
+      <li>
+    utils.model_version_utils
+
+      <ul>
+        <li><a href="utils.html#module-utils.model_version_utils">module</a>
 </li>
       </ul></li>
       <li>
@@ -1745,6 +1905,14 @@
   </ul></td>
 </tr></table>
 
+<h2 id="V">V</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="utils.html#utils.model_version_utils.validate_version">validate_version() (in module utils.model_version_utils)</a>
+</li>
+  </ul></td>
+</tr></table>
+
 <h2 id="W">W</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
@@ -1770,7 +1938,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2022, ATOM DDM Team.</p>
+    <p>&#169; Copyright 2023, ATOM DDM Team.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

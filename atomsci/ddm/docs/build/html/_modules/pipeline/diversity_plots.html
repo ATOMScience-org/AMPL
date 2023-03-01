@@ -3,18 +3,17 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>pipeline.diversity_plots &mdash; ATOM Data-Driven Modeling Pipeline 1.4.0 documentation</title>
+  <title>pipeline.diversity_plots &mdash; ATOM Data-Driven Modeling Pipeline 1.5.0 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
         <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-        <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/underscore.js"></script>
-        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" /> 
@@ -25,14 +24,18 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../../index.html" class="icon icon-home"> ATOM Data-Driven Modeling Pipeline
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            ATOM Data-Driven Modeling Pipeline
           </a>
               <div class="version">
-                1.4.0
+                1.5.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -64,9 +67,9 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="../index.html">Module code</a> &raquo;</li>
-      <li>pipeline.diversity_plots</li>
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">pipeline.diversity_plots</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -116,7 +119,7 @@
 
 <span class="c1">#------------------------------------------------------------------------------------------------------------------</span>
 <div class="viewcode-block" id="plot_dataset_dist_distr"><a class="viewcode-back" href="../../pipeline.html#pipeline.diversity_plots.plot_dataset_dist_distr">[docs]</a><span class="k">def</span> <span class="nf">plot_dataset_dist_distr</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">feat_type</span><span class="p">,</span> <span class="n">dist_metric</span><span class="p">,</span> <span class="n">task_name</span><span class="p">,</span> <span class="o">**</span><span class="n">metric_kwargs</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Generate a density plot showing the distribution of distances between dataset feature</span>
 <span class="sd">    vectors, using the specified feature type and distance metric.</span>
 
@@ -163,7 +166,7 @@
 <span class="c1">#------------------------------------------------------------------------------------------------------------------</span>
 <div class="viewcode-block" id="plot_tani_dist_distr"><a class="viewcode-back" href="../../pipeline.html#pipeline.diversity_plots.plot_tani_dist_distr">[docs]</a><span class="k">def</span> <span class="nf">plot_tani_dist_distr</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">smiles_col</span><span class="p">,</span> <span class="n">df_name</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">subset_col</span><span class="o">=</span><span class="s1">&#39;subset&#39;</span><span class="p">,</span> <span class="n">subsets</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> 
                          <span class="n">ref_subset</span><span class="o">=</span><span class="s1">&#39;train&#39;</span><span class="p">,</span> <span class="n">plot_width</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">ndist_max</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">metric_kwargs</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Generate a density plot showing the distribution of nearest neighbor distances between </span>
 <span class="sd">    ecfp feature vectors, using the Tanimoto metric. Optionally split by subset.</span>
 
@@ -210,7 +213,11 @@
     <span class="n">dist_metric</span> <span class="o">=</span> <span class="s1">&#39;tanimoto&#39;</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">subsets</span><span class="p">:</span>
         <span class="n">smiles_arr1</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">smiles_col</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
-        <span class="n">dists</span><span class="o">=</span><span class="n">cd</span><span class="o">.</span><span class="n">calc_dist_smiles</span><span class="p">(</span><span class="n">feat_type</span><span class="p">,</span> <span class="n">dist_metric</span><span class="p">,</span> <span class="n">smiles_arr1</span><span class="p">,</span> <span class="n">calc_type</span><span class="o">=</span><span class="s1">&#39;nearest&#39;</span><span class="p">,</span> <span class="n">num_nearest</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="c1">#dists=cd.calc_dist_smiles(feat_type, dist_metric, smiles_arr1, calc_type=&#39;nearest&#39;, num_nearest=1)</span>
+        <span class="n">dists</span><span class="o">=</span><span class="n">cd</span><span class="o">.</span><span class="n">calc_dist_smiles</span><span class="p">(</span><span class="n">feat_type</span><span class="p">,</span> <span class="n">dist_metric</span><span class="p">,</span> <span class="n">smiles_arr1</span><span class="p">,</span> <span class="n">calc_type</span><span class="o">=</span><span class="s1">&#39;all&#39;</span><span class="p">)</span>
+        <span class="c1">#print(len(smiles_arr1), dists.shape)</span>
+        <span class="c1"># flatten dists</span>
+        <span class="n">dists</span> <span class="o">=</span> <span class="n">dists</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
         <span class="n">subs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;all&#39;</span><span class="p">]</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">dists</span><span class="p">)</span>
         <span class="n">dists</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">dists</span><span class="p">,</span><span class="n">subs</span><span class="p">),</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;dist&#39;</span><span class="p">,</span><span class="s1">&#39;subset&#39;</span><span class="p">])</span>
     <span class="k">elif</span> <span class="n">subsets</span><span class="p">:</span>
@@ -219,7 +226,11 @@
             <span class="k">if</span> <span class="n">subs</span><span class="o">==</span><span class="n">ref_subset</span><span class="p">:</span> <span class="k">continue</span>
             <span class="n">smiles_arr1</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="n">subset_col</span><span class="p">]</span><span class="o">==</span><span class="n">ref_subset</span><span class="p">,</span> <span class="n">smiles_col</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
             <span class="n">smiles_arr2</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="n">subset_col</span><span class="p">]</span><span class="o">==</span><span class="n">subs</span><span class="p">,</span> <span class="n">smiles_col</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
-            <span class="n">diststmp</span> <span class="o">=</span> <span class="n">cd</span><span class="o">.</span><span class="n">calc_dist_smiles</span><span class="p">(</span><span class="n">feat_type</span><span class="p">,</span> <span class="n">dist_metric</span><span class="p">,</span> <span class="n">smiles_arr2</span><span class="p">,</span> <span class="n">smiles_arr2</span><span class="o">=</span><span class="n">smiles_arr1</span><span class="p">,</span> <span class="n">calc_type</span><span class="o">=</span><span class="s1">&#39;nearest&#39;</span><span class="p">,</span> <span class="n">num_nearest</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="c1">#diststmp = cd.calc_dist_smiles(feat_type, dist_metric, smiles_arr2, smiles_arr2=smiles_arr1, calc_type=&#39;nearest&#39;, num_nearest=1)</span>
+            <span class="n">diststmp</span> <span class="o">=</span> <span class="n">cd</span><span class="o">.</span><span class="n">calc_dist_smiles</span><span class="p">(</span><span class="n">feat_type</span><span class="p">,</span> <span class="n">dist_metric</span><span class="p">,</span> <span class="n">smiles_arr2</span><span class="p">,</span> <span class="n">smiles_arr2</span><span class="o">=</span><span class="n">smiles_arr1</span><span class="p">,</span> <span class="n">calc_type</span><span class="o">=</span><span class="s1">&#39;all&#39;</span><span class="p">)</span>
+            <span class="c1">#print(subs, diststmp.shape)</span>
+            <span class="c1"># flatten dists</span>
+            <span class="n">diststmp</span> <span class="o">=</span> <span class="n">diststmp</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
             <span class="n">substmp</span><span class="o">=</span><span class="p">[</span><span class="n">subs</span><span class="p">]</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">diststmp</span><span class="p">)</span>
             <span class="n">diststmp</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">diststmp</span><span class="p">,</span><span class="n">substmp</span><span class="p">),</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;dist&#39;</span><span class="p">,</span><span class="s1">&#39;subset&#39;</span><span class="p">])</span>
             <span class="n">dists</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">dists</span><span class="p">,</span><span class="n">diststmp</span><span class="p">])</span>
@@ -239,7 +250,7 @@
 <span class="c1">#------------------------------------------------------------------------------------------------------------------</span>
 <div class="viewcode-block" id="diversity_plots"><a class="viewcode-back" href="../../pipeline.html#pipeline.diversity_plots.diversity_plots">[docs]</a><span class="k">def</span> <span class="nf">diversity_plots</span><span class="p">(</span><span class="n">dset_key</span><span class="p">,</span> <span class="n">datastore</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">bucket</span><span class="o">=</span><span class="s1">&#39;public&#39;</span><span class="p">,</span> <span class="n">title_prefix</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ecfp_radius</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">umap_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">out_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                     <span class="n">id_col</span><span class="o">=</span><span class="s1">&#39;compound_id&#39;</span><span class="p">,</span> <span class="n">smiles_col</span><span class="o">=</span><span class="s1">&#39;rdkit_smiles&#39;</span><span class="p">,</span> <span class="n">is_base_smiles</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">response_col</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_for_mcs</span><span class="o">=</span><span class="mi">300</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Plot visualizations of diversity for an arbitrary table of compounds. At minimum, the file should contain</span>
 <span class="sd">    columns for a compound ID and a SMILES string. Produces a clustered heatmap display of Tanimoto distances between</span>
 <span class="sd">    compounds along with a 2D UMAP projection plot based on ECFP fingerprints, with points colored according to the response</span>
@@ -434,7 +445,7 @@
 <span class="c1">#------------------------------------------------------------------------------------------------------------------</span>
 
 <span class="k">def</span> <span class="nf">_sa200_diversity_plots</span><span class="p">(</span><span class="n">ecfp_radius</span><span class="o">=</span><span class="mi">6</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Plot visualizations of diversity for the 208 compounds selected for phenotypic assays.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">sa200_file</span> <span class="o">=</span> <span class="s1">&#39;/ds/projdata/gsk_data/ExperimentalDesign/AS200_TS_12Oct18.csv&#39;</span>
@@ -446,7 +457,7 @@
 
 <span class="c1">#------------------------------------------------------------------------------------------------------------------</span>
 <span class="k">def</span> <span class="nf">_bsep_diversity_plots</span><span class="p">(</span><span class="n">ecfp_radius</span><span class="o">=</span><span class="mi">6</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Plot visualizations of diversity for the compounds in the BSEP PIC50 dataset.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">dset_key</span> <span class="o">=</span> <span class="s1">&#39;singletask_liability_datasets/ABCB11_Bile_Salt_Export_Pump_BSEP_membrane_vesicles_Imaging_PIC50.csv&#39;</span>
@@ -458,7 +469,7 @@
 
 <span class="c1">#------------------------------------------------------------------------------------------------------------------</span>
 <span class="k">def</span> <span class="nf">_obach_diversity_plots</span><span class="p">(</span><span class="n">ecfp_radius</span><span class="o">=</span><span class="mi">6</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Plot visualizations of diversity for the compounds in the Obach, Lombardo et al PK dataset</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># TODO: Put this dataset in the datastore where everybody else can see it</span>
@@ -531,7 +542,7 @@
 
 <span class="c1">#------------------------------------------------------------------------------------------------------------------</span>
 <span class="k">def</span> <span class="nf">_solubility_diversity_plots</span><span class="p">(</span><span class="n">ecfp_radius</span><span class="o">=</span><span class="mi">6</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Plot visualizations of diversity for the compounds in the Delaney and GSK aqueous solubility datasets</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">data_dir</span> <span class="o">=</span> <span class="s1">&#39;/ds/data/gsk_data/GSK_datasets/solubility&#39;</span>
@@ -548,7 +559,7 @@
 
 <span class="c1">#------------------------------------------------------------------------------------------------------------------</span>
 <span class="k">def</span> <span class="nf">_compare_solubility_datasets</span><span class="p">(</span><span class="n">ecfp_radius</span><span class="o">=</span><span class="mi">6</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Plot projections of Delaney and GSK solubility datasets using the same UMAP projectors.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">data_dir</span> <span class="o">=</span> <span class="s1">&#39;/ds/data/gsk_data/GSK_datasets/solubility&#39;</span>
@@ -633,7 +644,7 @@
 
 <span class="c1">#------------------------------------------------------------------------------------------------------------------</span>
 <span class="k">def</span> <span class="nf">_compare_obach_gsk_aq_sol</span><span class="p">(</span><span class="n">ecfp_radius</span><span class="o">=</span><span class="mi">6</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Plot projections of Obach and GSK solubility datasets using the same UMAP projectors.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">obach_cmpd_file</span> <span class="o">=</span> <span class="s1">&#39;/usr/local/data/diversity_plots/obach/LombardoSupplemental_Data_rdsmiles.csv&#39;</span>
@@ -699,7 +710,7 @@
 
 <span class="c1">#------------------------------------------------------------------------------------------------------------------</span>
 <span class="k">def</span> <span class="nf">_liability_dset_diversity</span><span class="p">(</span><span class="n">bucket</span><span class="o">=</span><span class="s1">&#39;public&#39;</span><span class="p">,</span> <span class="n">feat_type</span><span class="o">=</span><span class="s1">&#39;descriptors&#39;</span><span class="p">,</span> <span class="n">dist_metric</span><span class="o">=</span><span class="s1">&#39;cosine&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">metric_kwargs</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Load datasets from datastore, featurize them, and plot distributions of their inter-compound</span>
 <span class="sd">    distances.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -764,7 +775,7 @@
 <span class="c1"># ------------------------------------------------------------------------------------------------------------------</span>
 <span class="k">def</span> <span class="nf">_get_dset_diversity</span><span class="p">(</span><span class="n">dset_key</span><span class="p">,</span> <span class="n">ds_client</span><span class="p">,</span> <span class="n">bucket</span><span class="o">=</span><span class="s1">&#39;public&#39;</span><span class="p">,</span> <span class="n">feat_type</span><span class="o">=</span><span class="s1">&#39;descriptors&#39;</span><span class="p">,</span> <span class="n">dist_metric</span><span class="o">=</span><span class="s1">&#39;cosine&#39;</span><span class="p">,</span>
                        <span class="o">**</span><span class="n">metric_kwargs</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Load datasets from datastore, featurize them, and plot distributions of their inter-compound</span>
 <span class="sd">    distances.</span>
 
@@ -847,7 +858,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2022, ATOM DDM Team.</p>
+    <p>&#169; Copyright 2023, ATOM DDM Team.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

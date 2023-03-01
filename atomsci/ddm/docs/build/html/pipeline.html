@@ -1,21 +1,20 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>pipeline package &mdash; ATOM Data-Driven Modeling Pipeline 1.4.0 documentation</title>
+  <title>pipeline package &mdash; ATOM Data-Driven Modeling Pipeline 1.5.0 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -28,14 +27,18 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="index.html" class="icon icon-home"> ATOM Data-Driven Modeling Pipeline
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            ATOM Data-Driven Modeling Pipeline
           </a>
               <div class="version">
-                1.4.0
+                1.5.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -54,22 +57,235 @@
 <li class="toctree-l1 current"><a class="reference internal" href="modules.html">atomsci</a><ul class="current">
 <li class="toctree-l2 current"><a class="current reference internal" href="#">pipeline package</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#submodules">Submodules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-pipeline.ave_splitter">pipeline.ave_splitter module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-pipeline.chem_diversity">pipeline.chem_diversity module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-pipeline.compare_models">pipeline.compare_models module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-pipeline.dist_metrics">pipeline.dist_metrics module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-pipeline.diversity_plots">pipeline.diversity_plots module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-pipeline.featurization">pipeline.featurization module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#pipeline-feature-importance-module">pipeline.feature_importance module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-pipeline.model_datasets">pipeline.model_datasets module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-pipeline.model_pipeline">pipeline.model_pipeline module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-pipeline.model_tracker">pipeline.model_tracker module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-pipeline.model_wrapper">pipeline.model_wrapper module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-pipeline.parameter_parser">pipeline.parameter_parser module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-pipeline.perf_data">pipeline.perf_data module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-pipeline.perf_plots">pipeline.perf_plots module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-pipeline.splitting">pipeline.splitting module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-pipeline.transformations">pipeline.transformations module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-pipeline.ave_splitter">pipeline.ave_splitter module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.ave_splitter.AVEMinSplitter"><code class="docutils literal notranslate"><span class="pre">AVEMinSplitter</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.ave_splitter.analyze_split"><code class="docutils literal notranslate"><span class="pre">analyze_split()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.ave_splitter.permutation"><code class="docutils literal notranslate"><span class="pre">permutation()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.ave_splitter.shuffle"><code class="docutils literal notranslate"><span class="pre">shuffle()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-pipeline.chem_diversity">pipeline.chem_diversity module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.chem_diversity.calc_dist_diskdataset"><code class="docutils literal notranslate"><span class="pre">calc_dist_diskdataset()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.chem_diversity.calc_dist_feat_array"><code class="docutils literal notranslate"><span class="pre">calc_dist_feat_array()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.chem_diversity.calc_dist_smiles"><code class="docutils literal notranslate"><span class="pre">calc_dist_smiles()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.chem_diversity.calc_summary"><code class="docutils literal notranslate"><span class="pre">calc_summary()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.chem_diversity.upload_distmatrix_to_DS"><code class="docutils literal notranslate"><span class="pre">upload_distmatrix_to_DS()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-pipeline.compare_models">pipeline.compare_models module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.compare_models.copy_best_filesystem_models"><code class="docutils literal notranslate"><span class="pre">copy_best_filesystem_models()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.compare_models.del_ignored_params"><code class="docutils literal notranslate"><span class="pre">del_ignored_params()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.compare_models.extract_collection_perf_metrics"><code class="docutils literal notranslate"><span class="pre">extract_collection_perf_metrics()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.compare_models.extract_model_and_feature_parameters"><code class="docutils literal notranslate"><span class="pre">extract_model_and_feature_parameters()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.compare_models.get_best_models_info"><code class="docutils literal notranslate"><span class="pre">get_best_models_info()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.compare_models.get_best_perf_table"><code class="docutils literal notranslate"><span class="pre">get_best_perf_table()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.compare_models.get_collection_datasets"><code class="docutils literal notranslate"><span class="pre">get_collection_datasets()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.compare_models.get_dataset_models"><code class="docutils literal notranslate"><span class="pre">get_dataset_models()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.compare_models.get_filesystem_models"><code class="docutils literal notranslate"><span class="pre">get_filesystem_models()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.compare_models.get_filesystem_perf_results"><code class="docutils literal notranslate"><span class="pre">get_filesystem_perf_results()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.compare_models.get_multitask_perf_from_files"><code class="docutils literal notranslate"><span class="pre">get_multitask_perf_from_files()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.compare_models.get_multitask_perf_from_files_new"><code class="docutils literal notranslate"><span class="pre">get_multitask_perf_from_files_new()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.compare_models.get_multitask_perf_from_tracker"><code class="docutils literal notranslate"><span class="pre">get_multitask_perf_from_tracker()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.compare_models.get_summary_metadata_table"><code class="docutils literal notranslate"><span class="pre">get_summary_metadata_table()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.compare_models.get_summary_perf_tables"><code class="docutils literal notranslate"><span class="pre">get_summary_perf_tables()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.compare_models.get_tarball_perf_table"><code class="docutils literal notranslate"><span class="pre">get_tarball_perf_table()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.compare_models.get_training_datasets"><code class="docutils literal notranslate"><span class="pre">get_training_datasets()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.compare_models.get_training_perf_table"><code class="docutils literal notranslate"><span class="pre">get_training_perf_table()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.compare_models.get_umap_nn_model_perf_table"><code class="docutils literal notranslate"><span class="pre">get_umap_nn_model_perf_table()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.compare_models.num_trainable_parameters_from_file"><code class="docutils literal notranslate"><span class="pre">num_trainable_parameters_from_file()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-pipeline.dist_metrics">pipeline.dist_metrics module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.dist_metrics.mcs"><code class="docutils literal notranslate"><span class="pre">mcs()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.dist_metrics.tanimoto"><code class="docutils literal notranslate"><span class="pre">tanimoto()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.dist_metrics.tanimoto_single"><code class="docutils literal notranslate"><span class="pre">tanimoto_single()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-pipeline.diversity_plots">pipeline.diversity_plots module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.diversity_plots.diversity_plots"><code class="docutils literal notranslate"><span class="pre">diversity_plots()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.diversity_plots.plot_dataset_dist_distr"><code class="docutils literal notranslate"><span class="pre">plot_dataset_dist_distr()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.diversity_plots.plot_tani_dist_distr"><code class="docutils literal notranslate"><span class="pre">plot_tani_dist_distr()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-pipeline.featurization">pipeline.featurization module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.featurization.ATOMAtomTypeEState"><code class="docutils literal notranslate"><span class="pre">ATOMAtomTypeEState</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.featurization.ATOMMolecularDistanceEdge"><code class="docutils literal notranslate"><span class="pre">ATOMMolecularDistanceEdge</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.featurization.ComputedDescriptorFeaturization"><code class="docutils literal notranslate"><span class="pre">ComputedDescriptorFeaturization</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.featurization.DescriptorFeaturization"><code class="docutils literal notranslate"><span class="pre">DescriptorFeaturization</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.featurization.DynamicFeaturization"><code class="docutils literal notranslate"><span class="pre">DynamicFeaturization</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.featurization.EmbeddingFeaturization"><code class="docutils literal notranslate"><span class="pre">EmbeddingFeaturization</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.featurization.Featurization"><code class="docutils literal notranslate"><span class="pre">Featurization</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.featurization.PersistentFeaturization"><code class="docutils literal notranslate"><span class="pre">PersistentFeaturization</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.featurization.compute_2d_mordred_descrs"><code class="docutils literal notranslate"><span class="pre">compute_2d_mordred_descrs()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.featurization.compute_all_moe_descriptors"><code class="docutils literal notranslate"><span class="pre">compute_all_moe_descriptors()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.featurization.compute_all_mordred_descrs"><code class="docutils literal notranslate"><span class="pre">compute_all_mordred_descrs()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.featurization.compute_all_rdkit_descrs"><code class="docutils literal notranslate"><span class="pre">compute_all_rdkit_descrs()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.featurization.compute_mordred_descriptors_from_smiles"><code class="docutils literal notranslate"><span class="pre">compute_mordred_descriptors_from_smiles()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.featurization.compute_rdkit_descriptors_from_smiles"><code class="docutils literal notranslate"><span class="pre">compute_rdkit_descriptors_from_smiles()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.featurization.create_featurization"><code class="docutils literal notranslate"><span class="pre">create_featurization()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.featurization.featurize_smiles"><code class="docutils literal notranslate"><span class="pre">featurize_smiles()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.featurization.get_2d_mols"><code class="docutils literal notranslate"><span class="pre">get_2d_mols()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.featurization.get_3d_mols"><code class="docutils literal notranslate"><span class="pre">get_3d_mols()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.featurization.get_dataset_attributes"><code class="docutils literal notranslate"><span class="pre">get_dataset_attributes()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.featurization.get_mordred_calculator"><code class="docutils literal notranslate"><span class="pre">get_mordred_calculator()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.featurization.get_rdkit_calculator"><code class="docutils literal notranslate"><span class="pre">get_rdkit_calculator()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.featurization.get_user_specified_features"><code class="docutils literal notranslate"><span class="pre">get_user_specified_features()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.featurization.make_weights"><code class="docutils literal notranslate"><span class="pre">make_weights()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.featurization.remove_duplicate_smiles"><code class="docutils literal notranslate"><span class="pre">remove_duplicate_smiles()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-pipeline.feature_importance">pipeline.feature_importance module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.feature_importance.base_feature_importance"><code class="docutils literal notranslate"><span class="pre">base_feature_importance()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.feature_importance.cluster_permutation_importance"><code class="docutils literal notranslate"><span class="pre">cluster_permutation_importance()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.feature_importance.display_feature_clusters"><code class="docutils literal notranslate"><span class="pre">display_feature_clusters()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.feature_importance.permutation_feature_importance"><code class="docutils literal notranslate"><span class="pre">permutation_feature_importance()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.feature_importance.plot_feature_importances"><code class="docutils literal notranslate"><span class="pre">plot_feature_importances()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-pipeline.model_datasets">pipeline.model_datasets module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.model_datasets.DatastoreDataset"><code class="docutils literal notranslate"><span class="pre">DatastoreDataset</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.model_datasets.FileDataset"><code class="docutils literal notranslate"><span class="pre">FileDataset</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.model_datasets.MinimalDataset"><code class="docutils literal notranslate"><span class="pre">MinimalDataset</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.model_datasets.ModelDataset"><code class="docutils literal notranslate"><span class="pre">ModelDataset</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.model_datasets.check_task_columns"><code class="docutils literal notranslate"><span class="pre">check_task_columns()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.model_datasets.create_minimal_dataset"><code class="docutils literal notranslate"><span class="pre">create_minimal_dataset()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.model_datasets.create_model_dataset"><code class="docutils literal notranslate"><span class="pre">create_model_dataset()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.model_datasets.create_split_dataset_from_metadata"><code class="docutils literal notranslate"><span class="pre">create_split_dataset_from_metadata()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.model_datasets.key_value_list_to_dict"><code class="docutils literal notranslate"><span class="pre">key_value_list_to_dict()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.model_datasets.save_joined_dataset"><code class="docutils literal notranslate"><span class="pre">save_joined_dataset()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.model_datasets.set_group_permissions"><code class="docutils literal notranslate"><span class="pre">set_group_permissions()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-pipeline.model_pipeline">pipeline.model_pipeline module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.model_pipeline.ModelPipeline"><code class="docutils literal notranslate"><span class="pre">ModelPipeline</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.model_pipeline.build_dataset_name"><code class="docutils literal notranslate"><span class="pre">build_dataset_name()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.model_pipeline.build_tarball_name"><code class="docutils literal notranslate"><span class="pre">build_tarball_name()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.model_pipeline.calc_AD_kmean_dist"><code class="docutils literal notranslate"><span class="pre">calc_AD_kmean_dist()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.model_pipeline.calc_AD_kmean_local_density"><code class="docutils literal notranslate"><span class="pre">calc_AD_kmean_local_density()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.model_pipeline.create_prediction_pipeline"><code class="docutils literal notranslate"><span class="pre">create_prediction_pipeline()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.model_pipeline.create_prediction_pipeline_from_file"><code class="docutils literal notranslate"><span class="pre">create_prediction_pipeline_from_file()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.model_pipeline.ensemble_predict"><code class="docutils literal notranslate"><span class="pre">ensemble_predict()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.model_pipeline.load_from_tracker"><code class="docutils literal notranslate"><span class="pre">load_from_tracker()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.model_pipeline.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.model_pipeline.regenerate_results"><code class="docutils literal notranslate"><span class="pre">regenerate_results()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.model_pipeline.retrain_model"><code class="docutils literal notranslate"><span class="pre">retrain_model()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.model_pipeline.run_models"><code class="docutils literal notranslate"><span class="pre">run_models()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-pipeline.model_tracker">pipeline.model_tracker module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.model_tracker.DatastoreInsertionException"><code class="docutils literal notranslate"><span class="pre">DatastoreInsertionException</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.model_tracker.MLMTClientInstantiationException"><code class="docutils literal notranslate"><span class="pre">MLMTClientInstantiationException</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.model_tracker.convert_metadata"><code class="docutils literal notranslate"><span class="pre">convert_metadata()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.model_tracker.export_model"><code class="docutils literal notranslate"><span class="pre">export_model()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.model_tracker.extract_datastore_model_tarball"><code class="docutils literal notranslate"><span class="pre">extract_datastore_model_tarball()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.model_tracker.get_full_metadata"><code class="docutils literal notranslate"><span class="pre">get_full_metadata()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.model_tracker.get_full_metadata_by_uuid"><code class="docutils literal notranslate"><span class="pre">get_full_metadata_by_uuid()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.model_tracker.get_metadata_by_uuid"><code class="docutils literal notranslate"><span class="pre">get_metadata_by_uuid()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.model_tracker.get_model_collection_by_uuid"><code class="docutils literal notranslate"><span class="pre">get_model_collection_by_uuid()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.model_tracker.get_model_training_data_by_uuid"><code class="docutils literal notranslate"><span class="pre">get_model_training_data_by_uuid()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.model_tracker.save_model"><code class="docutils literal notranslate"><span class="pre">save_model()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.model_tracker.save_model_tarball"><code class="docutils literal notranslate"><span class="pre">save_model_tarball()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-pipeline.model_wrapper">pipeline.model_wrapper module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.model_wrapper.DCRFModelWrapper"><code class="docutils literal notranslate"><span class="pre">DCRFModelWrapper</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.model_wrapper.DCxgboostModelWrapper"><code class="docutils literal notranslate"><span class="pre">DCxgboostModelWrapper</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.model_wrapper.ForestModelWrapper"><code class="docutils literal notranslate"><span class="pre">ForestModelWrapper</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.model_wrapper.GraphConvDCModelWrapper"><code class="docutils literal notranslate"><span class="pre">GraphConvDCModelWrapper</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.model_wrapper.HybridModelWrapper"><code class="docutils literal notranslate"><span class="pre">HybridModelWrapper</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.model_wrapper.KerasDeepChemModelWrapper"><code class="docutils literal notranslate"><span class="pre">KerasDeepChemModelWrapper</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.model_wrapper.LCTimerIterator"><code class="docutils literal notranslate"><span class="pre">LCTimerIterator</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.model_wrapper.LCTimerKFoldIterator"><code class="docutils literal notranslate"><span class="pre">LCTimerKFoldIterator</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.model_wrapper.ModelWrapper"><code class="docutils literal notranslate"><span class="pre">ModelWrapper</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.model_wrapper.MultitaskDCModelWrapper"><code class="docutils literal notranslate"><span class="pre">MultitaskDCModelWrapper</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.model_wrapper.NNModelWrapper"><code class="docutils literal notranslate"><span class="pre">NNModelWrapper</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.model_wrapper.PytorchDeepChemModelWrapper"><code class="docutils literal notranslate"><span class="pre">PytorchDeepChemModelWrapper</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.model_wrapper.all_bases"><code class="docutils literal notranslate"><span class="pre">all_bases()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.model_wrapper.create_model_wrapper"><code class="docutils literal notranslate"><span class="pre">create_model_wrapper()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.model_wrapper.dc_restore"><code class="docutils literal notranslate"><span class="pre">dc_restore()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.model_wrapper.dc_torch_restore"><code class="docutils literal notranslate"><span class="pre">dc_torch_restore()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.model_wrapper.get_latest_pytorch_checkpoint"><code class="docutils literal notranslate"><span class="pre">get_latest_pytorch_checkpoint()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-pipeline.parameter_parser">pipeline.parameter_parser module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.parameter_parser.AutoArgumentAdder"><code class="docutils literal notranslate"><span class="pre">AutoArgumentAdder</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.parameter_parser.all_auto_arguments"><code class="docutils literal notranslate"><span class="pre">all_auto_arguments()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.parameter_parser.all_auto_float_lists"><code class="docutils literal notranslate"><span class="pre">all_auto_float_lists()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.parameter_parser.all_auto_int_lists"><code class="docutils literal notranslate"><span class="pre">all_auto_int_lists()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.parameter_parser.all_auto_lists"><code class="docutils literal notranslate"><span class="pre">all_auto_lists()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.parameter_parser.dict_to_list"><code class="docutils literal notranslate"><span class="pre">dict_to_list()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.parameter_parser.extract_featurizer_params"><code class="docutils literal notranslate"><span class="pre">extract_featurizer_params()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.parameter_parser.extract_model_params"><code class="docutils literal notranslate"><span class="pre">extract_model_params()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.parameter_parser.flatten_dict"><code class="docutils literal notranslate"><span class="pre">flatten_dict()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.parameter_parser.get_parser"><code class="docutils literal notranslate"><span class="pre">get_parser()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.parameter_parser.is_list"><code class="docutils literal notranslate"><span class="pre">is_list()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.parameter_parser.is_list_float"><code class="docutils literal notranslate"><span class="pre">is_list_float()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.parameter_parser.is_list_int"><code class="docutils literal notranslate"><span class="pre">is_list_int()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.parameter_parser.is_primative_type"><code class="docutils literal notranslate"><span class="pre">is_primative_type()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.parameter_parser.list_defaults"><code class="docutils literal notranslate"><span class="pre">list_defaults()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.parameter_parser.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.parameter_parser.make_dataset_key_absolute"><code class="docutils literal notranslate"><span class="pre">make_dataset_key_absolute()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.parameter_parser.parse_command_line"><code class="docutils literal notranslate"><span class="pre">parse_command_line()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.parameter_parser.parse_config_file"><code class="docutils literal notranslate"><span class="pre">parse_config_file()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.parameter_parser.parse_namespace"><code class="docutils literal notranslate"><span class="pre">parse_namespace()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.parameter_parser.postprocess_args"><code class="docutils literal notranslate"><span class="pre">postprocess_args()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.parameter_parser.primative_type_only"><code class="docutils literal notranslate"><span class="pre">primative_type_only()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.parameter_parser.prune_defaults"><code class="docutils literal notranslate"><span class="pre">prune_defaults()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.parameter_parser.remove_unrecognized_arguments"><code class="docutils literal notranslate"><span class="pre">remove_unrecognized_arguments()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.parameter_parser.to_str"><code class="docutils literal notranslate"><span class="pre">to_str()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.parameter_parser.wrapper"><code class="docutils literal notranslate"><span class="pre">wrapper()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-pipeline.perf_data">pipeline.perf_data module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.perf_data.ClassificationPerfData"><code class="docutils literal notranslate"><span class="pre">ClassificationPerfData</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.perf_data.EpochManager"><code class="docutils literal notranslate"><span class="pre">EpochManager</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.perf_data.EpochManagerKFold"><code class="docutils literal notranslate"><span class="pre">EpochManagerKFold</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.perf_data.HybridPerfData"><code class="docutils literal notranslate"><span class="pre">HybridPerfData</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.perf_data.KFoldClassificationPerfData"><code class="docutils literal notranslate"><span class="pre">KFoldClassificationPerfData</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.perf_data.KFoldRegressionPerfData"><code class="docutils literal notranslate"><span class="pre">KFoldRegressionPerfData</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.perf_data.PerfData"><code class="docutils literal notranslate"><span class="pre">PerfData</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.perf_data.RegressionPerfData"><code class="docutils literal notranslate"><span class="pre">RegressionPerfData</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.perf_data.SimpleClassificationPerfData"><code class="docutils literal notranslate"><span class="pre">SimpleClassificationPerfData</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.perf_data.SimpleHybridPerfData"><code class="docutils literal notranslate"><span class="pre">SimpleHybridPerfData</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.perf_data.SimpleRegressionPerfData"><code class="docutils literal notranslate"><span class="pre">SimpleRegressionPerfData</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.perf_data.create_perf_data"><code class="docutils literal notranslate"><span class="pre">create_perf_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.perf_data.negative_predictive_value"><code class="docutils literal notranslate"><span class="pre">negative_predictive_value()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.perf_data.rms_error"><code class="docutils literal notranslate"><span class="pre">rms_error()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-pipeline.perf_plots">pipeline.perf_plots module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.perf_plots.plot_ROC_curve"><code class="docutils literal notranslate"><span class="pre">plot_ROC_curve()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.perf_plots.plot_perf_vs_epoch"><code class="docutils literal notranslate"><span class="pre">plot_perf_vs_epoch()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.perf_plots.plot_prec_recall_curve"><code class="docutils literal notranslate"><span class="pre">plot_prec_recall_curve()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.perf_plots.plot_pred_vs_actual"><code class="docutils literal notranslate"><span class="pre">plot_pred_vs_actual()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.perf_plots.plot_umap_feature_projections"><code class="docutils literal notranslate"><span class="pre">plot_umap_feature_projections()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.perf_plots.plot_umap_train_set_neighbors"><code class="docutils literal notranslate"><span class="pre">plot_umap_train_set_neighbors()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-pipeline.splitting">pipeline.splitting module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.splitting.DatasetManager"><code class="docutils literal notranslate"><span class="pre">DatasetManager</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.splitting.KFoldSplitting"><code class="docutils literal notranslate"><span class="pre">KFoldSplitting</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.splitting.Splitting"><code class="docutils literal notranslate"><span class="pre">Splitting</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.splitting.TrainValidTestSplitting"><code class="docutils literal notranslate"><span class="pre">TrainValidTestSplitting</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.splitting.check_if_dupe_smiles_dataset"><code class="docutils literal notranslate"><span class="pre">check_if_dupe_smiles_dataset()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.splitting.create_splitting"><code class="docutils literal notranslate"><span class="pre">create_splitting()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.splitting.select_attrs_by_dset_ids"><code class="docutils literal notranslate"><span class="pre">select_attrs_by_dset_ids()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.splitting.select_attrs_by_dset_smiles"><code class="docutils literal notranslate"><span class="pre">select_attrs_by_dset_smiles()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.splitting.select_dset_by_attr_ids"><code class="docutils literal notranslate"><span class="pre">select_dset_by_attr_ids()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.splitting.select_dset_by_id_list"><code class="docutils literal notranslate"><span class="pre">select_dset_by_id_list()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-pipeline.transformations">pipeline.transformations module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.transformations.NormalizationTransformerHybrid"><code class="docutils literal notranslate"><span class="pre">NormalizationTransformerHybrid</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.transformations.NormalizationTransformerMissingData"><code class="docutils literal notranslate"><span class="pre">NormalizationTransformerMissingData</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.transformations.UMAPTransformer"><code class="docutils literal notranslate"><span class="pre">UMAPTransformer</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.transformations.create_feature_transformers"><code class="docutils literal notranslate"><span class="pre">create_feature_transformers()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.transformations.create_weight_transformers"><code class="docutils literal notranslate"><span class="pre">create_weight_transformers()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.transformations.get_statistics_missing_ydata"><code class="docutils literal notranslate"><span class="pre">get_statistics_missing_ydata()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.transformations.get_transformer_specific_metadata"><code class="docutils literal notranslate"><span class="pre">get_transformer_specific_metadata()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline.transformations.transformers_needed"><code class="docutils literal notranslate"><span class="pre">transformers_needed()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="#module-pipeline">Module contents</a></li>
 </ul>
 </li>
@@ -91,9 +307,9 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="modules.html">atomsci</a> &raquo;</li>
-      <li>pipeline package</li>
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">atomsci</a></li>
+      <li class="breadcrumb-item active">pipeline package</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/pipeline.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -181,17 +397,28 @@ first index.</p>
 <p>New code should use the <code class="docutils literal notranslate"><span class="pre">permutation</span></code> method of a <code class="docutils literal notranslate"><span class="pre">default_rng()</span></code>
 instance instead; please see the <span class="xref std std-ref">random-quick-start</span>.</p>
 </div>
+<section id="parameters">
+<h3>Parameters<a class="headerlink" href="#parameters" title="Permalink to this heading"></a></h3>
 <dl class="simple">
 <dt>x<span class="classifier">int or array_like</span></dt><dd><p>If <cite>x</cite> is an integer, randomly permute <code class="docutils literal notranslate"><span class="pre">np.arange(x)</span></code>.
 If <cite>x</cite> is an array, make a copy and shuffle the elements
 randomly.</p>
 </dd>
 </dl>
+</section>
+<section id="returns">
+<h3>Returns<a class="headerlink" href="#returns" title="Permalink to this heading"></a></h3>
 <dl class="simple">
 <dt>out<span class="classifier">ndarray</span></dt><dd><p>Permuted sequence or array range.</p>
 </dd>
 </dl>
+</section>
+<section id="see-also">
+<h3>See Also<a class="headerlink" href="#see-also" title="Permalink to this heading"></a></h3>
 <p>Generator.permutation: which should be used for new code.</p>
+</section>
+<section id="examples">
+<h3>Examples<a class="headerlink" href="#examples" title="Permalink to this heading"></a></h3>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">permutation</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
 <span class="go">array([1, 7, 4, 3, 0, 9, 2, 5, 8, 6]) # random</span>
 </pre></div>
@@ -207,6 +434,7 @@ randomly.</p>
 <span class="go">       [3, 4, 5]])</span>
 </pre></div>
 </div>
+</section>
 </dd></dl>
 
 <dl class="py function">
@@ -221,12 +449,23 @@ their contents remains the same.</p>
 <p>New code should use the <code class="docutils literal notranslate"><span class="pre">shuffle</span></code> method of a <code class="docutils literal notranslate"><span class="pre">default_rng()</span></code>
 instance instead; please see the <span class="xref std std-ref">random-quick-start</span>.</p>
 </div>
+<section id="id1">
+<h3>Parameters<a class="headerlink" href="#id1" title="Permalink to this heading"></a></h3>
 <dl class="simple">
 <dt>x<span class="classifier">ndarray or MutableSequence</span></dt><dd><p>The array, list or mutable sequence to be shuffled.</p>
 </dd>
 </dl>
+</section>
+<section id="id2">
+<h3>Returns<a class="headerlink" href="#id2" title="Permalink to this heading"></a></h3>
 <p>None</p>
+</section>
+<section id="id3">
+<h3>See Also<a class="headerlink" href="#id3" title="Permalink to this heading"></a></h3>
 <p>Generator.shuffle: which should be used for new code.</p>
+</section>
+<section id="id4">
+<h3>Examples<a class="headerlink" href="#id4" title="Permalink to this heading"></a></h3>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">arr</span>
@@ -242,6 +481,7 @@ instance instead; please see the <span class="xref std std-ref">random-quick-sta
 <span class="go">       [0, 1, 2]])</span>
 </pre></div>
 </div>
+</section>
 </dd></dl>
 
 </section>
@@ -418,7 +658,7 @@ models on each dataset and save them as CSV files in the given output directory.
 <dt class="sig sig-object py" id="pipeline.compare_models.extract_model_and_feature_parameters">
 <span class="sig-prename descclassname"><span class="pre">pipeline.compare_models.</span></span><span class="sig-name descname"><span class="pre">extract_model_and_feature_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metadata_dict</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/compare_models.html#extract_model_and_feature_parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.compare_models.extract_model_and_feature_parameters" title="Permalink to this definition"></a></dt>
 <dd><p>Given a config file, extract model and featuer parameters. Looks for parameter names
-that end in <a href="#id1"><span class="problematic" id="id2">*</span></a>_specific. e.g. nn_specific, auto_featurizer_specific</p>
+that end in <a href="#id5"><span class="problematic" id="id6">*</span></a>_specific. e.g. nn_specific, auto_featurizer_specific</p>
 <dl class="simple">
 <dt>Args:</dt><dd><p>model_metadict (dict): Dictionary containing NON-FLATTENED metadata for an AMPL model</p>
 </dd>
@@ -973,19 +1213,23 @@ specified in the current parameters.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pipeline.featurization.ComputedDescriptorFeaturization.featurize_data">
-<span class="sig-name descname"><span class="pre">featurize_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dset_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_dataset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/featurization.html#ComputedDescriptorFeaturization.featurize_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.featurization.ComputedDescriptorFeaturization.featurize_data" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">featurize_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dset_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">contains_responses</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/featurization.html#ComputedDescriptorFeaturization.featurize_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.featurization.ComputedDescriptorFeaturization.featurize_data" title="Permalink to this definition"></a></dt>
 <dd><p>Perform featurization on the given dataset, by computing descriptors from SMILES strings or matching them
 to SMILES in precomputed table.</p>
 <dl>
 <dt>Args:</dt><dd><p>dset_df (DataFrame): A table of data to be featurized. At minimum, should include columns.
 for the compound ID and assay value; for some featurizers, must also contain a SMILES string column.</p>
-<p>model_dataset (ModelDataset): Object containing the dataset to be featurized</p>
+<p>params (Namespace): Parsed parameters to be used for featurization.</p>
+<p>contains_responses (bool): Whether the dataset being featurized contains response columns.</p>
 </dd>
-<dt>Returns:</dt><dd><p>Tuple of (features, ids, vals, attr).</p>
+<dt>Returns:</dt><dd><p>Tuple of (features, ids, vals, attr, weights, featurized_dset_df):</p>
 <p>features (np.array): Feature matrix.</p>
 <p>ids (pd.DataFrame): compound IDs or SMILES strings if needed for splitting.</p>
 <p>attr (pd.DataFrame): dataframe containing SMILES strings indexed by compound IDs.</p>
 <p>vals (np.array): array of response values</p>
+<p>weights (np.array): Array of compound weights</p>
+<p>featurized_dset_df (pd.DataFrame): Data frame combining id, SMILES and response columns from input data frame
+with feature columns.</p>
 </dd>
 <dt>Raises:</dt><dd><p>Exception: if features is None, featurization failed for the dataset</p>
 </dd>
@@ -1075,12 +1319,11 @@ DeepChem transformer object holding its parameters.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pipeline.featurization.DescriptorFeaturization.extract_prefeaturized_data">
-<span class="sig-name descname"><span class="pre">extract_prefeaturized_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">merged_dset_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_dataset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/featurization.html#DescriptorFeaturization.extract_prefeaturized_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.featurization.DescriptorFeaturization.extract_prefeaturized_data" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">extract_prefeaturized_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">featurized_dset_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/featurization.html#DescriptorFeaturization.extract_prefeaturized_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.featurization.DescriptorFeaturization.extract_prefeaturized_data" title="Permalink to this definition"></a></dt>
 <dd><p>Attempts to retrieve prefeaturized data for the given dataset.</p>
 <dl>
-<dt>Args:</dt><dd><p>merged_dset_df (pd.DataFrame): dataset merged with the featurizers</p>
-<p>model_dataset (ModelDataset): Object containing the dataset to be featurized
-# TODO: Remove model_dataset call once params.response_cols is properly set</p>
+<dt>Args:</dt><dd><p>featurized_dset_df (pd.DataFrame): dataset merged with the featurizers</p>
+<p>params (Namespace): Parsed parameters for model.</p>
 </dd>
 <dt>Returns:</dt><dd><p>Tuple of (features, ids, vals, attr).</p>
 <p>features (np.array): Feature matrix.</p>
@@ -1093,19 +1336,22 @@ DeepChem transformer object holding its parameters.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pipeline.featurization.DescriptorFeaturization.featurize_data">
-<span class="sig-name descname"><span class="pre">featurize_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dset_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_dataset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/featurization.html#DescriptorFeaturization.featurize_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.featurization.DescriptorFeaturization.featurize_data" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">featurize_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dset_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">contains_responses</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/featurization.html#DescriptorFeaturization.featurize_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.featurization.DescriptorFeaturization.featurize_data" title="Permalink to this definition"></a></dt>
 <dd><p>Perform featurization on the given dataset.</p>
 <dl>
 <dt>Args:</dt><dd><p>dset_df (DataFrame): A table of data to be featurized. At minimum, should include columns.
 for the compound ID and assay value; for some featurizers, must also contain a SMILES string column.</p>
-<p>model_dataset (ModelDataset): Object containing the dataset to be featurized
-# TODO: Remove model_dataset call once params.response_cols is properly set</p>
+<p>params (Namespace): Parsed parameters to be used for featurization.</p>
+<p>contains_responses (bool): Whether the dataset being featurized contains response columns.</p>
 </dd>
-<dt>Returns:</dt><dd><p>Tuple of (features, ids, vals, attr).</p>
+<dt>Returns:</dt><dd><p>Tuple of (features, ids, vals, attr, weights, featurized_dset_df):</p>
 <p>features (np.array): Feature matrix.</p>
-<p>ids (pd.DataFrame): compound IDs or SMILES strings if needed for splitting.</p>
-<p>attr (pd.DataFrame): dataframe containing SMILES strings indexed by compound IDs.</p>
-<p>vals (np.array): array of response values</p>
+<p>ids (pd.DataFrame): Compound IDs or SMILES strings if needed for splitting.</p>
+<p>attr (pd.DataFrame): Data frame containing SMILES strings indexed by compound IDs.</p>
+<p>vals (np.array): Array of response values</p>
+<p>weights (np.array): Array of compound weights</p>
+<p>featurized_dset_df (pd.DataFrame): Data frame combining id, SMILES and response columns from input data frame
+with generated feature columns.</p>
 </dd>
 <dt>Raises:</dt><dd><p>Exception: if features is None, feautirzation failed for the dataset</p>
 </dd>
@@ -1256,12 +1502,12 @@ DeepChem transformer object holding its parameters.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pipeline.featurization.DynamicFeaturization.extract_prefeaturized_data">
-<span class="sig-name descname"><span class="pre">extract_prefeaturized_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">merged_dset_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_dataset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/featurization.html#DynamicFeaturization.extract_prefeaturized_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.featurization.DynamicFeaturization.extract_prefeaturized_data" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">extract_prefeaturized_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">featurized_dset_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/featurization.html#DynamicFeaturization.extract_prefeaturized_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.featurization.DynamicFeaturization.extract_prefeaturized_data" title="Permalink to this definition"></a></dt>
 <dd><p>Attempts to extract prefeaturized data for the given dataset. For dynamic featurizers, we don’t save
 this data, so this method always returns None.</p>
 <dl>
-<dt>Args:</dt><dd><p>merged_dset_df (DataFrame): dataset merged with the featurizers</p>
-<p>model_dataset (ModelDataset): Object containing the dataset to be featurized</p>
+<dt>Args:</dt><dd><p>featurized_dset_df (DataFrame): dataset merged with the featurizers</p>
+<p>params (Namespace): Parsed parameters for model.</p>
 </dd>
 <dt>Returns:</dt><dd><p>None, None, None, None</p>
 </dd>
@@ -1276,19 +1522,22 @@ this data, so this method always returns None.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pipeline.featurization.DynamicFeaturization.featurize_data">
-<span class="sig-name descname"><span class="pre">featurize_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dset_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_dataset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/featurization.html#DynamicFeaturization.featurize_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.featurization.DynamicFeaturization.featurize_data" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">featurize_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dset_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">contains_responses</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/featurization.html#DynamicFeaturization.featurize_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.featurization.DynamicFeaturization.featurize_data" title="Permalink to this definition"></a></dt>
 <dd><p>Perform featurization on the given dataset.</p>
 <dl>
 <dt>Args:</dt><dd><p>dset_df (DataFrame): A table of data to be featurized. At minimum, should include columns
-for the compound ID and assay value; for some featurizers, must also contain a SMILES string column.
-# TODO: remove model_dataset after ensuring response_cols are set correctly.</p>
-<p>model_dataset (ModelDataset): Contains the dataset to be featurized</p>
+for the compound ID and assay value; for some featurizers, must also contain a SMILES string column.</p>
+<p>params (Namespace): Parsed parameters to be used for featurization.</p>
+<p>contains_responses (bool): Whether the dataset being featurized contains response columns.</p>
 </dd>
-<dt>Returns:</dt><dd><p>Tuple of (features, ids, vals, attr).</p>
+<dt>Returns:</dt><dd><p>Tuple of (features, ids, vals, attr, weights, featurized_dset_df):</p>
 <p>features (np.array): Feature matrix.</p>
 <p>ids (pd.DataFrame): compound IDs or SMILES strings if needed for splitting.</p>
 <p>vals (np.array): array of response values.</p>
 <p>attr (pd.DataFrame): dataframe containing SMILES strings indexed by compound IDs.</p>
+<p>weights (np.array): Array of compound weights</p>
+<p>featurized_dset_df (pd.DataFrame): Data frame combining id, SMILES and response columns from input data frame
+with generated feature columns.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1360,6 +1609,69 @@ Does not include any path information. May be derived from dataset_name.</p>
 </dd></dl>
 
 <dl class="py class">
+<dt class="sig sig-object py" id="pipeline.featurization.EmbeddingFeaturization">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pipeline.featurization.</span></span><span class="sig-name descname"><span class="pre">EmbeddingFeaturization</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/featurization.html#EmbeddingFeaturization"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.featurization.EmbeddingFeaturization" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pipeline.featurization.DynamicFeaturization" title="pipeline.featurization.DynamicFeaturization"><code class="xref py py-class docutils literal notranslate"><span class="pre">DynamicFeaturization</span></code></a></p>
+<p>Featurizer that uses a pretrained AMPL neural network model to compute features consisting
+of the activations from the “embedding” layer of the network. For this to work, the underlying
+DeepChem model must implement the predict_embedding function.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="pipeline.featurization.EmbeddingFeaturization.featurize">
+<span class="sig-name descname"><span class="pre">featurize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mols</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/featurization.html#EmbeddingFeaturization.featurize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.featurization.EmbeddingFeaturization.featurize" title="Permalink to this definition"></a></dt>
+<dd><p>Calls DeepChem featurize() object</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pipeline.featurization.EmbeddingFeaturization.featurize_data">
+<span class="sig-name descname"><span class="pre">featurize_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dset_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">contains_responses</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/featurization.html#EmbeddingFeaturization.featurize_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.featurization.EmbeddingFeaturization.featurize_data" title="Permalink to this definition"></a></dt>
+<dd><p>Perform featurization on the given dataset.</p>
+<dl>
+<dt>Args:</dt><dd><p>dset_df (DataFrame): A table of data to be featurized. At minimum, should include columns
+for the compound ID and SMILES string</p>
+<p>params (Namespace): Parsed parameters to be used for featurization.</p>
+<p>contains_responses (bool): Whether the dataset being featurized contains response columns.</p>
+</dd>
+<dt>Returns:</dt><dd><p>Tuple of (features, ids, vals, attr, weights, featurized_dset_df):</p>
+<p>features (np.array): Feature matrix.</p>
+<p>ids (pd.DataFrame): Compound IDs or SMILES strings if needed for splitting.</p>
+<p>attr (pd.DataFrame): Data frame containing SMILES strings indexed by compound IDs.</p>
+<p>vals (np.array): Array of response values.</p>
+<p>weights (np.array): Array of compound weights</p>
+<p>featurized_dset_df (pd.DataFrame): Data frame combining id, SMILES and response columns from input data frame
+with generated feature columns.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pipeline.featurization.EmbeddingFeaturization.get_feature_count">
+<span class="sig-name descname"><span class="pre">get_feature_count</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/featurization.html#EmbeddingFeaturization.get_feature_count"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.featurization.EmbeddingFeaturization.get_feature_count" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the number of feature columns associated with this Featurization instance.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>None</p>
+</dd>
+<dt>Returns:</dt><dd><p>(int): The number of feature columns for the DynamicFeaturization subclass, feat_type specific</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pipeline.featurization.EmbeddingFeaturization.get_feature_specific_metadata">
+<span class="sig-name descname"><span class="pre">get_feature_specific_metadata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/featurization.html#EmbeddingFeaturization.get_feature_specific_metadata"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.featurization.EmbeddingFeaturization.get_feature_specific_metadata" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a dictionary of parameter settings for this Featurization object that are specific
+to the feature type.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>params (Namespace): Argparse Namespace object containing the parameter list</p>
+</dd>
+<dt>Returns</dt><dd><p>dict: Dictionary containing featurizer specific metadata as a subdict under the key
+‘embedding_specific’.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="pipeline.featurization.Featurization">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pipeline.featurization.</span></span><span class="sig-name descname"><span class="pre">Featurization</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/featurization.html#Featurization"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.featurization.Featurization" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
@@ -1385,12 +1697,12 @@ DeepChem transformer object holding its parameters.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pipeline.featurization.Featurization.extract_prefeaturized_data">
-<span class="sig-name descname"><span class="pre">extract_prefeaturized_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">merged_dset_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_dataset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/featurization.html#Featurization.extract_prefeaturized_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.featurization.Featurization.extract_prefeaturized_data" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">extract_prefeaturized_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">featurized_dset_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/featurization.html#Featurization.extract_prefeaturized_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.featurization.Featurization.extract_prefeaturized_data" title="Permalink to this definition"></a></dt>
 <dd><p>Extracts dataset features, values, IDs and attributes from the given prefeaturized data frame.
 Args:</p>
 <blockquote>
-<div><p>merged_dset_df (DataFrame): Data frame for the dataset.</p>
-<p>model_dataset (ModelDataset): Backpointer to the ModelDataset object for the dataset to be featurized.</p>
+<div><p>featurized_dset_df (DataFrame): Data frame for the dataset.</p>
+<p>params (Namespace): Parsed parameters for model.</p>
 </div></blockquote>
 <dl class="simple">
 <dt>Raises:</dt><dd><p>NotImplementedError: Must be implemented by concrete subclasses</p>
@@ -1400,12 +1712,13 @@ Args:</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pipeline.featurization.Featurization.featurize_data">
-<span class="sig-name descname"><span class="pre">featurize_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dset_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_dataset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/featurization.html#Featurization.featurize_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.featurization.Featurization.featurize_data" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">featurize_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dset_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">contains_responses</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/featurization.html#Featurization.featurize_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.featurization.Featurization.featurize_data" title="Permalink to this definition"></a></dt>
 <dd><p>Perform featurization on the given dataset.</p>
 <dl>
 <dt>Args:</dt><dd><p>dset_df (DataFrame): A table of data to be featurized. At minimum, should include columns.
 for the compound ID and assay value; for some featurizers, must also contain a SMILES string column.</p>
-<p>model_dataset (ModelDataset): Dataset to be featurized.</p>
+<p>params (Namespace): Parsed parameters to be used for featurization.</p>
+<p>contains_responses (bool): Whether the dataset being featurized contains response columns.</p>
 </dd>
 <dt>Raises:</dt><dd><p>NotImplementedError: Must be implemented by concrete subclasses</p>
 </dd>
@@ -1493,11 +1806,11 @@ DeepChem transformer object holding its parameters.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pipeline.featurization.PersistentFeaturization.extract_prefeaturized_data">
-<span class="sig-name descname"><span class="pre">extract_prefeaturized_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">merged_dset_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_dataset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/featurization.html#PersistentFeaturization.extract_prefeaturized_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.featurization.PersistentFeaturization.extract_prefeaturized_data" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">extract_prefeaturized_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">featurized_dset_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/featurization.html#PersistentFeaturization.extract_prefeaturized_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.featurization.PersistentFeaturization.extract_prefeaturized_data" title="Permalink to this definition"></a></dt>
 <dd><p>Attempts to extract prefeaturized data for the given dataset.</p>
 <dl>
-<dt>Args:</dt><dd><p>merged_dset_df (DataFrame): dataset merged with the featurizers</p>
-<p>model_dataset (ModelDataset): Object containing the dataset to be featurized</p>
+<dt>Args:</dt><dd><p>featurized_dset_df (DataFrame): dataset merged with the featurizers</p>
+<p>params (Namespace): Parsed parameters for model.</p>
 </dd>
 <dt>Raises:</dt><dd><p>NotImplementedError: Currently, only DescriptorFeaturization is supported, is not a generic method</p>
 </dd>
@@ -1506,22 +1819,24 @@ DeepChem transformer object holding its parameters.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pipeline.featurization.PersistentFeaturization.featurize_data">
-<span class="sig-name descname"><span class="pre">featurize_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dset_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_dataset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/featurization.html#PersistentFeaturization.featurize_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.featurization.PersistentFeaturization.featurize_data" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">featurize_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dset_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">contains_responses</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/featurization.html#PersistentFeaturization.featurize_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.featurization.PersistentFeaturization.featurize_data" title="Permalink to this definition"></a></dt>
 <dd><p>Perform featurization on the given dataset.</p>
 <dl>
 <dt>Args:</dt><dd><p>dset_df (DataFrame): A table of data to be featurized. At minimum, should include columns.
 for the compound ID and assay value; for some featurizers, must also contain a SMILES string column.</p>
-<p>model_dataset (ModelDataset): Object containing the dataset to be featurized</p>
+<p>params (Namespace): Parsed parameters to be used for featurization.</p>
+<p>contains_responses (bool): Whether the dataset being featurized contains response columns.</p>
 </dd>
-<dt>Returns:</dt><dd><dl>
-<dt>Tuple of (features, ids, vals, attr).</dt><dd><p>features (np.array): Feature matrix.</p>
-<p>ids (pd.DataFrame): compound IDs or SMILES strings if needed for splitting.</p>
-<p>attr (pd.DataFrame): dataframe containing SMILES strings indexed by compound IDs.</p>
-<p>vals (np.array): array of response values.</p>
+<dt>Returns:</dt><dd><p>Tuple of (features, ids, vals, attr, weights, featurized_dset_df):</p>
+<p>features (np.array): Feature matrix.</p>
+<p>ids (pd.DataFrame): Compound IDs or SMILES strings if needed for splitting.</p>
+<p>attr (pd.DataFrame): Data frame containing SMILES strings indexed by compound IDs.</p>
+<p>vals (np.array): Array of response values.</p>
+<p>weights (np.array): Array of compound weights</p>
+<p>featurized_dset_df (pd.DataFrame): Data frame combining id, SMILES and response columns from input data frame
+with generated feature columns.</p>
 </dd>
-</dl>
-</dd>
-<dt>Raises:</dt><dd><p>NotImplementedError: Currently, only DescriptorFeaturization is supported, is not a generic method</p>
+<dt>Raises:</dt><dd><p>NotImplementedError: Implemented by subclasses.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1754,9 +2069,9 @@ w: numpy array same shape as vals, where w[i,j] = 1 if vals[i,j] is nan else w[i
 </dd></dl>
 
 </section>
-<section id="pipeline-feature-importance-module">
-<h2>pipeline.feature_importance module<a class="headerlink" href="#pipeline-feature-importance-module" title="Permalink to this heading"></a></h2>
-<span class="target" id="module-pipeline.feature_importance"></span><p>Functions to assess feature importance in AMPL models</p>
+<section id="module-pipeline.feature_importance">
+<span id="pipeline-feature-importance-module"></span><h2>pipeline.feature_importance module<a class="headerlink" href="#module-pipeline.feature_importance" title="Permalink to this heading"></a></h2>
+<p>Functions to assess feature importance in AMPL models</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="pipeline.feature_importance.base_feature_importance">
 <span class="sig-prename descclassname"><span class="pre">pipeline.feature_importance.</span></span><span class="sig-name descname"><span class="pre">base_feature_importance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_pipeline</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/feature_importance.html#base_feature_importance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.feature_importance.base_feature_importance" title="Permalink to this definition"></a></dt>
@@ -1765,7 +2080,7 @@ returns a data frame with a row for each feature. The columns of the data frame 
 prediction type. If the model is a binary classifier, the columns include  t-statistics and p-values
 for the differences between the means of the active and inactive compounds. If the model is a random forest,
 the columns will include the mean decrease in impurity (MDI) of each feature, computed by the scikit-learn
-<a href="#id9"><span class="problematic" id="id10">feature_importances_</span></a> function. See the scikit-learn documentation for warnings about interpreting the MDI
+<a href="#id26"><span class="problematic" id="id27">feature_importances_</span></a> function. See the scikit-learn documentation for warnings about interpreting the MDI
 importance. For all models, the returned data frame will include feature names, means and standard deviations
 for each feature.</p>
 <p>This function has been tested on RFs and NNs with rdkit descriptors. Other models and feature combinations
@@ -1902,10 +2217,10 @@ for p-values or something else where small values mean greater importance.</p>
 <p>split_strategy (str): the flag for determining the split strategy (e.g. ‘train_test_valid’,’k-fold’)</p>
 <p>featurization (Featurization object): The featurization object created by ModelDataset or input as an optional argument in the factory function.</p>
 <p>splitting (Splitting object): A splitting object created by the ModelDataset intiailization method</p>
-<p>combined_train_valid_data (dc.DiskDataset): A dataset object (initialized as None), of the merged train and valid splits
+<p>combined_train_valid_data (dc.Dataset): A dataset object (initialized as None), of the merged train and valid splits
 ds_client (datastore client):</p>
 </dd>
-<dt>set in get_featurized_data:</dt><dd><p>dataset: A new featurized DeepChem DiskDataset.</p>
+<dt>set in get_featurized_data:</dt><dd><p>dataset: A new featurized DeepChem Dataset.</p>
 <p>n_features: The count of features (int)</p>
 <p>vals: The response col after featurization (np.array)</p>
 <p>attr: A pd.dataframe containing the compound ids and smiles</p>
@@ -2020,11 +2335,11 @@ which is then passed to featurization.extract_prefeaturized_data() for processin
 <p>featurization (Featurization object): The featurization object created by ModelDataset or input as an
 optional argument in the factory function.</p>
 <p>splitting (Splitting object): A splitting object created by the ModelDataset intiailization method</p>
-<p>combined_train_valid_data (dc.DiskDataset): A dataset object (initialized as None), of the merged train and
+<p>combined_train_valid_data (dc.Dataset): A dataset object (initialized as None), of the merged train and
 valid splits</p>
 <p>ds_client (datastore client):</p>
 </dd>
-<dt>set in get_featurized_data:</dt><dd><p>dataset: A new featurized DeepChem DiskDataset.</p>
+<dt>set in get_featurized_data:</dt><dd><p>dataset: A new featurized DeepChem Dataset.</p>
 <p>n_features: The count of features (int)</p>
 <p>vals: The response col after featurization (np.array)</p>
 <p>attr: A pd.dataframe containing the compound ids and smiles</p>
@@ -2129,7 +2444,7 @@ contain response columns, i.e. the ground truth is assumed to be unknown.</p>
 log (logger object): logger for all warning messages.
 featurization (Featurization object): The featurization object created by ModelDataset or input as an optional argument in the factory function.</p>
 </dd>
-<dt>set in get_featurized_data:</dt><dd><p>dataset: A new featurized DeepChem DiskDataset.
+<dt>set in get_featurized_data:</dt><dd><p>dataset: A new featurized DeepChem Dataset.
 n_features: The count of features (int)
 attr: A pd.dataframe containing the compound ids and smiles</p>
 </dd>
@@ -2202,10 +2517,10 @@ dataset objects persisted in the datastore or in the filesystem.</p>
 <p>featurization (Featurization object): The featurization object created by ModelDataset or input as an
 argument in the factory function.</p>
 <p>splitting (Splitting object): A splitting object created by the ModelDataset intiailization method</p>
-<p>combined_train_valid_data (dc.DiskDataset): A dataset object (initialized as None), of the merged train
+<p>combined_train_valid_data (dc.Dataset): A dataset object (initialized as None), of the merged train
 and valid splits</p>
 </dd>
-<dt>set in get_featurized_data:</dt><dd><p>dataset: A new featurized DeepChem DiskDataset.</p>
+<dt>set in get_featurized_data:</dt><dd><p>dataset: A new featurized DeepChem Dataset.</p>
 <p>n_features: The count of features (int)</p>
 <p>vals: The response col after featurization (np.array)</p>
 <p>attr: A pd.dataframe containing the compound ids and smiles</p>
@@ -2220,27 +2535,11 @@ and valid splits</p>
 </dl>
 </div></blockquote>
 <dl class="py method">
-<dt class="sig sig-object py" id="pipeline.model_datasets.ModelDataset.check_task_columns">
-<span class="sig-name descname"><span class="pre">check_task_columns</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dset_df</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_datasets.html#ModelDataset.check_task_columns"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.model_datasets.ModelDataset.check_task_columns" title="Permalink to this definition"></a></dt>
-<dd><p>Check that the data frame dset_df contains columns for the requested prediction tasks.</p>
-<dl class="simple">
-<dt>Args:</dt><dd><p>dset_df (pd.DataFrame): Dataset as a DataFrame that contains columns for the prediction tasks</p>
-</dd>
-<dt>Raises:</dt><dd><dl class="simple">
-<dt>Exception:</dt><dd><p>If self.get_dataset_tasks(dset_df) cannot retrieve prediction tasks for the dtaset
-If missing prediction task columns from the input dataset</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
 <dt class="sig sig-object py" id="pipeline.model_datasets.ModelDataset.combined_training_data">
 <span class="sig-name descname"><span class="pre">combined_training_data</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_datasets.html#ModelDataset.combined_training_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.model_datasets.ModelDataset.combined_training_data" title="Permalink to this definition"></a></dt>
 <dd><p>Returns a DeepChem Dataset object containing data for the combined training &amp; validation compounds.</p>
 <dl class="simple">
-<dt>Returns:</dt><dd><p>combined_dataset (dc.data.DiskDataset): Dataset containing the combined training
+<dt>Returns:</dt><dd><p>combined_dataset (dc.data.Dataset): Dataset containing the combined training
 and validation data.</p>
 </dd>
 <dt>Side effects:</dt><dd><p>Overwrites the combined_train_valid_data attribute of the ModelDataset with the combined data</p>
@@ -2273,9 +2572,7 @@ when a train/valid/test split was used.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="pipeline.model_datasets.ModelDataset.get_dataset_tasks">
 <span class="sig-name descname"><span class="pre">get_dataset_tasks</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dset_df</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_datasets.html#ModelDataset.get_dataset_tasks"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.model_datasets.ModelDataset.get_dataset_tasks" title="Permalink to this definition"></a></dt>
-<dd><p>Sets self.tasks to the list of prediction task columns defined for this dataset. If the dataset is in the datastore,
-these should be available in the metadata. Otherwise we guess by looking at the column names in dset_df
-and excluding features, compound IDs, SMILES string columns, etc.</p>
+<dd><p>Sets self.tasks to the list of prediction task (response) columns defined by the current model parameters.</p>
 <dl class="simple">
 <dt>Args:</dt><dd><p>dset_df (pd.DataFrame): Dataset as a DataFrame that contains columns for the prediction tasks</p>
 </dd>
@@ -2288,14 +2585,14 @@ and excluding features, compound IDs, SMILES string columns, etc.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pipeline.model_datasets.ModelDataset.get_featurized_data">
-<span class="sig-name descname"><span class="pre">get_featurized_data</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_datasets.html#ModelDataset.get_featurized_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.model_datasets.ModelDataset.get_featurized_data" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_featurized_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_datasets.html#ModelDataset.get_featurized_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.model_datasets.ModelDataset.get_featurized_data" title="Permalink to this definition"></a></dt>
 <dd><p>Does whatever is necessary to prepare a featurized dataset.
 Loads an existing prefeaturized dataset if one exists and if parameter previously_featurized is
 set True; otherwise loads a raw dataset and featurizes it. Creates an associated DeepChem Dataset
 object.</p>
 <dl class="simple">
 <dt>Side effects:</dt><dd><dl class="simple">
-<dt>Sets the following attributes in the ModelDataset object:</dt><dd><p>dataset: A new featurized DeepChem DiskDataset.
+<dt>Sets the following attributes in the ModelDataset object:</dt><dd><p>dataset: A new featurized DeepChem Dataset.
 n_features: The count of features (int)
 vals: The response col after featurization (np.array)
 attr: A pd.dataframe containing the compound ids and smiles</p>
@@ -2418,6 +2715,23 @@ disjoint but the training sets overlap.</p>
 </dl>
 </dd></dl>
 
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pipeline.model_datasets.check_task_columns">
+<span class="sig-prename descclassname"><span class="pre">pipeline.model_datasets.</span></span><span class="sig-name descname"><span class="pre">check_task_columns</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dset_df</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_datasets.html#check_task_columns"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.model_datasets.check_task_columns" title="Permalink to this definition"></a></dt>
+<dd><p>Check that the data frame dset_df contains all the columns listed in params.response_cols.</p>
+<dl>
+<dt>Args:</dt><dd><p>params (Namespace): Parsed parameter structure; must include response_cols parameter at minimum.</p>
+<p>dset_df (pd.DataFrame): Dataset as a DataFrame that contains columns for the prediction tasks</p>
+</dd>
+<dt>Raises:</dt><dd><dl class="simple">
+<dt>Exception:</dt><dd><p>If response columns not set in params.
+If input dataset is missing response columns</p>
+</dd>
+</dl>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -2588,12 +2902,15 @@ from the model tracker</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pipeline.model_pipeline.ModelPipeline.load_featurize_data">
-<span class="sig-name descname"><span class="pre">load_featurize_data</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_pipeline.html#ModelPipeline.load_featurize_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.model_pipeline.ModelPipeline.load_featurize_data" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">load_featurize_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_pipeline.html#ModelPipeline.load_featurize_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.model_pipeline.ModelPipeline.load_featurize_data" title="Permalink to this definition"></a></dt>
 <dd><p>Loads the dataset from the datastore or the file system and featurizes it. If we are training
 a new model, split the dataset into training, validation and test sets.</p>
 <p>The data is also split into training, validation, and test sets and saved to the filesystem or datastore.</p>
 <p>Assumes a ModelWrapper object has already been created.</p>
 <dl class="simple">
+<dt>Args:</dt><dd><p>params (Namespace): Optional set of parameters to be used for featurization; by default this function
+uses the parameters used when the pipeline was created.</p>
+</dd>
 <dt>Side effects:</dt><dd><dl class="simple">
 <dt>Sets the following attributes of the ModelPipeline</dt><dd><dl class="simple">
 <dt>data (ModelDataset object): A data object that featurizes and splits the dataset</dt><dd><p>data.dataset(dc.DiskDataset): The transformed, featurized, and split dataset</p>
@@ -2606,8 +2923,15 @@ a new model, split the dataset into training, validation and test sets.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="pipeline.model_pipeline.ModelPipeline.predict_embedding">
+<span class="sig-name descname"><span class="pre">predict_embedding</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dset_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dset_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_pipeline.html#ModelPipeline.predict_embedding"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.model_pipeline.ModelPipeline.predict_embedding" title="Permalink to this definition"></a></dt>
+<dd><p>Compute embeddings from a pretrained model on a set of compounds listed in a data frame. The data 
+frame should contain, at minimum, a column of compound IDs and a column of SMILES strings.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="pipeline.model_pipeline.ModelPipeline.predict_full_dataset">
-<span class="sig-name descname"><span class="pre">predict_full_dataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dset_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_featurized</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">contains_responses</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dset_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">AD_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dist_metric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'euclidean'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_pipeline.html#ModelPipeline.predict_full_dataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.model_pipeline.ModelPipeline.predict_full_dataset" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">predict_full_dataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dset_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_featurized</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">contains_responses</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dset_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">AD_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dist_metric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'euclidean'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_train_records_for_AD</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_pipeline.html#ModelPipeline.predict_full_dataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.model_pipeline.ModelPipeline.predict_full_dataset" title="Permalink to this definition"></a></dt>
 <dd><p>Compute predicted responses from a pretrained model on a set of compounds listed in
 a data frame. The data frame should contain, at minimum, a column of compound IDs; if
 SMILES strings are needed to compute features, they should be provided as well. Feature
@@ -2628,10 +2952,18 @@ used when the model was trained.</p>
 <p>dset_params (Namespace):  Parameters used to interpret dataset, including id_col, smiles_col,
 and optionally, response_cols. If not provided, id_col, smiles_col and response_cols are
 assumed to be same as in the pretrained model.</p>
-<p>AD_method (str): with default, Applicable domain (AD) index will not be calcualted, use 
-z_score or local_density to choose the method to calculate AD index.</p>
-<p>k (int): number of the neareast neighbors to evaluate the AD index, default is 5.</p>
-<p>dist_metric (str): distance metrics, valid values are ‘cityblock’, ‘cosine’, ‘euclidean’, ‘jaccard’, ‘manhattan’</p>
+<p>AD_method (str or None): Method to use to compute applicability domain (AD) index; may be
+‘z_score’, ‘local_density’ or None (the default). With the default value, AD indices
+will not be calculated.</p>
+<p>k (int): Number of nearest neighbors of each training data point used to evaluate the AD index.</p>
+<p>dist_metric (str): Metric used to compute distances between feature vectors for AD index calculation. 
+Valid values are ‘cityblock’, ‘cosine’, ‘euclidean’, ‘jaccard’, and ‘manhattan’. If binary
+features such as fingerprints are used in model, ‘jaccard’ (equivalent to Tanimoto distance) may
+be a better choice than the other metrics which operate on continuous features.</p>
+<p>max_train_records_for_AD (int): Maximum number of training data rows to use for AD calculation. 
+Note that the AD calculation time scales as the square of the number of training records used.
+If the training dataset is larger than <cite>max_train_records_for_AD</cite>, a random sample of rows with
+this size is used instead for the AD calculations.</p>
 </dd>
 <dt>Returns:</dt><dd><p>result_df (DataFrame): Data frame indexed by compound IDs containing a column of SMILES
 strings, with additional columns containing the predicted values for each response variable.
@@ -2657,10 +2989,14 @@ Call predict_full_dataset instead.</p>
 <dl>
 <dt>Args:</dt><dd><p>smiles (list): A list containting valid SMILES strings</p>
 <p>verbose (boolean): A switch for disabling informational messages</p>
-<p>AD_method (str): with default, Applicable domain (AD) index will not be calcualted, use 
-z_score or local_density to choose the method to calculate AD index.</p>
-<p>k (int): number of the neareast neighbors to evaluate the AD index, default is 5.</p>
-<p>dist_metric (str): distance metrics, valid values are ‘cityblock’, ‘cosine’, ‘euclidean’, ‘jaccard’, ‘manhattan’</p>
+<p>AD_method (str or None): Method to use to compute applicability domain (AD) index; may be
+‘z_score’, ‘local_density’ or None (the default). With the default value, AD indices
+will not be calculated.</p>
+<p>k (int): Number of nearest neighbors of each training data point used to evaluate the AD index.</p>
+<p>dist_metric (str): Metric used to compute distances between feature vectors for AD index calculation. 
+Valid values are ‘cityblock’, ‘cosine’, ‘euclidean’, ‘jaccard’, and ‘manhattan’. If binary
+features such as fingerprints are used in model, ‘jaccard’ (equivalent to Tanimoto distance) may
+be a better choice than the other metrics which operate on continuous features.</p>
 </dd>
 <dt>Returns:</dt><dd><p>res (DataFrame): Data frame indexed by compound IDs containing a column of SMILES
 strings, with additional columns containing the predicted values for each response variable.
@@ -3469,6 +3805,18 @@ featurziation (Featurization object): The featurization object created outside o
 </dd>
 </dl>
 <dl class="py method">
+<dt class="sig sig-object py" id="pipeline.model_wrapper.GraphConvDCModelWrapper.generate_embeddings">
+<span class="sig-name descname"><span class="pre">generate_embeddings</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#GraphConvDCModelWrapper.generate_embeddings"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.model_wrapper.GraphConvDCModelWrapper.generate_embeddings" title="Permalink to this definition"></a></dt>
+<dd><p>Generate the output of the final embedding layer of a GraphConv model for the given dataset.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>dataset:</p>
+</dd>
+<dt>Returns:</dt><dd><p>embedding (np.ndarray): An array of outputs from the nodes in the embedding layer.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="pipeline.model_wrapper.GraphConvDCModelWrapper.get_model_specific_metadata">
 <span class="sig-name descname"><span class="pre">get_model_specific_metadata</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#GraphConvDCModelWrapper.get_model_specific_metadata"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.model_wrapper.GraphConvDCModelWrapper.get_model_specific_metadata" title="Permalink to this definition"></a></dt>
 <dd><p>Returns a dictionary of parameter settings for this ModelWrapper object that are specific
@@ -3727,6 +4075,16 @@ Set in __init__</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="pipeline.model_wrapper.ModelWrapper.generate_embeddings">
+<span class="sig-name descname"><span class="pre">generate_embeddings</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#ModelWrapper.generate_embeddings"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.model_wrapper.ModelWrapper.generate_embeddings" title="Permalink to this definition"></a></dt>
+<dd><dl class="simple">
+<dt>Args:</dt><dd><p>dataset:</p>
+</dd>
+</dl>
+<p>Returns:</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="pipeline.model_wrapper.ModelWrapper.generate_predictions">
 <span class="sig-name descname"><span class="pre">generate_predictions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#ModelWrapper.generate_predictions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.model_wrapper.ModelWrapper.generate_predictions" title="Permalink to this definition"></a></dt>
 <dd><dl class="simple">
@@ -3926,6 +4284,18 @@ featurziation (Featurization object): The featurization object created outside o
 </dd>
 </dl>
 <dl class="py method">
+<dt class="sig sig-object py" id="pipeline.model_wrapper.MultitaskDCModelWrapper.generate_embeddings">
+<span class="sig-name descname"><span class="pre">generate_embeddings</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#MultitaskDCModelWrapper.generate_embeddings"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.model_wrapper.MultitaskDCModelWrapper.generate_embeddings" title="Permalink to this definition"></a></dt>
+<dd><p>Generate the output of the final embedding layer of a fully connected NN model for the given dataset.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>dataset:</p>
+</dd>
+<dt>Returns:</dt><dd><p>embedding (np.ndarray): An array of outputs from the nodes in the embedding layer.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="pipeline.model_wrapper.MultitaskDCModelWrapper.get_model_specific_metadata">
 <span class="sig-name descname"><span class="pre">get_model_specific_metadata</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#MultitaskDCModelWrapper.get_model_specific_metadata"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.model_wrapper.MultitaskDCModelWrapper.get_model_specific_metadata" title="Permalink to this definition"></a></dt>
 <dd><p>Returns a dictionary of parameter settings for this ModelWrapper object that are specific
@@ -4012,8 +4382,8 @@ only option for this is ‘best’.  Results are returned as a dictionary of par
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pipeline.model_wrapper.NNModelWrapper.restore">
-<span class="sig-name descname"><span class="pre">restore</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#NNModelWrapper.restore"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.model_wrapper.NNModelWrapper.restore" title="Permalink to this definition"></a></dt>
-<dd><p>Reverts model to last saved checkpoint</p>
+<span class="sig-name descname"><span class="pre">restore</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">checkpoint</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#NNModelWrapper.restore"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.model_wrapper.NNModelWrapper.restore" title="Permalink to this definition"></a></dt>
+<dd><p>Restores this model</p>
 </dd></dl>
 
 <dl class="py method">
@@ -4106,14 +4476,17 @@ to the last saved checkpoint.</p>
 <dt class="sig sig-object py" id="pipeline.model_wrapper.PytorchDeepChemModelWrapper">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pipeline.model_wrapper.</span></span><span class="sig-name descname"><span class="pre">PytorchDeepChemModelWrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">featurizer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ds_client</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#PytorchDeepChemModelWrapper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.model_wrapper.PytorchDeepChemModelWrapper" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pipeline.model_wrapper.NNModelWrapper" title="pipeline.model_wrapper.NNModelWrapper"><code class="xref py py-class docutils literal notranslate"><span class="pre">NNModelWrapper</span></code></a></p>
-<p>Implementation of AttentiveFP model from Xiong et al. <a class="footnote-reference brackets" href="#id4" id="id3">1</a>. It uses a graph attention model
+<p>Implementation of AttentiveFP model from Xiong et al. <a class="footnote-reference brackets" href="#id8" id="id7" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>. It uses a graph attention model
 to propagate information from bond and neighboring atom features across a molecule represented as
 a graph.</p>
-<dl class="footnote brackets">
-<dt class="label" id="id4"><span class="brackets"><a class="fn-backref" href="#id3">1</a></span></dt>
-<dd><p>Xiong, Zhaoping et al. “Pushing the Boundaries of Molecular Representation for Drug Discovery</p>
-</dd>
-</dl>
+<section id="references">
+<h3>References<a class="headerlink" href="#references" title="Permalink to this heading"></a></h3>
+<aside class="footnote-list brackets">
+<aside class="footnote brackets" id="id8" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id7">1</a><span class="fn-bracket">]</span></span>
+<p>Xiong, Zhaoping et al. “Pushing the Boundaries of Molecular Representation for Drug Discovery</p>
+</aside>
+</aside>
 <p>with the Graph Attention Mechanism.” Journal of Medicinal Chemistry (2019) 
 doi: 10.1021/acs.jmedchem.0b00959</p>
 <dl class="simple">
@@ -4195,10 +4568,11 @@ model_dataset (ModelDataset Object): contains the current full dataset</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pipeline.model_wrapper.PytorchDeepChemModelWrapper.restore">
-<span class="sig-name descname"><span class="pre">restore</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#PytorchDeepChemModelWrapper.restore"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.model_wrapper.PytorchDeepChemModelWrapper.restore" title="Permalink to this definition"></a></dt>
-<dd><p>Restores model to the last saved checkpoint</p>
+<span class="sig-name descname"><span class="pre">restore</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">checkpoint</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#PytorchDeepChemModelWrapper.restore"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.model_wrapper.PytorchDeepChemModelWrapper.restore" title="Permalink to this definition"></a></dt>
+<dd><p>Restores this model</p>
 </dd></dl>
 
+</section>
 </dd></dl>
 
 <dl class="py function">
@@ -4244,6 +4618,29 @@ list of all available checkpoints.</p>
 <dt>Returns:</dt><dd><p>None</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pipeline.model_wrapper.dc_torch_restore">
+<span class="sig-prename descclassname"><span class="pre">pipeline.model_wrapper.</span></span><span class="sig-name descname"><span class="pre">dc_torch_restore</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checkpoint</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/model_wrapper.html#dc_torch_restore"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.model_wrapper.dc_torch_restore" title="Permalink to this definition"></a></dt>
+<dd><p>Reload the values of all variables from a checkpoint file.</p>
+<p>This is copied from deepchem 2.6.1 to explicitly set the torch loading device to 
+‘cpu’ if cuda devices aren’t available when reloading the model.</p>
+<section id="id9">
+<h3>Parameters<a class="headerlink" href="#id9" title="Permalink to this heading"></a></h3>
+<p>model: the torch model to restore
+checkpoint: str</p>
+<blockquote>
+<div><p>the path to the checkpoint file to load.  If this is None, the most recent
+checkpoint will be chosen automatically.  Call get_checkpoints() to get a
+list of all available checkpoints.</p>
+</div></blockquote>
+<dl class="simple">
+<dt>model_dir: str, default None</dt><dd><p>Directory to restore checkpoint from. If None, use self.model_dir.  If
+checkpoint is not None, this is ignored.</p>
+</dd>
+</dl>
+</section>
 </dd></dl>
 
 <dl class="py function">
@@ -4752,7 +5149,7 @@ params_obj = {‘arg1’:val1, ‘arg2’:val2, ‘arg3’:val3}</p>
 <span class="sig-prename descclassname"><span class="pre">pipeline.parameter_parser.</span></span><span class="sig-name descname"><span class="pre">wrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">any_arg</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/parameter_parser.html#wrapper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.parameter_parser.wrapper" title="Permalink to this definition"></a></dt>
 <dd><p>“Wrapper to handle the ParseParams class. Calls the correct method depending on the input argument type</p>
 <dl class="simple">
-<dt>Args:</dt><dd><p><a href="#id5"><span class="problematic" id="id6">*</span></a>any_arg: any single input of a str, dict, ar/printgparse.Namespace, or list</p>
+<dt>Args:</dt><dd><p><a href="#id10"><span class="problematic" id="id11">*</span></a>any_arg: any single input of a str, dict, ar/printgparse.Namespace, or list</p>
 </dd>
 <dt>Returns:</dt><dd><p>argparse.Namespace: a Namespace.argparse object containing default parameters + user specified parameters</p>
 </dd>
@@ -5770,7 +6167,7 @@ prediction_type (classification or regression) and split strategy (k-fold or tra
 <p>model_dataset (ModelDataset): Object representing the full dataset.</p>
 <p>transformers (list): A list of transformer objects.</p>
 <p>subset (str): Label in [‘train’, ‘valid’, ‘test’, ‘full’], indicating the type of subset of dataset for tracking predictions</p>
-<p><a href="#id7"><span class="problematic" id="id8">**</span></a>kwargs: Additional PerfData subclass arguments</p>
+<p><a href="#id12"><span class="problematic" id="id13">**</span></a>kwargs: Additional PerfData subclass arguments</p>
 </dd>
 <dt>Returns:</dt><dd><p>PerfData object</p>
 </dd>
@@ -5942,6 +6339,43 @@ or descriptors); note that <cite>jaccard</cite> is equivalent to Tanimoto distan
 <span id="pipeline-splitting-module"></span><h2>pipeline.splitting module<a class="headerlink" href="#module-pipeline.splitting" title="Permalink to this heading"></a></h2>
 <p>Encapsulates everything that depends on how datasets are split: the splitting itself, training, validation,
 testing, generation of predicted values and performance metrics.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="pipeline.splitting.DatasetManager">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pipeline.splitting.</span></span><span class="sig-name descname"><span class="pre">DatasetManager</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attr_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smiles_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">needs_smiles</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/splitting.html#DatasetManager"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.splitting.DatasetManager" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Different splitters have different dataset requirements.
+- unique compound ids
+- smiles used as ids</p>
+<p>This object transforms datasets to satisfy these requirements then undoes them
+once the splitting is done.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="pipeline.splitting.DatasetManager.compact_dataset">
+<span class="sig-name descname"><span class="pre">compact_dataset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/splitting.html#DatasetManager.compact_dataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.splitting.DatasetManager.compact_dataset" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a dataset with no duplicate compounds ids and smiles strings in the
+id column if necessary.</p>
+<p>Builds a new dataset with no duplicates in ids (compounds or smiles). This assumes 
+a many to one mapping between SMILES and compound ids</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pipeline.splitting.DatasetManager.expand_selection">
+<span class="sig-name descname"><span class="pre">expand_selection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ids</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/splitting.html#DatasetManager.expand_selection"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.splitting.DatasetManager.expand_selection" title="Permalink to this definition"></a></dt>
+<dd><p>Implementation note: Maybe this is better if I used select_attrs_by_dset_smiles
+and select_attrs_by_dset_ids respectively</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>ids (iterable): Iterable containing either compound_ids or smiles. These</dt><dd><p>need to be mapped back to a set of indices using either compound_ids
+or smiles.</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><p>A subset of self.dataset_ori and subset of self.attr_df</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 <dl class="py class">
 <dt class="sig sig-object py" id="pipeline.splitting.KFoldSplitting">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pipeline.splitting.</span></span><span class="sig-name descname"><span class="pre">KFoldSplitting</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/splitting.html#KFoldSplitting"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.splitting.KFoldSplitting" title="Permalink to this definition"></a></dt>
@@ -6140,7 +6574,7 @@ determined by params.split_strategy</p>
 <dd><p>Returns a subset of the data frame attr_df selected by matching compound IDs in the index of attr_df
 against the ids in the dc.data.Dataset object dataset.</p>
 <dl>
-<dt>Args:</dt><dd><p>dataset (DiskDataset): The deepchem dataset, should have matching ids with ids in attr_df</p>
+<dt>Args:</dt><dd><p>dataset (Dataset): The deepchem dataset, should have matching ids with ids in attr_df</p>
 <p>attr_df (DataFrame): Contains the compound ids. Ids should match with dataset</p>
 </dd>
 <dt>Returns:</dt><dd><p>subattr_df (DataFrame): A subset of attr_df as determined by the ids in dataset</p>
@@ -6154,7 +6588,7 @@ against the ids in the dc.data.Dataset object dataset.</p>
 <dd><p>Returns a subset of the data frame attr_df selected by matching SMILES strings in attr_df
 against the ids in the dc.data.Dataset object dataset.</p>
 <dl>
-<dt>Args:</dt><dd><p>dataset (DiskDataset): The deepchem dataset, should have matching ids with ids in attr_df</p>
+<dt>Args:</dt><dd><p>dataset (Dataset): The deepchem dataset, should have matching ids with ids in attr_df</p>
 <p>attr_df (DataFrame): Contains the compound ids. Ids should match with dataset. Should contain a column
 of SMILES strings under the smiles_col</p>
 <p>smiles_col (str): Name of the column containing smiles strings</p>
@@ -6171,10 +6605,10 @@ strings in attr_df to the ids in the dataset</p>
 <dd><p>Returns a subset of the given dc.data.Dataset object selected by matching compound IDs in the index of attr_df
 against the ids in the dataset.</p>
 <dl>
-<dt>Args:</dt><dd><p>dataset (DiskDataset): The deepchem dataset, should have matching ids with ids in attr_df</p>
+<dt>Args:</dt><dd><p>dataset (Dataset): The deepchem dataset, should have matching ids with ids in attr_df</p>
 <p>attr_df (DataFrame): Contains the compound ids to subset the dataset. Ids should match with dataset</p>
 </dd>
-<dt>Returns:</dt><dd><p>subset (DiskDataset): A subset of the deepchem dataset as determined by the ids in attr_df</p>
+<dt>Returns:</dt><dd><p>subset (Dataset): A subset of the deepchem dataset as determined by the ids in attr_df</p>
 </dd>
 </dl>
 </dd></dl>
@@ -6185,10 +6619,10 @@ against the ids in the dataset.</p>
 <dd><p>Returns a subset of the given dc.data.Dataset object selected by matching compound IDs in the given list
 against the ids in the dataset.</p>
 <dl>
-<dt>Args:</dt><dd><p>dataset (DiskDataset): The deepchem dataset, should have matching ids with ids in id_list</p>
+<dt>Args:</dt><dd><p>dataset (Dataset): The deepchem dataset, should have matching ids with ids in id_list</p>
 <p>id_list (list): Contains a list of compound ids to subset the dataset. Ids should match with dataset</p>
 </dd>
-<dt>Returns:</dt><dd><p>subset (DiskDataset): A subset of the deepchem dataset as determined by the ids in id_list</p>
+<dt>Returns:</dt><dd><p>subset (Dataset): A subset of the deepchem dataset as determined by the ids in id_list</p>
 </dd>
 </dl>
 </dd></dl>
@@ -6211,6 +6645,8 @@ provided by DeepChem.</p>
 the <cite>Dataset.transform</cite> method. Note that this method adds X-transform,
 y-transform columns to metadata. Specified keyword arguments are passed on
 to <cite>Dataset.transform</cite>.</p>
+<section id="id14">
+<h3>Parameters<a class="headerlink" href="#id14" title="Permalink to this heading"></a></h3>
 <dl class="simple">
 <dt>dataset: dc.data.Dataset</dt><dd><p>Dataset object to be transformed.</p>
 </dd>
@@ -6221,10 +6657,14 @@ For large datasets, this might be faster.</p>
 the output dataset will be written to the specified directory.</p>
 </dd>
 </dl>
+</section>
+<section id="id15">
+<h3>Returns<a class="headerlink" href="#id15" title="Permalink to this heading"></a></h3>
 <dl class="simple">
 <dt>Dataset</dt><dd><p>A newly transformed Dataset object</p>
 </dd>
 </dl>
+</section>
 </dd></dl>
 
 <dl class="py method">
@@ -6237,14 +6677,20 @@ the output dataset will be written to the specified directory.</p>
 <dt class="sig sig-object py" id="pipeline.transformations.NormalizationTransformerHybrid.untransform">
 <span class="sig-name descname"><span class="pre">untransform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">isreal</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/transformations.html#NormalizationTransformerHybrid.untransform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.transformations.NormalizationTransformerHybrid.untransform" title="Permalink to this definition"></a></dt>
 <dd><p>Undo transformation on provided data.</p>
+<section id="id16">
+<h3>Parameters<a class="headerlink" href="#id16" title="Permalink to this heading"></a></h3>
 <dl class="simple">
 <dt>z: np.ndarray</dt><dd><p>Array to transform back</p>
 </dd>
 </dl>
+</section>
+<section id="id17">
+<h3>Returns<a class="headerlink" href="#id17" title="Permalink to this heading"></a></h3>
 <dl class="simple">
 <dt>z_out: np.ndarray</dt><dd><p>Array with normalization undone.</p>
 </dd>
 </dl>
+</section>
 </dd></dl>
 
 </dd></dl>
@@ -6262,6 +6708,8 @@ the output dataset will be written to the specified directory.</p>
 the <cite>Dataset.transform</cite> method. Note that this method adds X-transform,
 y-transform columns to metadata. Specified keyword arguments are passed on
 to <cite>Dataset.transform</cite>.</p>
+<section id="id18">
+<h3>Parameters<a class="headerlink" href="#id18" title="Permalink to this heading"></a></h3>
 <dl class="simple">
 <dt>dataset: dc.data.Dataset</dt><dd><p>Dataset object to be transformed.</p>
 </dd>
@@ -6272,16 +6720,41 @@ For large datasets, this might be faster.</p>
 the output dataset will be written to the specified directory.</p>
 </dd>
 </dl>
+</section>
+<section id="id19">
+<h3>Returns<a class="headerlink" href="#id19" title="Permalink to this heading"></a></h3>
 <dl class="simple">
 <dt>Dataset</dt><dd><p>A newly transformed Dataset object</p>
 </dd>
 </dl>
+</section>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pipeline.transformations.NormalizationTransformerMissingData.transform_array">
 <span class="sig-name descname"><span class="pre">transform_array</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">w</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ids</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/transformations.html#NormalizationTransformerMissingData.transform_array"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.transformations.NormalizationTransformerMissingData.transform_array" title="Permalink to this definition"></a></dt>
 <dd><p>Transform the data in a set of (X, y, w) arrays.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pipeline.transformations.NormalizationTransformerMissingData.untransform">
+<span class="sig-name descname"><span class="pre">untransform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="_modules/pipeline/transformations.html#NormalizationTransformerMissingData.untransform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.transformations.NormalizationTransformerMissingData.untransform" title="Permalink to this definition"></a></dt>
+<dd><p>Undo transformation on provided data.</p>
+<p>Overrides DeepChem NormalizationTransformer method to fix issue #1821.</p>
+<section id="id20">
+<h3>Parameters<a class="headerlink" href="#id20" title="Permalink to this heading"></a></h3>
+<dl class="simple">
+<dt>z: np.ndarray</dt><dd><p>Array to transform back</p>
+</dd>
+</dl>
+</section>
+<section id="id21">
+<h3>Returns<a class="headerlink" href="#id21" title="Permalink to this heading"></a></h3>
+<dl class="simple">
+<dt>z_out: np.ndarray</dt><dd><p>Array with normalization undone.</p>
+</dd>
+</dl>
+</section>
 </dd></dl>
 
 </dd></dl>
@@ -6304,6 +6777,8 @@ scaler (RobustScaler): Centering/scaling transformer</p>
 the <cite>Dataset.transform</cite> method. Note that this method adds X-transform,
 y-transform columns to metadata. Specified keyword arguments are passed on
 to <cite>Dataset.transform</cite>.</p>
+<section id="id22">
+<h3>Parameters<a class="headerlink" href="#id22" title="Permalink to this heading"></a></h3>
 <dl class="simple">
 <dt>dataset: dc.data.Dataset</dt><dd><p>Dataset object to be transformed.</p>
 </dd>
@@ -6314,16 +6789,22 @@ For large datasets, this might be faster.</p>
 the output dataset will be written to the specified directory.</p>
 </dd>
 </dl>
+</section>
+<section id="id23">
+<h3>Returns<a class="headerlink" href="#id23" title="Permalink to this heading"></a></h3>
 <dl class="simple">
 <dt>Dataset</dt><dd><p>A newly transformed Dataset object</p>
 </dd>
 </dl>
+</section>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pipeline.transformations.UMAPTransformer.transform_array">
 <span class="sig-name descname"><span class="pre">transform_array</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">w</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ids</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline/transformations.html#UMAPTransformer.transform_array"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pipeline.transformations.UMAPTransformer.transform_array" title="Permalink to this definition"></a></dt>
 <dd><p>Transform the data in a set of (X, y, w, ids) arrays.</p>
+<section id="id24">
+<h3>Parameters<a class="headerlink" href="#id24" title="Permalink to this heading"></a></h3>
 <dl class="simple">
 <dt>X: np.ndarray</dt><dd><p>Array of features</p>
 </dd>
@@ -6334,6 +6815,9 @@ the output dataset will be written to the specified directory.</p>
 <dt>ids: np.ndarray</dt><dd><p>Array of identifiers.</p>
 </dd>
 </dl>
+</section>
+<section id="id25">
+<h3>Returns<a class="headerlink" href="#id25" title="Permalink to this heading"></a></h3>
 <dl class="simple">
 <dt>Xtrans: np.ndarray</dt><dd><p>Transformed array of features</p>
 </dd>
@@ -6344,6 +6828,7 @@ the output dataset will be written to the specified directory.</p>
 <dt>idstrans: np.ndarray</dt><dd><p>Transformed array of ids</p>
 </dd>
 </dl>
+</section>
 </dd></dl>
 
 <dl class="py method">
@@ -6434,7 +6919,7 @@ created for a model with the given parameters.</p>
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2022, ATOM DDM Team.</p>
+    <p>&#169; Copyright 2023, ATOM DDM Team.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

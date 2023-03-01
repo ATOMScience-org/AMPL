@@ -1206,10 +1206,7 @@ class HybridModelWrapper(NNModelWrapper):
             self.params.dropouts = [0.4] * len(self.params.layer_sizes)
 
         n_features = self.get_num_features()
-        if socket.gethostname()[:3] == "sur":
-            self.dev = torch.device("cpu")
-        else:
-            self.dev = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+        self.dev = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
         if self.params.prediction_type == 'regression':
             model_dict = OrderedDict([
@@ -2375,7 +2372,7 @@ class PytorchDeepChemModelWrapper(NNModelWrapper):
         self.model = self.recreate_model(model_dir=reload_dir)
         # checkpoint with the highest number is the best one
         best_chkpt = get_latest_pytorch_checkpoint(self.model)
-        self.model.restore(best_chkpt, reload_dir)
+        self.restore(best_chkpt, reload_dir)
 
         # Restore the transformers from the datastore or filesystem
         self.reload_transformers()

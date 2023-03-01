@@ -15,6 +15,7 @@ import atomsci.ddm.pipeline.model_pipeline as mp
 import atomsci.ddm.pipeline.predict_from_model as pfm
 import atomsci.ddm.pipeline.parameter_parser as parse
 import atomsci.ddm.utils.model_retrain as mr
+import atomsci.ddm.utils.file_utils as futils
 from atomsci.ddm.utils import llnl_utils
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
@@ -165,9 +166,8 @@ def verify_saved_params(original_json_f, tar_f):
     compares saved params in a tar file with original json
     '''
     reload_dir = tempfile.mkdtemp()
-    model_fp = tarfile.open(tar_f, mode='r:gz')
-    model_fp.extractall(path=reload_dir)
-    model_fp.close()
+    with tarfile.open(tar_f, mode='r:gz') as tar:
+        futils.safe_extract(tar, path=reload_dir)
 
     # read config from tar file
     config_file_path = os.path.join(reload_dir, 'model_metadata.json')

@@ -34,7 +34,7 @@ from atomsci.ddm.utils.struct_utils import get_rdkit_smiles, base_smiles_from_sm
 
 feather_supported = True
 try:
-    import feather
+    import pyarrow.feather as feather
 except (ImportError, AttributeError, ModuleNotFoundError):
     feather_supported = False
 

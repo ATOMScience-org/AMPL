@@ -3,18 +3,17 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>utils.datastore_functions &mdash; ATOM Data-Driven Modeling Pipeline 1.4.0 documentation</title>
+  <title>utils.datastore_functions &mdash; ATOM Data-Driven Modeling Pipeline 1.5.0 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
         <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-        <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/underscore.js"></script>
-        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" /> 
@@ -25,14 +24,18 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../../index.html" class="icon icon-home"> ATOM Data-Driven Modeling Pipeline
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            ATOM Data-Driven Modeling Pipeline
           </a>
               <div class="version">
-                1.4.0
+                1.5.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -64,9 +67,9 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="../index.html">Module code</a> &raquo;</li>
-      <li>utils.datastore_functions</li>
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">utils.datastore_functions</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -101,10 +104,11 @@
 <span class="kn">import</span> <span class="nn">getpass</span>
 
 <span class="kn">from</span> <span class="nn">atomsci.ddm.utils.llnl_utils</span> <span class="kn">import</span> <span class="n">is_lc_system</span>
+<span class="kn">import</span> <span class="nn">atomsci.ddm.utils.file_utils</span> <span class="k">as</span> <span class="nn">futils</span>
 
 <span class="n">feather_supported</span> <span class="o">=</span> <span class="kc">True</span>
 <span class="k">try</span><span class="p">:</span>
-    <span class="kn">import</span> <span class="nn">feather</span>
+    <span class="kn">import</span> <span class="nn">pyarrow.feather</span> <span class="k">as</span> <span class="nn">feather</span>
 <span class="k">except</span> <span class="p">(</span><span class="ne">ImportError</span><span class="p">,</span> <span class="ne">AttributeError</span><span class="p">,</span> <span class="ne">ModuleNotFoundError</span><span class="p">):</span>
     <span class="n">feather_supported</span> <span class="o">=</span> <span class="kc">False</span>
 
@@ -130,7 +134,7 @@
         <span class="n">token</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">url</span><span class="o">=</span><span class="s1">&#39;https://twintron-blue.llnl.gov/atom/datastore/api/v1.0/swagger.json&#39;</span><span class="p">,</span>
         <span class="n">new_instance</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Configures client to access datastore service.</span>
 
 <span class="sd">    Args:</span>
@@ -184,7 +188,7 @@
 <span class="c1">#--------------------------------------------------------------------------------------------------------</span>
 
 <div class="viewcode-block" id="initialize_model_tracker"><a class="viewcode-back" href="../../utils.html#utils.datastore_functions.initialize_model_tracker">[docs]</a><span class="k">def</span> <span class="nf">initialize_model_tracker</span><span class="p">(</span><span class="n">new_instance</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span> 
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Create or obtain a client object for the model tracker service..</span>
 
 <span class="sd">    Returns:</span>
@@ -209,7 +213,7 @@
 <span class="c1">#--------------------------------------------------------------------------------------------------------</span>
 
 <div class="viewcode-block" id="retrieve_bucket_names"><a class="viewcode-back" href="../../utils.html#utils.datastore_functions.retrieve_bucket_names">[docs]</a><span class="k">def</span> <span class="nf">retrieve_bucket_names</span><span class="p">(</span><span class="n">client</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Retrieve a list of the bucket names in datastore</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Retrieve a list of the bucket names in datastore</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        client (optional): set client if not using the default</span>
@@ -228,7 +232,7 @@
 
 <span class="c1">#------------------------------------------------------------------------------------------------------</span>
 <div class="viewcode-block" id="retrieve_keys"><a class="viewcode-back" href="../../utils.html#utils.datastore_functions.retrieve_keys">[docs]</a><span class="k">def</span> <span class="nf">retrieve_keys</span><span class="p">(</span><span class="n">bucket</span><span class="o">=</span><span class="s1">&#39;all&#39;</span><span class="p">,</span> <span class="n">client</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sort</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Get a list of keys in bucket(s) specified.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get a list of keys in bucket(s) specified.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        bucket (str, optional): &#39;all&#39; by default. Specify bucket (as a str or list) to limit search</span>
@@ -270,7 +274,7 @@
 
 <span class="c1">#------------------------------------------------------------------------------------------------------</span>
 <div class="viewcode-block" id="key_exists"><a class="viewcode-back" href="../../utils.html#utils.datastore_functions.key_exists">[docs]</a><span class="k">def</span> <span class="nf">key_exists</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">bucket</span><span class="o">=</span><span class="s1">&#39;all&#39;</span><span class="p">,</span> <span class="n">client</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Check if key exists in bucket(s) specified.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Check if key exists in bucket(s) specified.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        key (str): the key of interest</span>
@@ -315,7 +319,7 @@
 
 <span class="c1">#------------------------------------------------------------------------------------------------------</span>
 <div class="viewcode-block" id="retrieve_values_for_key"><a class="viewcode-back" href="../../utils.html#utils.datastore_functions.retrieve_values_for_key">[docs]</a><span class="k">def</span> <span class="nf">retrieve_values_for_key</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">bucket</span><span class="o">=</span><span class="s1">&#39;all&#39;</span><span class="p">,</span> <span class="n">client</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Get a list of values associated with a specified key.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get a list of values associated with a specified key.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        key (str): the key of interest</span>
@@ -374,7 +378,7 @@
 
 <span class="c1">#------------------------------------------------------------------------------------------------------</span>
 <div class="viewcode-block" id="dataset_key_exists"><a class="viewcode-back" href="../../utils.html#utils.datastore_functions.dataset_key_exists">[docs]</a><span class="k">def</span> <span class="nf">dataset_key_exists</span><span class="p">(</span><span class="n">dataset_key</span><span class="p">,</span> <span class="n">bucket</span><span class="p">,</span> <span class="n">client</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Returns a boolean indicating whether the given dataset_key is already present in the bucket specified.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Returns a boolean indicating whether the given dataset_key is already present in the bucket specified.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        dataset_key (str): the dataset_key for the dataset you want (unique in each bucket)</span>
@@ -401,7 +405,7 @@
 
 <span class="c1">#------------------------------------------------------------------------------------------------------</span>
 <div class="viewcode-block" id="retrieve_dataset_by_datasetkey"><a class="viewcode-back" href="../../utils.html#utils.datastore_functions.retrieve_dataset_by_datasetkey">[docs]</a><span class="k">def</span> <span class="nf">retrieve_dataset_by_datasetkey</span><span class="p">(</span><span class="n">dataset_key</span><span class="p">,</span> <span class="n">bucket</span><span class="p">,</span> <span class="n">client</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">return_metadata</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">nrows</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">print_metadata</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">index_col</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tarpath</span><span class="o">=</span><span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Retrieves the dataset and returns as a pandas dataframe (or other format as needed depending on file type).</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Retrieves the dataset and returns as a pandas dataframe (or other format as needed depending on file type).</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        dataset_key (str): the dataset_key for the dataset you want (unique in each bucket)</span>
@@ -527,9 +531,8 @@
     <span class="k">elif</span> <span class="n">file_type</span> <span class="o">==</span> <span class="s1">&#39;gz&#39;</span> <span class="ow">or</span> <span class="n">file_type</span> <span class="o">==</span> <span class="s1">&#39;tgz&#39;</span><span class="p">:</span>
         <span class="c1"># tar.gz (tarball) file. Extract to path specified and return path.</span>
         <span class="n">fp</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">open_bucket_dataset</span> <span class="p">(</span><span class="n">bucket</span><span class="p">,</span> <span class="n">dataset_key</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;b&#39;</span><span class="p">)</span>
-        <span class="n">fp</span> <span class="o">=</span> <span class="n">tarfile</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">fileobj</span><span class="o">=</span><span class="n">fp</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;r:gz&#39;</span><span class="p">)</span>
-        <span class="n">fp</span><span class="o">.</span><span class="n">extractall</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">tarpath</span><span class="p">)</span>
-        <span class="n">fp</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">with</span> <span class="n">tarfile</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">fileobj</span><span class="o">=</span><span class="n">fp</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;r:gz&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">tar</span><span class="p">:</span>
+            <span class="n">futils</span><span class="o">.</span><span class="n">safe_extract</span><span class="p">(</span><span class="n">tar</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="n">tarpath</span><span class="p">)</span>
 
         <span class="c1">#get new folder name and return full path</span>
         <span class="n">extracted_dir</span> <span class="o">=</span> <span class="n">all_metadata</span><span class="p">[</span><span class="s1">&#39;distribution&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;filename&#39;</span><span class="p">)</span>
@@ -547,7 +550,7 @@
 
 <span class="c1">#------------------------------------------------------------------------------------------------------</span>
 <div class="viewcode-block" id="retrieve_dataset_by_dataset_oid"><a class="viewcode-back" href="../../utils.html#utils.datastore_functions.retrieve_dataset_by_dataset_oid">[docs]</a><span class="k">def</span> <span class="nf">retrieve_dataset_by_dataset_oid</span><span class="p">(</span><span class="n">dataset_oid</span><span class="p">,</span> <span class="n">client</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">return_metadata</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">nrows</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">print_metadata</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">index_col</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tarpath</span><span class="o">=</span><span class="s2">&quot;.&quot;</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; retrieves the dataset and returns as a pandas dataframe (or other format as needed depending on file type).</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; retrieves the dataset and returns as a pandas dataframe (or other format as needed depending on file type).</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        dataset_oid (str): unique identifier for the dataset you want</span>
@@ -638,9 +641,8 @@
     <span class="k">elif</span> <span class="n">file_type</span> <span class="o">==</span> <span class="s1">&#39;gz&#39;</span> <span class="ow">or</span> <span class="n">file_type</span> <span class="o">==</span> <span class="s1">&#39;tgz&#39;</span><span class="p">:</span>
         <span class="c1"># tar.gz (tarball) file. Extract to path specified and return path.</span>
         <span class="n">fp</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">open_dataset</span> <span class="p">(</span><span class="n">dataset_oid</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;b&#39;</span><span class="p">)</span>
-        <span class="n">fp</span> <span class="o">=</span> <span class="n">tarfile</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">fileobj</span><span class="o">=</span><span class="n">fp</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;r:gz&#39;</span><span class="p">)</span>
-        <span class="n">fp</span><span class="o">.</span><span class="n">extractall</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">tarpath</span><span class="p">)</span>
-        <span class="n">fp</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">with</span> <span class="n">tarfile</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">fileobj</span><span class="o">=</span><span class="n">fp</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;r:gz&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">tar</span><span class="p">:</span>
+            <span class="n">futils</span><span class="o">.</span><span class="n">safe_extract</span><span class="p">(</span><span class="n">tar</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="n">tarpath</span><span class="p">)</span>
 
         <span class="c1">#get new folder name and return full path</span>
         <span class="n">extracted_dir</span> <span class="o">=</span> <span class="n">all_metadata</span><span class="p">[</span><span class="s1">&#39;distribution&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;filename&#39;</span><span class="p">)</span>
@@ -657,7 +659,7 @@
 <span class="c1">#------------------------------------------------------------------------------------------------------</span>
 
 <div class="viewcode-block" id="search_datasets_by_key_value"><a class="viewcode-back" href="../../utils.html#utils.datastore_functions.search_datasets_by_key_value">[docs]</a><span class="k">def</span> <span class="nf">search_datasets_by_key_value</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">client</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">operator</span><span class="o">=</span><span class="s1">&#39;in&#39;</span><span class="p">,</span> <span class="n">bucket</span><span class="o">=</span><span class="s1">&#39;all&#39;</span><span class="p">,</span> <span class="n">display_all_columns</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Find datasets by key:value pairs and returns a DataFrame of datasets and associated properties.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Find datasets by key:value pairs and returns a DataFrame of datasets and associated properties.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        key (str): the key of interest</span>
@@ -729,7 +731,7 @@
    <span class="c1"># extracted this function (with small modifications) from join.ipynb</span>
 <div class="viewcode-block" id="retrieve_columns_from_dataset"><a class="viewcode-back" href="../../utils.html#utils.datastore_functions.retrieve_columns_from_dataset">[docs]</a><span class="k">def</span> <span class="nf">retrieve_columns_from_dataset</span> <span class="p">(</span><span class="n">bucket</span><span class="p">,</span> <span class="n">dataset_key</span><span class="p">,</span> <span class="n">client</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_rows</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">column_names</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">return_names</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 
-    <span class="sd">&quot;&quot;&quot;Retrieve column(s) from csv file (may be bz2 compressed) in datastore.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Retrieve column(s) from csv file (may be bz2 compressed) in datastore.</span>
 <span class="sd">       &#39;NA&#39; returned if column not in file (as well as warning message).</span>
 
 <span class="sd">    Args:</span>
@@ -825,7 +827,7 @@
 
 <div class="viewcode-block" id="filter_datasets_interactive"><a class="viewcode-back" href="../../utils.html#utils.datastore_functions.filter_datasets_interactive">[docs]</a><span class="k">def</span> <span class="nf">filter_datasets_interactive</span> <span class="p">(</span><span class="n">bucket</span><span class="o">=</span><span class="s1">&#39;all&#39;</span><span class="p">,</span> <span class="n">client</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">save_search</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">restrict_key</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">restrict_value</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">dataset_oid_only</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">display_all_columns</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">max_rows</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
     <span class="c1">#TODO: This function has been replaced by &#39;search_files_interactive&#39;.</span>
-    <span class="sd">&quot;&quot;&quot;This is an old way of searching for files. Not based on the current format. Only use</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;This is an old way of searching for files. Not based on the current format. Only use</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        bucket (str or list, optional): buckets to search (defaults to searching all buckets you have access to in the datastore)</span>
@@ -1023,7 +1025,7 @@
 
 <span class="c1">#---------------------------------------------------</span>
 <div class="viewcode-block" id="summarize_datasets"><a class="viewcode-back" href="../../utils.html#utils.datastore_functions.summarize_datasets">[docs]</a><span class="k">def</span> <span class="nf">summarize_datasets</span><span class="p">(</span><span class="n">dataset_keys</span><span class="p">,</span> <span class="n">bucket</span><span class="p">,</span> <span class="n">client</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">save_as</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">plot_ht</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">last</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Generate summary statistics such as min/max/median/mean on files specified (all files must be in same bucket).</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate summary statistics such as min/max/median/mean on files specified (all files must be in same bucket).</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        dataset_keys (list): dataset_keys corresponding to the files to summarize</span>
@@ -1129,7 +1131,7 @@
 
 
 <div class="viewcode-block" id="check_key_val"><a class="viewcode-back" href="../../utils.html#utils.datastore_functions.check_key_val">[docs]</a><span class="k">def</span> <span class="nf">check_key_val</span><span class="p">(</span><span class="n">key_values</span><span class="p">,</span> <span class="n">client</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">df</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">enforced</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Checks to ensure the keys and values specified are &#39;approved&#39; and that (optionally) all required keys are filled out.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Checks to ensure the keys and values specified are &#39;approved&#39; and that (optionally) all required keys are filled out.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        key_values (dict): keys and values specified by user for a file</span>
@@ -1195,7 +1197,7 @@
                         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;value for key=</span><span class="si">%s</span><span class="s1"> invalid. Pick from these column headings:&#39;</span> <span class="o">%</span><span class="n">col</span><span class="p">,</span> <span class="n">avail_headings</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">enforced</span><span class="p">:</span>
-        <span class="sd">&#39;&#39;&#39; This section checks to make sure all relevent keys have been filled in based on other selections made</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39; This section checks to make sure all relevent keys have been filled in based on other selections made</span>
 <span class="sd">             for example: if user includes &#39;curation_level&#39;:&#39;ml_ready&#39; as a key:value pair, then additional keys such as &#39;units&#39; are also required</span>
 <span class="sd">             1) this section requires the following 3 columns in the kv_lookup file: &#39;enforced_on_key&#39;, &#39;enforced_on_value&#39;, and &#39;required_keys&#39;.</span>
 <span class="sd">             2) if the &#39;enforced_on&#39; key:value matches one input, then it checks to make sure all of the keys listed in the corresponding row in the</span>
@@ -1218,7 +1220,7 @@
 
 <span class="c1">#------------------------------------------------</span>
 <div class="viewcode-block" id="upload_file_to_DS"><a class="viewcode-back" href="../../utils.html#utils.datastore_functions.upload_file_to_DS">[docs]</a><span class="k">def</span> <span class="nf">upload_file_to_DS</span><span class="p">(</span><span class="n">bucket</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">description</span><span class="p">,</span> <span class="n">tags</span><span class="p">,</span> <span class="n">key_values</span><span class="p">,</span> <span class="n">filepath</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">client</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dataset_key</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">override_check</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">return_metadata</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">file_ref</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">data_type</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;This function will upload a file to the Datastore along with the associated metadata</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;This function will upload a file to the Datastore along with the associated metadata</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        bucket (str): bucket the file will be put in</span>
@@ -1316,7 +1318,7 @@
 
 <span class="c1">#------------------------------------------------</span>
 <div class="viewcode-block" id="upload_df_to_DS"><a class="viewcode-back" href="../../utils.html#utils.datastore_functions.upload_df_to_DS">[docs]</a><span class="k">def</span> <span class="nf">upload_df_to_DS</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">bucket</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">description</span><span class="p">,</span> <span class="n">tags</span><span class="p">,</span> <span class="n">key_values</span><span class="p">,</span> <span class="n">client</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dataset_key</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">override_check</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">return_metadata</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">data_type</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;This function will upload a file to the Datastore along with the associated metadata</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;This function will upload a file to the Datastore along with the associated metadata</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        df (DataFrame): dataframe to be uploaded</span>
@@ -1397,7 +1399,7 @@
 <div class="viewcode-block" id="update_kv"><a class="viewcode-back" href="../../utils.html#utils.datastore_functions.update_kv">[docs]</a><span class="k">def</span> <span class="nf">update_kv</span><span class="p">(</span><span class="n">bucket</span><span class="p">,</span> <span class="n">dataset_key</span><span class="p">,</span> <span class="n">client</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">kv_add</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">kv_del</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">return_metadata</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="c1">#TODO: function currently performs 2 separate uploads if adding and deleting, needs to be fixed to just 1 upload</span>
 
-    <span class="sd">&#39;&#39;&#39;update the key:values for specified file. No change to file.</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;update the key:values for specified file. No change to file.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        bucket (str): Specify bucket where the file exists</span>
@@ -1460,7 +1462,7 @@
 <div class="viewcode-block" id="update_distribution_kv"><a class="viewcode-back" href="../../utils.html#utils.datastore_functions.update_distribution_kv">[docs]</a><span class="k">def</span> <span class="nf">update_distribution_kv</span><span class="p">(</span><span class="n">bucket</span><span class="p">,</span> <span class="n">dataset_key</span><span class="p">,</span> <span class="n">client</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">kv_add</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">kv_del</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">return_metadata</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="c1">#TODO: function currently performs 2 separate uploads if adding and deleting, needs to be fixed to just 1 upload</span>
     <span class="c1">#TODO: This should be merged with update_kv()</span>
-    <span class="sd">&#39;&#39;&#39;update the key:values for specified file. No change to file.</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;update the key:values for specified file. No change to file.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        bucket (str): Specify bucket where the file exists</span>
@@ -1520,7 +1522,7 @@
 <span class="c1">#----------------------------------------------</span>
 
 <div class="viewcode-block" id="repeat_defined_search"><a class="viewcode-back" href="../../utils.html#utils.datastore_functions.repeat_defined_search">[docs]</a><span class="k">def</span> <span class="nf">repeat_defined_search</span><span class="p">(</span><span class="n">defined_search</span><span class="p">,</span> <span class="n">client</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">to_return</span><span class="o">=</span><span class="s1">&#39;df&#39;</span><span class="p">,</span> <span class="n">display_all_columns</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Retrieves a DataFrame of files (and associated metadata) meeting the search criteria.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Retrieves a DataFrame of files (and associated metadata) meeting the search criteria.</span>
 <span class="sd">    This is designed to work well with the output from the filter_datasets_interactive function with defined_search=True</span>
 
 <span class="sd">    Args:</span>
@@ -1578,7 +1580,7 @@
 
 <span class="c1">#----------------------------------------------------------------</span>
 <div class="viewcode-block" id="get_keyval"><a class="viewcode-back" href="../../utils.html#utils.datastore_functions.get_keyval">[docs]</a><span class="k">def</span> <span class="nf">get_keyval</span><span class="p">(</span><span class="n">dataset_oid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dataset_key</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">bucket</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">client</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Requires either dataset_oid *or* dataset_key+bucket.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Requires either dataset_oid *or* dataset_key+bucket.</span>
 <span class="sd">       Function extracts the key:value pairs and converts from the &#39;datastore format&#39; (list of dictionaries) into &#39;model tracker format&#39; (a single dictionary).&quot;&quot;&quot;</span>
 
 
@@ -1613,7 +1615,7 @@
 
 <span class="c1">#------------</span>
 <div class="viewcode-block" id="upload_pickle_to_DS"><a class="viewcode-back" href="../../utils.html#utils.datastore_functions.upload_pickle_to_DS">[docs]</a><span class="k">def</span> <span class="nf">upload_pickle_to_DS</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">bucket</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">description</span><span class="p">,</span> <span class="n">tags</span><span class="p">,</span> <span class="n">key_values</span><span class="p">,</span><span class="n">client</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dataset_key</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">override_check</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">return_metadata</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;This function will upload a file to the Datastore along with the associated metadata.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;This function will upload a file to the Datastore along with the associated metadata.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        data (DataFrame, str, list, tuple, pickle): data to be pickled and uploaded</span>
@@ -1688,7 +1690,7 @@
     <span class="c1">#------------------------------------</span>
 <div class="viewcode-block" id="list_key_values"><a class="viewcode-back" href="../../utils.html#utils.datastore_functions.list_key_values">[docs]</a><span class="k">def</span> <span class="nf">list_key_values</span><span class="p">(</span><span class="n">bucket</span><span class="p">,</span> <span class="n">input_key</span><span class="p">,</span> <span class="n">category</span><span class="o">=</span><span class="s1">&#39;experimental&#39;</span><span class="p">,</span> <span class="n">client</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="c1">#TODO:</span>
-    <span class="sd">&quot;&quot;&quot;List the values for input key.  Requires that the input key be in the &#39;approved&#39; list</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;List the values for input key.  Requires that the input key be in the &#39;approved&#39; list</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        bucket (str or list, optional): buckets to search (defaults to searching all buckets you have access to in the datastore)</span>
@@ -1724,7 +1726,7 @@
     <span class="c1">#------------------------------------</span>
 <div class="viewcode-block" id="search_files_interactive"><a class="viewcode-back" href="../../utils.html#utils.datastore_functions.search_files_interactive">[docs]</a><span class="k">def</span> <span class="nf">search_files_interactive</span> <span class="p">(</span><span class="n">bucket</span><span class="o">=</span><span class="s1">&#39;all&#39;</span><span class="p">,</span> <span class="n">client</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">to_return</span><span class="o">=</span><span class="s1">&#39;df&#39;</span><span class="p">,</span> <span class="n">display_all_columns</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">max_rows</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
     <span class="c1">#TODO: This will replace filter_datasets_interactive eventually. This function uses the new key:value lookup tables</span>
-    <span class="sd">&quot;&quot;&quot;This tool helps you find the files you need via an interactive/guided interface.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;This tool helps you find the files you need via an interactive/guided interface.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        bucket (str or list, optional): buckets to search (defaults to searching all buckets you have access to in the datastore)</span>
@@ -2010,7 +2012,7 @@
 <span class="c1">#--------------------------------------------------------------------</span>
 <div class="viewcode-block" id="bulk_export_kv_for_files"><a class="viewcode-back" href="../../utils.html#utils.datastore_functions.bulk_export_kv_for_files">[docs]</a><span class="k">def</span> <span class="nf">bulk_export_kv_for_files</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="n">save_as</span><span class="p">,</span> <span class="n">client</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="c1">#TODO: function is slow. look into speeding up.</span>
-    <span class="sd">&#39;&#39;&#39;exports a csv file with 3 columns: bucket, dataset_key, key/value pairs to make reviewing  metadata easier</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;exports a csv file with 3 columns: bucket, dataset_key, key/value pairs to make reviewing  metadata easier</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        files (list of tuples): format [(bucket1, dataset_key1), (bucket2, dataset_key2)]</span>
@@ -2062,7 +2064,7 @@
 <span class="c1">#---------------------------------------------------------------------</span>
 <span class="c1">### upload info bor files to change</span>
 <div class="viewcode-block" id="bulk_update_kv"><a class="viewcode-back" href="../../utils.html#utils.datastore_functions.bulk_update_kv">[docs]</a><span class="k">def</span> <span class="nf">bulk_update_kv</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">client</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">i</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;this function allows you to upload a properly formatted csv file with 4 columns (order and spelling of headings must match): bucket, dataset_key, kv_add, kv_del</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;this function allows you to upload a properly formatted csv file with 4 columns (order and spelling of headings must match): bucket, dataset_key, kv_add, kv_del</span>
 <span class="sd">    the metadata for the files listed will then be updated in the Datastore</span>
 <span class="sd">    &#39;&#39;&#39;</span>
 
@@ -2115,7 +2117,7 @@
 
 
 <div class="viewcode-block" id="get_key_val"><a class="viewcode-back" href="../../utils.html#utils.datastore_functions.get_key_val">[docs]</a><span class="k">def</span> <span class="nf">get_key_val</span><span class="p">(</span><span class="n">metadata</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Simple utility to search through list of key value pairs and return values for query key</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Simple utility to search through list of key value pairs and return values for query key</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        metadata list of key,value pairs (list): a list with position 0 = string/list of buckets, and remaining positions dictionaries of search criteria</span>
@@ -2141,7 +2143,7 @@
 
 <span class="c1">#---------------------------------------------------------------------</span>
 <div class="viewcode-block" id="copy_datasets_to_bucket"><a class="viewcode-back" href="../../utils.html#utils.datastore_functions.copy_datasets_to_bucket">[docs]</a><span class="k">def</span> <span class="nf">copy_datasets_to_bucket</span><span class="p">(</span><span class="n">dataset_keys</span><span class="p">,</span> <span class="n">from_bucket</span><span class="p">,</span> <span class="n">to_bucket</span><span class="p">,</span> <span class="n">ds_client</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Copy each named dataset from one bucket to another.</span>
 
 <span class="sd">    Args:</span>
@@ -2181,7 +2183,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2022, ATOM DDM Team.</p>
+    <p>&#169; Copyright 2023, ATOM DDM Team.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

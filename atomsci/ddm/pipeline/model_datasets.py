@@ -5,7 +5,7 @@
 import logging
 import os
 import shutil
-from deepchem.data import DiskDataset
+from deepchem.data import NumpyDataset
 import numpy as np
 import pandas as pd
 import deepchem as dc
@@ -20,7 +20,7 @@ import sys
 
 feather_supported = True
 try:
-    import feather
+    import pyarrow.feather as feather
 except (ImportError, AttributeError, ModuleNotFoundError):
     feather_supported = False
 
@@ -66,6 +66,28 @@ def create_minimal_dataset(params, featurization, contains_responses=False):
 
     """
     return MinimalDataset(params, featurization, contains_responses)
+
+# ****************************************************************************************
+def check_task_columns(params, dset_df):
+    """Check that the data frame dset_df contains all the columns listed in params.response_cols.
+
+    Args:
+        params (Namespace): Parsed parameter structure; must include response_cols parameter at minimum.
+
+        dset_df (pd.DataFrame): Dataset as a DataFrame that contains columns for the prediction tasks
+        
+    Raises:
+        Exception:
+            If response columns not set in params.
+            If input dataset is missing response columns
+
+    """
+    if params.response_cols is None:
+        raise Exception("Unable to determine prediction tasks for dataset")
+    missing_tasks = list(set(params.response_cols) - set(dset_df.columns.values))
+    if len(missing_tasks) > 0:
+        raise Exception(f"Requested prediction task columns {missing_tasks} are missing from training dataset")
+
 
 # ****************************************************************************************
 def set_group_permissions(system, path, data_owner='public', data_owner_group='public'):
@@ -223,11 +245,11 @@ class ModelDataset(object):
             
             splitting (Splitting object): A splitting object created by the ModelDataset intiailization method
             
-            combined_train_valid_data (dc.DiskDataset): A dataset object (initialized as None), of the merged train
+            combined_train_valid_data (dc.Dataset): A dataset object (initialized as None), of the merged train
             and valid splits
 
         set in get_featurized_data:
-            dataset: A new featurized DeepChem DiskDataset.
+            dataset: A new featurized DeepChem Dataset.
             
             n_features: The count of features (int)
             
@@ -304,26 +326,6 @@ class ModelDataset(object):
         raise NotImplementedError
 
     # ****************************************************************************************
-    def check_task_columns(self, dset_df):
-        """Check that the data frame dset_df contains columns for the requested prediction tasks.
-
-        Args:
-            dset_df (pd.DataFrame): Dataset as a DataFrame that contains columns for the prediction tasks
-            
-        Raises:
-            Exception:
-                If self.get_dataset_tasks(dset_df) cannot retrieve prediction tasks for the dtaset
-                If missing prediction task columns from the input dataset
-
-        """
-        if not self.get_dataset_tasks(dset_df):
-            raise Exception("Unable to determine prediction tasks for dataset %s" % self.dataset_name)
-        missing_tasks = list(set(self.tasks) - set(dset_df.columns.values))
-        if len(missing_tasks) > 0:
-            raise Exception("Requested prediction task columns %s are missing from dataset %s" % (
-                ", ".join(missing_tasks), self.dataset_name))
-
-    # ****************************************************************************************
     def load_featurized_data(self):
         """Loads prefeaturized data from the datastore or filesystem. Returns a data frame,
         which is then passed to featurization.extract_prefeaturized_data() for processing.
@@ -335,7 +337,7 @@ class ModelDataset(object):
         raise NotImplementedError
 
     # ****************************************************************************************
-    def get_featurized_data(self):
+    def get_featurized_data(self, params=None):
         """Does whatever is necessary to prepare a featurized dataset.
         Loads an existing prefeaturized dataset if one exists and if parameter previously_featurized is
         set True; otherwise loads a raw dataset and featurizes it. Creates an associated DeepChem Dataset
@@ -343,33 +345,37 @@ class ModelDataset(object):
 
         Side effects:
             Sets the following attributes in the ModelDataset object:
-                dataset: A new featurized DeepChem DiskDataset.
+                dataset: A new featurized DeepChem Dataset.
                 n_features: The count of features (int)
                 vals: The response col after featurization (np.array)
                 attr: A pd.dataframe containing the compound ids and smiles
         """
         
-        if self.params.previously_featurized:
+        if params is None:
+            params = self.params
+        if params.previously_featurized:
             try:
                 self.log.debug("Attempting to load featurized dataset")
                 featurized_dset_df = self.load_featurized_data()
-                featurized_dset_df[self.params.id_col] = featurized_dset_df[self.params.id_col].astype(str)
+                if (params.max_dataset_rows > 0) and (len(featurized_dset_df) > params.max_dataset_rows):
+                    featurized_dset_df = featurized_dset_df.sample(n=params.max_dataset_rows)
+                featurized_dset_df[params.id_col] = featurized_dset_df[params.id_col].astype(str)
                 self.log.debug("Got dataset, attempting to extract data")
                 features, ids, self.vals, self.attr = self.featurization.extract_prefeaturized_data(
-                                                           featurized_dset_df, self)
+                                                           featurized_dset_df, params)
                 self.n_features = self.featurization.get_feature_count()
                 self.log.debug("Creating deepchem dataset")
                 
                 # don't do make_weights which convert all NaN rows into 0 for hybrid model
-                if self.params.model_type != "hybrid":
+                if params.model_type != "hybrid":
                     self.vals, w = feat.make_weights(self.vals)
                 else:
                     w = np.ones_like(self.vals)
 
-                if self.params.prediction_type=='classification':
+                if params.prediction_type=='classification':
                     w = w.astype(np.float32)
 
-                self.dataset = DiskDataset.from_numpy(features, self.vals, ids=ids, w=w)
+                self.dataset = NumpyDataset(features, self.vals, ids=ids, w=w)
                 self.log.info("Using prefeaturized data; number of features = " + str(self.n_features))
                 return
             except Exception as e:
@@ -379,22 +385,27 @@ class ModelDataset(object):
         else:
             self.log.info("Creating new featurized dataset for dataset %s" % self.dataset_name)
         dset_df = self.load_full_dataset()
-        self.check_task_columns(dset_df)
-        features, ids, self.vals, self.attr, w = self.featurization.featurize_data(dset_df, self)
+        sample_only = False
+        if (params.max_dataset_rows > 0) and (len(dset_df) > params.max_dataset_rows):
+            dset_df = dset_df.sample(n=params.max_dataset_rows).reset_index(drop=True)
+            sample_only = True
+        check_task_columns(params, dset_df)
+        features, ids, self.vals, self.attr, w, featurized_dset_df = self.featurization.featurize_data(dset_df, params, self.contains_responses)
+        if not sample_only:
+            self.save_featurized_data(featurized_dset_df)
+
         self.n_features = self.featurization.get_feature_count()
-        print("Number of features: " + str(self.n_features))
+        self.log.debug("Number of features: " + str(self.n_features))
            
         # Create the DeepChem dataset       
-        self.dataset = DiskDataset.from_numpy(features, self.vals, ids=ids, w=w)
+        self.dataset = NumpyDataset(features, self.vals, ids=ids, w=w)
         # Checking for minimum number of rows
-        if len(self.dataset) < self.params.min_compound_number:
-            self.log.warning("Dataset of length %i is shorter than the required length %i" % (len(self.dataset), self.params.min_compound_number))
+        if len(self.dataset) < params.min_compound_number:
+            self.log.warning("Dataset of length %i is shorter than the required length %i" % (len(self.dataset), params.min_compound_number))
 
     # ****************************************************************************************
     def get_dataset_tasks(self, dset_df):
-        """Sets self.tasks to the list of prediction task columns defined for this dataset. If the dataset is in the datastore,
-        these should be available in the metadata. Otherwise we guess by looking at the column names in dset_df
-        and excluding features, compound IDs, SMILES string columns, etc.
+        """Sets self.tasks to the list of prediction task (response) columns defined by the current model parameters. 
         
         Args:
             dset_df (pd.DataFrame): Dataset as a DataFrame that contains columns for the prediction tasks
@@ -607,7 +618,7 @@ class ModelDataset(object):
         """Returns a DeepChem Dataset object containing data for the combined training & validation compounds.
 
         Returns:
-            combined_dataset (dc.data.DiskDataset): Dataset containing the combined training
+            combined_dataset (dc.data.Dataset): Dataset containing the combined training
             and validation data.
             
         Side effects:
@@ -621,7 +632,7 @@ class ModelDataset(object):
             combined_y = np.concatenate((train.y, valid.y), axis=0)
             combined_w = np.concatenate((train.w, valid.w), axis=0)
             combined_ids = np.concatenate((train.ids, valid.ids))
-            self.combined_train_valid_data = DiskDataset.from_numpy(combined_X, combined_y, w=combined_w, ids=combined_ids)
+            self.combined_train_valid_data = NumpyDataset(combined_X, combined_y, w=combined_w, ids=combined_ids)
         return self.combined_train_valid_data
 
     # ****************************************************************************************
@@ -714,7 +725,7 @@ class MinimalDataset(ModelDataset):
             featurization (Featurization object): The featurization object created by ModelDataset or input as an optional argument in the factory function.
 
         set in get_featurized_data:
-            dataset: A new featurized DeepChem DiskDataset.
+            dataset: A new featurized DeepChem Dataset.
             n_features: The count of features (int)
             attr: A pd.dataframe containing the compound ids and smiles
 
@@ -801,28 +812,11 @@ class MinimalDataset(ModelDataset):
             self.log.warning("Done")
         else:
             self.log.warning("Featurizing data...")
-            #JEA
-            features, ids, self.vals, self.attr, _ = self.featurization.featurize_data(dset_df, self)
+            features, ids, self.vals, self.attr, weights, featurized_dset_df  = self.featurization.featurize_data(dset_df, 
+                                                                                    params, self.contains_responses)
             self.log.warning("Done")
         self.n_features = self.featurization.get_feature_count()
-        print("number of features: " + str(self.n_features))
-        # Create the DeepChem dataset
-        # TODO: Try this with NumpyDataset instead. It may require special handling in ModelWrapper
-        # classes, because NumpyDataset.y has different dimensionality than DiskDataset.y for the
-        # same singletask dataset. Or it may not, since we aren't comparing predictions against real
-        # values for MinimalDataset objects.
-        #self.dataset = NumpyDataset(features, self.vals, ids=ids)
-
-        # =-= ksm: This makes no sense, since MinimalDataset doesn't get used for training, so the splitting
-        # =-= parameter is irrelevant. Looks like I made this change on 10/2/2019 at the same time I implemented
-        # =-= the temporal splitter. For now I'm commenting out the code, because it breaks the 
-        # =-= EmbeddingFeaturization with input descriptor features.
-        #if self.params.splitter == 'scaffold':
-        #    self.dataset = DiskDataset.from_numpy(features, self.vals, 
-        #                                          ids=dset_df[params.smiles_col].values)
-        #else:
-        #    self.dataset = DiskDataset.from_numpy(features, self.vals, ids=ids)
-        self.dataset = DiskDataset.from_numpy(features, self.vals, ids=ids)
+        self.dataset = NumpyDataset(features, self.vals, ids=ids)
 
     # ****************************************************************************************
     def save_featurized_data(self, featurized_dset_df):
@@ -855,11 +849,11 @@ class DatastoreDataset(ModelDataset):
 
             splitting (Splitting object): A splitting object created by the ModelDataset intiailization method
 
-            combined_train_valid_data (dc.DiskDataset): A dataset object (initialized as None), of the merged train and valid splits
+            combined_train_valid_data (dc.Dataset): A dataset object (initialized as None), of the merged train and valid splits
             ds_client (datastore client):
 
         set in get_featurized_data:
-            dataset: A new featurized DeepChem DiskDataset.
+            dataset: A new featurized DeepChem Dataset.
 
             n_features: The count of features (int)
 
@@ -936,6 +930,7 @@ class DatastoreDataset(ModelDataset):
         """Sets self.tasks to the list of prediction task columns defined for this dataset. If the dataset is in the datastore,
         these should be available in the metadata. Otherwise we guess by looking at the column names in dset_df
         and excluding features, compound IDs, SMILES string columns, etc.
+
         
         Args:
             dset_df (pd.DataFrame): Dataset containing the prediction tasks
@@ -946,6 +941,9 @@ class DatastoreDataset(ModelDataset):
         Side effects:
             Sets the task attribute of the DatastoreDataset object to a list of task names.
         """
+        # TODO (ksm): Can we get rid of this function and just call the superclass version (which gets the tasks from response_cols)?
+        # response_cols is a required parameter now, so there's no need for guessing.
+
         if super().get_dataset_tasks(dset_df):
             return True
         else:
@@ -1149,13 +1147,13 @@ class FileDataset(ModelDataset):
             
             splitting (Splitting object): A splitting object created by the ModelDataset intiailization method
             
-            combined_train_valid_data (dc.DiskDataset): A dataset object (initialized as None), of the merged train and
+            combined_train_valid_data (dc.Dataset): A dataset object (initialized as None), of the merged train and
             valid splits
             
             ds_client (datastore client):
 
         set in get_featurized_data:
-            dataset: A new featurized DeepChem DiskDataset.
+            dataset: A new featurized DeepChem Dataset.
             
             n_features: The count of features (int)
             
@@ -1258,7 +1256,12 @@ class FileDataset(ModelDataset):
                 featurized_dset_df (pd.DataFrame): Dataset as a DataFrame that contains the featurized data
         """
 
-        featurized_dset_name = self.featurization.get_featurized_dset_name(self.dataset_name)
+        try:
+            featurized_dset_name = self.featurization.get_featurized_dset_name(self.dataset_name)
+        except NotImplementedError:
+            # Featurizer is non-persistent, so do nothing
+            return
+
         dataset_dir = os.path.dirname(self.params.dataset_key)
         data_dir = os.path.join(dataset_dir, self.featurization.get_featurized_data_subdir())
         featurized_dset_path = os.path.join(data_dir, featurized_dset_name)

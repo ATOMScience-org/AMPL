@@ -30,7 +30,7 @@ def test_graphconv():
 
 def test_versions_not_compatible():
     tar_file = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-        '../../examples/tutorials/models/aurka_union_trainset_base_smiles_model_2fb9ae80-26d4-4f27-af28-2e9e9db594de.tar.gz')
+        '../../examples/tutorials/models/aurka_union_trainset_base_smiles_model_ampl_120_2fb9ae80-26d4-4f27-af28-2e9e9db594de.tar.gz')
     print(tar_file)
     try:
         num_params = cm.num_trainable_parameters_from_file(tar_file)

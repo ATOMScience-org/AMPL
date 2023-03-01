@@ -4,6 +4,7 @@ Utilities for clustering and visualizing compound structures using RDKit.
 # Mostly written by Logan Van Ravenswaay, with additions and edits by Ben Madej and Kevin McLoughlin.
 
 import os
+import pdb
 
 from IPython.display import SVG, HTML, display
 from base64 import b64encode
@@ -141,7 +142,7 @@ def cluster_fingerprints(fps, cutoff=0.2):
     return cs
 
 
-def mol_to_html(mol, name='', type='svg', directory='rdkit_svg', embed=False, width=400, height=200):
+def mol_to_html(mol, highlight=None, name='', type='svg', directory='rdkit_svg', embed=False, width=400, height=200):
     """
     Creates an image displaying the given molecule's 2D structure, and generates an HTML
     tag for it. The image can be embedded directly into the HTML tag or saved to a file.
@@ -149,12 +150,18 @@ def mol_to_html(mol, name='', type='svg', directory='rdkit_svg', embed=False, wi
     Args:
         mol (rdkit.Chem.Mol): Object representing molecule.
 
+        highlight (rdkit.Chem.Mol): Optional object representing a set of atoms and bonds to be highlighted in
+        the image.
+
         name (str): Filename of image file to create, relative to 'directory'; only used if embed=False.
 
         type (str): Image format; must be 'png' or 'svg'.
 
         directory (str): Path relative to notebook directory of subdirectory where image file will be written. 
         The directory will be created if necessary. Note that absolute paths will not work in notebooks. Ignored if embed=True.
+
+        embed (bool): If True, image data will be embedded in the generated HTML tag. Otherwise it will be written to a
+        file determined by the `directory` and `name` arguments.
 
         width (int): Width of image bounding box.
 
@@ -171,15 +178,14 @@ def mol_to_html(mol, name='', type='svg', directory='rdkit_svg', embed=False, wi
         return
     
     if embed:
-        log.info("Warning: embed=True will result in large data structures if you have a lot of molecules.")
         if type.lower() == 'png':
-            img=mol_to_pil(mol, size=(width,height))
+            img=mol_to_pil(mol, size=(width,height), highlight=highlight)
             imgByteArr = io.BytesIO()
             img.save(imgByteArr, format=img.format)
             imgByteArr = imgByteArr.getvalue()
             data_url = f'data:image/png;base64,' + b64encode(imgByteArr).decode()
         elif type.lower() == 'svg':
-            img=mol_to_svg(mol, size=(width,height)).encode('utf-8')
+            img=mol_to_svg(mol, size=(width,height), highlight=highlight).encode('utf-8')
             data_url = f'data:image/svg+xml;base64,' + b64encode(img).decode()
         return f"<img src='{data_url}' style='width:{width}px;'>" 
     
@@ -187,12 +193,40 @@ def mol_to_html(mol, name='', type='svg', directory='rdkit_svg', embed=False, wi
         img_file = '%s/%s' % (directory, name)
         os.makedirs(directory, exist_ok=True)
         if type.lower() == 'png':
-            save_png(mol, img_file, size=(width,height))
+            save_png(mol, img_file, size=(width,height), highlight=highlight)
         elif type.lower()=='svg':
-            save_svg(mol, img_file, size=(width,height))
+            save_svg(mol, img_file, size=(width,height), highlight=highlight)
         return f"<img src='{img_file}' style='width:{width}px;'>"
 
-def mol_to_pil(mol, size=(400, 200)):
+def matching_atoms_and_bonds(mol, match_mol):
+    """
+    Returns lists of indices of atoms and bonds within molecule `mol` that are part of the substructure
+    matched by `match_mol`.
+
+    Args:
+        mol (rdkit.Chem.Mol): Object representing molecule.
+
+        match_mol (rdkit.Chem.Mol): Object representing a substructure or SMARTS pattern to be
+        compared against `mol`, typically created by `Chem.MolFromSmiles()` or `Chem.MolFromSmarts()`.
+
+    Returns:
+        match_atoms, match_bonds (tuple(list(int), list(int))): Lists of indices of atoms and bonds
+        within `mol` contained in the substructure (if any) matched by `match_mol`. Returns empty lists
+        if there is no match.
+    """
+    match_atoms = []
+    match_bonds = []
+    if match_mol is not None:
+        match_atoms = list(mol.GetSubstructMatch(match_mol))
+        if len(match_atoms) > 1:
+            for bond in match_mol.GetBonds():
+               aid1 = match_atoms[bond.GetBeginAtomIdx()]
+               aid2 = match_atoms[bond.GetEndAtomIdx()]
+               match_bonds.append(mol.GetBondBetweenAtoms(aid1,aid2).GetIdx())
+    return match_atoms, match_bonds
+
+
+def mol_to_pil(mol, size=(400, 200), highlight=None):
     """
     Returns a Python Image Library (PIL) object containing an image of the given molecule's structure.
 
@@ -200,16 +234,19 @@ def mol_to_pil(mol, size=(400, 200)):
         mol (rdkit.Chem.Mol): Object representing molecule.
 
         size (tuple): Width and height of bounding box of image.
+        
+        highlight (rdkit.Chem.Mol): Object representing substructure to highlight on molecule.
 
     Returns:
         PIL.PngImageFile: An object containing an image of the molecule's structure.
 
     """
-    pil = MolToImage(mol, size=(size[0], size[1]))
+    highlight_atoms, highlight_bonds = matching_atoms_and_bonds(mol, highlight)
+    pil = MolToImage(mol, size=(size[0], size[1]), highlightAtoms=highlight_atoms, highlightBonds=highlight_bonds)
     return pil
 
 
-def save_png(mol, name, size=(400, 200)):
+def save_png(mol, name, size=(400, 200), highlight=None):
     """
     Draws the molecule mol into a PNG file with filename 'name' and with the given size
     in pixels.
@@ -220,13 +257,15 @@ def save_png(mol, name, size=(400, 200)):
         name (str): Path to write PNG file to.
 
         size (tuple): Width and height of bounding box of image.
+        
+        highlight (rdkit.Chem.Mol): Object representing substructure to highlight on molecule.
 
     """
-    pil = mol_to_pil(mol, size)
+    pil = mol_to_pil(mol, size, highlight=highlight)
     pil.save(name, 'PNG')
 
 
-def mol_to_svg(mol, size=(400,200)):
+def mol_to_svg(mol, size=(400,200), highlight=None):
     """
     Returns a RDKit MolDraw2DSVG object containing an image of the given molecule's structure.
 
@@ -234,12 +273,15 @@ def mol_to_svg(mol, size=(400,200)):
         mol (rdkit.Chem.Mol): Object representing molecule.
 
         size (tuple): Width and height of bounding box of image.
+        
+        highlight (rdkit.Chem.Mol): Object representing substructure to highlight on molecule.
 
     Returns:
        RDKit.rdMolDraw2D.MolDraw2DSVG text (str): An SVG object containing an image of the molecule's structure.
 
     """
     img_wd, img_ht = size
+    highlight_atoms, highlight_bonds = matching_atoms_and_bonds(mol, highlight)
     try:
         mol.GetAtomWithIdx(0).GetExplicitValence()
     except RuntimeError:
@@ -250,7 +292,8 @@ def mol_to_svg(mol, size=(400,200)):
         # can happen on a kekulization failure
         mc_mol = rdMolDraw2D.PrepareMolForDrawing(mol, kekulize=False)
     drawer = rdMolDraw2D.MolDraw2DSVG(img_wd, img_ht)
-    drawer.DrawMolecule(mc_mol)
+    rdMolDraw2D.PrepareAndDrawMolecule(drawer, mc_mol, highlightAtoms=highlight_atoms,
+                                                    highlightBonds=highlight_bonds)
     drawer.FinishDrawing()
     svg = drawer.GetDrawingText()
     svg = svg.replace('svg:','')
@@ -258,7 +301,7 @@ def mol_to_svg(mol, size=(400,200)):
     return svg
 
 
-def save_svg(mol, name, size=(400,200)):
+def save_svg(mol, name, size=(400,200), highlight=None):
     """
     Draws the molecule mol into an SVG file with filename 'name' and with the given size
     in pixels.
@@ -269,9 +312,11 @@ def save_svg(mol, name, size=(400,200)):
         name (str): Path to write SVG file to.
 
         size (tuple): Width and height of bounding box of image.
+        
+        highlight (rdkit.Chem.Mol): Object representing substructure to highlight on molecule.
 
     """
-    svg = mol_to_svg(mol, size)
+    svg = mol_to_svg(mol, size, highlight=highlight)
     with open(name, 'w') as img_out:
         img_out.write(svg)
 

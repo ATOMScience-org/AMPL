@@ -40,6 +40,7 @@ import atomsci.ddm.utils.struct_utils as struct_utils
 import atomsci.ddm.pipeline.model_tracker as mt
 import atomsci.ddm.utils.datastore_functions as dsf
 from atomsci.ddm.pipeline import compare_models as cmp
+import atomsci.ddm.utils.file_utils as futils
 
 import resource
 resource.setrlimit(resource.RLIMIT_NOFILE, (65536, 65536))
@@ -112,9 +113,8 @@ def train_model_from_tar(input, output, dskey=''):
     """
     tmpdir = tempfile.mkdtemp()
 
-    model_fp = tarfile.open(input, mode='r:gz')
-    model_fp.extractall(path=tmpdir)
-    model_fp.close()
+    with tarfile.open(input, mode='r:gz') as tar:
+        futils.safe_extract(tar, path=tmpdir)
 
     # make metadata path
     metadata_path = os.path.join(tmpdir, 'model_metadata.json')

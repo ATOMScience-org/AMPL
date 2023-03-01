@@ -3,18 +3,17 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>pipeline.featurization &mdash; ATOM Data-Driven Modeling Pipeline 1.4.0 documentation</title>
+  <title>pipeline.featurization &mdash; ATOM Data-Driven Modeling Pipeline 1.5.0 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
         <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-        <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/underscore.js"></script>
-        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" /> 
@@ -25,14 +24,18 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../../index.html" class="icon icon-home"> ATOM Data-Driven Modeling Pipeline
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            ATOM Data-Driven Modeling Pipeline
           </a>
               <div class="version">
-                1.4.0
+                1.5.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -64,9 +67,9 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="../index.html">Module code</a> &raquo;</li>
-      <li>pipeline.featurization</li>
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">pipeline.featurization</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -91,10 +94,13 @@
 <span class="kn">import</span> <span class="nn">deepchem</span> <span class="k">as</span> <span class="nn">dc</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 <span class="kn">import</span> <span class="nn">deepchem.data.data_loader</span> <span class="k">as</span> <span class="nn">dl</span>
+<span class="kn">from</span> <span class="nn">deepchem.data</span> <span class="kn">import</span> <span class="n">NumpyDataset</span>
 
 <span class="kn">from</span> <span class="nn">atomsci.ddm.utils</span> <span class="kn">import</span> <span class="n">datastore_functions</span> <span class="k">as</span> <span class="n">dsf</span>
 <span class="kn">from</span> <span class="nn">atomsci.ddm.pipeline</span> <span class="kn">import</span> <span class="n">transformations</span> <span class="k">as</span> <span class="n">trans</span>
 <span class="kn">from</span> <span class="nn">atomsci.ddm.pipeline</span> <span class="kn">import</span> <span class="n">parameter_parser</span> <span class="k">as</span> <span class="n">pp</span>
+<span class="kn">from</span> <span class="nn">atomsci.ddm.pipeline</span> <span class="kn">import</span> <span class="n">model_datasets</span> <span class="k">as</span> <span class="n">md</span>
+<span class="kn">from</span> <span class="nn">atomsci.ddm.pipeline</span> <span class="kn">import</span> <span class="n">model_pipeline</span> <span class="k">as</span> <span class="n">mp</span>
 
 <span class="kn">from</span> <span class="nn">rdkit</span> <span class="kn">import</span> <span class="n">Chem</span>
 <span class="kn">from</span> <span class="nn">rdkit.Chem</span> <span class="kn">import</span> <span class="n">AllChem</span>
@@ -116,7 +122,7 @@
 
 <span class="n">feather_supported</span> <span class="o">=</span> <span class="kc">True</span>
 <span class="k">try</span><span class="p">:</span>
-    <span class="kn">import</span> <span class="nn">feather</span>
+    <span class="kn">import</span> <span class="nn">pyarrow.feather</span> <span class="k">as</span> <span class="nn">feather</span>
 <span class="k">except</span> <span class="p">(</span><span class="ne">ImportError</span><span class="p">,</span> <span class="ne">AttributeError</span><span class="p">,</span> <span class="ne">ModuleNotFoundError</span><span class="p">):</span>
     <span class="n">feather_supported</span> <span class="o">=</span> <span class="kc">False</span>
 
@@ -138,7 +144,7 @@
 
 <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="make_weights"><a class="viewcode-back" href="../../pipeline.html#pipeline.featurization.make_weights">[docs]</a><span class="k">def</span> <span class="nf">make_weights</span><span class="p">(</span><span class="n">vals</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;In the case of multitask learning, we must create weights for each sample labeling</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;In the case of multitask learning, we must create weights for each sample labeling</span>
 <span class="sd">    it with 0 if there is not value or 1 if there is.</span>
 
 <span class="sd">    Args:</span>
@@ -148,18 +154,21 @@
 <span class="sd">        vals: numpy array same as input vals, but nans are replaced with 0</span>
 <span class="sd">        w: numpy array same shape as vals, where w[i,j] = 1 if vals[i,j] is nan else w[i,j] = 0</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">w</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">vals</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
-    <span class="n">nan_indexes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">vals</span><span class="p">))</span>
-    <span class="n">w</span><span class="p">[</span><span class="n">nan_indexes</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="c1"># sometimes instead of nan, &#39;&#39; is used for missing values</span>
     <span class="n">out_vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">vals</span><span class="p">)</span>
-    <span class="n">out_vals</span><span class="p">[</span><span class="n">nan_indexes</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">issubdtype</span><span class="p">(</span><span class="n">out_vals</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">number</span><span class="p">):</span>
+        <span class="c1"># there might be strings or other objects in this array</span>
+        <span class="n">out_vals</span><span class="p">[</span><span class="n">out_vals</span><span class="o">==</span><span class="s1">&#39;&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+    
+    <span class="n">out_vals</span> <span class="o">=</span> <span class="n">out_vals</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">w</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">out_vals</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">out_vals</span><span class="p">,</span> <span class="n">w</span></div>
 
 
 <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="create_featurization"><a class="viewcode-back" href="../../pipeline.html#pipeline.featurization.create_featurization">[docs]</a><span class="k">def</span> <span class="nf">create_featurization</span><span class="p">(</span><span class="n">params</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Factory method to create the appropriate type of Featurization object for params.featurizer</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Factory method to create the appropriate type of Featurization object for params.featurizer</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        params (argparse.Namespace: Object containing the parameter list</span>
@@ -175,6 +184,8 @@
     <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">featurizer</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;ecfp&#39;</span><span class="p">,</span> <span class="s1">&#39;graphconv&#39;</span><span class="p">,</span> <span class="s1">&#39;molvae&#39;</span><span class="p">)</span> \
             <span class="ow">or</span> <span class="n">params</span><span class="o">.</span><span class="n">featurizer</span> <span class="ow">in</span> <span class="n">pp</span><span class="o">.</span><span class="n">featurizer_wl</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">DynamicFeaturization</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">params</span><span class="o">.</span><span class="n">featurizer</span> <span class="o">==</span> <span class="s1">&#39;embedding&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">EmbeddingFeaturization</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">params</span><span class="o">.</span><span class="n">featurizer</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;descriptors&#39;</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">DescriptorFeaturization</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">params</span><span class="o">.</span><span class="n">featurizer</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;computed_descriptors&#39;</span><span class="p">):</span>
@@ -184,7 +195,7 @@
 
 <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="remove_duplicate_smiles"><a class="viewcode-back" href="../../pipeline.html#pipeline.featurization.remove_duplicate_smiles">[docs]</a><span class="k">def</span> <span class="nf">remove_duplicate_smiles</span><span class="p">(</span><span class="n">dset_df</span><span class="p">,</span> <span class="n">smiles_col</span><span class="o">=</span><span class="s1">&#39;rdkit_smiles&#39;</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Remove any rows with duplicate SMILES strings from the given dataset.</span>
 
 <span class="sd">    Args:</span>
@@ -205,7 +216,7 @@
 
 <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="get_dataset_attributes"><a class="viewcode-back" href="../../pipeline.html#pipeline.featurization.get_dataset_attributes">[docs]</a><span class="k">def</span> <span class="nf">get_dataset_attributes</span><span class="p">(</span><span class="n">dset_df</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Construct a table mapping compound IDs to SMILES strings and possibly other attributes</span>
 <span class="sd">    (e.g., dates) specified in params.</span>
 
@@ -225,13 +236,12 @@
         <span class="n">params</span><span class="o">.</span><span class="n">smiles_col</span><span class="p">:</span> <span class="n">dset_df</span><span class="p">[</span><span class="n">params</span><span class="o">.</span><span class="n">smiles_col</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">},</span>
         <span class="n">index</span><span class="o">=</span><span class="n">dset_df</span><span class="p">[</span><span class="n">params</span><span class="o">.</span><span class="n">id_col</span><span class="p">])</span>
     <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">date_col</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="c1">#attr_df[params.date_col] = pd.to_datetime(dset_df[params.date_col])</span>
         <span class="n">attr_df</span><span class="p">[</span><span class="n">params</span><span class="o">.</span><span class="n">date_col</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">datetime64</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">dset_df</span><span class="p">[</span><span class="n">params</span><span class="o">.</span><span class="n">date_col</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">attr_df</span></div>
 
 <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="featurize_smiles"><a class="viewcode-back" href="../../pipeline.html#pipeline.featurization.featurize_smiles">[docs]</a><span class="k">def</span> <span class="nf">featurize_smiles</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">featurizer</span><span class="p">,</span> <span class="n">smiles_col</span><span class="p">,</span> <span class="n">log_every_N</span><span class="o">=</span><span class="mi">1000</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Replacement for DeepChem 2.1 featurize_smiles_df function, which is buggy. Computes</span>
 <span class="sd">    features using featurizer for dataframe df column given by smiles_col. Returns them as</span>
 <span class="sd">    a numpy array, along with an array &#39;is_valid&#39; indicating which rows of the input</span>
@@ -266,7 +276,7 @@
 
 <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="get_2d_mols"><a class="viewcode-back" href="../../pipeline.html#pipeline.featurization.get_2d_mols">[docs]</a><span class="k">def</span> <span class="nf">get_2d_mols</span><span class="p">(</span><span class="n">smiles_strs</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Convert SMILES strings to RDKit Mol objects without explicit hydrogens or 3D coordinates</span>
 
 <span class="sd">    Args:</span>
@@ -285,7 +295,7 @@
     <span class="k">return</span> <span class="n">mols</span><span class="p">,</span> <span class="n">is_valid</span></div>
 
 <div class="viewcode-block" id="get_3d_mols"><a class="viewcode-back" href="../../pipeline.html#pipeline.featurization.get_3d_mols">[docs]</a><span class="k">def</span> <span class="nf">get_3d_mols</span><span class="p">(</span><span class="n">smiles_strs</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Convert SMILES strings to Mol objects with explicit hydrogens and 3D coordinates</span>
 
 <span class="sd">    Args:</span>
@@ -322,7 +332,7 @@
 
 
 <div class="viewcode-block" id="compute_2d_mordred_descrs"><a class="viewcode-back" href="../../pipeline.html#pipeline.featurization.compute_2d_mordred_descrs">[docs]</a><span class="k">def</span> <span class="nf">compute_2d_mordred_descrs</span><span class="p">(</span><span class="n">mols</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Compute 2D Mordred descriptors only</span>
 
 <span class="sd">    Args:</span>
@@ -342,7 +352,7 @@
         <span class="k">return</span> <span class="kc">None</span></div>
 
 <div class="viewcode-block" id="compute_all_mordred_descrs"><a class="viewcode-back" href="../../pipeline.html#pipeline.featurization.compute_all_mordred_descrs">[docs]</a><span class="k">def</span> <span class="nf">compute_all_mordred_descrs</span><span class="p">(</span><span class="n">mols</span><span class="p">,</span> <span class="n">max_cpus</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">quiet</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Compute all Mordred descriptors, including 3D ones</span>
 
 <span class="sd">    Args:</span>
@@ -368,7 +378,7 @@
         <span class="k">return</span> <span class="kc">None</span></div>
 
 <div class="viewcode-block" id="compute_mordred_descriptors_from_smiles"><a class="viewcode-back" href="../../pipeline.html#pipeline.featurization.compute_mordred_descriptors_from_smiles">[docs]</a><span class="k">def</span> <span class="nf">compute_mordred_descriptors_from_smiles</span><span class="p">(</span><span class="n">smiles_strs</span><span class="p">,</span> <span class="n">max_cpus</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">quiet</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">smiles_col</span><span class="o">=</span><span class="s1">&#39;rdkit_smiles&#39;</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Compute 2D and 3D Mordred descriptors for the given list of SMILES strings.</span>
 
 <span class="sd">    Args:</span>
@@ -405,7 +415,7 @@
 
 
 <div class="viewcode-block" id="compute_all_rdkit_descrs"><a class="viewcode-back" href="../../pipeline.html#pipeline.featurization.compute_all_rdkit_descrs">[docs]</a><span class="k">def</span> <span class="nf">compute_all_rdkit_descrs</span><span class="p">(</span><span class="n">mol_df</span><span class="p">,</span> <span class="n">mol_col</span> <span class="o">=</span> <span class="s2">&quot;mol&quot;</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Compute all RDKit descriptors</span>
 
 <span class="sd">    Args:</span>
@@ -424,7 +434,7 @@
     <span class="k">return</span> <span class="n">mol_df</span></div>
 
 <div class="viewcode-block" id="compute_rdkit_descriptors_from_smiles"><a class="viewcode-back" href="../../pipeline.html#pipeline.featurization.compute_rdkit_descriptors_from_smiles">[docs]</a><span class="k">def</span> <span class="nf">compute_rdkit_descriptors_from_smiles</span><span class="p">(</span><span class="n">smiles_strs</span><span class="p">,</span> <span class="n">smiles_col</span><span class="o">=</span><span class="s1">&#39;rdkit_smiles&#39;</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Compute 2D and 3D RDKit descriptors for the given list of SMILES strings.</span>
 
 <span class="sd">    Args:</span>
@@ -457,7 +467,7 @@
     <span class="k">return</span> <span class="n">desc_df</span><span class="p">,</span> <span class="n">is_valid</span></div>
 
 <div class="viewcode-block" id="get_mordred_calculator"><a class="viewcode-back" href="../../pipeline.html#pipeline.featurization.get_mordred_calculator">[docs]</a><span class="k">def</span> <span class="nf">get_mordred_calculator</span><span class="p">(</span><span class="n">exclude</span><span class="o">=</span><span class="n">subclassed_mordred_classes</span><span class="p">,</span> <span class="n">ignore_3D</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Create a Mordred calculator with all descriptor modules registered except those whose names are in the exclude list.</span>
 <span class="sd">    Register ATOM versions of the classes in those modules instead.</span>
 
@@ -481,7 +491,7 @@
 
 
 <div class="viewcode-block" id="get_rdkit_calculator"><a class="viewcode-back" href="../../pipeline.html#pipeline.featurization.get_rdkit_calculator">[docs]</a><span class="k">def</span> <span class="nf">get_rdkit_calculator</span><span class="p">(</span><span class="n">desc_list</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Create a Mordred calculator with only the RDKit wrapper descriptor modules registered</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1">#calc = Calculator(ignore_3D=True)</span>
@@ -495,7 +505,7 @@
 <span class="c1"># Module-level functions for MOE descriptor calculations</span>
 <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="compute_all_moe_descriptors"><a class="viewcode-back" href="../../pipeline.html#pipeline.featurization.compute_all_moe_descriptors">[docs]</a><span class="k">def</span> <span class="nf">compute_all_moe_descriptors</span><span class="p">(</span><span class="n">smiles_df</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Run MOE to compute all 317 standard descriptors.</span>
 
 <span class="sd">    Args:</span>
@@ -580,14 +590,14 @@
 
 
 <div class="viewcode-block" id="Featurization"><a class="viewcode-back" href="../../pipeline.html#pipeline.featurization.Featurization">[docs]</a><span class="k">class</span> <span class="nc">Featurization</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Abstract base class for featurization code</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Abstract base class for featurization code</span>
 
 <span class="sd">    Attributes:</span>
 <span class="sd">        feat_type (str): Type of featurizer, set in __init__</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Initializes a Featurization object.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initializes a Featurization object.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            params (Namespace): Contains parameters used to instantiate the featurizer.</span>
@@ -598,14 +608,16 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">feat_type</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">featurizer</span>
 
     <span class="c1"># ****************************************************************************************</span>
-<div class="viewcode-block" id="Featurization.featurize_data"><a class="viewcode-back" href="../../pipeline.html#pipeline.featurization.Featurization.featurize_data">[docs]</a>    <span class="k">def</span> <span class="nf">featurize_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dset_df</span><span class="p">,</span> <span class="n">model_dataset</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Perform featurization on the given dataset.</span>
+<div class="viewcode-block" id="Featurization.featurize_data"><a class="viewcode-back" href="../../pipeline.html#pipeline.featurization.Featurization.featurize_data">[docs]</a>    <span class="k">def</span> <span class="nf">featurize_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dset_df</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">contains_responses</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Perform featurization on the given dataset.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            dset_df (DataFrame): A table of data to be featurized. At minimum, should include columns.</span>
 <span class="sd">            for the compound ID and assay value; for some featurizers, must also contain a SMILES string column.</span>
 
-<span class="sd">            model_dataset (ModelDataset): Dataset to be featurized.</span>
+<span class="sd">            params (Namespace): Parsed parameters to be used for featurization.</span>
+
+<span class="sd">            contains_responses (bool): Whether the dataset being featurized contains response columns.</span>
 
 <span class="sd">        Raises:</span>
 <span class="sd">            NotImplementedError: Must be implemented by concrete subclasses</span>
@@ -615,12 +627,12 @@
         <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
 
     <span class="c1"># ****************************************************************************************</span>
-<div class="viewcode-block" id="Featurization.extract_prefeaturized_data"><a class="viewcode-back" href="../../pipeline.html#pipeline.featurization.Featurization.extract_prefeaturized_data">[docs]</a>    <span class="k">def</span> <span class="nf">extract_prefeaturized_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">merged_dset_df</span><span class="p">,</span> <span class="n">model_dataset</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Extracts dataset features, values, IDs and attributes from the given prefeaturized data frame.</span>
+<div class="viewcode-block" id="Featurization.extract_prefeaturized_data"><a class="viewcode-back" href="../../pipeline.html#pipeline.featurization.Featurization.extract_prefeaturized_data">[docs]</a>    <span class="k">def</span> <span class="nf">extract_prefeaturized_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">featurized_dset_df</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Extracts dataset features, values, IDs and attributes from the given prefeaturized data frame.</span>
 <span class="sd">        Args:</span>
-<span class="sd">            merged_dset_df (DataFrame): Data frame for the dataset.</span>
+<span class="sd">            featurized_dset_df (DataFrame): Data frame for the dataset.</span>
 
-<span class="sd">            model_dataset (ModelDataset): Backpointer to the ModelDataset object for the dataset to be featurized.</span>
+<span class="sd">            params (Namespace): Parsed parameters for model.</span>
 
 <span class="sd">        Raises:</span>
 <span class="sd">            NotImplementedError: Must be implemented by concrete subclasses</span>
@@ -629,7 +641,7 @@
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="Featurization.get_feature_columns"><a class="viewcode-back" href="../../pipeline.html#pipeline.featurization.Featurization.get_feature_columns">[docs]</a>    <span class="k">def</span> <span class="nf">get_feature_columns</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns a list of feature column names associated with this Featurization instance.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns a list of feature column names associated with this Featurization instance.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            None</span>
@@ -641,7 +653,7 @@
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="Featurization.get_feature_count"><a class="viewcode-back" href="../../pipeline.html#pipeline.featurization.Featurization.get_feature_count">[docs]</a>    <span class="k">def</span> <span class="nf">get_feature_count</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns the number of feature columns associated with this Featurization instance.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the number of feature columns associated with this Featurization instance.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            None</span>
@@ -653,7 +665,7 @@
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="Featurization.create_feature_transformer"><a class="viewcode-back" href="../../pipeline.html#pipeline.featurization.Featurization.create_feature_transformer">[docs]</a>    <span class="k">def</span> <span class="nf">create_feature_transformer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Fit a scaling and centering transformation to the feature matrix of the given dataset, and return a</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Fit a scaling and centering transformation to the feature matrix of the given dataset, and return a</span>
 <span class="sd">        DeepChem transformer object holding its parameters.</span>
 
 <span class="sd">        Args:</span>
@@ -669,7 +681,7 @@
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="Featurization.get_feature_specific_metadata"><a class="viewcode-back" href="../../pipeline.html#pipeline.featurization.Featurization.get_feature_specific_metadata">[docs]</a>    <span class="k">def</span> <span class="nf">get_feature_specific_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns a dictionary of parameter settings for this Featurization object that are specific</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns a dictionary of parameter settings for this Featurization object that are specific</span>
 <span class="sd">        to the feature type.</span>
 
 <span class="sd">        Args:</span>
@@ -680,7 +692,7 @@
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="Featurization.get_featurized_dset_name"><a class="viewcode-back" href="../../pipeline.html#pipeline.featurization.Featurization.get_featurized_dset_name">[docs]</a>    <span class="k">def</span> <span class="nf">get_featurized_dset_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset_name</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns a name for the featurized dataset, for use in filenames or dataset keys.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns a name for the featurized dataset, for use in filenames or dataset keys.</span>
 <span class="sd">        Does not include any path information. May be derived from dataset_name.</span>
 
 <span class="sd">        Args:</span>
@@ -694,7 +706,7 @@
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="Featurization.get_featurized_data_subdir"><a class="viewcode-back" href="../../pipeline.html#pipeline.featurization.Featurization.get_featurized_data_subdir">[docs]</a>    <span class="k">def</span> <span class="nf">get_featurized_data_subdir</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns the name of a subdirectory (without any leading path information) in which to store</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the name of a subdirectory (without any leading path information) in which to store</span>
 <span class="sd">        featurized data, if it goes to the filesystem.</span>
 
 <span class="sd">        Raises:</span>
@@ -706,7 +718,7 @@
 <span class="c1"># ****************************************************************************************</span>
 
 <div class="viewcode-block" id="DynamicFeaturization"><a class="viewcode-back" href="../../pipeline.html#pipeline.featurization.DynamicFeaturization">[docs]</a><span class="k">class</span> <span class="nc">DynamicFeaturization</span><span class="p">(</span><span class="n">Featurization</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Featurization subclass that supports on-the-fly featurization. Can be used when it is inexpensive to</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Featurization subclass that supports on-the-fly featurization. Can be used when it is inexpensive to</span>
 <span class="sd">    compute the features. Most DeepChem featurizers are handled through this class.</span>
 
 <span class="sd">    Attributes:</span>
@@ -715,7 +727,7 @@
 <span class="sd">            featurization_obj: The DeepChem or MoleculeVAEFeaturizer object as determined by feat_type and params</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Initializes a DynamicFeaturization object.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initializes a DynamicFeaturization object.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            params (Namespace): Contains parameters to be used to instantiate a featurizer.</span>
@@ -737,6 +749,10 @@
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">feat_type</span> <span class="ow">in</span> <span class="n">pp</span><span class="o">.</span><span class="n">featurizer_wl</span><span class="p">:</span>
             <span class="n">kwargs</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">extract_featurizer_params</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">featurizer_obj</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">featurizer_wl</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">feat_type</span><span class="p">](</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">feat_type</span> <span class="o">==</span> <span class="s1">&#39;embedding&#39;</span><span class="p">:</span>
+            <span class="c1"># EmbeddingFeaturization doesn&#39;t map directly to a DeepChem featurizer</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">featurizer_obj</span> <span class="o">=</span> <span class="kc">None</span>
+
         <span class="c1">#TODO: MoleculeVAEFeaturizer is not working currently. Will be replaced by JT-VAE and cWAE</span>
         <span class="c1"># featurizers eventually.</span>
         <span class="c1">#elif self.feat_type == &#39;molvae&#39;:</span>
@@ -746,7 +762,7 @@
 
     <span class="c1"># ****************************************************************************************</span>
     <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns a human-readable description of this Featurization object.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns a human-readable description of this Featurization object.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            (str): Describes the featurization type</span>
@@ -755,20 +771,20 @@
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="DynamicFeaturization.featurize"><a class="viewcode-back" href="../../pipeline.html#pipeline.featurization.DynamicFeaturization.featurize">[docs]</a>    <span class="k">def</span> <span class="nf">featurize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">mols</span><span class="p">)</span> <span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Calls DeepChem featurize() object</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calls DeepChem featurize() object</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">featurizer_obj</span><span class="o">.</span><span class="n">featurize</span><span class="p">(</span><span class="n">mols</span><span class="p">)</span></div>
 
     <span class="c1"># ****************************************************************************************</span>
-<div class="viewcode-block" id="DynamicFeaturization.extract_prefeaturized_data"><a class="viewcode-back" href="../../pipeline.html#pipeline.featurization.DynamicFeaturization.extract_prefeaturized_data">[docs]</a>    <span class="k">def</span> <span class="nf">extract_prefeaturized_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">merged_dset_df</span><span class="p">,</span> <span class="n">model_dataset</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Attempts to extract prefeaturized data for the given dataset. For dynamic featurizers, we don&#39;t save</span>
+<div class="viewcode-block" id="DynamicFeaturization.extract_prefeaturized_data"><a class="viewcode-back" href="../../pipeline.html#pipeline.featurization.DynamicFeaturization.extract_prefeaturized_data">[docs]</a>    <span class="k">def</span> <span class="nf">extract_prefeaturized_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">featurized_dset_df</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Attempts to extract prefeaturized data for the given dataset. For dynamic featurizers, we don&#39;t save</span>
 <span class="sd">        this data, so this method always returns None.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            merged_dset_df (DataFrame): dataset merged with the featurizers</span>
+<span class="sd">            featurized_dset_df (DataFrame): dataset merged with the featurizers</span>
 
-<span class="sd">            model_dataset (ModelDataset): Object containing the dataset to be featurized</span>
+<span class="sd">            params (Namespace): Parsed parameters for model.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            None, None, None, None</span>
@@ -776,21 +792,19 @@
         <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span></div>
 
     <span class="c1"># ****************************************************************************************</span>
-    <span class="c1"># TODO: Replace model_dataset in this function with params; make params.response_cols required.</span>
-    <span class="c1"># TODO: MJT, make params.response_cols required?</span>
-    <span class="c1"># TODO: MJT, test featurize data after refactoring out model_dataset.</span>
-<div class="viewcode-block" id="DynamicFeaturization.featurize_data"><a class="viewcode-back" href="../../pipeline.html#pipeline.featurization.DynamicFeaturization.featurize_data">[docs]</a>    <span class="k">def</span> <span class="nf">featurize_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dset_df</span><span class="p">,</span> <span class="n">model_dataset</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Perform featurization on the given dataset.</span>
+<div class="viewcode-block" id="DynamicFeaturization.featurize_data"><a class="viewcode-back" href="../../pipeline.html#pipeline.featurization.DynamicFeaturization.featurize_data">[docs]</a>    <span class="k">def</span> <span class="nf">featurize_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dset_df</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">contains_responses</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Perform featurization on the given dataset.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            dset_df (DataFrame): A table of data to be featurized. At minimum, should include columns</span>
 <span class="sd">            for the compound ID and assay value; for some featurizers, must also contain a SMILES string column.</span>
-<span class="sd">            # TODO: remove model_dataset after ensuring response_cols are set correctly.</span>
 
-<span class="sd">            model_dataset (ModelDataset): Contains the dataset to be featurized</span>
+<span class="sd">            params (Namespace): Parsed parameters to be used for featurization.</span>
+
+<span class="sd">            contains_responses (bool): Whether the dataset being featurized contains response columns.</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            Tuple of (features, ids, vals, attr).</span>
+<span class="sd">            Tuple of (features, ids, vals, attr, weights, featurized_dset_df):</span>
 
 <span class="sd">            features (np.array): Feature matrix.</span>
 
@@ -799,39 +813,49 @@
 <span class="sd">            vals (np.array): array of response values.</span>
 
 <span class="sd">            attr (pd.DataFrame): dataframe containing SMILES strings indexed by compound IDs.</span>
+
+<span class="sd">            weights (np.array): Array of compound weights</span>
+
+<span class="sd">            featurized_dset_df (pd.DataFrame): Data frame combining id, SMILES and response columns from input data frame</span>
+<span class="sd">            with generated feature columns.</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">params</span> <span class="o">=</span> <span class="n">model_dataset</span><span class="o">.</span><span class="n">params</span>
         <span class="n">attr</span> <span class="o">=</span> <span class="n">get_dataset_attributes</span><span class="p">(</span><span class="n">dset_df</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
         <span class="n">features</span><span class="p">,</span> <span class="n">is_valid</span> <span class="o">=</span> <span class="n">featurize_smiles</span><span class="p">(</span><span class="n">dset_df</span><span class="p">,</span> <span class="n">featurizer</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">featurizer_obj</span><span class="p">,</span> <span class="n">smiles_col</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">smiles_col</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">features</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Featurization failed for dataset&quot;</span><span class="p">)</span>
         <span class="c1"># Some SMILES strings may not be featurizable. This filters for only valid IDs.</span>
-        <span class="c1"># ksm: Changed name of &#39;valid_inds&#39; to &#39;is_valid&#39;, because it&#39;s an array of bools, not a list of indices.</span>
 
         <span class="n">nrows</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">is_valid</span><span class="p">)</span>
         <span class="n">ncols</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">response_cols</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">model_dataset</span><span class="o">.</span><span class="n">contains_responses</span><span class="p">:</span>
-            <span class="c1">##JEA: ORIG code below</span>
-            <span class="c1">##vals = dset_df[params.response_cols].values[is_valid,:]</span>
-            <span class="c1">##JEA: UPDATED code below</span>
-            <span class="c1">##JEA: the W&#39;s need to be initialized here, the function below</span>
-            <span class="c1">##JEA: will set weights to 0 for missing values</span>
-            <span class="c1">##JEA: Featurize task results iff they exist.</span>
-            <span class="n">dset_df</span><span class="o">=</span><span class="n">dset_df</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">regex</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-            <span class="n">vals</span><span class="p">,</span> <span class="n">w</span> <span class="o">=</span> <span class="n">dl</span><span class="o">.</span><span class="n">_convert_df_to_numpy</span><span class="p">(</span><span class="n">dset_df</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">response_cols</span><span class="p">)</span> <span class="c1">#, self.id_field)</span>
-            <span class="c1"># Filter out examples where featurization failed.</span>
-            <span class="n">vals</span><span class="p">,</span> <span class="n">w</span> <span class="o">=</span> <span class="p">(</span><span class="n">vals</span><span class="p">[</span><span class="n">is_valid</span><span class="p">],</span> <span class="n">w</span><span class="p">[</span><span class="n">is_valid</span><span class="p">])</span>
+
+        <span class="c1"># Select columns to include from the input dataset in the featurized dataset data frame</span>
+        <span class="n">dset_cols</span> <span class="o">=</span> <span class="p">[</span><span class="n">params</span><span class="o">.</span><span class="n">id_col</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">smiles_col</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">contains_responses</span><span class="p">:</span>
+            <span class="n">dset_cols</span> <span class="o">+=</span> <span class="n">params</span><span class="o">.</span><span class="n">response_cols</span>
+        <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">date_col</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">dset_cols</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">date_col</span><span class="p">)</span>
+        <span class="n">keep_df</span> <span class="o">=</span> <span class="n">dset_df</span><span class="p">[</span><span class="n">dset_cols</span><span class="p">][</span><span class="n">is_valid</span><span class="p">]</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">features</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">feat_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">features</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;c</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">features</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">feat_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">c0</span><span class="o">=</span><span class="n">features</span><span class="p">))</span>
+        <span class="n">featurized_dset_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">keep_df</span><span class="p">,</span> <span class="n">feat_df</span><span class="p">],</span> <span class="n">ignore_index</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">contains_responses</span><span class="p">:</span>
+            <span class="n">vals</span><span class="p">,</span> <span class="n">w</span> <span class="o">=</span> <span class="n">make_weights</span><span class="p">(</span><span class="n">featurized_dset_df</span><span class="p">[</span><span class="n">params</span><span class="o">.</span><span class="n">response_cols</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)</span> <span class="c1">#, self.id_field)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nrows</span><span class="p">,</span><span class="n">ncols</span><span class="p">))</span>
             <span class="n">w</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">nrows</span><span class="p">,</span><span class="n">ncols</span><span class="p">))</span> <span class="c1">## JEA</span>
         <span class="n">attr</span> <span class="o">=</span> <span class="n">attr</span><span class="p">[</span><span class="n">is_valid</span><span class="p">]</span>
-        <span class="n">ids</span> <span class="o">=</span> <span class="n">dset_df</span><span class="p">[</span><span class="n">model_dataset</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">id_col</span><span class="p">][</span><span class="n">is_valid</span><span class="p">]</span>
+        <span class="n">ids</span> <span class="o">=</span> <span class="n">featurized_dset_df</span><span class="p">[</span><span class="n">params</span><span class="o">.</span><span class="n">id_col</span><span class="p">]</span>
+
         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">features</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">ids</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">vals</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">w</span><span class="p">)</span> <span class="c1">## JEA</span>
-        <span class="k">return</span> <span class="n">features</span><span class="p">,</span> <span class="n">ids</span><span class="p">,</span> <span class="n">vals</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="n">w</span></div>
+        <span class="k">return</span> <span class="n">features</span><span class="p">,</span> <span class="n">ids</span><span class="p">,</span> <span class="n">vals</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">featurized_dset_df</span></div>
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="DynamicFeaturization.create_feature_transformer"><a class="viewcode-back" href="../../pipeline.html#pipeline.featurization.DynamicFeaturization.create_feature_transformer">[docs]</a>    <span class="k">def</span> <span class="nf">create_feature_transformer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Fit a scaling and centering transformation to the feature matrix of the given dataset, and return a</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Fit a scaling and centering transformation to the feature matrix of the given dataset, and return a</span>
 <span class="sd">        DeepChem transformer object holding its parameters.</span>
 
 <span class="sd">        Args:</span>
@@ -846,7 +870,7 @@
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="DynamicFeaturization.get_featurized_dset_name"><a class="viewcode-back" href="../../pipeline.html#pipeline.featurization.DynamicFeaturization.get_featurized_dset_name">[docs]</a>    <span class="k">def</span> <span class="nf">get_featurized_dset_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset_name</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns a name for the featurized dataset, for use in filenames or dataset keys.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns a name for the featurized dataset, for use in filenames or dataset keys.</span>
 <span class="sd">        Does not include any path information. May be derived from dataset_name.</span>
 
 <span class="sd">        Args:</span>
@@ -855,12 +879,12 @@
 <span class="sd">        Raises:</span>
 <span class="sd">            Exception: This method is not supported by the DynamicFeaturization subclass</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;DynamicFeaturization doesn&#39;t support get_featurized_dset_name()&quot;</span><span class="p">)</span></div>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;DynamicFeaturization doesn&#39;t support get_featurized_dset_name()&quot;</span><span class="p">)</span></div>
 
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="DynamicFeaturization.get_featurized_data_subdir"><a class="viewcode-back" href="../../pipeline.html#pipeline.featurization.DynamicFeaturization.get_featurized_data_subdir">[docs]</a>    <span class="k">def</span> <span class="nf">get_featurized_data_subdir</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns the name of a subdirectory (without any leading path information) in which to store</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the name of a subdirectory (without any leading path information) in which to store</span>
 <span class="sd">        featurized data, if it goes to the filesystem.</span>
 
 <span class="sd">        Raises:</span>
@@ -871,7 +895,7 @@
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="DynamicFeaturization.get_feature_columns"><a class="viewcode-back" href="../../pipeline.html#pipeline.featurization.DynamicFeaturization.get_feature_columns">[docs]</a>    <span class="k">def</span> <span class="nf">get_feature_columns</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns a list of feature column names associated with this Featurization instance.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns a list of feature column names associated with this Featurization instance.</span>
 <span class="sd">        For DynamicFeaturization, the column names are essentially meaningless, so these will</span>
 <span class="sd">        be &quot;c0, c1, ... etc.&quot;.</span>
 
@@ -885,7 +909,7 @@
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="DynamicFeaturization.get_feature_count"><a class="viewcode-back" href="../../pipeline.html#pipeline.featurization.DynamicFeaturization.get_feature_count">[docs]</a>    <span class="k">def</span> <span class="nf">get_feature_count</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns the number of feature columns associated with this Featurization instance.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the number of feature columns associated with this Featurization instance.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            None</span>
@@ -909,7 +933,7 @@
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="DynamicFeaturization.get_feature_specific_metadata"><a class="viewcode-back" href="../../pipeline.html#pipeline.featurization.DynamicFeaturization.get_feature_specific_metadata">[docs]</a>    <span class="k">def</span> <span class="nf">get_feature_specific_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns a dictionary of parameter settings for this Featurization object that are specific</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns a dictionary of parameter settings for this Featurization object that are specific</span>
 <span class="sd">        to the feature type.</span>
 
 <span class="sd">        Args:</span>
@@ -937,14 +961,180 @@
         <span class="k">return</span> <span class="n">feat_metadata</span></div></div>
 
 <span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="EmbeddingFeaturization"><a class="viewcode-back" href="../../pipeline.html#pipeline.featurization.EmbeddingFeaturization">[docs]</a><span class="k">class</span> <span class="nc">EmbeddingFeaturization</span><span class="p">(</span><span class="n">DynamicFeaturization</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Featurizer that uses a pretrained AMPL neural network model to compute features consisting</span>
+<span class="sd">    of the activations from the &quot;embedding&quot; layer of the network. For this to work, the underlying</span>
+<span class="sd">    DeepChem model must implement the predict_embedding function.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initializes an EmbeddingFeaturization object.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            params (Namespace): Contains parameters to be used to instantiate the featurizer.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError if neither embedding_model_uuid or embedding_model_path is specified in params.</span>
+
+<span class="sd">        Side effects:</span>
+<span class="sd">            Sets the following EmbeddingFeaturization attributes:</span>
+<span class="sd">                embedding_pipeline: A ModelPipeline object for the embedding model.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+        <span class="n">log_level</span> <span class="o">=</span> <span class="n">log</span><span class="o">.</span><span class="n">getEffectiveLevel</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">embedding_model_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">embedding_pipeline</span> <span class="o">=</span> <span class="n">mp</span><span class="o">.</span><span class="n">create_prediction_pipeline_from_file</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">reload_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                        <span class="n">model_path</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">embedding_model_path</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">params</span><span class="o">.</span><span class="n">embedding_model_uuid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">embedding_pipeline</span> <span class="o">=</span> <span class="n">mp</span><span class="o">.</span><span class="n">create_prediction_pipeline</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">embedding_model_uuid</span><span class="p">,</span>
+                                        <span class="n">collection_name</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">embedding_model_collection</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;EmbeddingFeaturizer: must specify either embedding_model_uuid or embedding_model_path&quot;</span><span class="p">)</span>
+        <span class="c1"># Restore the logging level, which may have been changed by the create_prediction_pipeline function</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">log_level</span><span class="p">)</span>
+
+
+    <span class="c1"># ****************************************************************************************</span>
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns a human-readable description of this Featurization object.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            (str): Describes the featurization type</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;EmbeddingFeaturization based on model UUID </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">embedding_pipeline</span><span class="o">.</span><span class="n">model_uuid</span><span class="si">}</span><span class="s2">&quot;</span>
+
+    <span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="EmbeddingFeaturization.featurize"><a class="viewcode-back" href="../../pipeline.html#pipeline.featurization.EmbeddingFeaturization.featurize">[docs]</a>    <span class="k">def</span> <span class="nf">featurize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">mols</span><span class="p">)</span> <span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calls DeepChem featurize() object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># TODO Does this actually get called externally?</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+    <span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="EmbeddingFeaturization.featurize_data"><a class="viewcode-back" href="../../pipeline.html#pipeline.featurization.EmbeddingFeaturization.featurize_data">[docs]</a>    <span class="k">def</span> <span class="nf">featurize_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dset_df</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">contains_responses</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Perform featurization on the given dataset.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dset_df (DataFrame): A table of data to be featurized. At minimum, should include columns</span>
+<span class="sd">            for the compound ID and SMILES string</span>
+
+<span class="sd">            params (Namespace): Parsed parameters to be used for featurization.</span>
+
+<span class="sd">            contains_responses (bool): Whether the dataset being featurized contains response columns.</span>
+
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Tuple of (features, ids, vals, attr, weights, featurized_dset_df):</span>
+
+<span class="sd">            features (np.array): Feature matrix.</span>
+
+<span class="sd">            ids (pd.DataFrame): Compound IDs or SMILES strings if needed for splitting.</span>
+
+<span class="sd">            attr (pd.DataFrame): Data frame containing SMILES strings indexed by compound IDs.</span>
+
+<span class="sd">            vals (np.array): Array of response values.</span>
+
+<span class="sd">            weights (np.array): Array of compound weights</span>
+
+<span class="sd">            featurized_dset_df (pd.DataFrame): Data frame combining id, SMILES and response columns from input data frame</span>
+<span class="sd">            with generated feature columns.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># First featurize the molecules in dset_df using the featurizer of the embedding model. </span>
+
+        <span class="n">input_featurization</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">embedding_pipeline</span><span class="o">.</span><span class="n">model_wrapper</span><span class="o">.</span><span class="n">featurization</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">embedding_pipeline</span><span class="o">.</span><span class="n">featurization</span> <span class="o">=</span> <span class="n">input_featurization</span>
+
+        <span class="n">input_model_dataset</span> <span class="o">=</span> <span class="n">md</span><span class="o">.</span><span class="n">create_minimal_dataset</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">embedding_pipeline</span><span class="o">.</span><span class="n">params</span><span class="p">,</span>
+                                    <span class="n">input_featurization</span><span class="p">,</span> <span class="n">contains_responses</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">input_dset_df</span> <span class="o">=</span> <span class="n">dset_df</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">contains_responses</span><span class="p">:</span>
+            <span class="n">colmap</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="n">orig_col</span><span class="p">,</span> <span class="n">embed_col</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">response_cols</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">embedding_pipeline</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">response_cols</span><span class="p">):</span>
+                <span class="n">colmap</span><span class="p">[</span><span class="n">orig_col</span><span class="p">]</span> <span class="o">=</span> <span class="n">embed_col</span>
+            <span class="n">input_dset_df</span> <span class="o">=</span> <span class="n">input_dset_df</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="n">colmap</span><span class="p">)</span>
+        <span class="n">input_model_dataset</span><span class="o">.</span><span class="n">get_featurized_data</span><span class="p">(</span><span class="n">input_dset_df</span><span class="p">)</span>
+        <span class="n">input_dataset</span> <span class="o">=</span> <span class="n">input_model_dataset</span><span class="o">.</span><span class="n">dataset</span>
+        <span class="n">input_features</span> <span class="o">=</span> <span class="n">input_dataset</span><span class="o">.</span><span class="n">X</span>
+        <span class="n">ids</span> <span class="o">=</span> <span class="n">input_dataset</span><span class="o">.</span><span class="n">ids</span>
+        <span class="n">vals</span> <span class="o">=</span> <span class="n">input_dataset</span><span class="o">.</span><span class="n">y</span>
+        <span class="n">weights</span> <span class="o">=</span> <span class="n">input_dataset</span><span class="o">.</span><span class="n">w</span>
+        <span class="n">attr</span> <span class="o">=</span> <span class="n">input_model_dataset</span><span class="o">.</span><span class="n">attr</span>
+
+        <span class="c1"># Run the embedding model to generate features. </span>
+        <span class="n">embedding</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">embedding_pipeline</span><span class="o">.</span><span class="n">model_wrapper</span><span class="o">.</span><span class="n">generate_embeddings</span><span class="p">(</span><span class="n">input_dataset</span><span class="p">)</span>
+
+        <span class="c1"># The DeepChem predict_embedding methods pad their outputs to multiples of the batch size.</span>
+        <span class="c1"># Strip off this extra padding.</span>
+        <span class="n">nrows</span> <span class="o">=</span> <span class="n">input_features</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">embedding</span> <span class="o">=</span> <span class="n">embedding</span><span class="p">[:</span><span class="n">nrows</span><span class="p">,:]</span>
+
+        <span class="c1"># Select columns to include from the input dataset in the featurized dataset data frame</span>
+        <span class="n">dset_cols</span> <span class="o">=</span> <span class="p">[</span><span class="n">params</span><span class="o">.</span><span class="n">id_col</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">smiles_col</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">contains_responses</span><span class="p">:</span>
+            <span class="n">dset_cols</span> <span class="o">+=</span> <span class="n">params</span><span class="o">.</span><span class="n">response_cols</span>
+        <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">date_col</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">dset_cols</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">date_col</span><span class="p">)</span>
+        <span class="n">keep_df</span> <span class="o">=</span> <span class="n">dset_df</span><span class="p">[</span><span class="n">dset_cols</span><span class="p">]</span>
+        <span class="n">feat_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">embedding</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;c</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">embedding</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])])</span>
+        <span class="n">featurized_dset_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">keep_df</span><span class="p">,</span> <span class="n">feat_df</span><span class="p">],</span> <span class="n">ignore_index</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">embedding</span><span class="p">,</span> <span class="n">ids</span><span class="p">,</span> <span class="n">vals</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">featurized_dset_df</span></div>
+
+    <span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="EmbeddingFeaturization.get_feature_count"><a class="viewcode-back" href="../../pipeline.html#pipeline.featurization.EmbeddingFeaturization.get_feature_count">[docs]</a>    <span class="k">def</span> <span class="nf">get_feature_count</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the number of feature columns associated with this Featurization instance.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            None</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            (int): The number of feature columns for the DynamicFeaturization subclass, feat_type specific</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># For GraphConv models, the embedding layer is a GraphGather layer that effectively doubles the number </span>
+        <span class="c1"># of nodes in the final Dense layer, which is given by the last element of params.layer_sizes.</span>
+        <span class="c1"># For other NN models, the embedding layer has the number of nodes specified by that last element.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">embedding_pipeline</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">featurizer</span> <span class="o">==</span> <span class="s1">&#39;graphconv&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">2</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">embedding_pipeline</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">layer_sizes</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">embedding_pipeline</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">layer_sizes</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span></div>
+
+
+    <span class="c1"># ****************************************************************************************</span>
+<div class="viewcode-block" id="EmbeddingFeaturization.get_feature_specific_metadata"><a class="viewcode-back" href="../../pipeline.html#pipeline.featurization.EmbeddingFeaturization.get_feature_specific_metadata">[docs]</a>    <span class="k">def</span> <span class="nf">get_feature_specific_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns a dictionary of parameter settings for this Featurization object that are specific</span>
+<span class="sd">        to the feature type.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            params (Namespace): Argparse Namespace object containing the parameter list</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">            dict: Dictionary containing featurizer specific metadata as a subdict under the key</span>
+<span class="sd">            &#39;embedding_specific&#39;.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">feat_metadata</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="n">embedding_params</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+            <span class="n">embedding_model_uuid</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">embedding_model_uuid</span><span class="p">,</span>
+            <span class="n">embedding_model_collection</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">embedding_model_collection</span><span class="p">,</span>
+            <span class="n">embedding_model_path</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">embedding_model_path</span><span class="p">)</span>
+        <span class="n">feat_metadata</span><span class="p">[</span><span class="s1">&#39;embedding_specific&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">embedding_params</span>
+
+        <span class="k">return</span> <span class="n">feat_metadata</span></div></div>
+
+
+<span class="c1"># ****************************************************************************************</span>
 
 <div class="viewcode-block" id="PersistentFeaturization"><a class="viewcode-back" href="../../pipeline.html#pipeline.featurization.PersistentFeaturization">[docs]</a><span class="k">class</span> <span class="nc">PersistentFeaturization</span><span class="p">(</span><span class="n">Featurization</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Subclass for featurizers that support persistent storage of featurized data. Used when computing or mapping</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Subclass for featurizers that support persistent storage of featurized data. Used when computing or mapping</span>
 <span class="sd">    the features is CPU- or memory-intensive, e.g. descriptors. Currently DescriptorFeaturization is the only subclass,</span>
 <span class="sd">    but others are planned (e.g., UMAPDescriptorFeaturization).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Initializes a PersistentFeaturization object. This is a good place to load data used by the featurizer,</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initializes a PersistentFeaturization object. This is a good place to load data used by the featurizer,</span>
 <span class="sd">        such as a table of descriptors.</span>
 
 <span class="sd">        Args:</span>
@@ -953,13 +1143,13 @@
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
 
     <span class="c1"># ****************************************************************************************</span>
-<div class="viewcode-block" id="PersistentFeaturization.extract_prefeaturized_data"><a class="viewcode-back" href="../../pipeline.html#pipeline.featurization.PersistentFeaturization.extract_prefeaturized_data">[docs]</a>    <span class="k">def</span> <span class="nf">extract_prefeaturized_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">merged_dset_df</span><span class="p">,</span> <span class="n">model_dataset</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Attempts to extract prefeaturized data for the given dataset.</span>
+<div class="viewcode-block" id="PersistentFeaturization.extract_prefeaturized_data"><a class="viewcode-back" href="../../pipeline.html#pipeline.featurization.PersistentFeaturization.extract_prefeaturized_data">[docs]</a>    <span class="k">def</span> <span class="nf">extract_prefeaturized_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">featurized_dset_df</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Attempts to extract prefeaturized data for the given dataset.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            merged_dset_df (DataFrame): dataset merged with the featurizers</span>
+<span class="sd">            featurized_dset_df (DataFrame): dataset merged with the featurizers</span>
 
-<span class="sd">            model_dataset (ModelDataset): Object containing the dataset to be featurized</span>
+<span class="sd">            params (Namespace): Parsed parameters for model.</span>
 
 <span class="sd">        Raises:</span>
 <span class="sd">            NotImplementedError: Currently, only DescriptorFeaturization is supported, is not a generic method</span>
@@ -968,34 +1158,41 @@
         <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
 
     <span class="c1"># ****************************************************************************************</span>
-<div class="viewcode-block" id="PersistentFeaturization.featurize_data"><a class="viewcode-back" href="../../pipeline.html#pipeline.featurization.PersistentFeaturization.featurize_data">[docs]</a>    <span class="k">def</span> <span class="nf">featurize_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dset_df</span><span class="p">,</span> <span class="n">model_dataset</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Perform featurization on the given dataset.</span>
+<div class="viewcode-block" id="PersistentFeaturization.featurize_data"><a class="viewcode-back" href="../../pipeline.html#pipeline.featurization.PersistentFeaturization.featurize_data">[docs]</a>    <span class="k">def</span> <span class="nf">featurize_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dset_df</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">contains_responses</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Perform featurization on the given dataset.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            dset_df (DataFrame): A table of data to be featurized. At minimum, should include columns.</span>
 <span class="sd">            for the compound ID and assay value; for some featurizers, must also contain a SMILES string column.</span>
 
-<span class="sd">            model_dataset (ModelDataset): Object containing the dataset to be featurized</span>
+<span class="sd">            params (Namespace): Parsed parameters to be used for featurization.</span>
+
+<span class="sd">            contains_responses (bool): Whether the dataset being featurized contains response columns.</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            Tuple of (features, ids, vals, attr).</span>
-<span class="sd">                features (np.array): Feature matrix.</span>
+<span class="sd">            Tuple of (features, ids, vals, attr, weights, featurized_dset_df):</span>
 
-<span class="sd">                ids (pd.DataFrame): compound IDs or SMILES strings if needed for splitting.</span>
+<span class="sd">            features (np.array): Feature matrix.</span>
 
-<span class="sd">                attr (pd.DataFrame): dataframe containing SMILES strings indexed by compound IDs.</span>
+<span class="sd">            ids (pd.DataFrame): Compound IDs or SMILES strings if needed for splitting.</span>
 
-<span class="sd">                vals (np.array): array of response values.</span>
+<span class="sd">            attr (pd.DataFrame): Data frame containing SMILES strings indexed by compound IDs.</span>
+
+<span class="sd">            vals (np.array): Array of response values.</span>
+
+<span class="sd">            weights (np.array): Array of compound weights</span>
+
+<span class="sd">            featurized_dset_df (pd.DataFrame): Data frame combining id, SMILES and response columns from input data frame</span>
+<span class="sd">            with generated feature columns.</span>
 
 <span class="sd">        Raises:</span>
-<span class="sd">            NotImplementedError: Currently, only DescriptorFeaturization is supported, is not a generic method</span>
+<span class="sd">            NotImplementedError: Implemented by subclasses.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1">#TODO: Add comment describing why this is not implemented</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="PersistentFeaturization.create_feature_transformer"><a class="viewcode-back" href="../../pipeline.html#pipeline.featurization.PersistentFeaturization.create_feature_transformer">[docs]</a>    <span class="k">def</span> <span class="nf">create_feature_transformer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Fit a scaling and centering transformation to the feature matrix of the given dataset, and return a</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Fit a scaling and centering transformation to the feature matrix of the given dataset, and return a</span>
 <span class="sd">        DeepChem transformer object holding its parameters.</span>
 
 <span class="sd">        Args:</span>
@@ -1008,7 +1205,7 @@
 <span class="c1"># ****************************************************************************************</span>
 
 <div class="viewcode-block" id="DescriptorFeaturization"><a class="viewcode-back" href="../../pipeline.html#pipeline.featurization.DescriptorFeaturization">[docs]</a><span class="k">class</span> <span class="nc">DescriptorFeaturization</span><span class="p">(</span><span class="n">PersistentFeaturization</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Subclass for featurizers that map sets of (usually) precomputed descriptors to compound IDs; the resulting merged</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Subclass for featurizers that map sets of (usually) precomputed descriptors to compound IDs; the resulting merged</span>
 <span class="sd">    dataset is persisted to the filesystem or datastore.</span>
 <span class="sd">    Attributes:</span>
 <span class="sd">        Set in __init_:</span>
@@ -1042,7 +1239,7 @@
 
 <div class="viewcode-block" id="DescriptorFeaturization.load_descriptor_spec"><a class="viewcode-back" href="../../pipeline.html#pipeline.featurization.DescriptorFeaturization.load_descriptor_spec">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">load_descriptor_spec</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">desc_spec_bucket</span><span class="p">,</span> <span class="n">desc_spec_key</span><span class="p">)</span> <span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Read a descriptor specification table from the datastore or the filesystem.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Read a descriptor specification table from the datastore or the filesystem.</span>
 <span class="sd">        The table is a CSV file with the following columns:</span>
 
 <span class="sd">        descr_type:     A string specifying a descriptor source/program and a subset of descriptor columns</span>
@@ -1118,7 +1315,7 @@
         <span class="bp">cls</span><span class="o">.</span><span class="n">supported_descriptor_types</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">desc_type_source</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span></div>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Initializes a DescriptorFeaturization object. This is a good place to load data used by the featurizer,</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initializes a DescriptorFeaturization object. This is a good place to load data used by the featurizer,</span>
 <span class="sd">        such as a table of descriptors.</span>
 
 <span class="sd">        Args:</span>
@@ -1169,7 +1366,7 @@
 
     <span class="c1"># ****************************************************************************************</span>
     <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns a human-readable description of this Featurization object.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns a human-readable description of this Featurization object.</span>
 <span class="sd">        Returns:</span>
 <span class="sd">            (str): Describes the featurization type</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -1177,14 +1374,13 @@
 
 
     <span class="c1"># ****************************************************************************************</span>
-<div class="viewcode-block" id="DescriptorFeaturization.extract_prefeaturized_data"><a class="viewcode-back" href="../../pipeline.html#pipeline.featurization.DescriptorFeaturization.extract_prefeaturized_data">[docs]</a>    <span class="k">def</span> <span class="nf">extract_prefeaturized_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">merged_dset_df</span><span class="p">,</span> <span class="n">model_dataset</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Attempts to retrieve prefeaturized data for the given dataset.</span>
+<div class="viewcode-block" id="DescriptorFeaturization.extract_prefeaturized_data"><a class="viewcode-back" href="../../pipeline.html#pipeline.featurization.DescriptorFeaturization.extract_prefeaturized_data">[docs]</a>    <span class="k">def</span> <span class="nf">extract_prefeaturized_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">featurized_dset_df</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Attempts to retrieve prefeaturized data for the given dataset.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            merged_dset_df (pd.DataFrame): dataset merged with the featurizers</span>
+<span class="sd">            featurized_dset_df (pd.DataFrame): dataset merged with the featurizers</span>
 
-<span class="sd">            model_dataset (ModelDataset): Object containing the dataset to be featurized</span>
-<span class="sd">            # TODO: Remove model_dataset call once params.response_cols is properly set</span>
+<span class="sd">            params (Namespace): Parsed parameters for model.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            Tuple of (features, ids, vals, attr).</span>
@@ -1198,21 +1394,21 @@
 <span class="sd">            vals (np.array): array of response values.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">model_dataset</span><span class="o">.</span><span class="n">check_task_columns</span><span class="p">(</span><span class="n">merged_dset_df</span><span class="p">)</span>
+        <span class="n">md</span><span class="o">.</span><span class="n">check_task_columns</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">featurized_dset_df</span><span class="p">)</span>
         <span class="n">user_specified_features</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_feature_columns</span><span class="p">()</span>
         <span class="n">featurizer_obj</span> <span class="o">=</span> <span class="n">dc</span><span class="o">.</span><span class="n">feat</span><span class="o">.</span><span class="n">UserDefinedFeaturizer</span><span class="p">(</span><span class="n">user_specified_features</span><span class="p">)</span>
-        <span class="n">features</span> <span class="o">=</span> <span class="n">get_user_specified_features</span><span class="p">(</span><span class="n">merged_dset_df</span><span class="p">,</span> <span class="n">featurizer</span><span class="o">=</span><span class="n">featurizer_obj</span><span class="p">,</span>
+        <span class="n">features</span> <span class="o">=</span> <span class="n">get_user_specified_features</span><span class="p">(</span><span class="n">featurized_dset_df</span><span class="p">,</span> <span class="n">featurizer</span><span class="o">=</span><span class="n">featurizer_obj</span><span class="p">,</span>
                                                                    <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="n">features</span> <span class="o">=</span> <span class="n">features</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
-        <span class="n">ids</span> <span class="o">=</span> <span class="n">merged_dset_df</span><span class="p">[</span><span class="n">model_dataset</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">id_col</span><span class="p">]</span>
-        <span class="n">vals</span> <span class="o">=</span> <span class="n">merged_dset_df</span><span class="p">[</span><span class="n">model_dataset</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">response_cols</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
-        <span class="n">attr</span> <span class="o">=</span> <span class="n">get_dataset_attributes</span><span class="p">(</span><span class="n">merged_dset_df</span><span class="p">,</span> <span class="n">model_dataset</span><span class="o">.</span><span class="n">params</span><span class="p">)</span>
+        <span class="n">ids</span> <span class="o">=</span> <span class="n">featurized_dset_df</span><span class="p">[</span><span class="n">params</span><span class="o">.</span><span class="n">id_col</span><span class="p">]</span>
+        <span class="n">vals</span> <span class="o">=</span> <span class="n">featurized_dset_df</span><span class="p">[</span><span class="n">params</span><span class="o">.</span><span class="n">response_cols</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+        <span class="n">attr</span> <span class="o">=</span> <span class="n">get_dataset_attributes</span><span class="p">(</span><span class="n">featurized_dset_df</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">features</span><span class="p">,</span> <span class="n">ids</span><span class="p">,</span> <span class="n">vals</span><span class="p">,</span> <span class="n">attr</span></div>
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="DescriptorFeaturization.load_descriptor_table"><a class="viewcode-back" href="../../pipeline.html#pipeline.featurization.DescriptorFeaturization.load_descriptor_table">[docs]</a>    <span class="k">def</span> <span class="nf">load_descriptor_table</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Load the table of precomputed feature values for the descriptor type specified in params, from</span>
 <span class="sd">        the datastore_key or path specified by params.descriptor_key and params.descriptor_bucket. Will try</span>
 <span class="sd">        to load the table from the local filesystem if possible, but the table should at least have a</span>
@@ -1305,26 +1501,32 @@
 
 
     <span class="c1"># ****************************************************************************************</span>
-<div class="viewcode-block" id="DescriptorFeaturization.featurize_data"><a class="viewcode-back" href="../../pipeline.html#pipeline.featurization.DescriptorFeaturization.featurize_data">[docs]</a>    <span class="k">def</span> <span class="nf">featurize_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dset_df</span><span class="p">,</span> <span class="n">model_dataset</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Perform featurization on the given dataset.</span>
+<div class="viewcode-block" id="DescriptorFeaturization.featurize_data"><a class="viewcode-back" href="../../pipeline.html#pipeline.featurization.DescriptorFeaturization.featurize_data">[docs]</a>    <span class="k">def</span> <span class="nf">featurize_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dset_df</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">contains_responses</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Perform featurization on the given dataset.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            dset_df (DataFrame): A table of data to be featurized. At minimum, should include columns.</span>
 <span class="sd">            for the compound ID and assay value; for some featurizers, must also contain a SMILES string column.</span>
 
-<span class="sd">            model_dataset (ModelDataset): Object containing the dataset to be featurized</span>
-<span class="sd">            # TODO: Remove model_dataset call once params.response_cols is properly set</span>
+<span class="sd">            params (Namespace): Parsed parameters to be used for featurization.</span>
+
+<span class="sd">            contains_responses (bool): Whether the dataset being featurized contains response columns.</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            Tuple of (features, ids, vals, attr).</span>
+<span class="sd">            Tuple of (features, ids, vals, attr, weights, featurized_dset_df):</span>
 
 <span class="sd">            features (np.array): Feature matrix.</span>
 
-<span class="sd">            ids (pd.DataFrame): compound IDs or SMILES strings if needed for splitting.</span>
+<span class="sd">            ids (pd.DataFrame): Compound IDs or SMILES strings if needed for splitting.</span>
 
-<span class="sd">            attr (pd.DataFrame): dataframe containing SMILES strings indexed by compound IDs.</span>
+<span class="sd">            attr (pd.DataFrame): Data frame containing SMILES strings indexed by compound IDs.</span>
 
-<span class="sd">            vals (np.array): array of response values</span>
+<span class="sd">            vals (np.array): Array of response values</span>
+
+<span class="sd">            weights (np.array): Array of compound weights</span>
+
+<span class="sd">            featurized_dset_df (pd.DataFrame): Data frame combining id, SMILES and response columns from input data frame</span>
+<span class="sd">            with generated feature columns.</span>
 
 <span class="sd">        Raises:</span>
 <span class="sd">            Exception: if features is None, feautirzation failed for the dataset</span>
@@ -1332,7 +1534,6 @@
 <span class="sd">        Side effects:</span>
 <span class="sd">            Overwrites the attribute precomp_descr_table (pd.DataFrame) with the appropriate descriptor table</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">params</span> <span class="o">=</span> <span class="n">model_dataset</span><span class="o">.</span><span class="n">params</span>
         <span class="c1"># Compound ID and SMILES columns will be labeled the same as in the input dataset, unless overridden by</span>
         <span class="c1"># properties of the precomputed descriptor table</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">load_descriptor_table</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
@@ -1347,27 +1548,25 @@
         <span class="c1"># already has a column of the same name</span>
         <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">smiles_col</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">precomp_descr_table</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">values</span><span class="p">:</span>
             <span class="n">dset_cols</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">smiles_col</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">model_dataset</span><span class="o">.</span><span class="n">contains_responses</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">contains_responses</span><span class="p">:</span>
             <span class="n">dset_cols</span> <span class="o">+=</span> <span class="n">params</span><span class="o">.</span><span class="n">response_cols</span>
-        <span class="n">merged_dset_df</span> <span class="o">=</span> <span class="n">dset_df</span><span class="p">[</span><span class="n">dset_cols</span><span class="p">]</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span>
+        <span class="n">featurized_dset_df</span> <span class="o">=</span> <span class="n">dset_df</span><span class="p">[</span><span class="n">dset_cols</span><span class="p">]</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">precomp_descr_table</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="n">left_on</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">id_col</span><span class="p">,</span> <span class="n">right_on</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">desc_id_col</span><span class="p">)</span>
-
-        <span class="n">model_dataset</span><span class="o">.</span><span class="n">save_featurized_data</span><span class="p">(</span><span class="n">merged_dset_df</span><span class="p">)</span>
 
         <span class="n">user_specified_features</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_feature_columns</span><span class="p">()</span>
 
         <span class="n">featurizer_obj</span> <span class="o">=</span> <span class="n">dc</span><span class="o">.</span><span class="n">feat</span><span class="o">.</span><span class="n">UserDefinedFeaturizer</span><span class="p">(</span><span class="n">user_specified_features</span><span class="p">)</span>
-        <span class="n">features</span> <span class="o">=</span> <span class="n">get_user_specified_features</span><span class="p">(</span><span class="n">merged_dset_df</span><span class="p">,</span> <span class="n">featurizer</span><span class="o">=</span><span class="n">featurizer_obj</span><span class="p">,</span>
+        <span class="n">features</span> <span class="o">=</span> <span class="n">get_user_specified_features</span><span class="p">(</span><span class="n">featurized_dset_df</span><span class="p">,</span> <span class="n">featurizer</span><span class="o">=</span><span class="n">featurizer_obj</span><span class="p">,</span>
                                                                    <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">features</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Featurization failed for dataset&quot;</span><span class="p">)</span>
 
-        <span class="n">ids</span> <span class="o">=</span> <span class="n">merged_dset_df</span><span class="p">[</span><span class="n">params</span><span class="o">.</span><span class="n">id_col</span><span class="p">]</span>
+        <span class="n">ids</span> <span class="o">=</span> <span class="n">featurized_dset_df</span><span class="p">[</span><span class="n">params</span><span class="o">.</span><span class="n">id_col</span><span class="p">]</span>
 
         <span class="n">nrows</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ids</span><span class="p">)</span>
         <span class="n">ncols</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">response_cols</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">model_dataset</span><span class="o">.</span><span class="n">contains_responses</span><span class="p">:</span>
-            <span class="n">vals</span> <span class="o">=</span> <span class="n">merged_dset_df</span><span class="p">[</span><span class="n">params</span><span class="o">.</span><span class="n">response_cols</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+        <span class="k">if</span> <span class="n">contains_responses</span><span class="p">:</span>
+            <span class="n">vals</span> <span class="o">=</span> <span class="n">featurized_dset_df</span><span class="p">[</span><span class="n">params</span><span class="o">.</span><span class="n">response_cols</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
             <span class="n">vals</span><span class="p">,</span> <span class="n">weights</span> <span class="o">=</span> <span class="n">make_weights</span><span class="p">(</span><span class="n">vals</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nrows</span><span class="p">,</span><span class="n">ncols</span><span class="p">))</span>
@@ -1375,11 +1574,11 @@
 
         <span class="n">attr</span> <span class="o">=</span> <span class="n">attr</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">ids</span><span class="p">]</span>
 
-        <span class="k">return</span> <span class="n">features</span><span class="p">,</span> <span class="n">ids</span><span class="p">,</span> <span class="n">vals</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="n">weights</span></div>
+        <span class="k">return</span> <span class="n">features</span><span class="p">,</span> <span class="n">ids</span><span class="p">,</span> <span class="n">vals</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">featurized_dset_df</span></div>
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="DescriptorFeaturization.get_featurized_dset_name"><a class="viewcode-back" href="../../pipeline.html#pipeline.featurization.DescriptorFeaturization.get_featurized_dset_name">[docs]</a>    <span class="k">def</span> <span class="nf">get_featurized_dset_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset_name</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns a name for the featurized dataset, for use in filenames or dataset keys.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns a name for the featurized dataset, for use in filenames or dataset keys.</span>
 <span class="sd">        Does not include any path information. May be derived from dataset_name.</span>
 
 <span class="sd">        Args:</span>
@@ -1393,7 +1592,7 @@
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="DescriptorFeaturization.get_featurized_data_subdir"><a class="viewcode-back" href="../../pipeline.html#pipeline.featurization.DescriptorFeaturization.get_featurized_data_subdir">[docs]</a>    <span class="k">def</span> <span class="nf">get_featurized_data_subdir</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns the name of a subdirectory (without any leading path information) in which to store</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the name of a subdirectory (without any leading path information) in which to store</span>
 <span class="sd">        featurized data, if it goes to the filesystem.</span>
 
 <span class="sd">        Returns:</span>
@@ -1404,7 +1603,7 @@
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="DescriptorFeaturization.get_feature_columns"><a class="viewcode-back" href="../../pipeline.html#pipeline.featurization.DescriptorFeaturization.get_feature_columns">[docs]</a>    <span class="k">def</span> <span class="nf">get_feature_columns</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns a list of feature column names associated with this Featurization instance.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns a list of feature column names associated with this Featurization instance.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            None</span>
@@ -1418,7 +1617,7 @@
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="DescriptorFeaturization.get_feature_count"><a class="viewcode-back" href="../../pipeline.html#pipeline.featurization.DescriptorFeaturization.get_feature_count">[docs]</a>    <span class="k">def</span> <span class="nf">get_feature_count</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns the number of feature columns associated with this Featurization instance.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the number of feature columns associated with this Featurization instance.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            None</span>
@@ -1431,7 +1630,7 @@
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="DescriptorFeaturization.create_feature_transformer"><a class="viewcode-back" href="../../pipeline.html#pipeline.featurization.DescriptorFeaturization.create_feature_transformer">[docs]</a>    <span class="k">def</span> <span class="nf">create_feature_transformer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Fit a scaling and centering transformation to the feature matrix of the given dataset, and return a</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Fit a scaling and centering transformation to the feature matrix of the given dataset, and return a</span>
 <span class="sd">        DeepChem transformer object holding its parameters.</span>
 
 <span class="sd">        Args:</span>
@@ -1446,7 +1645,7 @@
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="DescriptorFeaturization.get_feature_specific_metadata"><a class="viewcode-back" href="../../pipeline.html#pipeline.featurization.DescriptorFeaturization.get_feature_specific_metadata">[docs]</a>    <span class="k">def</span> <span class="nf">get_feature_specific_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns a dictionary of parameter settings for this Featurization object that are specific</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns a dictionary of parameter settings for this Featurization object that are specific</span>
 <span class="sd">        to the feature type.</span>
 
 <span class="sd">        Args:</span>
@@ -1462,7 +1661,7 @@
 <span class="c1"># ****************************************************************************************</span>
 
 <div class="viewcode-block" id="ComputedDescriptorFeaturization"><a class="viewcode-back" href="../../pipeline.html#pipeline.featurization.ComputedDescriptorFeaturization">[docs]</a><span class="k">class</span> <span class="nc">ComputedDescriptorFeaturization</span><span class="p">(</span><span class="n">DescriptorFeaturization</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Subclass for featurizers that support online computation of descriptors, usually given SMILES</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Subclass for featurizers that support online computation of descriptors, usually given SMILES</span>
 <span class="sd">    strings or RDKit Mol objects as input rather than compound IDs. The computed descriptors may be cached</span>
 <span class="sd">    and combined with tables of precomputed descriptors to speed up access. Featurized datasets may be</span>
 <span class="sd">    persisted to the filesystem or datastore.</span>
@@ -1484,7 +1683,7 @@
 
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Initializes a ComputedDescriptorFeaturization object.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initializes a ComputedDescriptorFeaturization object.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            params (Namespace): Contains parameters to be used to instantiate a featurizer.</span>
@@ -1512,18 +1711,20 @@
 
 
     <span class="c1"># ****************************************************************************************</span>
-<div class="viewcode-block" id="ComputedDescriptorFeaturization.featurize_data"><a class="viewcode-back" href="../../pipeline.html#pipeline.featurization.ComputedDescriptorFeaturization.featurize_data">[docs]</a>    <span class="k">def</span> <span class="nf">featurize_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dset_df</span><span class="p">,</span> <span class="n">model_dataset</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Perform featurization on the given dataset, by computing descriptors from SMILES strings or matching them</span>
+<div class="viewcode-block" id="ComputedDescriptorFeaturization.featurize_data"><a class="viewcode-back" href="../../pipeline.html#pipeline.featurization.ComputedDescriptorFeaturization.featurize_data">[docs]</a>    <span class="k">def</span> <span class="nf">featurize_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dset_df</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">contains_responses</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Perform featurization on the given dataset, by computing descriptors from SMILES strings or matching them</span>
 <span class="sd">        to SMILES in precomputed table.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            dset_df (DataFrame): A table of data to be featurized. At minimum, should include columns.</span>
 <span class="sd">            for the compound ID and assay value; for some featurizers, must also contain a SMILES string column.</span>
 
-<span class="sd">            model_dataset (ModelDataset): Object containing the dataset to be featurized</span>
+<span class="sd">            params (Namespace): Parsed parameters to be used for featurization.</span>
+
+<span class="sd">            contains_responses (bool): Whether the dataset being featurized contains response columns.</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            Tuple of (features, ids, vals, attr).</span>
+<span class="sd">            Tuple of (features, ids, vals, attr, weights, featurized_dset_df):</span>
 
 <span class="sd">            features (np.array): Feature matrix.</span>
 
@@ -1533,6 +1734,11 @@
 
 <span class="sd">            vals (np.array): array of response values</span>
 
+<span class="sd">            weights (np.array): Array of compound weights</span>
+
+<span class="sd">            featurized_dset_df (pd.DataFrame): Data frame combining id, SMILES and response columns from input data frame</span>
+<span class="sd">            with feature columns.</span>
+
 <span class="sd">        Raises:</span>
 <span class="sd">            Exception: if features is None, featurization failed for the dataset</span>
 
@@ -1541,7 +1747,6 @@
 <span class="sd">            specified by params.descriptor_key.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">params</span> <span class="o">=</span> <span class="n">model_dataset</span><span class="o">.</span><span class="n">params</span>
         <span class="n">use_precomputed</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="n">descr_cols</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_feature_columns</span><span class="p">()</span>
 
@@ -1579,7 +1784,7 @@
         <span class="n">dset_cols</span> <span class="o">=</span> <span class="p">[</span><span class="n">params</span><span class="o">.</span><span class="n">id_col</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">smiles_col</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">date_col</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">dset_cols</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">date_col</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">model_dataset</span><span class="o">.</span><span class="n">contains_responses</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">contains_responses</span><span class="p">:</span>
             <span class="n">dset_cols</span> <span class="o">+=</span> <span class="n">params</span><span class="o">.</span><span class="n">response_cols</span>
         <span class="n">keep_df</span> <span class="o">=</span> <span class="n">dset_df</span><span class="p">[</span><span class="n">dset_cols</span><span class="p">]</span>
 
@@ -1639,43 +1844,39 @@
             <span class="n">uniq_smiles_feat_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">calc_smiles_feat_df</span><span class="p">,</span> <span class="n">psf_df</span><span class="p">],</span> <span class="n">ignore_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
         <span class="c1"># Merge descriptors with input data on SMILES strings.</span>
-        <span class="n">merged_dset_df</span> <span class="o">=</span> <span class="n">keep_df</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">uniq_smiles_feat_df</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">smiles_col</span><span class="p">)</span>
+        <span class="n">featurized_dset_df</span> <span class="o">=</span> <span class="n">keep_df</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">uniq_smiles_feat_df</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">smiles_col</span><span class="p">)</span>
         
         <span class="c1"># Shuffle the order of rows, so that compounds with precomputed descriptors are intermixed with those having</span>
         <span class="c1"># newly computed descriptors. This avoids bias later when doing scaffold splits; otherwise test set will be</span>
         <span class="c1"># biased toward non-precomputed compounds.</span>
-        <span class="n">merged_dset_df</span> <span class="o">=</span> <span class="n">merged_dset_df</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">frac</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
-
-        <span class="c1"># Save the featurized dataset</span>
-        <span class="n">model_dataset</span><span class="o">.</span><span class="n">save_featurized_data</span><span class="p">(</span><span class="n">merged_dset_df</span><span class="p">)</span>
-
+        <span class="n">featurized_dset_df</span> <span class="o">=</span> <span class="n">featurized_dset_df</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">frac</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
 
         <span class="c1"># Use the DeepChem featurizer to construct the feature array</span>
         <span class="n">featurizer_obj</span> <span class="o">=</span> <span class="n">dc</span><span class="o">.</span><span class="n">feat</span><span class="o">.</span><span class="n">UserDefinedFeaturizer</span><span class="p">(</span><span class="n">descr_cols</span><span class="p">)</span>
-        <span class="n">features</span> <span class="o">=</span> <span class="n">get_user_specified_features</span><span class="p">(</span><span class="n">merged_dset_df</span><span class="p">,</span> <span class="n">featurizer</span><span class="o">=</span><span class="n">featurizer_obj</span><span class="p">,</span>
+        <span class="n">features</span> <span class="o">=</span> <span class="n">get_user_specified_features</span><span class="p">(</span><span class="n">featurized_dset_df</span><span class="p">,</span> <span class="n">featurizer</span><span class="o">=</span><span class="n">featurizer_obj</span><span class="p">,</span>
                                                                    <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">features</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;UserDefinedFeaturizer failed for dataset&quot;</span><span class="p">)</span>
 
         <span class="c1"># Construct the other components of a DeepChem Dataset object</span>
-        <span class="n">ids</span> <span class="o">=</span> <span class="n">merged_dset_df</span><span class="p">[</span><span class="n">params</span><span class="o">.</span><span class="n">id_col</span><span class="p">]</span>
+        <span class="n">ids</span> <span class="o">=</span> <span class="n">featurized_dset_df</span><span class="p">[</span><span class="n">params</span><span class="o">.</span><span class="n">id_col</span><span class="p">]</span>
         <span class="n">nrows</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ids</span><span class="p">)</span>
         <span class="n">ncols</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">response_cols</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">model_dataset</span><span class="o">.</span><span class="n">contains_responses</span><span class="p">:</span>
-            <span class="n">vals</span> <span class="o">=</span> <span class="n">merged_dset_df</span><span class="p">[</span><span class="n">params</span><span class="o">.</span><span class="n">response_cols</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+        <span class="k">if</span> <span class="n">contains_responses</span><span class="p">:</span>
+            <span class="n">vals</span> <span class="o">=</span> <span class="n">featurized_dset_df</span><span class="p">[</span><span class="n">params</span><span class="o">.</span><span class="n">response_cols</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
             <span class="n">vals</span><span class="p">,</span> <span class="n">weights</span> <span class="o">=</span> <span class="n">make_weights</span><span class="p">(</span><span class="n">vals</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nrows</span><span class="p">,</span><span class="n">ncols</span><span class="p">))</span>
             <span class="n">weights</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">vals</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
 
         <span class="c1"># Create a table of SMILES strings and other attributes indexed by compound IDs</span>
-        <span class="n">attr</span> <span class="o">=</span> <span class="n">get_dataset_attributes</span><span class="p">(</span><span class="n">merged_dset_df</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
+        <span class="n">attr</span> <span class="o">=</span> <span class="n">get_dataset_attributes</span><span class="p">(</span><span class="n">featurized_dset_df</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">features</span><span class="p">,</span> <span class="n">ids</span><span class="p">,</span> <span class="n">vals</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="n">weights</span></div>
+        <span class="k">return</span> <span class="n">features</span><span class="p">,</span> <span class="n">ids</span><span class="p">,</span> <span class="n">vals</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">featurized_dset_df</span></div>
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="ComputedDescriptorFeaturization.get_featurized_dset_name"><a class="viewcode-back" href="../../pipeline.html#pipeline.featurization.ComputedDescriptorFeaturization.get_featurized_dset_name">[docs]</a>    <span class="k">def</span> <span class="nf">get_featurized_dset_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset_name</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns a name for the featurized dataset, for use in filenames or dataset keys.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns a name for the featurized dataset, for use in filenames or dataset keys.</span>
 <span class="sd">        Does not include any path information. May be derived from dataset_name.</span>
 
 <span class="sd">        Args:</span>
@@ -1690,7 +1891,7 @@
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="ComputedDescriptorFeaturization.compute_descriptors"><a class="viewcode-back" href="../../pipeline.html#pipeline.featurization.ComputedDescriptorFeaturization.compute_descriptors">[docs]</a>    <span class="k">def</span> <span class="nf">compute_descriptors</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">smiles_df</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Compute descriptors for the SMILES strings given in smiles_df.</span>
 
 <span class="sd">        Args:</span>
@@ -1746,7 +1947,7 @@
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="ComputedDescriptorFeaturization.compute_mordred_descriptors"><a class="viewcode-back" href="../../pipeline.html#pipeline.featurization.ComputedDescriptorFeaturization.compute_mordred_descriptors">[docs]</a>    <span class="k">def</span> <span class="nf">compute_mordred_descriptors</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">smiles_strs</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Compute Mordred descriptors for the given list of SMILES strings</span>
 
 <span class="sd">        Args:</span>
@@ -1769,7 +1970,7 @@
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="ComputedDescriptorFeaturization.compute_rdkit_descriptors"><a class="viewcode-back" href="../../pipeline.html#pipeline.featurization.ComputedDescriptorFeaturization.compute_rdkit_descriptors">[docs]</a>    <span class="k">def</span> <span class="nf">compute_rdkit_descriptors</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">smiles_df</span><span class="p">,</span> <span class="n">smiles_col</span><span class="o">=</span><span class="s2">&quot;rdkit_smiles&quot;</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Compute RDKit descriptors for the given list of SMILES strings</span>
 
 <span class="sd">        Args:</span>
@@ -1789,7 +1990,7 @@
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="ComputedDescriptorFeaturization.compute_moe_descriptors"><a class="viewcode-back" href="../../pipeline.html#pipeline.featurization.ComputedDescriptorFeaturization.compute_moe_descriptors">[docs]</a>    <span class="k">def</span> <span class="nf">compute_moe_descriptors</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">smiles_df</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Compute MOE descriptors for the given list of SMILES strings</span>
 
 <span class="sd">        Args:</span>
@@ -1819,7 +2020,7 @@
 
     <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="ComputedDescriptorFeaturization.scale_moe_descriptors"><a class="viewcode-back" href="../../pipeline.html#pipeline.featurization.ComputedDescriptorFeaturization.scale_moe_descriptors">[docs]</a>    <span class="k">def</span> <span class="nf">scale_moe_descriptors</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">desc_df</span><span class="p">,</span> <span class="n">descr_type</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Scale selected descriptors computed by MOE by dividing their values by the atom count per molecule.</span>
 
 <span class="sd">        Args:</span>
@@ -1842,16 +2043,16 @@
                 <span class="n">scaled_df</span><span class="p">[</span><span class="n">scaled_col</span><span class="p">]</span> <span class="o">=</span> <span class="n">desc_df</span><span class="p">[</span><span class="n">unscaled_col</span><span class="p">]</span><span class="o">.</span><span class="n">values</span> <span class="o">/</span> <span class="n">a_count</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">scaled_df</span><span class="p">[</span><span class="n">scaled_col</span><span class="p">]</span> <span class="o">=</span> <span class="n">desc_df</span><span class="p">[</span><span class="n">unscaled_col</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
-        <span class="k">return</span> <span class="n">scaled_df</span></div></div>
+        <span class="k">return</span> <span class="n">scaled_df</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span></div></div>
 
 <span class="c1"># ****************************************************************************************</span>
 <div class="viewcode-block" id="get_user_specified_features"><a class="viewcode-back" href="../../pipeline.html#pipeline.featurization.get_user_specified_features">[docs]</a><span class="k">def</span> <span class="nf">get_user_specified_features</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">featurizer</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Temp fix for DC 2.3 issue. See</span>
 <span class="sd">    https://github.com/deepchem/deepchem/issues/1841</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="sd">&quot;&quot;&quot;Extract and merge user specified features.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Extract and merge user specified features.</span>
 
 <span class="sd">    Merge features included in dataset provided by user</span>
 <span class="sd">    into final features dataframe</span>
@@ -1881,7 +2082,7 @@
 <span class="k">if</span> <span class="n">mordred_supported</span><span class="p">:</span>
 
 <div class="viewcode-block" id="ATOMAtomTypeEState"><a class="viewcode-back" href="../../pipeline.html#pipeline.featurization.ATOMAtomTypeEState">[docs]</a>    <span class="k">class</span> <span class="nc">ATOMAtomTypeEState</span><span class="p">(</span><span class="n">AtomTypeEState</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;EState descriptors restricted to those that can be computed for most compounds&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;EState descriptors restricted to those that can be computed for most compounds&quot;&quot;&quot;</span>
 
         <span class="n">my_es_types</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;sCH3&#39;</span><span class="p">,</span><span class="s1">&#39;dCH2&#39;</span><span class="p">,</span><span class="s1">&#39;ssCH2&#39;</span><span class="p">,</span><span class="s1">&#39;dsCH&#39;</span><span class="p">,</span><span class="s1">&#39;aaCH&#39;</span><span class="p">,</span><span class="s1">&#39;sssCH&#39;</span><span class="p">,</span><span class="s1">&#39;tsC&#39;</span><span class="p">,</span><span class="s1">&#39;dssC&#39;</span><span class="p">,</span><span class="s1">&#39;aasC&#39;</span><span class="p">,</span><span class="s1">&#39;aaaC&#39;</span><span class="p">,</span><span class="s1">&#39;ssssC&#39;</span><span class="p">,</span><span class="s1">&#39;sNH2&#39;</span><span class="p">,</span><span class="s1">&#39;ssNH&#39;</span><span class="p">,</span>
                        <span class="s1">&#39;aaNH&#39;</span><span class="p">,</span><span class="s1">&#39;tN&#39;</span><span class="p">,</span><span class="s1">&#39;dsN&#39;</span><span class="p">,</span><span class="s1">&#39;aaN&#39;</span><span class="p">,</span><span class="s1">&#39;sssN&#39;</span><span class="p">,</span><span class="s1">&#39;ddsN&#39;</span><span class="p">,</span><span class="s1">&#39;aasN&#39;</span><span class="p">,</span><span class="s1">&#39;sOH&#39;</span><span class="p">,</span><span class="s1">&#39;dO&#39;</span><span class="p">,</span><span class="s1">&#39;ssO&#39;</span><span class="p">,</span><span class="s1">&#39;aaO&#39;</span><span class="p">,</span><span class="s1">&#39;sF&#39;</span><span class="p">,</span><span class="s1">&#39;dS&#39;</span><span class="p">,</span><span class="s1">&#39;ssS&#39;</span><span class="p">,</span><span class="s1">&#39;aaS&#39;</span><span class="p">,</span>
@@ -1896,7 +2097,7 @@
                 <span class="p">)</span></div></div>
 
 <div class="viewcode-block" id="ATOMMolecularDistanceEdge"><a class="viewcode-back" href="../../pipeline.html#pipeline.featurization.ATOMMolecularDistanceEdge">[docs]</a>    <span class="k">class</span> <span class="nc">ATOMMolecularDistanceEdge</span><span class="p">(</span><span class="n">MolecularDistanceEdge</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        MolecularDistanceEdge descriptors restricted to those that can be computed for most compounds</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
@@ -1912,7 +2113,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2022, ATOM DDM Team.</p>
+    <p>&#169; Copyright 2023, ATOM DDM Team.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

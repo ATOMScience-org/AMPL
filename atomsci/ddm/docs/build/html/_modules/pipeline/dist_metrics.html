@@ -3,18 +3,17 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>pipeline.dist_metrics &mdash; ATOM Data-Driven Modeling Pipeline 1.4.0 documentation</title>
+  <title>pipeline.dist_metrics &mdash; ATOM Data-Driven Modeling Pipeline 1.5.0 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
         <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-        <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/underscore.js"></script>
-        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" /> 
@@ -25,14 +24,18 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../../index.html" class="icon icon-home"> ATOM Data-Driven Modeling Pipeline
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            ATOM Data-Driven Modeling Pipeline
           </a>
               <div class="version">
-                1.4.0
+                1.5.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -64,9 +67,9 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="../index.html">Module code</a> &raquo;</li>
-      <li>pipeline.dist_metrics</li>
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">pipeline.dist_metrics</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -89,7 +92,7 @@
 
 
 <span class="k">def</span> <span class="nf">_parallel_dist_single</span><span class="p">(</span><span class="n">inp_lst</span><span class="p">,</span> <span class="n">worker_fn</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Method for multiprocessor distance matrix computation.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Method for multiprocessor distance matrix computation.&quot;&quot;&quot;</span>
     <span class="n">pool</span> <span class="o">=</span> <span class="n">multiprocessing</span><span class="o">.</span><span class="n">Pool</span><span class="p">(</span><span class="n">processes</span><span class="o">=</span><span class="n">N_PROCS</span><span class="p">)</span>
     <span class="n">inputs</span> <span class="o">=</span> <span class="p">[[</span><span class="n">k</span><span class="p">]</span> <span class="o">+</span> <span class="n">inp_lst</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">inp_lst</span><span class="p">[</span><span class="mi">0</span><span class="p">])]</span>
     <span class="n">ret</span> <span class="o">=</span> <span class="n">pool</span><span class="o">.</span><span class="n">starmap</span><span class="p">(</span><span class="n">worker_fn</span><span class="p">,</span> <span class="n">inputs</span><span class="p">)</span>
@@ -107,7 +110,7 @@
     <span class="k">return</span> <span class="n">squareform</span><span class="p">(</span><span class="n">dists</span><span class="p">),</span> <span class="n">sum_incomp</span>
 
 <span class="k">def</span> <span class="nf">_parallel_dist_multi</span><span class="p">(</span><span class="n">inp_lst</span><span class="p">,</span> <span class="n">worker_fn</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Method for multiprocessor distance matrix computation.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Method for multiprocessor distance matrix computation.&quot;&quot;&quot;</span>
     <span class="n">pool</span> <span class="o">=</span> <span class="n">multiprocessing</span><span class="o">.</span><span class="n">Pool</span><span class="p">(</span><span class="n">processes</span><span class="o">=</span><span class="n">N_PROCS</span><span class="p">)</span>
     <span class="c1">#TODO: Want to switch order of fps1 and 2?</span>
     <span class="n">inputs</span> <span class="o">=</span> <span class="p">[[</span><span class="n">inp_lst</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">k</span><span class="p">]]</span> <span class="o">+</span> <span class="n">inp_lst</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">inp_lst</span><span class="p">[</span><span class="mi">0</span><span class="p">])]</span>
@@ -123,14 +126,14 @@
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">dists_all</span><span class="p">),</span> <span class="n">sum_incomp</span>
 
 <span class="k">def</span> <span class="nf">_tanimoto_worker</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">fps</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Get per-fingerprint Tanimoto distance vector.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get per-fingerprint Tanimoto distance vector.&quot;&quot;&quot;</span>
     <span class="c1"># pylint: disable=no-member</span>
     <span class="n">sims</span> <span class="o">=</span> <span class="n">DataStructs</span><span class="o">.</span><span class="n">BulkTanimotoSimilarity</span><span class="p">(</span><span class="n">fps</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">fps</span><span class="p">[(</span><span class="n">k</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):])</span>
     <span class="n">dists_k</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1.</span> <span class="o">-</span> <span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">sims</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">dists_k</span><span class="p">),</span> <span class="mi">0</span>
 
 <div class="viewcode-block" id="tanimoto_single"><a class="viewcode-back" href="../../pipeline.html#pipeline.dist_metrics.tanimoto_single">[docs]</a><span class="k">def</span> <span class="nf">tanimoto_single</span><span class="p">(</span><span class="n">fp</span><span class="p">,</span> <span class="n">fps</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Compute a vector of Tanimoto distances between a single fingerprint and each fingerprint in a list .</span>
 
 <span class="sd">    Args:</span>
@@ -148,7 +151,7 @@
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">dists</span><span class="p">),</span> <span class="mi">0</span></div>
 
 <div class="viewcode-block" id="tanimoto"><a class="viewcode-back" href="../../pipeline.html#pipeline.dist_metrics.tanimoto">[docs]</a><span class="k">def</span> <span class="nf">tanimoto</span><span class="p">(</span><span class="n">fps1</span><span class="p">,</span> <span class="n">fps2</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Compute Tanimoto distances between sets of ECFP fingerprints.</span>
 
 <span class="sd">    Args:</span>
@@ -169,7 +172,7 @@
 
 
 <span class="k">def</span> <span class="nf">_mcs_worker</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">mols</span><span class="p">,</span> <span class="n">n_atms</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Get per-molecule MCS distance vector.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get per-molecule MCS distance vector.&quot;&quot;&quot;</span>
     <span class="n">dists_k</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">n_incomp</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># Number of searches terminated before timeout</span>
     <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">k</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">mols</span><span class="p">)):</span>
@@ -183,7 +186,7 @@
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">dists_k</span><span class="p">),</span> <span class="n">n_incomp</span>
 
 <span class="k">def</span> <span class="nf">_mcs_single</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">mols</span><span class="p">,</span> <span class="n">n_atms</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Get per-molecule MCS distance vector.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get per-molecule MCS distance vector.&quot;&quot;&quot;</span>
     <span class="n">dists_k</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">n_atm</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">mol</span><span class="o">.</span><span class="n">GetNumAtoms</span><span class="p">())</span>
     <span class="n">n_incomp</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># Number of searches terminated before timeout</span>
@@ -198,7 +201,7 @@
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">dists_k</span><span class="p">),</span> <span class="n">n_incomp</span>
 
 <div class="viewcode-block" id="mcs"><a class="viewcode-back" href="../../pipeline.html#pipeline.dist_metrics.mcs">[docs]</a><span class="k">def</span> <span class="nf">mcs</span><span class="p">(</span><span class="n">mols1</span><span class="p">,</span> <span class="n">mols2</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Computes maximum common substructure (MCS) distances between pairs of molecules.</span>
 
 <span class="sd">    The MCS distance between molecules m1 and m2 is one minus the average of fMCS(m1,m2) and fMCS(m2,m1),</span>
@@ -238,7 +241,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2022, ATOM DDM Team.</p>
+    <p>&#169; Copyright 2023, ATOM DDM Team.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

@@ -1,0 +1,5 @@
+# For LLNL users, use this to install atomsci.clients from LC GitLab.
+
+# Install atomsci.clients from local LLNL gitlab repo.
+-e git+ssh://git@czgitlab.llnl.gov:7999/atom/clients.git@efb03672cfb549abb1481b465432a90a1d77386d#egg=atomsci_clients
+#-e git+https://lc.llnl.gov/gitlab/atom/clients.git@efb03672cfb549abb1481b465432a90a1d77386d#egg=atomsci_clients

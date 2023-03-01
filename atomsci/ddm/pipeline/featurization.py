@@ -41,7 +41,7 @@ except ImportError:
 
 feather_supported = True
 try:
-    import feather
+    import pyarrow.feather as feather
 except (ImportError, AttributeError, ModuleNotFoundError):
     feather_supported = False
 
@@ -155,7 +155,6 @@ def get_dataset_attributes(dset_df, params):
         params.smiles_col: dset_df[params.smiles_col].values},
         index=dset_df[params.id_col])
     if params.date_col is not None:
-        #attr_df[params.date_col] = pd.to_datetime(dset_df[params.date_col])
         attr_df[params.date_col] = [np.datetime64(d) for d in dset_df[params.date_col].values]
     return attr_df
 
@@ -528,14 +527,16 @@ class Featurization(object):
         self.feat_type = params.featurizer
 
     # ****************************************************************************************
-    def featurize_data(self, dset_df, model_dataset):
+    def featurize_data(self, dset_df, params, contains_responses):
         """Perform featurization on the given dataset.
 
         Args:
             dset_df (DataFrame): A table of data to be featurized. At minimum, should include columns.
             for the compound ID and assay value; for some featurizers, must also contain a SMILES string column.
 
-            model_dataset (ModelDataset): Dataset to be featurized.
+            params (Namespace): Parsed parameters to be used for featurization.
+
+            contains_responses (bool): Whether the dataset being featurized contains response columns.
 
         Raises:
             NotImplementedError: Must be implemented by concrete subclasses
@@ -545,12 +546,12 @@ class Featurization(object):
         raise NotImplementedError
 
     # ****************************************************************************************
-    def extract_prefeaturized_data(self, merged_dset_df, model_dataset):
+    def extract_prefeaturized_data(self, featurized_dset_df, params):
         """Extracts dataset features, values, IDs and attributes from the given prefeaturized data frame.
         Args:
-            merged_dset_df (DataFrame): Data frame for the dataset.
+            featurized_dset_df (DataFrame): Data frame for the dataset.
 
-            model_dataset (ModelDataset): Backpointer to the ModelDataset object for the dataset to be featurized.
+            params (Namespace): Parsed parameters for model.
 
         Raises:
             NotImplementedError: Must be implemented by concrete subclasses
@@ -695,14 +696,14 @@ class DynamicFeaturization(Featurization):
         return self.featurizer_obj.featurize(mols)
 
     # ****************************************************************************************
-    def extract_prefeaturized_data(self, merged_dset_df, model_dataset):
+    def extract_prefeaturized_data(self, featurized_dset_df, params):
         """Attempts to extract prefeaturized data for the given dataset. For dynamic featurizers, we don't save
         this data, so this method always returns None.
 
         Args:
-            merged_dset_df (DataFrame): dataset merged with the featurizers
+            featurized_dset_df (DataFrame): dataset merged with the featurizers
 
-            model_dataset (ModelDataset): Object containing the dataset to be featurized
+            params (Namespace): Parsed parameters for model.
 
         Returns:
             None, None, None, None
@@ -710,18 +711,19 @@ class DynamicFeaturization(Featurization):
         return None, None, None, None
 
     # ****************************************************************************************
-    def featurize_data(self, dset_df, model_dataset):
+    def featurize_data(self, dset_df, params, contains_responses):
         """Perform featurization on the given dataset.
 
         Args:
             dset_df (DataFrame): A table of data to be featurized. At minimum, should include columns
             for the compound ID and assay value; for some featurizers, must also contain a SMILES string column.
-            # TODO: remove model_dataset after ensuring response_cols are set correctly.
 
-            model_dataset (ModelDataset): Contains the dataset to be featurized
+            params (Namespace): Parsed parameters to be used for featurization.
+
+            contains_responses (bool): Whether the dataset being featurized contains response columns.
 
         Returns:
-            Tuple of (features, ids, vals, attr).
+            Tuple of (features, ids, vals, attr, weights, featurized_dset_df):
 
             features (np.array): Feature matrix.
 
@@ -730,28 +732,45 @@ class DynamicFeaturization(Featurization):
             vals (np.array): array of response values.
 
             attr (pd.DataFrame): dataframe containing SMILES strings indexed by compound IDs.
+
+            weights (np.array): Array of compound weights
+
+            featurized_dset_df (pd.DataFrame): Data frame combining id, SMILES and response columns from input data frame
+            with generated feature columns.
+
         """
-        params = model_dataset.params
         attr = get_dataset_attributes(dset_df, params)
         features, is_valid = featurize_smiles(dset_df, featurizer=self.featurizer_obj, smiles_col=params.smiles_col)
         if features is None:
             raise Exception("Featurization failed for dataset")
         # Some SMILES strings may not be featurizable. This filters for only valid IDs.
-        # ksm: Changed name of 'valid_inds' to 'is_valid', because it's an array of bools, not a list of indices.
 
         nrows = sum(is_valid)
         ncols = len(params.response_cols)
-        if model_dataset.contains_responses:
-            vals, w = make_weights(dset_df[params.response_cols].values) #, self.id_field)
-            # Filter out examples where featurization failed.
-            vals, w = (vals[is_valid], w[is_valid])
+
+        # Select columns to include from the input dataset in the featurized dataset data frame
+        dset_cols = [params.id_col, params.smiles_col]
+        if contains_responses:
+            dset_cols += params.response_cols
+        if params.date_col is not None:
+            dset_cols.append(params.date_col)
+        keep_df = dset_df[dset_cols][is_valid].reset_index(drop=True)
+        if len(features.shape) > 1:
+            feat_df = pd.DataFrame(features, columns=[f"c{i}" for i in range(features.shape[1])])
+        else:
+            feat_df = pd.DataFrame(dict(c0=features))
+        featurized_dset_df = pd.concat([keep_df, feat_df], ignore_index=False, axis=1)
+
+        if contains_responses:
+            vals, w = make_weights(featurized_dset_df[params.response_cols].values) #, self.id_field)
         else:
             vals = np.zeros((nrows,ncols))
             w = np.ones((nrows,ncols)) ## JEA
         attr = attr[is_valid]
-        ids = dset_df[model_dataset.params.id_col][is_valid]
+        ids = featurized_dset_df[params.id_col]
+
         assert len(features) == len(ids) == len(vals) == len(w) ## JEA
-        return features, ids, vals, attr, w
+        return features, ids, vals, attr, w, featurized_dset_df
 
     # ****************************************************************************************
     def create_feature_transformer(self, dataset):
@@ -779,7 +798,7 @@ class DynamicFeaturization(Featurization):
         Raises:
             Exception: This method is not supported by the DynamicFeaturization subclass
         """
-        raise Exception("DynamicFeaturization doesn't support get_featurized_dset_name()")
+        raise NotImplementedError("DynamicFeaturization doesn't support get_featurized_dset_name()")
 
 
     # ****************************************************************************************
@@ -913,29 +932,34 @@ class EmbeddingFeaturization(DynamicFeaturization):
         raise NotImplementedError
 
     # ****************************************************************************************
-    def featurize_data(self, dset_df, model_dataset):
+    def featurize_data(self, dset_df, params, contains_responses):
         """Perform featurization on the given dataset.
 
         Args:
             dset_df (DataFrame): A table of data to be featurized. At minimum, should include columns
             for the compound ID and SMILES string
 
-            model_dataset (ModelDataset): Contains the dataset that will receive the featurized 
-            molecules.
+            params (Namespace): Parsed parameters to be used for featurization.
+
+            contains_responses (bool): Whether the dataset being featurized contains response columns.
+
 
         Returns:
-            Tuple of (features, ids, vals, attr).
+            Tuple of (features, ids, vals, attr, weights, featurized_dset_df):
 
-                features (np.array): Feature matrix.
+            features (np.array): Feature matrix.
 
-                ids (pd.DataFrame): compound IDs or SMILES strings if needed for splitting.
+            ids (pd.DataFrame): Compound IDs or SMILES strings if needed for splitting.
 
-                vals (np.array): array of response values.
+            attr (pd.DataFrame): Data frame containing SMILES strings indexed by compound IDs.
 
-                attr (pd.DataFrame): dataframe containing SMILES strings indexed by compound IDs.
+            vals (np.array): Array of response values.
+
+            weights (np.array): Array of compound weights
+
+            featurized_dset_df (pd.DataFrame): Data frame combining id, SMILES and response columns from input data frame
+            with generated feature columns.
         """
-        params = model_dataset.params
-        attr = get_dataset_attributes(dset_df, params)
 
         # First featurize the molecules in dset_df using the featurizer of the embedding model. 
 
@@ -945,7 +969,12 @@ class EmbeddingFeaturization(DynamicFeaturization):
         input_model_dataset = md.create_minimal_dataset(self.embedding_pipeline.params,
                                     input_featurization, contains_responses=True)
 
-        input_dset_df = dset_df.rename(columns={params.response_cols[0]: self.embedding_pipeline.params.response_cols[0]})
+        input_dset_df = dset_df.copy()
+        if contains_responses:
+            colmap = {}
+            for orig_col, embed_col in zip(params.response_cols, self.embedding_pipeline.params.response_cols):
+                colmap[orig_col] = embed_col
+            input_dset_df = input_dset_df.rename(columns=colmap)
         input_model_dataset.get_featurized_data(input_dset_df)
         input_dataset = input_model_dataset.dataset
         input_features = input_dataset.X
@@ -962,7 +991,17 @@ class EmbeddingFeaturization(DynamicFeaturization):
         nrows = input_features.shape[0]
         embedding = embedding[:nrows,:]
 
-        return embedding, ids, vals, attr, weights
+        # Select columns to include from the input dataset in the featurized dataset data frame
+        dset_cols = [params.id_col, params.smiles_col]
+        if contains_responses:
+            dset_cols += params.response_cols
+        if params.date_col is not None:
+            dset_cols.append(params.date_col)
+        keep_df = dset_df[dset_cols]
+        feat_df = pd.DataFrame(embedding, columns=[f"c{i}" for i in range(embedding.shape[1])])
+        featurized_dset_df = pd.concat([keep_df, feat_df], ignore_index=False, axis=1)
+
+        return embedding, ids, vals, attr, weights, featurized_dset_df
 
     # ****************************************************************************************
     def get_feature_count(self):
@@ -1023,13 +1062,13 @@ class PersistentFeaturization(Featurization):
         super().__init__(params)
 
     # ****************************************************************************************
-    def extract_prefeaturized_data(self, merged_dset_df, model_dataset):
+    def extract_prefeaturized_data(self, featurized_dset_df, params):
         """Attempts to extract prefeaturized data for the given dataset.
 
         Args:
-            merged_dset_df (DataFrame): dataset merged with the featurizers
+            featurized_dset_df (DataFrame): dataset merged with the featurizers
 
-            model_dataset (ModelDataset): Object containing the dataset to be featurized
+            params (Namespace): Parsed parameters for model.
 
         Raises:
             NotImplementedError: Currently, only DescriptorFeaturization is supported, is not a generic method
@@ -1038,29 +1077,36 @@ class PersistentFeaturization(Featurization):
         raise NotImplementedError
 
     # ****************************************************************************************
-    def featurize_data(self, dset_df, model_dataset):
+    def featurize_data(self, dset_df, params, contains_responses):
         """Perform featurization on the given dataset.
 
         Args:
             dset_df (DataFrame): A table of data to be featurized. At minimum, should include columns.
             for the compound ID and assay value; for some featurizers, must also contain a SMILES string column.
 
-            model_dataset (ModelDataset): Object containing the dataset to be featurized
+            params (Namespace): Parsed parameters to be used for featurization.
+
+            contains_responses (bool): Whether the dataset being featurized contains response columns.
 
         Returns:
-            Tuple of (features, ids, vals, attr).
-                features (np.array): Feature matrix.
+            Tuple of (features, ids, vals, attr, weights, featurized_dset_df):
 
-                ids (pd.DataFrame): compound IDs or SMILES strings if needed for splitting.
+            features (np.array): Feature matrix.
 
-                attr (pd.DataFrame): dataframe containing SMILES strings indexed by compound IDs.
+            ids (pd.DataFrame): Compound IDs or SMILES strings if needed for splitting.
 
-                vals (np.array): array of response values.
+            attr (pd.DataFrame): Data frame containing SMILES strings indexed by compound IDs.
+
+            vals (np.array): Array of response values.
+
+            weights (np.array): Array of compound weights
+
+            featurized_dset_df (pd.DataFrame): Data frame combining id, SMILES and response columns from input data frame
+            with generated feature columns.
 
         Raises:
-            NotImplementedError: Currently, only DescriptorFeaturization is supported, is not a generic method
+            NotImplementedError: Implemented by subclasses.
         """
-        #TODO: Add comment describing why this is not implemented
         raise NotImplementedError
 
     # ****************************************************************************************
@@ -1247,14 +1293,13 @@ class DescriptorFeaturization(PersistentFeaturization):
 
 
     # ****************************************************************************************
-    def extract_prefeaturized_data(self, merged_dset_df, model_dataset):
+    def extract_prefeaturized_data(self, featurized_dset_df, params):
         """Attempts to retrieve prefeaturized data for the given dataset.
 
         Args:
-            merged_dset_df (pd.DataFrame): dataset merged with the featurizers
+            featurized_dset_df (pd.DataFrame): dataset merged with the featurizers
 
-            model_dataset (ModelDataset): Object containing the dataset to be featurized
-            # TODO: Remove model_dataset call once params.response_cols is properly set
+            params (Namespace): Parsed parameters for model.
 
         Returns:
             Tuple of (features, ids, vals, attr).
@@ -1268,15 +1313,15 @@ class DescriptorFeaturization(PersistentFeaturization):
             vals (np.array): array of response values.
 
         """
-        model_dataset.check_task_columns(merged_dset_df)
+        md.check_task_columns(params, featurized_dset_df)
         user_specified_features = self.get_feature_columns()
         featurizer_obj = dc.feat.UserDefinedFeaturizer(user_specified_features)
-        features = get_user_specified_features(merged_dset_df, featurizer=featurizer_obj,
+        features = get_user_specified_features(featurized_dset_df, featurizer=featurizer_obj,
                                                                    verbose=False)
         features = features.astype(float)
-        ids = merged_dset_df[model_dataset.params.id_col]
-        vals = merged_dset_df[model_dataset.params.response_cols].values
-        attr = get_dataset_attributes(merged_dset_df, model_dataset.params)
+        ids = featurized_dset_df[params.id_col]
+        vals = featurized_dset_df[params.response_cols].values
+        attr = get_dataset_attributes(featurized_dset_df, params)
 
         return features, ids, vals, attr
 
@@ -1375,26 +1420,32 @@ class DescriptorFeaturization(PersistentFeaturization):
 
 
     # ****************************************************************************************
-    def featurize_data(self, dset_df, model_dataset):
+    def featurize_data(self, dset_df, params, contains_responses):
         """Perform featurization on the given dataset.
 
         Args:
             dset_df (DataFrame): A table of data to be featurized. At minimum, should include columns.
             for the compound ID and assay value; for some featurizers, must also contain a SMILES string column.
 
-            model_dataset (ModelDataset): Object containing the dataset to be featurized
-            # TODO: Remove model_dataset call once params.response_cols is properly set
+            params (Namespace): Parsed parameters to be used for featurization.
+
+            contains_responses (bool): Whether the dataset being featurized contains response columns.
 
         Returns:
-            Tuple of (features, ids, vals, attr).
+            Tuple of (features, ids, vals, attr, weights, featurized_dset_df):
 
             features (np.array): Feature matrix.
 
-            ids (pd.DataFrame): compound IDs or SMILES strings if needed for splitting.
+            ids (pd.DataFrame): Compound IDs or SMILES strings if needed for splitting.
 
-            attr (pd.DataFrame): dataframe containing SMILES strings indexed by compound IDs.
+            attr (pd.DataFrame): Data frame containing SMILES strings indexed by compound IDs.
 
-            vals (np.array): array of response values
+            vals (np.array): Array of response values
+
+            weights (np.array): Array of compound weights
+
+            featurized_dset_df (pd.DataFrame): Data frame combining id, SMILES and response columns from input data frame
+            with generated feature columns.
 
         Raises:
             Exception: if features is None, feautirzation failed for the dataset
@@ -1402,7 +1453,6 @@ class DescriptorFeaturization(PersistentFeaturization):
         Side effects:
             Overwrites the attribute precomp_descr_table (pd.DataFrame) with the appropriate descriptor table
         """
-        params = model_dataset.params
         # Compound ID and SMILES columns will be labeled the same as in the input dataset, unless overridden by
         # properties of the precomputed descriptor table
         self.load_descriptor_table(params)
@@ -1417,27 +1467,25 @@ class DescriptorFeaturization(PersistentFeaturization):
         # already has a column of the same name
         if params.smiles_col not in self.precomp_descr_table.columns.values:
             dset_cols.append(params.smiles_col)
-        if model_dataset.contains_responses:
+        if contains_responses:
             dset_cols += params.response_cols
-        merged_dset_df = dset_df[dset_cols].merge(
+        featurized_dset_df = dset_df[dset_cols].merge(
                 self.precomp_descr_table, how='left', left_on=params.id_col, right_on=self.desc_id_col)
-
-        model_dataset.save_featurized_data(merged_dset_df)
 
         user_specified_features = self.get_feature_columns()
 
         featurizer_obj = dc.feat.UserDefinedFeaturizer(user_specified_features)
-        features = get_user_specified_features(merged_dset_df, featurizer=featurizer_obj,
+        features = get_user_specified_features(featurized_dset_df, featurizer=featurizer_obj,
                                                                    verbose=False)
         if features is None:
             raise Exception("Featurization failed for dataset")
 
-        ids = merged_dset_df[params.id_col]
+        ids = featurized_dset_df[params.id_col]
 
         nrows = len(ids)
         ncols = len(params.response_cols)
-        if model_dataset.contains_responses:
-            vals = merged_dset_df[params.response_cols].values
+        if contains_responses:
+            vals = featurized_dset_df[params.response_cols].values
             vals, weights = make_weights(vals)
         else:
             vals = np.zeros((nrows,ncols))
@@ -1445,7 +1493,7 @@ class DescriptorFeaturization(PersistentFeaturization):
 
         attr = attr.loc[ids]
 
-        return features, ids, vals, attr, weights
+        return features, ids, vals, attr, weights, featurized_dset_df
 
     # ****************************************************************************************
     def get_featurized_dset_name(self, dataset_name):
@@ -1582,7 +1630,7 @@ class ComputedDescriptorFeaturization(DescriptorFeaturization):
 
 
     # ****************************************************************************************
-    def featurize_data(self, dset_df, model_dataset):
+    def featurize_data(self, dset_df, params, contains_responses):
         """Perform featurization on the given dataset, by computing descriptors from SMILES strings or matching them
         to SMILES in precomputed table.
 
@@ -1590,10 +1638,12 @@ class ComputedDescriptorFeaturization(DescriptorFeaturization):
             dset_df (DataFrame): A table of data to be featurized. At minimum, should include columns.
             for the compound ID and assay value; for some featurizers, must also contain a SMILES string column.
 
-            model_dataset (ModelDataset): Object containing the dataset to be featurized
+            params (Namespace): Parsed parameters to be used for featurization.
+
+            contains_responses (bool): Whether the dataset being featurized contains response columns.
 
         Returns:
-            Tuple of (features, ids, vals, attr).
+            Tuple of (features, ids, vals, attr, weights, featurized_dset_df):
 
             features (np.array): Feature matrix.
 
@@ -1603,6 +1653,11 @@ class ComputedDescriptorFeaturization(DescriptorFeaturization):
 
             vals (np.array): array of response values
 
+            weights (np.array): Array of compound weights
+
+            featurized_dset_df (pd.DataFrame): Data frame combining id, SMILES and response columns from input data frame
+            with feature columns.
+
         Raises:
             Exception: if features is None, featurization failed for the dataset
 
@@ -1611,7 +1666,6 @@ class ComputedDescriptorFeaturization(DescriptorFeaturization):
             specified by params.descriptor_key.
 
         """
-        params = model_dataset.params
         use_precomputed = False
         descr_cols = self.get_feature_columns()
 
@@ -1649,7 +1703,7 @@ class ComputedDescriptorFeaturization(DescriptorFeaturization):
         dset_cols = [params.id_col, params.smiles_col]
         if params.date_col is not None:
             dset_cols.append(params.date_col)
-        if model_dataset.contains_responses:
+        if contains_responses:
             dset_cols += params.response_cols
         keep_df = dset_df[dset_cols]
 
@@ -1709,39 +1763,35 @@ class ComputedDescriptorFeaturization(DescriptorFeaturization):
             uniq_smiles_feat_df = pd.concat([calc_smiles_feat_df, psf_df], ignore_index=True)
 
         # Merge descriptors with input data on SMILES strings.
-        merged_dset_df = keep_df.merge(uniq_smiles_feat_df, how='left', on=params.smiles_col)
+        featurized_dset_df = keep_df.merge(uniq_smiles_feat_df, how='left', on=params.smiles_col)
         
         # Shuffle the order of rows, so that compounds with precomputed descriptors are intermixed with those having
         # newly computed descriptors. This avoids bias later when doing scaffold splits; otherwise test set will be
         # biased toward non-precomputed compounds.
-        merged_dset_df = merged_dset_df.sample(frac=1.0)
-
-        # Save the featurized dataset
-        model_dataset.save_featurized_data(merged_dset_df)
-
+        featurized_dset_df = featurized_dset_df.sample(frac=1.0)
 
         # Use the DeepChem featurizer to construct the feature array
         featurizer_obj = dc.feat.UserDefinedFeaturizer(descr_cols)
-        features = get_user_specified_features(merged_dset_df, featurizer=featurizer_obj,
+        features = get_user_specified_features(featurized_dset_df, featurizer=featurizer_obj,
                                                                    verbose=False)
         if features is None:
             raise Exception("UserDefinedFeaturizer failed for dataset")
 
         # Construct the other components of a DeepChem Dataset object
-        ids = merged_dset_df[params.id_col]
+        ids = featurized_dset_df[params.id_col]
         nrows = len(ids)
         ncols = len(params.response_cols)
-        if model_dataset.contains_responses:
-            vals = merged_dset_df[params.response_cols].values
+        if contains_responses:
+            vals = featurized_dset_df[params.response_cols].values
             vals, weights = make_weights(vals)
         else:
             vals = np.zeros((nrows,ncols))
             weights = np.ones_like(vals, dtype=np.float32)
 
         # Create a table of SMILES strings and other attributes indexed by compound IDs
-        attr = get_dataset_attributes(merged_dset_df, params)
+        attr = get_dataset_attributes(featurized_dset_df, params)
 
-        return features, ids, vals, attr, weights
+        return features, ids, vals, attr, weights, featurized_dset_df
 
     # ****************************************************************************************
     def get_featurized_dset_name(self, dataset_name):

@@ -3,18 +3,17 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>utils.llnl_utils &mdash; ATOM Data-Driven Modeling Pipeline 1.4.0 documentation</title>
+  <title>utils.llnl_utils &mdash; ATOM Data-Driven Modeling Pipeline 1.5.0 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
         <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-        <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/underscore.js"></script>
-        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" /> 
@@ -25,14 +24,18 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../../index.html" class="icon icon-home"> ATOM Data-Driven Modeling Pipeline
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            ATOM Data-Driven Modeling Pipeline
           </a>
               <div class="version">
-                1.4.0
+                1.5.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -64,9 +67,9 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="../index.html">Module code</a> &raquo;</li>
-      <li>utils.llnl_utils</li>
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">utils.llnl_utils</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -87,7 +90,7 @@
 
 
 <div class="viewcode-block" id="is_lc_system"><a class="viewcode-back" href="../../utils.html#utils.llnl_utils.is_lc_system">[docs]</a><span class="k">def</span> <span class="nf">is_lc_system</span><span class="p">():</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Use heuristic to determine if we&#39;re running on an LC system.</span>
 
 <span class="sd">    Args:</span>
@@ -103,7 +106,7 @@
 
 
 <div class="viewcode-block" id="get_command_output"><a class="viewcode-back" href="../../utils.html#utils.llnl_utils.get_command_output">[docs]</a><span class="k">def</span> <span class="nf">get_command_output</span><span class="p">(</span><span class="n">cmd</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Runs the given shell command in a subprocess and returns its output as a string.</span>
 <span class="sd">    Used by throttle_jobs function.</span>
 <span class="sd">    </span>
@@ -119,7 +122,7 @@
     <span class="k">return</span> <span class="n">output</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="get_my_username"><a class="viewcode-back" href="../../utils.html#utils.llnl_utils.get_my_username">[docs]</a><span class="k">def</span> <span class="nf">get_my_username</span><span class="p">():</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns the username of the effective userid of the current process.</span>
 <span class="sd">    Used by throttle_jobs function.</span>
 <span class="sd">    </span>
@@ -133,7 +136,7 @@
 
 
 <div class="viewcode-block" id="throttle_jobs"><a class="viewcode-back" href="../../utils.html#utils.llnl_utils.throttle_jobs">[docs]</a><span class="k">def</span> <span class="nf">throttle_jobs</span><span class="p">(</span><span class="n">max_jobs</span><span class="p">,</span> <span class="n">retry_time</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">my_username</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Checks the number of SLURM jobs currently queued or running under the current userid.</span>
 <span class="sd">    Returns immediately if this number is less than max_jobs; otherwise, loops indefinitely,</span>
 <span class="sd">    checking the job count every retry_time seconds. Returns when the job count drops below </span>
@@ -170,7 +173,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2022, ATOM DDM Team.</p>
+    <p>&#169; Copyright 2023, ATOM DDM Team.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

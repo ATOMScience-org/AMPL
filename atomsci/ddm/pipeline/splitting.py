@@ -11,10 +11,11 @@ import copy
 import deepchem as dc
 import numpy as np
 import pandas as pd
-from deepchem.data import DiskDataset
+from deepchem.data import NumpyDataset, Dataset
 from atomsci.ddm.pipeline.ave_splitter import AVEMinSplitter
 from atomsci.ddm.pipeline.temporal_splitter import TemporalSplitter
 from atomsci.ddm.pipeline.MultitaskScaffoldSplit import MultitaskScaffoldSplitter
+from atomsci.ddm.utils.many_to_one import many_to_one_df
 import collections
 
 logging.basicConfig(format='%(asctime)-15s %(message)s')
@@ -57,12 +58,12 @@ def select_dset_by_attr_ids(dataset, attr_df):
     against the ids in the dataset.
     
     Args:
-        dataset (DiskDataset): The deepchem dataset, should have matching ids with ids in attr_df
+        dataset (Dataset): The deepchem dataset, should have matching ids with ids in attr_df
         
         attr_df (DataFrame): Contains the compound ids to subset the dataset. Ids should match with dataset
         
     Returns:
-        subset (DiskDataset): A subset of the deepchem dataset as determined by the ids in attr_df
+        subset (Dataset): A subset of the deepchem dataset as determined by the ids in attr_df
         
     """
     id_df = pd.DataFrame({'indices' : np.arange(len(dataset.ids), dtype=np.int32)}, index=[str(e) for e in dataset.ids])
@@ -76,16 +77,17 @@ def select_dset_by_id_list(dataset, id_list):
     against the ids in the dataset.
     
     Args:
-        dataset (DiskDataset): The deepchem dataset, should have matching ids with ids in id_list
+        dataset (Dataset): The deepchem dataset, should have matching ids with ids in id_list
 
         id_list (list): Contains a list of compound ids to subset the dataset. Ids should match with dataset
         
     Returns:
-        subset (DiskDataset): A subset of the deepchem dataset as determined by the ids in id_list
+        subset (Dataset): A subset of the deepchem dataset as determined by the ids in id_list
         
     """
     #TODO: Need to test
-    id_df = pd.DataFrame({'indices' : np.arange(len(dataset.ids), dtype=np.int32)}, index=[str(e) for e in dataset.ids])
+    id_df = pd.DataFrame({'indices' : np.arange(len(dataset.ids), dtype=np.int32)}, 
+        index=[str(e) for e in dataset.ids])
     match_df = id_df.loc[id_df.index.isin(id_list)]
     subset = dataset.select(match_df.indices.values)
     return subset
@@ -96,7 +98,7 @@ def select_attrs_by_dset_ids(dataset, attr_df):
     against the ids in the dc.data.Dataset object dataset.
     
     Args:
-        dataset (DiskDataset): The deepchem dataset, should have matching ids with ids in attr_df
+        dataset (Dataset): The deepchem dataset, should have matching ids with ids in attr_df
 
         attr_df (DataFrame): Contains the compound ids. Ids should match with dataset
         
@@ -115,7 +117,7 @@ def select_attrs_by_dset_smiles(dataset, attr_df, smiles_col):
     against the ids in the dc.data.Dataset object dataset.
     
     Args:
-        dataset (DiskDataset): The deepchem dataset, should have matching ids with ids in attr_df
+        dataset (Dataset): The deepchem dataset, should have matching ids with ids in attr_df
 
         attr_df (DataFrame): Contains the compound ids. Ids should match with dataset. Should contain a column
         of SMILES strings under the smiles_col
@@ -344,21 +346,16 @@ class KFoldSplitting(Splitting):
             Exception if there are duplicate ids or smiles strings in the dataset or the attr_df
 
         """
-        dataset_dup = False
-        if check_if_dupe_smiles_dataset(dataset, attr_df, smiles_col):
-            log.info("Duplicate ids or smiles in the dataset, will deduplicate first and assign all records per compound ID to same partition")
-            dataset_dup = True
-            dataset_ori = copy.deepcopy(dataset)
-            id_df = pd.DataFrame({'indices' : np.arange(len(dataset.ids), dtype=np.int32), "compound_id": [str(e) for e in dataset.ids]})
-            sel_df = id_df.drop_duplicates(subset="compound_id")
-            dataset = dataset.select(sel_df.indices.values)
 
-        if self.needs_smiles():
-            # Some DeepChem splitters require compound IDs in dataset to be SMILES strings. Swap in the
-            # SMILES strings now; we'll reverse this later.
-            dataset = DiskDataset.from_numpy(dataset.X, dataset.y, w=dataset.w, ids=attr_df.drop_duplicates(subset=smiles_col)[smiles_col].values)
-            if dataset_dup:
-                dataset_ori = DiskDataset.from_numpy(dataset_ori.X, dataset_ori.y, w=dataset_ori.w, ids=attr_df[smiles_col].values)
+        # Duplicate SMILES and compound_ids are merged into single compounds
+        # in DatasetManager. The first instance of each is kept. Assumes many to one 
+        # mapping of compound_ids and SMILES. dataset.ids is either compound_id or
+        # SMILES depending on the call to self.needs_smiles(). Later expand_selection
+        # will expect SMILES or compound_ids in dataset.ids depending on needs_smiles
+        # passed into the constructor
+        dm = DatasetManager(dataset=dataset, attr_df=attr_df, smiles_col=smiles_col,
+            needs_smiles=self.needs_smiles())
+        dataset = dm.compact_dataset()
 
         # Under k-fold CV, the training/validation splits are determined by num_folds; only the test set fraction
         # is directly specified through command line parameters. If we use Butina splitting, we can't control
@@ -379,40 +376,14 @@ class KFoldSplitting(Splitting):
         train_valid_dsets = []
         train_valid_attr = []
 
-        if self.needs_smiles():
-            # Now that DeepChem splitters have done their work, replace the SMILES strings in the split 
-            # dataset objects with actual compound IDs.
-            for train, valid in train_cv_pairs:
-                # assign the subsets to the original dataset if duplicated compounds exist
-                if dataset_dup:
-                    train = select_dset_by_id_list(dataset_ori, train.ids)
-                    valid = select_dset_by_id_list(dataset_ori, valid.ids)
-                train_attr = select_attrs_by_dset_smiles(train, attr_df, smiles_col)
-                train = DiskDataset.from_numpy(train.X, train.y, w=train.w, ids=train_attr.index.values)
+        for train, valid in train_cv_pairs:
+            exp_train, exp_train_attr = dm.expand_selection(train.ids)
+            exp_valid, exp_valid_attr = dm.expand_selection(valid.ids)
 
-                valid_attr = select_attrs_by_dset_smiles(valid, attr_df, smiles_col)
-                valid = DiskDataset.from_numpy(valid.X, valid.y, w=valid.w, ids=valid_attr.index.values)
-
-                train_valid_dsets.append((train, valid))
-                train_valid_attr.append((train_attr, valid_attr))
-
-            if dataset_dup:
-                test = select_dset_by_id_list(dataset_ori, test.ids)
-            test_attr = select_attrs_by_dset_smiles(test, attr_df, smiles_col)
-            test = DiskDataset.from_numpy(test.X, test.y, w=test.w, ids=test_attr.index.values)
-        else:
-            # Otherwise just subset the ID-to-SMILES maps.
-            for train, valid in train_cv_pairs:
-                if dataset_dup:
-                    train = select_dset_by_id_list(dataset_ori, train.ids)
-                    valid = select_dset_by_id_list(dataset_ori, valid.ids)
-                train_attr = select_attrs_by_dset_ids(train, attr_df)
-                valid_attr = select_attrs_by_dset_ids(valid, attr_df)
-                train_valid_attr.append((train_attr, valid_attr))
-            train_valid_dsets = train_cv_pairs
-            if dataset_dup:
-                test = select_dset_by_id_list(dataset_ori, test.ids)
-            test_attr = select_attrs_by_dset_ids(test, attr_df)
+            train_valid_dsets.append((exp_train, exp_valid))
+            train_valid_attr.append((exp_train_attr, exp_valid_attr))
+        
+        test, test_attr = dm.expand_selection(test.ids)
 
         return train_valid_dsets, test, train_valid_attr, test_attr
 
@@ -508,21 +479,15 @@ class TrainValidTestSplitting(Splitting):
         """
         log.warning("Splitting data by %s" % self.params.splitter)
 
-        dataset_dup = False
-        if check_if_dupe_smiles_dataset(dataset, attr_df, smiles_col):
-            log.info("Duplicate ids or smiles in the dataset, will deduplicate first and assign all records per compound ID to same partition")
-            dataset_dup = True
-            dataset_ori = copy.deepcopy(dataset)
-            id_df = pd.DataFrame({'indices' : np.arange(len(dataset.ids), dtype=np.int32), "compound_id": [str(e) for e in dataset.ids]})
-            sel_df = id_df.drop_duplicates(subset="compound_id")
-            dataset = dataset.select(sel_df.indices.values)
-
-        if self.needs_smiles():
-            # Some DeepChem splitters require compound IDs in dataset to be SMILES strings. Swap in the
-            # SMILES strings now; we'll reverse this later.
-            dataset = DiskDataset.from_numpy(dataset.X, dataset.y, w=dataset.w, ids=attr_df.drop_duplicates(subset=smiles_col)[smiles_col].values)
-            if dataset_dup:
-                dataset_ori = DiskDataset.from_numpy(dataset_ori.X, dataset_ori.y, w=dataset_ori.w, ids=attr_df[smiles_col].values)
+        # Duplicate SMILES and compound_ids are merged into single compounds
+        # in DatasetManager. The first instance of each is kept. Assumes many to one 
+        # mapping of compound_ids and SMILES. dataset.ids is either compound_id or
+        # SMILES depending on the call to self.needs_smiles(). Later expand_selection
+        # will expect SMILES or compound_ids in dataset.ids depending on needs_smiles
+        # passed into the constructor
+        dm = DatasetManager(dataset=dataset, attr_df=attr_df, smiles_col=smiles_col,
+            needs_smiles=self.needs_smiles())
+        dataset = dm.compact_dataset()
 
         if self.split == 'butina':
             # Can't use train_test_split with Butina because Butina splits into train and valid sets only.
@@ -570,29 +535,141 @@ class TrainValidTestSplitting(Splitting):
             train, valid, test = self.splitter.train_valid_test_split(dataset, 
                 frac_train=train_frac, frac_valid=self.params.split_valid_frac, frac_test=self.params.split_test_frac)
 
-        # Extract the ID-to_SMILES maps from attr_df for each subset.
-        # assign the subsets to the original dataset if duplicated compounds exist
-        if dataset_dup:
-            train = select_dset_by_id_list(dataset_ori, train.ids)
-            valid = select_dset_by_id_list(dataset_ori, valid.ids)
-            test = select_dset_by_id_list(dataset_ori, test.ids)
-        if self.needs_smiles():
-            # Now that DeepChem splitters have done their work, replace the SMILES strings in the split 
-            # dataset objects with actual compound IDs.
-            train_attr = select_attrs_by_dset_smiles(train, attr_df, smiles_col)
-            train = DiskDataset.from_numpy(train.X, train.y, w=train.w, ids=train_attr.index.values)
-
-            valid_attr = select_attrs_by_dset_smiles(valid, attr_df, smiles_col)
-            valid = DiskDataset.from_numpy(valid.X, valid.y, w=valid.w, ids=valid_attr.index.values)
-
-            test_attr = select_attrs_by_dset_smiles(test, attr_df, smiles_col)
-            test = DiskDataset.from_numpy(test.X, test.y, w=test.w, ids=test_attr.index.values)
-        else:
-            # Otherwise just subset the ID-to-SMILES maps.
-            train_attr = select_attrs_by_dset_ids(train, attr_df)
-            valid_attr = select_attrs_by_dset_ids(valid, attr_df)
-            test_attr = select_attrs_by_dset_ids(test, attr_df)
+        # After splitting unique compound_ids or SMILES are expanded 
+        train, train_attr = dm.expand_selection(train.ids)
+        valid, valid_attr = dm.expand_selection(valid.ids)
+        test, test_attr = dm.expand_selection(test.ids)
 
         # Note grouping of train/valid return values as tuple lists, to match format of 
         # KFoldSplitting.split_dataset().
         return [(train, valid)], test, [(train_attr, valid_attr)], test_attr
+
+def _copy_modify_NumpyDataset(dataset, **kwargs):
+    '''
+    Create a copy of the DeepChem Dataset object `dataset` and then modify it based on the given keyword arguments.
+    This is useful for updating attributes like dataset.w or dataset.id
+    '''
+    args = {'X':dataset.X,
+        'y':dataset.y,
+        'w':dataset.w,
+        'ids':dataset.ids,
+        'n_tasks':dataset.y.shape[1]
+        }
+    args.update(kwargs)
+    return NumpyDataset(**args)
+
+class DatasetManager:
+    '''
+    Different splitters have different dataset requirements.
+    - unique compound ids
+    - smiles used as ids
+
+    This object transforms datasets to satisfy these requirements then undoes them
+    once the splitting is done.
+    '''
+    def __init__(self, dataset, attr_df, smiles_col, needs_smiles):
+        '''
+        Before splitting we often have to compact the dataset to remove duplicate compound_ids. After
+        splitting we will have to expand that dataset again. We save self.dataset_ori so we have
+        a copy of the original. We keep self.id_df to know how to map from a set of compound_ids
+        or smiles to an expanded set of indicies.
+
+        Args:
+            dataset (deepchem Dataset): full featurized dataset
+
+            attr_df (Pandas DataFrame): dataframe containing SMILES strings indexed by compound IDs,
+
+            smiles_col (string): name of SMILES column (hack for now until deepchem fixes scaffold and butina splitters)
+        '''
+        self.dataset_ori = copy.deepcopy(dataset)
+        self.attr_df = attr_df
+        self.smiles_col = smiles_col
+        self.needs_smiles = needs_smiles
+
+        self.dataset_dup = False
+
+        # sometimes the ids in dataset_ori is already a SMILES string.
+        # since we assume that dataset_ori.ids are compound ids, we replace them with attr_df.index
+        if self.needs_smiles:
+            self.dataset_ori = _copy_modify_NumpyDataset(self.dataset_ori, ids=self.attr_df.index)
+
+        # self.id_df will be used to map compound_ids or smiles to a set of indices to be used
+        # with self.dataset_ori to map back to an expanded dataset after splitting
+        self.id_df = pd.DataFrame({
+            "indices" : np.arange(len(self.dataset_ori.ids), dtype=np.int32), 
+            "compound_id": [str(e) for e in self.dataset_ori.ids],
+            "smiles": self.attr_df[self.smiles_col].values})
+        # add columns for weights
+        ws = self.dataset_ori.w # get the weights
+        self.w_cols = [f'w{c}' for c in range(ws.shape[1])]
+        for i, col in enumerate(self.w_cols):
+            self.id_df[col] = ws[:,i]
+
+        # check many to one assumption.
+        many_to_one_df(self.id_df, id_col='compound_id', smiles_col='smiles')
+
+    def compact_dataset(self):
+        '''
+        Returns a dataset with no duplicate compounds ids and smiles strings in the
+        id column if necessary.
+
+        Builds a new dataset with no duplicates in ids (compounds or smiles). This assumes 
+        a many to one mapping between SMILES and compound ids
+        '''
+        sub_dataset = self.dataset_ori
+        sel_df = self.id_df
+        if check_if_dupe_smiles_dataset(self.dataset_ori, self.attr_df, self.smiles_col):
+            log.info("Duplicate ids or smiles in the dataset, will deduplicate first and assign all records per compound ID to same partition")
+            self.dataset_dup = True
+
+            # the problem with this is if compounds with the same compound_id have different SMILES strings
+            # If one compound must represent several compounds, the weights row
+            # must be updated to contain labels for all tasks e.g.
+            # w = [[0, 1, 0], --> w = [[1, 1, 0]]
+            #      [1, 0, 0],
+            #      [1, 0, 0]]
+            w_agg_func = lambda x: np.clip(np.sum(x, axis=0), a_min=0, a_max=1)
+            agg_dict = {col:w_agg_func for col in self.w_cols}
+            agg_dict['indices'] = 'first'
+            agg_dict['compound_id'] = 'first' # Either they're all the same or they're not used
+            agg_dict['smiles'] = 'first' # they're all the same in a group
+
+            if self.needs_smiles:
+                sel_df = self.id_df.groupby('smiles', as_index=False).agg(agg_dict)
+            else:
+                sel_df = self.id_df.groupby('compound_id', as_index=False).agg(agg_dict)
+            
+            # sub_dataset no longer contains duplicate compounds
+            sub_dataset = sub_dataset.select(sel_df.indices.values)
+
+            # update weight values
+            sub_dataset = _copy_modify_NumpyDataset(sub_dataset, w=sel_df[self.w_cols].values)
+
+        if self.needs_smiles:
+            # Some DeepChem splitters require compound IDs in dataset to be SMILES strings. Swap in the
+            # SMILES strings now; we'll reverse this later.
+            sub_dataset = _copy_modify_NumpyDataset(sub_dataset, ids=sel_df.smiles.values)
+
+        return sub_dataset
+
+    def expand_selection(self, ids):
+        '''
+        Implementation note: Maybe this is better if I used select_attrs_by_dset_smiles
+        and select_attrs_by_dset_ids respectively
+
+        Args:
+            ids (iterable): Iterable containing either compound_ids or smiles. These
+                need to be mapped back to a set of indices using either compound_ids
+                or smiles.
+
+        Returns:
+            A subset of self.dataset_ori and subset of self.attr_df
+        '''
+        # are we using SMILES or compound_ids as the ID column
+        id_col = 'smiles' if self.needs_smiles else 'compound_id'
+        sel_df = self.id_df[self.id_df[id_col].isin(ids)]
+
+        data_subset = self.dataset_ori.select(sel_df.indices.values)
+        attr_subset = self.attr_df.iloc[sel_df.indices.values]
+
+        return data_subset, attr_subset

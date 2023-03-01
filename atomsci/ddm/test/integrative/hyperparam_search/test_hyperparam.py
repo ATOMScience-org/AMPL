@@ -65,6 +65,7 @@ def wait_to_finish(json_file, max_time=600):
     wait_interval = 30
 
     print("Waiting %d jobs to finish. Checks every 30 seconds" % num_jobs)
+    result_df = None
     while (num_found < num_jobs) and ((max_time == -1) or (time_waited < max_time)):
         # wait until the training jobs have finished
         time.sleep(wait_interval) # check for results every 30 seconds

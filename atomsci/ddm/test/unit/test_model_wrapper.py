@@ -43,7 +43,7 @@ general_params = {'dataset_key' : './delaney-processed.csv',
 
 
 
-DD = dc.data.datasets.DiskDataset
+DD = dc.data.datasets.NumpyDataset
 
 #***********************************************************************************
 def test_create_model_wrapper():
@@ -134,7 +134,7 @@ def test_super_create_transformers():
     data_obj_ecfp = model_dataset.create_model_dataset(inp_params, featurization, ds_client = None)
     df_delaney = data_obj_ecfp.load_full_dataset()
     data_obj_ecfp.get_dataset_tasks(df_delaney)
-    data_obj_ecfp.check_task_columns(df_delaney)
+    model_dataset.check_task_columns(inp_params, df_delaney)
     data_obj_ecfp.get_featurized_data()
     mdl = model_wrapper.create_model_wrapper(inp_params, data_obj_ecfp.featurization)
     mdl.setup_model_dirs()
@@ -186,7 +186,7 @@ def test_super_transform_dataset():
     data_obj_ecfp = model_dataset.create_model_dataset(inp_params, featurization, ds_client = None)
     df_delaney = data_obj_ecfp.load_full_dataset()
     data_obj_ecfp.get_dataset_tasks(df_delaney)
-    data_obj_ecfp.check_task_columns(df_delaney)
+    model_dataset.check_task_columns(inp_params, df_delaney)
     data_obj_ecfp.get_featurized_data()
     mdl = model_wrapper.create_model_wrapper(inp_params, data_obj_ecfp.featurization)
     mdl.setup_model_dirs()

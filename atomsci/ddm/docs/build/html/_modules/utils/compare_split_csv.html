@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>utils.compare_split_csv &mdash; ATOM Data-Driven Modeling Pipeline 1.5.0 documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            ATOM Data-Driven Modeling Pipeline
+          </a>
+              <div class="version">
+                1.5.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/getting_started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/tests.html">Tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/running_ampl.html">Running AMPL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/advanced_ampl_usage.html">Advanced AMPL Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/advanced_installation.html">Advanced Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/advanced_testing.html">Advanced Testing</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">atomsci</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">ATOM Data-Driven Modeling Pipeline</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">utils.compare_split_csv</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for utils.compare_split_csv</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">argparse</span>
+
+<div class="viewcode-block" id="parse_args"><a class="viewcode-back" href="../../utils.html#utils.compare_split_csv.parse_args">[docs]</a><span class="k">def</span> <span class="nf">parse_args</span><span class="p">():</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">()</span>
+
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;split1&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;First split file&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;split2&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Second split file&#39;</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="compare_split_files"><a class="viewcode-back" href="../../utils.html#utils.compare_split_csv.compare_split_files">[docs]</a><span class="k">def</span> <span class="nf">compare_split_files</span><span class="p">(</span><span class="n">split1</span><span class="p">,</span> <span class="n">split2</span><span class="p">):</span>
+    <span class="n">compare_splits</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">split1</span><span class="p">),</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">split2</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="compare_splits"><a class="viewcode-back" href="../../utils.html#utils.compare_split_csv.compare_splits">[docs]</a><span class="k">def</span> <span class="nf">compare_splits</span><span class="p">(</span><span class="n">split1</span><span class="p">,</span> <span class="n">split2</span><span class="p">):</span>
+    <span class="n">groups1</span> <span class="o">=</span> <span class="n">split1</span><span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="s1">&#39;subset&#39;</span><span class="p">,</span> <span class="s1">&#39;fold&#39;</span><span class="p">])</span>
+    <span class="n">groups2</span> <span class="o">=</span> <span class="n">split2</span><span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="s1">&#39;subset&#39;</span><span class="p">,</span> <span class="s1">&#39;fold&#39;</span><span class="p">])</span>
+
+    <span class="n">group1_names</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">groups1</span><span class="o">.</span><span class="n">groups</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+    <span class="n">group2_names</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">groups2</span><span class="o">.</span><span class="n">groups</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+    <span class="n">same_groups</span> <span class="o">=</span> <span class="n">group1_names</span> <span class="o">==</span> <span class="n">group2_names</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">same_groups</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;There are different subset/fold pairs&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Group1&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">group1_names</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Group2&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">group2_names</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="c1"># check that compounds in each group are the same</span>
+    <span class="k">for</span> <span class="n">group_name</span> <span class="ow">in</span> <span class="n">group1_names</span><span class="p">:</span>
+        <span class="n">g1</span> <span class="o">=</span> <span class="n">groups1</span><span class="o">.</span><span class="n">get_group</span><span class="p">(</span><span class="n">group_name</span><span class="p">)</span>
+        <span class="n">g2</span> <span class="o">=</span> <span class="n">groups2</span><span class="o">.</span><span class="n">get_group</span><span class="p">(</span><span class="n">group_name</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">g1</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">g2</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Subset </span><span class="si">{</span><span class="n">group_name</span><span class="si">}</span><span class="s1"> is not the same size in both splits.&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Group 1 has length </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">g1</span><span class="p">)</span><span class="si">}</span><span class="s1"> Group 2 has length </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">g2</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        
+        <span class="n">gc1</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">g1</span><span class="p">[</span><span class="s1">&#39;cmpd_id&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+        <span class="n">gc2</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">g2</span><span class="p">[</span><span class="s1">&#39;cmpd_id&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">gc1</span> <span class="o">!=</span> <span class="n">gc2</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Subset </span><span class="si">{</span><span class="n">group_name</span><span class="si">}</span><span class="s1"> contains different compounds.&#39;</span><span class="p">)</span>
+            <span class="n">ing1_notg2</span> <span class="o">=</span> <span class="n">gc1</span><span class="o">-</span><span class="n">gc2</span>
+            <span class="n">ing2_notg1</span> <span class="o">=</span> <span class="n">gc2</span><span class="o">-</span><span class="n">gc1</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;There are </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">ing1_notg2</span><span class="p">)</span><span class="si">}</span><span class="s1"> compounds in split 1 and not split 2&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ing1_notg2</span><span class="p">)</span><span class="o">&lt;</span><span class="mi">10</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">ing1_notg2</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;There are </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">ing2_notg1</span><span class="p">)</span><span class="si">}</span><span class="s1"> compounds in split 2 and not split 1&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ing2_notg1</span><span class="p">)</span><span class="o">&lt;</span><span class="mi">10</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">ing2_notg1</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="n">gs1</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">g1</span><span class="p">[</span><span class="s1">&#39;cmpd_id&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">))</span>
+        <span class="n">gs2</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">g2</span><span class="p">[</span><span class="s1">&#39;cmpd_id&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">([</span><span class="n">gs1i</span><span class="o">==</span><span class="n">gs2i</span> <span class="k">for</span> <span class="n">gs1i</span><span class="p">,</span> <span class="n">gs2i</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">gs1</span><span class="p">,</span> <span class="n">gs2</span><span class="p">)]):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Sorting the list of compounds from both splits results in two different lists.&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Both splits are effectively the same&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="kc">True</span></div>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">parse_args</span><span class="p">()</span>
+
+    <span class="n">compare_split_files</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">split1</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">split2</span><span class="p">)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, ATOM DDM Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,21 +1,20 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>atomsci &mdash; ATOM Data-Driven Modeling Pipeline 1.4.0 documentation</title>
+  <title>atomsci &mdash; ATOM Data-Driven Modeling Pipeline 1.5.0 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -28,14 +27,18 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="index.html" class="icon icon-home"> ATOM Data-Driven Modeling Pipeline
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            ATOM Data-Driven Modeling Pipeline
           </a>
               <div class="version">
-                1.4.0
+                1.5.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -71,8 +74,8 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-      <li>atomsci</li>
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">atomsci</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/modules.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -88,39 +91,824 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="pipeline.html">pipeline package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="pipeline.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pipeline.html#module-pipeline.ave_splitter">pipeline.ave_splitter module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pipeline.html#module-pipeline.chem_diversity">pipeline.chem_diversity module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pipeline.html#module-pipeline.compare_models">pipeline.compare_models module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pipeline.html#module-pipeline.dist_metrics">pipeline.dist_metrics module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pipeline.html#module-pipeline.diversity_plots">pipeline.diversity_plots module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pipeline.html#module-pipeline.featurization">pipeline.featurization module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pipeline.html#pipeline-feature-importance-module">pipeline.feature_importance module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pipeline.html#module-pipeline.model_datasets">pipeline.model_datasets module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pipeline.html#module-pipeline.model_pipeline">pipeline.model_pipeline module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pipeline.html#module-pipeline.model_tracker">pipeline.model_tracker module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pipeline.html#module-pipeline.model_wrapper">pipeline.model_wrapper module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pipeline.html#module-pipeline.parameter_parser">pipeline.parameter_parser module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pipeline.html#module-pipeline.perf_data">pipeline.perf_data module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pipeline.html#module-pipeline.perf_plots">pipeline.perf_plots module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pipeline.html#module-pipeline.splitting">pipeline.splitting module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pipeline.html#module-pipeline.transformations">pipeline.transformations module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline.html#module-pipeline.ave_splitter">pipeline.ave_splitter module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.ave_splitter.AVEMinSplitter"><code class="docutils literal notranslate"><span class="pre">AVEMinSplitter</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.ave_splitter.AVEMinSplitter.split"><code class="docutils literal notranslate"><span class="pre">AVEMinSplitter.split()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.ave_splitter.analyze_split"><code class="docutils literal notranslate"><span class="pre">analyze_split()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.ave_splitter.permutation"><code class="docutils literal notranslate"><span class="pre">permutation()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.ave_splitter.shuffle"><code class="docutils literal notranslate"><span class="pre">shuffle()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline.html#module-pipeline.chem_diversity">pipeline.chem_diversity module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.chem_diversity.calc_dist_diskdataset"><code class="docutils literal notranslate"><span class="pre">calc_dist_diskdataset()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.chem_diversity.calc_dist_feat_array"><code class="docutils literal notranslate"><span class="pre">calc_dist_feat_array()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.chem_diversity.calc_dist_smiles"><code class="docutils literal notranslate"><span class="pre">calc_dist_smiles()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.chem_diversity.calc_summary"><code class="docutils literal notranslate"><span class="pre">calc_summary()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.chem_diversity.upload_distmatrix_to_DS"><code class="docutils literal notranslate"><span class="pre">upload_distmatrix_to_DS()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline.html#module-pipeline.compare_models">pipeline.compare_models module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.compare_models.copy_best_filesystem_models"><code class="docutils literal notranslate"><span class="pre">copy_best_filesystem_models()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.compare_models.del_ignored_params"><code class="docutils literal notranslate"><span class="pre">del_ignored_params()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.compare_models.extract_collection_perf_metrics"><code class="docutils literal notranslate"><span class="pre">extract_collection_perf_metrics()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.compare_models.extract_model_and_feature_parameters"><code class="docutils literal notranslate"><span class="pre">extract_model_and_feature_parameters()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.compare_models.get_best_models_info"><code class="docutils literal notranslate"><span class="pre">get_best_models_info()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.compare_models.get_best_perf_table"><code class="docutils literal notranslate"><span class="pre">get_best_perf_table()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.compare_models.get_collection_datasets"><code class="docutils literal notranslate"><span class="pre">get_collection_datasets()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.compare_models.get_dataset_models"><code class="docutils literal notranslate"><span class="pre">get_dataset_models()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.compare_models.get_filesystem_models"><code class="docutils literal notranslate"><span class="pre">get_filesystem_models()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.compare_models.get_filesystem_perf_results"><code class="docutils literal notranslate"><span class="pre">get_filesystem_perf_results()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.compare_models.get_multitask_perf_from_files"><code class="docutils literal notranslate"><span class="pre">get_multitask_perf_from_files()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.compare_models.get_multitask_perf_from_files_new"><code class="docutils literal notranslate"><span class="pre">get_multitask_perf_from_files_new()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.compare_models.get_multitask_perf_from_tracker"><code class="docutils literal notranslate"><span class="pre">get_multitask_perf_from_tracker()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.compare_models.get_summary_metadata_table"><code class="docutils literal notranslate"><span class="pre">get_summary_metadata_table()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.compare_models.get_summary_perf_tables"><code class="docutils literal notranslate"><span class="pre">get_summary_perf_tables()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.compare_models.get_tarball_perf_table"><code class="docutils literal notranslate"><span class="pre">get_tarball_perf_table()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.compare_models.get_training_datasets"><code class="docutils literal notranslate"><span class="pre">get_training_datasets()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.compare_models.get_training_perf_table"><code class="docutils literal notranslate"><span class="pre">get_training_perf_table()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.compare_models.get_umap_nn_model_perf_table"><code class="docutils literal notranslate"><span class="pre">get_umap_nn_model_perf_table()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.compare_models.num_trainable_parameters_from_file"><code class="docutils literal notranslate"><span class="pre">num_trainable_parameters_from_file()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline.html#module-pipeline.dist_metrics">pipeline.dist_metrics module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.dist_metrics.mcs"><code class="docutils literal notranslate"><span class="pre">mcs()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.dist_metrics.tanimoto"><code class="docutils literal notranslate"><span class="pre">tanimoto()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.dist_metrics.tanimoto_single"><code class="docutils literal notranslate"><span class="pre">tanimoto_single()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline.html#module-pipeline.diversity_plots">pipeline.diversity_plots module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.diversity_plots.diversity_plots"><code class="docutils literal notranslate"><span class="pre">diversity_plots()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.diversity_plots.plot_dataset_dist_distr"><code class="docutils literal notranslate"><span class="pre">plot_dataset_dist_distr()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.diversity_plots.plot_tani_dist_distr"><code class="docutils literal notranslate"><span class="pre">plot_tani_dist_distr()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline.html#module-pipeline.featurization">pipeline.featurization module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.featurization.ATOMAtomTypeEState"><code class="docutils literal notranslate"><span class="pre">ATOMAtomTypeEState</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.featurization.ATOMAtomTypeEState.my_es_types"><code class="docutils literal notranslate"><span class="pre">ATOMAtomTypeEState.my_es_types</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.featurization.ATOMAtomTypeEState.parameter_names"><code class="docutils literal notranslate"><span class="pre">ATOMAtomTypeEState.parameter_names</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.featurization.ATOMAtomTypeEState.preset"><code class="docutils literal notranslate"><span class="pre">ATOMAtomTypeEState.preset()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.featurization.ATOMMolecularDistanceEdge"><code class="docutils literal notranslate"><span class="pre">ATOMMolecularDistanceEdge</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.featurization.ATOMMolecularDistanceEdge.parameter_names"><code class="docutils literal notranslate"><span class="pre">ATOMMolecularDistanceEdge.parameter_names</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.featurization.ATOMMolecularDistanceEdge.preset"><code class="docutils literal notranslate"><span class="pre">ATOMMolecularDistanceEdge.preset()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.featurization.ComputedDescriptorFeaturization"><code class="docutils literal notranslate"><span class="pre">ComputedDescriptorFeaturization</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.featurization.ComputedDescriptorFeaturization.compute_descriptors"><code class="docutils literal notranslate"><span class="pre">ComputedDescriptorFeaturization.compute_descriptors()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.featurization.ComputedDescriptorFeaturization.compute_moe_descriptors"><code class="docutils literal notranslate"><span class="pre">ComputedDescriptorFeaturization.compute_moe_descriptors()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.featurization.ComputedDescriptorFeaturization.compute_mordred_descriptors"><code class="docutils literal notranslate"><span class="pre">ComputedDescriptorFeaturization.compute_mordred_descriptors()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.featurization.ComputedDescriptorFeaturization.compute_rdkit_descriptors"><code class="docutils literal notranslate"><span class="pre">ComputedDescriptorFeaturization.compute_rdkit_descriptors()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.featurization.ComputedDescriptorFeaturization.featurize_data"><code class="docutils literal notranslate"><span class="pre">ComputedDescriptorFeaturization.featurize_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.featurization.ComputedDescriptorFeaturization.get_featurized_dset_name"><code class="docutils literal notranslate"><span class="pre">ComputedDescriptorFeaturization.get_featurized_dset_name()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.featurization.ComputedDescriptorFeaturization.scale_moe_descriptors"><code class="docutils literal notranslate"><span class="pre">ComputedDescriptorFeaturization.scale_moe_descriptors()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.featurization.DescriptorFeaturization"><code class="docutils literal notranslate"><span class="pre">DescriptorFeaturization</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.featurization.DescriptorFeaturization.create_feature_transformer"><code class="docutils literal notranslate"><span class="pre">DescriptorFeaturization.create_feature_transformer()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.featurization.DescriptorFeaturization.desc_type_cols"><code class="docutils literal notranslate"><span class="pre">DescriptorFeaturization.desc_type_cols</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.featurization.DescriptorFeaturization.desc_type_scaled"><code class="docutils literal notranslate"><span class="pre">DescriptorFeaturization.desc_type_scaled</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.featurization.DescriptorFeaturization.desc_type_source"><code class="docutils literal notranslate"><span class="pre">DescriptorFeaturization.desc_type_source</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.featurization.DescriptorFeaturization.extract_prefeaturized_data"><code class="docutils literal notranslate"><span class="pre">DescriptorFeaturization.extract_prefeaturized_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.featurization.DescriptorFeaturization.featurize_data"><code class="docutils literal notranslate"><span class="pre">DescriptorFeaturization.featurize_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.featurization.DescriptorFeaturization.get_feature_columns"><code class="docutils literal notranslate"><span class="pre">DescriptorFeaturization.get_feature_columns()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.featurization.DescriptorFeaturization.get_feature_count"><code class="docutils literal notranslate"><span class="pre">DescriptorFeaturization.get_feature_count()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.featurization.DescriptorFeaturization.get_feature_specific_metadata"><code class="docutils literal notranslate"><span class="pre">DescriptorFeaturization.get_feature_specific_metadata()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.featurization.DescriptorFeaturization.get_featurized_data_subdir"><code class="docutils literal notranslate"><span class="pre">DescriptorFeaturization.get_featurized_data_subdir()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.featurization.DescriptorFeaturization.get_featurized_dset_name"><code class="docutils literal notranslate"><span class="pre">DescriptorFeaturization.get_featurized_dset_name()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.featurization.DescriptorFeaturization.load_descriptor_spec"><code class="docutils literal notranslate"><span class="pre">DescriptorFeaturization.load_descriptor_spec()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.featurization.DescriptorFeaturization.load_descriptor_table"><code class="docutils literal notranslate"><span class="pre">DescriptorFeaturization.load_descriptor_table()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.featurization.DescriptorFeaturization.supported_descriptor_types"><code class="docutils literal notranslate"><span class="pre">DescriptorFeaturization.supported_descriptor_types</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.featurization.DynamicFeaturization"><code class="docutils literal notranslate"><span class="pre">DynamicFeaturization</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.featurization.DynamicFeaturization.create_feature_transformer"><code class="docutils literal notranslate"><span class="pre">DynamicFeaturization.create_feature_transformer()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.featurization.DynamicFeaturization.extract_prefeaturized_data"><code class="docutils literal notranslate"><span class="pre">DynamicFeaturization.extract_prefeaturized_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.featurization.DynamicFeaturization.featurize"><code class="docutils literal notranslate"><span class="pre">DynamicFeaturization.featurize()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.featurization.DynamicFeaturization.featurize_data"><code class="docutils literal notranslate"><span class="pre">DynamicFeaturization.featurize_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.featurization.DynamicFeaturization.get_feature_columns"><code class="docutils literal notranslate"><span class="pre">DynamicFeaturization.get_feature_columns()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.featurization.DynamicFeaturization.get_feature_count"><code class="docutils literal notranslate"><span class="pre">DynamicFeaturization.get_feature_count()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.featurization.DynamicFeaturization.get_feature_specific_metadata"><code class="docutils literal notranslate"><span class="pre">DynamicFeaturization.get_feature_specific_metadata()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.featurization.DynamicFeaturization.get_featurized_data_subdir"><code class="docutils literal notranslate"><span class="pre">DynamicFeaturization.get_featurized_data_subdir()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.featurization.DynamicFeaturization.get_featurized_dset_name"><code class="docutils literal notranslate"><span class="pre">DynamicFeaturization.get_featurized_dset_name()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.featurization.EmbeddingFeaturization"><code class="docutils literal notranslate"><span class="pre">EmbeddingFeaturization</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.featurization.EmbeddingFeaturization.featurize"><code class="docutils literal notranslate"><span class="pre">EmbeddingFeaturization.featurize()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.featurization.EmbeddingFeaturization.featurize_data"><code class="docutils literal notranslate"><span class="pre">EmbeddingFeaturization.featurize_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.featurization.EmbeddingFeaturization.get_feature_count"><code class="docutils literal notranslate"><span class="pre">EmbeddingFeaturization.get_feature_count()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.featurization.EmbeddingFeaturization.get_feature_specific_metadata"><code class="docutils literal notranslate"><span class="pre">EmbeddingFeaturization.get_feature_specific_metadata()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.featurization.Featurization"><code class="docutils literal notranslate"><span class="pre">Featurization</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.featurization.Featurization.create_feature_transformer"><code class="docutils literal notranslate"><span class="pre">Featurization.create_feature_transformer()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.featurization.Featurization.extract_prefeaturized_data"><code class="docutils literal notranslate"><span class="pre">Featurization.extract_prefeaturized_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.featurization.Featurization.featurize_data"><code class="docutils literal notranslate"><span class="pre">Featurization.featurize_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.featurization.Featurization.get_feature_columns"><code class="docutils literal notranslate"><span class="pre">Featurization.get_feature_columns()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.featurization.Featurization.get_feature_count"><code class="docutils literal notranslate"><span class="pre">Featurization.get_feature_count()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.featurization.Featurization.get_feature_specific_metadata"><code class="docutils literal notranslate"><span class="pre">Featurization.get_feature_specific_metadata()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.featurization.Featurization.get_featurized_data_subdir"><code class="docutils literal notranslate"><span class="pre">Featurization.get_featurized_data_subdir()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.featurization.Featurization.get_featurized_dset_name"><code class="docutils literal notranslate"><span class="pre">Featurization.get_featurized_dset_name()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.featurization.PersistentFeaturization"><code class="docutils literal notranslate"><span class="pre">PersistentFeaturization</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.featurization.PersistentFeaturization.create_feature_transformer"><code class="docutils literal notranslate"><span class="pre">PersistentFeaturization.create_feature_transformer()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.featurization.PersistentFeaturization.extract_prefeaturized_data"><code class="docutils literal notranslate"><span class="pre">PersistentFeaturization.extract_prefeaturized_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.featurization.PersistentFeaturization.featurize_data"><code class="docutils literal notranslate"><span class="pre">PersistentFeaturization.featurize_data()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.featurization.compute_2d_mordred_descrs"><code class="docutils literal notranslate"><span class="pre">compute_2d_mordred_descrs()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.featurization.compute_all_moe_descriptors"><code class="docutils literal notranslate"><span class="pre">compute_all_moe_descriptors()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.featurization.compute_all_mordred_descrs"><code class="docutils literal notranslate"><span class="pre">compute_all_mordred_descrs()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.featurization.compute_all_rdkit_descrs"><code class="docutils literal notranslate"><span class="pre">compute_all_rdkit_descrs()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.featurization.compute_mordred_descriptors_from_smiles"><code class="docutils literal notranslate"><span class="pre">compute_mordred_descriptors_from_smiles()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.featurization.compute_rdkit_descriptors_from_smiles"><code class="docutils literal notranslate"><span class="pre">compute_rdkit_descriptors_from_smiles()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.featurization.create_featurization"><code class="docutils literal notranslate"><span class="pre">create_featurization()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.featurization.featurize_smiles"><code class="docutils literal notranslate"><span class="pre">featurize_smiles()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.featurization.get_2d_mols"><code class="docutils literal notranslate"><span class="pre">get_2d_mols()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.featurization.get_3d_mols"><code class="docutils literal notranslate"><span class="pre">get_3d_mols()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.featurization.get_dataset_attributes"><code class="docutils literal notranslate"><span class="pre">get_dataset_attributes()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.featurization.get_mordred_calculator"><code class="docutils literal notranslate"><span class="pre">get_mordred_calculator()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.featurization.get_rdkit_calculator"><code class="docutils literal notranslate"><span class="pre">get_rdkit_calculator()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.featurization.get_user_specified_features"><code class="docutils literal notranslate"><span class="pre">get_user_specified_features()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.featurization.make_weights"><code class="docutils literal notranslate"><span class="pre">make_weights()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.featurization.remove_duplicate_smiles"><code class="docutils literal notranslate"><span class="pre">remove_duplicate_smiles()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline.html#module-pipeline.feature_importance">pipeline.feature_importance module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.feature_importance.base_feature_importance"><code class="docutils literal notranslate"><span class="pre">base_feature_importance()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.feature_importance.cluster_permutation_importance"><code class="docutils literal notranslate"><span class="pre">cluster_permutation_importance()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.feature_importance.display_feature_clusters"><code class="docutils literal notranslate"><span class="pre">display_feature_clusters()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.feature_importance.permutation_feature_importance"><code class="docutils literal notranslate"><span class="pre">permutation_feature_importance()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.feature_importance.plot_feature_importances"><code class="docutils literal notranslate"><span class="pre">plot_feature_importances()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline.html#module-pipeline.model_datasets">pipeline.model_datasets module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.model_datasets.DatastoreDataset"><code class="docutils literal notranslate"><span class="pre">DatastoreDataset</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_datasets.DatastoreDataset.get_dataset_tasks"><code class="docutils literal notranslate"><span class="pre">DatastoreDataset.get_dataset_tasks()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_datasets.DatastoreDataset.load_dataset_split_table"><code class="docutils literal notranslate"><span class="pre">DatastoreDataset.load_dataset_split_table()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_datasets.DatastoreDataset.load_featurized_data"><code class="docutils literal notranslate"><span class="pre">DatastoreDataset.load_featurized_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_datasets.DatastoreDataset.load_full_dataset"><code class="docutils literal notranslate"><span class="pre">DatastoreDataset.load_full_dataset()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_datasets.DatastoreDataset.save_featurized_data"><code class="docutils literal notranslate"><span class="pre">DatastoreDataset.save_featurized_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_datasets.DatastoreDataset.save_split_dataset"><code class="docutils literal notranslate"><span class="pre">DatastoreDataset.save_split_dataset()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.model_datasets.FileDataset"><code class="docutils literal notranslate"><span class="pre">FileDataset</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_datasets.FileDataset.get_dataset_tasks"><code class="docutils literal notranslate"><span class="pre">FileDataset.get_dataset_tasks()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_datasets.FileDataset.load_dataset_split_table"><code class="docutils literal notranslate"><span class="pre">FileDataset.load_dataset_split_table()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_datasets.FileDataset.load_featurized_data"><code class="docutils literal notranslate"><span class="pre">FileDataset.load_featurized_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_datasets.FileDataset.load_full_dataset"><code class="docutils literal notranslate"><span class="pre">FileDataset.load_full_dataset()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_datasets.FileDataset.save_featurized_data"><code class="docutils literal notranslate"><span class="pre">FileDataset.save_featurized_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_datasets.FileDataset.save_split_dataset"><code class="docutils literal notranslate"><span class="pre">FileDataset.save_split_dataset()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.model_datasets.MinimalDataset"><code class="docutils literal notranslate"><span class="pre">MinimalDataset</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_datasets.MinimalDataset.get_dataset_tasks"><code class="docutils literal notranslate"><span class="pre">MinimalDataset.get_dataset_tasks()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_datasets.MinimalDataset.get_featurized_data"><code class="docutils literal notranslate"><span class="pre">MinimalDataset.get_featurized_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_datasets.MinimalDataset.save_featurized_data"><code class="docutils literal notranslate"><span class="pre">MinimalDataset.save_featurized_data()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.model_datasets.ModelDataset"><code class="docutils literal notranslate"><span class="pre">ModelDataset</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_datasets.ModelDataset.combined_training_data"><code class="docutils literal notranslate"><span class="pre">ModelDataset.combined_training_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_datasets.ModelDataset.create_dataset_split_table"><code class="docutils literal notranslate"><span class="pre">ModelDataset.create_dataset_split_table()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_datasets.ModelDataset.get_dataset_tasks"><code class="docutils literal notranslate"><span class="pre">ModelDataset.get_dataset_tasks()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_datasets.ModelDataset.get_featurized_data"><code class="docutils literal notranslate"><span class="pre">ModelDataset.get_featurized_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_datasets.ModelDataset.get_split_metadata"><code class="docutils literal notranslate"><span class="pre">ModelDataset.get_split_metadata()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_datasets.ModelDataset.get_subset_responses_and_weights"><code class="docutils literal notranslate"><span class="pre">ModelDataset.get_subset_responses_and_weights()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_datasets.ModelDataset.has_all_feature_columns"><code class="docutils literal notranslate"><span class="pre">ModelDataset.has_all_feature_columns()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_datasets.ModelDataset.load_featurized_data"><code class="docutils literal notranslate"><span class="pre">ModelDataset.load_featurized_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_datasets.ModelDataset.load_full_dataset"><code class="docutils literal notranslate"><span class="pre">ModelDataset.load_full_dataset()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_datasets.ModelDataset.load_presplit_dataset"><code class="docutils literal notranslate"><span class="pre">ModelDataset.load_presplit_dataset()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_datasets.ModelDataset.split_dataset"><code class="docutils literal notranslate"><span class="pre">ModelDataset.split_dataset()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.model_datasets.check_task_columns"><code class="docutils literal notranslate"><span class="pre">check_task_columns()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.model_datasets.create_minimal_dataset"><code class="docutils literal notranslate"><span class="pre">create_minimal_dataset()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.model_datasets.create_model_dataset"><code class="docutils literal notranslate"><span class="pre">create_model_dataset()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.model_datasets.create_split_dataset_from_metadata"><code class="docutils literal notranslate"><span class="pre">create_split_dataset_from_metadata()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.model_datasets.key_value_list_to_dict"><code class="docutils literal notranslate"><span class="pre">key_value_list_to_dict()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.model_datasets.save_joined_dataset"><code class="docutils literal notranslate"><span class="pre">save_joined_dataset()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.model_datasets.set_group_permissions"><code class="docutils literal notranslate"><span class="pre">set_group_permissions()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline.html#module-pipeline.model_pipeline">pipeline.model_pipeline module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.model_pipeline.ModelPipeline"><code class="docutils literal notranslate"><span class="pre">ModelPipeline</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_pipeline.ModelPipeline.calc_train_dset_pair_dis"><code class="docutils literal notranslate"><span class="pre">ModelPipeline.calc_train_dset_pair_dis()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_pipeline.ModelPipeline.create_model_metadata"><code class="docutils literal notranslate"><span class="pre">ModelPipeline.create_model_metadata()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_pipeline.ModelPipeline.create_prediction_metadata"><code class="docutils literal notranslate"><span class="pre">ModelPipeline.create_prediction_metadata()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_pipeline.ModelPipeline.get_metrics"><code class="docutils literal notranslate"><span class="pre">ModelPipeline.get_metrics()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_pipeline.ModelPipeline.load_featurize_data"><code class="docutils literal notranslate"><span class="pre">ModelPipeline.load_featurize_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_pipeline.ModelPipeline.predict_embedding"><code class="docutils literal notranslate"><span class="pre">ModelPipeline.predict_embedding()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_pipeline.ModelPipeline.predict_full_dataset"><code class="docutils literal notranslate"><span class="pre">ModelPipeline.predict_full_dataset()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_pipeline.ModelPipeline.predict_on_dataframe"><code class="docutils literal notranslate"><span class="pre">ModelPipeline.predict_on_dataframe()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_pipeline.ModelPipeline.predict_on_smiles"><code class="docutils literal notranslate"><span class="pre">ModelPipeline.predict_on_smiles()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_pipeline.ModelPipeline.run_predictions"><code class="docutils literal notranslate"><span class="pre">ModelPipeline.run_predictions()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_pipeline.ModelPipeline.save_metrics"><code class="docutils literal notranslate"><span class="pre">ModelPipeline.save_metrics()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_pipeline.ModelPipeline.save_model_metadata"><code class="docutils literal notranslate"><span class="pre">ModelPipeline.save_model_metadata()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_pipeline.ModelPipeline.split_dataset"><code class="docutils literal notranslate"><span class="pre">ModelPipeline.split_dataset()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_pipeline.ModelPipeline.train_model"><code class="docutils literal notranslate"><span class="pre">ModelPipeline.train_model()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.model_pipeline.build_dataset_name"><code class="docutils literal notranslate"><span class="pre">build_dataset_name()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.model_pipeline.build_tarball_name"><code class="docutils literal notranslate"><span class="pre">build_tarball_name()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.model_pipeline.calc_AD_kmean_dist"><code class="docutils literal notranslate"><span class="pre">calc_AD_kmean_dist()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.model_pipeline.calc_AD_kmean_local_density"><code class="docutils literal notranslate"><span class="pre">calc_AD_kmean_local_density()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.model_pipeline.create_prediction_pipeline"><code class="docutils literal notranslate"><span class="pre">create_prediction_pipeline()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.model_pipeline.create_prediction_pipeline_from_file"><code class="docutils literal notranslate"><span class="pre">create_prediction_pipeline_from_file()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.model_pipeline.ensemble_predict"><code class="docutils literal notranslate"><span class="pre">ensemble_predict()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.model_pipeline.load_from_tracker"><code class="docutils literal notranslate"><span class="pre">load_from_tracker()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.model_pipeline.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.model_pipeline.regenerate_results"><code class="docutils literal notranslate"><span class="pre">regenerate_results()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.model_pipeline.retrain_model"><code class="docutils literal notranslate"><span class="pre">retrain_model()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.model_pipeline.run_models"><code class="docutils literal notranslate"><span class="pre">run_models()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline.html#module-pipeline.model_tracker">pipeline.model_tracker module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.model_tracker.DatastoreInsertionException"><code class="docutils literal notranslate"><span class="pre">DatastoreInsertionException</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.model_tracker.MLMTClientInstantiationException"><code class="docutils literal notranslate"><span class="pre">MLMTClientInstantiationException</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.model_tracker.convert_metadata"><code class="docutils literal notranslate"><span class="pre">convert_metadata()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.model_tracker.export_model"><code class="docutils literal notranslate"><span class="pre">export_model()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.model_tracker.extract_datastore_model_tarball"><code class="docutils literal notranslate"><span class="pre">extract_datastore_model_tarball()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.model_tracker.get_full_metadata"><code class="docutils literal notranslate"><span class="pre">get_full_metadata()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.model_tracker.get_full_metadata_by_uuid"><code class="docutils literal notranslate"><span class="pre">get_full_metadata_by_uuid()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.model_tracker.get_metadata_by_uuid"><code class="docutils literal notranslate"><span class="pre">get_metadata_by_uuid()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.model_tracker.get_model_collection_by_uuid"><code class="docutils literal notranslate"><span class="pre">get_model_collection_by_uuid()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.model_tracker.get_model_training_data_by_uuid"><code class="docutils literal notranslate"><span class="pre">get_model_training_data_by_uuid()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.model_tracker.save_model"><code class="docutils literal notranslate"><span class="pre">save_model()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.model_tracker.save_model_tarball"><code class="docutils literal notranslate"><span class="pre">save_model_tarball()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline.html#module-pipeline.model_wrapper">pipeline.model_wrapper module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.model_wrapper.DCRFModelWrapper"><code class="docutils literal notranslate"><span class="pre">DCRFModelWrapper</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_wrapper.DCRFModelWrapper.generate_predictions"><code class="docutils literal notranslate"><span class="pre">DCRFModelWrapper.generate_predictions()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_wrapper.DCRFModelWrapper.get_model_specific_metadata"><code class="docutils literal notranslate"><span class="pre">DCRFModelWrapper.get_model_specific_metadata()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_wrapper.DCRFModelWrapper.make_dc_model"><code class="docutils literal notranslate"><span class="pre">DCRFModelWrapper.make_dc_model()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_wrapper.DCRFModelWrapper.train"><code class="docutils literal notranslate"><span class="pre">DCRFModelWrapper.train()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.model_wrapper.DCxgboostModelWrapper"><code class="docutils literal notranslate"><span class="pre">DCxgboostModelWrapper</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_wrapper.DCxgboostModelWrapper.generate_predictions"><code class="docutils literal notranslate"><span class="pre">DCxgboostModelWrapper.generate_predictions()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_wrapper.DCxgboostModelWrapper.get_model_specific_metadata"><code class="docutils literal notranslate"><span class="pre">DCxgboostModelWrapper.get_model_specific_metadata()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_wrapper.DCxgboostModelWrapper.get_perf_data"><code class="docutils literal notranslate"><span class="pre">DCxgboostModelWrapper.get_perf_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_wrapper.DCxgboostModelWrapper.get_pred_results"><code class="docutils literal notranslate"><span class="pre">DCxgboostModelWrapper.get_pred_results()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_wrapper.DCxgboostModelWrapper.make_dc_model"><code class="docutils literal notranslate"><span class="pre">DCxgboostModelWrapper.make_dc_model()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_wrapper.DCxgboostModelWrapper.reload_model"><code class="docutils literal notranslate"><span class="pre">DCxgboostModelWrapper.reload_model()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_wrapper.DCxgboostModelWrapper.train"><code class="docutils literal notranslate"><span class="pre">DCxgboostModelWrapper.train()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.model_wrapper.ForestModelWrapper"><code class="docutils literal notranslate"><span class="pre">ForestModelWrapper</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_wrapper.ForestModelWrapper.get_perf_data"><code class="docutils literal notranslate"><span class="pre">ForestModelWrapper.get_perf_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_wrapper.ForestModelWrapper.get_pred_results"><code class="docutils literal notranslate"><span class="pre">ForestModelWrapper.get_pred_results()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_wrapper.ForestModelWrapper.make_dc_model"><code class="docutils literal notranslate"><span class="pre">ForestModelWrapper.make_dc_model()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_wrapper.ForestModelWrapper.reload_model"><code class="docutils literal notranslate"><span class="pre">ForestModelWrapper.reload_model()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_wrapper.ForestModelWrapper.train"><code class="docutils literal notranslate"><span class="pre">ForestModelWrapper.train()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.model_wrapper.GraphConvDCModelWrapper"><code class="docutils literal notranslate"><span class="pre">GraphConvDCModelWrapper</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_wrapper.GraphConvDCModelWrapper.generate_embeddings"><code class="docutils literal notranslate"><span class="pre">GraphConvDCModelWrapper.generate_embeddings()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_wrapper.GraphConvDCModelWrapper.get_model_specific_metadata"><code class="docutils literal notranslate"><span class="pre">GraphConvDCModelWrapper.get_model_specific_metadata()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_wrapper.GraphConvDCModelWrapper.recreate_model"><code class="docutils literal notranslate"><span class="pre">GraphConvDCModelWrapper.recreate_model()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.model_wrapper.HybridModelWrapper"><code class="docutils literal notranslate"><span class="pre">HybridModelWrapper</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_wrapper.HybridModelWrapper.SubsetData"><code class="docutils literal notranslate"><span class="pre">HybridModelWrapper.SubsetData</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_wrapper.HybridModelWrapper.generate_predictions"><code class="docutils literal notranslate"><span class="pre">HybridModelWrapper.generate_predictions()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_wrapper.HybridModelWrapper.get_model_specific_metadata"><code class="docutils literal notranslate"><span class="pre">HybridModelWrapper.get_model_specific_metadata()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_wrapper.HybridModelWrapper.reload_model"><code class="docutils literal notranslate"><span class="pre">HybridModelWrapper.reload_model()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_wrapper.HybridModelWrapper.save_model"><code class="docutils literal notranslate"><span class="pre">HybridModelWrapper.save_model()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_wrapper.HybridModelWrapper.train"><code class="docutils literal notranslate"><span class="pre">HybridModelWrapper.train()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.model_wrapper.KerasDeepChemModelWrapper"><code class="docutils literal notranslate"><span class="pre">KerasDeepChemModelWrapper</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_wrapper.KerasDeepChemModelWrapper.count_params"><code class="docutils literal notranslate"><span class="pre">KerasDeepChemModelWrapper.count_params()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_wrapper.KerasDeepChemModelWrapper.reload_model"><code class="docutils literal notranslate"><span class="pre">KerasDeepChemModelWrapper.reload_model()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_wrapper.KerasDeepChemModelWrapper.restore"><code class="docutils literal notranslate"><span class="pre">KerasDeepChemModelWrapper.restore()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.model_wrapper.LCTimerIterator"><code class="docutils literal notranslate"><span class="pre">LCTimerIterator</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.model_wrapper.LCTimerKFoldIterator"><code class="docutils literal notranslate"><span class="pre">LCTimerKFoldIterator</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.model_wrapper.ModelWrapper"><code class="docutils literal notranslate"><span class="pre">ModelWrapper</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_wrapper.ModelWrapper.create_transformers"><code class="docutils literal notranslate"><span class="pre">ModelWrapper.create_transformers()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_wrapper.ModelWrapper.generate_embeddings"><code class="docutils literal notranslate"><span class="pre">ModelWrapper.generate_embeddings()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_wrapper.ModelWrapper.generate_predictions"><code class="docutils literal notranslate"><span class="pre">ModelWrapper.generate_predictions()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_wrapper.ModelWrapper.get_full_dataset_perf_data"><code class="docutils literal notranslate"><span class="pre">ModelWrapper.get_full_dataset_perf_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_wrapper.ModelWrapper.get_full_dataset_pred_results"><code class="docutils literal notranslate"><span class="pre">ModelWrapper.get_full_dataset_pred_results()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_wrapper.ModelWrapper.get_model_specific_metadata"><code class="docutils literal notranslate"><span class="pre">ModelWrapper.get_model_specific_metadata()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_wrapper.ModelWrapper.get_num_features"><code class="docutils literal notranslate"><span class="pre">ModelWrapper.get_num_features()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_wrapper.ModelWrapper.get_test_perf_data"><code class="docutils literal notranslate"><span class="pre">ModelWrapper.get_test_perf_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_wrapper.ModelWrapper.get_test_pred_results"><code class="docutils literal notranslate"><span class="pre">ModelWrapper.get_test_pred_results()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_wrapper.ModelWrapper.get_train_valid_pred_results"><code class="docutils literal notranslate"><span class="pre">ModelWrapper.get_train_valid_pred_results()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_wrapper.ModelWrapper.model_save"><code class="docutils literal notranslate"><span class="pre">ModelWrapper.model_save()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_wrapper.ModelWrapper.reload_model"><code class="docutils literal notranslate"><span class="pre">ModelWrapper.reload_model()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_wrapper.ModelWrapper.reload_transformers"><code class="docutils literal notranslate"><span class="pre">ModelWrapper.reload_transformers()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_wrapper.ModelWrapper.setup_model_dirs"><code class="docutils literal notranslate"><span class="pre">ModelWrapper.setup_model_dirs()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_wrapper.ModelWrapper.train"><code class="docutils literal notranslate"><span class="pre">ModelWrapper.train()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_wrapper.ModelWrapper.transform_dataset"><code class="docutils literal notranslate"><span class="pre">ModelWrapper.transform_dataset()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.model_wrapper.MultitaskDCModelWrapper"><code class="docutils literal notranslate"><span class="pre">MultitaskDCModelWrapper</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_wrapper.MultitaskDCModelWrapper.generate_embeddings"><code class="docutils literal notranslate"><span class="pre">MultitaskDCModelWrapper.generate_embeddings()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_wrapper.MultitaskDCModelWrapper.get_model_specific_metadata"><code class="docutils literal notranslate"><span class="pre">MultitaskDCModelWrapper.get_model_specific_metadata()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_wrapper.MultitaskDCModelWrapper.recreate_model"><code class="docutils literal notranslate"><span class="pre">MultitaskDCModelWrapper.recreate_model()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.model_wrapper.NNModelWrapper"><code class="docutils literal notranslate"><span class="pre">NNModelWrapper</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_wrapper.NNModelWrapper.generate_predictions"><code class="docutils literal notranslate"><span class="pre">NNModelWrapper.generate_predictions()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_wrapper.NNModelWrapper.get_perf_data"><code class="docutils literal notranslate"><span class="pre">NNModelWrapper.get_perf_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_wrapper.NNModelWrapper.get_pred_results"><code class="docutils literal notranslate"><span class="pre">NNModelWrapper.get_pred_results()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_wrapper.NNModelWrapper.restore"><code class="docutils literal notranslate"><span class="pre">NNModelWrapper.restore()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_wrapper.NNModelWrapper.train"><code class="docutils literal notranslate"><span class="pre">NNModelWrapper.train()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_wrapper.NNModelWrapper.train_kfold_cv"><code class="docutils literal notranslate"><span class="pre">NNModelWrapper.train_kfold_cv()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_wrapper.NNModelWrapper.train_with_early_stopping"><code class="docutils literal notranslate"><span class="pre">NNModelWrapper.train_with_early_stopping()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.model_wrapper.PytorchDeepChemModelWrapper"><code class="docutils literal notranslate"><span class="pre">PytorchDeepChemModelWrapper</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_wrapper.PytorchDeepChemModelWrapper.count_params"><code class="docutils literal notranslate"><span class="pre">PytorchDeepChemModelWrapper.count_params()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_wrapper.PytorchDeepChemModelWrapper.get_model_specific_metadata"><code class="docutils literal notranslate"><span class="pre">PytorchDeepChemModelWrapper.get_model_specific_metadata()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_wrapper.PytorchDeepChemModelWrapper.recreate_model"><code class="docutils literal notranslate"><span class="pre">PytorchDeepChemModelWrapper.recreate_model()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_wrapper.PytorchDeepChemModelWrapper.reload_model"><code class="docutils literal notranslate"><span class="pre">PytorchDeepChemModelWrapper.reload_model()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.model_wrapper.PytorchDeepChemModelWrapper.restore"><code class="docutils literal notranslate"><span class="pre">PytorchDeepChemModelWrapper.restore()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.model_wrapper.all_bases"><code class="docutils literal notranslate"><span class="pre">all_bases()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.model_wrapper.create_model_wrapper"><code class="docutils literal notranslate"><span class="pre">create_model_wrapper()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.model_wrapper.dc_restore"><code class="docutils literal notranslate"><span class="pre">dc_restore()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.model_wrapper.dc_torch_restore"><code class="docutils literal notranslate"><span class="pre">dc_torch_restore()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.model_wrapper.get_latest_pytorch_checkpoint"><code class="docutils literal notranslate"><span class="pre">get_latest_pytorch_checkpoint()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline.html#module-pipeline.parameter_parser">pipeline.parameter_parser module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.parameter_parser.AutoArgumentAdder"><code class="docutils literal notranslate"><span class="pre">AutoArgumentAdder</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.parameter_parser.AutoArgumentAdder.add_to_parser"><code class="docutils literal notranslate"><span class="pre">AutoArgumentAdder.add_to_parser()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.parameter_parser.AutoArgumentAdder.all_prefixed_names"><code class="docutils literal notranslate"><span class="pre">AutoArgumentAdder.all_prefixed_names()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.parameter_parser.AutoArgumentAdder.extract_params"><code class="docutils literal notranslate"><span class="pre">AutoArgumentAdder.extract_params()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.parameter_parser.AutoArgumentAdder.get_list_args"><code class="docutils literal notranslate"><span class="pre">AutoArgumentAdder.get_list_args()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.parameter_parser.AutoArgumentAdder.get_list_float_args"><code class="docutils literal notranslate"><span class="pre">AutoArgumentAdder.get_list_float_args()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.parameter_parser.AutoArgumentAdder.get_list_int_args"><code class="docutils literal notranslate"><span class="pre">AutoArgumentAdder.get_list_int_args()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.parameter_parser.all_auto_arguments"><code class="docutils literal notranslate"><span class="pre">all_auto_arguments()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.parameter_parser.all_auto_float_lists"><code class="docutils literal notranslate"><span class="pre">all_auto_float_lists()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.parameter_parser.all_auto_int_lists"><code class="docutils literal notranslate"><span class="pre">all_auto_int_lists()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.parameter_parser.all_auto_lists"><code class="docutils literal notranslate"><span class="pre">all_auto_lists()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.parameter_parser.dict_to_list"><code class="docutils literal notranslate"><span class="pre">dict_to_list()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.parameter_parser.extract_featurizer_params"><code class="docutils literal notranslate"><span class="pre">extract_featurizer_params()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.parameter_parser.extract_model_params"><code class="docutils literal notranslate"><span class="pre">extract_model_params()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.parameter_parser.flatten_dict"><code class="docutils literal notranslate"><span class="pre">flatten_dict()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.parameter_parser.get_parser"><code class="docutils literal notranslate"><span class="pre">get_parser()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.parameter_parser.is_list"><code class="docutils literal notranslate"><span class="pre">is_list()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.parameter_parser.is_list_float"><code class="docutils literal notranslate"><span class="pre">is_list_float()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.parameter_parser.is_list_int"><code class="docutils literal notranslate"><span class="pre">is_list_int()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.parameter_parser.is_primative_type"><code class="docutils literal notranslate"><span class="pre">is_primative_type()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.parameter_parser.list_defaults"><code class="docutils literal notranslate"><span class="pre">list_defaults()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.parameter_parser.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.parameter_parser.make_dataset_key_absolute"><code class="docutils literal notranslate"><span class="pre">make_dataset_key_absolute()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.parameter_parser.parse_command_line"><code class="docutils literal notranslate"><span class="pre">parse_command_line()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.parameter_parser.parse_config_file"><code class="docutils literal notranslate"><span class="pre">parse_config_file()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.parameter_parser.parse_namespace"><code class="docutils literal notranslate"><span class="pre">parse_namespace()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.parameter_parser.postprocess_args"><code class="docutils literal notranslate"><span class="pre">postprocess_args()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.parameter_parser.primative_type_only"><code class="docutils literal notranslate"><span class="pre">primative_type_only()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.parameter_parser.prune_defaults"><code class="docutils literal notranslate"><span class="pre">prune_defaults()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.parameter_parser.remove_unrecognized_arguments"><code class="docutils literal notranslate"><span class="pre">remove_unrecognized_arguments()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.parameter_parser.to_str"><code class="docutils literal notranslate"><span class="pre">to_str()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.parameter_parser.wrapper"><code class="docutils literal notranslate"><span class="pre">wrapper()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline.html#module-pipeline.perf_data">pipeline.perf_data module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.perf_data.ClassificationPerfData"><code class="docutils literal notranslate"><span class="pre">ClassificationPerfData</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.perf_data.ClassificationPerfData.accumulate_preds"><code class="docutils literal notranslate"><span class="pre">ClassificationPerfData.accumulate_preds()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.perf_data.ClassificationPerfData.get_pred_values"><code class="docutils literal notranslate"><span class="pre">ClassificationPerfData.get_pred_values()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.perf_data.ClassificationPerfData.get_prediction_results"><code class="docutils literal notranslate"><span class="pre">ClassificationPerfData.get_prediction_results()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.perf_data.ClassificationPerfData.model_choice_score"><code class="docutils literal notranslate"><span class="pre">ClassificationPerfData.model_choice_score()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.perf_data.EpochManager"><code class="docutils literal notranslate"><span class="pre">EpochManager</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.perf_data.EpochManager.accumulate"><code class="docutils literal notranslate"><span class="pre">EpochManager.accumulate()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.perf_data.EpochManager.compute"><code class="docutils literal notranslate"><span class="pre">EpochManager.compute()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.perf_data.EpochManager.on_new_best_valid"><code class="docutils literal notranslate"><span class="pre">EpochManager.on_new_best_valid()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.perf_data.EpochManager.set_make_pred"><code class="docutils literal notranslate"><span class="pre">EpochManager.set_make_pred()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.perf_data.EpochManager.should_stop"><code class="docutils literal notranslate"><span class="pre">EpochManager.should_stop()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.perf_data.EpochManager.update"><code class="docutils literal notranslate"><span class="pre">EpochManager.update()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.perf_data.EpochManager.update_epoch"><code class="docutils literal notranslate"><span class="pre">EpochManager.update_epoch()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.perf_data.EpochManager.update_valid"><code class="docutils literal notranslate"><span class="pre">EpochManager.update_valid()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.perf_data.EpochManagerKFold"><code class="docutils literal notranslate"><span class="pre">EpochManagerKFold</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.perf_data.EpochManagerKFold.compute"><code class="docutils literal notranslate"><span class="pre">EpochManagerKFold.compute()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.perf_data.HybridPerfData"><code class="docutils literal notranslate"><span class="pre">HybridPerfData</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.perf_data.HybridPerfData.accumulate_preds"><code class="docutils literal notranslate"><span class="pre">HybridPerfData.accumulate_preds()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.perf_data.HybridPerfData.compute_perf_metrics"><code class="docutils literal notranslate"><span class="pre">HybridPerfData.compute_perf_metrics()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.perf_data.HybridPerfData.get_pred_values"><code class="docutils literal notranslate"><span class="pre">HybridPerfData.get_pred_values()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.perf_data.HybridPerfData.get_prediction_results"><code class="docutils literal notranslate"><span class="pre">HybridPerfData.get_prediction_results()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.perf_data.HybridPerfData.model_choice_score"><code class="docutils literal notranslate"><span class="pre">HybridPerfData.model_choice_score()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.perf_data.KFoldClassificationPerfData"><code class="docutils literal notranslate"><span class="pre">KFoldClassificationPerfData</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.perf_data.KFoldClassificationPerfData.accumulate_preds"><code class="docutils literal notranslate"><span class="pre">KFoldClassificationPerfData.accumulate_preds()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.perf_data.KFoldClassificationPerfData.compute_perf_metrics"><code class="docutils literal notranslate"><span class="pre">KFoldClassificationPerfData.compute_perf_metrics()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.perf_data.KFoldClassificationPerfData.get_pred_values"><code class="docutils literal notranslate"><span class="pre">KFoldClassificationPerfData.get_pred_values()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.perf_data.KFoldClassificationPerfData.get_real_values"><code class="docutils literal notranslate"><span class="pre">KFoldClassificationPerfData.get_real_values()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.perf_data.KFoldClassificationPerfData.get_weights"><code class="docutils literal notranslate"><span class="pre">KFoldClassificationPerfData.get_weights()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.perf_data.KFoldRegressionPerfData"><code class="docutils literal notranslate"><span class="pre">KFoldRegressionPerfData</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.perf_data.KFoldRegressionPerfData.accumulate_preds"><code class="docutils literal notranslate"><span class="pre">KFoldRegressionPerfData.accumulate_preds()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.perf_data.KFoldRegressionPerfData.compute_perf_metrics"><code class="docutils literal notranslate"><span class="pre">KFoldRegressionPerfData.compute_perf_metrics()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.perf_data.KFoldRegressionPerfData.get_pred_values"><code class="docutils literal notranslate"><span class="pre">KFoldRegressionPerfData.get_pred_values()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.perf_data.KFoldRegressionPerfData.get_real_values"><code class="docutils literal notranslate"><span class="pre">KFoldRegressionPerfData.get_real_values()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.perf_data.KFoldRegressionPerfData.get_weights"><code class="docutils literal notranslate"><span class="pre">KFoldRegressionPerfData.get_weights()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.perf_data.PerfData"><code class="docutils literal notranslate"><span class="pre">PerfData</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.perf_data.PerfData.accumulate_preds"><code class="docutils literal notranslate"><span class="pre">PerfData.accumulate_preds()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.perf_data.PerfData.compute_perf_metrics"><code class="docutils literal notranslate"><span class="pre">PerfData.compute_perf_metrics()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.perf_data.PerfData.get_pred_values"><code class="docutils literal notranslate"><span class="pre">PerfData.get_pred_values()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.perf_data.PerfData.get_prediction_results"><code class="docutils literal notranslate"><span class="pre">PerfData.get_prediction_results()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.perf_data.PerfData.get_real_values"><code class="docutils literal notranslate"><span class="pre">PerfData.get_real_values()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.perf_data.PerfData.get_weights"><code class="docutils literal notranslate"><span class="pre">PerfData.get_weights()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.perf_data.RegressionPerfData"><code class="docutils literal notranslate"><span class="pre">RegressionPerfData</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.perf_data.RegressionPerfData.accumulate_preds"><code class="docutils literal notranslate"><span class="pre">RegressionPerfData.accumulate_preds()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.perf_data.RegressionPerfData.compute_perf_metrics"><code class="docutils literal notranslate"><span class="pre">RegressionPerfData.compute_perf_metrics()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.perf_data.RegressionPerfData.get_pred_values"><code class="docutils literal notranslate"><span class="pre">RegressionPerfData.get_pred_values()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.perf_data.RegressionPerfData.get_prediction_results"><code class="docutils literal notranslate"><span class="pre">RegressionPerfData.get_prediction_results()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.perf_data.RegressionPerfData.model_choice_score"><code class="docutils literal notranslate"><span class="pre">RegressionPerfData.model_choice_score()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.perf_data.SimpleClassificationPerfData"><code class="docutils literal notranslate"><span class="pre">SimpleClassificationPerfData</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.perf_data.SimpleClassificationPerfData.accumulate_preds"><code class="docutils literal notranslate"><span class="pre">SimpleClassificationPerfData.accumulate_preds()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.perf_data.SimpleClassificationPerfData.compute_perf_metrics"><code class="docutils literal notranslate"><span class="pre">SimpleClassificationPerfData.compute_perf_metrics()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.perf_data.SimpleClassificationPerfData.get_pred_values"><code class="docutils literal notranslate"><span class="pre">SimpleClassificationPerfData.get_pred_values()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.perf_data.SimpleClassificationPerfData.get_real_values"><code class="docutils literal notranslate"><span class="pre">SimpleClassificationPerfData.get_real_values()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.perf_data.SimpleClassificationPerfData.get_weights"><code class="docutils literal notranslate"><span class="pre">SimpleClassificationPerfData.get_weights()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.perf_data.SimpleHybridPerfData"><code class="docutils literal notranslate"><span class="pre">SimpleHybridPerfData</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.perf_data.SimpleHybridPerfData.accumulate_preds"><code class="docutils literal notranslate"><span class="pre">SimpleHybridPerfData.accumulate_preds()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.perf_data.SimpleHybridPerfData.compute_perf_metrics"><code class="docutils literal notranslate"><span class="pre">SimpleHybridPerfData.compute_perf_metrics()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.perf_data.SimpleHybridPerfData.get_pred_values"><code class="docutils literal notranslate"><span class="pre">SimpleHybridPerfData.get_pred_values()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.perf_data.SimpleHybridPerfData.get_real_values"><code class="docutils literal notranslate"><span class="pre">SimpleHybridPerfData.get_real_values()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.perf_data.SimpleHybridPerfData.get_weights"><code class="docutils literal notranslate"><span class="pre">SimpleHybridPerfData.get_weights()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.perf_data.SimpleRegressionPerfData"><code class="docutils literal notranslate"><span class="pre">SimpleRegressionPerfData</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.perf_data.SimpleRegressionPerfData.accumulate_preds"><code class="docutils literal notranslate"><span class="pre">SimpleRegressionPerfData.accumulate_preds()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.perf_data.SimpleRegressionPerfData.compute_perf_metrics"><code class="docutils literal notranslate"><span class="pre">SimpleRegressionPerfData.compute_perf_metrics()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.perf_data.SimpleRegressionPerfData.get_pred_values"><code class="docutils literal notranslate"><span class="pre">SimpleRegressionPerfData.get_pred_values()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.perf_data.SimpleRegressionPerfData.get_real_values"><code class="docutils literal notranslate"><span class="pre">SimpleRegressionPerfData.get_real_values()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.perf_data.SimpleRegressionPerfData.get_weights"><code class="docutils literal notranslate"><span class="pre">SimpleRegressionPerfData.get_weights()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.perf_data.create_perf_data"><code class="docutils literal notranslate"><span class="pre">create_perf_data()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.perf_data.negative_predictive_value"><code class="docutils literal notranslate"><span class="pre">negative_predictive_value()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.perf_data.rms_error"><code class="docutils literal notranslate"><span class="pre">rms_error()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline.html#module-pipeline.perf_plots">pipeline.perf_plots module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.perf_plots.plot_ROC_curve"><code class="docutils literal notranslate"><span class="pre">plot_ROC_curve()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.perf_plots.plot_perf_vs_epoch"><code class="docutils literal notranslate"><span class="pre">plot_perf_vs_epoch()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.perf_plots.plot_prec_recall_curve"><code class="docutils literal notranslate"><span class="pre">plot_prec_recall_curve()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.perf_plots.plot_pred_vs_actual"><code class="docutils literal notranslate"><span class="pre">plot_pred_vs_actual()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.perf_plots.plot_umap_feature_projections"><code class="docutils literal notranslate"><span class="pre">plot_umap_feature_projections()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.perf_plots.plot_umap_train_set_neighbors"><code class="docutils literal notranslate"><span class="pre">plot_umap_train_set_neighbors()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline.html#module-pipeline.splitting">pipeline.splitting module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.splitting.DatasetManager"><code class="docutils literal notranslate"><span class="pre">DatasetManager</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.splitting.DatasetManager.compact_dataset"><code class="docutils literal notranslate"><span class="pre">DatasetManager.compact_dataset()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.splitting.DatasetManager.expand_selection"><code class="docutils literal notranslate"><span class="pre">DatasetManager.expand_selection()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.splitting.KFoldSplitting"><code class="docutils literal notranslate"><span class="pre">KFoldSplitting</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.splitting.KFoldSplitting.get_split_prefix"><code class="docutils literal notranslate"><span class="pre">KFoldSplitting.get_split_prefix()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.splitting.KFoldSplitting.split_dataset"><code class="docutils literal notranslate"><span class="pre">KFoldSplitting.split_dataset()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.splitting.Splitting"><code class="docutils literal notranslate"><span class="pre">Splitting</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.splitting.Splitting.get_split_prefix"><code class="docutils literal notranslate"><span class="pre">Splitting.get_split_prefix()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.splitting.Splitting.needs_smiles"><code class="docutils literal notranslate"><span class="pre">Splitting.needs_smiles()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.splitting.Splitting.split_dataset"><code class="docutils literal notranslate"><span class="pre">Splitting.split_dataset()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.splitting.TrainValidTestSplitting"><code class="docutils literal notranslate"><span class="pre">TrainValidTestSplitting</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.splitting.TrainValidTestSplitting.get_split_prefix"><code class="docutils literal notranslate"><span class="pre">TrainValidTestSplitting.get_split_prefix()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.splitting.TrainValidTestSplitting.split_dataset"><code class="docutils literal notranslate"><span class="pre">TrainValidTestSplitting.split_dataset()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.splitting.check_if_dupe_smiles_dataset"><code class="docutils literal notranslate"><span class="pre">check_if_dupe_smiles_dataset()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.splitting.create_splitting"><code class="docutils literal notranslate"><span class="pre">create_splitting()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.splitting.select_attrs_by_dset_ids"><code class="docutils literal notranslate"><span class="pre">select_attrs_by_dset_ids()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.splitting.select_attrs_by_dset_smiles"><code class="docutils literal notranslate"><span class="pre">select_attrs_by_dset_smiles()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.splitting.select_dset_by_attr_ids"><code class="docutils literal notranslate"><span class="pre">select_dset_by_attr_ids()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.splitting.select_dset_by_id_list"><code class="docutils literal notranslate"><span class="pre">select_dset_by_id_list()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline.html#module-pipeline.transformations">pipeline.transformations module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.transformations.NormalizationTransformerHybrid"><code class="docutils literal notranslate"><span class="pre">NormalizationTransformerHybrid</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.transformations.NormalizationTransformerHybrid.transform"><code class="docutils literal notranslate"><span class="pre">NormalizationTransformerHybrid.transform()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.transformations.NormalizationTransformerHybrid.transform_array"><code class="docutils literal notranslate"><span class="pre">NormalizationTransformerHybrid.transform_array()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.transformations.NormalizationTransformerHybrid.untransform"><code class="docutils literal notranslate"><span class="pre">NormalizationTransformerHybrid.untransform()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.transformations.NormalizationTransformerMissingData"><code class="docutils literal notranslate"><span class="pre">NormalizationTransformerMissingData</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.transformations.NormalizationTransformerMissingData.transform"><code class="docutils literal notranslate"><span class="pre">NormalizationTransformerMissingData.transform()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.transformations.NormalizationTransformerMissingData.transform_array"><code class="docutils literal notranslate"><span class="pre">NormalizationTransformerMissingData.transform_array()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.transformations.NormalizationTransformerMissingData.untransform"><code class="docutils literal notranslate"><span class="pre">NormalizationTransformerMissingData.untransform()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.transformations.UMAPTransformer"><code class="docutils literal notranslate"><span class="pre">UMAPTransformer</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.transformations.UMAPTransformer.transform"><code class="docutils literal notranslate"><span class="pre">UMAPTransformer.transform()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.transformations.UMAPTransformer.transform_array"><code class="docutils literal notranslate"><span class="pre">UMAPTransformer.transform_array()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#pipeline.transformations.UMAPTransformer.untransform"><code class="docutils literal notranslate"><span class="pre">UMAPTransformer.untransform()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.transformations.create_feature_transformers"><code class="docutils literal notranslate"><span class="pre">create_feature_transformers()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.transformations.create_weight_transformers"><code class="docutils literal notranslate"><span class="pre">create_weight_transformers()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.transformations.get_statistics_missing_ydata"><code class="docutils literal notranslate"><span class="pre">get_statistics_missing_ydata()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.transformations.get_transformer_specific_metadata"><code class="docutils literal notranslate"><span class="pre">get_transformer_specific_metadata()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#pipeline.transformations.transformers_needed"><code class="docutils literal notranslate"><span class="pre">transformers_needed()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="pipeline.html#module-pipeline">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="utils.html">utils package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="utils.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="utils.html#module-utils.curate_data">utils.curate_data module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="utils.html#module-utils.data_curation_functions">utils.data_curation_functions module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="utils.html#module-utils.datastore_functions">utils.datastore_functions module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="utils.html#module-utils.genTestset">utils.genTestset module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="utils.html#module-utils.hyperparam_search_wrapper">utils.hyperparam_search_wrapper module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="utils.html#module-utils.llnl_utils">utils.llnl_utils module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="utils.html#module-utils.model_retrain">utils.model_retrain module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#module-utils.checksum_utils">utils.checksum_utils module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.checksum_utils.create_checksum"><code class="docutils literal notranslate"><span class="pre">create_checksum()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.checksum_utils.get_dataset_hash_from_tar"><code class="docutils literal notranslate"><span class="pre">get_dataset_hash_from_tar()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.checksum_utils.uses_same_training_data_by_datasets"><code class="docutils literal notranslate"><span class="pre">uses_same_training_data_by_datasets()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.checksum_utils.uses_same_training_data_by_tarballs"><code class="docutils literal notranslate"><span class="pre">uses_same_training_data_by_tarballs()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#module-utils.compare_split_csv">utils.compare_split_csv module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.compare_split_csv.compare_split_files"><code class="docutils literal notranslate"><span class="pre">compare_split_files()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.compare_split_csv.compare_splits"><code class="docutils literal notranslate"><span class="pre">compare_splits()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.compare_split_csv.parse_args"><code class="docutils literal notranslate"><span class="pre">parse_args()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#module-utils.compare_splits_plots">utils.compare_splits_plots module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.compare_splits_plots.SplitStats"><code class="docutils literal notranslate"><span class="pre">SplitStats</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="utils.html#utils.compare_splits_plots.SplitStats.dist_hist_plot"><code class="docutils literal notranslate"><span class="pre">SplitStats.dist_hist_plot()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="utils.html#utils.compare_splits_plots.SplitStats.make_all_plots"><code class="docutils literal notranslate"><span class="pre">SplitStats.make_all_plots()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="utils.html#utils.compare_splits_plots.SplitStats.print_stats"><code class="docutils literal notranslate"><span class="pre">SplitStats.print_stats()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="utils.html#utils.compare_splits_plots.SplitStats.subset_frac_plot"><code class="docutils literal notranslate"><span class="pre">SplitStats.subset_frac_plot()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="utils.html#utils.compare_splits_plots.SplitStats.umap_plot"><code class="docutils literal notranslate"><span class="pre">SplitStats.umap_plot()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.compare_splits_plots.parse_args"><code class="docutils literal notranslate"><span class="pre">parse_args()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.compare_splits_plots.save_figure"><code class="docutils literal notranslate"><span class="pre">save_figure()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.compare_splits_plots.split"><code class="docutils literal notranslate"><span class="pre">split()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#module-utils.curate_data">utils.curate_data module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.curate_data.add_classification_column"><code class="docutils literal notranslate"><span class="pre">add_classification_column()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.curate_data.aggregate_assay_data"><code class="docutils literal notranslate"><span class="pre">aggregate_assay_data()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.curate_data.average_and_remove_duplicates"><code class="docutils literal notranslate"><span class="pre">average_and_remove_duplicates()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.curate_data.create_new_rows_for_extra_results"><code class="docutils literal notranslate"><span class="pre">create_new_rows_for_extra_results()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.curate_data.filter_in_by_column_values"><code class="docutils literal notranslate"><span class="pre">filter_in_by_column_values()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.curate_data.filter_in_out_by_column_values"><code class="docutils literal notranslate"><span class="pre">filter_in_out_by_column_values()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.curate_data.filter_out_by_column_values"><code class="docutils literal notranslate"><span class="pre">filter_out_by_column_values()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.curate_data.filter_out_comments"><code class="docutils literal notranslate"><span class="pre">filter_out_comments()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.curate_data.freq_table"><code class="docutils literal notranslate"><span class="pre">freq_table()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.curate_data.get_rdkit_smiles_parent"><code class="docutils literal notranslate"><span class="pre">get_rdkit_smiles_parent()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.curate_data.labeled_freq_table"><code class="docutils literal notranslate"><span class="pre">labeled_freq_table()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.curate_data.mle_censored_mean"><code class="docutils literal notranslate"><span class="pre">mle_censored_mean()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.curate_data.remove_outlier_replicates"><code class="docutils literal notranslate"><span class="pre">remove_outlier_replicates()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.curate_data.replicate_rmsd"><code class="docutils literal notranslate"><span class="pre">replicate_rmsd()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.curate_data.set_group_permissions"><code class="docutils literal notranslate"><span class="pre">set_group_permissions()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.curate_data.summarize_data"><code class="docutils literal notranslate"><span class="pre">summarize_data()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.curate_data.xc50topxc50_for_nm"><code class="docutils literal notranslate"><span class="pre">xc50topxc50_for_nm()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#module-utils.data_curation_functions">utils.data_curation_functions module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.data_curation_functions.atom_curation"><code class="docutils literal notranslate"><span class="pre">atom_curation()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.data_curation_functions.atom_curation_excape"><code class="docutils literal notranslate"><span class="pre">atom_curation_excape()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.data_curation_functions.down_select"><code class="docutils literal notranslate"><span class="pre">down_select()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.data_curation_functions.exclude_organometallics"><code class="docutils literal notranslate"><span class="pre">exclude_organometallics()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.data_curation_functions.filter_dtc_data"><code class="docutils literal notranslate"><span class="pre">filter_dtc_data()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.data_curation_functions.get_smiles_4dtc_data"><code class="docutils literal notranslate"><span class="pre">get_smiles_4dtc_data()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.data_curation_functions.get_smiles_dtc_data"><code class="docutils literal notranslate"><span class="pre">get_smiles_dtc_data()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.data_curation_functions.get_smiles_excape_data"><code class="docutils literal notranslate"><span class="pre">get_smiles_excape_data()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.data_curation_functions.ic50topic50"><code class="docutils literal notranslate"><span class="pre">ic50topic50()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.data_curation_functions.is_organometallic"><code class="docutils literal notranslate"><span class="pre">is_organometallic()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.data_curation_functions.set_data_root"><code class="docutils literal notranslate"><span class="pre">set_data_root()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.data_curation_functions.standardize_relations"><code class="docutils literal notranslate"><span class="pre">standardize_relations()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.data_curation_functions.upload_df_dtc_base_smiles_all"><code class="docutils literal notranslate"><span class="pre">upload_df_dtc_base_smiles_all()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.data_curation_functions.upload_df_dtc_mleqonly"><code class="docutils literal notranslate"><span class="pre">upload_df_dtc_mleqonly()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.data_curation_functions.upload_df_dtc_mleqonly_class"><code class="docutils literal notranslate"><span class="pre">upload_df_dtc_mleqonly_class()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.data_curation_functions.upload_df_dtc_smiles"><code class="docutils literal notranslate"><span class="pre">upload_df_dtc_smiles()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.data_curation_functions.upload_df_dtc_smiles_regr_all_class"><code class="docutils literal notranslate"><span class="pre">upload_df_dtc_smiles_regr_all_class()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.data_curation_functions.upload_df_excape_mleqonly"><code class="docutils literal notranslate"><span class="pre">upload_df_excape_mleqonly()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.data_curation_functions.upload_df_excape_mleqonly_class"><code class="docutils literal notranslate"><span class="pre">upload_df_excape_mleqonly_class()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.data_curation_functions.upload_df_excape_smiles"><code class="docutils literal notranslate"><span class="pre">upload_df_excape_smiles()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.data_curation_functions.upload_file_dtc_raw_data"><code class="docutils literal notranslate"><span class="pre">upload_file_dtc_raw_data()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.data_curation_functions.upload_file_dtc_smiles_regr_all"><code class="docutils literal notranslate"><span class="pre">upload_file_dtc_smiles_regr_all()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.data_curation_functions.upload_file_excape_raw_data"><code class="docutils literal notranslate"><span class="pre">upload_file_excape_raw_data()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#module-utils.datastore_functions">utils.datastore_functions module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.datastore_functions.bulk_export_kv_for_files"><code class="docutils literal notranslate"><span class="pre">bulk_export_kv_for_files()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.datastore_functions.bulk_update_kv"><code class="docutils literal notranslate"><span class="pre">bulk_update_kv()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.datastore_functions.check_key_val"><code class="docutils literal notranslate"><span class="pre">check_key_val()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.datastore_functions.config_client"><code class="docutils literal notranslate"><span class="pre">config_client()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.datastore_functions.copy_datasets_to_bucket"><code class="docutils literal notranslate"><span class="pre">copy_datasets_to_bucket()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.datastore_functions.dataset_key_exists"><code class="docutils literal notranslate"><span class="pre">dataset_key_exists()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.datastore_functions.filter_datasets_interactive"><code class="docutils literal notranslate"><span class="pre">filter_datasets_interactive()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.datastore_functions.get_key_val"><code class="docutils literal notranslate"><span class="pre">get_key_val()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.datastore_functions.get_keyval"><code class="docutils literal notranslate"><span class="pre">get_keyval()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.datastore_functions.initialize_model_tracker"><code class="docutils literal notranslate"><span class="pre">initialize_model_tracker()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.datastore_functions.key_exists"><code class="docutils literal notranslate"><span class="pre">key_exists()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.datastore_functions.list_key_values"><code class="docutils literal notranslate"><span class="pre">list_key_values()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.datastore_functions.repeat_defined_search"><code class="docutils literal notranslate"><span class="pre">repeat_defined_search()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.datastore_functions.retrieve_bucket_names"><code class="docutils literal notranslate"><span class="pre">retrieve_bucket_names()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.datastore_functions.retrieve_columns_from_dataset"><code class="docutils literal notranslate"><span class="pre">retrieve_columns_from_dataset()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.datastore_functions.retrieve_dataset_by_dataset_oid"><code class="docutils literal notranslate"><span class="pre">retrieve_dataset_by_dataset_oid()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.datastore_functions.retrieve_dataset_by_datasetkey"><code class="docutils literal notranslate"><span class="pre">retrieve_dataset_by_datasetkey()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.datastore_functions.retrieve_keys"><code class="docutils literal notranslate"><span class="pre">retrieve_keys()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.datastore_functions.retrieve_values_for_key"><code class="docutils literal notranslate"><span class="pre">retrieve_values_for_key()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.datastore_functions.search_datasets_by_key_value"><code class="docutils literal notranslate"><span class="pre">search_datasets_by_key_value()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.datastore_functions.search_files_interactive"><code class="docutils literal notranslate"><span class="pre">search_files_interactive()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.datastore_functions.string_to_dict"><code class="docutils literal notranslate"><span class="pre">string_to_dict()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.datastore_functions.string_to_list"><code class="docutils literal notranslate"><span class="pre">string_to_list()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.datastore_functions.summarize_datasets"><code class="docutils literal notranslate"><span class="pre">summarize_datasets()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.datastore_functions.update_distribution_kv"><code class="docutils literal notranslate"><span class="pre">update_distribution_kv()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.datastore_functions.update_kv"><code class="docutils literal notranslate"><span class="pre">update_kv()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.datastore_functions.upload_df_to_DS"><code class="docutils literal notranslate"><span class="pre">upload_df_to_DS()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.datastore_functions.upload_file_to_DS"><code class="docutils literal notranslate"><span class="pre">upload_file_to_DS()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.datastore_functions.upload_pickle_to_DS"><code class="docutils literal notranslate"><span class="pre">upload_pickle_to_DS()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#module-utils.file_utils">utils.file_utils module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.file_utils.is_within_directory"><code class="docutils literal notranslate"><span class="pre">is_within_directory()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.file_utils.safe_extract"><code class="docutils literal notranslate"><span class="pre">safe_extract()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#module-utils.genTestset">utils.genTestset module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.genTestset.Union"><code class="docutils literal notranslate"><span class="pre">Union()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.genTestset.aggregate_basesmiles"><code class="docutils literal notranslate"><span class="pre">aggregate_basesmiles()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.genTestset.genUnionSet"><code class="docutils literal notranslate"><span class="pre">genUnionSet()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.genTestset.generateTestset"><code class="docutils literal notranslate"><span class="pre">generateTestset()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.genTestset.intersection"><code class="docutils literal notranslate"><span class="pre">intersection()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#module-utils.hyperparam_search_wrapper">utils.hyperparam_search_wrapper module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.hyperparam_search_wrapper.GeometricSearch"><code class="docutils literal notranslate"><span class="pre">GeometricSearch</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="utils.html#utils.hyperparam_search_wrapper.GeometricSearch.generate_assay_list"><code class="docutils literal notranslate"><span class="pre">GeometricSearch.generate_assay_list()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="utils.html#utils.hyperparam_search_wrapper.GeometricSearch.generate_combo"><code class="docutils literal notranslate"><span class="pre">GeometricSearch.generate_combo()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="utils.html#utils.hyperparam_search_wrapper.GeometricSearch.generate_param_combos"><code class="docutils literal notranslate"><span class="pre">GeometricSearch.generate_param_combos()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="utils.html#utils.hyperparam_search_wrapper.GeometricSearch.split_and_save_dataset"><code class="docutils literal notranslate"><span class="pre">GeometricSearch.split_and_save_dataset()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.hyperparam_search_wrapper.GridSearch"><code class="docutils literal notranslate"><span class="pre">GridSearch</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="utils.html#utils.hyperparam_search_wrapper.GridSearch.generate_assay_list"><code class="docutils literal notranslate"><span class="pre">GridSearch.generate_assay_list()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="utils.html#utils.hyperparam_search_wrapper.GridSearch.generate_combo"><code class="docutils literal notranslate"><span class="pre">GridSearch.generate_combo()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="utils.html#utils.hyperparam_search_wrapper.GridSearch.generate_param_combos"><code class="docutils literal notranslate"><span class="pre">GridSearch.generate_param_combos()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="utils.html#utils.hyperparam_search_wrapper.GridSearch.split_and_save_dataset"><code class="docutils literal notranslate"><span class="pre">GridSearch.split_and_save_dataset()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.hyperparam_search_wrapper.HyperOptSearch"><code class="docutils literal notranslate"><span class="pre">HyperOptSearch</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="utils.html#utils.hyperparam_search_wrapper.HyperOptSearch.run_search"><code class="docutils literal notranslate"><span class="pre">HyperOptSearch.run_search()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.hyperparam_search_wrapper.HyperparameterSearch"><code class="docutils literal notranslate"><span class="pre">HyperparameterSearch</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="utils.html#utils.hyperparam_search_wrapper.HyperparameterSearch.already_run"><code class="docutils literal notranslate"><span class="pre">HyperparameterSearch.already_run()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="utils.html#utils.hyperparam_search_wrapper.HyperparameterSearch.assemble_layers"><code class="docutils literal notranslate"><span class="pre">HyperparameterSearch.assemble_layers()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="utils.html#utils.hyperparam_search_wrapper.HyperparameterSearch.build_jobs"><code class="docutils literal notranslate"><span class="pre">HyperparameterSearch.build_jobs()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="utils.html#utils.hyperparam_search_wrapper.HyperparameterSearch.filter_jobs"><code class="docutils literal notranslate"><span class="pre">HyperparameterSearch.filter_jobs()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="utils.html#utils.hyperparam_search_wrapper.HyperparameterSearch.generate_assay_list"><code class="docutils literal notranslate"><span class="pre">HyperparameterSearch.generate_assay_list()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="utils.html#utils.hyperparam_search_wrapper.HyperparameterSearch.generate_combo"><code class="docutils literal notranslate"><span class="pre">HyperparameterSearch.generate_combo()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="utils.html#utils.hyperparam_search_wrapper.HyperparameterSearch.generate_combos"><code class="docutils literal notranslate"><span class="pre">HyperparameterSearch.generate_combos()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="utils.html#utils.hyperparam_search_wrapper.HyperparameterSearch.generate_maestro_commands"><code class="docutils literal notranslate"><span class="pre">HyperparameterSearch.generate_maestro_commands()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="utils.html#utils.hyperparam_search_wrapper.HyperparameterSearch.generate_param_combos"><code class="docutils literal notranslate"><span class="pre">HyperparameterSearch.generate_param_combos()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="utils.html#utils.hyperparam_search_wrapper.HyperparameterSearch.generate_searches"><code class="docutils literal notranslate"><span class="pre">HyperparameterSearch.generate_searches()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="utils.html#utils.hyperparam_search_wrapper.HyperparameterSearch.generate_split_shortlist"><code class="docutils literal notranslate"><span class="pre">HyperparameterSearch.generate_split_shortlist()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="utils.html#utils.hyperparam_search_wrapper.HyperparameterSearch.generate_split_shortlist_file"><code class="docutils literal notranslate"><span class="pre">HyperparameterSearch.generate_split_shortlist_file()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="utils.html#utils.hyperparam_search_wrapper.HyperparameterSearch.get_dataset_metadata"><code class="docutils literal notranslate"><span class="pre">HyperparameterSearch.get_dataset_metadata()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="utils.html#utils.hyperparam_search_wrapper.HyperparameterSearch.get_shortlist_df"><code class="docutils literal notranslate"><span class="pre">HyperparameterSearch.get_shortlist_df()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="utils.html#utils.hyperparam_search_wrapper.HyperparameterSearch.return_split_uuid"><code class="docutils literal notranslate"><span class="pre">HyperparameterSearch.return_split_uuid()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="utils.html#utils.hyperparam_search_wrapper.HyperparameterSearch.return_split_uuid_file"><code class="docutils literal notranslate"><span class="pre">HyperparameterSearch.return_split_uuid_file()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="utils.html#utils.hyperparam_search_wrapper.HyperparameterSearch.run_search"><code class="docutils literal notranslate"><span class="pre">HyperparameterSearch.run_search()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="utils.html#utils.hyperparam_search_wrapper.HyperparameterSearch.split_and_save_dataset"><code class="docutils literal notranslate"><span class="pre">HyperparameterSearch.split_and_save_dataset()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="utils.html#utils.hyperparam_search_wrapper.HyperparameterSearch.submit_jobs"><code class="docutils literal notranslate"><span class="pre">HyperparameterSearch.submit_jobs()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.hyperparam_search_wrapper.RandomSearch"><code class="docutils literal notranslate"><span class="pre">RandomSearch</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="utils.html#utils.hyperparam_search_wrapper.RandomSearch.generate_assay_list"><code class="docutils literal notranslate"><span class="pre">RandomSearch.generate_assay_list()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="utils.html#utils.hyperparam_search_wrapper.RandomSearch.generate_combo"><code class="docutils literal notranslate"><span class="pre">RandomSearch.generate_combo()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="utils.html#utils.hyperparam_search_wrapper.RandomSearch.generate_param_combos"><code class="docutils literal notranslate"><span class="pre">RandomSearch.generate_param_combos()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="utils.html#utils.hyperparam_search_wrapper.RandomSearch.split_and_save_dataset"><code class="docutils literal notranslate"><span class="pre">RandomSearch.split_and_save_dataset()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.hyperparam_search_wrapper.UserSpecifiedSearch"><code class="docutils literal notranslate"><span class="pre">UserSpecifiedSearch</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="utils.html#utils.hyperparam_search_wrapper.UserSpecifiedSearch.generate_assay_list"><code class="docutils literal notranslate"><span class="pre">UserSpecifiedSearch.generate_assay_list()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="utils.html#utils.hyperparam_search_wrapper.UserSpecifiedSearch.generate_combo"><code class="docutils literal notranslate"><span class="pre">UserSpecifiedSearch.generate_combo()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="utils.html#utils.hyperparam_search_wrapper.UserSpecifiedSearch.generate_param_combos"><code class="docutils literal notranslate"><span class="pre">UserSpecifiedSearch.generate_param_combos()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="utils.html#utils.hyperparam_search_wrapper.UserSpecifiedSearch.split_and_save_dataset"><code class="docutils literal notranslate"><span class="pre">UserSpecifiedSearch.split_and_save_dataset()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.hyperparam_search_wrapper.build_hyperopt_search_domain"><code class="docutils literal notranslate"><span class="pre">build_hyperopt_search_domain()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.hyperparam_search_wrapper.build_search"><code class="docutils literal notranslate"><span class="pre">build_search()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.hyperparam_search_wrapper.gen_maestro_command"><code class="docutils literal notranslate"><span class="pre">gen_maestro_command()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.hyperparam_search_wrapper.get_num_params"><code class="docutils literal notranslate"><span class="pre">get_num_params()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.hyperparam_search_wrapper.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.hyperparam_search_wrapper.parse_params"><code class="docutils literal notranslate"><span class="pre">parse_params()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.hyperparam_search_wrapper.permutate_NNlayer_combo_params"><code class="docutils literal notranslate"><span class="pre">permutate_NNlayer_combo_params()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.hyperparam_search_wrapper.reformat_filter_dict"><code class="docutils literal notranslate"><span class="pre">reformat_filter_dict()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.hyperparam_search_wrapper.run_cmd"><code class="docutils literal notranslate"><span class="pre">run_cmd()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.hyperparam_search_wrapper.run_command"><code class="docutils literal notranslate"><span class="pre">run_command()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#module-utils.llnl_utils">utils.llnl_utils module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.llnl_utils.get_command_output"><code class="docutils literal notranslate"><span class="pre">get_command_output()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.llnl_utils.get_my_username"><code class="docutils literal notranslate"><span class="pre">get_my_username()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.llnl_utils.is_lc_system"><code class="docutils literal notranslate"><span class="pre">is_lc_system()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.llnl_utils.throttle_jobs"><code class="docutils literal notranslate"><span class="pre">throttle_jobs()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#module-utils.many_to_one">utils.many_to_one module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.many_to_one.ManyToOneException"><code class="docutils literal notranslate"><span class="pre">ManyToOneException</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.many_to_one.NANCompoundIDException"><code class="docutils literal notranslate"><span class="pre">NANCompoundIDException</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.many_to_one.NANSMILESException"><code class="docutils literal notranslate"><span class="pre">NANSMILESException</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.many_to_one.has_nans"><code class="docutils literal notranslate"><span class="pre">has_nans()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.many_to_one.many_to_one"><code class="docutils literal notranslate"><span class="pre">many_to_one()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.many_to_one.many_to_one_df"><code class="docutils literal notranslate"><span class="pre">many_to_one_df()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.many_to_one.no_nan_ids_or_smiles"><code class="docutils literal notranslate"><span class="pre">no_nan_ids_or_smiles()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#module-utils.model_retrain">utils.model_retrain module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.model_retrain.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.model_retrain.train_model"><code class="docutils literal notranslate"><span class="pre">train_model()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.model_retrain.train_model_from_tar"><code class="docutils literal notranslate"><span class="pre">train_model_from_tar()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.model_retrain.train_model_from_tracker"><code class="docutils literal notranslate"><span class="pre">train_model_from_tracker()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.model_retrain.train_models_from_dataset_keys"><code class="docutils literal notranslate"><span class="pre">train_models_from_dataset_keys()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#module-utils.model_version_utils">utils.model_version_utils module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.model_version_utils.check_version_compatible"><code class="docutils literal notranslate"><span class="pre">check_version_compatible()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.model_version_utils.get_ampl_version"><code class="docutils literal notranslate"><span class="pre">get_ampl_version()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.model_version_utils.get_ampl_version_from_dir"><code class="docutils literal notranslate"><span class="pre">get_ampl_version_from_dir()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.model_version_utils.get_ampl_version_from_json"><code class="docutils literal notranslate"><span class="pre">get_ampl_version_from_json()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.model_version_utils.get_ampl_version_from_model"><code class="docutils literal notranslate"><span class="pre">get_ampl_version_from_model()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.model_version_utils.get_major_version"><code class="docutils literal notranslate"><span class="pre">get_major_version()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.model_version_utils.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.model_version_utils.validate_version"><code class="docutils literal notranslate"><span class="pre">validate_version()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="utils.html#utils-open-docs-module">utils.open-docs module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="utils.html#module-utils.process_slurm">utils.process_slurm module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="utils.html#module-utils.pubchem_utils">utils.pubchem_utils module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="utils.html#module-utils.rdkit_easy">utils.rdkit_easy module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="utils.html#module-utils.struct_utils">utils.struct_utils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#module-utils.process_slurm">utils.process_slurm module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.process_slurm.get_timings"><code class="docutils literal notranslate"><span class="pre">get_timings()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.process_slurm.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.process_slurm.move_failed_slurm"><code class="docutils literal notranslate"><span class="pre">move_failed_slurm()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.process_slurm.rerun_failed"><code class="docutils literal notranslate"><span class="pre">rerun_failed()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.process_slurm.run_cmd"><code class="docutils literal notranslate"><span class="pre">run_cmd()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.process_slurm.run_command"><code class="docutils literal notranslate"><span class="pre">run_command()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#module-utils.pubchem_utils">utils.pubchem_utils module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.pubchem_utils.download_SID_from_bioactivity_assay"><code class="docutils literal notranslate"><span class="pre">download_SID_from_bioactivity_assay()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.pubchem_utils.download_activitytype"><code class="docutils literal notranslate"><span class="pre">download_activitytype()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.pubchem_utils.download_bioactivity_assay"><code class="docutils literal notranslate"><span class="pre">download_bioactivity_assay()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.pubchem_utils.download_dose_response_from_bioactivity"><code class="docutils literal notranslate"><span class="pre">download_dose_response_from_bioactivity()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.pubchem_utils.download_smiles"><code class="docutils literal notranslate"><span class="pre">download_smiles()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#module-utils.rdkit_easy">utils.rdkit_easy module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.rdkit_easy.add_mol_column"><code class="docutils literal notranslate"><span class="pre">add_mol_column()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.rdkit_easy.calculate_descriptors"><code class="docutils literal notranslate"><span class="pre">calculate_descriptors()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.rdkit_easy.cluster_dataframe"><code class="docutils literal notranslate"><span class="pre">cluster_dataframe()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.rdkit_easy.cluster_fingerprints"><code class="docutils literal notranslate"><span class="pre">cluster_fingerprints()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.rdkit_easy.matching_atoms_and_bonds"><code class="docutils literal notranslate"><span class="pre">matching_atoms_and_bonds()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.rdkit_easy.mol_to_html"><code class="docutils literal notranslate"><span class="pre">mol_to_html()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.rdkit_easy.mol_to_pil"><code class="docutils literal notranslate"><span class="pre">mol_to_pil()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.rdkit_easy.mol_to_svg"><code class="docutils literal notranslate"><span class="pre">mol_to_svg()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.rdkit_easy.save_png"><code class="docutils literal notranslate"><span class="pre">save_png()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.rdkit_easy.save_svg"><code class="docutils literal notranslate"><span class="pre">save_svg()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.rdkit_easy.setup_notebook"><code class="docutils literal notranslate"><span class="pre">setup_notebook()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.rdkit_easy.show_df"><code class="docutils literal notranslate"><span class="pre">show_df()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.rdkit_easy.show_html"><code class="docutils literal notranslate"><span class="pre">show_html()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#module-utils.struct_utils">utils.struct_utils module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.struct_utils.base_mol_from_inchi"><code class="docutils literal notranslate"><span class="pre">base_mol_from_inchi()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.struct_utils.base_mol_from_smiles"><code class="docutils literal notranslate"><span class="pre">base_mol_from_smiles()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.struct_utils.base_smiles_from_inchi"><code class="docutils literal notranslate"><span class="pre">base_smiles_from_inchi()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.struct_utils.base_smiles_from_smiles"><code class="docutils literal notranslate"><span class="pre">base_smiles_from_smiles()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.struct_utils.draw_structure"><code class="docutils literal notranslate"><span class="pre">draw_structure()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.struct_utils.fix_moe_smiles"><code class="docutils literal notranslate"><span class="pre">fix_moe_smiles()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.struct_utils.get_rdkit_smiles"><code class="docutils literal notranslate"><span class="pre">get_rdkit_smiles()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.struct_utils.kekulize_smiles"><code class="docutils literal notranslate"><span class="pre">kekulize_smiles()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.struct_utils.mol_wt_from_smiles"><code class="docutils literal notranslate"><span class="pre">mol_wt_from_smiles()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.struct_utils.mols_from_smiles"><code class="docutils literal notranslate"><span class="pre">mols_from_smiles()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.struct_utils.rdkit_smiles_from_smiles"><code class="docutils literal notranslate"><span class="pre">rdkit_smiles_from_smiles()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.struct_utils.smiles_to_inchi_key"><code class="docutils literal notranslate"><span class="pre">smiles_to_inchi_key()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="utils.html#module-utils">Module contents</a></li>
 </ul>
 </li>
@@ -139,7 +927,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2022, ATOM DDM Team.</p>
+    <p>&#169; Copyright 2023, ATOM DDM Team.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

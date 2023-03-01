@@ -5,6 +5,7 @@ import inspect
 import numpy as np
 import atomsci.ddm.pipeline.featurization as feat
 import deepchem as dc
+from atomsci.ddm.pipeline import model_datasets as md
 
 try:
     from mol_vae_features import MoleculeVAEFeaturizer
@@ -22,11 +23,11 @@ datastore_is_down = utils.datastore_status()
 
 (delaney_params_ecfp, data_obj_ecfp, df_delaney) = utils.delaney_objects()
 featurizer_ecfp = data_obj_ecfp.featurization
-data_obj_ecfp.check_task_columns(df_delaney)
+md.check_task_columns(delaney_params_ecfp, df_delaney)
 
 (delaney_params_graphconv, data_obj_graphconv, df_delaney) = utils.delaney_objects(featurizer="graphconv")
 featurizer_graphconv = data_obj_graphconv.featurization
-data_obj_graphconv.check_task_columns(df_delaney)
+md.check_task_columns(delaney_params_graphconv, df_delaney)
 
 if mol_vae_supported:
     (delaney_params_molvae, data_obj_molvae, df_delaney) = utils.delaney_objects(featurizer="molvae")

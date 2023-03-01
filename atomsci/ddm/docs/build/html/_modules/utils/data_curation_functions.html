@@ -3,18 +3,17 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>utils.data_curation_functions &mdash; ATOM Data-Driven Modeling Pipeline 1.4.0 documentation</title>
+  <title>utils.data_curation_functions &mdash; ATOM Data-Driven Modeling Pipeline 1.5.0 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
         <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-        <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/underscore.js"></script>
-        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" /> 
@@ -25,14 +24,18 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../../index.html" class="icon icon-home"> ATOM Data-Driven Modeling Pipeline
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            ATOM Data-Driven Modeling Pipeline
           </a>
               <div class="version">
-                1.4.0
+                1.5.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -64,9 +67,9 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="../index.html">Module code</a> &raquo;</li>
-      <li>utils.data_curation_functions</li>
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">utils.data_curation_functions</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -100,7 +103,7 @@
 <span class="kn">import</span> <span class="nn">atomsci.ddm.utils.curate_data</span> <span class="k">as</span> <span class="nn">curate_data</span><span class="o">,</span> <span class="nn">imp</span>
 
 <div class="viewcode-block" id="set_data_root"><a class="viewcode-back" href="../../utils.html#utils.data_curation_functions.set_data_root">[docs]</a><span class="k">def</span> <span class="nf">set_data_root</span><span class="p">(</span><span class="nb">dir</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;Set global variables for data directories</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;Set global variables for data directories</span>
 
 <span class="sd">    Creates paths for DTC and Excape given a root data directory. </span>
 <span class="sd">    Global variables &#39;data_root&#39; and &#39;data_dirs&#39;. &#39;data_root&#39; is the</span>
@@ -147,7 +150,7 @@
 <span class="c1"># Note: Functions freq_table and labeled_freq_table have been moved to ddm.utils.curate_data module.</span>
 
 <div class="viewcode-block" id="is_organometallic"><a class="viewcode-back" href="../../utils.html#utils.data_curation_functions.is_organometallic">[docs]</a><span class="k">def</span> <span class="nf">is_organometallic</span><span class="p">(</span><span class="n">mol</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns True if the molecule is organometallic</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">mol</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -159,7 +162,7 @@
 
 <span class="c1"># ----------------------------------------------------------------------------------------------------------------------</span>
 <div class="viewcode-block" id="exclude_organometallics"><a class="viewcode-back" href="../../utils.html#utils.data_curation_functions.exclude_organometallics">[docs]</a><span class="k">def</span> <span class="nf">exclude_organometallics</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">smiles_col</span><span class="o">=</span><span class="s1">&#39;rdkit_smiles&#39;</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Filters data frame df based on column smiles_col to exclude organometallic compounds</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">mols</span> <span class="o">=</span> <span class="n">mols_from_smiles</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">smiles_col</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span> <span class="n">workers</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
@@ -168,8 +171,8 @@
 
 
 <span class="c1"># ----------------------------------------------------------------------------------------------------------------------</span>
-<div class="viewcode-block" id="standardize_relations"><a class="viewcode-back" href="../../utils.html#utils.data_curation_functions.standardize_relations">[docs]</a><span class="k">def</span> <span class="nf">standardize_relations</span><span class="p">(</span><span class="n">dset_df</span><span class="p">,</span> <span class="n">db</span><span class="o">=</span><span class="s1">&#39;DTC&#39;</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Standardizes censoring operators</span>
+<div class="viewcode-block" id="standardize_relations"><a class="viewcode-back" href="../../utils.html#utils.data_curation_functions.standardize_relations">[docs]</a><span class="k">def</span> <span class="nf">standardize_relations</span><span class="p">(</span><span class="n">dset_df</span><span class="p">,</span> <span class="n">db</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rel_col</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">output_rel_col</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">invert</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Standardizes censoring operators</span>
 
 <span class="sd">    Standardize the censoring operators to =, &lt; or &gt;, and remove any rows whose operators</span>
 <span class="sd">    don&#39;t map to a standard one. There is a special case for db=&#39;ChEMBL&#39; that strips</span>
@@ -220,6 +223,7 @@
         <span class="s2">&quot;&gt;=&quot;</span><span class="p">:</span> <span class="s2">&quot;&gt;&quot;</span><span class="p">,</span>
         <span class="s2">&quot;&lt;&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;&quot;</span><span class="p">,</span>
         <span class="s2">&quot;&lt;=&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;&gt;&quot;</span><span class="p">:</span> <span class="s2">&quot;&gt;&quot;</span><span class="p">,</span>
         <span class="s2">&quot;&gt;R&quot;</span><span class="p">:</span> <span class="s2">&quot;&gt;&quot;</span><span class="p">,</span>
         <span class="s2">&quot;&gt;=R&quot;</span><span class="p">:</span> <span class="s2">&quot;&gt;&quot;</span><span class="p">,</span>
         <span class="s2">&quot;&lt;R&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;&quot;</span><span class="p">,</span>
@@ -243,7 +247,7 @@
                            <span class="n">target</span><span class="p">,</span> <span class="n">target_type</span><span class="p">,</span> <span class="n">activity</span><span class="p">,</span> <span class="n">assay_category</span><span class="p">,</span><span class="n">file_path</span><span class="p">,</span>
     		   <span class="n">data_origin</span><span class="o">=</span><span class="s1">&#39;journal&#39;</span><span class="p">,</span>  <span class="n">species</span><span class="o">=</span><span class="s1">&#39;human&#39;</span><span class="p">,</span>  
                            <span class="n">force_update</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Uploads raw DTC data to the datastore</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Uploads raw DTC data to the datastore</span>
 
 <span class="sd">    Upload a raw dataset to the datastore from the given DataFrame. </span>
 <span class="sd">    Returns the datastore OID of the uploaded dataset. The dataset is uploaded to the</span>
@@ -322,7 +326,7 @@
     <span class="k">return</span> <span class="n">raw_dset_oid</span></div>
 
 <div class="viewcode-block" id="filter_dtc_data"><a class="viewcode-back" href="../../utils.html#utils.data_curation_functions.filter_dtc_data">[docs]</a><span class="k">def</span> <span class="nf">filter_dtc_data</span><span class="p">(</span><span class="n">orig_df</span><span class="p">,</span><span class="n">geneNames</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Extracts and post processes JAK1, 2, and 3 datasets from DTC</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Extracts and post processes JAK1, 2, and 3 datasets from DTC</span>
 
 <span class="sd">    This is specific to the DTC database.</span>
 <span class="sd">    Extract JAK1, 2 and 3 datasets from Drug Target Commons database, filtered for data usability.</span>
@@ -359,7 +363,7 @@
     <span class="k">return</span> <span class="n">dset_df</span></div>
 
 <div class="viewcode-block" id="ic50topic50"><a class="viewcode-back" href="../../utils.html#utils.data_curation_functions.ic50topic50">[docs]</a><span class="k">def</span> <span class="nf">ic50topic50</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Calculates pIC50 from IC50</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculates pIC50 from IC50</span>
 
 <span class="sd">    Calculates pIC50 from IC50</span>
 
@@ -373,7 +377,7 @@
     <span class="k">return</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">((</span><span class="n">x</span><span class="o">/</span><span class="mf">1000000000.0</span><span class="p">))</span></div>
 
 <div class="viewcode-block" id="down_select"><a class="viewcode-back" href="../../utils.html#utils.data_curation_functions.down_select">[docs]</a><span class="k">def</span> <span class="nf">down_select</span><span class="p">(</span><span class="n">df</span><span class="p">,</span><span class="n">kv_lst</span><span class="p">)</span> <span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Filters rows given a set of values</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Filters rows given a set of values</span>
 
 <span class="sd">    Given a DataFrame and a list of tuples columns (k) to values (v), this function</span>
 <span class="sd">    filters out all rows where df[k] == v.</span>
@@ -391,7 +395,7 @@
     <span class="k">return</span> <span class="n">df</span></div>
 
 <div class="viewcode-block" id="get_smiles_dtc_data"><a class="viewcode-back" href="../../utils.html#utils.data_curation_functions.get_smiles_dtc_data">[docs]</a><span class="k">def</span> <span class="nf">get_smiles_dtc_data</span><span class="p">(</span><span class="n">nm_df</span><span class="p">,</span><span class="n">targ_lst</span><span class="p">,</span><span class="n">save_smiles_df</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Returns SMILES strings from DTC data</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Returns SMILES strings from DTC data</span>
 
 <span class="sd">    nm_df must be a DataFrame from DTC with the following columns: gene_names,</span>
 <span class="sd">    standard_type, standard_value, &#39;standard_inchi_key&#39;, and standard_relation.</span>
@@ -463,7 +467,7 @@
     <span class="k">return</span> <span class="n">smiles_lst</span><span class="p">,</span> <span class="n">shared_inchi_keys</span></div>
 
 <div class="viewcode-block" id="get_smiles_4dtc_data"><a class="viewcode-back" href="../../utils.html#utils.data_curation_functions.get_smiles_4dtc_data">[docs]</a><span class="k">def</span> <span class="nf">get_smiles_4dtc_data</span><span class="p">(</span><span class="n">nm_df</span><span class="p">,</span><span class="n">targ_lst</span><span class="p">,</span><span class="n">save_smiles_df</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Returns SMILES strings from DTC data</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Returns SMILES strings from DTC data</span>
 
 <span class="sd">    nm_df must be a DataFrame from DTC with the following columns: gene_names,</span>
 <span class="sd">    standard_type, standard_value, &#39;standard_inchi_key&#39;, and standard_relation.</span>
@@ -546,7 +550,7 @@
                            <span class="n">target</span><span class="p">,</span> <span class="n">target_type</span><span class="p">,</span> <span class="n">activity</span><span class="p">,</span> <span class="n">assay_category</span><span class="p">,</span><span class="n">smiles_df</span><span class="p">,</span><span class="n">orig_fileID</span><span class="p">,</span>
     		   <span class="n">data_origin</span><span class="o">=</span><span class="s1">&#39;journal&#39;</span><span class="p">,</span>  <span class="n">species</span><span class="o">=</span><span class="s1">&#39;human&#39;</span><span class="p">,</span>  
                            <span class="n">force_update</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Uploads DTC smiles data to the datastore</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Uploads DTC smiles data to the datastore</span>
 
 <span class="sd">    Upload a raw dataset to the datastore from the given DataFrame. </span>
 <span class="sd">    Returns the datastore OID of the uploaded dataset. The dataset is uploaded to the</span>
@@ -623,7 +627,7 @@
     <span class="k">return</span> <span class="n">raw_dset_oid</span></div>
 
 <div class="viewcode-block" id="atom_curation"><a class="viewcode-back" href="../../utils.html#utils.data_curation_functions.atom_curation">[docs]</a><span class="k">def</span> <span class="nf">atom_curation</span><span class="p">(</span><span class="n">targ_lst</span><span class="p">,</span> <span class="n">smiles_lst</span><span class="p">,</span> <span class="n">shared_inchi_keys</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Apply ATOM standard &#39;curation&#39; step to &quot;shared_df&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Apply ATOM standard &#39;curation&#39; step to &quot;shared_df&quot;</span>
 
 <span class="sd">    Apply ATOM standard &#39;curation&#39; step to &quot;shared_df&quot;: Average replicate assays, </span>
 <span class="sd">    remove duplicates and drop cases with large variance between replicates.</span>
@@ -679,7 +683,7 @@
                            <span class="n">target</span><span class="p">,</span> <span class="n">target_type</span><span class="p">,</span> <span class="n">activity</span><span class="p">,</span> <span class="n">assay_category</span><span class="p">,</span><span class="n">data_df</span><span class="p">,</span><span class="n">dtc_smiles_fileID</span><span class="p">,</span>
     		   <span class="n">data_origin</span><span class="o">=</span><span class="s1">&#39;journal&#39;</span><span class="p">,</span>  <span class="n">species</span><span class="o">=</span><span class="s1">&#39;human&#39;</span><span class="p">,</span>  
                            <span class="n">force_update</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Uploads DTC mleqonly data to the datastore</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Uploads DTC mleqonly data to the datastore</span>
 
 <span class="sd">    Upload mleqonly data to the datastore from the given DataFrame. The DataFrame</span>
 <span class="sd">    must contain the column &#39;rdkit_smiles&#39; and &#39;VALUE_NUM_mean&#39;. This function is </span>
@@ -768,7 +772,7 @@
                            <span class="n">target</span><span class="p">,</span> <span class="n">target_type</span><span class="p">,</span> <span class="n">activity</span><span class="p">,</span> <span class="n">assay_category</span><span class="p">,</span><span class="n">data_df</span><span class="p">,</span><span class="n">dtc_mleqonly_fileID</span><span class="p">,</span>
     		   <span class="n">data_origin</span><span class="o">=</span><span class="s1">&#39;journal&#39;</span><span class="p">,</span>  <span class="n">species</span><span class="o">=</span><span class="s1">&#39;human&#39;</span><span class="p">,</span>  
                            <span class="n">force_update</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Uploads DTC mleqonly classification data to the datastore</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Uploads DTC mleqonly classification data to the datastore</span>
 
 <span class="sd">    Upload mleqonly classification data to the datastore from the given DataFrame. The DataFrame</span>
 <span class="sd">    must contain the column &#39;rdkit_smiles&#39; and &#39;binary_class&#39;. This function is </span>
@@ -854,7 +858,7 @@
                            <span class="n">target</span><span class="p">,</span> <span class="n">target_type</span><span class="p">,</span> <span class="n">activity</span><span class="p">,</span> <span class="n">assay_category</span><span class="p">,</span><span class="n">data_df</span><span class="p">,</span><span class="n">dtc_mleqonly_fileID</span><span class="p">,</span>
                            <span class="n">data_origin</span><span class="o">=</span><span class="s1">&#39;journal&#39;</span><span class="p">,</span>  <span class="n">species</span><span class="o">=</span><span class="s1">&#39;human&#39;</span><span class="p">,</span>
                            <span class="n">force_update</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Uploads DTC base smiles data to the datastore</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Uploads DTC base smiles data to the datastore</span>
 
 <span class="sd">    Uploads base SMILES string for the DTC dataset.</span>
 
@@ -936,7 +940,7 @@
                            <span class="n">target</span><span class="p">,</span> <span class="n">target_type</span><span class="p">,</span> <span class="n">activity</span><span class="p">,</span> <span class="n">assay_category</span><span class="p">,</span><span class="n">file_path</span><span class="p">,</span><span class="n">dtc_smiles_fileID</span><span class="p">,</span>
     		<span class="n">smiles_column</span><span class="p">,</span>  <span class="n">data_origin</span><span class="o">=</span><span class="s1">&#39;journal&#39;</span><span class="p">,</span>  <span class="n">species</span><span class="o">=</span><span class="s1">&#39;human&#39;</span><span class="p">,</span>  
                            <span class="n">force_update</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Uploads regression DTC data to the datastore</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Uploads regression DTC data to the datastore</span>
 
 <span class="sd">    Uploads regression dataset for DTC dataset.</span>
 
@@ -1025,7 +1029,7 @@
                            <span class="n">target</span><span class="p">,</span> <span class="n">target_type</span><span class="p">,</span> <span class="n">activity</span><span class="p">,</span> <span class="n">assay_category</span><span class="p">,</span><span class="n">data_df</span><span class="p">,</span><span class="n">dtc_smiles_regr_all_fileID</span><span class="p">,</span>
     		   <span class="n">smiles_column</span><span class="p">,</span> <span class="n">data_origin</span><span class="o">=</span><span class="s1">&#39;journal&#39;</span><span class="p">,</span>  <span class="n">species</span><span class="o">=</span><span class="s1">&#39;human&#39;</span><span class="p">,</span>  
                            <span class="n">force_update</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Uploads DTC classification data to the datastore</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Uploads DTC classification data to the datastore</span>
 
 <span class="sd">    Uploads binary classiciation data for the DTC dataset. Classnames are assumed to</span>
 <span class="sd">    be &#39;active&#39; and &#39;inactive&#39;</span>
@@ -1120,7 +1124,7 @@
                            <span class="n">target</span><span class="p">,</span> <span class="n">target_type</span><span class="p">,</span> <span class="n">activity</span><span class="p">,</span> <span class="n">assay_category</span><span class="p">,</span><span class="n">file_path</span><span class="p">,</span>
     		   <span class="n">data_origin</span><span class="o">=</span><span class="s1">&#39;journal&#39;</span><span class="p">,</span>  <span class="n">species</span><span class="o">=</span><span class="s1">&#39;human&#39;</span><span class="p">,</span>  
                            <span class="n">force_update</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Uploads raw Excape data to the datastore</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Uploads raw Excape data to the datastore</span>
 
 <span class="sd">    Upload a raw dataset to the datastore from the given DataFrame. </span>
 <span class="sd">    Returns the datastore OID of the uploaded dataset. The dataset is uploaded to the</span>
@@ -1196,7 +1200,7 @@
     <span class="k">return</span> <span class="n">raw_dset_oid</span></div>
 
 <div class="viewcode-block" id="get_smiles_excape_data"><a class="viewcode-back" href="../../utils.html#utils.data_curation_functions.get_smiles_excape_data">[docs]</a><span class="k">def</span> <span class="nf">get_smiles_excape_data</span><span class="p">(</span><span class="n">nm_df</span><span class="p">,</span><span class="n">targ_lst</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Calculate base rdkit smiles</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate base rdkit smiles</span>
 
 <span class="sd">    Divides up nm_df based on target and makes one DataFrame for each target.</span>
 
@@ -1254,7 +1258,7 @@
                            <span class="n">target</span><span class="p">,</span> <span class="n">target_type</span><span class="p">,</span> <span class="n">activity</span><span class="p">,</span> <span class="n">assay_category</span><span class="p">,</span><span class="n">smiles_df</span><span class="p">,</span><span class="n">orig_fileID</span><span class="p">,</span>
     		   <span class="n">data_origin</span><span class="o">=</span><span class="s1">&#39;journal&#39;</span><span class="p">,</span>  <span class="n">species</span><span class="o">=</span><span class="s1">&#39;human&#39;</span><span class="p">,</span>  
                            <span class="n">force_update</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Uploads Excape SMILES data to the datastore</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Uploads Excape SMILES data to the datastore</span>
 
 <span class="sd">    Upload SMILES to the datastore from the given DataFrame. </span>
 <span class="sd">    Returns the datastore OID of the uploaded dataset. The dataset is uploaded to the</span>
@@ -1332,7 +1336,7 @@
     <span class="k">return</span> <span class="n">raw_dset_oid</span></div>
 
 <div class="viewcode-block" id="atom_curation_excape"><a class="viewcode-back" href="../../utils.html#utils.data_curation_functions.atom_curation_excape">[docs]</a><span class="k">def</span> <span class="nf">atom_curation_excape</span><span class="p">(</span><span class="n">targ_lst</span><span class="p">,</span> <span class="n">smiles_lst</span><span class="p">,</span> <span class="n">shared_inchi_keys</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Apply ATOM standard &#39;curation&#39; step</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Apply ATOM standard &#39;curation&#39; step</span>
 
 <span class="sd">    Apply ATOM standard &#39;curation&#39; step: Average replicate assays, </span>
 <span class="sd">    remove duplicates and drop cases with large variance between replicates.</span>
@@ -1394,7 +1398,7 @@
                            <span class="n">target</span><span class="p">,</span> <span class="n">target_type</span><span class="p">,</span> <span class="n">activity</span><span class="p">,</span> <span class="n">assay_category</span><span class="p">,</span><span class="n">data_df</span><span class="p">,</span><span class="n">smiles_fileID</span><span class="p">,</span>
     		   <span class="n">data_origin</span><span class="o">=</span><span class="s1">&#39;journal&#39;</span><span class="p">,</span>  <span class="n">species</span><span class="o">=</span><span class="s1">&#39;human&#39;</span><span class="p">,</span>  
                            <span class="n">force_update</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Uploads Excape mleqonly data to the datastore</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Uploads Excape mleqonly data to the datastore</span>
 
 <span class="sd">    Upload mleqonly to the datastore from the given DataFrame. </span>
 <span class="sd">    Returns the datastore OID of the uploaded dataset. The dataset is uploaded to the</span>
@@ -1482,7 +1486,7 @@
                            <span class="n">target</span><span class="p">,</span> <span class="n">target_type</span><span class="p">,</span> <span class="n">activity</span><span class="p">,</span> <span class="n">assay_category</span><span class="p">,</span><span class="n">data_df</span><span class="p">,</span><span class="n">mleqonly_fileID</span><span class="p">,</span>
     		   <span class="n">data_origin</span><span class="o">=</span><span class="s1">&#39;journal&#39;</span><span class="p">,</span>  <span class="n">species</span><span class="o">=</span><span class="s1">&#39;human&#39;</span><span class="p">,</span>  
                            <span class="n">force_update</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Uploads Excape mleqonly classification data to the datastore</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Uploads Excape mleqonly classification data to the datastore</span>
 
 <span class="sd">    data_df contains a binary classification dataset with &#39;active&#39; and &#39;incative&#39; classes.</span>
 
@@ -1576,7 +1580,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2022, ATOM DDM Team.</p>
+    <p>&#169; Copyright 2023, ATOM DDM Team.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

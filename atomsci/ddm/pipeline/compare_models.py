@@ -23,6 +23,7 @@ import atomsci.ddm.pipeline.model_pipeline as mp
 import atomsci.ddm.pipeline.parameter_parser as parse
 import atomsci.ddm.pipeline.model_wrapper as mw
 import atomsci.ddm.pipeline.featurization as feat
+from atomsci.ddm.utils import file_utils as futils
 
 logger = logging.getLogger('ATOM')
 mlmt_supported = True
@@ -1000,7 +1001,10 @@ def get_filesystem_perf_results(result_dir, pred_type='classification'):
 
         for subset in subsets:
             for metric in metrics:
-                score_dict[subset][metric].append(subset_metrics[subset][metric])
+                try:
+                    score_dict[subset][metric].append(subset_metrics[subset][metric])
+                except:
+                    score_dict[subset][metric].append(np.nan)
         score_dict['valid']['model_choice_score'].append(subset_metrics['valid']['model_choice_score'])
 
     param_df = pd.DataFrame(param_list)
@@ -2122,9 +2126,8 @@ def num_trainable_parameters_from_file(tar_path):
         ValueError: If the model is not a DeepChem neural network model
     """
     reload_dir = tempfile.mkdtemp()
-    model_fp = tarfile.open(tar_path, mode='r:gz')
-    model_fp.extractall(path=reload_dir)
-    model_fp.close()
+    with tarfile.open(tar_path, mode='r:gz') as tar:
+        futils.safe_extract(tar, path=reload_dir)
 
     config_file_path = os.path.join(reload_dir, 'model_metadata.json')
     with open(config_file_path) as f:
