@@ -1,0 +1,16 @@
+deepchem
+joblib
+matplotlib
+molvs
+numpy
+pandas
+pytest
+pygments
+scipy
+seaborn
+setuptools 
+sklearn
+sphinx
+sphinx_rtd_theme
+tensorflow
+umap
