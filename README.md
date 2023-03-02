@@ -511,10 +511,15 @@ This will create a namespace package in your environment directory that points b
 &nbsp;  
 
 ### Code Push Policy
-To push the code to the master branch
+It's recommended to use a development branch to do the work. After each release, there will be a development branch opened for development. 
 
-* Create a branch based off `master`
-* Create a pull request. Assign a reviewer to approve the changed code.
+The policy is 
+
+1. Create a branch based off a development (`1.6.0 `for example) or `master` branch
+2. Create a pull request. Assign a reviewer to approve the code changes 
+
+> ***Note***:
+> Step 2 is required for pushing directly to `master`. For a development branch, this step is recommended but not required.
 &nbsp;
 
 ### Versioning
