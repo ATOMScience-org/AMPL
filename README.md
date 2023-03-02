@@ -510,6 +510,13 @@ source $ENVROOT/atomsci/bin/activate # activate your pip environment. `atomsci` 
 This will create a namespace package in your environment directory that points back to your git working directory, so every time you reimport a module you'll be in sync with your working code. Since site-packages is already in your sys.path, you won't have to fuss with PYTHONPATH or setting sys.path in your notebooks.  
 &nbsp;  
 
+### Code Push Policy
+To push the code to the master branch
+
+* Create a branch based off `master`
+* Create a pull request. Assign a reviewer to approve the changed code.
+&nbsp;
+
 ### Versioning
 Versions are managed through GitHub tags on this repository.  
 &nbsp;  
