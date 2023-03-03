@@ -52,14 +52,14 @@ DB
 ```
 
 ### Instructions for running the script:
-* Install AMPL. Note AMPL is a conda-based software. Please refer to this link, https://github.com/ATOMScience-org/AMPL#Install, for details. 
+* Install AMPL. Note AMPL is a pip-based software. Please refer to this link, https://github.com/ATOMScience-org/AMPL#Install, for details.
 * Create a folder to hold MultipleSourceCurn scripts. We call this folder, ```MultiplesourceCurn```.
 * Within **MultiplsesourceCurn** create two sub-folders called **DB** and **sourceCuration**
 * `DB` folder should hold atleast one datasource input file. Users have to download data from the data sources of their interest, such as DTC, ExCAPE-DB. Downloading the whole database files for DTC and ExCAPE-DB is straightforward. Please see the last section of this document for details. Please note that extracting the whole DB from ChEMBL needs some effort. Please check ChEMBL database links shown below for details:
       * https://chembl.gitbook.io/chembl-interface-documentation/frequently-asked-questions/chembl-download-questions
       * https://ftp.ebi.ac.uk/pub/databases/chembl/ChEMBLdb/latest/
 * Once the concerned database file(s) are placed in the DB folder 
-* Open a terminal and activate atomsci package using the following command, `conda activate atomsci`
+* Open a terminal and activate atomsci package using the following command, `source atomsci/bin/activate` to activate your atomsci's pip environment.
 * Change directory to `MultipleSourceCurn/sourceCuration` and do the following things: 
   - Edit the configuration file, `config_parser.ini` to set the absolute path to `DB` folders. Also the configuration `end_points` section could be expanded to include `Ki,Kd,IC50,AC50,EC50`
   - Make sure to include protein targets of your choice in the files `*_gene_list.txt`. Please note that different databases adopt different alias names/IDs for referring to genes. For this reason, we have separate DB-specific input files.   

@@ -5,9 +5,7 @@ Installation
 
 Prerequisites
 -------------
-**AMPL** is a Python 3 package that has been developed and run in a specific conda environment. The following prerequisites are necessary to install **AMPL**:
-
-* conda (Anaconda 3 or Miniconda 3, Python 3)
+**AMPL** is a Python 3 package that has been developed and run in a specific pip environment.
  
 Install
 -------
@@ -17,14 +15,12 @@ Clone the git repository
 
     git clone https://github.com/ATOMScience-org/AMPL.git
  
-Create conda environment
+Create pip environment
 ^^^^^^^^^^^^^^^^^^^^^^^^
 ::
+    cd $AMPL_HOME/pip # cd to AMPL repo's pip directory
 
-    cd conda
-    conda create -y -n atomsci --file conda_package_list.txt
-    conda activate atomsci
-    pip install -r pip_requirements.txt
+    pip3 install --force-reinstall --no-use-pep517 -r requirements.txt 
 
 .. note::
    
@@ -34,13 +30,14 @@ Install AMPL
 ------------
 Go to the AMPL root directory and install the AMPL package::
 
-    conda activate atomsci
+    source atomsci/bin/activate # activate the environemt
     cd ..
-    ./build.sh && ./install.sh system
+    ./build.sh
+    pip3 install -e .
 
-* The `install.sh` system command installs AMPL directly in the conda environment. If `install.sh` alone is used, then AMPL is installed in the `$HOME/.local` directory.
+* The `install.sh` system command installs AMPL directly in the pip environment. If `install.sh` alone is used, then AMPL is installed in the `$HOME/.local` directory.
 
-* After this process, you will have an `atomsci` conda environment with all dependencies installed. The name of the AMPL package is `atomsci-ampl` and is installed in the `install.sh` script to the environment with conda's pip.  
+* After this process, you will have an `atomsci` pip environment with all dependencies installed. The name of the AMPL package is `atomsci-ampl` and is installed in the `install.sh` script to the environment with pip.  
 
 Install with Docker
 -------------------

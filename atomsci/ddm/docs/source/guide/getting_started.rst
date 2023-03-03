@@ -5,9 +5,7 @@ Getting started
 
 Prerequisites
 -------------
-**AMPL** is a Python 3 package that has been developed and run in a specific conda environment. The following prerequisites are necessary to install AMPL:
-
-* conda (Anaconda 3 or Miniconda 3, Python 3)
+**AMPL** is a Python 3 package that has been developed and run in a specific pip environment.
  
 Install
 -------
@@ -15,13 +13,18 @@ Clone the git repository::
 
     git clone https://github.com/ATOMScience-org/AMPL.git
  
+Please refer to this link, https://github.com/ATOMScience-org/AMPL#Install, for details.
 
-Create conda environment::
+Create pip environment::
 
-    cd conda
-    conda create -y -n atomsci --file conda_package_list.txt
-    conda activate atomsci
-    pip install -r pip_requirements.txt
+    module load python/3.8.2 # use python 3.8.2
+    python3 -m venv atomsci # create a new pip env
+    source atomsci/bin/activate # activate the environemt
+
+    python3 -m pip install pip --upgrade
+    cd $AMPL_HOME/pip # cd to AMPL repo's pip directory
+
+    pip3 install --force-reinstall --no-use-pep517 -r requirements.txt
 
 .. note::
 

@@ -12,15 +12,16 @@ Deployment
  
 Uninstallation
 --------------
-To remove AMPL from a conda environment use:
+To remove AMPL from a pip environment use:
 ::
 
-    conda activate atomsci
+    deactivate
     pip uninstall atomsci-ampl
  
 
-To remove the atomsci conda environment entirely from a system use:
+To remove the atomsci pip environment entirely from a system use:
 ::
 
-   conda deactivate
-   conda remove --name atomsci --all
+   deactivate
+   cd $parent # to the parent of the atomsci `pip env` dir
+   rm -r atomsci
