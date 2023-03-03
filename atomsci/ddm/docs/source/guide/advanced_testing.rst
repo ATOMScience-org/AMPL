@@ -10,8 +10,8 @@ Running all tests
 To run the full set of tests, use Pytest from the test directory:
 ::
 
-    conda activate atomsci
-    cd atomsci/ddm/test
+    source atomsci/bin/activate # activate your atomsci `pip env``
+    cd $AMPL_HOME/atomsci/ddm/test # your ampl repo
     pytest
  
 
@@ -20,11 +20,11 @@ Running SLURM tests
 Several of the tests take some time to fit. These tests can be submitted to a SLURM cluster as a batch job. Example general SLURM submit scripts are included as pytest_slurm.sh.
 ::
 
-    conda activate atomsci
-    cd atomsci/ddm/test/integrative/delaney_NN
+    source atomsci/bin/activate
+    cd $AMPL_HOME/atomsci/ddm/test/integrative/delaney_NN
     sbatch pytest_slurm.sh
     cd ../../../..
-    cd atomsci/ddm/test/integrative/wenzel_NN
+    cd $AMPL_HOME/atomsci/ddm/test/integrative/wenzel_NN
     sbatch pytest_slurm.sh
 
 Running tests without internet access

@@ -8,7 +8,7 @@ Tests
 To run the `Delaney` Python script that curates a dataset, fits a model, and makes predictions, run the following commands:
 ::
 
-    conda activate atomsci
+    source atomsci/bin/activate # activate your atomsci pip environment
     cd atomsci/ddm/test/integrative/delaney_RF
     pytest
 
