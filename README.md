@@ -176,7 +176,7 @@ cd $AMPL_HOME/pip # cd to AMPL repo's pip directory
 pip3 install --force-reinstall --no-use-pep517 -r clients_requirements.txt # (Optional) for LLNL developers only
 pip3 install --force-reinstall --no-use-pep517 -r requirements.txt 
 
-module load cuda/11.7 # setup for cuda
+module load cuda/11.3.0 # setup for cuda
 export LD_LIBRARY_PATH=$ENVROOT/atomsci/lib:$LD_LIBRARY_PATH # add your env/lib to LD_LIBRARY_PATH
 cd .. # go to AMPL repo directory and run build
 ./build.sh
@@ -194,7 +194,7 @@ pip3 install -e .
 
 Suggestions:
 
-1) [Install CUDA](https://developer.nvidia.com/cuda-11.7.0-download-archive)
+1) [Install CUDA](https://developer.nvidia.com/cuda-11.3.0-download-archive)
 
 2) Set up an environment variable to use CPU instead of GPU
 ```
@@ -205,7 +205,7 @@ $ export CUDA_VISIBLE_DEVICES=''
 
 ```
 # load cuda, if on LC machine 
-module load cuda/11.7
+module load cuda/11.3.0
 ```
 
 #### Create jupyter notebook kernel (optional)
