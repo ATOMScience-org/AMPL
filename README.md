@@ -85,17 +85,17 @@ export ENVROOT=~ # for other users
 cd $ENVROOT
 ```
 
-2. Use python 3.8 (required)
+2. Use python 3.9 (required)
 
-   2.1 Install python 3.8 *WITHOUT* using `conda`; or
+   2.1 Install python 3.9 *WITHOUT* using `conda`; or
 
-   2.2 Point your PATH to an existing python 3.8 installation.
+   2.2 Point your PATH to an existing python 3.9 installation.
 
 > ***Note***:
-> For LLNL users, put python 3.8 in your PATH. For example:
+> For LLNL users, put python 3.9 in your PATH. For example:
 
 ```bash
-module load python/3.8.2
+module load python/3.9.12 # for example
 ```
 
 3. Create the virtual environment:
@@ -164,7 +164,7 @@ pip3 install -e .
 ```bash
 export ENVROOT=~/workspace # set ENVROOT example
 cd $ENVROOT
-module load python/3.8.2 # use python 3.8.2
+module load python/3.9.12 # use python3.9.12, for example
 python3 -m venv atomsci # create a new pip env
 source $ENVROOT/atomsci/bin/activate # activate the environemt
 
@@ -176,7 +176,7 @@ cd $AMPL_HOME/pip # cd to AMPL repo's pip directory
 pip3 install --force-reinstall --no-use-pep517 -r clients_requirements.txt # (Optional) for LLNL developers only
 pip3 install --force-reinstall --no-use-pep517 -r requirements.txt 
 
-module load cuda/11.3 # setup for cuda
+module load cuda/11.3.0 # setup for cuda
 export LD_LIBRARY_PATH=$ENVROOT/atomsci/lib:$LD_LIBRARY_PATH # add your env/lib to LD_LIBRARY_PATH
 cd .. # go to AMPL repo directory and run build
 ./build.sh
@@ -194,7 +194,7 @@ pip3 install -e .
 
 Suggestions:
 
-1) [Install CUDA](https://developer.nvidia.com/cuda-11.1.0-download-archive)
+1) [Install CUDA](https://developer.nvidia.com/cuda-11.3.0-download-archive)
 
 2) Set up an environment variable to use CPU instead of GPU
 ```
@@ -205,7 +205,7 @@ $ export CUDA_VISIBLE_DEVICES=''
 
 ```
 # load cuda, if on LC machine 
-module load cuda/11.3
+module load cuda/11.3.0
 ```
 
 #### Create jupyter notebook kernel (optional)

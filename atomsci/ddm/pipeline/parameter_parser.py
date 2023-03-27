@@ -213,10 +213,10 @@ def primative_type_only(type_annotation):
     '''
     if is_primative_type(type_annotation):
         return type_annotation
-    elif str(type_annotation).startswith('typing.Union'):
-        # could not find a better way to do this check:
-        # https://stackoverflow.com/questions/49171189/whats-the-correct-way-to-check-if-an-object-is-a-typing-generic
-        for t in type_annotation.__args__:
+
+    annots = strip_optional(type_annotation=type_annotation)
+    if len(annots) > 1:
+        for t in annots:
             if is_primative_type(t):
                 return t
         return str
@@ -244,10 +244,9 @@ def is_list_int(p, type_annotation):
     if 'graph_conv_layers' in p:
         return True
 
-    if str(type_annotation).startswith('typing.Union'):
-        # could not find a better way to do this check:
-        # https://stackoverflow.com/questions/49171189/whats-the-correct-way-to-check-if-an-object-is-a-typing-generic
-        for t in type_annotation.__args__:
+    annots = strip_optional(type_annotation=type_annotation)
+    if len(annots) > 1:
+        for t in annots:
             if is_list_int(p, t):
                 return True
         return False
@@ -271,15 +270,15 @@ def is_list_float(p, type_annotation):
     Returns:
         boolean: If this annotation will accept a List[float]
     '''
-    if str(type_annotation).startswith('typing.Union'):
-        # could not find a better way to do this check:
-        # https://stackoverflow.com/questions/49171189/whats-the-correct-way-to-check-if-an-object-is-a-typing-generic
-        for t in type_annotation.__args__:
-            if is_list_float(p, t):
+    ta = str(type_annotation)
+    annots = strip_optional(type_annotation=type_annotation)
+    if len(annots) > 1:
+        for t in annots:
+           if is_list_float(p, t):
                 return True
         return False
     else:
-        return str(type_annotation) == 'typing.List[float]'
+        return ta == 'typing.List[float]'
 
 def is_list(p, type_annotation):
     '''
@@ -302,15 +301,35 @@ def is_list(p, type_annotation):
     if 'graph_conv_layers' in p:
         return True
 
-    if str(type_annotation).startswith('typing.Union'):
-        # could not find a better way to do this check:
-        # https://stackoverflow.com/questions/49171189/whats-the-correct-way-to-check-if-an-object-is-a-typing-generic
-        for t in type_annotation.__args__:
+    annots = strip_optional(type_annotation=type_annotation)
+    if len(annots) > 1:
+        for t in annots:
             if is_list(p, t):
                 return True
         return False
     else:
+        type_annotation = annots[0]
         return str(type_annotation).startswith('typing.List') or str(type_annotation) == "<class 'list'>"
+
+def strip_optional(type_annotation):
+    '''
+    In the upgrade to python 3.9 type_annotaions now use
+        typeing.Optional and we need to strip that off.
+
+     Args:
+        type_annotation (object): This is a type annotation returned by the inspect
+            module
+
+    Returns:
+        list(type_annotation) or the __args__ of typing.Optional or typing.Union
+    '''
+    ta = str(type_annotation)
+    # could not find a better way to do this check:
+    # https://stackoverflow.com/questions/49171189/whats-the-correct-way-to-check-if-an-object-is-a-typing-generic
+    if ta.startswith('typing.Union') or ta.startswith('typing.Optional'):
+        return type_annotation.__args__
+    else:
+        return [type_annotation]
 
 class AutoArgumentAdder:
     '''
