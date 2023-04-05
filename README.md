@@ -368,7 +368,9 @@ To get more info on an AMPL config file, please refer to:
 
   - [AMPL Features](https://github.com/ATOMScience-org/AMPL#ampl-features)
   - [Running AMPL](https://github.com/ATOMScience-org/AMPL#running-ampl)
-  - [AMPL Tutorials](https://github.com/ATOMScience-org/AMPL/tree/master/atomsci/ddm/examples/tutorials)
+  - [AMPL Tutorials](atomsci/ddm/examples/tutorials)
+     - [10_Delaney_Solubility_Prediction.ipynb](atomsci/ddm/examples/tutorials/10_Delaney_Solubility_Prediction.ipynb)
+     - [11_CHEMBL26_SCN5A_IC50_prediction.ipynb](atomsci/ddm/examples/tutorials/11_CHEMBL26_SCN5A_IC50_prediction.ipynb)
 
 &nbsp;
 ### Hyperparameter optimization
