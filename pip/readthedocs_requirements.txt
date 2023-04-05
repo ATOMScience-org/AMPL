@@ -9,8 +9,8 @@ pygments
 scipy
 seaborn
 setuptools 
-sklearn
+scikit-learn
 sphinx
 sphinx_rtd_theme
 tensorflow
-umap
+umap-learn

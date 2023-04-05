@@ -344,7 +344,7 @@ AMPL includes many parameters to run various model fitting and prediction tasks.
 
 <a name="Library-documentation"></a>
 ### Library documentation
-AMPL includes detailed docstrings and comments to explain the modules. Full HTML documentation of the Python library is available with the package at [atomsci/ddm/docs/build/html/index.html](atomsci/ddm/docs/build/html/index.html).  
+AMPL includes detailed docstrings and comments to explain the modules. Full HTML documentation of the Python library is available with the package at [https://ampl.readthedocs.io/en/latest/](https://ampl.readthedocs.io/en/latest/).
 &nbsp;  
 
 ### More information on AMPL usage
@@ -360,10 +360,17 @@ AMPL includes detailed docstrings and comments to explain the modules. Full HTML
 ### Command line
 AMPL can **fit** models from the command line with:
 ```
-python model_pipeline.py --config_file test.json
+python model_pipeline.py --config_file filename.json # [filename].json is the name of the config file
 ```  
 &nbsp;  
 
+To get more info on an AMPL config file, please refer to:
+
+  - [AMPL Features](https://github.com/ATOMScience-org/AMPL#ampl-features)
+  - [Running AMPL](https://github.com/ATOMScience-org/AMPL#running-ampl)
+  - [AMPL Tutorials](https://github.com/ATOMScience-org/AMPL/tree/master/atomsci/ddm/examples/tutorials)
+
+&nbsp;
 ### Hyperparameter optimization
 Hyperparameter optimization for AMPL model fitting is available to run on SLURM clusters or with [HyperOpt](https://hyperopt.github.io/hyperopt/) (Bayesian Optimization). To run Bayesian Optimization, the following steps can be followed.
 
@@ -511,7 +518,7 @@ This will create a namespace package in your environment directory that points b
 &nbsp;  
 
 ### Code Push Policy
-It's recommended to use a development branch to do the work. After each release, there will be a development branch opened for development. 
+It's recommended to use a development branch to do the work. After each release, there will be a branch opened for development.
 
 The policy is 
 
