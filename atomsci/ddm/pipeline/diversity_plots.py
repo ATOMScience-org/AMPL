@@ -7,7 +7,6 @@ import sys
 import pandas as pd
 import numpy as np
 import seaborn as sns
-import umap
 from scipy.stats.kde import gaussian_kde
 from scipy.cluster.hierarchy import linkage
 import matplotlib
@@ -296,6 +295,7 @@ def diversity_plots(dset_key, datastore=True, bucket='public', title_prefix=None
             pdf.close()
     
         # Draw a UMAP projection based on MCS distance
+        import umap
         mapper = umap.UMAP(n_neighbors=20, min_dist=0.1, n_components=2, metric='precomputed', random_state=17)
         reps = mapper.fit_transform(mcs_dist)
         rep_df = pd.DataFrame.from_records(reps, columns=['x', 'y'])
@@ -426,6 +426,7 @@ def _obach_diversity_plots(ecfp_radius=6):
     tani_dist = dm.tanimoto(fps)
     print("Done")
     # Draw a UMAP projection based on Tanimoto distance
+    import umap
     mapper = umap.UMAP(n_neighbors=10, n_components=2, metric='precomputed', random_state=17)
     reps = mapper.fit_transform(tani_dist)
     rep_df = pd.DataFrame.from_records(reps, columns=['x', 'y'])
@@ -520,6 +521,7 @@ def _compare_solubility_datasets(ecfp_radius=6):
     gsk_fps = [AllChem.GetMorganFingerprintAsBitVect(mol, ecfp_radius, 1024) for mol in base_mols if mol is not None]
 
     # Train a UMAP projector with Delaney set, then use it to project both data sets
+    import umap
     del_mapper = umap.UMAP(n_neighbors=10, n_components=2, metric='jaccard', random_state=17)
     del_reps = del_mapper.fit_transform(del_fps)
     gsk_reps = del_mapper.transform(gsk_fps)
@@ -607,6 +609,7 @@ def _compare_obach_gsk_aq_sol(ecfp_radius=6):
     gsk_fps = [AllChem.GetMorganFingerprintAsBitVect(mol, ecfp_radius, 1024) for mol in base_mols if mol is not None]
 
     # Train a UMAP projector with Obach set, then use it to project both data sets
+    import umap
     obach_mapper = umap.UMAP(n_neighbors=10, n_components=2, metric='jaccard', random_state=17)
     obach_reps = obach_mapper.fit_transform(obach_fps)
     gsk_reps = obach_mapper.transform(gsk_fps)

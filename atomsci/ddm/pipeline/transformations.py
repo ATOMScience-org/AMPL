@@ -9,7 +9,6 @@ import sys
 
 import numpy as np
 import pandas as pd
-import umap
 
 import pdb
 
@@ -83,6 +82,7 @@ def create_feature_transformers(params, model_dataset):
         (list of DeepChem transformer objects): list of transformers for the feature matrix
     """
     if params.feature_transform_type == 'umap':
+        import umap
         # Map feature vectors using UMAP for dimension reduction
         if model_dataset.split_strategy == 'k_fold_cv':
             log.warning("Warning: UMAP transformation may produce misleading results when used with K-fold split strategy.")
@@ -168,6 +168,7 @@ class UMAPTransformer(Transformer):
         # TODO: decide whether to make n_epochs a parameter
         #default_n_epochs = None
         default_n_epochs = 500
+        import umap
 
         if params.prediction_type == 'classification':
             target_metric = 'categorical'

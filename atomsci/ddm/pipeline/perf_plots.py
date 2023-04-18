@@ -10,7 +10,6 @@ import sys
 import pandas as pd
 import numpy as np
 import seaborn as sns
-import umap
 import sklearn.metrics as metrics
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
@@ -438,6 +437,7 @@ def plot_umap_feature_projections(MP, ndim=2, num_neighbors=20, min_dist=0.1,
     if (ndim != 2) and (ndim != 3):
       MP.log.error('Only 2D and 3D visualizations are supported by plot_umap_feature_projections()')
       return
+    import umap
     params = MP.params
     if params.featurizer == 'graphconv':
         MP.log.error('plot_umap_feature_projections() does not support GraphConv models.')
@@ -629,6 +629,7 @@ def plot_umap_train_set_neighbors(MP, num_neighbors=20, min_dist=0.1,
 
 
     """
+    import umap
     ndim = 2
     params = MP.params
     if params.prediction_type != 'classification':
