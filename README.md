@@ -150,7 +150,7 @@ pip3 install --force-reinstall --no-use-pep517 -r requirements.txt
 &nbsp;
 
 #### Install AMPL
-Run the following to build/package the AMPL modules. This is required.
+Run the following to build/package the `atomsci` modules. This is required.
 
 Here `$GITHOME` refers to the parent of your `AMPL` git working directory.
 
