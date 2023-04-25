@@ -135,15 +135,15 @@ There are two install options.
 
 ```bash
 cd $AMPL_HOME/pip
-pip3 install --force-reinstall --no-use-pep517 -r clients_requirements.txt # install atomsci.clients
-pip3 install --force-reinstall --no-use-pep517 -r requirements.txt # install library packages
+pip3 install --force-reinstall -r clients_requirements.txt # install atomsci.clients
+pip3 install --force-reinstall -r requirements.txt # install library packages
 ```
 
   * For the external developers,
 
 ```bash
 cd $AMPL_HOME/pip
-pip3 install --force-reinstall --no-use-pep517 -r requirements.txt
+pip3 install --force-reinstall -r requirements.txt
 ```
 
 > ***Note***: *Depending on system performance, creating the environment can take some time.*
@@ -173,8 +173,8 @@ export PYTHONUSERBASE=$ENVROOT/atomsci # set PYTHONUSERBASE
 python3 -m pip install pip --upgrade
 cd $AMPL_HOME/pip # cd to AMPL repo's pip directory
 
-pip3 install --force-reinstall --no-use-pep517 -r clients_requirements.txt # (Optional) for LLNL developers only
-pip3 install --force-reinstall --no-use-pep517 -r requirements.txt 
+pip3 install --force-reinstall -r clients_requirements.txt # (Optional) for LLNL developers only
+pip3 install --force-reinstall -r requirements.txt
 
 module load cuda/11.3.0 # setup for cuda
 export LD_LIBRARY_PATH=$ENVROOT/atomsci/lib:$LD_LIBRARY_PATH # add your env/lib to LD_LIBRARY_PATH
