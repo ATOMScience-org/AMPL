@@ -150,7 +150,7 @@ pip3 install --force-reinstall -r requirements.txt
 &nbsp;
 
 #### Install AMPL
-If you're an `AMPL` developer and want the installed `AMPL` package to link back to your cloned git repo, Run the following to build. 
+Run the following to build/package the `atomsci` modules. This is required.
 
 Here `$GITHOME` refers to the parent of your `AMPL` git working directory.
 
