@@ -1,5 +1,10 @@
 ## Setup TensorFlow to Run GPU
 
+Some `AMPL` models depend on `TensorFlow`, like `graphconv`. The `TensorFlow` operations has both CPU and GPU implmentations. However, GPU provides better performance in handling of specialized computations and can have thousands of cores that can run operations in parallel on multiple data points. 
+
+> ***Note***:
+>*The instruction here is for the `LLNL` clusters NVIDIA CUDA setup. GPU is used for training. To run AMD GPU, please see [here](https://github.com/mauvais2/AMPL-1/blob/master/run_flux.md#amd).*
+
 To get TensorFlow to run GPU requires extra steps to point TF to the required libraries.
 
 > ***Note***:

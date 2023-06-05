@@ -11,7 +11,7 @@
 
 ## How To Run
 
-1. If running AMPL, follow the [steps](README.md#Install) to create an environment to run and build.
+1. If running AMPL, follow the [steps](./README.md#Install) to create an environment to run and build.
 
 2. Activate your environment
 
@@ -29,12 +29,13 @@
 
    b. Use the session to run your jobs.
 
-   If using *Nvidia*
+   * If using *Nvidia*
    ```
    module load cuda/11.3.0     # load the Cuda
    ```
 
-   If using *AMD*
+   <a name="amd"></a>
+   * If using *AMD*
 
    ```
    module load rocm/5.2.3      # load the ROCm module
