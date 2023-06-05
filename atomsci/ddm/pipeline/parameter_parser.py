@@ -652,7 +652,7 @@ def wrapper(*any_arg):
             elif len(inp_arg) == 1:
                 if inp_arg[0][0:9] == 'Namespace':
                     eval_arg = eval('argparse.' + inp_arg[0])
-                    print(eval_arg)
+                    log.debug(eval_arg)
                 else:
                     eval_arg = eval(inp_arg[0])
                 if isinstance(eval_arg, (dict,argparse.Namespace)):
@@ -1705,7 +1705,7 @@ def postprocess_args(parsed_args):
     try:
         if os.path.exists(parsed_args.dataset_key):
             parsed_args.dataset_hash = cu.create_checksum(parsed_args.dataset_key)
-            log.info("Created a dataset hash '%s' from dataset_key '%s'", parsed_args.dataset_hash, parsed_args.dataset_key)
+            log.debug("Created a dataset hash '%s' from dataset_key '%s'", parsed_args.dataset_hash, parsed_args.dataset_key)
     except Exception:
         pass # continue if it doesn't have a 'dataset_key'
 
@@ -1716,7 +1716,7 @@ def postprocess_args(parsed_args):
     # set num_model_tasks to equal len(response_cols)
     # this ignores the current value of num_model_tasks
     if not parsed_args.num_model_tasks is None:
-        print("num_model_tasks is deprecated and its value is ignored.")
+        log.debug("num_model_tasks is deprecated and its value is ignored.")
     if parsed_args.response_cols is None or type(parsed_args.response_cols) == str:
         parsed_args.num_model_tasks = 1
     elif type(parsed_args.response_cols) == list:
@@ -1797,7 +1797,7 @@ def remove_unrecognized_arguments(params, hyperparam=False):
     # Writes a warning for any arguments that are not in the default list of parameters
     extra_keys = [x for x in list(params.keys()) if x not in newdict.keys()]
     if len(extra_keys)>0:
-        log.warning(str(extra_keys) + " are not part of the accepted list of parameters and will be ignored")
+        log.debug(str(extra_keys) + " are not part of the accepted list of parameters and will be ignored")
 
     return newdict
 
@@ -1807,7 +1807,7 @@ def main(argument):
         params = parse_command_line(argument)
     else:
         params = wrapper(argument)
-        print(params)
+        log.debug(params)
     return params
 
 #***********************************************************************************************************
