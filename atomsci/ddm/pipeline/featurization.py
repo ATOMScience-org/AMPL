@@ -57,7 +57,6 @@ import collections
 
 logging.basicConfig(format='%(asctime)-15s %(message)s')
 log = logging.getLogger('ATOM')
-log.setLevel(logging.DEBUG)
 
 
 
