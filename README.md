@@ -37,6 +37,10 @@ Documentation in readthedocs format is available [here](https://ampl.readthedocs
 - [Advanced AMPL usage](#Advanced-AMPL-usage)
 - [Advanced installation](#Advanced-installation)
 - [Advanced testing](#Advanced-testing)
+  - [Running all tests](#all-tests)
+  - [Running SLURM Tests](#slurm-tests)
+  - [Running Flux Tests](#flux-tests)
+  - [Running TensorFlow Using GPU](#gpu-tests)
 - [Development](#Development)
 - [Project information](#Project-information)  
 - [Suggestions or Report Issues](#suggestions-issues)
@@ -457,6 +461,8 @@ pip uninstall atomsci-ampl
 ---
 <a name="Advanced-testing"></a>
 ## Advanced testing
+
+<a name="all-tests"></a>
 ### Running all tests
 To run the full set of tests, use Pytest from the test directory:
 ```
@@ -468,6 +474,7 @@ pytest
 ```
 &nbsp;  
 
+<a name="slurm-tests"></a>
 ### Running SLURM tests
 Several of the tests take some time to fit. These tests can be submitted to a SLURM cluster as a batch job. Example general SLURM submit scripts are included as `pytest_slurm.sh`.
 
@@ -504,6 +511,11 @@ cd ../../..
 &nbsp;  
 &nbsp;  
 
+<a name="flux-tests"></a>
+### [Running Flux tests](run_flux.md)
+
+<a name="gpu-tests"></a>
+### [Running TensorFlow Using GPU](run_tf_gpu.md)
 
 ---
 <a name="Development"></a>
