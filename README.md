@@ -512,7 +512,7 @@ cd ../../..
 &nbsp;  
 
 > ***Note***:
-> *The following instructions are for `LLNL` clusters*
+> *The following two instructions are for `LLNL` clusters*
 
 <a name="flux-tests"></a>
 ### [Running Flux tests](/run_flux.md)

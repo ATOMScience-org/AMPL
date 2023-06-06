@@ -1,14 +1,17 @@
 ## Setup TensorFlow to Run GPU
 
-Some `AMPL` models depend on `TensorFlow`, like `graphconv`. The `TensorFlow` operations has both CPU and GPU implmentations. However, GPU provides better performance in handling of specialized computations and can have thousands of cores that can run operations in parallel on multiple data points. 
+---
+**Info**
 
-> ***Note***:
->*The instruction here is for the `LLNL` clusters NVIDIA CUDA setup. GPU is used for training. To run AMD GPU, please see [here](https://github.com/mauvais2/AMPL-1/blob/master/run_flux.md#amd).*
+*The instruction here is for `LLNL` clusters, particularly `NVIDIA` `CUDA` setup. To run `AMD` `GPU`, please see [here](https://github.com/mauvais2/AMPL-1/blob/master/run_flux.md#amd).*
 
-To get TensorFlow to run GPU requires extra steps to point TF to the required libraries.
+---
 
-> ***Note***:
-> *If you don't have it seup properly, you may see these errors:*
+Some `AMPL` models depend on `TensorFlow`, like `graphconv`. The `TensorFlow` operations has both `CPU` and `GPU` implmentations. However, `GPU` provides better performance in handling of specialized computations and can have thousands of cores that run operations in parallel on multiple data points. The high data throughput and massive parallel computing can benefit to large dataset training.
+
+---
+
+To get `TensorFlow` to run `GPU`, it requires extra steps to point `TensorFlow` to the required libraries. If you don't have it setup properly, you may see these errors:
 
 ```
 2023-05-17 14:29:29.886963: I tensorflow/core/platform/cpu_feature_guard.cc:193] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  AVX2 FMA
@@ -25,18 +28,18 @@ pip install --upgrade nvidia-tensorrt                    # install nvidia-tensor
  
 cd $YOUR_ENV/lib/python3.9/site-packages                 # cd to your environment's python site-packages directory
 
-find . -type f -name libnvi*.so.* -print                 # find out where libnvinfer.so* locates. Mine is in tensorrt_libs
+find . -type f -name libnvi*.so.* -print                 # find out where libnvinfer.so* locates. Example here is in tensorrt_libs
 cd tensorrt_libs                                         # cd to the directory that has libnvinfer.so*
-ln -s libnvinfer.so.8 libnvinfer.so.7                    # TF is looking for .7. link .8 to libnvinfer.so.7
+ln -s libnvinfer.so.8 libnvinfer.so.7                    # TF is looking for .7, link .8 to libnvinfer.so.7
 ln -s libnvinfer_plugin.so.8 libnvinfer_plugin.so.7
 
 module load cuda/11.3.0                                  # setup for cuda, use the cuda version that's available
 
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$YOUR_ENV/lib/python3.9/site-packages/tensorrt:$YOUR_ENV/lib/python3.9/site-packages/tensorrt_libs 
-                                                         # define the LD_LIBRARY_PATH to include the ones under tensorrt, tensorrt_libs
+                                                         # define the LD_LIBRARY_PATH to include the ones from tensorrt, tensorrt_libs
 
 which nvcc                                               # find out where cuda library is. 
-                                                         # mine is /usr/tce/packages/cuda/cuda-11.3.0/bin/nvcc
+                                                         # Example: /usr/tce/packages/cuda/cuda-11.3.0/bin/nvcc
 ls  -R /usr/tce/packages/cuda/cuda-11.3.0/* |grep libdevice    # find where your libdevice library sits under the cuda library
 export XLA_FLAGS=--xla_gpu_cuda_data_dir=/usr/tce/packages/cuda/cuda-11.3.0      # set XLA_FLAGS to your libdevice library 
 ```
