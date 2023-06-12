@@ -33,7 +33,8 @@ def test_model_type():
 
     assert model_type == 'NN'
 
-
-    
-
-
+def test_no_medata_json_in_dir():
+    with pytest.raises(Exception) as e:
+        mfr.ModelFolder('..') # function should raise error
+    assert "Could not find 'model_metadata.json' from" in str(e.value) # this message
+    assert e.type == IOError
