@@ -1,15 +1,12 @@
 ## Setup TensorFlow to Run GPU
 
+> ***Note***<br>
+>
+> *The instruction here is for `LLNL` clusters, particularly `NVIDIA` `CUDA` setup.*<br> 
+> *To run `AMD` `GPU`, please see [here](https://github.com/mauvais2/AMPL-1/blob/master/run_flux.md#amd).*
+
 ---
-**Info**
-
-*The instruction here is for `LLNL` clusters, particularly `NVIDIA` `CUDA` setup. To run `AMD` `GPU`, please see [here](https://github.com/mauvais2/AMPL-1/blob/master/run_flux.md#amd).*
-
----
-
 Some `AMPL` models depend on `TensorFlow`, like `graphconv`. The `TensorFlow` operations has both `CPU` and `GPU` implmentations. However, `GPU` provides better performance in handling of specialized computations and can have thousands of cores that run operations in parallel on multiple data points. The high data throughput and massive parallel computing can benefit to large dataset training.
-
----
 
 To get `TensorFlow` to run `GPU`, it requires extra steps to point `TensorFlow` to the required libraries. If you don't have it setup properly, you may see these errors:
 
@@ -25,7 +22,7 @@ To enable them in other operations, rebuild TensorFlow with the appropriate comp
 
 ```
 pip install --upgrade nvidia-tensorrt                    # install nvidia-tensorrt if you haven't done so
- 
+
 cd $YOUR_ENV/lib/python3.9/site-packages                 # cd to your environment's python site-packages directory
 
 find . -type f -name libnvi*.so.* -print                 # find out where libnvinfer.so* locates. Example here is in tensorrt_libs
@@ -35,11 +32,11 @@ ln -s libnvinfer_plugin.so.8 libnvinfer_plugin.so.7
 
 module load cuda/11.3.0                                  # setup for cuda, use the cuda version that's available
 
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$YOUR_ENV/lib/python3.9/site-packages/tensorrt:$YOUR_ENV/lib/python3.9/site-packages/tensorrt_libs 
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$YOUR_ENV/lib/python3.9/site-packages/tensorrt:$YOUR_ENV/lib/python3.9/site-packages/tensorrt_libs
                                                          # define the LD_LIBRARY_PATH to include the ones from tensorrt, tensorrt_libs
 
-which nvcc                                               # find out where cuda library is. 
+which nvcc                                               # find out where cuda library is.
                                                          # Example: /usr/tce/packages/cuda/cuda-11.3.0/bin/nvcc
 ls  -R /usr/tce/packages/cuda/cuda-11.3.0/* |grep libdevice    # find where your libdevice library sits under the cuda library
-export XLA_FLAGS=--xla_gpu_cuda_data_dir=/usr/tce/packages/cuda/cuda-11.3.0      # set XLA_FLAGS to your libdevice library 
+export XLA_FLAGS=--xla_gpu_cuda_data_dir=/usr/tce/packages/cuda/cuda-11.3.0      # set XLA_FLAGS to your libdevice library
 ```

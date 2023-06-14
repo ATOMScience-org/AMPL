@@ -1,9 +1,8 @@
 ## Flux
 
----
-**Info**
-
-The instruction here is for `LLNL` clusters.
+> ***Note***<br>
+>
+> *The instruction here is for `LLNL` clusters.*
 
 ---
 `Flux` is a new resource management and scheduling system developed at `LLNL`. It has replaced `SLURM` as the native scheduler on `LLNL` clusters such as `corona` and `tioga`, and will eventually do so on other clusters. You need to learn basic `Flux` commands in order to run batch jobs and make use of `GPU` nodes on `corona` and `tioga`.
@@ -26,7 +25,7 @@ The instruction here is for `LLNL` clusters.
 ### There are two ways to run Flux:
 
 1. [Batch jobs](https://hpc-tutorials.llnl.gov/flux/section3/)
-   
+
 2. Interactive
 
    a. To start an interactive session:
