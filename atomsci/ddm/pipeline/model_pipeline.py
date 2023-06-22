@@ -326,6 +326,7 @@ class ModelPipeline:
             prediction_type=self.params.prediction_type,
             model_choice_score_type=self.params.model_choice_score_type,
             num_model_tasks=self.params.num_model_tasks,
+            class_number=self.params.class_number,
             transformers=self.params.transformers,
             transformer_key=self.params.transformer_key,
             transformer_bucket=self.params.transformer_bucket,
