@@ -9,6 +9,7 @@ import pytest
 import inspect
 import warnings
 
+from atomsci.ddm.utils.model_file_reader import ModelFileReader
 from atomsci.ddm.utils import model_file_reader as mfr
 
 from pathlib import Path
@@ -16,7 +17,7 @@ from pathlib import Path
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 
 model_path = '../../examples/BSEP/models/bsep_classif_scaffold_split.tar.gz'
-tar_model = mfr.ModelTar(model_path)
+tar_model = ModelFileReader(model_path)
 
 def test_model_split_uuid():
     split_uuid = tar_model.get_split_uuid()
@@ -35,6 +36,15 @@ def test_model_type():
 
 def test_no_medata_json_in_dir():
     with pytest.raises(Exception) as e:
-        mfr.ModelFolder('..') # function should raise error
-    assert "Could not find 'model_metadata.json' from" in str(e.value) # this message
+        ModelFileReader('..') # should raise error
     assert e.type == IOError
+
+def test_multiple_models_metadata():
+    data_list =  mfr.get_multiple_models_metadata('../../examples/BSEP/models/bsep_classif_random_split.tar.gz', '../../examples/BSEP/models/bsep_classif_scaffold_split_graphconv.tar.gz', '../..//examples/BSEP/models/bsep_classif_scaffold_split.tar.gz')
+    # should be parsed fine 
+    assert len(data_list) == 3
+    
+def test_incorrect_model_file():
+     with pytest.raises(Exception) as e:
+         data_list =  mfr.get_multiple_models_metadata('../../examples/BSEP/models/bsep_classif_random_split.tar')
+     assert e.type == IOError
