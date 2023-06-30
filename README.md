@@ -8,7 +8,7 @@
 
 AMPL is an open-source, modular, extensible software pipeline for building and sharing models to advance in silico drug discovery.
 
-> The ATOM Modeling PipeLine (AMPL) extends the functionality of DeepChem and supports an array of machine learning and molecular featurization tools. AMPL is an end-to-end data-driven modeling pipeline to generate machine learning models that can predict key safety and pharmacokinetic-relevant parameters. AMPL has been benchmarked on a large collection of pharmaceutical datasets covering a wide range of parameters.
+> The ATOM Modeling PipeLine (AMPL) extends the functionality of DeepChem and supports an array of machine learning and molecular featurization tools. AMPL is an end-to-end data-driven modeling pipeline to generate machine learning models that can predict key drug efficacy, safety and pharmacokinetic parameters. AMPL has been benchmarked on a large collection of pharmaceutical datasets covering a wide range of parameters.
 
 An [article describing the AMPL project](https://pubs.acs.org/doi/abs/10.1021/acs.jcim.9b01053) 
 was published in JCIM. For those without access to JCIM, a preprint of the article is available on 
@@ -18,7 +18,7 @@ Documentation in readthedocs format is available [here](https://ampl.readthedocs
 &nbsp;  
 
 ## Public release
-**This release marks the first public availability of the ATOM Modeling PipeLine (AMPL). Installation instructions for setting up and running AMPL are described below. Basic examples of model fitting and prediction are also included. AMPL has been deployed to and tested in multiple computing environments by ATOM Consortium members. Detailed documentation for the majority of the available features is included, but the documentation does not cover *all* developed features. This is a living software project with active development. Check back for continued updates. Feedback is welcomed and appreciated, and the project is open to contributions!**  
+**Installation instructions for setting up and running AMPL are described below. Basic examples of model fitting and prediction are also included. AMPL has been deployed to and tested in multiple computing environments by ATOM Consortium members. Detailed documentation for the majority of the available features is included, but the documentation does not cover *all* developed features. This is a living software project with active development. Check back for continued updates. Feedback is welcomed and appreciated, and the project is open to contributions!**  
 &nbsp;  
 
 ---
@@ -180,7 +180,7 @@ cd $AMPL_HOME/pip # cd to AMPL repo's pip directory
 pip3 install --force-reinstall --no-use-pep517 -r clients_requirements.txt # (Optional) for LLNL developers only
 pip3 install --force-reinstall --no-use-pep517 -r requirements.txt 
 
-module load cuda/11.3 # setup for cuda
+module load cuda/11.3 # (For LLNL GPU clusters only) Setup environment for cuda
 export LD_LIBRARY_PATH=$ENVROOT/atomsci/lib:$LD_LIBRARY_PATH # add your env/lib to LD_LIBRARY_PATH
 cd .. # go to AMPL repo directory and run build
 ./build.sh
