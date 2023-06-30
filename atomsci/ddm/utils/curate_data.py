@@ -311,8 +311,11 @@ def freq_table(dset_df, column, min_freq=1):
             and the column 'Count'. The 'Count' column contains the number of occurances for each
             value in the 'column' argument.
     """
-    vals = dset_df[column].values
-    uniq_vals, counts = np.unique(vals, return_counts=True)
+    nmissing = sum(dset_df[column].isna())
+    filt_df = dset_df[dset_df[column].notna()]
+    uniq_vals, counts = np.unique(filt_df[column].values, return_counts=True)
+    uniq_vals = uniq_vals.tolist() + [np.nan]
+    counts = counts.tolist() + [nmissing]
     uniq_df = pd.DataFrame({column: uniq_vals, 'Count': counts}).sort_values(by='Count', ascending=False)
     uniq_df = uniq_df[uniq_df.Count >= min_freq]
     return uniq_df
