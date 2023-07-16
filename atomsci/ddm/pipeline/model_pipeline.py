@@ -265,10 +265,13 @@ class ModelPipeline:
             params = self.params
         self.data = model_datasets.create_model_dataset(params, self.featurization, self.ds_client)
         self.data.get_featurized_data(params)
+
         if self.run_mode == 'training':
             if not (params.previously_split and self.data.load_presplit_dataset()):
                 self.data.split_dataset()
                 self.data.save_split_dataset()
+            if self.data.params.prediction_type == 'classification':
+                self.data._validate_classification_dataset()
         # We now create transformers after splitting, to allow for the case where the transformer
         # is fitted to the training data only. The transformers are then applied to the training,
         # validation and test sets separately.
