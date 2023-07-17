@@ -1655,8 +1655,6 @@ class SimpleClassificationPerfData(ClassificationPerfData):
 
                 real_vals (dict): The dictionary containing the origin response column values
 
-                class_names (np.array): Assumes the classes are of deepchem index type (e.g. 0,1,2,...)
-
                 num_classes (int): The number of classes to predict on
 
         """
@@ -1702,9 +1700,10 @@ class SimpleClassificationPerfData(ClassificationPerfData):
         # TODO: Consider defining a SimplePerfData class with the common stuff in its __init__
         # TODO: method, and doing multiple inheritance so we can call it from here.
 
-        # DeepChem does not currently support arbitary class names in classification datasets; for now we
-        # assume the y values are class indices (0, 1, 2, ...).
-        self.num_classes = len(set(model_dataset.dataset.y.flatten()))
+        # DeepChem does not currently support arbitary class names in classification datasets; 
+        # enforce class indices (0, 1, 2, ...) here.
+        self.class_indeces = list(set(model_dataset.dataset.y.flatten()))
+        self.num_classes = len(self.class_indeces)
         self.real_classes = dataset.y
         # Convert true values to one-hot encoding
         if self.num_classes > 2:
