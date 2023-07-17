@@ -2,6 +2,7 @@ import atomsci.ddm.pipeline.parameter_parser as parse
 import atomsci.ddm.pipeline.model_pipeline as mp
 import atomsci.ddm.pipeline.predict_from_model as pfm
 from atomsci.ddm.pipeline.model_datasets import ClassificationDataException
+import atomsci.ddm.utils.test_utils as tu
 import os
 import shutil
 import glob
@@ -64,9 +65,9 @@ def _example_json(example_file, result_dir,
 
     return config_json
 
-def test_multiclass_prediction(example_file):
-    result_dir = os.path.dirname(__file__)
-    result_dir = os.path.join(result_dir, 'result')
+def test_multiclass_prediction():
+    example_file = tu.relative_to_file(__file__, 'example.csv')
+    result_dir = tu.relative_to_file(__file__, 'result')
     clean(result_dir)
 
     id_col = "Id"
@@ -95,20 +96,21 @@ def test_multiclass_prediction(example_file):
     preds = pfm.predict_from_model_file(tar_file, example_df, id_col=id_col, smiles_col=smiles_col)
     print(preds.shape)
     print(preds.columns)
-    preds.to_csv('preds.csv')
+    preds.to_csv(tu.relative_to_file(__file__, 'preds.csv'))
     print('DONE!!!')
 
 def test_out_of_range():
-    result_dir = os.path.dirname(__file__)
-    result_dir = os.path.join(result_dir, 'result')
+    result_dir = tu.relative_to_file(__file__, 'result')
     clean(result_dir)
 
     id_col = "Id"
     smiles_col = "smiles"
     class_number = 3
 
-    config_json = _example_json("./example_out_of_range.csv", result_dir,
-                                id_col, smiles_col, class_number)
+    config_json = _example_json(
+        tu.relative_to_file(__file__, "./example_out_of_range.csv"), 
+        result_dir,
+        id_col, smiles_col, class_number)
 
     # Parse parameters
     params = parse.wrapper(config_json)
@@ -129,14 +131,13 @@ def test_bad_split():
     Every train, valid, test, split needs to have all classes.
     In this test the test subset does not have any 1 class samples
     '''
-    result_dir = os.path.dirname(__file__)
-    result_dir = os.path.join(result_dir, 'result')
+    result_dir = tu.relative_to_file(__file__, 'result')
     clean(result_dir)
 
     id_col = "Id"
     smiles_col = "smiles"
     class_number = 3
-    example_file = "./example_bad_split.csv"
+    example_file = tu.relative_to_file(__file__, './example_bad_split.csv')
 
     config_json = \
         {
@@ -202,5 +203,5 @@ def test_bad_split():
 
 if __name__ == '__main__':
     test_bad_split()
-    #test_out_of_range()
-    #test_multiclass_prediction("./example.csv")
+    test_out_of_range()
+    test_multiclass_prediction()
