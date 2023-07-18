@@ -1137,11 +1137,13 @@ def get_parser():
     parser.add_argument(
         '--max_epochs', dest='max_epochs', type=int, default=30,
         help='Maximum number of training epochs to run for DNN models')
-    specific_epoch_help_string = \
-        ('Runs training in produciton mode. ')
+    production_help_string = \
+        ('Runs training in produciton mode. The model will be trained for exactly max_epochs and '
+         'it will duplicate the dataset so that the entire dataset will be used for training, '
+         'validatin, and test.')
     parser.add_argument(
         '--production', dest='production', type=bool, default=False,
-        help=specific_epoch_help_string
+        help=production_help_string
     )
     parser.add_argument(
         '--weight_decay_penalty', dest='weight_decay_penalty', required=False, default='0.0001',

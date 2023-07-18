@@ -2112,7 +2112,7 @@ class EpochManager:
     # ****************************************************************************************
     # class EpochManager
     def __init__(self, wrapper,
-            subsets={'train':'train',  'valid':'valid', 'test':'test'}, **kwargs):
+            subsets={'train':'train',  'valid':'valid', 'test':'test'}, production=False, **kwargs):
         """ Initialize EpochManager
 
         Args:
@@ -2120,6 +2120,8 @@ class EpochManager:
 
             subsets (dict): Must contain the keys 'train', 'valid', 'test'. The values
                 are used as subsets when calling create_perf_data.
+
+            production (bool): True if this is running in production mode.
 
             kwargs (dict): Additional keyword args are passed to create_perf_data. The
                 subset argument should not be passed.
@@ -2142,6 +2144,7 @@ class EpochManager:
                 test_perf_data
         """
         params = wrapper.params
+        self.production = production
         self._subsets = subsets
         self._model_choice_score_type = params.model_choice_score_type
         self._log = wrapper.log
@@ -2280,7 +2283,8 @@ class EpochManager:
         """
         valid_score = self.wrapper.valid_perf_data[ei].model_choice_score(self._model_choice_score_type)
         self.wrapper.model_choice_scores[ei] = valid_score
-        if self.wrapper.best_valid_score is None:
+        if self.wrapper.best_valid_score is None or self.production:
+            # If we're in production mode, every epoch is the new best epoch
             self._new_best_valid_score()
             self.wrapper.best_valid_score = valid_score
             self.wrapper.best_epoch = ei

@@ -1,11 +1,12 @@
 import atomsci.ddm.pipeline.parameter_parser as parse
 import atomsci.ddm.pipeline.model_pipeline as mp
-import atomsci.ddm.pipeline.predict_from_model as pfm
+import atomsci.ddm.pipeline.compare_models as cm
 import atomsci.ddm.utils.test_utils as tu
 import os
 import shutil
 import glob
 import pandas as pd
+import pdb
 
 def clean(result_dir):
     if os.path.exists(result_dir):
@@ -23,6 +24,7 @@ def test_production():
     smiles_col = "smiles"
     class_number = 3
     example_file = tu.relative_to_file(__file__, './example.csv')
+    max_epochs = 50
 
     config_json = \
         {
@@ -63,12 +65,12 @@ def test_production():
             "dropout": ".01,.01,.01",
             "layer_sizes": "256,50,18",
             "learning_rate": "0.00007",
-            "max_epochs": "10",
+            "max_epochs": f"{max_epochs}",
             
             "comment": "Training",
             "comment": "----------------------------------------",
             "comment": "This regulates how long to train the model",
-            "early_stopping_patience": "50",
+            "early_stopping_patience": "2",
 
             "comment": "Results",
             "comment": "----------------------------------------",    
@@ -83,6 +85,22 @@ def test_production():
 
     # Train model
     model.train_model()
+
+    result_df = cm.get_filesystem_perf_results(result_dir)
+
+    # we cleaned the result dir before running, 
+    # so this should just have one result
+    assert len(result_df) == 1
+
+    # train size should equal valid size should equal test size
+    # should equal size of the dataset
+    expected_size = len(pd.read_csv(example_file))
+    assert result_df.best_valid_num_compounds[0] == expected_size
+    assert result_df.best_test_num_compounds[0] == expected_size
+    assert result_df.best_train_num_compounds[0] == expected_size
+
+    # best_epoch should equal max_epoch-1, since we start at 0
+    assert result_df.best_epoch[0] == (max_epochs-1)
 
 if __name__ == '__main__':
     test_production()
