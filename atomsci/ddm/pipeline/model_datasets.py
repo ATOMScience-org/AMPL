@@ -221,6 +221,15 @@ def save_joined_dataset(joined_dataset, split_metadata):
     '''
 
 # ****************************************************************************************
+def get_classes(y):
+    """
+    Returns the class indices for a set of labels
+    """
+    class_indeces = set(y.flatten())
+
+    return class_indeces
+
+# ****************************************************************************************
 
 class ModelDataset(object):
     """
@@ -453,25 +462,50 @@ class ModelDataset(object):
         if self.train_valid_dsets is None:
             raise Exception("Dataset %s did not split properly" % self.dataset_name)
         if self.params.prediction_type == 'classification':
-            if not self._check_classes():
-                raise Exception("Dataset {} does not have all classes represented in a split".format(self.dataset_name))
+            self._validate_classification_dataset()
 
     # ****************************************************************************************
 
+    def _validate_classification_dataset(self):
+        """
+        Verifies that this is a valid data for classification
+        Checks that all classes are represented in all subsets. This causes performance metrics to crash.
+        Checks that multi-class labels are between 0 and class_number
+        """
+        if not self._check_classes():
+            raise ClassificationDataException("Dataset {} does not have all classes represented in a split".format(self.dataset_name))
+        if not self._check_deepchem_classes():
+            raise ClassificationDataException("Dataset {} does not have all classes labeled using positive integers 0 <= i < {}".format(self.dataset_name, self.params.class_number))
+
     def _check_classes(self):
         """
-        Checks to see if all classes are represented in all splits
+        Checks to see if all classes are represented in all splits.
         
         Returns:
             (Boolean): boolean specifying if all classes are specified in all splits
         """
+        ref_class_set = get_classes(self.train_valid_dsets[0][0].y)
         for train, valid in self.train_valid_dsets:
-            if np.all(train.y == train.y[0]) or np.all(valid.y == valid.y[0]):
+            if not ref_class_set == get_classes(train.y):
                 return False
-        tmp_y = self.test_dset.y
-        if np.all(tmp_y == tmp_y[0]):
+            if not ref_class_set == get_classes(valid.y):
+                return False
+
+        if not ref_class_set == get_classes(self.test_dset.y):
             return False
         return True
+
+    # ****************************************************************************************
+
+    def _check_deepchem_classes(self):
+        """
+        Checks if classes adhear to DeepChem class index convention. Classes must be >=0 and < class_number
+
+        Returns:
+            (Boolean): boolean spechifying if classes adhear to DeepChem convention
+        """
+        classes = get_classes(self.dataset.y)
+        return all([0 <= c < self.params.class_number for c in list(classes)])
 
     # ****************************************************************************************
 
@@ -1337,4 +1371,11 @@ class FileDataset(ModelDataset):
         split_df = pd.read_csv(split_table_file, index_col=False)
         return split_df, None
 
-
+class ClassificationDataException(Exception):
+    '''
+    Used when dataset for classification problem violates assumptions
+    -   Every subset in a split must have all classes
+    -   Labels must range from 0 <= L < num_classes. DeepChem requires this.
+        Errors occur when L > num_classes or L < 0
+    '''
+    pass
