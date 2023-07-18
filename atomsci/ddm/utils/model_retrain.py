@@ -54,7 +54,7 @@ except (ModuleNotFoundError, ImportError):
     
 
 
-def train_model(input, output, dskey=''):
+def train_model(input, output, dskey='', production=False, max_epoch=None):
     """ Retrain a model saved in a model_metadata.json file
 
     Args:
@@ -63,6 +63,8 @@ def train_model(input, output, dskey=''):
         output (str): path to output directory
 
         dskey (str): new dataset key if file location has changed
+
+        production (bool): retrain the model using production mode
 
     Returns:
         None
@@ -85,6 +87,10 @@ def train_model(input, output, dskey=''):
     # use the same split
     params.previously_split = True
     params.split_uuid = config['splitting_parameters']['split_uuid']
+    # use production mode to train
+    params.production = production
+    if max_epoch is not None:
+        params.max_epochs = max_epoch
 
     # specify collection
     logger.debug("model params %s" % str(params))
@@ -98,7 +104,7 @@ def train_model(input, output, dskey=''):
 
     return model
 
-def train_model_from_tar(input, output, dskey=''):
+def train_model_from_tar(input, output, dskey='', production=False, max_epoch=None):
     """ Retrain a model saved in a tar.gz file
 
     Args:
@@ -119,9 +125,9 @@ def train_model_from_tar(input, output, dskey=''):
     # make metadata path
     metadata_path = os.path.join(tmpdir, 'model_metadata.json')
     
-    return train_model(metadata_path, output, dskey=dskey)
+    return train_model(metadata_path, output, dskey=dskey, production=production, max_epoch=max_epoch)
 
-def train_model_from_tracker(model_uuid, output_dir):
+def train_model_from_tracker(model_uuid, output_dir, production=False, max_epoch=None):
     """ Retrain a model saved in the model tracker, but save it to output_dir and don't insert it into the model tracker
 
     Args:
@@ -163,6 +169,10 @@ def train_model_from_tracker(model_uuid, output_dir):
     params.split_uuid = config['splitting_parameters']['split_uuid']
     # specify collection
     params.collection_name = collection_name
+    # use production mode to train
+    params.production = production
+    if max_epoch is not None:
+        params.max_epochs = max_epoch
 
     logger.debug("model params %s" % str(params))
 
@@ -174,7 +184,7 @@ def train_model_from_tracker(model_uuid, output_dir):
 
     return model
 
-def train_models_from_dataset_keys(input, output, pred_type='regression'):
+def train_models_from_dataset_keys(input, output, pred_type='regression', production=False, max_epoch=None):
     """ Retrain a list of models from an input file
 
     Args:
@@ -236,7 +246,7 @@ def train_models_from_dataset_keys(input, output, pred_type='regression'):
         for model_uuid in best_mods.model_uuid.sort_values():
             try:
                 logger.debug('Training %s in %s' % (model_uuid, output))
-                train_model_from_tracker(model_uuid, output)
+                train_model_from_tracker(model_uuid, output, production=production, max_epoch=max_epoch)
             except:
                 Exception(f'Error for model_uuid {model_uuid}')
                 pass
@@ -255,6 +265,8 @@ def main(argv):
     parser.add_argument('-o', '--output', help='output result directory')
     parser.add_argument('-dk', '--dataset_key', default='', help='Sometimes dataset keys get moved. Specify new location of dataset. Only works when passing in one model at time.')
     parser.add_argument('-pd_type', '--pred_type', default='regression', help='Specify the prediction type used for model retrain. The default is set to regression.')
+    parser.add_argument('-prod', '--production', action='store_true', default=False, help='Retrain the model in production mode')
+    parser.add_argument('-me', '--max_epoch', type=int, default=None, help="Change how many epochs the model is allowed to train.")
 
     args = parser.parse_args()
 
@@ -269,19 +281,19 @@ def main(argv):
     if os.path.isdir(input):
         # loop
         for path in Path(input).rglob('model_metadata.json'):
-            train_model(path.absolute(), output)
+            train_model(path.absolute(), output, production=args.production, max_epoch=args.max_epoch)
     elif os.path.isfile(input):
         # 2 if it's a file, check if it's a json or tar.gz or file that contains list of dataset keys
         if input.endswith('.json'):
-            train_model(input, output, dskey=args.dataset_key)
+            train_model(input, output, dskey=args.dataset_key, production=args.production, max_epoch=args.max_epoch)
         elif input.endswith('.tar.gz'):
-            train_model_from_tar(input, output, dskey=args.dataset_key)
+            train_model_from_tar(input, output, dskey=args.dataset_key, production=args.production, max_epoch=args.max_epoch)
         else:
-            train_models_from_dataset_keys(input, output, pred_type=args.pred_type)
+            train_models_from_dataset_keys(input, output, pred_type=args.pred_type, production=args.production, max_epoch=args.max_epoch)
     else:
         try:
             # 3 try to process 'input' as uuid
-            train_model_from_tracker(input, output)
+            train_model_from_tracker(input, output, production=args.production, max_epoch=args.max_epoch)
         except:
             Exception('Unrecognized input %s'%input)
 

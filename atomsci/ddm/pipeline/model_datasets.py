@@ -597,6 +597,8 @@ class ModelDataset(object):
         """
 
         # Load the split table from the datastore or filesystem
+        self.splitting = split.create_splitting(self.params)
+
         try:
             split_df, split_kv = self.load_dataset_split_table(directory)
         except Exception as e:
@@ -616,7 +618,6 @@ class ModelDataset(object):
                         self.params.__dict__[param] = split_kv[param]
 
         # Create object to delegate splitting to.
-        self.splitting = split.create_splitting(self.params)
         if self.params.split_strategy == 'k_fold_cv':
             train_valid_df = split_df[split_df.subset == 'train_valid']
             for f in range(self.splitting.num_folds):
