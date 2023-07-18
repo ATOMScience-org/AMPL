@@ -182,7 +182,7 @@ def test_production_retrain():
 
     best_tar = result_df.model_path[0]
     best_epoch = result_df.best_epoch[0]
-    mr.train_model_from_tar(best_tar, new_result_dir, production=True, max_epoch=int(best_epoch+1))
+    mr.train_model_from_tar(best_tar, new_result_dir, production=True)
 
     new_result_df = cm.get_filesystem_perf_results(new_result_dir)
 

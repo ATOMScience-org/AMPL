@@ -35,8 +35,6 @@ logger = logging.getLogger(__name__)
 
 import atomsci.ddm.pipeline.model_pipeline as mp
 import atomsci.ddm.pipeline.parameter_parser as parse
-import atomsci.ddm.utils.curate_data as curate_data
-import atomsci.ddm.utils.struct_utils as struct_utils
 import atomsci.ddm.pipeline.model_tracker as mt
 import atomsci.ddm.utils.datastore_functions as dsf
 from atomsci.ddm.pipeline import compare_models as cmp
@@ -51,10 +49,9 @@ try:
 except (ModuleNotFoundError, ImportError):
     logger.warning("Model tracker client not supported in your environment; will save models in filesystem only.")
     mlmt_supported = False
-    
 
 
-def train_model(input, output, dskey='', production=False, max_epoch=None):
+def train_model(input, output, dskey='', production=False):
     """ Retrain a model saved in a model_metadata.json file
 
     Args:
@@ -89,8 +86,8 @@ def train_model(input, output, dskey='', production=False, max_epoch=None):
     params.split_uuid = config['splitting_parameters']['split_uuid']
     # use production mode to train
     params.production = production
-    if max_epoch is not None:
-        params.max_epochs = max_epoch
+    if params.production and 'nn_specific' in config:
+        params.max_epochs = config['nn_specific']['best_epoch']+1
 
     # specify collection
     logger.debug("model params %s" % str(params))
@@ -104,7 +101,7 @@ def train_model(input, output, dskey='', production=False, max_epoch=None):
 
     return model
 
-def train_model_from_tar(input, output, dskey='', production=False, max_epoch=None):
+def train_model_from_tar(input, output, dskey='', production=False):
     """ Retrain a model saved in a tar.gz file
 
     Args:
@@ -125,9 +122,9 @@ def train_model_from_tar(input, output, dskey='', production=False, max_epoch=No
     # make metadata path
     metadata_path = os.path.join(tmpdir, 'model_metadata.json')
     
-    return train_model(metadata_path, output, dskey=dskey, production=production, max_epoch=max_epoch)
+    return train_model(metadata_path, output, dskey=dskey, production=production)
 
-def train_model_from_tracker(model_uuid, output_dir, production=False, max_epoch=None):
+def train_model_from_tracker(model_uuid, output_dir, production=False):
     """ Retrain a model saved in the model tracker, but save it to output_dir and don't insert it into the model tracker
 
     Args:
@@ -171,8 +168,8 @@ def train_model_from_tracker(model_uuid, output_dir, production=False, max_epoch
     params.collection_name = collection_name
     # use production mode to train
     params.production = production
-    if max_epoch is not None:
-        params.max_epochs = max_epoch
+    if params.production and 'nn_specific' in config:
+        params.max_epochs = config['nn_specific']['best_epoch']+1
 
     logger.debug("model params %s" % str(params))
 
@@ -184,7 +181,7 @@ def train_model_from_tracker(model_uuid, output_dir, production=False, max_epoch
 
     return model
 
-def train_models_from_dataset_keys(input, output, pred_type='regression', production=False, max_epoch=None):
+def train_models_from_dataset_keys(input, output, pred_type='regression', production=False):
     """ Retrain a list of models from an input file
 
     Args:
@@ -246,7 +243,7 @@ def train_models_from_dataset_keys(input, output, pred_type='regression', produc
         for model_uuid in best_mods.model_uuid.sort_values():
             try:
                 logger.debug('Training %s in %s' % (model_uuid, output))
-                train_model_from_tracker(model_uuid, output, production=production, max_epoch=max_epoch)
+                train_model_from_tracker(model_uuid, output, production=production)
             except:
                 Exception(f'Error for model_uuid {model_uuid}')
                 pass
@@ -266,7 +263,6 @@ def main(argv):
     parser.add_argument('-dk', '--dataset_key', default='', help='Sometimes dataset keys get moved. Specify new location of dataset. Only works when passing in one model at time.')
     parser.add_argument('-pd_type', '--pred_type', default='regression', help='Specify the prediction type used for model retrain. The default is set to regression.')
     parser.add_argument('-prod', '--production', action='store_true', default=False, help='Retrain the model in production mode')
-    parser.add_argument('-me', '--max_epoch', type=int, default=None, help="Change how many epochs the model is allowed to train.")
 
     args = parser.parse_args()
 
@@ -281,19 +277,19 @@ def main(argv):
     if os.path.isdir(input):
         # loop
         for path in Path(input).rglob('model_metadata.json'):
-            train_model(path.absolute(), output, production=args.production, max_epoch=args.max_epoch)
+            train_model(path.absolute(), output, production=args.production)
     elif os.path.isfile(input):
         # 2 if it's a file, check if it's a json or tar.gz or file that contains list of dataset keys
         if input.endswith('.json'):
-            train_model(input, output, dskey=args.dataset_key, production=args.production, max_epoch=args.max_epoch)
+            train_model(input, output, dskey=args.dataset_key, production=args.production)
         elif input.endswith('.tar.gz'):
-            train_model_from_tar(input, output, dskey=args.dataset_key, production=args.production, max_epoch=args.max_epoch)
+            train_model_from_tar(input, output, dskey=args.dataset_key, production=args.production)
         else:
-            train_models_from_dataset_keys(input, output, pred_type=args.pred_type, production=args.production, max_epoch=args.max_epoch)
+            train_models_from_dataset_keys(input, output, pred_type=args.pred_type, production=args.production)
     else:
         try:
             # 3 try to process 'input' as uuid
-            train_model_from_tracker(input, output, production=args.production, max_epoch=args.max_epoch)
+            train_model_from_tracker(input, output, production=args.production)
         except:
             Exception('Unrecognized input %s'%input)
 
