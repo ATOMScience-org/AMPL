@@ -23,22 +23,22 @@ Documentation in readthedocs format is available [here](https://ampl.readthedocs
 
 ---
 ## Table of contents
-- [Getting started](#Getting-started)
-  - [Install](#Install)
+- [Getting started](#getting-started)
+  - [Install](#install)
      - [Clone the git repository](#clone-repo)
      - [Create pip environment](#create-pip-env)
-     - [dgl and CUDA (**optional**)](#Install-dgl)
+     - [dgl and CUDA (**optional**)](#install-dgl)
      - [Installation quick summary](#install-summary)
-  - [Install with Docker](#Install-docker)
-- [Tutorials](#AMPL-tutorials)
-- [Tests](#Tests)
-- [AMPL Features](#AMPL-Features)
-- [Running AMPL](#Running-AMPL)
-- [Advanced AMPL usage](#Advanced-AMPL-usage)
-- [Advanced installation](#Advanced-installation)
-- [Advanced testing](#Advanced-testing)
-- [Development](#Development)
-- [Project information](#Project-information)  
+  - [Install with Docker](#install-docker)
+- [Tutorials](#ampl-tutorials)
+- [Tests](#tests)
+- [AMPL Features](#ampl-features)
+- [Running AMPL](#running-ampl)
+- [Advanced AMPL usage](#advanced-ampl-usage)
+- [Advanced installation](#advanced-installation)
+- [Advanced testing](#advanced-testing)
+- [Development](#development)
+- [Project information](#project-information)  
 - [Suggestions or Report Issues](#suggestions-issues)
 &nbsp;  
 
@@ -50,12 +50,12 @@ Documentation in readthedocs format is available [here](https://ampl.readthedocs
 
 
 ---
-<a name="Getting-started"></a>
+<a name="getting-started"></a>
 ## Getting started
 Welcome to the ATOM Modeling PipeLine (AMPL) for Drug Discovery! These instructions will explain how to install this pipeline for model fitting and prediction.  
 &nbsp;  
 
-<a name="Install"></a>
+<a name="install"></a>
 ### Install
 
 For a quick install summary, see [here](#install-summary).
@@ -125,7 +125,7 @@ export PYTHONUSERBASE=$ENVROOT/atomsci
 python3 -m pip install pip --upgrade
 ```
 
-7. Clone AMPL repository if you have not done so. See [instruction](#Install)
+7. Clone AMPL repository if you have not done so. See [instruction](#install)
 
 8. Go to $AMPL_HOME/pip directory
 
@@ -184,10 +184,10 @@ pip3 install -e .
 ```
 
 #### More installation information
-- More details on installation can be found in [Advanced installation](#Advanced-installation).  
+- More details on installation can be found in [Advanced installation](#advanced-installation).  
 &nbsp;  
 
-<a name="Install-dgl"></a>
+<a name="install-dgl"></a>
 #### Some models use [dgl](https://www.dgl.ai/) which requires CUDA. The following steps only apply to these models:
 
 ##### If your machine doesn't have CUDA,
@@ -218,7 +218,7 @@ python -m ipykernel install --user --name atomsci
 - After this process, you will have an `atomsci` pip environment with all dependencies installed. The name of the AMPL package is `atomsci-ampl` and is installed in the `install.sh` script to the environment.
 &nbsp;  
 
-<a name="Install-docker"></a>
+<a name="install-docker"></a>
 ### Install with Docker
 - Download and install Docker Desktop.
   - https://www.docker.com/get-started
@@ -241,7 +241,7 @@ python -m ipykernel install --user --name atomsci
 
 
 ---
-<a name="AMPL-tutorials"></a>
+<a name="ampl-tutorials"></a>
 ## AMPL tutorials
  Please follow the link, [`atomsci/ddm/examples/tutorials`](https://github.com/ATOMScience-org/AMPL/tree/master/atomsci/ddm/examples/tutorials), to access a collection of AMPL tutorial COLAB (Jupyter) notebooks. The tutorial notebooks give an exhaustive coverage of AMPL features. The AMPL team has prepared the tutorials to help beginners understand the basics to advanced AMPL features, and a reference for advanced AMPL users. 
 &nbsp;  
@@ -249,7 +249,7 @@ python -m ipykernel install --user --name atomsci
 
 
 ---
-<a name="Tests"></a>
+<a name="tests"></a>
 ## Tests
 AMPL includes a suite of software tests. This section explains how to run a very simple test that is fast to run. The Python test fits a random forest model using Mordred descriptors on a set of compounds from Delaney, *et al* with solubility data. A molecular scaffold-based split is used to create the training and test sets. In addition, an external holdout set is used to demonstrate how to make predictions on new compounds.
 
@@ -271,13 +271,13 @@ The important files for this test are listed below:
 &nbsp;  
 
 ### More example and test information
-- More details on examples and tests can be found in [Advanced testing](#Advanced-testing).
+- More details on examples and tests can be found in [Advanced testing](#advanced-testing).
 &nbsp;  
 &nbsp;  
 
 
 ---
-<a name="AMPL-Features"></a>
+<a name="ampl-features"></a>
 ## AMPL Features
 AMPL enables tasks for modeling and prediction from data ingestion to data analysis and can be broken down into the following stages:
 
@@ -325,7 +325,7 @@ Details of running specific features are within the [parameter (options) documen
 
 
 ---
-<a name="Running-AMPL"></a>
+<a name="running-ampl"></a>
 ## Running AMPL
 AMPL can be run from the command line or by importing into Python scripts and Jupyter notebooks.  
 &nbsp;  
@@ -348,13 +348,13 @@ AMPL includes detailed docstrings and comments to explain the modules. Full HTML
 &nbsp;  
 
 ### More information on AMPL usage
-- More information on AMPL usage can be found in [Advanced AMPL usage](#Advanced-AMPL-usage)  
+- More information on AMPL usage can be found in [Advanced AMPL usage](#advanced-ampl-usage)  
 &nbsp;  
 &nbsp;  
 
 
 ---
-<a name="Advanced-AMPL-usage"></a>
+<a name="advanced-ampl-usage"></a>
 ## Advanced AMPL usage
 
 ### Command line
@@ -436,7 +436,7 @@ Hyperparameter optimization for AMPL model fitting is available to run on SLURM 
 
 
 ---
-<a name="Advanced-installation"></a>
+<a name="advanced-installation"></a>
 ## Advanced installation
 ### Deployment
 AMPL has been developed and tested on the following Linux systems:
@@ -455,7 +455,7 @@ pip uninstall atomsci-ampl
 
 
 ---
-<a name="Advanced-testing"></a>
+<a name="advanced-testing"></a>
 ## Advanced testing
 ### Running all tests
 To run the full set of tests, use Pytest from the test directory:
@@ -506,7 +506,7 @@ cd ../../..
 
 
 ---
-<a name="Development"></a>
+<a name="development"></a>
 ## Development
 ### Installing the AMPL for development
 To install the AMPL for development, use the following commands instead:
@@ -544,7 +544,7 @@ Versions are managed through GitHub tags on this repository.
 &nbsp;  
 
 ---
-<a name="Project-information"></a>
+<a name="project-information"></a>
 ## Project information
 ### Authors
 **[The Accelerating Therapeutics for Opportunities in Medicine (ATOM) Consortium](https://atomscience.org)**
