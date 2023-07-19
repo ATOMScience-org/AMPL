@@ -1,7 +1,7 @@
 # ATOM Modeling PipeLine (AMPL) for Drug Discovery
 [![License](http://img.shields.io/:license-mit-blue.svg)](https://github.com/ATOMScience-org/AMPL/blob/master/LICENSE)
 
-*Created by the [Accelerating Therapeutics for Opportunites in Medicine (ATOM) Consortium](https://atomscience.org)*
+*Created by the [Accelerating Therapeutics for Opportunities in Medicine (ATOM) Consortium](https://atomscience.org)*
 
 <img src="atomsci/ddm/docs/ATOM_wordmark_black_transparent.png" width="370" height="100" class="center"></img>
 
