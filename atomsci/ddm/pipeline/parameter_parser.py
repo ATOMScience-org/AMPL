@@ -802,7 +802,7 @@ def dict_to_list(inp_dictionary,replace_spaces=False):
     temp_list_to_command_line = []
 
     # Special case handling for arguments that are False or True by default
-    default_false = ['previously_split','use_shortlist','datastore', 'save_results','verbose', 'hyperparam', 'split_only', 'is_ki'] 
+    default_false = ['previously_split','use_shortlist','datastore', 'save_results','verbose', 'hyperparam', 'split_only', 'is_ki', 'production'] 
     default_true = ['transformers','previously_featurized','uncertainty', 'rerun']
     for key, value in inp_dictionary.items():
         if key in default_false:
@@ -1142,9 +1142,12 @@ def get_parser():
          'it will duplicate the dataset so that the entire dataset will be used for training, '
          'validatin, and test.')
     parser.add_argument(
-        '--production', dest='production', type=bool, default=False,
+        '--production', dest='production', default=False,
+        action='store_true',
         help=production_help_string
     )
+    parser.set_defaults(production=False)
+
     parser.add_argument(
         '--weight_decay_penalty', dest='weight_decay_penalty', required=False, default='0.0001',
         help='weight_decay_penalty: float. The magnitude of the weight decay penalty to use. '
