@@ -1,0 +1,32 @@
+# Minimal pip requirement list for AMPL. This includes only the packages directly imported by AMPL code, plus a few others
+# commonly used during development.
+
+tensorflow
+jax
+torch_geometric
+xgboost
+
+bokeh
+matplotlib
+matplotlib-venn
+seaborn
+umap-learn
+
+bravado
+pyaml
+pyarrow
+
+# requires pkg-config to build: sudo apt-get pkg-config
+# requires Cairo: sudo apt-get install libcairo2-dev
+pycairo
+
+maestrowf
+MolVS
+mordred
+
+pytest
+ipykernel
+
+deepchem[torch]
+
+pyyaml==5.4.1
