@@ -625,7 +625,7 @@ def average_and_remove_duplicates (column, tolerance, list_bad_duplicates,
         # 5. Remove bad duplicates
         data = data[data.Remove_BadDuplicate != 1]
 
-        removed = removed.append(to_remove)
+        removed = pd.concat([removed, to_remove])
         i = i+1
 
         # 6. If bad duplicates were removed, loop back to step 'a.' to reset table & re-calc. If no bad duplicates, exit 'while loop'.
