@@ -135,8 +135,8 @@ There are two install options.
 
 ```bash
 cd $AMPL_HOME/pip
-pip3 install --force-reinstall --no-use-pep517 -r clients_requirements.txt # install atomsci.clients
-pip3 install --force-reinstall --no-use-pep517 -r requirements.txt # install library packages
+pip3 install --force-reinstall -r clients_requirements.txt # install atomsci.clients
+pip3 install --force-reinstall -r requirements.txt # install library packages
 ```
 
   * For the external developers,
