@@ -1,0 +1,3 @@
+[submodule "tpl/pyg-rocm-build"]
+	path = tpl/pyg-rocm-build
+	url = git@github.com:Looong01/pyg-rocm-build.git
