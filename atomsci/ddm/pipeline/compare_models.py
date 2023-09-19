@@ -910,6 +910,7 @@ def get_filesystem_perf_results(result_dir, pred_type='classification'):
     featurizer_list = []
     dataset_key_list = []
     splitter_list = []
+    split_strategy_list = []
     model_score_type_list = []
     feature_transform_type_list = []
 
@@ -993,6 +994,7 @@ def get_filesystem_perf_results(result_dir, pred_type='classification'):
         featurizer_list.append(featurizer)
         split_params = metadata_dict['splitting_parameters']
         splitter_list.append(split_params['splitter'])
+        split_strategy_list.append(split_params['split_strategy'])
         dataset_key_list.append(metadata_dict['training_dataset']['dataset_key'])
         feature_transform_type = metadata_dict['training_dataset']['feature_transform_type']
         feature_transform_type_list.append(feature_transform_type)
@@ -1016,6 +1018,7 @@ def get_filesystem_perf_results(result_dir, pred_type='classification'):
                     dataset_key=dataset_key_list,
                     features=featurizer_list,
                     splitter=splitter_list,
+                    split_strategy=split_strategy_list,
                     model_score_type=model_score_type_list,
                     feature_transform_type=feature_transform_type_list))
 
