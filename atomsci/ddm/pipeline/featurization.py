@@ -350,7 +350,7 @@ def compute_all_rdkit_descrs(mol_df, mol_col = "mol"):
     for mol in mol_df[mol_col]:
         cd = calc.CalcDescriptors(mol)
         cds.append(cd)
-    df2=pd.DataFrame(cds, columns=all_desc)
+    df2=pd.DataFrame(cds, columns=all_desc, index=mol_df.index)
     mol_df=mol_df.join(df2, lsuffix='', rsuffix='_rdk')
     return mol_df
     
