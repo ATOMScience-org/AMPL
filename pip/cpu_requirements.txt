@@ -2,11 +2,11 @@
 
 tensorflow
 
-jax
+jax[cpu]
 
--i https://download.pytorch.org/whl/cpu
+--find-links https://download.pytorch.org/whl/cpu
 torch
-torch_geometric # is this required separately from torch? I think so.
+torch_geometric
 
 xgboost
 
@@ -17,6 +17,8 @@ seaborn
 umap-learn
 
 pyarrow
+
+bravado
 
 # requires pkg-config to build: sudo apt-get pkg-config
 # requires Cairo: sudo apt-get install libcairo2-dev
@@ -29,8 +31,10 @@ mordred
 pytest
 ipykernel
 
-deepchem[tensorflow] # instructions unclear here - trouble on my home system
-deepchem[jax]        # instructions unclear here - trouble on my home system
-deepchem[torch]
+deepchem==2.7.1
+
+#deepchem[tensorflow] # instructions unclear here - trouble on my home system
+#deepchem[jax]        # instructions unclear here - trouble on my home system
+#deepchem[torch]
 
 pyyaml==5.4.1
