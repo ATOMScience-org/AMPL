@@ -1319,14 +1319,17 @@ class FileDataset(ModelDataset):
         data_dir = os.path.join(dataset_dir, self.featurization.get_featurized_data_subdir())
         featurized_dset_path = os.path.join(data_dir, featurized_dset_name)
         featurized_dset_df = pd.read_csv(featurized_dset_path)
-        self.dataset_key = featurized_dset_path
-        featurized_dset_df[self.params.id_col] = featurized_dset_df[self.params.id_col].astype(str)
 
         # check if featurized dset has all the smiles from dset_df
         dsetsmi=set(dset_df[self.params.smiles_col])
         featsmi=set(featurized_dset_df[self.params.smiles_col])
         if not dsetsmi-featsmi==set():
             raise AssertionError("All of the smiles in your dataset are not represented in your featurization file. You can set previously_featurized to False and your featurized dataset will be overwritten to include the correct data.")
+        
+        self.dataset_key = featurized_dset_path
+        featurized_dset_df[self.params.id_col] = featurized_dset_df[self.params.id_col].astype(str)
+
+        
 
         return featurized_dset_df
 
