@@ -92,6 +92,14 @@ utils.many\_to\_one module
    :undoc-members:
    :show-inheritance:
 
+utils.model\_file\_reader module
+------------------------------------
+
+.. automodule:: utils.model_file_reader
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 utils.model\_retrain module
 ---------------------------------------
 
@@ -144,6 +152,14 @@ utils.struct\_utils module
 --------------------------------------
 
 .. automodule:: utils.struct_utils
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+utils.test\_utils module
+--------------------------------------
+
+.. automodule:: utils.test_utils
    :members:
    :undoc-members:
    :show-inheritance:

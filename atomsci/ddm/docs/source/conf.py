@@ -16,12 +16,16 @@ import os
 import sys
 sys.path.insert(0, os.path.abspath('../../'))
 
-
 # -- Project information -----------------------------------------------------
 
 project = 'ATOM Data-Driven Modeling Pipeline'
 copyright = '2023, ATOM DDM Team'
 author = 'ATOM DDM Team'
+
+## need to build ampl, 
+# import atomsci.ddm
+# version = atomsci.ddm.__version__
+#opyright = f'{datetime.datetime.now().year}, {author}'
 
 # The short X.Y version
 version = '1.5.0'

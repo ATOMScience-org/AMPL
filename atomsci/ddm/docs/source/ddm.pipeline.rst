@@ -4,6 +4,22 @@ ddm.pipeline package
 Submodules
 ----------
 
+ddm.pipeline.GeneticAlgorithm module
+-------------------------------------
+
+.. automodule:: ddm.pipeline.GeneticAlgorithm
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+ddm.pipeline.MultitaskScaffoldSplit module
+-------------------------------------------
+
+.. automodule:: ddm.pipeline.MultitaskScaffoldSplit
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 ddm.pipeline.ave\_splitter module
 ---------------------------------
 
@@ -44,10 +60,26 @@ ddm.pipeline.diversity\_plots module
    :undoc-members:
    :show-inheritance:
 
+ddm.pipeline.feature\_importance module
+----------------------------------------
+
+.. automodule:: ddm.pipeline.feature_importance
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 ddm.pipeline.featurization module
 ---------------------------------
 
 .. automodule:: ddm.pipeline.featurization
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+ddm.pipeline.hyper\_perf\_plots module
+---------------------------------------
+
+.. automodule:: ddm.pipeline.hyper_perf_plots
    :members:
    :undoc-members:
    :show-inheritance:
@@ -136,14 +168,6 @@ ddm.pipeline.transformations module
 -----------------------------------
 
 .. automodule:: ddm.pipeline.transformations
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-Module contents
----------------
-
-.. automodule:: ddm.pipeline
    :members:
    :undoc-members:
    :show-inheritance:
