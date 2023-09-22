@@ -322,6 +322,8 @@ def convert_IC50_to_pIC50(df, unit_col='unit', value_col='value',
         new_vals.append(pic50)
     df[new_value_col] = new_vals
 
+    return df
+
 def down_select(df,kv_lst) :
     """Filters rows given a set of values
 
