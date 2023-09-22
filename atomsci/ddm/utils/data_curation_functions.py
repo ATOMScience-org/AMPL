@@ -10,7 +10,6 @@ import os
 import sys
 import numpy as np
 import pandas as pd
-
 import pdb
 
 from rdkit import Chem
@@ -294,6 +293,34 @@ def ic50topic50(x) :
     """
     print(x)
     return -np.log10((x/1000000000.0))
+
+def convert_IC50_to_pIC50(df, unit_col='unit', value_col='value', 
+        new_value_col='average_col', unit_conv={'uM':lambda x: x*1e-6, 'nM':lambda x: x*1e-9}, inplace=False):
+    '''
+    If the value is 0 then we drop it from the dataset
+
+    Args:
+        df (DataFrame): A DataFrame that contains value_col and unit_col.
+        unit_conv (dict): Dictionary for units found in unit col. Default:
+            unit_conv={'uM':lambda x: x*1e-6, 'nM':lambda x: x*1e-9, 'nan':lambda x: x*1e-9}
+            'nan' is a special keyword for nan units.
+        unit_col (string): Column containing units.
+        value_col (string): Column contianing values.
+        new_value_col (string): Column to put conversion results.
+        inplace (boolean): either modifies the DataFrame or returns a copy
+    Returns:
+        DataFrame: containing the new_value_col
+    '''
+    if inplace:
+        df = df.copy()
+    units = set(df[unit_col])
+    assert all([u in unit_conv for u in units]), 'Not all units could be found in unit_conv '+str([u for u in units if not (u in unit_conv)])
+    new_vals = []
+    for i, row in df.iterrows():
+        ic50 = row[value_col]
+        pic50 = -1 * np.log10(unit_conv[row[unit_col]](ic50))
+        new_vals.append(pic50)
+    df[new_value_col] = new_vals
 
 def down_select(df,kv_lst) :
     """Filters rows given a set of values
