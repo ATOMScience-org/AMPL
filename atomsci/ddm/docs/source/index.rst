@@ -38,10 +38,28 @@ A step-by-step guide to getting started with MolVS.
 
 .. toctree::
    :maxdepth: 2
+   :caption: Getting Started
+
+   get_started/introduction
+   get_started/install
+   get_started/run_ampl
+   get_started/tests
+
+.. toctree::
+   :maxdepth: 2
    :caption: Tutorials
 
-   tutorials/cla_scaff
+   tutorials/apply_trained_model
    tutorials/cla_scaff_cleanup
+   tutorials/cla_scaff
+   tutorials/compare_models
+   tutorials/curate_datasets
+   tutorials/docker
+   tutorials/hyperparameter_search
+   tutorials/perform_split
+   tutorials/production_model
+   tutorials/train_simple_model
+   tutorials/visualization
 
 .. toctree::
    :maxdepth: 1

@@ -4,30 +4,6 @@ pipeline package
 Submodules
 ----------
 
-pipeline.GeneticAlgorithm module
------------------------------
-
-.. automodule:: pipeline.GeneticAlgorithm
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-pipeline.MultitaskScaffoldSplit module
------------------------------
-
-.. automodule:: pipeline.MultitaskScaffoldSplit
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-pipeline.ave\_splitter module
------------------------------
-
-.. automodule:: pipeline.ave_splitter
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 pipeline.chem\_diversity module
 -------------------------------
 
@@ -125,14 +101,6 @@ pipeline.parameter\_parser module
     :undoc-members:
     :show-inheritance:
 
-pipeline.perf\_data module
---------------------------
-
-.. automodule:: pipeline.perf_data
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 pipeline.perf\_plots module
 ---------------------------
 
@@ -153,14 +121,6 @@ pipeline.splitting module
 -------------------------
 
 .. automodule:: pipeline.splitting
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-pipeline.temporal\_splitter module
-----------------------------------
-
-.. automodule:: pipeline.temporal_splitter
     :members:
     :undoc-members:
     :show-inheritance:

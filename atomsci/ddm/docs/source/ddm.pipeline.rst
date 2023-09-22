@@ -4,30 +4,6 @@ ddm.pipeline package
 Submodules
 ----------
 
-ddm.pipeline.GeneticAlgorithm module
--------------------------------------
-
-.. automodule:: ddm.pipeline.GeneticAlgorithm
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-ddm.pipeline.MultitaskScaffoldSplit module
--------------------------------------------
-
-.. automodule:: ddm.pipeline.MultitaskScaffoldSplit
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-ddm.pipeline.ave\_splitter module
----------------------------------
-
-.. automodule:: ddm.pipeline.ave_splitter
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 ddm.pipeline.chem\_diversity module
 -----------------------------------
 
@@ -124,14 +100,6 @@ ddm.pipeline.parameter\_parser module
    :undoc-members:
    :show-inheritance:
 
-ddm.pipeline.perf\_data module
-------------------------------
-
-.. automodule:: ddm.pipeline.perf_data
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 ddm.pipeline.perf\_plots module
 -------------------------------
 
@@ -152,14 +120,6 @@ ddm.pipeline.splitting module
 -----------------------------
 
 .. automodule:: ddm.pipeline.splitting
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-ddm.pipeline.temporal\_splitter module
---------------------------------------
-
-.. automodule:: ddm.pipeline.temporal_splitter
    :members:
    :undoc-members:
    :show-inheritance:

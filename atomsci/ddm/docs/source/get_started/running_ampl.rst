@@ -1,5 +1,3 @@
-.. _running_ampl:
-
 Running AMPL
 ============
 
