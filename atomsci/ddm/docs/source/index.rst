@@ -31,32 +31,52 @@ Built with
 - `Mordred`_: Chemical descriptors
 - Other Python package dependencies
 
-User guide
-----------
+Get Started
+-----------
 
 A step-by-step guide to getting started with MolVS.
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
+   :caption: Getting Started
 
-   guide/getting_started
-   guide/install
-   guide/tests
-   guide/running_ampl
-   guide/advanced_ampl_usage
-   guide/advanced_installation
-   guide/advanced_testing
-
-API documentation
------------------
+   get_started/introduction
+   get_started/install
+   get_started/run_ampl
+   get_started/tests
 
 .. toctree::
    :maxdepth: 2
+   :caption: Tutorials
 
-   modules 
+   tutorials/apply_trained_model
+   tutorials/cla_scaff_cleanup
+   tutorials/cla_scaff
+   tutorials/compare_models
+   tutorials/curate_datasets
+   tutorials/docker
+   tutorials/hyperparameter_search
+   tutorials/perform_split
+   tutorials/production_model
+   tutorials/train_simple_model
+   tutorials/visualization
+
+.. toctree::
+   :maxdepth: 1
+   :caption: API Package Reference
+
+   modules
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Advanced Concepts
+
+   advanced/advanced_ampl_usage
+   advanced/advanced_installation
+   advanced/advanced_testing
 
 Useful links
------------------
+------------
 - `ATOM Data-Driven Modeling Pipeline on GitHub`_
 - `Pipeline parameters (options)`_
 - `Library documentation`_
