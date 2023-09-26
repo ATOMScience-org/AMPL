@@ -49,11 +49,9 @@ A step-by-step guide to getting started with MolVS.
    :maxdepth: 2
    :caption: Tutorials
 
+   tutorials/02_data_curation
    tutorials/apply_trained_model
-   tutorials/cla_scaff_cleanup
-   tutorials/cla_scaff
    tutorials/compare_models
-   tutorials/curate_datasets
    tutorials/docker
    tutorials/hyperparameter_search
    tutorials/perform_split

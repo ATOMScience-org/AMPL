@@ -7,27 +7,33 @@ Prerequisites
 -------------
 **AMPL** is a Python 3 package that has been developed and run in a specific pip environment.
  
-Install
--------
+Basic Install
+-------------
 Clone the git repository
 ^^^^^^^^^^^^^^^^^^^^^^^^
 ::
 
     git clone https://github.com/ATOMScience-org/AMPL.git
  
-Create pip environment
-^^^^^^^^^^^^^^^^^^^^^^^^
-::
+Please refer to this link, https://github.com/ATOMScience-org/AMPL#Install, for details.
+
+Create pip environment::
+
+    module load python/3.9.12 # use python 3.9.12
+    python3 -m venv atomsci # create a new pip env
+    source atomsci/bin/activate # activate the environemt
+
+    python3 -m pip install pip --upgrade
     cd $AMPL_HOME/pip # cd to AMPL repo's pip directory
 
-    pip3 install --force-reinstall --no-use-pep517 -r requirements.txt 
+    pip3 install --force-reinstall -r requirements.txt
 
 .. note::
-   
-    Depending on system performance, creating the environment can take some time.
 
-Install AMPL
-------------
+   Depending on system performance, creating the environment can take some time.
+
+Build and Install AMPL
+----------------------
 Go to the AMPL root directory and install the AMPL package::
 
     source atomsci/bin/activate # activate the environemt
