@@ -1,7 +1,7 @@
 # Minimal pip requirement list for AMPL with CPU support only. This includes only the packages directly imported by AMPL code, plus a few others commonly used during development. 
 -i https://download.pytorch.org/whl/cpu
 --extra-index-url https://data.dgl.ai/wheels/repo.html
---extra-index-url https://wci-repo.llnl.gov/repository/pypi-group/simple
+--extra-index-url https://pypi.python.org/simple
 
 tensorflow
 tensorrt
@@ -27,6 +27,7 @@ pyarrow
 
 bravado
 
+# optional for home users: prettier images in RDKit
 # requires pkg-config to build: sudo apt-get pkg-config
 # requires Cairo: sudo apt-get install libcairo2-dev
 # pycairo 
@@ -39,9 +40,5 @@ pytest
 ipykernel
 
 deepchem==2.7.1
-
-#deepchem[tensorflow] # instructions unclear here - trouble on my home system
-#deepchem[jax]        # instructions unclear here - trouble on my home system
-#deepchem[torch]
 
 pyyaml==5.4.1
