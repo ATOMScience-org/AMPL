@@ -6,7 +6,6 @@
 # --extra-index-url https://wci-repo.llnl.gov/repository/$
 
 tensorflow
-tensorrt
 
 jax[cpu]
 
