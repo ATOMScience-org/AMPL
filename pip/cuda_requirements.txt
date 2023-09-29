@@ -7,7 +7,7 @@
 -f https://data.dgl.ai/wheels/cu118/repo.html
 
 tensorflow==2.14.0
-# can't tell if rt is necessary
+
 tensorrt
 
 torch==2.0.1
