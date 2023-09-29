@@ -89,8 +89,8 @@ cd ..
 ./build.sh
 pip install -e .
 ```
-
-#### Installation Quick Summary
+---
+## Installation Quick Summary
 ```bash
 # LLNL only: module load python/3.9.12 cuda/11.8
 
@@ -109,14 +109,14 @@ cd ..                                   # go back to AMPL parent directory
 ./build.sh                              # build AMPL package
 pip install -e .                        # install AMPL
 ```
-
-#### Create jupyter notebook kernel (optional)
+---
+## Create jupyter notebook kernel (optional)
 With your environment activated:
 ```
 python -m ipykernel install --user --name atomsci
 ```
-
-### Install with Docker
+---
+## Install with Docker
 - Download and install Docker Desktop.
   - https://www.docker.com/get-started
 - Create a workspace folder to mount with Docker environment and transfer files. 
@@ -401,11 +401,20 @@ Versions are managed through GitHub tags on this repository.
 - Jonathan E. Allen (1)
 &nbsp;  
 
+### Contributors
+- [Amanda Paulson](@paulsonak) (5)
+- Stewart He (1)
+- Da Shi (6)
+- Jessica Mauvais (1)
+
 1. Lawrence Livermore National Laboratory
 2. GlaxoSmithKline Inc.
 3. Frederick National Laboratory for Cancer Research
-4. Computable  
+4. Computable
+5. University of California, San Francisco
+6. Schrodinger
 &nbsp;  
+
 
 ### Support
 Please contact the AMPL repository owners for bug reports, questions, and comments.  
