@@ -5,15 +5,15 @@
 # for LC developers: comment out pypi index url and use t$
 # --extra-index-url https://wci-repo.llnl.gov/repository/$
 
-tensorflow
+tensorflow==2.14.0
 
-jax[cpu]
+jax[cpu]==0.4.16
 
-torch
+torch==2.0.1
 torch_geometric
 lightning
 
-dgl
+dgl==1.1.2
 dgllife
 
 xgboost
