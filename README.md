@@ -1,26 +1,14 @@
 # ATOM Modeling PipeLine (AMPL) for Drug Discovery
-[![License](http://img.shields.io/:license-mit-blue.svg)](https://github.com/ATOMScience-org/AMPL/blob/master/LICENSE)
+[![License](http://img.shields.io/:license-mit-blue.svg)](https://github.com/ATOMScience-org/AMPL/blob/master/LICENSE) | [Install](#install) | [Docker](#install-docker) | [Tutorials](#ampl-tutorials) | [Pipeline parameters](atomsci/ddm/docs/PARAMETERS.md) | [Docs](https://ampl.readthedocs.io/en/latest/pipeline.html)
+
+<img src="atomsci/ddm/docs/ATOM_cymatics_black_wordmark.jpg" width="370" height="100" class="center"></img>
 
 *Created by the [Accelerating Therapeutics for Opportunities in Medicine (ATOM) Consortium](https://atomscience.org)*
 
-<img src="atomsci/ddm/docs/ATOM_wordmark_black_transparent.png" width="370" height="100" class="center"></img>
+## An open-source, end-to-end software pipeline for data curation, model building, and molecular property prediction to advance in silico drug discovery.
 
-
-AMPL is an open-source, modular, extensible software pipeline for building and sharing models to advance in silico drug discovery.
-
-> The ATOM Modeling PipeLine (AMPL) extends the functionality of DeepChem and supports an array of machine learning and molecular featurization tools. AMPL is an end-to-end data-driven modeling pipeline to generate machine learning models that can predict key safety and pharmacokinetic-relevant parameters. AMPL has been benchmarked on a large collection of pharmaceutical datasets covering a wide range of parameters.
-
-An [article describing the AMPL project](https://pubs.acs.org/doi/abs/10.1021/acs.jcim.9b01053) 
-was published in JCIM. For those without access to JCIM, a preprint of the article is available on 
-[ArXiv](http://arxiv.org/abs/1911.05211). 
-
-Documentation in readthedocs format is available [here](https://ampl.readthedocs.io/en/latest/pipeline.html).
-&nbsp;  
-
-## Public release
-**This release marks the first public availability of the ATOM Modeling PipeLine (AMPL). Installation instructions for setting up and running AMPL are described below. Basic examples of model fitting and prediction are also included. AMPL has been deployed to and tested in multiple computing environments by ATOM Consortium members. Detailed documentation for the majority of the available features is included, but the documentation does not cover *all* developed features. This is a living software project with active development. Check back for continued updates. Feedback is welcomed and appreciated, and the project is open to contributions!**  
-&nbsp;  
-
+The ATOM Modeling PipeLine (AMPL) extends the functionality of DeepChem and supports an array of machine learning and molecular featurization tools. AMPL is an end-to-end data-driven modeling pipeline to generate machine learning models that can predict key safety and pharmacokinetic-relevant parameters. AMPL has been benchmarked on a large collection of pharmaceutical datasets covering a wide range of parameters. This is a living software project with active development. Check back for continued updates. Feedback is welcomed and appreciated, and the project is open to contributions! An [article describing the AMPL project](https://pubs.acs.org/doi/abs/10.1021/acs.jcim.9b01053) was published in JCIM. For those without access to JCIM, a preprint of the article is available on [ArXiv](http://arxiv.org/abs/1911.05211). [Documentation is available here.](https://ampl.readthedocs.io/en/latest/pipeline.html)
+ 
 ---
 ## Table of contents
 - [Getting started](#getting-started)
@@ -40,36 +28,27 @@ Documentation in readthedocs format is available [here](https://ampl.readthedocs
 - [Development](#development)
 - [Project information](#project-information)  
 - [Suggestions or Report Issues](#suggestions-issues)
-&nbsp;  
 
 ## Useful links
 - [Pipeline parameters (options)](atomsci/ddm/docs/PARAMETERS.md)
 - [Library documentation](https://ampl.readthedocs.io/en/latest/index.html)  
-&nbsp;  
-&nbsp;  
-
-
 ---
-<a name="getting-started"></a>
 ## Getting started
 Welcome to the ATOM Modeling PipeLine (AMPL) for Drug Discovery! These instructions will explain how to install this pipeline for model fitting and prediction.  
-&nbsp;  
 
-<a name="install"></a>
-### Install
+## Install
 
 For a quick install summary, see [here](#install-summary).
 
 <a name="clone-repo"></a>
-#### Clone the git repository
-
-`git clone https://github.com/ATOMScience-org/AMPL.git`  
-&nbsp;  
-
-#### Create pip environment
+### Clone the git repository
+```
+git clone https://github.com/ATOMScience-org/AMPL.git 
+```
 <a name="create-pip-env"></a>
+### Create pip environment
 
-##### Create a virtual env.
+#### Create a virtual env.
 
 > ***Note***:
 > *We use `atomsci `as an example here.*
