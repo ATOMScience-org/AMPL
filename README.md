@@ -1,5 +1,5 @@
 # ATOM Modeling PipeLine (AMPL) for Drug Discovery
-[![License](http://img.shields.io/:license-mit-blue.svg)](https://github.com/ATOMScience-org/AMPL/blob/master/LICENSE) | [Install](#install) | [Docker](#install-docker) | [Tutorials](#ampl-tutorials) | [Pipeline parameters](atomsci/ddm/docs/PARAMETERS.md) | [Docs](https://ampl.readthedocs.io/en/latest/pipeline.html)
+[![License](http://img.shields.io/:license-mit-blue.svg)](https://github.com/ATOMScience-org/AMPL/blob/master/LICENSE) | [Install](#install) | [Docker](#install-docker) | [Tutorials](#ampl-tutorials) |  [Features](#ampl-features) | [Pipeline parameters](atomsci/ddm/docs/PARAMETERS.md) | [Docs](https://ampl.readthedocs.io/en/latest/pipeline.html)
 
 <img src="atomsci/ddm/docs/ATOM_cymatics_black_wordmark.jpg" width="370" height="100" class="center"></img>
 
@@ -7,7 +7,11 @@
 
 ## An open-source, end-to-end software pipeline for data curation, model building, and molecular property prediction to advance in silico drug discovery.
 
-The ATOM Modeling PipeLine (AMPL) extends the functionality of DeepChem and supports an array of machine learning and molecular featurization tools. AMPL is an end-to-end data-driven modeling pipeline to generate machine learning models that can predict key safety and pharmacokinetic-relevant parameters. AMPL has been benchmarked on a large collection of pharmaceutical datasets covering a wide range of parameters. This is a living software project with active development. Check back for continued updates. Feedback is welcomed and appreciated, and the project is open to contributions! An [article describing the AMPL project](https://pubs.acs.org/doi/abs/10.1021/acs.jcim.9b01053) was published in JCIM. For those without access to JCIM, a preprint of the article is available on [ArXiv](http://arxiv.org/abs/1911.05211). [Documentation is available here.](https://ampl.readthedocs.io/en/latest/pipeline.html)
+> The ATOM Modeling PipeLine (AMPL) extends the functionality of DeepChem and supports an array of machine learning and molecular featurization tools. AMPL is an end-to-end data-driven modeling pipeline to generate machine learning models that can predict key safety and pharmacokinetic-relevant parameters. 
+
+AMPL has been benchmarked on a large collection of pharmaceutical datasets covering a wide range of parameters. This is a living software project with active development. Check back for continued updates. Feedback is welcomed and appreciated, and the project is open to contributions! 
+
+An [article describing the AMPL project](https://pubs.acs.org/doi/abs/10.1021/acs.jcim.9b01053) was published in JCIM. For those without access to JCIM, a preprint of the article is available on [ArXiv](http://arxiv.org/abs/1911.05211). [Documentation is available here.](https://ampl.readthedocs.io/en/latest/pipeline.html)
 
 ---
 ## Table of contents
@@ -136,6 +140,24 @@ python -m ipykernel install --user --name atomsci
 - Be sure to save any work you want to be permanent in your workspace folder. If the container is shut down, you'll lose anything not in that folder.
 
 ---
+
+## Uninstallation
+To remove AMPL from a pip environment use:
+```bash
+pip uninstall atomsci-ampl
+```
+
+To remove an entire virtual environment named atomsci:
+```bash
+rm -rf ~/workspace/atomsci
+```
+
+To remove cached packages and clear space:
+```bash
+pip cache purge
+```
+
+---
 ## AMPL tutorials
  Please follow the link, [`atomsci/ddm/examples/tutorials`](https://github.com/ATOMScience-org/AMPL/tree/master/atomsci/ddm/examples/tutorials), to access a collection of AMPL tutorial notebooks. The tutorial notebooks give an exhaustive coverage of AMPL features. The AMPL team has prepared the tutorials to help beginners understand the basics to advanced AMPL features, and a reference for advanced AMPL users. 
 
@@ -145,7 +167,7 @@ AMPL includes a suite of software tests. This section explains how to run a very
 
 To run the Delaney Python script that curates a dataset, fits a model, and makes predictions, run the following commands:
 ```
-source $ENVROOT/atomsci/bin/activate # activate your pip environment. `atomcsi` is an example here.
+source $ENVROOT/atomsci/bin/activate # activate your pip environment.
 
 cd atomsci/ddm/test/integrative/delaney_RF
 
@@ -165,12 +187,6 @@ The important files for this test are listed below:
 ---
 ## AMPL Features
 AMPL enables tasks for modeling and prediction from data ingestion to data analysis and can be broken down into the following stages:
-
-1. Data ingestion and curation
-2. Featurization
-3. Model training and tuning
-4. Prediction generation
-5. Visualization and analysis  
 
 ### 1. Data curation
 - Generation of RDKit molecular SMILES structures
@@ -295,23 +311,7 @@ Hyperparameter optimization for AMPL model fitting is available to run on SLURM 
     If the "hp_checkpoint_load" is provided, the hyperparameter search will continue from the checkpoint. 
 
 ---
-## Uninstallation
-To remove AMPL from a pip environment use:
-```bash
-pip uninstall atomsci-ampl
-```
 
-To remove an entire virtual environment named atomsci:
-```bash
-rm -rf ~/workspace/atomsci
-```
-
-To remove cached packages and clear space:
-```bash
-pip cache purge
-```
-
----
 ## Advanced testing
 ### Running all tests
 To run the full set of tests, use Pytest from the test directory:
@@ -382,7 +382,6 @@ Versions are managed through GitHub tags on this repository.
 - Other Python package dependencies
 
 ---
-<a name="project-information"></a>
 ## Project information
 ### Authors
 **[The Accelerating Therapeutics for Opportunities in Medicine (ATOM) Consortium](https://atomscience.org)**
@@ -405,6 +404,7 @@ Versions are managed through GitHub tags on this repository.
 - [Amanda Paulson](@paulsonak) (5)
 - Stewart He (1)
 - Da Shi (6)
+- Ravichandran Sarangan (7)
 - Jessica Mauvais (1)
 
 1. Lawrence Livermore National Laboratory
@@ -413,15 +413,10 @@ Versions are managed through GitHub tags on this repository.
 4. Computable
 5. University of California, San Francisco
 6. Schrodinger
+7. Leidos
 &nbsp;  
 
-
-### Support
-Please contact the AMPL repository owners for bug reports, questions, and comments.  
-&nbsp;  
-
-<a name="suggestions-issues"></a>
-### Suggestions or Report Issues
+### Support, Suggestions or Report Issues
 - If you have suggestions or like to report issues, please click [here](https://github.com/ATOMScience-org/AMPL/issues).
 &nbsp;
 
