@@ -492,7 +492,8 @@ def compute_all_moe_descriptors(smiles_df, params):
                 log.error('MOE descriptor calculation failed.')
                 return None
             log.debug("Reading descriptors from %s" % output_file)
-            result_df = pd.read_csv(output_file, index_col=False)
+            result_df = pd.read_csv(output_file, index_col=False,
+                            dtype={'cmpd_id':'string'}) # IDs should always be treated as strings
             result_df = result_df.rename(columns={'cmpd_id' : params.id_col, 'original_smiles' : params.smiles_col})
             os.chdir(curdir)
             return result_df
