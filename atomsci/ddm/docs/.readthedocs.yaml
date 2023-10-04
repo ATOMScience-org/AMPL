@@ -32,6 +32,7 @@ formats:
 # to build your documentation. We recommend specifying your dependencies 
 # to enable reproducible builds:
 # https://docs.readthedocs.io/en/stable/guides/reproducible-builds.html
-# python:
-install:
+
+python:
+   install:
    - requirements: pip/readthedocs_requirements.txt
