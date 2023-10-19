@@ -387,6 +387,8 @@ class ModelDataset(object):
                 self.dataset = NumpyDataset(features, self.vals, ids=ids, w=w)
                 self.log.info("Using prefeaturized data; number of features = " + str(self.n_features))
                 return
+            except AssertionError as a:
+                raise a
             except Exception as e:
                 self.log.debug("Exception when trying to load featurized data:\n%s" % str(e))
                 self.log.info("Featurized dataset not previously saved for dataset %s, creating new" % self.dataset_name)
@@ -597,6 +599,8 @@ class ModelDataset(object):
         """
 
         # Load the split table from the datastore or filesystem
+        self.splitting = split.create_splitting(self.params)
+
         try:
             split_df, split_kv = self.load_dataset_split_table(directory)
         except Exception as e:
@@ -616,7 +620,6 @@ class ModelDataset(object):
                         self.params.__dict__[param] = split_kv[param]
 
         # Create object to delegate splitting to.
-        self.splitting = split.create_splitting(self.params)
         if self.params.split_strategy == 'k_fold_cv':
             train_valid_df = split_df[split_df.subset == 'train_valid']
             for f in range(self.splitting.num_folds):
@@ -717,19 +720,6 @@ class ModelDataset(object):
             self.subset_response_dict[subset] = response_vals
             self.subset_weight_dict[subset] = weights
         return self.subset_response_dict[subset], self.subset_weight_dict[subset]
-        
-    # *************************************************************************************
-    def _get_split_prefix(self):
-        """
-        Returns a string identifying the split strategy (TVT or k-fold) and the splitting method 
-        (index, scaffold, etc.) for use in filenames, dataset keys, etc.
-        """
-        if self.params.split_strategy == 'k_fold_cv':
-            return "%d_fold_cv_%s" % (self.params.num_folds, self.params.splitter)
-        elif self.params.split_strategy == 'train_valid_test':
-            return "train_valid_test_%s" % (self.params.splitter)
-        else:
-            raise ValueError("Unknown split_strategy '%s'" % self.params.split_strategy)
 
     # *************************************************************************************
 
@@ -741,7 +731,7 @@ class ModelDataset(object):
             (str): String containing the dataset name, split type, and split_UUID. Used as key in datastore or filename
             on disk.
         """
-        return '{0}_{1}_{2}.csv'.format(self.dataset_name, self._get_split_prefix(), self.split_uuid)
+        return '{0}_{1}_{2}.csv'.format(self.dataset_name, self.splitting.get_split_prefix(), self.split_uuid)
 
 # ****************************************************************************************
 
@@ -1121,7 +1111,7 @@ class DatastoreDataset(ModelDataset):
                            filename=split_table_key,
                            title="Split table %s" % split_table_key.replace('_', ' '),
                            description='Dataset %s %s split compound assignment table' % (
-                                        self.dataset_name, self._get_split_prefix()),
+                                        self.dataset_name, self.splitting.get_split_prefix()),
                            tags=tag_list,
                            key_values=keyval_dict,
                            client=self.ds_client,
@@ -1324,14 +1314,25 @@ class FileDataset(ModelDataset):
             self.dataset_key = self.params.dataset_key
             return dset_df
 
+
         # Otherwise, generate the expected path for the featurized dataset
         featurized_dset_name = self.featurization.get_featurized_dset_name(self.dataset_name)
         dataset_dir = os.path.dirname(self.params.dataset_key)
         data_dir = os.path.join(dataset_dir, self.featurization.get_featurized_data_subdir())
         featurized_dset_path = os.path.join(data_dir, featurized_dset_name)
         featurized_dset_df = pd.read_csv(featurized_dset_path)
+
+        # check if featurized dset has all the smiles from dset_df
+        dsetsmi=set(dset_df[self.params.smiles_col])
+        featsmi=set(featurized_dset_df[self.params.smiles_col])
+        if not dsetsmi-featsmi==set():
+            raise AssertionError("All of the smiles in your dataset are not represented in your featurized file. You can set previously_featurized to False and your featurized dataset located in the scaled_descriptors directory will be overwritten to include the correct data.")
+        
         self.dataset_key = featurized_dset_path
         featurized_dset_df[self.params.id_col] = featurized_dset_df[self.params.id_col].astype(str)
+
+        
+
         return featurized_dset_df
 
     # ****************************************************************************************

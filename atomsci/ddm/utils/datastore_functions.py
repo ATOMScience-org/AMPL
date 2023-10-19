@@ -849,7 +849,7 @@ def filter_datasets_interactive (bucket='all', client=None, save_search=False, r
             if i == 0:
                 key_val = pd.DataFrame(new)
             else:
-                key_val = key_val.append(new)
+                key_val = pd.concat([key_val, new])
             i = i+1
 
         print('key_val size',key_val.shape[:])
@@ -1014,7 +1014,7 @@ def summarize_datasets(dataset_keys, bucket, client=None, column=None, save_as=N
         stats = pd.DataFrame(stats)
         summary = [key, median, [col_mode]]
         summary = pd.DataFrame(summary, columns = [column], index = ['key', 'median', 'mode'])
-        summary_temp = summary.append(stats)
+        summary_temp = pd.concat([summary,stats])
 
         if i == 0:
             summary_table = summary_temp.rename(columns={column: '1'})

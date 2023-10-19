@@ -73,11 +73,13 @@ def calculate_descriptors(df, molecule_column='mol'):
 
     descriptors = [x[0] for x in Descriptors._descList]
     calculator = MoleculeDescriptors.MolecularDescriptorCalculator(descriptors)
-    for i in df.index:
-        cd = calculator.CalcDescriptors(df.at[i, molecule_column])
-        for desc, d in list(zip(descriptors, cd)):
-            df.at[i, desc] = d
-
+    cds=[]
+    for mol in df[molecule_column]:
+        cd = calculator.CalcDescriptors(mol)
+        cds.append(cd)
+    df2=pd.DataFrame(cds, columns=descriptors)
+    df=df.join(df2, lsuffix='', rsuffix='_rdk')
+    return df
 
 def cluster_dataframe(df, molecule_column='mol', cluster_column='cluster', cutoff=0.2):
     """
@@ -112,7 +114,7 @@ def cluster_dataframe(df, molecule_column='mol', cluster_column='cluster', cutof
         for j in c:
             df_index = df2.at[j, 'df_index']
             df.at[df_index, cluster_column] = i
-
+    df=df.copy()
 
 def cluster_fingerprints(fps, cutoff=0.2):
     """

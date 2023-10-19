@@ -48,7 +48,7 @@ def _generate_scaffold_hists(scaffold_sets: List[Set[int]],
         labelled examples scaffold j has for task i.
 
     """
-    scaffold_hists = np.zeros((len(scaffold_sets), w.shape[1]), np.int)
+    scaffold_hists = np.zeros((len(scaffold_sets), w.shape[1]), int)
     for i, scaffold_set in enumerate(scaffold_sets):
         scaffold_hists[i] = np.sum(w[list(scaffold_set)], axis=0)
 
@@ -619,17 +619,17 @@ class MultitaskScaffoldSplitter(Splitter):
                 for i in range(n_tasks)
         ]
         count_for_task = np.array([len(x) for x in indices_for_task])
-        train_target = np.round(frac_train * count_for_task).astype(np.int)
-        valid_target = np.round(frac_valid * count_for_task).astype(np.int)
-        test_target = np.round(frac_test * count_for_task).astype(np.int)
+        train_target = np.round(frac_train * count_for_task).astype(int)
+        valid_target = np.round(frac_valid * count_for_task).astype(int)
+        test_target = np.round(frac_test * count_for_task).astype(int)
 
         # Assign the positive samples to datasets.    Since a sample may be positive
         # on more than one task, we need to keep track of the effect of each added
         # sample on each task.    To try to keep everything balanced, we cycle through
         # tasks, assigning one positive sample for each one.
-        train_counts = np.zeros(n_tasks, np.int)
-        valid_counts = np.zeros(n_tasks, np.int)
-        test_counts = np.zeros(n_tasks, np.int)
+        train_counts = np.zeros(n_tasks, int)
+        valid_counts = np.zeros(n_tasks, int)
+        test_counts = np.zeros(n_tasks, int)
         set_target = [train_target, valid_target, test_target]
         set_counts = [train_counts, valid_counts, test_counts]
         set_inds: List[List[int]] = [[], [], []]
