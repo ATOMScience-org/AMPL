@@ -154,7 +154,7 @@ def plot_tani_dist_distr(df, smiles_col, df_name, radius=2, subset_col='subset',
             diststmp = pd.DataFrame(zip(diststmp,substmp), columns=['dist','subset'])
             dists=pd.concat([dists,diststmp])
     dists=dists.reset_index(drop=True)
-    fig, ax = plt.subplots(figsize=(plot_width, plot_width))
+    fig, ax = plt.subplots(1, figsize=(plot_width, plot_width), dpi=300)
     sns.kdeplot(data=dists[dists.subset!=ref_subset], x='dist', hue='subset', legend=True, common_norm=False, common_grid=True, fill=False, ax=ax)
     ax.set_xlabel('%s distance' % dist_metric)
     ax.set_ylabel('Density')
@@ -168,7 +168,7 @@ def plot_tani_dist_distr(df, smiles_col, df_name, radius=2, subset_col='subset',
 
 #------------------------------------------------------------------------------------------------------------------
 def diversity_plots(dset_key, datastore=True, bucket='public', title_prefix=None, ecfp_radius=4, umap_file=None, out_dir=None,
-                    id_col='compound_id', smiles_col='rdkit_smiles', is_base_smiles=False, response_col=None, max_for_mcs=300):
+                    id_col='compound_id', smiles_col='rdkit_smiles', is_base_smiles=False, response_col=None, max_for_mcs=300, colorpal=None):
     """
     Plot visualizations of diversity for an arbitrary table of compounds. At minimum, the file should contain
     columns for a compound ID and a SMILES string. Produces a clustered heatmap display of Tanimoto distances between
@@ -237,15 +237,16 @@ def diversity_plots(dset_key, datastore=True, bucket='public', title_prefix=None
     if response_col is not None:
         responses = cmpd_df[response_col].values
         uniq_responses = set(responses)
-        if uniq_responses == set([0,1]):
-            response_type = 'binary'
-            colorpal =  {0 : 'forestgreen', 1 : 'red'}
-        elif len(uniq_responses) <= 10:
-            response_type = 'categorical'
-            colorpal = sns.color_palette('husl', n_colors=len(uniq_responses))
-        else:
-            response_type = 'continuous'
-            colorpal = sns.blend_palette(['red', 'green', 'blue'], 12, as_cmap=True)
+        if colorpal is None:
+            if uniq_responses == set([0,1]):
+                response_type = 'binary'
+                colorpal =  {0 : 'forestgreen', 1 : 'red'}
+            elif len(uniq_responses) <= 10:
+                response_type = 'categorical'
+                colorpal = sns.color_palette('husl', n_colors=len(uniq_responses))
+            else:
+                response_type = 'continuous'
+                colorpal = sns.blend_palette(['red', 'green', 'blue'], 12, as_cmap=True)
 
 
 

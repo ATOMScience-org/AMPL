@@ -346,11 +346,14 @@ def compute_all_rdkit_descrs(mol_df, mol_col = "mol"):
     """
     all_desc = [x[0] for x in Descriptors._descList]
     calc = get_rdkit_calculator(all_desc)
-    for i in mol_df.index:
-        cd = calc.CalcDescriptors(mol_df.at[i, mol_col])
-        for desc, d in list(zip(all_desc, cd)):
-            mol_df.at[i, desc] = d
+    cds=[]
+    for mol in mol_df[mol_col]:
+        cd = calc.CalcDescriptors(mol)
+        cds.append(cd)
+    df2=pd.DataFrame(cds, columns=all_desc, index=mol_df.index)
+    mol_df=mol_df.join(df2, lsuffix='', rsuffix='_rdk')
     return mol_df
+    
 
 def compute_rdkit_descriptors_from_smiles(smiles_strs, smiles_col='rdkit_smiles'):
     """
