@@ -391,34 +391,34 @@ Versions are managed through GitHub tags on this repository.
 ### Authors
 **[The Accelerating Therapeutics for Opportunities in Medicine (ATOM) Consortium](https://atomscience.org)**
 
-- Amanda J. Minnich (1)
-- Kevin McLoughlin (1)
-- Margaret Tse (2)
-- Jason Deng (2)
-- Andrew Weber (2)
-- Neha Murad (2)
-- Benjamin D. Madej (3)
-- Bharath Ramsundar (4)
-- Tom Rush (2)
-- Stacie Calad-Thomson (2)
-- Jim Brase (1)
-- Jonathan E. Allen (1)
+- Amanda J. Minnich <sub>(1)</sub>
+- Kevin McLoughlin <sub>(1)</sub>
+- Margaret Tse <sub>(2)</sub>
+- Jason Deng <sub>(2)</sub>
+- Andrew Weber <sub>(2)</sub>
+- Neha Murad <sub>(2)</sub>
+- Benjamin D. Madej <sub>(3)</sub>
+- Bharath Ramsundar <sub>(4)</sub>
+- Tom Rush <sub>(2)</sub>
+- Stacie Calad-Thomson <sub>(2)</sub>
+- Jim Brase <sub>(1)</sub>
+- Jonathan E. Allen <sub>(1)</sub>
 &nbsp;  
 
 ### Contributors
-- [Amanda Paulson](@paulsonak) (5)
-- Stewart He (1)
-- Da Shi (6)
-- Ravichandran Sarangan (7)
-- Jessica Mauvais (1)
+- [Amanda Paulson](@paulsonak) <sub>(5)</sub>
+- Stewart He <sub>(1)</sub>
+- Da Shi <sub>(6)</sub>
+- Ravichandran Sarangan <sub>(7)</sub>
+- Jessica Mauvais <sub>(1)</sub>
 
-1. Lawrence Livermore National Laboratory
-2. GlaxoSmithKline Inc.
-3. Frederick National Laboratory for Cancer Research
-4. Computable
-5. University of California, San Francisco
-6. Schrodinger
-7. Leidos
+<sub>1. [Lawrence Livermore National Laboratory](https://www.llnl.gov/)</sub>\
+<sub>2. [GlaxoSmithKline Inc.](https://www.gsk.com/en-gb)</sub>\
+<sub>3. [Frederick National Laboratory for Cancer Research](https://frederick.cancer.gov)</sub>\
+<sub>4. Computable</sub>\
+<sub>5. [University of California, San Francisco](https://www.ucsf.edu/)</sub>\
+<sub>6. [Schrodinger](https://www.schrodinger.com/)</sub>\
+<sub>7. [Leidos](https://www.leidos.com)</sub>
 &nbsp;  
 
 ### Support, Suggestions or Report Issues
