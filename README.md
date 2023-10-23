@@ -1,5 +1,7 @@
 # ATOM Modeling PipeLine (AMPL) for Drug Discovery
-[![License](http://img.shields.io/:license-mit-blue.svg)](https://github.com/ATOMScience-org/AMPL/blob/master/LICENSE) | [Install](#install) | [Docker](#install-docker) | [Tutorials](#ampl-tutorials) |  [Features](#ampl-features) | [Pipeline parameters](atomsci/ddm/docs/PARAMETERS.md) | [Docs](https://ampl.readthedocs.io/en/latest/pipeline.html)
+[![License](http://img.shields.io/:license-mit-blue.svg)](https://github.com/ATOMScience-org/AMPL/blob/master/LICENSE) 
+
+| [Install](#install) | [Docker](#install-docker) | [Tutorials](#ampl-tutorials) |  [Features](#ampl-features) | [Pipeline parameters](atomsci/ddm/docs/PARAMETERS.md) | [Docs](https://ampl.readthedocs.io/en/latest/pipeline.html)
 
 <img src="atomsci/ddm/docs/ATOM_cymatics_black_wordmark.jpg" width="370" height="100" class="center"></img>
 
@@ -87,6 +89,7 @@ pip install -r cuda_requirements.txt
 
 ### Install AMPL
 Run the following to build the `atomsci` modules. This is required.
+
 ```bash
 # return to AMPL parent directory
 cd ..
@@ -115,6 +118,7 @@ pip install -e .                        # install AMPL
 ```
 ---
 ## Create jupyter notebook kernel (optional)
+
 With your environment activated:
 ```
 python -m ipykernel install --user --name atomsci
@@ -186,7 +190,7 @@ The important files for this test are listed below:
 
 ---
 ## AMPL Features
-AMPL enables tasks for modeling and prediction from data ingestion to data analysis and can be broken down into the following stages:
+<details><summary>AMPL enables tasks for modeling and prediction from data ingestion to data analysis and can be broken down into the following stages:</summary>
 
 ### 1. Data curation
 - Generation of RDKit molecular SMILES structures
@@ -213,7 +217,7 @@ AMPL enables tasks for modeling and prediction from data ingestion to data analy
 
 ### 5. Visualization and analysis
 - Visualization and analysis tools  
-
+</details>
 Details of running specific features are within the [parameter (options) documentation](#Pipeline-parameters). More detailed documentation is in the [library documentation](#Library-documentation).  
 
 ---
@@ -253,7 +257,7 @@ To get more info on an AMPL config file, please refer to:
      - [11_CHEMBL26_SCN5A_IC50_prediction.ipynb](atomsci/ddm/examples/tutorials/11_CHEMBL26_SCN5A_IC50_prediction.ipynb)
 
 ### Hyperparameter optimization
-Hyperparameter optimization for AMPL model fitting is available to run on SLURM clusters or with [HyperOpt](https://hyperopt.github.io/hyperopt/) (Bayesian Optimization). To run Bayesian Optimization, the following steps can be followed.
+<details><summary>Hyperparameter optimization for AMPL model fitting is available to run on SLURM clusters or with [HyperOpt](https://hyperopt.github.io/hyperopt/) (Bayesian Optimization). To run Bayesian Optimization, the following steps can be followed.</summary>
 
 1. (Optional) Install HyperOpt with `pip install hyperopt`
 2. Pre-split your dataset with computed_descriptors if you want to use Mordred/MOE/RDKit descriptors.
@@ -309,6 +313,7 @@ Hyperparameter optimization for AMPL model fitting is available to run on SLURM 
     - "hp_checkpoint_load": "/path/to/the/checkpoint/file.pkl"
     
     If the "hp_checkpoint_load" is provided, the hyperparameter search will continue from the checkpoint. 
+</details>
 
 ---
 
@@ -386,34 +391,34 @@ Versions are managed through GitHub tags on this repository.
 ### Authors
 **[The Accelerating Therapeutics for Opportunities in Medicine (ATOM) Consortium](https://atomscience.org)**
 
-- Amanda J. Minnich (1)
-- Kevin McLoughlin (1)
-- Margaret Tse (2)
-- Jason Deng (2)
-- Andrew Weber (2)
-- Neha Murad (2)
-- Benjamin D. Madej (3)
-- Bharath Ramsundar (4)
-- Tom Rush (2)
-- Stacie Calad-Thomson (2)
-- Jim Brase (1)
-- Jonathan E. Allen (1)
+- Amanda J. Minnich <sub>(1)</sub>
+- Kevin McLoughlin <sub>(1)</sub>
+- Margaret Tse <sub>(2)</sub>
+- Jason Deng <sub>(2)</sub>
+- Andrew Weber <sub>(2)</sub>
+- Neha Murad <sub>(2)</sub>
+- Benjamin D. Madej <sub>(3)</sub>
+- Bharath Ramsundar <sub>(4)</sub>
+- Tom Rush <sub>(2)</sub>
+- Stacie Calad-Thomson <sub>(2)</sub>
+- Jim Brase <sub>(1)</sub>
+- Jonathan E. Allen <sub>(1)</sub>
 &nbsp;  
 
 ### Contributors
-- [Amanda Paulson](@paulsonak) (5)
-- Stewart He (1)
-- Da Shi (6)
-- Ravichandran Sarangan (7)
-- Jessica Mauvais (1)
+- [Amanda Paulson](@paulsonak) <sub>(5)</sub>
+- Stewart He <sub>(1)</sub>
+- Da Shi <sub>(6)</sub>
+- Ravichandran Sarangan <sub>(7)</sub>
+- Jessica Mauvais <sub>(1)</sub>
 
-1. Lawrence Livermore National Laboratory
-2. GlaxoSmithKline Inc.
-3. Frederick National Laboratory for Cancer Research
-4. Computable
-5. University of California, San Francisco
-6. Schrodinger
-7. Leidos
+<sub>1. [Lawrence Livermore National Laboratory](https://www.llnl.gov/)</sub>\
+<sub>2. [GlaxoSmithKline Inc.](https://www.gsk.com/en-gb)</sub>\
+<sub>3. [Frederick National Laboratory for Cancer Research](https://frederick.cancer.gov)</sub>\
+<sub>4. Computable</sub>\
+<sub>5. [University of California, San Francisco](https://www.ucsf.edu/)</sub>\
+<sub>6. [Schrodinger](https://www.schrodinger.com/)</sub>\
+<sub>7. [Leidos](https://www.leidos.com)</sub>
 &nbsp;  
 
 ### Support, Suggestions or Report Issues
