@@ -1,5 +1,7 @@
 # ATOM Modeling PipeLine (AMPL) for Drug Discovery
-[![License](http://img.shields.io/:license-mit-blue.svg)](https://github.com/ATOMScience-org/AMPL/blob/master/LICENSE) | [Install](#install) | [Docker](#install-docker) | [Tutorials](#ampl-tutorials) |  [Features](#ampl-features) | [Pipeline parameters](atomsci/ddm/docs/PARAMETERS.md) | [Docs](https://ampl.readthedocs.io/en/latest/pipeline.html)
+[![License](http://img.shields.io/:license-mit-blue.svg)](https://github.com/ATOMScience-org/AMPL/blob/master/LICENSE) 
+
+| [Install](#install) | [Docker](#install-docker) | [Tutorials](#ampl-tutorials) |  [Features](#ampl-features) | [Pipeline parameters](atomsci/ddm/docs/PARAMETERS.md) | [Docs](https://ampl.readthedocs.io/en/latest/pipeline.html)
 
 <img src="atomsci/ddm/docs/ATOM_cymatics_black_wordmark.jpg" width="370" height="100" class="center"></img>
 
@@ -87,6 +89,7 @@ pip install -r cuda_requirements.txt
 
 ### Install AMPL
 Run the following to build the `atomsci` modules. This is required.
+
 ```bash
 # return to AMPL parent directory
 cd ..
@@ -115,6 +118,7 @@ pip install -e .                        # install AMPL
 ```
 ---
 ## Create jupyter notebook kernel (optional)
+
 With your environment activated:
 ```
 python -m ipykernel install --user --name atomsci
@@ -186,7 +190,7 @@ The important files for this test are listed below:
 
 ---
 ## AMPL Features
-AMPL enables tasks for modeling and prediction from data ingestion to data analysis and can be broken down into the following stages:
+<details><summary>AMPL enables tasks for modeling and prediction from data ingestion to data analysis and can be broken down into the following stages:</summary>
 
 ### 1. Data curation
 - Generation of RDKit molecular SMILES structures
@@ -213,7 +217,7 @@ AMPL enables tasks for modeling and prediction from data ingestion to data analy
 
 ### 5. Visualization and analysis
 - Visualization and analysis tools  
-
+</details>
 Details of running specific features are within the [parameter (options) documentation](#Pipeline-parameters). More detailed documentation is in the [library documentation](#Library-documentation).  
 
 ---
@@ -253,7 +257,7 @@ To get more info on an AMPL config file, please refer to:
      - [11_CHEMBL26_SCN5A_IC50_prediction.ipynb](atomsci/ddm/examples/tutorials/11_CHEMBL26_SCN5A_IC50_prediction.ipynb)
 
 ### Hyperparameter optimization
-Hyperparameter optimization for AMPL model fitting is available to run on SLURM clusters or with [HyperOpt](https://hyperopt.github.io/hyperopt/) (Bayesian Optimization). To run Bayesian Optimization, the following steps can be followed.
+<details><summary>Hyperparameter optimization for AMPL model fitting is available to run on SLURM clusters or with [HyperOpt](https://hyperopt.github.io/hyperopt/) (Bayesian Optimization). To run Bayesian Optimization, the following steps can be followed.</summary>
 
 1. (Optional) Install HyperOpt with `pip install hyperopt`
 2. Pre-split your dataset with computed_descriptors if you want to use Mordred/MOE/RDKit descriptors.
@@ -309,6 +313,7 @@ Hyperparameter optimization for AMPL model fitting is available to run on SLURM 
     - "hp_checkpoint_load": "/path/to/the/checkpoint/file.pkl"
     
     If the "hp_checkpoint_load" is provided, the hyperparameter search will continue from the checkpoint. 
+</details>
 
 ---
 
