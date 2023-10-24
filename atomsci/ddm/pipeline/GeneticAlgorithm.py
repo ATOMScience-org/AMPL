@@ -191,5 +191,5 @@ if __name__ == '__main__':
     print('target:  ',target_chromosome)
     best_fit = ga.pop_scores[0]
     best = np.array(ga.pop[0])
-    print('closets: ', best.astype(np.int))
+    print('closets: ', best.astype(int))
     print('best fitness %0.2f'%best_fit)

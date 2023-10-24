@@ -267,7 +267,14 @@ class ModelPipeline:
         self.data.get_featurized_data(params)
 
         if self.run_mode == 'training':
-            if not (params.previously_split and self.data.load_presplit_dataset()):
+            # Ignore prevoiusly split if in production mode
+            if params.production:
+                # if in production mode, make a new split do not load
+                self.log.warning('Training in production mode. Ignoring '
+                    'previous split and creating production split. '
+                    'Production split will not be saved.')
+                self.data.split_dataset()
+            elif not (params.previously_split and self.data.load_presplit_dataset()):
                 self.data.split_dataset()
                 self.data.save_split_dataset()
             if self.data.params.prediction_type == 'classification':
@@ -318,7 +325,8 @@ class ModelPipeline:
             response_transform_type=self.params.response_transform_type,
             external_export_parameters=dict(
                 result_dir=self.params.result_dir),
-            dataset_metadata=dataset_metadata
+            dataset_metadata=dataset_metadata,
+            production=self.params.production
         )
 
         model_params = dict(
