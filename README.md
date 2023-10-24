@@ -1,7 +1,7 @@
 # ATOM Modeling PipeLine (AMPL) for Drug Discovery
 [![License](http://img.shields.io/:license-mit-blue.svg)](https://github.com/ATOMScience-org/AMPL/blob/master/LICENSE) 
 
-| [Install](#install) | [Docker](#install-docker) | [Tutorials](#ampl-tutorials) |  [Features](#ampl-features) | [Pipeline parameters](atomsci/ddm/docs/PARAMETERS.md) | [Docs](https://ampl.readthedocs.io/en/latest/pipeline.html)
+| [Install](#install) | [Docker](#install-docker) | [Tutorials](#ampl-tutorials) |  [Features](#ampl-features) | [Pipeline parameters](atomsci/ddm/docs/PARAMETERS.md) | [Docs](https://ampl.readthedocs.io/en/latest/pipeline.html) |
 
 <img src="atomsci/ddm/docs/ATOM_cymatics_black_wordmark.jpg" width="370" height="100" class="center"></img>
 
