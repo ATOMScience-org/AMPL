@@ -100,6 +100,11 @@ def patch_model_dataset_key(model_path, new_model_path, dataset_path, require_ha
         # TODO: Check that it's OK to leave the original dataset_key and hash in the various training_metrics
         # elements.
 
+        # Write the modified metadata.json file
+        with open(meta_path, 'w') as meta_fp:
+            json.dump(meta_dict, meta_fp, sort_keys=True, indent=4, separators=(',', ': '))
+            meta_fp.write("\n")
+
         # Create the new tarball
         os.makedirs(os.path.dirname(new_model_path), exist_ok=True)
         with tarfile.open(new_model_path, mode='w:gz') as tarball:
