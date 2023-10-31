@@ -1968,6 +1968,14 @@ class ComputedDescriptorFeaturization(DescriptorFeaturization):
                 scaled_df[scaled_col] = desc_df[unscaled_col].values
         return scaled_df.copy()
 
+    # ****************************************************************************************
+    def __str__(self):
+        """Returns a human-readable description of this Featurization object.
+        Returns:
+            (str): Describes the featurization type
+        """
+        return "ComputedDescriptorFeaturization with %s descriptors" % self.descriptor_type
+
 # ****************************************************************************************
 def get_user_specified_features(df, featurizer, verbose=False):
     """
