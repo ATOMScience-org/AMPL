@@ -30,14 +30,17 @@ from rdkit.ML.Descriptors import MoleculeDescriptors
 
 subclassed_mordred_classes = ['EState', 'MolecularDistanceEdge']
 try:
-    from mordred import Calculator, descriptors, get_descriptors_from_module
+    #from mordred import Calculator, descriptors, get_descriptors_from_module
+    from mordred import Calculator, descriptors, get_descriptors_in_module
     from mordred.EState import AtomTypeEState, AggrType
     from mordred.MolecularDistanceEdge import MolecularDistanceEdge
     from mordred import BalabanJ, BertzCT, HydrogenBond, MoeType, RotatableBond, SLogP, TopoPSA
     #rdkit_desc_mods = [BalabanJ, BertzCT, HydrogenBond, MoeType, RotatableBond, SLogP, TopoPSA]
     mordred_supported = True
+    print("mordred supported in featurization")
 except ImportError:
     mordred_supported = False
+    print("mordred unsupported in featurization")
 
 feather_supported = True
 try:
