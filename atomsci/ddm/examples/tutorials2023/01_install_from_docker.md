@@ -2,8 +2,8 @@
 
 AMPL can be run from Docker to provide its accessibility across multiple platforms. This can be done from one of these options:
 
-1. [Pull an existing AMPL image from the Docker repo](#2.-pull-an-existing-ampl-image-from-docker-repo)
-2. [Build a local image from Dockerfile.](#create-a-local-image-using-dockerfile)
+* [Pull an existing AMPL image from the Docker repo](#2.-pull-an-existing-ampl-image-from-docker-repo)
+* [Build a local image from Dockerfile.](#create-a-local-image-using-dockerfile)
 
 ## 1. Download and install Docker Desktop.
 
@@ -54,7 +54,7 @@ http://localhost:8888/tree?token=b38528f4614743bdcac6e02c07cffabddd285007769d7d5
 
 ## 6. Once the notebook shows up on the browser, select `venv` as the run environment
 
-<img src="../../docs/source/_static/img/docker_notebook_env.png" class="center"></img>
+<img src="../../docs/source/_static/img/docker_notebook_env.png" style="height: 250px; width:250px class="center"></img>
 
 ## Create a local image using `Dockerfile`
 
