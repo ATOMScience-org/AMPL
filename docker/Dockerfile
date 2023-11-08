@@ -21,11 +21,13 @@ WORKDIR /AMPL
 ENV PATH="/AMPL:$PATH"
 
 COPY . .
+RUN echo "before pip install"
 RUN pip install --no-cache-dir --force-reinstall -r pip/docker_requirements.txt
 
-RUN pip install jupyterlab
+RUN pip install jupyter
 
 CMD ["build.sh"]
-
 RUN pip install -e .
 RUN python -m ipykernel install --user --name venv
+
+CMD ["bash"]
