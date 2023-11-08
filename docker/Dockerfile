@@ -17,6 +17,9 @@ RUN pip install wheel
 
 RUN git clone https://github.com/ATOMScience-org/AMPL.git
 
+# checkout develop branch if needed, for example: 1.6.0 
+# RUN git checkout 1.6.0
+
 WORKDIR /AMPL
 ENV PATH="/AMPL:$PATH"
 
