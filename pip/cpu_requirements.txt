@@ -1,0 +1,45 @@
+# Minimal pip requirement list for AMPL with CPU support only. This includes only the packages directly imported by AMPL code, plus a few others commonly used during development. 
+-i https://download.pytorch.org/whl/cpu
+--extra-index-url https://data.dgl.ai/wheels/repo.html
+--extra-index-url https://pypi.python.org/simple
+# for LC developers: comment out pypi index url and use t$
+# --extra-index-url https://wci-repo.llnl.gov/repository/$
+
+tensorflow==2.14.0
+
+jax[cpu]==0.4.16
+
+torch==2.0.1
+torch_geometric
+lightning
+
+dgl==1.1.2
+dgllife
+
+xgboost
+
+bokeh
+matplotlib
+matplotlib-venn
+seaborn
+umap-learn
+
+pyarrow
+
+bravado
+
+# optional for home users: prettier images in RDKit
+# requires pkg-config to build: sudo apt-get pkg-config
+# requires Cairo: sudo apt-get install libcairo2-dev
+# pycairo 
+
+maestrowf
+MolVS
+mordred
+
+pytest
+ipykernel
+
+deepchem==2.7.1
+
+pyyaml==5.4.1

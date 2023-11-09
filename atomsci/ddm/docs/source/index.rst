@@ -31,11 +31,6 @@ Built with
 - `Mordred`_: Chemical descriptors
 - Other Python package dependencies
 
-Get Started
------------
-
-A step-by-step guide to getting started with MolVS.
-
 .. toctree::
    :maxdepth: 2
    :caption: Getting Started

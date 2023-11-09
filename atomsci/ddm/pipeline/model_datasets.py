@@ -387,6 +387,8 @@ class ModelDataset(object):
                 self.dataset = NumpyDataset(features, self.vals, ids=ids, w=w)
                 self.log.info("Using prefeaturized data; number of features = " + str(self.n_features))
                 return
+            except AssertionError as a:
+                raise a
             except Exception as e:
                 self.log.debug("Exception when trying to load featurized data:\n%s" % str(e))
                 self.log.info("Featurized dataset not previously saved for dataset %s, creating new" % self.dataset_name)
@@ -1312,14 +1314,25 @@ class FileDataset(ModelDataset):
             self.dataset_key = self.params.dataset_key
             return dset_df
 
+
         # Otherwise, generate the expected path for the featurized dataset
         featurized_dset_name = self.featurization.get_featurized_dset_name(self.dataset_name)
         dataset_dir = os.path.dirname(self.params.dataset_key)
         data_dir = os.path.join(dataset_dir, self.featurization.get_featurized_data_subdir())
         featurized_dset_path = os.path.join(data_dir, featurized_dset_name)
         featurized_dset_df = pd.read_csv(featurized_dset_path)
+
+        # check if featurized dset has all the smiles from dset_df
+        dsetsmi=set(dset_df[self.params.smiles_col])
+        featsmi=set(featurized_dset_df[self.params.smiles_col])
+        if not dsetsmi-featsmi==set():
+            raise AssertionError("All of the smiles in your dataset are not represented in your featurized file. You can set previously_featurized to False and your featurized dataset located in the scaled_descriptors directory will be overwritten to include the correct data.")
+        
         self.dataset_key = featurized_dset_path
         featurized_dset_df[self.params.id_col] = featurized_dset_df[self.params.id_col].astype(str)
+
+        
+
         return featurized_dset_df
 
     # ****************************************************************************************

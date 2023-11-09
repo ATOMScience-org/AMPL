@@ -90,6 +90,12 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
   scrollbar-width: thin;
 }
 
+.h1, .h2, .h3, .h4, .h5, .h6 {
+
+  font-weight:100;
+
+}
+
 /*
  * Webkit scrollbar styling
  */
@@ -13519,7 +13525,7 @@ body[data-format='mobile'] .jp-InputPrompt {
 |----------------------------------------------------------------------------*/
 
 :root {
-  --jp-private-cell-scrolling-output-offset: 5px;
+  --jp-private-cell-scrolling-output-offset: 0px;
 }
 
 /*-----------------------------------------------------------------------------
@@ -14313,7 +14319,7 @@ all of MD as it is not optimized for dense, information rich UIs.
 
   /* Cell specific styles */
 
-  --jp-cell-padding: 5px;
+  --jp-cell-padding: 1px;
 
   --jp-cell-collapser-width: 8px;
   --jp-cell-collapser-min-height: 20px;
@@ -14590,9 +14596,9 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 <div class="jp-Cell-inputWrapper">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h2 id="Data-Curation">Data Curation<a class="anchor-link" href="#Data-Curation">&#182;</a></h2><p>Curating raw data is a long, detailed process that is vital to good data science. 
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h1 id="Data-Curation">Data Curation<a class="anchor-link" href="#Data-Curation">&#182;</a></h1><p>Curating raw data is a long, detailed process that is vital to good data science. 
 Here we will cover some tools in AMPL that are commonly used in the data 
 curation process.</p>
 <ul>
@@ -14604,7 +14610,7 @@ curation process.</p>
 </ul>
 <p>These are just a few of the steps needed to curate a dataset;
 another tutorial will cover data curation in more detail.</p>
-<h3 id="Read-the-data.">Read the data.<a class="anchor-link" href="#Read-the-data.">&#182;</a></h3><p>We've prepared an example dataset for the KCNA5 target. This dataset is 
+<h2 id="Read-the-data.">Read the data.<a class="anchor-link" href="#Read-the-data.">&#182;</a></h2><p>We've prepared an example dataset for the KCNA5 target. This dataset is 
 simpler than what is commonly found in the wild, but will concisely 
 demonstrate AMPL tools.</p>
 
@@ -14616,7 +14622,6 @@ demonstrate AMPL tools.</p>
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt"></div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
@@ -14637,9 +14642,8 @@ demonstrate AMPL tools.</p>
 <div class="jp-Cell-inputWrapper">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h3 id="Columns">Columns<a class="anchor-link" href="#Columns">&#182;</a></h3><p>This dataset is drawn from the ChEMBL database and contains the following columns</p>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h2 id="Columns">Columns<a class="anchor-link" href="#Columns">&#182;</a></h2><p>This dataset is drawn from the ChEMBL database and contains the following columns</p>
 <ul>
 <li><code>molecule_chembl_id</code>: The ChEMBL id for the molecule.</li>
 <li><code>smiles</code>: The SMILES string that represents the molecule. This is the main</li>
@@ -14667,7 +14671,6 @@ demonstrate AMPL tools.</p>
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt"></div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">kcna5</span><span class="o">.</span><span class="n">columns</span>
@@ -14686,13 +14689,13 @@ demonstrate AMPL tools.</p>
 <div class="jp-OutputArea jp-Cell-outputArea">
 <div class="jp-OutputArea-child jp-OutputArea-executeResult">
     
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
 
 
 
 <div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain">
-<pre>Index([&#39;molecule_chembl_id&#39;, &#39;smiles&#39;, &#39;standard_type&#39;, &#39;standard_relation&#39;,
+  <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+  <pre>Index([&#39;molecule_chembl_id&#39;, &#39;smiles&#39;, &#39;standard_type&#39;, &#39;standard_relation&#39;,
        &#39;standard_value&#39;, &#39;standard_units&#39;],
       dtype=&#39;object&#39;)</pre>
 </div>
@@ -14708,11 +14711,12 @@ demonstrate AMPL tools.</p>
 <div class="jp-Cell-inputWrapper">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h3 id="Standardize-SMILES">Standardize SMILES<a class="anchor-link" href="#Standardize-SMILES">&#182;</a></h3><p>SMILES strings are not unique and the same compound can be represented by different, 
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h2 id="Standardize-SMILES">Standardize SMILES<a class="anchor-link" href="#Standardize-SMILES">&#182;</a></h2><p>SMILES strings are not unique and the same compound can be represented by different, 
 not so equivalent, SMILES. This step simplifies the machine learning problem by 
-ensuring each compound is represented the same way. <strong>Beware!</strong> The input
+ensuring each compound is represented the same way.
+
+<p></p><strong>Beware!</strong> The input
 to base_smiles_from_smiles must be a <code>list</code>.</p>
 
 </div>
@@ -14723,7 +14727,7 @@ to base_smiles_from_smiles must be a <code>list</code>.</p>
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt"></div>
+
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="kn">from</span> <span class="nn">atomsci.ddm.utils.struct_utils</span> <span class="kn">import</span> <span class="n">base_smiles_from_smiles</span>
@@ -14740,10 +14744,10 @@ to base_smiles_from_smiles must be a <code>list</code>.</p>
 <div class="jp-Cell-inputWrapper">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<p>From now on we will use <code>base_rdkit_smiles</code>.</p>
-<h3 id="Standardize-Relations">Standardize Relations<a class="anchor-link" href="#Standardize-Relations">&#182;</a></h3><p>Relations can also differ from database to database. This function will standardize the relation column for use with AMPL. Since this data is from ChEMBL, we will call 
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<p></p>
+  <p>From now on we will use <code>base_rdkit_smiles</code>.</p>
+<h2 id="Standardize-Relations">Standardize Relations<a class="anchor-link" href="#Standardize-Relations">&#182;</a></h2><p>Relations can also differ from database to database. This function will standardize the relation column for use with AMPL. Since this data is from ChEMBL, we will call 
 the function with <code>db='ChEMBL'</code></p>
 
 </div>
@@ -14754,7 +14758,7 @@ the function with <code>db='ChEMBL'</code></p>
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt"></div>
+
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="kn">from</span> <span class="nn">atomsci.ddm.utils.data_curation_functions</span> <span class="kn">import</span> <span class="n">standardize_relations</span>
@@ -14773,9 +14777,8 @@ the function with <code>db='ChEMBL'</code></p>
 <div class="jp-Cell-inputWrapper">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h3 id="Calculate-pIC50s">Calculate pIC50s<a class="anchor-link" href="#Calculate-pIC50s">&#182;</a></h3><p>We will convert the IC50s to pIC50s before performing machine learning. This function 
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h2 id="Calculate-pIC50s">Calculate pIC50s<a class="anchor-link" href="#Calculate-pIC50s">&#182;</a></h2><p>We will convert the IC50s to pIC50s before performing machine learning. This function 
 will use <code>standard_units</code> and <code>standard_value</code> columns. This function converts IC50s 
 in nM to pIC50s.</p>
 
@@ -14787,7 +14790,6 @@ in nM to pIC50s.</p>
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt"></div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="kn">from</span> <span class="nn">atomsci.ddm.utils.data_curation_functions</span> <span class="kn">import</span> <span class="n">convert_IC50_to_pIC50</span>
@@ -14809,9 +14811,8 @@ in nM to pIC50s.</p>
 <div class="jp-Cell-inputWrapper">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h3 id="Remove-outliers-and-aggregate">Remove outliers and aggregate<a class="anchor-link" href="#Remove-outliers-and-aggregate">&#182;</a></h3><p>The final step is to remove outliers and aggregate duplicate measurements.</p>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h2 id="Remove-outliers-and-aggregate">Remove outliers and aggregate<a class="anchor-link" href="#Remove-outliers-and-aggregate">&#182;</a></h2><p>The final step is to remove outliers and aggregate duplicate measurements.</p>
 
 </div>
 </div>
@@ -14821,7 +14822,6 @@ in nM to pIC50s.</p>
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt"></div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="kn">from</span> <span class="nn">atomsci.ddm.utils.curate_data</span> <span class="kn">import</span> <span class="n">remove_outlier_replicates</span><span class="p">,</span> \
@@ -14855,11 +14855,11 @@ in nM to pIC50s.</p>
 <div class="jp-OutputArea jp-Cell-outputArea">
 <div class="jp-OutputArea-child">
     
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+  
 
 
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>Removed 1 pIC50 replicate measurements that were &gt; 1.0 from median
+  <div class="jp-OutputPrompt jp-OutputArea-prompt"></div><pre>Removed 1 pIC50 replicate measurements that were &gt; 1.0 from median
 0 entries in input table are missing SMILES strings
 802 unique SMILES strings are reduced to 802 unique base SMILES strings
 </pre>
@@ -14875,9 +14875,8 @@ in nM to pIC50s.</p>
 <div class="jp-Cell-inputWrapper">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<p><strong>Beware!</strong> <code>aggregate_assay_data</code> changes <code>molecule_chembl_id</code> to <code>compound_id</code>,
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<p></p><p><strong>Beware!</strong> <code>aggregate_assay_data</code> changes <code>molecule_chembl_id</code> to <code>compound_id</code>,
 <code>fixed_relation</code> to <code>relation</code>, and will create the value column <code>avg_pIC50</code>.
 The column <code>active</code> is added but is not used in this tutorial. It will be covered
 in a classification tutorial.</p>
@@ -14890,7 +14889,6 @@ in a classification tutorial.</p>
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt"></div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">kcna5</span><span class="o">.</span><span class="n">columns</span>
@@ -14909,13 +14907,13 @@ in a classification tutorial.</p>
 <div class="jp-OutputArea jp-Cell-outputArea">
 <div class="jp-OutputArea-child jp-OutputArea-executeResult">
     
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+    
 
 
 
 
 <div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain">
-<pre>Index([&#39;compound_id&#39;, &#39;base_rdkit_smiles&#39;, &#39;relation&#39;, &#39;avg_pIC50&#39;], dtype=&#39;object&#39;)</pre>
+  <div class="jp-OutputPrompt jp-OutputArea-prompt"></div><pre>Index([&#39;compound_id&#39;, &#39;base_rdkit_smiles&#39;, &#39;relation&#39;, &#39;avg_pIC50&#39;], dtype=&#39;object&#39;)</pre>
 </div>
 
 </div>
@@ -14929,9 +14927,8 @@ in a classification tutorial.</p>
 <div class="jp-Cell-inputWrapper">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<p>All together, the curation process looks like this. We use this
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<p></p><p>All together, the curation process looks like this. We use this
 function to curate two more datasets for related targets.</p>
 
 </div>
@@ -14941,8 +14938,6 @@ function to curate two more datasets for related targets.</p>
 <div class="jp-Cell-inputWrapper">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt"></div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">curate</span><span class="p">(</span><span class="n">df</span><span class="p">):</span>
@@ -14979,7 +14974,7 @@ function to curate two more datasets for related targets.</p>
      <span class="n">df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="s1">&#39;curated_&#39;</span><span class="o">+</span><span class="n">f</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </pre></div>
 
-     </div>
+    
 </div>
 </div>
 </div>
@@ -14992,11 +14987,11 @@ function to curate two more datasets for related targets.</p>
 <div class="jp-OutputArea jp-Cell-outputArea">
 <div class="jp-OutputArea-child">
     
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+    
 
 
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>Removed 19 pIC50 replicate measurements that were &gt; 1.0 from median
+  <div class="jp-OutputPrompt jp-OutputArea-prompt"></div><pre>Removed 19 pIC50 replicate measurements that were &gt; 1.0 from median
 Index([&#39;compound_id&#39;, &#39;base_rdkit_smiles&#39;, &#39;relation&#39;, &#39;avg_pIC50&#39;], dtype=&#39;object&#39;)
 Removed 20 pIC50 replicate measurements that were &gt; 1.0 from median
 Index([&#39;compound_id&#39;, &#39;base_rdkit_smiles&#39;, &#39;relation&#39;, &#39;avg_pIC50&#39;], dtype=&#39;object&#39;)
@@ -15013,9 +15008,8 @@ Index([&#39;compound_id&#39;, &#39;base_rdkit_smiles&#39;, &#39;relation&#39;, &
 <div class="jp-Cell-inputWrapper">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h3 id="Multi-task-data">Multi-task data<a class="anchor-link" href="#Multi-task-data">&#182;</a></h3><p>Now that the data is curated we can combine it with 2 other datasets that are already curated.</p>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h2 id="Multi-task-data">Multi-task data<a class="anchor-link" href="#Multi-task-data">&#182;</a></h2><p>Now that the data is curated we can combine it with 2 other datasets that are already curated.</p>
 
 </div>
 </div>
@@ -15025,7 +15019,7 @@ Index([&#39;compound_id&#39;, &#39;base_rdkit_smiles&#39;, &#39;relation&#39;, &
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt"></div>
+
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">kcna3</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s1">&#39;curated_kcna3_ic50.csv&#39;</span><span class="p">)</span>
@@ -15051,7 +15045,7 @@ Index([&#39;compound_id&#39;, &#39;base_rdkit_smiles&#39;, &#39;relation&#39;, &
 <div class="jp-OutputArea jp-Cell-outputArea">
 <div class="jp-OutputArea-child">
     
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+    
 
 
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
@@ -15072,8 +15066,7 @@ Index([&#39;compound_id&#39;, &#39;base_rdkit_smiles&#39;, &#39;relation&#39;, &
 <div class="jp-Cell-inputWrapper">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
 <p>This plot shows there are not many SMILES that overlap between the three targets.</p>
 
 </div>
@@ -15084,7 +15077,6 @@ Index([&#39;compound_id&#39;, &#39;base_rdkit_smiles&#39;, &#39;relation&#39;, &
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt"></div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib_venn</span> <span class="k">as</span> <span class="nn">mpv</span>
@@ -15107,11 +15099,11 @@ Index([&#39;compound_id&#39;, &#39;base_rdkit_smiles&#39;, &#39;relation&#39;, &
 <div class="jp-OutputArea jp-Cell-outputArea">
 <div class="jp-OutputArea-child jp-OutputArea-executeResult">
     
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+    
 
 
 
-
+  <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain">
 <pre>&lt;matplotlib_venn._common.VennDiagram at 0x155479c07850&gt;</pre>
 </div>
@@ -15119,7 +15111,7 @@ Index([&#39;compound_id&#39;, &#39;base_rdkit_smiles&#39;, &#39;relation&#39;, &
 </div>
 <div class="jp-OutputArea-child">
     
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+    
 
 
 
@@ -15143,7 +15135,7 @@ class="
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt"></div>
+
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span> 

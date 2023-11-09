@@ -88,7 +88,9 @@ def train_model(input, output, dskey='', production=False):
     params.production = production
     if params.production and 'nn_specific' in config:
         params.max_epochs = config['nn_specific']['best_epoch']+1
-
+    # change save mode if retraining elsewhere
+    if not mlmt_supported:
+        params.save_results=False
     # specify collection
     logger.debug("model params %s" % str(params))
     logger.debug(params.__dict__.items())
