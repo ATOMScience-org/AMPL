@@ -23,7 +23,7 @@ docker pull atomsci/atomsci-ampl:latest
 docker run -it -p 8888:8888 -v </local_workspace_folder>:</directory_in_docker> atomsci/atomsci-ampl
 
 # for example
-docker run -it -p 8888:8888 -v .:/AMPL atomsci/atomsci-ampl
+docker run -it -p 8888:8888 -v ~:/home atomsci/atomsci-ampl
 ```
 
 ## 4. When inside the container, start the jupyter notebook
@@ -52,9 +52,35 @@ http://localhost:8888/tree?token=b38528f4614743bdcac6e02c07cffabddd285007769d7d5
 
 > **_NOTE:_** If this doesn't work, exit the container and change port from 8888 to some other number such as `7777` or `8899` (in all 3 places it's written), then rerun both commands in `steps 3` and `4`.  Be sure to save any work you want to be permanent in your workspace folder. If the container is shut down, you'll lose anything not in that folder.  
 
-## 6. Once the notebook shows up on the browser, select `venv` as the run environment
+The AMPL code is in 
 
-<img src="../../docs/source/_static/img/docker_notebook_env.png" width="370" height="300" class="center"></img>
+```
+http://localhost:<port_number>/tree/AMPL/atomsci/ddm/
+```
+
+## 6. To select an environment for the notebook, select `venv` as the run environment
+
+There are two ways to set an environment:
+
+* From a notebook, top menu bar `Kernel` > `Change Kernel` > `venv`
+
+![Select an environment from a notebook](../../docs/source/_static/img/docker_notebook_env2.png)
+
+* Outside of a notebook, click `New` dropdown from upper right corner, and select `venv` as the run environment
+
+![Select an environment outside of a notebook](../../docs/source/_static/img/docker_notebook_env1.png)
+
+### 7. Code examples:
+
+The tutorials examples are in:
+
+```
+http://localhost:8888/tree/AMPL/atomsci/ddm/examples/tutorials
+```
+
+There are also examples in [AMPL's Read the Docs](https://ampl.readthedocs.io/en/latest/) on how to use AMPL Framework.
+
+---
 
 ## Create a local image using `Dockerfile`
 
@@ -73,4 +99,3 @@ docker ps -a                              # check docker processes
 docker cp file.txt <container_id>:/file.txt # copy from local to container
 docker cp <container_id>:/file.txt file.txt # copy from container to local
 ```
-
