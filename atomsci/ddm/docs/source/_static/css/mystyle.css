@@ -1,2 +1,6 @@
 .center { text-align: center; }
 .right { text-align: right; }
+
+.wy-nav-content {
+    max-width: none;
+}
