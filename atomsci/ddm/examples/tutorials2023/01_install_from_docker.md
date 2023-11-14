@@ -64,11 +64,11 @@ There are two ways to set an environment:
 
 * From a notebook, top menu bar `Kernel` > `Change Kernel` > `venv`
 
-![Select an environment from a notebook](../../docs/source/_static/img/docker_notebook_env2.png)
+![Select an environment from a notebook](../../docs/source/_static/img/01_install_from_docker_files/docker_notebook_env2.png)
 
 * Outside of a notebook, click `New` dropdown from upper right corner, and select `venv` as the run environment
 
-![Select an environment outside of a notebook](../../docs/source/_static/img/docker_notebook_env1.png)
+![Select an environment outside of a notebook](../../docs/source/_static/img/01_install_from_docker/docker_notebook_env1.png)
 
 ### 7. Code examples:
 

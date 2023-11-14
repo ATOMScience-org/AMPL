@@ -44,10 +44,10 @@ Built with
    :maxdepth: 2
    :caption: Tutorials
 
+   tutorials/01_install_from_docker
    tutorials/02_data_curation
    tutorials/apply_trained_model
    tutorials/compare_models
-   tutorials/docker
    tutorials/hyperparameter_search
    tutorials/perform_split
    tutorials/production_model
