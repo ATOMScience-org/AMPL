@@ -68,7 +68,7 @@ There are two ways to set an environment:
 
 * Outside of a notebook, click `New` dropdown from upper right corner, and select `venv` as the run environment
 
-![Select an environment outside of a notebook](../../docs/source/_static/img/01_install_from_docker/docker_notebook_env1.png)
+![Select an environment outside of a notebook](../../docs/source/_static/img/01_install_from_docker_files/docker_notebook_env1.png)
 
 ### 7. Code examples:
 
