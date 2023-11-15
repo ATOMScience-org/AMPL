@@ -28,7 +28,7 @@ class SplitStats:
                 'cmpd_id' and 'subset' columns.
             smiles_col (str): SMILES column in total_df.
             id_col (str): ID column in total_df.
-            response_cols (str): Response columns in total_df.
+            response_cols list(str): List of response columns in total_df.
         """
         self.smiles_col = smiles_col
         self.id_col = id_col
@@ -93,10 +93,27 @@ class SplitStats:
         print("valid frac mean: %0.2f, median: %0.2f, std: %0.2f"%\
             (np.mean(self.valid_fracs), np.median(self.valid_fracs), np.std(self.valid_fracs)))
 
+    def dist_hist_train_v_test_plot(self):
+        """
+        Plots Tanimoto differences between training and valid subsets
+
+        Returns:
+            g (Seaborn FacetGrid): FacetGrid object from seaborn
+        """
+        return self._show_dist_hist_plot(self.dists_tvt)
+
+    def dist_hist_train_v_valid_plot(self):
+        """
+        Plots Tanimoto differences between training and valid subsets
+
+        Returns:
+            g (Seaborn FacetGrid): FacetGrid object from seaborn
+        """
+        return self._show_dist_hist_plot(self.dists_tvv)
 
     def dist_hist_plot(self, dists, title, dist_path=''):
         """
-        Creates a histogram of pairwise Tanimoto distances between training
+        Creates and saves a histogram of pairwise Tanimoto distances between training
         and test sets
 
         Args:
@@ -105,14 +122,30 @@ class SplitStats:
         """
         # plot compound distance histogram
         pyplot.figure()
-        g = sns.distplot(dists, kde=False)
-        g.set_xlabel('Tanimoto Distance',fontsize=13)
-        g.set_ylabel('# Compound Pairs',fontsize=13)
-        g.set_title(title)
+        g = self._show_dist_hist_plot(dists)
+        g.fig.suptitle(title)
         
         if len(dist_path) > 0:
             save_figure(dist_path+'_dist_hist')
         pyplot.close()
+
+    def _show_dist_hist_plot(self, dists):
+        """
+        Creates a histogram of pairwise Tanimoto distances between training
+        and test sets
+
+        Args:
+            dists (matrix): matrix of distances either self.dists_tvt or self.dists_tvv
+
+        Returns:
+            g (Seaborn FacetGrid): Plot object from seaborn
+
+        """
+        g = sns.displot(dists, kde=False)
+        g.set_xlabels('Tanimoto Distance',fontsize=13)
+        g.set_ylabels('# Compound Pairs',fontsize=13)
+
+        return g
 
     def umap_plot(self, dist_path=''):
         """
@@ -162,6 +195,7 @@ class SplitStats:
         g = sns.boxplot(x='subset', y='frac', data=frac_df)
         if len(dist_path) > 0:
             save_figure(dist_path+'_frac_box')
+        pyplot.close()
 
     def make_all_plots(self, dist_path=''):
         """
