@@ -64,7 +64,9 @@ Replace the ``43aadd0c29db`` with ``localhost``. For example:
 
 ..
 
-   **\ *NOTE:*\ ** If this doesn't work, exit the container and change port from 8888 to some other number such as ``7777`` or ``8899`` (in all 3 places it's written), then rerun both commands in ``steps 3`` and ``4``.  Be sure to save any work you want to be permanent in your workspace folder. If the container is shut down, you'll lose anything not in that folder.
+.. note::
+
+   If this doesn't work, exit the container and change port from 8888 to some other number such as ``7777`` or ``8899`` (in all 3 places it's written), then rerun both commands in ``steps 3`` and ``4``.  Be sure to save any work you want to be permanent in your workspace folder. If the container is shut down, you'll lose anything not in that folder.
 
 
 The AMPL code is in

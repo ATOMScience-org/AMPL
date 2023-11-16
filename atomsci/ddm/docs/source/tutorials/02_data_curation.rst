@@ -22,7 +22,7 @@ these steps.
 These are just a few of the steps needed to curate a dataset; another
 tutorial will cover data curation in more detail.
 
-Read the data.
+Read the data
 ~~~~~~~~~~~~~~
 
 We've prepared an example dataset containing IC50 values for the KCNA5
@@ -87,8 +87,11 @@ Standardize SMILES
 SMILES strings are not unique and the same compound can be represented
 by different, not so equivalent, SMILES. This step simplifies the
 machine learning problem by ensuring each compound is represented the
-same way. **Beware!** The input to base\_smiles\_from\_smiles must be a
-``list``.
+same way. 
+
+.. warning::
+
+   The input to base\_smiles\_from\_smiles must be a ``list``.
 
 .. code:: ipython3
 
@@ -107,10 +110,11 @@ same way. **Beware!** The input to base\_smiles\_from\_smiles must be a
     (802, 802)
 
 
+.. note::
 
-Note that there are 802 unique SMILES from Chembl that are standardized
-to 802 unique smiles; sometimes two SMILES are standardized to the same
-thing. From now on we will use ``base_rdkit_smiles``.
+   There are 802 unique SMILES from Chembl that are standardized
+   to 802 unique smiles; sometimes two SMILES are standardized to the same
+   thing. From now on we will use ``base_rdkit_smiles``.
 
 Standardize Relations
 ~~~~~~~~~~~~~~~~~~~~~
@@ -227,10 +231,12 @@ measurements.
     802 unique SMILES strings are reduced to 802 unique base SMILES strings
 
 
-**Beware!** ``aggregate_assay_data`` changes ``molecule_chembl_id`` to
-``compound_id``, ``fixed_relation`` to ``relation``, and will create the
-value column ``avg_pIC50``. The column ``active`` is added but is not
-used in this tutorial. It will be covered in a classification tutorial.
+.. warning::
+
+    ``aggregate_assay_data`` changes ``molecule_chembl_id`` to
+    ``compound_id``, ``fixed_relation`` to ``relation``, and will create the
+    value column ``avg_pIC50``. The column ``active`` is added but is not
+    used in this tutorial. It will be covered in a classification tutorial.
 
 .. code:: ipython3
 
@@ -372,36 +378,7 @@ that are already curated.
 .. raw:: html
 
     <div>
-    <style scoped>
-       .dataframe {
-          font-size:11px;
-          letter-spacing:0;
-          line-height:1.28581;
-          text-transform:none;
-          color:#182026;
-          font-family:-apple-system, "BlinkMacSystemFont", "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Open Sans", "Helvetica Neue", "Icons16", sans-serif;
-       }
-       .dataframe table {
-          border-collapse: collapse;
-          border: none;
-          width: 80%;
-       }
-
-       .dataframe tr:nth-child(even) { background-color: #f2f2f2; }
-
-        .dataframe tbody tr th:only-of-type {
-            vertical-align: middle;
-        }
-    
-        .dataframe tbody tr th {
-            vertical-align: top;
-        }
-    
-        .dataframe thead th {
-            text-align: right;
-        }
-    </style>
-    <table cellspacing="0" cellpadding="0" class="dataframe">
+    <table cellspacing="1" cellpadding="0" class="dataframe">
       <thead>
         <tr style="text-align: right;">
           <th></th>
