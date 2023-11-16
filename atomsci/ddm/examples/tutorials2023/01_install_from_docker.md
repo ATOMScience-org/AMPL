@@ -84,13 +84,13 @@ There are also examples in [AMPL's Read the Docs](https://ampl.readthedocs.io/en
 
 ## Create a local image using `Dockerfile`
 
-AMPL Dockerfile is in `AMPL/docker` directory. To build a Docker image:
+AMPL [Dockerfile](../../../../docker/Dockerfile) is in `AMPL/docker` directory. To build a Docker image:
 
 ```
 docker build -t atomsci-ampl:<tag> .
 ```
 
-Once it's built, follow the steps starting `step 3` to start and run the local copy of AMPL docker image.
+Once it's built, follow the steps starting [`step 3`](#3.-Run-the-AMPL-image-interactively) to start and run the local copy of AMPL docker image.
 
 ## Useful Docker commands
 
