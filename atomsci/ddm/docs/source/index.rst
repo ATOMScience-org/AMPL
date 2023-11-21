@@ -45,11 +45,11 @@ Built with
    :caption: Tutorials
 
    tutorials/02_data_curation
+   tutorials/03_perform_a_split
    tutorials/apply_trained_model
    tutorials/compare_models
    tutorials/docker
    tutorials/hyperparameter_search
-   tutorials/perform_split
    tutorials/production_model
    tutorials/train_simple_model
    tutorials/visualization
