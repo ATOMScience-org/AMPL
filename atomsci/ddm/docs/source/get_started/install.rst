@@ -47,22 +47,7 @@ Go to the AMPL root directory and install the AMPL package::
 
 Install with Docker
 -------------------
-* Download and install Docker Desktop.
-   * `Docker Getting Started <https://www.docker.com/get-started>`_
-* Create a workspace folder to mount with Docker environment and transfer files.
-* Get the Docker image and run it::
 
-    docker pull atomsci/atomsci-ampl
-    docker run -it -p 8888:8888 -v </local_workspace_folder>:</directory_in_docker> atomsci/atomsci-ampl
-    #inside docker environment
-    jupyter-notebook --ip=0.0.0.0 --allow-root --port=8888 &
-    # -OR-
-    jupyter-lab --ip=0.0.0.0 --allow-root --port=8888 &
+Please refer to `Tutorials > 01 Install AMPL From Docker`_ for instructions.
 
-* Visit the provided URL in your browser, ie
-   * http://d33b0faf6bc9:8888/?token=656b8597498b18db2213b1ec9a00e9d738dfe112bbe7566d
-   * Replace the d33b0faf6bc9 with localhost
-   * If this doesn't work, exit the container and change port from 8888 to some other number such as 7777 or 8899 (in all 3 places it's written), then rerun both commands
-
-* Be sure to save any work you want to be permanent in your workspace folder. If the container is shut down, you'll lose anything not in that folder.
-
+.. _Tutorials > 01 Install AMPL From Docker: ../tutorials/01_install_from_docker.html
