@@ -44,10 +44,10 @@ This will output these messages:
 
 ## 5. Go to a browser and type in the URL
 
-Replace the `43aadd0c29db` with `localhost`. For example:
+Copy and paste the url containing `127.0.0.1` into your browser. FOr example:
 
 ```
-http://localhost:8888/tree?token=b38528f4614743bdcac6e02c07cffabddd285007769d7d58
+http://127.0.0.1:8888/tree?token=b38528f4614743bdcac6e02c07cffabddd285007769d7d58
 ```
 
 > **_NOTE:_** If this doesn't work, exit the container and change port from 8888 to some other number such as `7777` or `8899` (in all 3 places it's written), then rerun both commands in [step 3](#3-run-the-ampl-image-interactively) and [step 4](#4-when-inside-the-container-start-the-jupyter-notebook).  Be sure to save any work you want to be permanent in your workspace folder. If the container is shut down, you'll lose anything not in that folder.  
@@ -55,10 +55,22 @@ http://localhost:8888/tree?token=b38528f4614743bdcac6e02c07cffabddd285007769d7d5
 The AMPL code is in:
 
 ```
-http://localhost:<port_number>/tree/AMPL/atomsci/ddm/
+http://127.0.0.1:<port_number>/tree/AMPL/atomsci/ddm/
 ```
 
-## 6. To select an environment for the notebook, select `venv` as the run environment
+### 6. Code examples:
+
+The tutorials examples are in:
+
+```
+http://localhost:8888/tree/AMPL/atomsci/ddm/examples/tutorials
+```
+
+There are also examples in [AMPL's Read the Docs](https://ampl.readthedocs.io/en/latest/) on how to use AMPL Framework.
+
+---
+
+## 7. To select an environment for the notebook, select `venv` as the run environment
 
 There are two ways to set an environment:
 
@@ -70,17 +82,7 @@ There are two ways to set an environment:
 
 ![Select an environment outside of a notebook](../../docs/source/_static/img/01_install_from_docker_files/docker_notebook_env1.png)
 
-### 7. Code examples:
 
-The tutorials examples are in:
-
-```
-http://localhost:8888/tree/AMPL/atomsci/ddm/examples/tutorials
-```
-
-There are also examples in [AMPL's Read the Docs](https://ampl.readthedocs.io/en/latest/) on how to use AMPL Framework.
-
----
 
 ## Create a local image using `Dockerfile`
 
