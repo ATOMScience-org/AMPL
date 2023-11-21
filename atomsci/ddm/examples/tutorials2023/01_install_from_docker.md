@@ -7,9 +7,8 @@ AMPL can be run from Docker to provide its accessibility across multiple platfor
 
 ## 1. Download and install Docker Desktop.
 
-```
-https://www.docker.com/get-started
-```
+Follow directions found here: https://www.docker.com/get-started.
+
 
 ## 2. Pull an existing AMPL image from Docker repo
 
@@ -21,8 +20,9 @@ docker pull atomsci/atomsci-ampl:latest
 
 ```
 docker run -it -p 8888:8888 -v </local_workspace_folder>:</directory_in_docker> atomsci/atomsci-ampl
-
-# for example
+```
+For example
+```
 docker run -it -p 8888:8888 -v ~:/home atomsci/atomsci-ampl
 ```
 
