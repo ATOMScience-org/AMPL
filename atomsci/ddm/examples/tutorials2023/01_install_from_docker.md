@@ -44,7 +44,7 @@ This will output these messages:
 
 ## 5. Go to a browser and type in the URL
 
-Copy and paste the url containing `127.0.0.1` into your browser. FOr example:
+Copy and paste the url containing `127.0.0.1` into your browser. For example:
 
 ```
 http://127.0.0.1:8888/tree?token=b38528f4614743bdcac6e02c07cffabddd285007769d7d58
@@ -63,7 +63,7 @@ http://127.0.0.1:<port_number>/tree/AMPL/atomsci/ddm/
 The tutorials examples are in:
 
 ```
-http://localhost:8888/tree/AMPL/atomsci/ddm/examples/tutorials
+http://localhost:8888/tree/AMPL/atomsci/ddm/examples/tutorials2023
 ```
 
 There are also examples in [AMPL's Read the Docs](https://ampl.readthedocs.io/en/latest/) on how to use AMPL Framework.
