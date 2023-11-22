@@ -22,19 +22,19 @@
 .dataframe tr:nth-child(even) { background-color: #f2f2f2; }
 
 .dataframe tbody tr th:only-of-type {
-    padding-left: 2px
+    padding: 15px
     vertical-align: middle;
-    padding-right: 2px
+    padding-right: 15px
 }
 
 .dataframe tbody tr th {
-    padding-left: 2px
+    padding-left: 15px
     vertical-align: top;
-    padding-right: 2px
+    padding-right: 15px
 }
 
 .dataframe thead th {
-    padding-left: 2px
-    text-align: right;
-    padding-right: 2px
+    padding-left: 15px
+    text-align: left;
+    padding-right: 15px
 }

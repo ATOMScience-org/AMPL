@@ -1,6 +1,6 @@
-=================
+################
 02 Data Curation
-=================
+################
 
 *Published: Nov, 2023, ATOM DDM Team*
 
@@ -23,7 +23,7 @@ These are just a few of the steps needed to curate a dataset; another
 tutorial will cover data curation in more detail.
 
 Read the data
-~~~~~~~~~~~~~~
+=============
 
 We've prepared an example dataset containing IC50 values for the KCNA5
 target collected from `ChEMBL <https://www.ebi.ac.uk/chembl/>`__. This
@@ -40,7 +40,7 @@ concisely demonstrate AMPL tools.
     kcna5=pd.read_csv('dataset/kcna5_ic50.csv')
 
 Columns
-~~~~~~~
+=======
 
 This dataset is drawn from the ChEMBL database and contains the
 following columns - ``molecule_chembl_id``: The ChEMBL id for the
@@ -82,24 +82,22 @@ which are recorded here. Fortunately, all of this data uses nM.
 
 
 Standardize SMILES
-~~~~~~~~~~~~~~~~~~
+==================
 
 SMILES strings are not unique and the same compound can be represented
 by different, not so equivalent, SMILES. This step simplifies the
 machine learning problem by ensuring each compound is represented the
 same way. 
 
-.. warning::
+.. note::
 
-   The input to base\_smiles\_from\_smiles must be a ``list``.
+   **Beware!** The input to base\_smiles\_from\_smiles must be a ``list``.
 
 .. code:: ipython3
 
     from atomsci.ddm.utils.struct_utils import base_smiles_from_smiles
     kcna5['base_rdkit_smiles'] = base_smiles_from_smiles(kcna5.smiles.tolist())
-
-.. code:: ipython3
-
+    
     kcna5.smiles.nunique(), kcna5.base_rdkit_smiles.nunique()
 
 
@@ -117,7 +115,7 @@ same way.
    thing. From now on we will use ``base_rdkit_smiles``.
 
 Standardize Relations
-~~~~~~~~~~~~~~~~~~~~~
+=====================
 
 Relations can also differ from database to database. This function will
 standardize the relation column for use with AMPL. Since this data is
@@ -129,8 +127,6 @@ from ChEMBL, we will call the function with ``db='ChEMBL'``
     kcna5 = standardize_relations(kcna5, db='ChEMBL', 
                         rel_col='standard_relation',
                         output_rel_col='fixed_relation')
-
-.. code:: ipython3
 
     kcna5.standard_relation.value_counts()
 
@@ -164,7 +160,7 @@ from ChEMBL, we will call the function with ``db='ChEMBL'``
 
 
 Calculate pIC50s
-~~~~~~~~~~~~~~~~
+================
 
 We will convert the IC50s to pIC50s before performing machine learning.
 This function will use ``standard_units`` and ``standard_value``
@@ -179,9 +175,7 @@ columns. This function converts IC50s in nM to pIC50s.
                                   new_value_col='pIC50',
                                   unit_conv={'µM':lambda x: x*1e-6, 'nM':lambda x: x*1e-9},
                                   inplace=False)
-
-.. code:: ipython3
-
+    
     kcna5[['standard_value', 'pIC50']].hist()
 
 
@@ -199,7 +193,7 @@ columns. This function converts IC50s in nM to pIC50s.
 
 
 Remove outliers and aggregate
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+=============================
 
 The final step is to remove outliers and aggregate duplicate
 measurements.
@@ -231,9 +225,9 @@ measurements.
     802 unique SMILES strings are reduced to 802 unique base SMILES strings
 
 
-.. warning::
+.. note::
 
-    ``aggregate_assay_data`` changes ``molecule_chembl_id`` to
+    **Beware!** ``aggregate_assay_data`` changes ``molecule_chembl_id`` to
     ``compound_id``, ``fixed_relation`` to ``relation``, and will create the
     value column ``avg_pIC50``. The column ``active`` is added but is not
     used in this tutorial. It will be covered in a classification tutorial.
@@ -343,7 +337,7 @@ to curate two more datasets for related targets.
 
 
 Multi-task data
-~~~~~~~~~~~~~~~
+===============
 
 Now that the data is curated we can combine it with 2 other datasets
 that are already curated.
