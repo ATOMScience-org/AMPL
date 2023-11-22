@@ -58,7 +58,7 @@ The AMPL code is in:
 http://127.0.0.1:<port_number>/tree/AMPL/atomsci/ddm/
 ```
 
-### 6. Code examples:
+## 6. Code examples:
 
 The tutorials examples are in:
 

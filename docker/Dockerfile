@@ -10,18 +10,20 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 RUN . $VIRTUAL_ENV/bin/activate
 RUN apt-get update \
     && apt-get install -y python3-pip
-	
-RUN apt-get update && apt-get install -y python3-pip python3-wheel wget git 
+
+RUN apt-get update && apt-get install -y python3-pip python3-wheel wget git
 RUN apt-get install libxrender1
 RUN pip install wheel
 
 RUN git clone https://github.com/ATOMScience-org/AMPL.git
 
-# checkout develop branch if needed, for example: 1.6.0 
-# RUN git checkout 1.6.0
+
 
 WORKDIR /AMPL
 ENV PATH="/AMPL:$PATH"
+
+# checkout develop branch if needed, for example: 1.6.0
+# RUN git checkout -b 1.6.0 && git pull origin 1.6.0
 
 COPY . .
 RUN echo "before pip install"
