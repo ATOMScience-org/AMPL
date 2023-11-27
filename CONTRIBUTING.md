@@ -7,6 +7,7 @@
   - [Coding Conventions](#coding-conventions)
   - [Documentation Conventions](#document-conventions)
 - [The Agreement](#the-agreement)
+- [AMPL Technical Steering Committee](#ampl-technical-steering-committee)
 <!-- tocstop -->
 
 ## Contributing to AMPL
