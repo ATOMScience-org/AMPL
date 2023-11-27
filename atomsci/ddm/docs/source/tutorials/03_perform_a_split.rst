@@ -164,42 +164,27 @@ explained in a later tutorial)
 
 
 
-.. raw:: html
-
-    <div>
-    <table cellspacing="1" cellpadding="2" class="dataframe">
-      <thead>
-        <tr style="text-align: right;">
-          <th></th>
-          <th>cmpd_id</th>
-          <th>subset</th>
-          <th>fold</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <th>0</th>
-          <td>CHEMBL326282</td>
-          <td>train</td>
-          <td>0</td>
-        </tr>
-        <tr>
-          <th>1</th>
-          <td>CHEMBL475630</td>
-          <td>train</td>
-          <td>0</td>
-        </tr>
-        <tr>
-          <th>2</th>
-          <td>CHEMBL388538</td>
-          <td>train</td>
-          <td>0</td>
-        </tr>
-      </tbody>
-    </table>
-    </div>
-
-
+.. list-table:: 
+   :widths: 3 10 5 5 
+   :header-rows: 1
+   :class: tight-table 
+ 
+   * -  
+     - compound_id
+     - subset
+     - fold
+   * - 0
+     - CHEMBL326282
+     - train
+     - 0
+   * - 1
+     - CHEMBL475630
+     - train
+     - 0
+   * - 2
+     - CHEMBL388538
+     - train
+     - 0
 
 
 .. raw:: html

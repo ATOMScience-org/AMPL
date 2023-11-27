@@ -5,6 +5,10 @@
     max-width: none;
 }
 
+.tight-table td {
+    white-space: normal !important
+}
+
 .dataframe {
     font-size:11px;
     letter-spacing:0;

@@ -369,83 +369,65 @@ that are already curated.
 
 
 
-.. raw:: html
-
-    <div>
-    <table cellspacing="1" cellpadding="0" class="dataframe">
-      <thead>
-        <tr style="text-align: right;">
-          <th></th>
-          <th>compound_id</th>
-          <th>base_rdkit_smiles</th>
-          <th>relation_kcna5</th>
-          <th>avg_pIC50_kcna5</th>
-          <th>relation_kcna3</th>
-          <th>avg_pIC50_kcna3</th>
-          <th>relation_scn5a</th>
-          <th>avg_pIC50_scn5a</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <th>0</th>
-          <td>CHEMBL3127405</td>
-          <td>NC(=O)c1ccc(N(Cc2ccc(F)cc2)S(=O)(=O)c2ccccc2F)cc1</td>
-          <td>NaN</td>
-          <td>5.657577</td>
-          <td>NaN</td>
-          <td>NaN</td>
-          <td>NaN</td>
-          <td>NaN</td>
-        </tr>
-        <tr>
-          <th>1</th>
-          <td>CHEMBL1289071</td>
-          <td>CC(C)(CNC(=O)c1cc[nH]c1)CN(C1=NS(=O)(=O)c2cc(F...</td>
-          <td>NaN</td>
-          <td>5.879426</td>
-          <td>NaN</td>
-          <td>5.939302</td>
-          <td>NaN</td>
-          <td>NaN</td>
-        </tr>
-        <tr>
-          <th>2</th>
-          <td>CHEMBL2312933</td>
-          <td>CCCN(c1cccnc1)P(=O)(c1ccccc1)c1ccccc1</td>
-          <td>NaN</td>
-          <td>6.920819</td>
-          <td>NaN</td>
-          <td>NaN</td>
-          <td>NaN</td>
-          <td>NaN</td>
-        </tr>
-        <tr>
-          <th>3</th>
-          <td>CHEMBL4100226</td>
-          <td>CN(C)C(=O)c1cccc(-c2ccccc2CC(c2cccnc2)c2cccnc2)c1</td>
-          <td>NaN</td>
-          <td>7.193820</td>
-          <td>NaN</td>
-          <td>NaN</td>
-          <td>NaN</td>
-          <td>NaN</td>
-        </tr>
-        <tr>
-          <th>4</th>
-          <td>CHEMBL1090794</td>
-          <td>OC(c1cccnc1)(c1cccnc1)C(c1ccccc1)N1CCOCC1</td>
-          <td>NaN</td>
-          <td>6.591760</td>
-          <td>NaN</td>
-          <td>NaN</td>
-          <td>NaN</td>
-          <td>NaN</td>
-        </tr>
-      </tbody>
-    </table>
-    </div>
-
+.. list-table:: 
+   :widths: 3 5 20 5 5 5 5 5 5
+   :header-rows: 1
+   :class: tight-table 
+ 
+   * -  
+     - compound_id
+     - base_rdkit_smiles
+     - relation_kcna5
+     - avg_pIC50_kcna5
+     - relation_kcna3
+     - avg_pIC50_kcna3
+     - relation_scn5a
+     - avg_pIC50_scn5a
+   * - 0
+     - CHEMBL3127405
+     - NC(=O)c1ccc(N(Cc2ccc(F)cc2)S(=O)(=O)c2ccccc2F)cc1
+     - NaN
+     - 5.657577
+     - NaN
+     - NaN
+     - NaN
+     - NaN
+   * - 1
+     - CHEMBL1289071
+     - CC(C)(CNC(=O)c1cc[nH]c1)CN(C1=NS(=O)(=O)c2cc(F...
+     - NaN
+     - 5.879426
+     - NaN
+     - 5.939302
+     - NaN
+     - NaN
+   * - 2
+     - CHEMBL2312933
+     - CCCN(c1cccnc1)P(=O)(c1ccccc1)c1ccccc1
+     - NaN
+     - 6.920819
+     - NaN
+     - NaN
+     - NaN
+     - NaN
+   * - 3
+     - CHEMBL4100226
+     - CN(C)C(=O)c1cccc(-c2ccccc2CC(c2cccnc2)c2cccnc2)c1
+     - NaN
+     - 7.193820
+     - NaN
+     - NaN
+     - NaN
+     - NaN
+   * - 4
+     - CHEMBL1090794
+     - OC(c1cccnc1)(c1cccnc1)C(c1ccccc1)N1CCOCC1
+     - NaN
+     - 6.591760
+     - NaN
+     - NaN
+     - NaN
+     - NaN
 
 |
 
