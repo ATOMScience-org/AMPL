@@ -5,7 +5,7 @@
   - [Getting Started](#getting-started)
   - [Pull Request Process](#pull-request-process)
   - [Coding Conventions](#coding-conventions)
-  - [Documentation Conventions](#documentation-conventions)
+  - [Documentation Conventions](#document-conventions)
 - [The Agreement](#the-agreement)
 <!-- tocstop -->
 
@@ -31,8 +31,8 @@ style match our guidelines!
 
 To develop AMPL on your machine, we recommend using pip for managing
 packages. If you want to manage multiple builds of AMPL, you can make use of
-[python virutal environments](https://docs.python.org/3/library/venv.html)
-to maintain seperate Python package environments, each of which can be tied
+[python virtual environments](https://docs.python.org/3/library/venv.html)
+to maintain separate Python package environments, each of which can be tied
 to a specific build of AMPL. Here are some tips to get started:
 
 1. Fork the [AMPL](https://github.com/ATOMScience-org/AMPL) repository
@@ -55,14 +55,14 @@ Keep in mind, every contribution must pass the unit tests.
 
 ### Pull Request Process
 
-Every contribution, must be a pull request and must have adequate time for
+Every contribution must be a pull request and must have adequate time for
 review by other committers.
 
 A member of the AMPL team will review the pull request.
-The default path of every contribution should be to merge. The discussion,
-review, and merge process should be designed as corrections that move the
+The default path of every contribution should be to merge to the current dev branch, usually named as upcoming version tag, such as branch 1.6.0. The discussion,
+review, and merge process should be designed as corrections or improvements that move the
 contribution into the path to merge. Once there are no more corrections,
-(dissent) changes should merge without further process.
+(dissent) changes should merge without further process. 
 
 ### Sign your work
 
@@ -143,7 +143,7 @@ you agree to the license and copyright terms therein and release your contributi
 
 ## AMPL Technical Steering Committee
 
-The Technical Steering Committee admits and oversees all top-level of AMPL.
+The Technical Steering Committee oversees all top-level administration of AMPL.
 
 The TSC exercises autonomy in setting up and maintaining procedures, policies,
 and management and administrative structures as it deems appropriate for the
@@ -152,12 +152,12 @@ maintenance and operation of these projects and resources.
 Included in the responsibilities of the TSC are:
 
 * Managing code and documentation creation and changes for the listed projects and resources
-* Performing code reviews on incoming pull requests and merging suitable code changes.
+* Performing code reviews on incoming pull requests and merging suitable code changes
 * Setting and maintaining standards covering contributions of code, documentation and other materials
 * Managing code and binary releases: types, schedules, frequency, delivery mechanisms
 * Making decisions regarding dependencies of AMPL, including what those
 dependencies are and how they are bundled with source code and releases
-* Creating new repositories and projects under the AMPL GitHub organization as required
+* Creating new repositories and projects under the @ATOMscience GitHub organization as required
 * Setting overall technical direction for the AMPL project, including 
 high-level goals and low-level specifics regarding features and functionality
 * Setting and maintaining appropriate standards for community discourse via the various
@@ -170,5 +170,5 @@ The current members of the TSC are (alphabetically)
 * Sean Black 
 * Stewart He
 * Jessica Mauvais
-* and Kevin McLoughlin
+* Kevin McLoughlin
 * Amanda Paulson
