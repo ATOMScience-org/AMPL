@@ -105,7 +105,7 @@ There are two ways to set an environment:
 .. image:: ../_static/img/01_install_from_docker_files/docker_notebook_env2.png
    :target: ../_static/img/01_install_from_docker_files/docker_notebook_env2.png
    :alt: Select an environment from a notebook
-
+   :width: 400px  
 
 
 * Outside of a notebook, click ``New`` dropdown from upper right corner, and select ``venv`` as the run environment

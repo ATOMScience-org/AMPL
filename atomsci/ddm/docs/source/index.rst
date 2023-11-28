@@ -55,12 +55,6 @@ Built with
    tutorials/visualization
 
 .. toctree::
-   :maxdepth: 1
-   :caption: API Package Reference
-
-   modules
-
-.. toctree::
    :maxdepth: 2
    :caption: Advanced Concepts
 
@@ -68,15 +62,14 @@ Built with
    advanced/advanced_installation
    advanced/advanced_testing
 
-Useful links
-------------
-- `ATOM Data-Driven Modeling Pipeline on GitHub`_
-- `Pipeline parameters (options)`_
-- `Library documentation`_
+.. toctree::
+   :maxdepth: 1
+   :caption: API Package Reference
 
-.. _`DeepChem`: https://github.com/deepchem/deepchem
-.. _`RDKit`: http://www.rdkit.org
-.. _`Mordred`: https://github.com/mordred-descriptor/mordred
-.. _`ATOM Data-Driven Modeling Pipeline on GitHub`: https://github.com/ATOMScience-org/AMPL
-.. _`Pipeline parameters (options)`: https://github.com/ATOMScience-org/AMPL/blob/master/atomsci/ddm/docs/PARAMETERS.md
-.. _`Library documentation`: https://ampl.readthedocs.io/en/latest/index.html
+   modules
+
+.. toctree::
+   :maxdepth: 1
+   :caption: External Resources
+
+   external/resources

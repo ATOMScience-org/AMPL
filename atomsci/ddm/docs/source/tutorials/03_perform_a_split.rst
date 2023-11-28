@@ -26,6 +26,8 @@ your model perform with new data. This tutorial will cover some tools in
 AMPL to perform a split.
 
 .. image:: ../_static/img/03_perform_a_split_files/03_split_example_figure.png
+  :align: center
+  :width: 700px  
 
 .. code:: ipython3
 
