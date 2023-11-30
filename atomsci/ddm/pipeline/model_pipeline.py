@@ -831,7 +831,7 @@ class ModelPipeline:
 
         # assign unique ids to each row
         old_ids = dset_df[self.params.id_col].values
-        new_ids = list(range(len(dset_df)))
+        new_ids = [str(i) for i in range(len(dset_df))]
         id_map = dict([(i, id) for i, id in zip(new_ids, old_ids)])
         dset_df[self.params.id_col] = new_ids
 
