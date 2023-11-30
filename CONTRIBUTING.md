@@ -15,10 +15,10 @@
 We actively encourage community contributions to AMPL. The first
 place to start getting involved is
 [the tutorials](https://github.com/ATOMScience-org/AMPL/tree/master/atomsci/ddm/examples).
+
 Afterwards, we encourage contributors to give a shot to improving our documentation.
 While we take effort to provide good docs, there's plenty of room
-for improvement. All docs are hosted on Github, either in `README.md`
-file, or in the `docs/` directory.
+for improvement. All docs are hosted on [Github](https://github.com/ATOMScience-org/AMPL) in `README.md` files and on [ReadtheDocs](https://ampl.readthedocs.io/en/latest/).
 
 Once you've got a sense of how AMPL works, we encourage the use
 of Github issues to discuss more complex changes, raise requests for
