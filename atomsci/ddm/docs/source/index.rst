@@ -44,21 +44,15 @@ Built with
    :maxdepth: 2
    :caption: Tutorials
 
+   tutorials/01_install_from_docker
    tutorials/02_data_curation
+   tutorials/03_perform_a_split
    tutorials/apply_trained_model
    tutorials/compare_models
-   tutorials/docker
    tutorials/hyperparameter_search
-   tutorials/perform_split
    tutorials/production_model
    tutorials/train_simple_model
    tutorials/visualization
-
-.. toctree::
-   :maxdepth: 1
-   :caption: API Package Reference
-
-   modules
 
 .. toctree::
    :maxdepth: 2
@@ -68,15 +62,14 @@ Built with
    advanced/advanced_installation
    advanced/advanced_testing
 
-Useful links
-------------
-- `ATOM Data-Driven Modeling Pipeline on GitHub`_
-- `Pipeline parameters (options)`_
-- `Library documentation`_
+.. toctree::
+   :maxdepth: 1
+   :caption: API Package Reference
 
-.. _`DeepChem`: https://github.com/deepchem/deepchem
-.. _`RDKit`: http://www.rdkit.org
-.. _`Mordred`: https://github.com/mordred-descriptor/mordred
-.. _`ATOM Data-Driven Modeling Pipeline on GitHub`: https://github.com/ATOMScience-org/AMPL
-.. _`Pipeline parameters (options)`: https://github.com/ATOMScience-org/AMPL/blob/master/atomsci/ddm/docs/PARAMETERS.md
-.. _`Library documentation`: https://ampl.readthedocs.io/en/latest/index.html
+   modules
+
+.. toctree::
+   :maxdepth: 1
+   :caption: External Resources
+
+   external/resources
