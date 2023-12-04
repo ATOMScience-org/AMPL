@@ -5,7 +5,9 @@ AMPL can be run from Docker to provide its accessibility across multiple platfor
 * [Pull an existing AMPL image from the Docker repo](#2-pull-an-existing-ampl-image-from-docker-repo)
 * [Build a local image using Dockerfile.](#create-a-local-image-using-dockerfile)
 
-## 1. Download and install Docker Desktop.
+The following instructions are to run the container using Docker from the command line, but Docker Desktop can also be used with similar commands.
+
+## 1. Download and install Docker.
 
 Follow directions found here: https://www.docker.com/get-started.
 
@@ -16,7 +18,7 @@ Follow directions found here: https://www.docker.com/get-started.
 docker pull atomsci/atomsci-ampl:latest
 ```
 
-## 3. Run the AMPL image interactively
+## 3. Start a container from the AMPL image using the interactive flag
 
 ```
 docker run -it -p 8888:8888 -v </local_workspace_folder>:</directory_in_docker> atomsci/atomsci-ampl
@@ -26,13 +28,13 @@ For example
 docker run -it -p 8888:8888 -v ~:/home atomsci/atomsci-ampl
 ```
 
-## 4. When inside the container, start the jupyter notebook
+## 4. From the command line inside the container, start the jupyter notebook
 
 ```
    jupyter-notebook --ip=0.0.0.0 --allow-root --port=8888 &
 ```
 
-This will output these messages:
+This will output a message with similar URLs to this:
 
 ```
     To access the server, open this file in a browser:
@@ -42,9 +44,9 @@ This will output these messages:
         http://127.0.0.1:8888/tree?token=b38528f4614743bdcac6e02c07cffabddd285007769d7d58
 ```
 
-## 5. Go to a browser and type in the URL
+## 5. Go to a browser and paste in the URL
 
-Copy and paste the url containing `127.0.0.1` into your browser. For example:
+Copy and paste either url into your browser. For example:
 
 ```
 http://127.0.0.1:8888/tree?token=b38528f4614743bdcac6e02c07cffabddd285007769d7d58
@@ -63,14 +65,14 @@ http://127.0.0.1:<port_number>/tree/AMPL/atomsci/ddm/
 The tutorials examples are in:
 
 ```
-http://localhost:8888/tree/AMPL/atomsci/ddm/examples/tutorials2023
+http://127.0.0.1:<port_number>/tree/AMPL/atomsci/ddm/examples/tutorials2023
 ```
 
 There are also examples in [AMPL's Read the Docs](https://ampl.readthedocs.io/en/latest/) on how to use AMPL Framework.
 
 ---
 
-## 7. To select an environment for the notebook, select `venv` as the run environment
+## 7. To use AMPL select `venv` as the run environment
 
 There are two ways to set an environment:
 
@@ -84,7 +86,7 @@ There are two ways to set an environment:
 
 
 
-## Create a local image using `Dockerfile`
+## Alternative: create a local image using `Dockerfile`
 
 AMPL [Dockerfile](../../../../docker/Dockerfile) is in `AMPL/docker` directory. To build a Docker image:
 
