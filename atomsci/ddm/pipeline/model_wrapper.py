@@ -899,6 +899,7 @@ class NNModelWrapper(ModelWrapper):
                                 subsets={'train':'train_valid', 'valid':'valid', 'test':'test'},
                                 prediction_type=self.params.prediction_type, 
                                 model_dataset=pipeline.data, 
+                                production=self.params.production,
                                 transformers=self.transformers)
         em.set_make_pred(lambda x: self.model.predict(x, []))
         em.on_new_best_valid(lambda : 1+1) # does not need to take any action
@@ -997,6 +998,7 @@ class NNModelWrapper(ModelWrapper):
         em = perf.EpochManager(self,
                                 prediction_type=self.params.prediction_type, 
                                 model_dataset=pipeline.data, 
+                                production=self.params.production,
                                 transformers=self.transformers)
         em.set_make_pred(lambda x: self.model.predict(x, []))
         em.on_new_best_valid(lambda : self.model.save_checkpoint())
@@ -1420,6 +1422,7 @@ class HybridModelWrapper(NNModelWrapper):
                                 model_dataset=pipeline.data,
                                 transformers=self.transformers,
                                 is_ki=self.params.is_ki,
+                                production=self.params.production,
                                 ki_convert_ratio=self.params.ki_convert_ratio)
 
         em.set_make_pred(lambda x: self.generate_predictions(x)[0])

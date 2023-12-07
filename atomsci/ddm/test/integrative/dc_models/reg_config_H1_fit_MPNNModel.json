@@ -41,6 +41,7 @@
     "comment": "This regulates how long to train the model",
     "early_stopping_patience": "4",
     "max_epochs": "4",
+    "batch_size": "1",
 
     "comment": "Results",
     "comment": "----------------------------------------",

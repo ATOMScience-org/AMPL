@@ -1,0 +1,39 @@
+# Minimal pip requirement list for AMPL with ROCm-enabled AMD GPU's. This includes only the packages directly imported by AMPL code, plus a few others commonly used during development. It requires installation of ROCm first. 
+
+### amd gpu: https://blog.tensorflow.org/2022/09/announcing-tensorflow-official-build-collaborators.html
+tensorflow
+
+### amd gpu: https://jax.readthedocs.io/en/latest/developer.html#additional-notes-for-building-a-rocm-jaxlib-for-amd-gpus
+jax
+
+-i https://download.pytorch.org/whl/rocm5.4.2
+torch
+torch_geometric # is this required separately from torch? I think so. do we need torchvision and torch audio? I don't think so.
+
+xgboost
+
+bokeh
+matplotlib
+matplotlib-venn
+seaborn
+umap-learn
+
+pyarrow
+
+# requires pkg-config to build: sudo apt-get pkg-config
+# requires Cairo: sudo apt-get install libcairo2-dev
+# pycairo
+
+
+maestrowf
+MolVS
+mordred
+
+pytest
+ipykernel
+
+deepchem[tensorflow] # instructions unclear here - trouble on my home system
+deepchem[jax]        # instructions unclear here - trouble on my home system
+deepchem[torch]      # instructions unclear here - works fine on home system
+
+pyyaml==5.4.1

@@ -277,6 +277,16 @@ The AMPL pipeline contains many parameters and options to fit models and make pr
 |*Default:*|FALSE|
 |*Type:*|Bool|
   
+- **production**  
+  
+|||
+|-|-|
+|*Description:*|True/False flag for training models in production mode. The entire dataset is used in training, validation, and test. If using training epocs
+the model will train for max_epochs regardless of validation error.|
+|*Default:*|FALSE|
+|*Type:*|Bool|
+  
+
 ---
 
 <a name="Graph-Convolution"></a>

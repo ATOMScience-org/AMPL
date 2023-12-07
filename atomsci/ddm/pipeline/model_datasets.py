@@ -221,6 +221,15 @@ def save_joined_dataset(joined_dataset, split_metadata):
     '''
 
 # ****************************************************************************************
+def get_classes(y):
+    """
+    Returns the class indices for a set of labels
+    """
+    class_indeces = set(y.flatten())
+
+    return class_indeces
+
+# ****************************************************************************************
 
 class ModelDataset(object):
     """
@@ -378,6 +387,8 @@ class ModelDataset(object):
                 self.dataset = NumpyDataset(features, self.vals, ids=ids, w=w)
                 self.log.info("Using prefeaturized data; number of features = " + str(self.n_features))
                 return
+            except AssertionError as a:
+                raise a
             except Exception as e:
                 self.log.debug("Exception when trying to load featurized data:\n%s" % str(e))
                 self.log.info("Featurized dataset not previously saved for dataset %s, creating new" % self.dataset_name)
@@ -453,25 +464,50 @@ class ModelDataset(object):
         if self.train_valid_dsets is None:
             raise Exception("Dataset %s did not split properly" % self.dataset_name)
         if self.params.prediction_type == 'classification':
-            if not self._check_classes():
-                raise Exception("Dataset {} does not have all classes represented in a split".format(self.dataset_name))
+            self._validate_classification_dataset()
 
     # ****************************************************************************************
 
+    def _validate_classification_dataset(self):
+        """
+        Verifies that this is a valid data for classification
+        Checks that all classes are represented in all subsets. This causes performance metrics to crash.
+        Checks that multi-class labels are between 0 and class_number
+        """
+        if not self._check_classes():
+            raise ClassificationDataException("Dataset {} does not have all classes represented in a split".format(self.dataset_name))
+        if not self._check_deepchem_classes():
+            raise ClassificationDataException("Dataset {} does not have all classes labeled using positive integers 0 <= i < {}".format(self.dataset_name, self.params.class_number))
+
     def _check_classes(self):
         """
-        Checks to see if all classes are represented in all splits
+        Checks to see if all classes are represented in all splits.
         
         Returns:
             (Boolean): boolean specifying if all classes are specified in all splits
         """
+        ref_class_set = get_classes(self.train_valid_dsets[0][0].y)
         for train, valid in self.train_valid_dsets:
-            if np.all(train.y == train.y[0]) or np.all(valid.y == valid.y[0]):
+            if not ref_class_set == get_classes(train.y):
                 return False
-        tmp_y = self.test_dset.y
-        if np.all(tmp_y == tmp_y[0]):
+            if not ref_class_set == get_classes(valid.y):
+                return False
+
+        if not ref_class_set == get_classes(self.test_dset.y):
             return False
         return True
+
+    # ****************************************************************************************
+
+    def _check_deepchem_classes(self):
+        """
+        Checks if classes adhear to DeepChem class index convention. Classes must be >=0 and < class_number
+
+        Returns:
+            (Boolean): boolean spechifying if classes adhear to DeepChem convention
+        """
+        classes = get_classes(self.dataset.y)
+        return all([0 <= c < self.params.class_number for c in list(classes)])
 
     # ****************************************************************************************
 
@@ -563,6 +599,8 @@ class ModelDataset(object):
         """
 
         # Load the split table from the datastore or filesystem
+        self.splitting = split.create_splitting(self.params)
+
         try:
             split_df, split_kv = self.load_dataset_split_table(directory)
         except Exception as e:
@@ -582,7 +620,6 @@ class ModelDataset(object):
                         self.params.__dict__[param] = split_kv[param]
 
         # Create object to delegate splitting to.
-        self.splitting = split.create_splitting(self.params)
         if self.params.split_strategy == 'k_fold_cv':
             train_valid_df = split_df[split_df.subset == 'train_valid']
             for f in range(self.splitting.num_folds):
@@ -683,19 +720,6 @@ class ModelDataset(object):
             self.subset_response_dict[subset] = response_vals
             self.subset_weight_dict[subset] = weights
         return self.subset_response_dict[subset], self.subset_weight_dict[subset]
-        
-    # *************************************************************************************
-    def _get_split_prefix(self):
-        """
-        Returns a string identifying the split strategy (TVT or k-fold) and the splitting method 
-        (index, scaffold, etc.) for use in filenames, dataset keys, etc.
-        """
-        if self.params.split_strategy == 'k_fold_cv':
-            return "%d_fold_cv_%s" % (self.params.num_folds, self.params.splitter)
-        elif self.params.split_strategy == 'train_valid_test':
-            return "train_valid_test_%s" % (self.params.splitter)
-        else:
-            raise ValueError("Unknown split_strategy '%s'" % self.params.split_strategy)
 
     # *************************************************************************************
 
@@ -707,7 +731,7 @@ class ModelDataset(object):
             (str): String containing the dataset name, split type, and split_UUID. Used as key in datastore or filename
             on disk.
         """
-        return '{0}_{1}_{2}.csv'.format(self.dataset_name, self._get_split_prefix(), self.split_uuid)
+        return '{0}_{1}_{2}.csv'.format(self.dataset_name, self.splitting.get_split_prefix(), self.split_uuid)
 
 # ****************************************************************************************
 
@@ -1087,7 +1111,7 @@ class DatastoreDataset(ModelDataset):
                            filename=split_table_key,
                            title="Split table %s" % split_table_key.replace('_', ' '),
                            description='Dataset %s %s split compound assignment table' % (
-                                        self.dataset_name, self._get_split_prefix()),
+                                        self.dataset_name, self.splitting.get_split_prefix()),
                            tags=tag_list,
                            key_values=keyval_dict,
                            client=self.ds_client,
@@ -1290,14 +1314,25 @@ class FileDataset(ModelDataset):
             self.dataset_key = self.params.dataset_key
             return dset_df
 
+
         # Otherwise, generate the expected path for the featurized dataset
         featurized_dset_name = self.featurization.get_featurized_dset_name(self.dataset_name)
         dataset_dir = os.path.dirname(self.params.dataset_key)
         data_dir = os.path.join(dataset_dir, self.featurization.get_featurized_data_subdir())
         featurized_dset_path = os.path.join(data_dir, featurized_dset_name)
         featurized_dset_df = pd.read_csv(featurized_dset_path)
+
+        # check if featurized dset has all the smiles from dset_df
+        dsetsmi=set(dset_df[self.params.smiles_col])
+        featsmi=set(featurized_dset_df[self.params.smiles_col])
+        if not dsetsmi-featsmi==set():
+            raise AssertionError("All of the smiles in your dataset are not represented in your featurized file. You can set previously_featurized to False and your featurized dataset located in the scaled_descriptors directory will be overwritten to include the correct data.")
+        
         self.dataset_key = featurized_dset_path
         featurized_dset_df[self.params.id_col] = featurized_dset_df[self.params.id_col].astype(str)
+
+        
+
         return featurized_dset_df
 
     # ****************************************************************************************
@@ -1337,4 +1372,11 @@ class FileDataset(ModelDataset):
         split_df = pd.read_csv(split_table_file, index_col=False)
         return split_df, None
 
-
+class ClassificationDataException(Exception):
+    '''
+    Used when dataset for classification problem violates assumptions
+    -   Every subset in a split must have all classes
+    -   Labels must range from 0 <= L < num_classes. DeepChem requires this.
+        Errors occur when L > num_classes or L < 0
+    '''
+    pass

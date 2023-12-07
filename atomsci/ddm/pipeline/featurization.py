@@ -346,11 +346,14 @@ def compute_all_rdkit_descrs(mol_df, mol_col = "mol"):
     """
     all_desc = [x[0] for x in Descriptors._descList]
     calc = get_rdkit_calculator(all_desc)
-    for i in mol_df.index:
-        cd = calc.CalcDescriptors(mol_df.at[i, mol_col])
-        for desc, d in list(zip(all_desc, cd)):
-            mol_df.at[i, desc] = d
+    cds=[]
+    for mol in mol_df[mol_col]:
+        cd = calc.CalcDescriptors(mol)
+        cds.append(cd)
+    df2=pd.DataFrame(cds, columns=all_desc, index=mol_df.index)
+    mol_df=mol_df.join(df2, lsuffix='', rsuffix='_rdk')
     return mol_df
+    
 
 def compute_rdkit_descriptors_from_smiles(smiles_strs, smiles_col='rdkit_smiles'):
     """
@@ -492,7 +495,8 @@ def compute_all_moe_descriptors(smiles_df, params):
                 log.error('MOE descriptor calculation failed.')
                 return None
             log.debug("Reading descriptors from %s" % output_file)
-            result_df = pd.read_csv(output_file, index_col=False)
+            result_df = pd.read_csv(output_file, index_col=False,
+                            dtype={'cmpd_id':'string'}) # IDs should always be treated as strings
             result_df = result_df.rename(columns={'cmpd_id' : params.id_col, 'original_smiles' : params.smiles_col})
             os.chdir(curdir)
             return result_df
@@ -1963,6 +1967,14 @@ class ComputedDescriptorFeaturization(DescriptorFeaturization):
             else:
                 scaled_df[scaled_col] = desc_df[unscaled_col].values
         return scaled_df.copy()
+
+    # ****************************************************************************************
+    def __str__(self):
+        """Returns a human-readable description of this Featurization object.
+        Returns:
+            (str): Describes the featurization type
+        """
+        return "ComputedDescriptorFeaturization with %s descriptors" % self.descriptor_type
 
 # ****************************************************************************************
 def get_user_specified_features(df, featurizer, verbose=False):

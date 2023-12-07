@@ -565,17 +565,17 @@ convert_to_float_list = {'dropouts','weight_init_stddevs','bias_init_consts','le
                          }
 convert_to_int_list = {'layer_sizes','rf_max_features','rf_estimators', 'rf_max_depth',
                        'umap_dim', 'umap_neighbors', 'layer_nums', 'node_nums',
-                       "xgb_max_depth",  "xgb_n_estimators"}.union(all_auto_int_lists())
+                       'xgb_max_depth',  'xgb_n_estimators'}.union(all_auto_int_lists())
 convert_to_numeric_list = convert_to_float_list | convert_to_int_list
 keep_as_list = {'dropouts','weight_init_stddevs','bias_init_consts',
                 'layer_sizes','dropout_list','layer_nums'}.union(all_auto_lists())
 not_a_list_outside_of_hyperparams = {'learning_rate','weight_decay_penalty',
                                      'xgb_learning_rate',
                                      'xgb_gamma',
-                                     "xgb_min_child_weight",
-                                     "xgb_subsample",
-                                     "xgb_colsample_bytree",
-                                     "xgb_max_depth",  "xgb_n_estimators"
+                                     'xgb_min_child_weight',
+                                     'xgb_subsample',
+                                     'xgb_colsample_bytree',
+                                     'xgb_max_depth',  'xgb_n_estimators'
                                      }
 convert_to_str_list = \
     {'response_cols','model_type','featurizer','splitter','umap_metric','weight_decay_penalty_type','descriptor_type'}
@@ -802,7 +802,7 @@ def dict_to_list(inp_dictionary,replace_spaces=False):
     temp_list_to_command_line = []
 
     # Special case handling for arguments that are False or True by default
-    default_false = ['previously_split','use_shortlist','datastore', 'save_results','verbose', 'hyperparam', 'split_only', 'is_ki'] 
+    default_false = ['previously_split','use_shortlist','datastore', 'save_results','verbose', 'hyperparam', 'split_only', 'is_ki', 'production'] 
     default_true = ['transformers','previously_featurized','uncertainty', 'rerun']
     for key, value in inp_dictionary.items():
         if key in default_false:
@@ -1137,6 +1137,17 @@ def get_parser():
     parser.add_argument(
         '--max_epochs', dest='max_epochs', type=int, default=30,
         help='Maximum number of training epochs to run for DNN models')
+    production_help_string = \
+        ('Runs training in produciton mode. The model will be trained for exactly max_epochs and '
+         'it will duplicate the dataset so that the entire dataset will be used for training, '
+         'validatin, and test.')
+    parser.add_argument(
+        '--production', dest='production', default=False,
+        action='store_true',
+        help=production_help_string
+    )
+    parser.set_defaults(production=False)
+
     parser.add_argument(
         '--weight_decay_penalty', dest='weight_decay_penalty', required=False, default='0.0001',
         help='weight_decay_penalty: float. The magnitude of the weight decay penalty to use. '

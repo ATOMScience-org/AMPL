@@ -1,0 +1,48 @@
+# Minimal pip requirement list for AMPL with CUDA-enabled GPUs. This includes only the packages directly imported by AMPL code, plus a few others commonly used during development. It requires CUDA-enable GPUs and nvidia packages to be installed first.
+-i https://download.pytorch.org/whl/cu118
+#--extra-index-url https://pypi.python.org/simple
+# for LC developers: comment out pypi index url and use this one:
+--extra-index-url https://wci-repo.llnl.gov/repository/pypi-group/simple
+-f https://storage.googleapis.com/jax-releases/jax_cuda_releases.html
+-f https://data.dgl.ai/wheels/cu118/repo.html
+
+tensorflow==2.14.0
+
+tensorrt
+
+torch==2.0.1
+torch_geometric
+lightning
+
+jax[cuda11_pip]==0.4.16
+
+dgl==1.1.2
+dgllife
+
+xgboost
+
+bokeh
+matplotlib
+matplotlib-venn
+seaborn
+umap-learn
+
+pyarrow
+
+bravado
+
+# optional for home users: prettier images in RDKit
+# requires pkg-config to build: sudo apt-get pkg-config
+# requires Cairo: sudo apt-get install libcairo2-dev
+# pycairo
+
+maestrowf
+MolVS
+mordred
+
+pytest
+ipykernel
+
+deepchem==2.7.1
+
+pyyaml==5.4.1

@@ -45,7 +45,9 @@ def create_splitting(params):
         
     """
 
-    if params.split_strategy == 'train_valid_test':
+    if params.production:
+        return ProductionSplitting(params)
+    elif params.split_strategy == 'train_valid_test':
         return TrainValidTestSplitting(params)
     elif params.split_strategy == 'k_fold_cv':
         return KFoldSplitting(params)
@@ -542,6 +544,96 @@ class TrainValidTestSplitting(Splitting):
 
         # Note grouping of train/valid return values as tuple lists, to match format of 
         # KFoldSplitting.split_dataset().
+        return [(train, valid)], test, [(train_attr, valid_attr)], test_attr
+
+# ****************************************************************************************
+
+class ProductionSplitter(dc.splits.Splitter):
+    def split(
+            self, dataset, frac_train=1, frac_valid=1, frac_test=1, seed=None, log_every_n = None
+    ):
+        '''
+        We implement a production run as having a split that contains all samples in every subset
+        '''
+        num_datapoints = len(dataset)
+        return (list(range(num_datapoints)), list(range(num_datapoints)), list(range(num_datapoints)))
+
+
+# ****************************************************************************************
+
+class ProductionSplitting(Splitting):
+    def __init__(self, params):
+        """
+        This Splitting only does one thing and ignores all splitter parameters
+        """
+        self.splitter = ProductionSplitter()
+        self.split = 'production'
+
+    # ****************************************************************************************
+    def get_split_prefix(self, parent=''):
+        """Returns a string identifying the split strategy (production) and the splitting method
+        (index, scaffold, etc.) for use in filenames, dataset keys, etc.
+
+        Args:
+            parent (str): Default to empty string. Sets the parent directory for the output string
+
+        Returns:
+            (str): A string that identifies the split strategy and the splitting method.
+            Appends a parent directory in front of the fold description
+
+        """
+        if parent != '':
+            parent = "%s/" % parent
+        return "%sproduction_%s" % (parent, self.split)
+
+    # ****************************************************************************************
+    def split_dataset(self, dataset, attr_df, smiles_col):
+        """Splits dataset into training, testing and validation sets.
+        This should contain the entire dataset in each subset
+
+        Args:
+            dataset (deepchem Dataset): full featurized dataset
+
+            attr_df (Pandas DataFrame): dataframe containing SMILES strings indexed by compound IDs,
+
+            smiles_col (string): name of SMILES column (hack for now until deepchem fixes scaffold and butina splitters)
+
+        Returns:
+            [(train, valid)], test, [(train_attr, valid_attr)], test_attr:
+            train (deepchem Dataset): training dataset.
+
+            valid (deepchem Dataset): validation dataset.
+
+            test (deepchem Dataset): testing dataset.
+
+            train_attr (Pandas DataFrame): dataframe of SMILES strings indexed by compound IDs for training set.
+
+            valid_attr (Pandas DataFrame): dataframe of SMILES strings indexed by compound IDs for validation set.
+
+            test_attr (Pandas DataFrame): dataframe of SMILES strings indexed by compound IDs for test set.
+
+        Raises:
+            Exception if there are duplicate ids or smiles strings in the dataset or the attr_df
+
+        """
+        log.warning("Splitting data by Production")
+
+        # Duplicate SMILES and compound_ids are merged into single compounds
+        # in DatasetManager. The first instance of each is kept. Assumes many to one 
+        # mapping of compound_ids and SMILES. dataset.ids is either compound_id or
+        # SMILES depending on the call to self.needs_smiles(). Later expand_selection
+        # will expect SMILES or compound_ids in dataset.ids depending on needs_smiles
+        # passed into the constructor
+        dm = DatasetManager(dataset=dataset, attr_df=attr_df, smiles_col=smiles_col,
+            needs_smiles=self.needs_smiles())
+        dataset = dm.compact_dataset()
+        train, valid, test = self.splitter.train_valid_test_split(dataset)
+        
+        # After splitting unique compound_ids or SMILES are expanded 
+        train, train_attr = dm.expand_selection(train.ids)
+        valid, valid_attr = dm.expand_selection(valid.ids)
+        test, test_attr = dm.expand_selection(test.ids)
+
         return [(train, valid)], test, [(train_attr, valid_attr)], test_attr
 
 def _copy_modify_NumpyDataset(dataset, **kwargs):

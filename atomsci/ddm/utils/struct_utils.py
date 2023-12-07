@@ -14,6 +14,7 @@ import molvs
 
 from rdkit import Chem
 from rdkit.Chem import AllChem, Draw, Descriptors
+from rdkit.Chem.MolStandardize import rdMolStandardize
 
 stdizer = molvs.standardize.Standardizer(prefer_organic=True)
 uncharger = molvs.charge.Uncharger()
@@ -40,7 +41,7 @@ def get_rdkit_smiles(orig_smiles, useIsomericSmiles=True):
         return Chem.MolToSmiles(mol, isomericSmiles=useIsomericSmiles)
 
 
-def rdkit_smiles_from_smiles(orig_smiles, useIsomericSmiles=True, workers=1):
+def rdkit_smiles_from_smiles(orig_smiles, useIsomericSmiles=True, useCanonicalTautomers=False, workers=1):
     """
     Parallel version of get_rdkit_smiles. If orig_smiles is a list and workers is > 1, spawn 'workers'
     threads to convert input SMILES strings to standardized RDKit format.
@@ -49,6 +50,9 @@ def rdkit_smiles_from_smiles(orig_smiles, useIsomericSmiles=True, workers=1):
         orig_smiles (list or str): List of SMILES strings to canonicalize.
 
         useIsomericSmiles (bool): Whether to retain stereochemistry information in the generated strings.
+
+        useCanonicalTautomers (bool): Whether to convert the generated SMILES to their canonical tautomers. Defaults
+        to False for backward compatibility.
 
         workers (int): Number of parallel threads to use for calculation.
 
@@ -59,7 +63,8 @@ def rdkit_smiles_from_smiles(orig_smiles, useIsomericSmiles=True, workers=1):
 
     if isinstance(orig_smiles, list):
         from functools import partial
-        func = partial(rdkit_smiles_from_smiles, useIsomericSmiles=useIsomericSmiles)
+        func = partial(rdkit_smiles_from_smiles, useIsomericSmiles=useIsomericSmiles, 
+                       useCanonicalTautomers=useCanonicalTautomers)
         if workers > 1:
             from multiprocessing import pool
             batchsize = 200
@@ -75,6 +80,9 @@ def rdkit_smiles_from_smiles(orig_smiles, useIsomericSmiles=True, workers=1):
         if std_mol is None:
             rdkit_smiles = ""
         else:
+            if useCanonicalTautomers:
+                taut_enum = rdMolStandardize.TautomerEnumerator()
+                std_mol = taut_enum.Canonicalize(std_mol)
             rdkit_smiles = Chem.MolToSmiles(std_mol, isomericSmiles=useIsomericSmiles)
     return rdkit_smiles
 
@@ -112,7 +120,8 @@ def mols_from_smiles(orig_smiles, workers=1):
     return mols
 
 
-def base_smiles_from_smiles(orig_smiles, useIsomericSmiles=True, removeCharges=False, workers=1):
+def base_smiles_from_smiles(orig_smiles, useIsomericSmiles=True, removeCharges=False, 
+                            useCanonicalTautomers=False, workers=1):
     """
     Generate standardized SMILES strings for the largest fragments of each molecule specified by
     orig_smiles. Strips salt groups and replaces any rare isotopes with the most common ones for each element.
@@ -124,6 +133,9 @@ def base_smiles_from_smiles(orig_smiles, useIsomericSmiles=True, removeCharges=F
 
         removeCharges (bool): If true, add or remove hydrogens to produce uncharged molecules.
 
+        useCanonicalTautomers (bool): Whether to convert the generated SMILES to their canonical tautomers. Defaults
+        to False for backward compatibility.
+
         workers (int): Number of parallel threads to use for calculation.
 
     Returns:
@@ -133,7 +145,8 @@ def base_smiles_from_smiles(orig_smiles, useIsomericSmiles=True, removeCharges=F
 
     if isinstance(orig_smiles, list):
         from functools import partial
-        func = partial(base_smiles_from_smiles, useIsomericSmiles=useIsomericSmiles, removeCharges=removeCharges)
+        func = partial(base_smiles_from_smiles, useIsomericSmiles=useIsomericSmiles, removeCharges=removeCharges,
+                       useCanonicalTautomers=useCanonicalTautomers)
         if workers > 1:
             from multiprocessing import pool
             batchsize = 200
@@ -149,6 +162,9 @@ def base_smiles_from_smiles(orig_smiles, useIsomericSmiles=True, removeCharges=F
         if std_mol is None:
             base_smiles = ""
         else:
+            if useCanonicalTautomers:
+                taut_enum = rdMolStandardize.TautomerEnumerator()
+                std_mol = taut_enum.Canonicalize(std_mol)
             base_smiles = Chem.MolToSmiles(std_mol, isomericSmiles=useIsomericSmiles)
     return base_smiles
 
@@ -498,3 +514,23 @@ def mol_wt_from_smiles(smiles, workers=1):
         else:
             mol_wt = Descriptors.MolWt(mol)
     return mol_wt
+
+
+def canonical_tautomers_from_smiles(smiles):
+    """
+    Returns SMILES strings for the canonical tautomers of a SMILES string or list of SMILES strings
+
+    Args:
+        smiles (list or str): List of SMILES strings.
+
+    Returns:
+        (list of str) : List of SMILES strings for the canonical tautomers.
+    """
+    taut_enum = rdMolStandardize.TautomerEnumerator()
+    if type(smiles) == str:
+        smiles = [smiles]
+    mols = [Chem.MolFromSmiles(smi) for smi in smiles]
+    canon_tautomers = [taut_enum.Canonicalize(m) if m is not None else None for m in mols]
+    return [Chem.MolToSmiles(m) if m is not None else '' for m in canon_tautomers]
+
+

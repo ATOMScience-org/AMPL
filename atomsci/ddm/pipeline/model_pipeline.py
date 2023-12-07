@@ -265,10 +265,20 @@ class ModelPipeline:
             params = self.params
         self.data = model_datasets.create_model_dataset(params, self.featurization, self.ds_client)
         self.data.get_featurized_data(params)
+
         if self.run_mode == 'training':
-            if not (params.previously_split and self.data.load_presplit_dataset()):
+            # Ignore prevoiusly split if in production mode
+            if params.production:
+                # if in production mode, make a new split do not load
+                self.log.warning('Training in production mode. Ignoring '
+                    'previous split and creating production split. '
+                    'Production split will not be saved.')
+                self.data.split_dataset()
+            elif not (params.previously_split and self.data.load_presplit_dataset()):
                 self.data.split_dataset()
                 self.data.save_split_dataset()
+            if self.data.params.prediction_type == 'classification':
+                self.data._validate_classification_dataset()
         # We now create transformers after splitting, to allow for the case where the transformer
         # is fitted to the training data only. The transformers are then applied to the training,
         # validation and test sets separately.
@@ -315,7 +325,8 @@ class ModelPipeline:
             response_transform_type=self.params.response_transform_type,
             external_export_parameters=dict(
                 result_dir=self.params.result_dir),
-            dataset_metadata=dataset_metadata
+            dataset_metadata=dataset_metadata,
+            production=self.params.production
         )
 
         model_params = dict(
@@ -326,6 +337,7 @@ class ModelPipeline:
             prediction_type=self.params.prediction_type,
             model_choice_score_type=self.params.model_choice_score_type,
             num_model_tasks=self.params.num_model_tasks,
+            class_number=self.params.class_number,
             transformers=self.params.transformers,
             transformer_key=self.params.transformer_key,
             transformer_bucket=self.params.transformer_bucket,
@@ -819,7 +831,7 @@ class ModelPipeline:
 
         # assign unique ids to each row
         old_ids = dset_df[self.params.id_col].values
-        new_ids = list(range(len(dset_df)))
+        new_ids = [str(i) for i in range(len(dset_df))]
         id_map = dict([(i, id) for i, id in zip(new_ids, old_ids)])
         dset_df[self.params.id_col] = new_ids
 
