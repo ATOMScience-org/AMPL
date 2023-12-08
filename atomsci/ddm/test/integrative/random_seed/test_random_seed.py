@@ -67,17 +67,54 @@ def test_RF():
         score = integrative_utilities.read_training_statistics_file(reload_dir, 'test', 'r2_score')
         r2_scores.append(score)
 
-        ## Load second test set
-        ## --------------------
-        #data = pd.read_csv('%s_curated_external.csv'%prefix)
+    print(r2_scores)
+    assert(np.std(r2_scores) > .001), "Not enough variation in random forests."
 
-        #predict = pfm.predict_from_model_file(tar_f, data, id_col=params.id_col, 
-        #    smiles_col=params.smiles_col, response_col=params.response_cols)
-        #pred_cols = [f for f in predict.columns if f.endswith('_pred')]
-        #assert len(pred_cols) == len(params.response_cols)
+    # clean again
+    clean()
+
+def test_seeded_RF():
+    # init training dataset
+    init()
+    # Train model
+    # -----------
+    # Read parameter JSON file
+    prefix = 'delaney-processed'
+    num_iterations = 10
+    with open('reg_config_delaney_fit_RF_mordred_filtered.json') as f:
+        config = json.loads(f.read())
+
+    config['rf_random_seed'] = 0
+
+    r2_scores = []
+    for i in range(num_iterations):
+        # Parse parameters
+        params = parse.wrapper(config)
+
+        # Create model pipeline
+        model = mp.ModelPipeline(params)
+
+        # Train model
+        model.train_model()
+
+        # Get uuid and reload directory
+        # -----------------------------
+        model_type = params.model_type
+        prediction_type = params.prediction_type
+        descriptor_type = params.descriptor_type
+        featurizer = params.featurizer
+        splitter = params.splitter
+        model_dir = 'result/%s_curated_fit/%s_%s_%s_%s'%(prefix, model_type, featurizer, splitter, prediction_type)
+        uuid = model.params.model_uuid
+        tar_f = 'result/%s_curated_fit_model_%s.tar.gz'%(prefix, uuid)
+        reload_dir = model_dir+'/'+uuid
+
+        # check saved scores
+        score = integrative_utilities.read_training_statistics_file(reload_dir, 'test', 'r2_score')
+        r2_scores.append(score)
 
     print(r2_scores)
-    assert(np.std(r2_scores) > .001)
+    assert(np.std(r2_scores) < .001), "Too much variation in random forests."
 
     # clean again
     clean()
@@ -101,4 +138,5 @@ def init():
 
 if __name__ == '__main__':
     test_RF()
+    test_seeded_RF()
     #pass

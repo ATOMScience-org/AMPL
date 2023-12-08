@@ -414,6 +414,12 @@ the model will train for max_epochs regardless of validation error.|
 |*Description:*|Max number of features to split random forest nodes. Hyperparameter searching requires 3 inputs: start, end, step when used with search\_type geometric or grid (example: '16,32,4') or can be input as a list of possible values for search\_type user\_specified (example: '16,20,24,28,32')|
 |*Default:*|32|
   
+- **rf\_random\_seed**  
+
+|||
+|-|-|
+|*Description:*|Random seed used for training RandomForestClassifier or RandomForestRegressor.|
+  
 ---
 
 <a name="Hybrid-model"></a>

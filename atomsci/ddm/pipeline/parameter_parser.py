@@ -5,6 +5,7 @@ from time import process_time
 import typing
 import os
 import re
+import random
 import logging
 import datetime
 import pdb
@@ -563,7 +564,8 @@ convert_to_float_list = {'dropouts','weight_init_stddevs','bias_init_consts','le
                          "xgb_colsample_bytree",
                          "ki_convert_ratio"
                          }
-convert_to_int_list = {'layer_sizes','rf_max_features','rf_estimators', 'rf_max_depth',
+convert_to_int_list = {'layer_sizes',
+                       'rf_max_features','rf_estimators', 'rf_max_depth','rf_random_seed',
                        'umap_dim', 'umap_neighbors', 'layer_nums', 'node_nums',
                        'xgb_max_depth',  'xgb_n_estimators'}.union(all_auto_int_lists())
 convert_to_numeric_list = convert_to_float_list | convert_to_int_list
@@ -1207,7 +1209,9 @@ def get_parser():
              'inputs: start, end, step when used with search_type geometric or grid (example: \'16,32,4\') '
              'or can be input as a list of possible values for search_type user_specified '
              '(example: \'16,20,24,28,32\')')
-
+    parser.add_argument(
+        '--rf_random_seed', dest='rf_random_seed', default=None,
+        help='Random seed used for random forest training.')
     # **********************************************************************************************************
     # model_building_parameters: splitting
     parser.add_argument(

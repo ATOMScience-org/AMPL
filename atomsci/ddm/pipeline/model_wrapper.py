@@ -1837,12 +1837,14 @@ class DCRFModelWrapper(ForestModelWrapper):
             rf_model = RandomForestRegressor(n_estimators=self.params.rf_estimators,
                                              max_features=self.params.rf_max_features,
                                              max_depth=self.params.rf_max_depth,
-                                             n_jobs=-1)
+                                             n_jobs=-1,
+                                             random_state=self.params.rf_random_seed)
         else:
             rf_model = RandomForestClassifier(n_estimators=self.params.rf_estimators,
                                               max_features=self.params.rf_max_features,
                                               max_depth=self.params.rf_max_depth,
-                                              n_jobs=-1)
+                                              n_jobs=-1,
+                                              random_state=self.params.rf_random_seed)
 
         return dc.models.sklearn_models.SklearnModel(rf_model, model_dir=model_dir)
 
@@ -1928,7 +1930,8 @@ class DCRFModelWrapper(ForestModelWrapper):
         rf_metadata = {
             'rf_estimators': self.params.rf_estimators,
             'rf_max_features': self.params.rf_max_features,
-            'rf_max_depth': self.params.rf_max_depth
+            'rf_max_depth': self.params.rf_max_depth,
+            'rf_random_seed': self.params.rf_random_seed,
         }
         model_spec_metadata = dict(rf_specific = rf_metadata)
         return model_spec_metadata
