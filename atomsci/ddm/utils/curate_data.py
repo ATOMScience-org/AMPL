@@ -233,7 +233,7 @@ def aggregate_assay_data(assay_df, value_col='VALUE_NUM', output_value_col=None,
     norig = len(set(orig_smiles_strs))
     smiles_strs = [base_smiles_from_smiles(smiles, True) for smiles in orig_smiles_strs]
     assay_df['base_rdkit_smiles'] = smiles_strs
-    uniq_smiles_strs = list(set(smiles_strs))
+    uniq_smiles_strs = sorted(set(smiles_strs))
     nuniq = len(uniq_smiles_strs)
     if verbose:
         print("%d unique SMILES strings are reduced to %d unique base SMILES strings" % (norig, nuniq))
