@@ -143,7 +143,7 @@ class SplitStats:
         """
         g = sns.displot(dists, kde=False, stat='probability')
         g.set_xlabels('Tanimoto Distance',fontsize=13)
-        g.set_ylabels('# Compound Pairs',fontsize=13)
+        g.set_ylabels('% Compound Pairs',fontsize=13)
 
         return g
 
