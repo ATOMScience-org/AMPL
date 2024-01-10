@@ -1,7 +1,7 @@
 # Install AMPL From Docker
 
-The purpose of this tutorial is to install the AMPL software from Docker, which will
-provide accessibility across multiple platforms. There are two ways to set up AMPL: 
+The purpose of this tutorial is to install the [AMPL](https://github.com/ATOMScience-org/AMPL)software from Docker, which will
+provide accessibility across multiple platforms. There are two ways to set up [AMPL](https://github.com/ATOMScience-org/AMPL): 
 
 1. [Pull an existing AMPL image from the Docker repo](#2-pull-an-existing-ampl-image-from-docker-repo)
 2. [Build a local image using Dockerfile.](#create-a-local-image-using-dockerfile)
@@ -27,7 +27,7 @@ docker run -it -p 8888:8888 -v </local_workspace_folder>:</directory_in_docker> 
 ```
 For example
 ```
-docker run -it -p 8888:8888 -v ~:/home\ atomsci/atomsci-ampl
+docker run -it -p 8888:8888 -v ~:/home atomsci/atomsci-ampl
 ```
 
 ## 4. From the command line inside the container, start the jupyter notebook
