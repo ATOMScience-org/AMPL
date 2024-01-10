@@ -1,6 +1,6 @@
 # Install AMPL From Docker
 
-The purpose of this tutorial is to install the [AMPL](https://github.com/ATOMScience-org/AMPL)software from Docker, which will
+The purpose of this tutorial is to install the [AMPL](https://github.com/ATOMScience-org/AMPL) software from Docker, which will
 provide accessibility across multiple platforms. There are two ways to set up [AMPL](https://github.com/ATOMScience-org/AMPL): 
 
 1. [Pull an existing AMPL image from the Docker repo](#2-pull-an-existing-ampl-image-from-docker-repo)
@@ -54,13 +54,14 @@ Copy and paste either url into your browser. For example:
 http://127.0.0.1:8888/tree?token=b38528f4614743bdcac6e02c07cffabddd285007769d7d58
 ```
 
-> **_NOTE:_** If this doesn't work, exit the container and change port from 
-8888 to some other number such as `7777` or `8899` (in all 3 places it's 
-written), then rerun both commands in 
-[step 3](#3-run-the-ampl-image-interactively) and 
-[step 4](#4-when-inside-the-container-start-the-jupyter-notebook). 
-Be sure to save any work you want to be permanent in your workspace folder. 
-If the container is shut down, you'll lose anything not in that folder.  
+> **NOTE:**
+> *If this doesn't work, exit the container and change port from 
+> 8888 to some other number such as `7777` or `8899` (in all 3 places it's 
+> written), then rerun both commands in 
+> [step 3](#3-run-the-ampl-image-interactively) and 
+> [step 4](#4-when-inside-the-container-start-the-jupyter-notebook). 
+> Be sure to save any work you want to be permanent in your workspace folder. 
+> If the container is shut down, you'll lose anything not in that folder.*  
 
 The AMPL code is in:
 
