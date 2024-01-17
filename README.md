@@ -79,6 +79,7 @@ pip install -r cpu_requirements.txt
 - CUDA installation:
 ```bash
 cd AMPL/pip
+# LLNL only: module load cuda/11.8
 pip install -r cuda_requirements.txt
 ```
 
@@ -99,7 +100,9 @@ pip install -e .
 ---
 ## Installation Quick Summary
 ```bash
-# LLNL only: module load python/3.9.12 cuda/11.8
+# LLNL only:
+# module load python/3.9.12
+# If use CUDA: module load cuda/11.8
 
 cd ~/workspace                          # go to a convenient home directory
 python3.9 -m venv atomsci               # create environment with Python 3.9
