@@ -987,6 +987,8 @@ class EmbeddingFeaturization(DynamicFeaturization):
         weights = input_dataset.w
         attr = input_model_dataset.attr
 
+        input_dataset = self.embedding_pipeline.model_wrapper.transform_dataset(input_dataset)
+
         # Run the embedding model to generate features. 
         embedding = self.embedding_pipeline.model_wrapper.generate_embeddings(input_dataset)
 
