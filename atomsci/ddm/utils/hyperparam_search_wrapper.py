@@ -1479,6 +1479,36 @@ class HyperOptSearch():
                 par_list = [float(e) for e in domain_list[1].split(",")]
                 self.space["xgbl"] = build_hyperopt_search_domain("xgbl", method, par_list)
 
+            if self.params.xgbd:
+                domain_list = self.params.xgbd.split("|")
+                method = domain_list[0]
+                par_list = [float(e) for e in domain_list[1].split(",")]
+                self.space["xgbd"] = build_hyperopt_search_domain("xgbd", method, par_list)
+
+            if self.params.xgbc:
+                domain_list = self.params.xgbc.split("|")
+                method = domain_list[0]
+                par_list = [float(e) for e in domain_list[1].split(",")]
+                self.space["xgbc"] = build_hyperopt_search_domain("xgbc", method, par_list)
+
+            if self.params.xgbs:
+                domain_list = self.params.xgbs.split("|")
+                method = domain_list[0]
+                par_list = [float(e) for e in domain_list[1].split(",")]
+                self.space["xgbs"] = build_hyperopt_search_domain("xgbs", method, par_list)
+
+            if self.params.xgbn:
+                domain_list = self.params.xgbn.split("|")
+                method = domain_list[0]
+                par_list = [float(e) for e in domain_list[1].split(",")]
+                self.space["xgbn"] = build_hyperopt_search_domain("xgbn", method, par_list)
+
+            if self.params.xgbw:
+                domain_list = self.params.xgbw.split("|")
+                method = domain_list[0]
+                par_list = [float(e) for e in domain_list[1].split(",")]
+                self.space["xgbw"] = build_hyperopt_search_domain("xgbw", method, par_list)
+
 
     def run_search(self):
         #name of the results
@@ -1525,8 +1555,24 @@ class HyperOptSearch():
                     self.params.xgb_gamma = p["xgbg"]
                 if self.params.xgbl:
                     self.params.xgb_learning_rate = p["xgbl"]
-                hp_params = f'{self.params.xgb_gamma}_{self.params.xgb_learning_rate}'
-                print(f"xgb_gamma: {self.params.xgb_gamma}, xgb_learing_rate: {self.params.xgb_learning_rate}")
+                if self.params.xgbd:
+                    self.params.xgb_max_depth = p["xgbd"]
+                if self.params.xgbc:
+                    self.params.xgb_colsample_bytree = p["xgbc"]
+                if self.params.xgbs:
+                    self.params.xgb_subsample = p["xgbs"]
+                if self.params.xgbn:
+                    self.params.xgb_n_estimators = p["xgbn"]
+                if self.params.xgbw:
+                    self.params.xgb_min_child_weight = p["xgbw"]
+                hp_params = f'{self.params.xgb_gamma}_{self.params.xgb_learning_rate}_{self.params.xgb_max_depth}_{self.params.xgb_colsample_bytree}_{self.params.xgb_subsample}_{self.params.xgb_n_estimators}_{self.params.xgb_min_child_weight}'
+                print(f"xgb_gamma: {self.params.xgb_gamma}, "
+                      f"xgb_learning_rate: {self.params.xgb_learning_rate}, "
+                      f"xgb_max_depth: {self.params.xgb_max_depth}, "
+                      f"xgb_colsample_bytree: {self.params.xgb_colsample_bytree}, "
+                      f"xgb_subsample: {self.params.xgb_subsample}, "
+                      f"xgb_n_estimators: {self.params.xgb_n_estimators}, "
+                      f"xgb_min_child_weight: {self.params.xgb_min_child_weight}")
 
             # set hyperparam to False to make sure the layer_sizes and dropouts are not lists if not optimized.
             self.params.hyperparam = False
@@ -1703,7 +1749,7 @@ def parse_params(param_list):
                    'slurm_time_limit'} | excluded_keys
     if params.search_type == 'hyperopt':
         # keep more parameters
-        keep_params = keep_params | {'lr', 'learning_rate','ls', 'layer_sizes','ls_ratio','dp', 'dropouts','rfe', 'rf_estimators','rfd', 'rf_max_depth','rff', 'rf_max_features','xgbg', 'xgb_gamma','xgbl', 'xgb_learning_rate', 'hp_checkpoint_load', 'hp_checkpoint_save'}
+        keep_params = keep_params | {'lr', 'learning_rate','ls', 'layer_sizes','ls_ratio','dp', 'dropouts','rfe', 'rf_estimators','rfd', 'rf_max_depth','rff', 'rf_max_features','xgbg', 'xgb_gamma','xgbl', 'xgb_learning_rate', 'xgbd', 'xgb_max_depth', 'xgbc', 'xgb_colsample_bytree', 'xgbs', 'xgb_subsample', 'xgbn', 'xgb_n_estimators', 'xgbw', 'xgb_min_child_weight', 'hp_checkpoint_load', 'hp_checkpoint_save'}
 
     params.__dict__ = parse.prune_defaults(params, keep_params=keep_params)
 
