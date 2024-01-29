@@ -1547,6 +1547,21 @@ def get_parser():
     parser.add_argument(
         '--xgbl', dest='xgbl', required=False, default=None,
         help='xgb_learning_rate shown in HyperOpt domain format, e.g. --xgbl=loguniform|-6.9,-2.3')
+    parser.add_argument(
+        '--xgbd', dest='xgbd', required=False, default=None,
+        help='xgb_max_depth shown in HyperOpt domain format, e.g. --xgbd=uniformint|3,10')
+    parser.add_argument(
+        '--xgbc', dest='xgbc', required=False, default=None,
+        help='xgb_colsample_bytree shown in HyperOpt domain format, e.g. --xgbc=uniform|0.1,1.0')
+    parser.add_argument(
+        '--xgbs', dest='xgbs', required=False, default=None,
+        help='xgb_subsample shown in HyperOpt domain format, e.g. --xgbs=uniform|0.1,1.0')
+    parser.add_argument(
+        '--xgbn', dest='xgbn', required=False, default=None,
+        help='xgb_n_estimators shown in HyperOpt domain format, e.g. --xgbn=choice|200,500,1000')
+    parser.add_argument(
+        '--xgbw', dest='xgbw', required=False, default=None,
+        help='xgb_min_child_weight shown in HyperOpt domain format, e.g. --xgbw=uniform|1.0,1.2')
     # checkpoint
     parser.add_argument(
         '--hp_checkpoint_save', dest='hp_checkpoint_save', required=False, default=None,
