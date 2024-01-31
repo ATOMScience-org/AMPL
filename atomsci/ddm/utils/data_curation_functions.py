@@ -294,35 +294,78 @@ def ic50topic50(x) :
     print(x)
     return -np.log10((x/1000000000.0))
 
-def convert_IC50_to_pIC50(df, unit_col='unit', value_col='value', 
-        new_value_col='average_col', unit_conv={'uM':lambda x: x*1e-6, 'nM':lambda x: x*1e-9}, inplace=False):
+def compute_negative_log_responses(df, unit_col='unit', value_col='value', 
+        new_value_col='average_col', relation_col=None, new_relation_col=None,
+        unit_conv={'uM':lambda x: x*1e-6, 'nM':lambda x: x*1e-9}, inplace=False):
     '''
-    If the value is 0 then we drop it from the dataset
+    Given the response values in `value_col` (IC50, Ki, Kd, etc.), compute their negative base 10 logarithms
+    (pIC50, pKi, pKd, etc.) after converting them to molar units and store them in `new_value_col`.
+    If `relation_col` is provided, replace any '<' or '>' relations with their opposites and store the result
+    in `new_relation_col` (if provided), or in `relation_col` if note.
+    Rows where the original value is 0 or negative will be dropped from the dataset.
 
     Args:
-        df (DataFrame): A DataFrame that contains value_col and unit_col.
-        unit_conv (dict): Dictionary for units found in unit col. Default:
-            unit_conv={'uM':lambda x: x*1e-6, 'nM':lambda x: x*1e-9, 'nan':lambda x: x*1e-9}
-            'nan' is a special keyword for nan units.
-        unit_col (string): Column containing units.
-        value_col (string): Column contianing values.
-        new_value_col (string): Column to put conversion results.
-        inplace (boolean): either modifies the DataFrame or returns a copy
+        df (DataFrame): A DataFrame that contains `value_col`, `unit_col` and `relation_col`.
+
+        unit_conv (dict): A dictionary mapping concentration units found in `unit_col` to functions
+        that convert the corresponding concentrations to molar. The default handles micromolar and
+        nanomolar units, represented as 'uM' and 'nM' respectively.
+
+        unit_col (str): Column containing units.
+
+        value_col (str): Column containing input values.
+
+        new_value_col (str): Column to receive converted values.
+
+        relation_col (str): Column containing relational operators for censored data.
+
+        new_relation_col (str): Column to receive inverted relations applicable to the negative log transformed values.
+
+        inplace (bool): If True, the input DataFrame is modified in place when possible. The default is to return a copy
+
     Returns:
-        DataFrame: containing the new_value_col
+        DataFrame: A table containing the transformed values and relations.
     '''
-    if inplace:
+
+    missing_units = list(set(df[unit_col]) - set(unit_conv.keys()))
+    assert len(missing_units) == 0, f"unit_conv lacks converter(s) for units {', '.join(missing_units)}"
+    # Drop rows for which log can't be computed
+    if np.any(df[value_col].values <= 0.0):
+        df = df[df[value_col] > 0.0].copy()
+    elif not inplace:
         df = df.copy()
-    units = set(df[unit_col])
-    assert all([u in unit_conv for u in units]), 'Not all units could be found in unit_conv '+str([u for u in units if not (u in unit_conv)])
     new_vals = []
+    new_relations = []
+    inverse_rel = str.maketrans('<>', '><')
     for i, row in df.iterrows():
         ic50 = row[value_col]
-        pic50 = -1 * np.log10(unit_conv[row[unit_col]](ic50))
+        pic50 = -np.log10(unit_conv[row[unit_col]](ic50))
         new_vals.append(pic50)
+        if relation_col is not None:
+            rel = row[relation_col]
+            if isinstance(rel, str):
+                rel = rel.translate(inverse_rel)
+            new_relations.append(rel)
     df[new_value_col] = new_vals
+    if relation_col is not None:
+        if new_relation_col is None:
+            df[relation_col] = new_relations
+        else:
+            df[new_relation_col] = new_relations
 
     return df
+
+
+def convert_IC50_to_pIC50(df, unit_col='unit', value_col='value', 
+        new_value_col='average_col', relation_col=None, new_relation_col=None,
+        unit_conv={'uM':lambda x: x*1e-6, 'nM':lambda x: x*1e-9}, inplace=False):
+    '''
+    For backward compatibiltiy only: equivalent to calling `compute_negative_log_responses` with the same arguments.
+    '''
+    return compute_negative_log_responses(df, unit_col=unit_col, value_col=value_col, new_value_col=new_value_col,
+                                          relation_col=relation_col, new_relation_col=new_relation_col,
+                                          unit_conv=unit_conv, inplace=inplace)
+
 
 def down_select(df,kv_lst) :
     """Filters rows given a set of values
