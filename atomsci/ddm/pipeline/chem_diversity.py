@@ -12,7 +12,6 @@ from scipy.spatial.distance import squareform
 import pandas as pd
 import inspect
 
-from atomsci.ddm.utils import datastore_functions as dsf
 from atomsci.ddm.pipeline import dist_metrics
 
 def calc_dist_smiles(feat_type, dist_met, smiles_arr1, smiles_arr2=None, calc_type='nearest', num_nearest=1, **metric_kwargs):
@@ -246,6 +245,7 @@ def _get_descriptors(smiles_arr):
     """
     DEPRECATED. This function is guaranteed not to work, since it refers to datasets that no longer exist.
     """
+    from atomsci.ddm.utils import datastore_functions as dsf
     ds_client = dsf.config_client()
 
     full_feature_matrix_key = '/ds/projdata/gsk_data/GSK_datasets/eXP_Panel_Min_100_Cmpds/scaled_descriptors/' \
@@ -296,6 +296,7 @@ def upload_distmatrix_to_DS(
     Returns:
          None
     """
+    from atomsci.ddm.utils import datastore_functions as dsf
 
     dist_df = pd.DataFrame(dist_matrix)
     dist_df.index = compound_ids

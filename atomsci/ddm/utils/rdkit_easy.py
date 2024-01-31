@@ -177,8 +177,12 @@ def mol_to_html(mol, highlight=None, name='', type='svg', directory='rdkit_svg',
     
     if type.lower() not in ['png','svg']:
         log.warning('Image type not recognized. Choose between png and svg.')
-        return
+        return ''
     
+    # Handle Mol generated from invalid SMILES string
+    if mol is None:
+        return ''
+
     if embed:
         if type.lower() == 'png':
             img=mol_to_pil(mol, size=(width,height), highlight=highlight)
