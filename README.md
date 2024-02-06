@@ -46,7 +46,8 @@ Make sure to create your virtual env in a convenient directory that has at least
 > *We use `workspace` and `atomsci` as an example here.*
 
 ```bash
-# LLNL only: module load python/3.9.12
+# LLNL only: 
+# module load python/3.9.12
 cd ~/workspace
 python3.9 -m venv atomsci
 ```
@@ -79,13 +80,15 @@ pip install -r cpu_requirements.txt
 - CUDA installation:
 ```bash
 cd AMPL/pip
-# LLNL only: module load cuda/11.8
+# LLNL only: 
+# module load cuda/11.8
 pip install -r cuda_requirements.txt
 ```
 
 #### 6. *LLNL only*: install atomsci.clients
 ```bash
-# LLNL only: pip install -r clients_requirements.txt
+# LLNL only: 
+# pip install -r clients_requirements.txt
 ```
 
 ### Install AMPL
@@ -102,22 +105,24 @@ pip install -e .
 ```bash
 # LLNL only:
 # module load python/3.9.12
-# If use CUDA: module load cuda/11.8
+# If use CUDA: 
+# module load cuda/11.8
 
 cd ~/workspace                          # go to a convenient home directory
 python3.9 -m venv atomsci               # create environment with Python 3.9
-source ~/workspace/atomsci/bin/activate # activate venv
-pip install pip --upgrade               # upgrade pip
+source ~/workspace/atomsci/bin/activate 
+pip install pip --upgrade               
 
 git clone https://github.com/ATOMScience-org/AMPL.git # clone AMPL
-cd AMPL/pip                             # go to AMPL pip directory
-pip install -r cuda_requirements.txt    # install CUDA requirements OR cpu_requirements.txt
+cd AMPL/pip                             
+pip install -r cpu_requirements.txt    # install CUDA requirements OR cpu_requirements.txt
 
-# LLNL only: pip install -r clients_requirements.txt
+# LLNL only: 
+# pip install -r clients_requirements.txt
 
-cd ..                                   # go back to AMPL parent directory
-./build.sh                              # build AMPL package
-pip install -e .                        # install AMPL
+cd ..                                   
+./build.sh                            
+pip install -e .                        
 ```
 ---
 ## Create jupyter notebook kernel (optional)
