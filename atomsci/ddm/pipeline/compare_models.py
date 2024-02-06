@@ -175,6 +175,11 @@ def get_training_perf_table(dataset_key, bucket, collection_name, pred_type='reg
     rf_max_depth_list = []
     xgb_learning_rate_list = []
     xgb_gamma_list = []
+    xgb_max_depth_list = []
+    xgb_colsample_bytree_list = []
+    xgb_subsample_list = []
+    xgb_n_estimators_list = []
+    xgb_min_child_weight_list = []
     best_epoch_list = []
     max_epochs_list = []
     subsets = ['train', 'valid', 'test']
@@ -223,6 +228,12 @@ def get_training_perf_table(dataset_key, bucket, collection_name, pred_type='reg
             rf_max_depth_list.append(nan)
             xgb_learning_rate_list.append(nan)
             xgb_gamma_list.append(nan)
+            xgb_max_depth_list.append(nan)
+            xgb_colsample_bytree_list.append(nan)
+            xgb_subsample_list.append(nan)
+            xgb_n_estimators_list.append(nan)
+            xgb_min_child_weight_list.append(nan)
+
         if model_type == 'RF':
             rf_params = metadata_dict['rf_specific']
             rf_estimators_list.append(rf_params['rf_estimators'])
@@ -235,6 +246,11 @@ def get_training_perf_table(dataset_key, bucket, collection_name, pred_type='reg
             dropouts_list.append(nan)
             xgb_learning_rate_list.append(nan)
             xgb_gamma_list.append(nan)
+            xgb_max_depth_list.append(nan)
+            xgb_colsample_bytree_list.append(nan)
+            xgb_subsample_list.append(nan)
+            xgb_n_estimators_list.append(nan)
+            xgb_min_child_weight_list.append(nan)
         if model_type == 'xgboost':
             xgb_params = metadata_dict['xgb_specific']
             rf_estimators_list.append(nan)
@@ -247,6 +263,11 @@ def get_training_perf_table(dataset_key, bucket, collection_name, pred_type='reg
             dropouts_list.append(nan)
             xgb_learning_rate_list.append(xgb_params["xgb_learning_rate"])
             xgb_gamma_list.append(xgb_params["xgb_gamma"])
+            xgb_max_depth_list.append(xgb_params["xgb_max_depth"])
+            xgb_colsample_bytree_list.append(xgb_params["xgb_colsample_bytree"])
+            xgb_subsample_list.append(xgb_params["xgb_subsample"])
+            xgb_n_estimators_list.append(xgb_params["xgb_n_estimators"])
+            xgb_min_child_weight_list.append(xgb_params["xgb_min_child_weight"])
         for subset in subsets:
             score_dict[subset].append(subset_metrics[subset][metric_type])
 
@@ -265,7 +286,12 @@ def get_training_perf_table(dataset_key, bucket, collection_name, pred_type='reg
                     rf_max_features=rf_max_features_list,
                     rf_max_depth=rf_max_depth_list,
                     xgb_learning_rate = xgb_learning_rate_list,
-                    xgb_gamma = xgb_gamma_list))
+                    xgb_gamma = xgb_gamma_list,
+                    xgb_max_depth = xgb_max_depth_list,
+                    xgb_colsample_bytree = xgb_colsample_bytree_list,
+                    xgb_subsample = xgb_subsample_list,
+                    xgb_n_estimators = xgb_n_estimators_list,
+                    xgb_min_child_weight = xgb_min_child_weight_list))
     for subset in subsets:
         metric_col = '%s_%s' % (metric_type, subset)
         perf_df[metric_col] = score_dict[subset]
@@ -277,7 +303,7 @@ def get_training_perf_table(dataset_key, bucket, collection_name, pred_type='reg
 # -----------------------------------------------------------------------------------------------------------------
 def extract_model_and_feature_parameters(metadata_dict):
     """
-    Given a config file, extract model and featuer parameters. Looks for parameter names
+    Given a config file, extract model and featurizer parameters. Looks for parameter names
     that end in *_specific. e.g. nn_specific, auto_featurizer_specific
 
     Args:
@@ -285,14 +311,17 @@ def extract_model_and_feature_parameters(metadata_dict):
 
     Returns:
         dictionary containing featurizer and model parameters. Most contain the following
-        keys. ['max_epochs', 'best_epoch', 'learning_rate', 'layer_sizes', 'drop_outs', 
+        keys. ['max_epochs', 'best_epoch', 'learning_rate', 'layer_sizes', 'dropouts', 
         'rf_estimators', 'rf_max_features', 'rf_max_depth', 'xgb_gamma', 'xgb_learning_rate',
+        'xgb_max_depth', 'xgb_colsample_bytree', 'xgb_subsample', 'xgb_n_estimators', 'xgb_min_child_weight',
         'featurizer_parameters_dict', 'model_parameters_dict']
     """
     model_params = metadata_dict['model_parameters']
     model_type = model_params['model_type']
     required = ['max_epochs', 'best_epoch', 'learning_rate', 'layer_sizes', 'dropouts', 
-        'rf_estimators', 'rf_max_features', 'rf_max_depth', 'xgb_gamma', 'xgb_learning_rate']
+        'rf_estimators', 'rf_max_features', 'rf_max_depth', 'xgb_gamma', 'xgb_learning_rate',
+        'xgb_max_depth', 'xgb_colsample_bytree', 'xgb_subsample', 'xgb_n_estimators', 'xgb_min_child_weight'
+        ]
 
     model_info = {}
     model_info['model_uuid'] = metadata_dict['model_uuid']
@@ -312,6 +341,11 @@ def extract_model_and_feature_parameters(metadata_dict):
         xgb_params = metadata_dict['xgb_specific']
         model_info['xgb_gamma'] = xgb_params['xgb_gamma']
         model_info['xgb_learning_rate'] = xgb_params['xgb_learning_rate']
+        model_info['xgb_max_depth'] = xgb_params['xgb_max_depth']
+        model_info['xgb_colsample_bytree'] = xgb_params['xgb_colsample_bytree']
+        model_info['xgb_subsample'] = xgb_params['xgb_subsample']
+        model_info['xgb_n_estimators'] = xgb_params['xgb_n_estimators']
+        model_info['xgb_min_child_weight'] = xgb_params['xgb_min_child_weight']
 
     for r in required:
         if r not in model_info:
@@ -335,10 +369,6 @@ def extract_model_and_feature_parameters(metadata_dict):
         model_metadata = metadata_dict['rf_specific']
     elif 'xgb_specific' in metadata_dict:
         model_metadata = metadata_dict['xgb_specific']
-        # delete several parameters that aren't normally saved
-        ignored_params = ['xgb_colsample_bytree','xgb_max_depth',
-            'xgb_min_child_weight','xgb_n_estimators','xgb_subsample']
-        del_ignored_params(model_metadata, ignored_params)
     else:
         # no model parameters found
         model_metadata = {}
@@ -910,6 +940,7 @@ def get_filesystem_perf_results(result_dir, pred_type='classification'):
     featurizer_list = []
     dataset_key_list = []
     splitter_list = []
+    split_strategy_list = []
     model_score_type_list = []
     feature_transform_type_list = []
 
@@ -993,6 +1024,7 @@ def get_filesystem_perf_results(result_dir, pred_type='classification'):
         featurizer_list.append(featurizer)
         split_params = metadata_dict['splitting_parameters']
         splitter_list.append(split_params['splitter'])
+        split_strategy_list.append(split_params['split_strategy'])
         dataset_key_list.append(metadata_dict['training_dataset']['dataset_key'])
         feature_transform_type = metadata_dict['training_dataset']['feature_transform_type']
         feature_transform_type_list.append(feature_transform_type)
@@ -1016,6 +1048,7 @@ def get_filesystem_perf_results(result_dir, pred_type='classification'):
                     dataset_key=dataset_key_list,
                     features=featurizer_list,
                     splitter=splitter_list,
+                    split_strategy=split_strategy_list,
                     model_score_type=model_score_type_list,
                     feature_transform_type=feature_transform_type_list))
 
@@ -1440,8 +1473,13 @@ def get_summary_metadata_table(uuids, collections=None):
                          'Transformation': transform,
                          'AMPL version used:': mdl_params.get('ampl_version', 'probably 1.0.0'),
                          'Model Type (Featurizer)':    '%s (%s)' % (mdl_params['model_type'],featurizer),
+                         'XGB learning rate': xgb_params['xgb_learning_rate'],
                          'Gamma':    xgb_params['xgb_gamma'],
-                         'Learning rate': xgb_params['xgb_max_depth'],
+                         'XGB max depth': xgb_params['xgb_max_depth'],
+                         'Column sample fraction':    xgb_params['xgb_colsample_bytree'],
+                         'Row subsample fraction':    xgb_params['xgb_subsample'],
+                         'Number of estimators':    xgb_params['xgb_n_estimators'],
+                         'Minimum child weight':    xgb_params['xgb_min_child_weight'],
                          'r^2 (Train/Valid/Test)':       '%0.2f/%0.2f/%0.2f' % (train_metrics['r2_score'], valid_metrics['r2_score'], test_metrics['r2_score']),
                          'MAE (Train/Valid/Test)':       '%0.2f/%0.2f/%0.2f' % (train_metrics['mae_score'], valid_metrics['mae_score'], test_metrics['mae_score']),
                          'RMSE(Train/Valid/Test)':       '%0.2f/%0.2f/%0.2f' % (train_metrics['rms_score'], valid_metrics['rms_score'], test_metrics['rms_score']),
@@ -1514,8 +1552,13 @@ def get_summary_metadata_table(uuids, collections=None):
                          'Transformation': transform,
                          'AMPL version used:': mdl_params.get('ampl_version', 'probably 1.0.0'),
                          'Model Type (Featurizer)':    '%s (%s)' % (mdl_params['model_type'],featurizer),
+                         'XGB learning rate': xgb_params['xgb_learning_rate'],
                          'Gamma':    xgb_params['xgb_gamma'],
-                         'XGB Learning rate': xgb_params['xgb_max_depth'],
+                         'XGB max depth': xgb_params['xgb_max_depth'],
+                         'Column sample fraction':    xgb_params['xgb_colsample_bytree'],
+                         'Row subsample fraction':    xgb_params['xgb_subsample'],
+                         'Number of estimators':    xgb_params['xgb_n_estimators'],
+                         'Minimum child weight':    xgb_params['xgb_min_child_weight'],
                          'ROC AUC (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['roc_auc_score'], valid_metrics['roc_auc_score'], test_metrics['roc_auc_score']),
                          'PRC AUC (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics['prc_auc_score'], valid_metrics['prc_auc_score'], test_metrics['prc_auc_score']),
                          'Balanced accuracy (Train/Valid/Test)':     '%0.2f/%0.2f/%0.2f' % (train_metrics.get('bal_accuracy', np.nan), valid_metrics.get('bal_accuracy',np.nan), test_metrics.get('bal_accuracy', np.nan)),
@@ -2018,7 +2061,9 @@ def get_multitask_perf_from_tracker(collection_name, response_cols=None, expand_
                   'weight_decay_penalty', 'weight_decay_penalty_type', 'weight_init_stddevs', 'splitter',
                   'split_uuid', 'split_test_frac', 'split_valid_frac', 'smiles_col', 'id_col',
                   'feature_transform_type', 'response_cols', 'response_transform_type', 'num_model_tasks',
-                  'rf_estimators', 'rf_max_depth', 'rf_max_features', 'xgb_gamma', 'xgb_learning_rate']
+                  'rf_estimators', 'rf_max_depth', 'rf_max_features', 'xgb_gamma', 'xgb_learning_rate',
+                  'xgb_max_depth', 'xgb_colsample_bytree', 'xgb_subsample', 'xgb_n_estimators', 'xgb_min_child_weight',
+                  ]
         keepcols.extend(alldat.columns[alldat.columns.str.contains('best')])
         keepcols = list(set(alldat.columns).intersection(keepcols))
         keepcols.sort()

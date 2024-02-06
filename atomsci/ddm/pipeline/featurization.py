@@ -765,7 +765,7 @@ class DynamicFeaturization(Featurization):
             feat_df = pd.DataFrame(dict(c0=features))
         featurized_dset_df = pd.concat([keep_df, feat_df], ignore_index=False, axis=1)
 
-        if contains_responses:
+        if contains_responses and (params.model_type != 'hybrid'):
             vals, w = make_weights(featurized_dset_df[params.response_cols].values) #, self.id_field)
         else:
             vals = np.zeros((nrows,ncols))
@@ -1490,7 +1490,7 @@ class DescriptorFeaturization(PersistentFeaturization):
 
         nrows = len(ids)
         ncols = len(params.response_cols)
-        if contains_responses:
+        if contains_responses and (params.model_type != 'hybrid'):
             vals = featurized_dset_df[params.response_cols].values
             vals, weights = make_weights(vals)
         else:
@@ -1787,7 +1787,7 @@ class ComputedDescriptorFeaturization(DescriptorFeaturization):
         ids = featurized_dset_df[params.id_col]
         nrows = len(ids)
         ncols = len(params.response_cols)
-        if contains_responses:
+        if contains_responses and (params.model_type != 'hybrid'):
             vals = featurized_dset_df[params.response_cols].values
             vals, weights = make_weights(vals)
         else:
