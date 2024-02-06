@@ -16,6 +16,9 @@ lightning
 dgl==1.1.2
 dgllife
 
+scikit-learn==1.2.2
+hyperopt
+
 xgboost
 
 bokeh
