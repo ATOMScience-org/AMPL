@@ -30,12 +30,14 @@ For example
 docker run -it -p 8888:8888 -v ~:/home atomsci/atomsci-ampl
 ```
 
-## 4. From the command line inside the container, start the jupyter notebook
+## 4. From a command line inside the container, start the jupyter notebook
 
 ```
-   jupyter-notebook --ip=0.0.0.0 --allow-root --port=8888 &
+#inside docker environment
+jupyter-notebook --ip=0.0.0.0 --allow-root --port=8888 &
+# -OR-
+jupyter-lab --ip=0.0.0.0 --allow-root --port=8888 &
 ```
-
 As a result, this will output a message with similar URLs to this:
 
 ```
@@ -82,18 +84,18 @@ Also, there are examples in
 
 ---
 
-## 7. To use AMPL select `venv` as the run environment
+## 7. To use AMPL, select `venv` as the run kernel
 
-There are two ways to set an environment:
+There are two ways to set a kernel:
 
 * From a notebook, top menu bar `Kernel` > `Change Kernel` > `venv`
 
-![Select an environment from a notebook](../../docs/source/_static/img/01_install_from_docker_files/docker_notebook_env2.png)
+![Select a kernel from a notebook](../../docs/source/_static/img/01_install_from_docker_files/docker_notebook_env2.png)
 
 * Outside of a notebook, click `New` dropdown from upper right corner, 
-and select `venv` as the run environment
+and select `venv` as the run kernel
 
-![Select an environment outside of a notebook](../../docs/source/_static/img/01_install_from_docker_files/docker_notebook_env1.png)
+![Select a kernel outside of a notebook](../../docs/source/_static/img/01_install_from_docker_files/docker_notebook_env1.png)
 
 
 
