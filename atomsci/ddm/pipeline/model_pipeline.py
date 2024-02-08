@@ -270,7 +270,7 @@ class ModelPipeline:
             # Ignore prevoiusly split if in production mode
             if params.production:
                 # if in production mode, make a new split do not load
-                self.log.warning('Training in production mode. Ignoring '
+                self.log.info('Training in production mode. Ignoring '
                     'previous split and creating production split. '
                     'Production split will not be saved.')
                 self.data.split_dataset()
@@ -893,7 +893,7 @@ class ModelPipeline:
 
             try:
                 if not hasattr(self, 'featurized_train_data'):
-                    self.log.info("Featurizing training data for AD calculation.")
+                    self.log.debug("Featurizing training data for AD calculation.")
                     self.run_mode = 'training'
                     # If training data is too big to compute distances in a reasonable time, use a sample of the data
                     train_data_params = copy.deepcopy(self.orig_params)
@@ -908,7 +908,7 @@ class ModelPipeline:
                         train_X = self.data.train_valid_dsets[0][0].X
     
                     if self.featurization.feat_type == "graphconv":
-                        self.log.info("Computing training data embeddings for AD calculation.")
+                        self.log.debug("Computing training data embeddings for AD calculation.")
                         train_dset = dc.data.NumpyDataset(train_X)
                         self.featurized_train_data = self.model_wrapper.generate_embeddings(train_dset)
                     else:
@@ -918,7 +918,7 @@ class ModelPipeline:
                     self.train_pair_dis = pairwise_distances(X=self.featurized_train_data, metric=dist_metric)
                     self.train_pair_dis_metric = dist_metric
 
-                self.log.info("Calculating AD index.")
+                self.log.debug("Calculating AD index.")
 
 
                 if AD_method == "local_density":
@@ -927,7 +927,7 @@ class ModelPipeline:
                     result_df["AD_index"] = calc_AD_kmean_dist(self.featurized_train_data, pred_data, k, train_dset_pair_distance=self.train_pair_dis, dist_metric=dist_metric)
 
             except:
-                self.log.info("AD index calculation failed")
+                self.log.warning("AD index calculation failed")
                 # xxx re-raise for debugging
                 raise
 

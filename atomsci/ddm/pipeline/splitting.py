@@ -479,7 +479,7 @@ class TrainValidTestSplitting(Splitting):
             Exception if there are duplicate ids or smiles strings in the dataset or the attr_df
 
         """
-        log.warning("Splitting data by %s" % self.params.splitter)
+        log.info("Splitting data by %s" % self.params.splitter)
 
         # Duplicate SMILES and compound_ids are merged into single compounds
         # in DatasetManager. The first instance of each is kept. Assumes many to one 
@@ -616,7 +616,7 @@ class ProductionSplitting(Splitting):
             Exception if there are duplicate ids or smiles strings in the dataset or the attr_df
 
         """
-        log.warning("Splitting data by Production")
+        log.info("Splitting data by Production")
 
         # Duplicate SMILES and compound_ids are merged into single compounds
         # in DatasetManager. The first instance of each is kept. Assumes many to one 
