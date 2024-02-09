@@ -53,8 +53,7 @@ def config_client(
         token=None,
         url='https://twintron-blue.llnl.gov/atom/datastore/api/v1.0/swagger.json',
         new_instance=False):
-    """
-    Configures client to access datastore service.
+    """Configures client to access datastore service.
 
     Args:
         token (str): Path to file containing token for accessing datastore. Defaults to 
@@ -107,8 +106,7 @@ def config_client(
 #--------------------------------------------------------------------------------------------------------
 
 def initialize_model_tracker(new_instance=False): 
-    """
-    Create or obtain a client object for the model tracker service..
+    """Create or obtain a client object for the model tracker service..
 
     Returns:
         mlmt_client (MLMTClientSingleton): The client object for the model tracker service.
