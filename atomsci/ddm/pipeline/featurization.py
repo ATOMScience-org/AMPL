@@ -57,7 +57,6 @@ import collections
 
 logging.basicConfig(format='%(asctime)-15s %(message)s')
 log = logging.getLogger('ATOM')
-log.setLevel(logging.DEBUG)
 
 
 
@@ -1217,10 +1216,10 @@ class DescriptorFeaturization(PersistentFeaturization):
 
         if ds_client is None or desc_spec_bucket == '':
             if os.path.exists(desc_spec_key):
-                log.info("Reading descriptor spec table from %s" % desc_spec_key)
+                log.debug("Reading descriptor spec table from %s" % desc_spec_key)
                 desc_spec_df = pd.read_csv(desc_spec_key, index_col=False)
             else:
-                log.info("Reading descriptor spec table from %s" % desc_spec_key_fallback)
+                log.debug("Reading descriptor spec table from %s" % desc_spec_key_fallback)
                 desc_spec_df = pd.read_csv(desc_spec_key_fallback, index_col=False)
         else :
             # Try the descriptor_spec_key parameter first, then fall back to package file

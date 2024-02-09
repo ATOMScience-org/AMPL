@@ -43,8 +43,7 @@ import pdb
 
 
 def run_command(shell_script, python_path, script_dir, params):
-    """
-    Function to submit jobs on a slurm system
+    """Function to submit jobs on a slurm system
 
     Args:
         shell_script: Name of shell script to run
@@ -71,8 +70,7 @@ def run_command(shell_script, python_path, script_dir, params):
     os.system(slurm_command)
 
 def gen_maestro_command(python_path, script_dir, params):
-    """
-    Generates a string that can be fed into a command line.
+    """Generates a string that can be fed into a command line.
 
     Side Effects:
         Dataset key will be converted to an absolute path before
@@ -104,8 +102,7 @@ def gen_maestro_command(python_path, script_dir, params):
     return slurm_command
 
 def run_cmd(cmd):
-    """
-    Function to submit a job using subprocess
+    """Function to submit a job using subprocess
 
     Args:
         cmd: Command to run
@@ -121,8 +118,7 @@ def run_cmd(cmd):
 
 
 def reformat_filter_dict(filter_dict):
-    """
-    Function to reformat a filter dictionary to match the Model Tracker metadata structure. Updated 9/2020 by A. Paulson
+    """Function to reformat a filter dictionary to match the Model Tracker metadata structure. Updated 9/2020 by A. Paulson
     for new LC model tracker.
 
     Args:
@@ -181,8 +177,7 @@ def reformat_filter_dict(filter_dict):
 
 
 def permutate_NNlayer_combo_params(layer_nums, node_nums, dropout_list, max_final_layer_size):
-    """
-    to generate combos of layer_sizes(str) and dropouts(str) params from the layer_nums (list), node_nums (list), dropout_list (list).
+    """Generate combos of layer_sizes(str) and dropouts(str) params from the layer_nums (list), node_nums (list), dropout_list (list).
 
     The permutation will make the NN funnel shaped, so that the next layer can only be smaller or of the same size of the current layer.
 
@@ -234,8 +229,7 @@ def permutate_NNlayer_combo_params(layer_nums, node_nums, dropout_list, max_fina
 
 
 def get_num_params(combo):
-    """
-    Calculates the number of parameters in a fully-connected neural networ
+    """Calculates the number of parameters in a fully-connected neural networ
 
     Args:
         combo: Model parameters
@@ -268,8 +262,7 @@ excluded_keys = {'shortlist_key', 'use_shortlist', 'dataset_key', 'object_oid', 
 
 
 class HyperparameterSearch(object):
-    """
-    The class for generating and running all hyperparameter combinations based on the input params given
+    """The class for generating and running all hyperparameter combinations based on the input params given
     """
     def __init__(self, params):
         """
@@ -364,8 +357,7 @@ class HyperparameterSearch(object):
                     'runtime=$((end-start))\necho "runtime: " $runtime')
 
     def generate_param_combos(self):
-        """
-        Performs additional parsing of parameters and generates all combinations
+        """Performs additional parsing of parameters and generates all combinations
 
         Returns:
             None
@@ -471,8 +463,7 @@ class HyperparameterSearch(object):
                         self.param_combos.extend(self.generate_combos(subcombo))
 
     def generate_combos(self, params_dict):
-        """
-        Calls sub-function generate_combo and then uses itertools.product to generate all desired combinations
+        """Calls sub-function generate_combo and then uses itertools.product to generate all desired combinations
 
         Args:
             params_dict:
@@ -493,8 +484,7 @@ class HyperparameterSearch(object):
         return hyperparam_combos
 
     def assemble_layers(self):
-        """
-        Reformats layer parameters
+        """Reformats layer parameters
 
         Returns:
             None
@@ -515,8 +505,7 @@ class HyperparameterSearch(object):
         self.hyperparam_keys.add('layers')
 
     def generate_assay_list(self):
-        """
-        Generates the list of datasets to build models for, with their key, bucket, split, and split uuid
+        """Generates the list of datasets to build models for, with their key, bucket, split, and split uuid
 
         Returns:
            None
@@ -546,8 +535,7 @@ class HyperparameterSearch(object):
         self.assays = [(t[0].strip(), t[1].strip(), t[2], t[3].strip(), t[4].strip(), t[5].strip()) for t in self.assays]
 
     def get_dataset_metadata(self, assay_params, retry_time=60):
-        """
-        Gather the required metadata for a dataset
+        """Gather the required metadata for a dataset
 
         Args:
             assay_params: dataset metadata
@@ -597,8 +585,7 @@ class HyperparameterSearch(object):
         assay_params['hyperparam_uuid'] = self.hyperparam_uuid
 
     def split_and_save_dataset(self, assay_params):
-        """
-        Splits a given dataset, saves it, and sets the split_uuid in the metadata
+        """Splits a given dataset, saves it, and sets the split_uuid in the metadata
 
         Args:
             assay_params: Dataset metadata
@@ -620,8 +607,7 @@ class HyperparameterSearch(object):
         assay_params['split_uuid'] = data.split_uuid
 
     def return_split_uuid(self, dataset_key, bucket=None, splitter=None, split_combo=None, retry_time=60):
-        """
-        Loads a dataset, splits it, saves it, and returns the split_uuid
+        """Loads a dataset, splits it, saves it, and returns the split_uuid
 
         Args:
             dataset_key: key for dataset to split
@@ -714,8 +700,7 @@ class HyperparameterSearch(object):
                     return None
 
     def return_split_uuid_file(self, dataset_key, response_cols, bucket=None, splitter=None, split_combo=None, retry_time=60):
-        """
-        Loads a dataset, splits it, saves it, and returns the split_uuid.
+        """Loads a dataset, splits it, saves it, and returns the split_uuid.
 
         Args:
             dataset_key: key for dataset to split
@@ -772,8 +757,7 @@ class HyperparameterSearch(object):
             
     
     def generate_split_shortlist(self, retry_time=60):
-        """
-        Processes a shortlist, generates splits for each dataset on the list, and uploads a new shortlist file with the
+        """Processes a shortlist, generates splits for each dataset on the list, and uploads a new shortlist file with the
         split_uuids included. Generates splits for the split_combos [[0.1,0.1], [0.1,0.2],[0.2,0.2]], [random, scaffold]
 
         Returns:
@@ -842,8 +826,7 @@ class HyperparameterSearch(object):
                     retry = False
     
     def generate_split_shortlist_file(self):
-        """
-        Processes a shortlist, generates splits for each dataset on the list, and uploads a new shortlist file with the
+        """Processes a shortlist, generates splits for each dataset on the list, and uploads a new shortlist file with the
         split_uuids included. Generates splits for the split_combos [[0.1,0.1], [0.15,0.15], [0.1,0.2], [0.2,0.2]], [random, scaffold]
 
         Returns:
@@ -871,7 +854,7 @@ class HyperparameterSearch(object):
         df.to_csv(fname, index=False)
 
     def get_shortlist_df(self, split_uuids=False, retry_time=60):
-        """
+        """Get dataframe short list
 
         Args:
             split_uuids: Boolean value saying if you want just datasets returned or the split_uuids as well
@@ -958,8 +941,7 @@ class HyperparameterSearch(object):
         return assays
 
     def build_jobs(self):
-        """
-        Builds jobs.
+        """Builds jobs.
         Reformats parameters as necessary
 
         Returns:
@@ -1008,8 +990,7 @@ class HyperparameterSearch(object):
         return result_assay_params
 
     def filter_jobs(self, job_list):
-        """
-        Removes jobs that should not be run
+        """Removes jobs that should not be run
 
         Returns:
             None
@@ -1029,8 +1010,7 @@ class HyperparameterSearch(object):
         return result_list
 
     def submit_jobs(self, job_list, retry_time=60):
-        """
-        Reformats parameters as necessary and then calls run_command in a loop to submit a job for each param combo
+        """Reformats parameters as necessary and then calls run_command in a loop to submit a job for each param combo
 
         Returns:
             None
@@ -1047,8 +1027,7 @@ class HyperparameterSearch(object):
                 run_command(self.shell_script, self.params.python_path, self.params.script_dir, assay_params)
 
     def already_run(self, assay_params, retry_time=10):
-        """
-        Checks to see if a model with a given metadata combination has already been built
+        """Checks to see if a model with a given metadata combination has already been built
 
         Args:
             assay_params: model metadata information
@@ -1085,15 +1064,13 @@ class HyperparameterSearch(object):
         return False
 
     def generate_combo(self, params_dict):
-        """
-        This is implemented in the specific sub-classes
+        """This is implemented in the specific sub-classes
 
         """
         raise NotImplementedError
 
     def run_search(self):
-        """
-        The driver code for generating hyperparameter combinations and submitting jobs
+        """The driver code for generating hyperparameter combinations and submitting jobs
 
         Returns:
             None
@@ -1148,8 +1125,7 @@ class HyperparameterSearch(object):
         return commands
 
 class GridSearch(HyperparameterSearch):
-    """
-    Generates fixed steps on a grid for a given hyperparameter range
+    """Generates fixed steps on a grid for a given hyperparameter range
     """
 
     def __init__(self, params):
@@ -1165,8 +1141,7 @@ class GridSearch(HyperparameterSearch):
         super().generate_assay_list()
 
     def generate_combo(self, params_dict):
-        """
-        Method to generate all combinations from a given set of key-value pairs
+        """Method to generate all combinations from a given set of key-value pairs
 
         Args:
             params_dict: Set of key-value pairs with the key being the param name and the value being the list of values
@@ -1195,8 +1170,7 @@ class GridSearch(HyperparameterSearch):
         return new_dict
 
 class RandomSearch(HyperparameterSearch):
-    """
-    Generates the specified number of random parameter values for within the specified range
+    """Generates the specified number of random parameter values for within the specified range
     """
 
     def __init__(self, params):
@@ -1212,8 +1186,7 @@ class RandomSearch(HyperparameterSearch):
         super().generate_assay_list()
 
     def generate_combo(self, params_dict):
-        """
-        Method to generate all combinations from a given set of key-value pairs
+        """Method to generate all combinations from a given set of key-value pairs
 
         Args:
             params_dict: Set of key-value pairs with the key being the param name and the value being the list of values
@@ -1241,8 +1214,7 @@ class RandomSearch(HyperparameterSearch):
         return new_dict
 
 class GeometricSearch(HyperparameterSearch):
-    """
-    Generates parameter values in logistic steps, rather than linear like GridSearch does
+    """Generates parameter values in logistic steps, rather than linear like GridSearch does
     """
 
     def __init__(self, params):
@@ -1258,8 +1230,7 @@ class GeometricSearch(HyperparameterSearch):
         super().generate_assay_list()
 
     def generate_combo(self, params_dict):
-        """
-        Method to generate all combinations from a given set of key-value pairs
+        """Method to generate all combinations from a given set of key-value pairs
 
         Args:
             params_dict: Set of key-value pairs with the key being the param name and the value being the list of values
@@ -1288,8 +1259,7 @@ class GeometricSearch(HyperparameterSearch):
         return new_dict
 
 class UserSpecifiedSearch(HyperparameterSearch):
-    """
-    Generates combinations using the user-specified steps
+    """Generates combinations using the user-specified steps
     """
 
     def __init__(self, params):
@@ -1305,8 +1275,7 @@ class UserSpecifiedSearch(HyperparameterSearch):
         super().generate_assay_list()
 
     def generate_combo(self, params_dict):
-        """
-        Method to generate all combinations from a given set of key-value pairs
+        """Method to generate all combinations from a given set of key-value pairs
 
         Args:
             params_dict: Set of key-value pairs with the key being the param name and the value being the list of values
@@ -1333,8 +1302,7 @@ class UserSpecifiedSearch(HyperparameterSearch):
         return new_dict
 
 def build_hyperopt_search_domain(label, method, param_list):
-    """
-    Generate HyperOpt search domain object from method and parameters, layer_nums is only for NN models.
+    """Generate HyperOpt search domain object from method and parameters, layer_nums is only for NN models.
     This function is used by the HyperOptSearch class, not intended for standalone usage.
     """
     if method == "choice":
@@ -1349,8 +1317,7 @@ def build_hyperopt_search_domain(label, method, param_list):
         raise Exception(f"Method {method} is not supported, choose from 'choice, uniform, loguniform, uniformint'.")
 
 class HyperOptSearch():
-    """
-    Perform hyperparameter search with Bayesian Optmization (Tree Parzen Estimator)
+    """Perform hyperparameter search with Bayesian Optmization (Tree Parzen Estimator)
 
     To use HyperOptSearch, modify the config json file as follows:
 
