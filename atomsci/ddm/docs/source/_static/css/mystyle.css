@@ -1,0 +1,44 @@
+.center { text-align: center; }
+.right { text-align: right; }
+
+.wy-nav-content {
+    max-width: none;
+}
+
+.tight-table td {
+    white-space: normal !important
+}
+
+.dataframe {
+    font-size:11px;
+    letter-spacing:0;
+    line-height:1.28581;
+    text-transform:none;
+    color:#182026;
+    font-family:-apple-system, "BlinkMacSystemFont", "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Open Sans", "Helvetica Neue", "Icons16", sans-serif;
+}
+
+.dataframe table {
+    border-collapse: collapse;
+    border: none;
+}
+
+.dataframe tr:nth-child(even) { background-color: #f2f2f2; }
+
+.dataframe tbody tr th:only-of-type {
+    padding: 15px
+    vertical-align: middle;
+    padding-right: 15px
+}
+
+.dataframe tbody tr th {
+    padding-left: 15px
+    vertical-align: top;
+    padding-right: 15px
+}
+
+.dataframe thead th {
+    padding-left: 15px
+    text-align: left;
+    padding-right: 15px
+}
