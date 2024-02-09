@@ -1351,7 +1351,7 @@ class FileDataset(ModelDataset):
         split_table_file = '{0}/{1}'.format(directory, self._get_split_key())
         split_df.to_csv(split_table_file, index=False)
 
-        self.log.warning('Dataset split table saved to %s' % split_table_file)
+        self.log.info('Dataset split table saved to %s' % split_table_file)
 
     # ****************************************************************************************
     def load_dataset_split_table(self, directory=None):
