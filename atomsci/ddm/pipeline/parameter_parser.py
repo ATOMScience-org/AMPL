@@ -1731,7 +1731,7 @@ def postprocess_args(parsed_args):
     try:
         if os.path.exists(parsed_args.dataset_key):
             parsed_args.dataset_hash = cu.create_checksum(parsed_args.dataset_key)
-            log.info("Created a dataset hash '%s' from dataset_key '%s'", parsed_args.dataset_hash, parsed_args.dataset_key)
+            log.debug("Created a dataset hash '%s' from dataset_key '%s'", parsed_args.dataset_hash, parsed_args.dataset_key)
     except Exception:
         pass # continue if it doesn't have a 'dataset_key'
 
