@@ -59,13 +59,14 @@ from tensorflow.python.keras.utils.layer_utils import count_params
 logging.basicConfig(format='%(asctime)-15s %(message)s')
 
 def get_latest_pytorch_checkpoint(model, model_dir=None):
-    '''Gets the latest torch model
+    """Gets the latest torch model
 
     Calls get_checkpoints(), sorts them, and returns the
     latest model (the one with the biggets number)
 
     Args:
         model: A model that inherits DeepChem TorchModel
+        
         model_dir: Optional argument that directs the model
             to a specific folder
 
@@ -73,7 +74,7 @@ def get_latest_pytorch_checkpoint(model, model_dir=None):
         path relative to model_dir, if provided, to the latest
         checkpoint
 
-    '''
+    """
     chkpts = model.get_checkpoints(model_dir)
     print(chkpts)
     if len(chkpts) == 0:
@@ -131,15 +132,16 @@ def dc_torch_restore(model, checkpoint= None, model_dir = None):
     This is copied from deepchem 2.6.1 to explicitly set the torch loading device to 
     'cpu' if cuda devices aren't available when reloading the model.
 
-    Parameters
-    ----------
-    model: the torch model to restore
-    checkpoint: str
-      the path to the checkpoint file to load.  If this is None, the most recent
+    Args:
+        model: the torch model to restore
+        
+        checkpoint (str): 
+            the path to the checkpoint file to load.  If this is None, the most recent
       checkpoint will be chosen automatically.  Call get_checkpoints() to get a
       list of all available checkpoints.
-    model_dir: str, default None
-      Directory to restore checkpoint from. If None, use self.model_dir.  If
+      
+        model_dir (str): default None
+            Directory to restore checkpoint from. If None, use self.model_dir.  If
       checkpoint is not None, this is ignored.
     """
     model._ensure_built()
@@ -156,9 +158,11 @@ def dc_torch_restore(model, checkpoint= None, model_dir = None):
 
 
 def all_bases(model):
-    '''
-    Given a model, return all bases
-    '''
+    """Given a model
+    
+    Returns:  
+        all bases
+    """
     result = [model]
     current_funcs = [model]
     while len(current_funcs)>0:
@@ -326,8 +330,7 @@ class ModelWrapper(object):
 
         # ****************************************************************************************
     def _create_output_transformers(self, model_dataset):
-        """
-        Initialize transformers for responses and persist them for later.
+        """Initialize transformers for responses and persist them for later.
 
         Args:
             model_dataset: The ModelDataset object that handles the current dataset
@@ -343,8 +346,7 @@ class ModelWrapper(object):
         # ****************************************************************************************
 
     def _create_feature_transformers(self, model_dataset):
-        """
-        Initialize transformers for features, and persist them for later.
+        """Initialize transformers for features, and persist them for later.
 
         Args:
             model_dataset: The ModelDataset object that handles the current dataset
@@ -359,8 +361,7 @@ class ModelWrapper(object):
         # ****************************************************************************************
 
     def create_transformers(self, model_dataset):
-        """
-        Initialize transformers for responses, features and weights, and persist them for later.
+        """Initialize transformers for responses, features and weights, and persist them for later.
 
         Args:
             model_dataset: The ModelDataset object that handles the current dataset
@@ -396,8 +397,7 @@ class ModelWrapper(object):
         # ****************************************************************************************
 
     def reload_transformers(self):
-        """
-        Load response, feature and weight transformers from datastore objects or files. Before AMPL v1.2 these
+        """Load response, feature and weight transformers from datastore objects or files. Before AMPL v1.2 these
         were persisted as separate datastore objects when the model tracker was used; subsequently they
         are included in model tarballs, which should have been unpacked before this function gets called.
         """
@@ -436,8 +436,7 @@ class ModelWrapper(object):
         # ****************************************************************************************
 
     def transform_dataset(self, dataset):
-        """
-        Transform the responses and/or features in the given DeepChem dataset using the current transformers.
+        """Transform the responses and/or features in the given DeepChem dataset using the current transformers.
 
         Args:
             dataset: The DeepChem DiskDataset that contains a dataset
@@ -464,7 +463,10 @@ class ModelWrapper(object):
         # ****************************************************************************************
 
     def get_num_features(self):
-        """Returns the number of dimensions of the feature space, taking both featurization method
+        """Get the number of features.
+        
+        Returns:
+           the number of dimensions of the feature space, taking both featurization method
         and transformers into account.
         """
         if self.params.feature_transform_type == 'umap':
@@ -578,23 +580,25 @@ class ModelWrapper(object):
         return perf_data.get_prediction_results()
 
     def generate_predictions(self, dataset):
-        """
+        """Generate predictions,.
 
         Args:
             dataset:
 
         Returns:
+            None.
 
         """
         raise NotImplementedError
 
     def generate_embeddings(self, dataset):
-        """
+        """Generate embeddings.
 
         Args:
             dataset:
 
         Returns:
+            None
 
         """
         raise NotImplementedError
@@ -628,15 +632,14 @@ class ModelWrapper(object):
             self.log.error("Error when saving model:\n%s" % str(e))
 
 class LCTimerIterator:
-    '''
-    This creates an iterator that keeps track of time limits
+    """This creates an iterator that keeps track of time limits
 
     Side Effects:
         Sets the following attributes in input argument params: 
             max_epochs (int): The max_epochs attribute will be updated to the current epoch 
                 index if it is projected that training will exceed the time limit
                 given.
-    '''
+    """
     # ****************************************************************************************
     def __init__(self, params, pipeline, log):
         """
@@ -690,8 +693,7 @@ class LCTimerIterator:
 
     # ****************************************************************************************
     def _time_needed(self, training_time):
-        """
-        Calculates the time needed to complete another epoch given the training time
+        """Calculates the time needed to complete another epoch given the training time
 
         Args:
             training_time (int): Time the model has spent training so far
@@ -703,20 +705,18 @@ class LCTimerIterator:
         return training_time/self.ei
 
 class LCTimerKFoldIterator(LCTimerIterator):
-    '''
-    This creates an iterator that keeps track of time limits for kfold training
+    """This creates an iterator that keeps track of time limits for kfold training
 
     Side Effects:
         Sets the following attributes in input argument params: 
             max_epochs (int): The max_epochs attribute will be updated to the current epoch 
                 index if it is projected that training will exceed the time limit
                 given.
-    '''
+    """
 
     # ****************************************************************************************
     def _time_needed(self, training_time):
-        """
-        Calculates the time needed to complete another epoch given the training time.
+        """Calculates the time needed to complete another epoch given the training time.
 
         epochs_remaining is how many epochs we have to run if we do one more across all folds,
         then do self.best_epoch+1 epochs on the combined training & validation set, 
@@ -822,8 +822,7 @@ class NNModelWrapper(ModelWrapper):
 
     # ****************************************************************************************
     def _clean_up_excess_files(self, dest_dir):
-        """
-        Function to clean up extra model files left behind in the training process.
+        """Function to clean up extra model files left behind in the training process.
         Only removes self.model_dir
         """
         if os.path.exists(dest_dir):
@@ -1030,9 +1029,8 @@ class NNModelWrapper(ModelWrapper):
         self.log.info(f"Best model from epoch {self.best_epoch} saved to {self.best_model_dir}")
 
     def restore(self, checkpoint=None, model_dir=None):
-        '''
-        Restores this model
-        '''
+        """Restores this model
+        """
         dc_torch_restore(self.model, checkpoint, model_dir)
 
     # ****************************************************************************************
@@ -1231,8 +1229,7 @@ class HybridModelWrapper(NNModelWrapper):
             raise Exception("Hybrid model only support regression prediction.")
 
     def _predict_binding(self, activity, conc):
-        """
-        Predict measurements of fractional binding/inhibition of target receptors by a compound with the given activity,
+        """Predict measurements of fractional binding/inhibition of target receptors by a compound with the given activity,
         in -Log scale, at the specified concentration in nM. If the given activity is pKi, a ratio to convert Ki into IC50
         is needed. It can be the ratio of concentration and Kd of the radioligand in a competitive binding assay, or the concentration
         of the substrate and Michaelis constant (Km) of enzymatic inhibition assay.
@@ -1250,8 +1247,7 @@ class HybridModelWrapper(NNModelWrapper):
         return pred_frac
 
     def _l2_loss(self, yp, yr):
-        """
-        Da's loss function, based on L2 terms for both pKi and percent binding values
+        """Da's loss function, based on L2 terms for both pKi and percent binding values
         This function is not appropriate for model fitting, but can be used for R^2 calculation.
         """
         yreal = yr.to("cpu").numpy()
@@ -1272,8 +1268,7 @@ class HybridModelWrapper(NNModelWrapper):
         return loss_ki, loss_bind
 
     def _poisson_hybrid_loss(self, yp, yr):
-        """
-        Hybrid loss function based on L2 losses for deviations of predicted and measured pKi values
+        """Hybrid loss function based on L2 losses for deviations of predicted and measured pKi values
         and Poisson losses for predicted vs measured binding values. The idea is to choose loss terms
         that when minimized maximize the likelihood.
 
@@ -1308,8 +1303,7 @@ class HybridModelWrapper(NNModelWrapper):
         return loss_ki, loss_bind
 
     def _loss_batch(self, loss_func, xb, yb, opt=None):
-        """
-        Compute loss_func for the batch xb, yb. If opt is provided, perform a training
+        """Compute loss_func for the batch xb, yb. If opt is provided, perform a training
         step on the model weights.
         """
 
@@ -1324,8 +1318,7 @@ class HybridModelWrapper(NNModelWrapper):
         return loss_ki.item(), loss_bind.item(), len(xb)
 
     class SubsetData(object):
-        """
-        Container for DataLoader object and attributes of a dataset subset
+        """Container for DataLoader object and attributes of a dataset subset
         """
         def __init__(self, ds, dl, n_ki, n_bind):
             self.ds = ds
@@ -1337,8 +1330,7 @@ class HybridModelWrapper(NNModelWrapper):
             return torch.tensor(x, dtype=torch.float32)
 
     def _load_hybrid_data(self, data):
-        """
-        Convert the DeepChem dataset into the SubsetData for hybrid model.
+        """Convert the DeepChem dataset into the SubsetData for hybrid model.
         """
         self.train_valid_dsets = []
         test_dset = data.test_dset
@@ -1390,8 +1382,7 @@ class HybridModelWrapper(NNModelWrapper):
         self.test_data = test_data
     
     def save_model(self, checkpoint_file, model, opt, epoch, model_dict):
-        """
-        Save a model to a checkpoint file.
+        """Save a model to a checkpoint file.
         Include epoch, model_dict in checkpoint dict.
         """
         checkpoint = dict(
@@ -1581,8 +1572,7 @@ class HybridModelWrapper(NNModelWrapper):
 
     # ****************************************************************************************
     def _create_output_transformers(self, model_dataset):
-        """
-        Initialize transformers for responses and persist them for later.
+        """Initialize transformers for responses and persist them for later.
 
         Args:
             model_dataset: The ModelDataset object that handles the current dataset
@@ -1776,8 +1766,7 @@ class ForestModelWrapper(ModelWrapper):
 
     # ****************************************************************************************
     def _clean_up_excess_files(self, dest_dir):
-        """
-        Function to clean up extra model files left behind in the training process.
+        """Function to clean up extra model files left behind in the training process.
         Does not apply to Forest models.
         """
         return
@@ -2278,8 +2267,7 @@ class DCxgboostModelWrapper(ForestModelWrapper):
 
     # ****************************************************************************************
     def _clean_up_excess_files(self, dest_dir):
-        """
-        Function to clean up extra model files left behind in the training process.
+        """Function to clean up extra model files left behind in the training process.
         Does not apply to xgboost
         """
         return
@@ -2334,8 +2322,7 @@ class PytorchDeepChemModelWrapper(NNModelWrapper):
 
     # ****************************************************************************************
     def recreate_model(self, **kwargs):
-        """
-        Creates a new DeepChem Model object of the correct type for the requested featurizer and prediction type 
+        """Creates a new DeepChem Model object of the correct type for the requested featurizer and prediction type 
         and returns it.
 
         Args:
@@ -2396,14 +2383,12 @@ class PytorchDeepChemModelWrapper(NNModelWrapper):
         return model_spec_metadata
 
     def restore(self, checkpoint=None, model_dir=None):
-        '''
-        Restores this model
-        '''
+        """Restores this model
+        """
         dc_torch_restore(self.model, checkpoint, model_dir)
 
     def count_params(self):
-        '''
-        Returns the number of trainable parameters
+        """Returns the number of trainable parameters
 
         There's no function implemented in Pytorch that does this so I'm using the
         solution found here:https://discuss.pytorch.org/t/how-do-i-check-the-number-of-parameters-of-a-model/4325/25
@@ -2413,7 +2398,7 @@ class PytorchDeepChemModelWrapper(NNModelWrapper):
 
         Returns
             Int- the number of trainable parameters
-        '''
+        """
         pytorch_total_params = sum(p.numel() for p in self.model.model.parameters() if p.requires_grad)
         return pytorch_total_params
 
@@ -2465,8 +2450,7 @@ class MultitaskDCModelWrapper(PytorchDeepChemModelWrapper):
     """
 
     def recreate_model(self, model_dir=None):
-        """
-        Creates a new DeepChem Model object of the correct type for the requested featurizer and prediction type 
+        """Creates a new DeepChem Model object of the correct type for the requested featurizer and prediction type 
         and returns it.
 
         reload_dir (str): Directory where saved model is located.
@@ -2541,8 +2525,7 @@ class MultitaskDCModelWrapper(PytorchDeepChemModelWrapper):
 
     # ****************************************************************************************
     def generate_embeddings(self, dataset):
-        """
-        Generate the output of the final embedding layer of a fully connected NN model for the given dataset.
+        """Generate the output of the final embedding layer of a fully connected NN model for the given dataset.
 
         Args:
             dataset:
@@ -2628,21 +2611,20 @@ class KerasDeepChemModelWrapper(PytorchDeepChemModelWrapper):
         self.reload_transformers()
 
     def restore(self, checkpoint=None, model_dir=None, session=None):
-        '''
-        Restores this model
-        '''
+        """Restores this model
+        """
         dc_restore(self.model, checkpoint, model_dir, session)
 
     def count_params(self):
-        '''
-        Returns the number of trainable parameters using Keras' count_params function
+        """Returns
+            the number of trainable parameters using Keras' count_params function
 
         Args:
             None
 
         Returns
             Int- the number of trainable parameters using Keras' count_params function
-        '''
+        """
 
         return count_params(self.model.model.trainable_weights)
 
@@ -2732,8 +2714,7 @@ class GraphConvDCModelWrapper(KerasDeepChemModelWrapper):
 
     # ****************************************************************************************
     def recreate_model(self, model_dir=None):
-        """
-        Creates a new DeepChem Model object of the correct type for the requested featurizer and prediction type 
+        """Creates a new DeepChem Model object of the correct type for the requested featurizer and prediction type 
         and returns it.
 
         reload_dir (str): Directory where saved model is located.
@@ -2771,8 +2752,7 @@ class GraphConvDCModelWrapper(KerasDeepChemModelWrapper):
 
     # ****************************************************************************************
     def generate_embeddings(self, dataset):
-        """
-        Generate the output of the final embedding layer of a GraphConv model for the given dataset.
+        """Generate the output of the final embedding layer of a GraphConv model for the given dataset.
 
         Args:
             dataset:
