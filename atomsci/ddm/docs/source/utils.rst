@@ -108,14 +108,6 @@ utils.struct\_utils module
    :undoc-members:
    :show-inheritance:
 
-utils.test\_utils module
-------------------------
-
-.. automodule:: utils.test_utils
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 Module contents
 ---------------
 

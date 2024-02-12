@@ -108,14 +108,6 @@ ddm.utils.struct\_utils module
    :undoc-members:
    :show-inheritance:
 
-ddm.utils.test\_utils module
-------------------------------
-
-.. automodule:: ddm.utils.test_utils
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 Module contents
 ---------------
 

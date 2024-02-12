@@ -589,7 +589,7 @@ def to_str(params_obj):
 
 #**********************************************************************************************************
 def wrapper(*any_arg):
-    """"Wrapper to handle the ParseParams class. Calls the correct method depending on the input argument type
+    """Wrapper to handle the ParseParams class. Calls the correct method depending on the input argument type
 
         Args:
             *any_arg: any single input of a str, dict, ar/printgparse.Namespace, or list
@@ -650,7 +650,7 @@ def wrapper(*any_arg):
 
 
 def parse_config_file(config_file_path):
-    """"Method to convert a .json configuration file to a Namespace object. Does the following conversions:
+    """Method to convert a .json configuration file to a Namespace object. Does the following conversions:
     .json -> hierarchical dict -> flat dict -> dict_to_list.
     WARNING: if there are two identical parameters on the same hierarchical level in the config.json, the .json will
     inherently silence the parameter higher up on the list without flagging a duplication. However, duplicate

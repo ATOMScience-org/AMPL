@@ -101,6 +101,14 @@ pipeline.parameter\_parser module
     :undoc-members:
     :show-inheritance:
 
+pipeline.perf\_data module
+---------------------------
+
+.. automodule:: pipeline.perf_data
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 pipeline.perf\_plots module
 ---------------------------
 
