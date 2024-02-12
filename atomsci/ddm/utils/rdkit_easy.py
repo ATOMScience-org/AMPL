@@ -25,8 +25,7 @@ from rdkit.ML.Descriptors import MoleculeDescriptors
 logging.basicConfig(format='%(asctime)-15s %(message)s')
 
 def setup_notebook():
-    """
-    Set up current notebook for displaying plots and Bokeh output using full width of window
+    """Set up current notebook for displaying plots and Bokeh output using full width of window
     """
     from bokeh.plotting import output_notebook
 
@@ -39,8 +38,7 @@ def setup_notebook():
     pd.set_option('max_seq_items', None)
 
 def add_mol_column(df, smiles_col, molecule_col='mol'):
-    """
-    Converts SMILES strings in a data frame to RDKit Mol objects and adds them as a new column in the data frame.
+    """Converts SMILES strings in a data frame to RDKit Mol objects and adds them as a new column in the data frame.
 
     Args:
         df (pd.DataFrame): Data frame to add column to.
@@ -58,8 +56,7 @@ def add_mol_column(df, smiles_col, molecule_col='mol'):
 
 
 def calculate_descriptors(df, molecule_column='mol'):
-    """
-    Uses RDKit to compute various descriptors for compounds specified by Mol objects in the given data frame.
+    """Uses RDKit to compute various descriptors for compounds specified by Mol objects in the given data frame.
 
     Args:
         df (pd.DataFrame): Data frame containing molecules.
@@ -82,8 +79,7 @@ def calculate_descriptors(df, molecule_column='mol'):
     return df
 
 def cluster_dataframe(df, molecule_column='mol', cluster_column='cluster', cutoff=0.2):
-    """
-    Performs Butina clustering on compounds specified by Mol objects in a data frame.
+    """Performs Butina clustering on compounds specified by Mol objects in a data frame.
 
     Modifies the input dataframe to add a column 'cluster_column' containing the cluster
     index for each molecule.
@@ -117,8 +113,7 @@ def cluster_dataframe(df, molecule_column='mol', cluster_column='cluster', cutof
     df=df.copy()
 
 def cluster_fingerprints(fps, cutoff=0.2):
-    """
-    Performs Butina clustering on compounds specified by a list of fingerprint bit vectors.
+    """Performs Butina clustering on compounds specified by a list of fingerprint bit vectors.
 
     From RDKit cookbook http://rdkit.org/docs_temp/Cookbook.html.
 
@@ -145,8 +140,7 @@ def cluster_fingerprints(fps, cutoff=0.2):
 
 
 def mol_to_html(mol, highlight=None, name='', type='svg', directory='rdkit_svg', embed=False, width=400, height=200):
-    """
-    Creates an image displaying the given molecule's 2D structure, and generates an HTML
+    """Creates an image displaying the given molecule's 2D structure, and generates an HTML
     tag for it. The image can be embedded directly into the HTML tag or saved to a file.
 
     Args:
@@ -205,8 +199,7 @@ def mol_to_html(mol, highlight=None, name='', type='svg', directory='rdkit_svg',
         return f"<img src='{img_file}' style='width:{width}px;'>"
 
 def matching_atoms_and_bonds(mol, match_mol):
-    """
-    Returns lists of indices of atoms and bonds within molecule `mol` that are part of the substructure
+    """Returns lists of indices of atoms and bonds within molecule `mol` that are part of the substructure
     matched by `match_mol`.
 
     Args:
@@ -233,8 +226,7 @@ def matching_atoms_and_bonds(mol, match_mol):
 
 
 def mol_to_pil(mol, size=(400, 200), highlight=None):
-    """
-    Returns a Python Image Library (PIL) object containing an image of the given molecule's structure.
+    """Returns a Python Image Library (PIL) object containing an image of the given molecule's structure.
 
     Args:
         mol (rdkit.Chem.Mol): Object representing molecule.
@@ -253,8 +245,7 @@ def mol_to_pil(mol, size=(400, 200), highlight=None):
 
 
 def save_png(mol, name, size=(400, 200), highlight=None):
-    """
-    Draws the molecule mol into a PNG file with filename 'name' and with the given size
+    """Draws the molecule mol into a PNG file with filename 'name' and with the given size
     in pixels.
 
     Args:
@@ -272,8 +263,7 @@ def save_png(mol, name, size=(400, 200), highlight=None):
 
 
 def mol_to_svg(mol, size=(400,200), highlight=None):
-    """
-    Returns a RDKit MolDraw2DSVG object containing an image of the given molecule's structure.
+    """Returns a RDKit MolDraw2DSVG object containing an image of the given molecule's structure.
 
     Args:
         mol (rdkit.Chem.Mol): Object representing molecule.
@@ -308,8 +298,7 @@ def mol_to_svg(mol, size=(400,200), highlight=None):
 
 
 def save_svg(mol, name, size=(400,200), highlight=None):
-    """
-    Draws the molecule mol into an SVG file with filename 'name' and with the given size
+    """Draws the molecule mol into an SVG file with filename 'name' and with the given size
     in pixels.
 
     Args:
@@ -328,8 +317,7 @@ def save_svg(mol, name, size=(400,200), highlight=None):
 
 
 def show_df(df):
-    """
-    Convenience function to display a pandas DataFrame in the current notebook window
+    """Convenience function to display a pandas DataFrame in the current notebook window
     with HTML images rendered in table cells.
 
     Args:
@@ -343,8 +331,7 @@ def show_df(df):
 
 
 def show_html(html):
-    """
-    Convenience function to display an HTML image specified by image tag 'html'.
+    """Convenience function to display an HTML image specified by image tag 'html'.
 
     Args:
         html (str): HTML image tag to render.
