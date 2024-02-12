@@ -4,14 +4,6 @@ pipeline package
 Submodules
 ----------
 
-pipeline.ave\_splitter module
------------------------------
-
-.. automodule:: pipeline.ave_splitter
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 pipeline.chem\_diversity module
 -------------------------------
 
@@ -44,6 +36,15 @@ pipeline.diversity\_plots module
     :undoc-members:
     :show-inheritance:
 
+
+pipeline.feature\_importance module
+-----------------------------------
+
+.. automodule:: pipeline.feature_importance
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 pipeline.featurization module
 -----------------------------
 
@@ -52,10 +53,10 @@ pipeline.featurization module
     :undoc-members:
     :show-inheritance:
 
-pipeline.feature\_importance module
+pipeline.hyper\_perf\_plots module
 -----------------------------------
 
-.. automodule:: pipeline.feature_importance
+.. automodule:: pipeline.hyper_perf_plots
     :members:
     :undoc-members:
     :show-inheritance:
@@ -101,7 +102,7 @@ pipeline.parameter\_parser module
     :show-inheritance:
 
 pipeline.perf\_data module
---------------------------
+---------------------------
 
 .. automodule:: pipeline.perf_data
     :members:
@@ -112,6 +113,14 @@ pipeline.perf\_plots module
 ---------------------------
 
 .. automodule:: pipeline.perf_plots
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pipeline.predict\_from\_model module
+------------------------------------
+
+.. automodule:: pipeline.predict_from_model
     :members:
     :undoc-members:
     :show-inheritance:
