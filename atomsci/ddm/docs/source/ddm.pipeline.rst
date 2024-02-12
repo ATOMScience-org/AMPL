@@ -100,6 +100,14 @@ ddm.pipeline.parameter\_parser module
    :undoc-members:
    :show-inheritance:
 
+ddm.pipeline.perf\_data module
+-------------------------------
+
+.. automodule:: ddm.pipeline.perf_data
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 ddm.pipeline.perf\_plots module
 -------------------------------
 
