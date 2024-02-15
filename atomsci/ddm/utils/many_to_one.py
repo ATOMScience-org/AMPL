@@ -19,8 +19,7 @@ def many_to_one(fn, smiles_col, id_col):
     return many_to_one_df(df, smiles_col, id_col)
 
 def many_to_one_df(df, smiles_col, id_col):
-    '''
-    AMPL requires that SMILES and compound_ids have a many to one mapping. 
+    '''AMPL requires that SMILES and compound_ids have a many to one mapping.
     This function opens the dataset and checks this restraint. It will also
     check if any SMILES or compound_ids are empty/nan
 

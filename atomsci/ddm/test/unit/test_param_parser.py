@@ -119,9 +119,7 @@ hierarchical_input_dict = {
 command_line_namespace_inputs = [str(list_inputs_namespace)]
 command_line_dict_inputs = [str(list_inputs_dict)]
 
-'''
-
-# The file metadata_test.json is an example config file from the model zoo. 
+'''# The file metadata_test.json is an example config file from the model zoo.
 def test_model_metadata_input_as_dict():
     with open(currentdir + '/metadata_test.json') as f:
         config = json.loads(f.read())

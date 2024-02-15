@@ -11,8 +11,7 @@ predictions in the same order as the input
 '''
 
 def test_predict_from_model():
-    '''
-    test that predict_from_model makes predictions in the same
+    '''test that predict_from_model makes predictions in the same
     order as the input
     '''
     if not llnl_utils.is_lc_system():
@@ -46,8 +45,7 @@ def test_predict_from_model():
     assert score > 0.5
 
 def test_predict_on_dataframe():
-    '''
-    test that predict_from_model makes predictions in the same
+    '''test that predict_from_model makes predictions in the same
     order as the input
     '''
     if not llnl_utils.is_lc_system():

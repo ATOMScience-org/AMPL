@@ -1,5 +1,4 @@
-"""
-Functions to manipulate and convert between various representations of chemical structures: SMILES, InChi and RDKit Mol objects.
+"""Functions to manipulate and convert between various representations of chemical structures: SMILES, InChi and RDKit Mol objects.
 Many of these functions (those with a 'workers' argument) accept either a single SMILES or InChi string or a list of strings
 as their first argument, and return a value with the same datatype. If a list is passed and the 'workers' argument is > 1,
 the calculation is parallelized across multiple threads; this can save significant time when operating on thousands of
@@ -21,8 +20,7 @@ uncharger = molvs.charge.Uncharger()
 
 
 def get_rdkit_smiles(orig_smiles, useIsomericSmiles=True):
-    """
-    Given a SMILES string, regenerate a "canonical" SMILES string for the same molecule
+    """Given a SMILES string, regenerate a "canonical" SMILES string for the same molecule
     using the implementation in RDKit.
 
     Args:
@@ -42,8 +40,7 @@ def get_rdkit_smiles(orig_smiles, useIsomericSmiles=True):
 
 
 def rdkit_smiles_from_smiles(orig_smiles, useIsomericSmiles=True, useCanonicalTautomers=False, workers=1):
-    """
-    Parallel version of get_rdkit_smiles. If orig_smiles is a list and workers is > 1, spawn 'workers'
+    """Parallel version of get_rdkit_smiles. If orig_smiles is a list and workers is > 1, spawn 'workers'
     threads to convert input SMILES strings to standardized RDKit format.
 
     Args:
@@ -88,8 +85,7 @@ def rdkit_smiles_from_smiles(orig_smiles, useIsomericSmiles=True, useCanonicalTa
 
 
 def mols_from_smiles(orig_smiles, workers=1):
-    """
-    Parallel function to create RDKit Mol objects for a list of SMILES strings. If orig_smiles is a list
+    """Parallel function to create RDKit Mol objects for a list of SMILES strings. If orig_smiles is a list
     and workers is > 1, spawn 'workers' threads to convert input SMILES strings to Mol objects.
 
     Args:
@@ -122,8 +118,7 @@ def mols_from_smiles(orig_smiles, workers=1):
 
 def base_smiles_from_smiles(orig_smiles, useIsomericSmiles=True, removeCharges=False, 
                             useCanonicalTautomers=False, workers=1):
-    """
-    Generate standardized SMILES strings for the largest fragments of each molecule specified by
+    """Generate standardized SMILES strings for the largest fragments of each molecule specified by
     orig_smiles. Strips salt groups and replaces any rare isotopes with the most common ones for each element.
 
     Args:
@@ -170,8 +165,7 @@ def base_smiles_from_smiles(orig_smiles, useIsomericSmiles=True, removeCharges=F
 
 
 def kekulize_smiles(orig_smiles, useIsomericSmiles=True, workers=1):
-    """
-    Generate Kekulized SMILES strings for the molecules specified by orig_smiles. Kekulized SMILES strings
+    """Generate Kekulized SMILES strings for the molecules specified by orig_smiles. Kekulized SMILES strings
     are ones in which aromatic rings are represented by uppercase letters with alternating single and
     double bonds, rather than lowercase letters; they are needed by some external applications.
 
@@ -210,8 +204,7 @@ def kekulize_smiles(orig_smiles, useIsomericSmiles=True, workers=1):
 
 
 def base_mol_from_smiles(orig_smiles, useIsomericSmiles=True, removeCharges=False):
-    """
-    Generate a standardized RDKit Mol object for the largest fragment of the molecule specified by
+    """Generate a standardized RDKit Mol object for the largest fragment of the molecule specified by
     orig_smiles. Replace any rare isotopes with the most common ones for each element.
     If removeCharges is True, add hydrogens as needed to eliminate charges.
 
@@ -240,8 +233,7 @@ def base_mol_from_smiles(orig_smiles, useIsomericSmiles=True, removeCharges=Fals
 
 
 def base_smiles_from_inchi(inchi_str, useIsomericSmiles=True, removeCharges=False, workers=1):
-    """
-    Generate standardized salt-stripped SMILES strings for the largest fragments of each molecule represented by
+    """Generate standardized salt-stripped SMILES strings for the largest fragments of each molecule represented by
     InChi string(s) inchi_str. Replaces any rare isotopes with the most common ones for each element.
 
     Args:
@@ -281,8 +273,7 @@ def base_smiles_from_inchi(inchi_str, useIsomericSmiles=True, removeCharges=Fals
 
 
 def base_mol_from_inchi(inchi_str, useIsomericSmiles=True, removeCharges=False):
-    """
-    Generate a standardized RDKit Mol object for the largest fragment of the molecule specified by
+    """Generate a standardized RDKit Mol object for the largest fragment of the molecule specified by
     InChi string inchi_str. Replace any rare isotopes with the most common ones for each element.
     If removeCharges is True, add hydrogens as needed to eliminate charges.
 
@@ -311,8 +302,7 @@ def base_mol_from_inchi(inchi_str, useIsomericSmiles=True, removeCharges=False):
 
 
 def draw_structure(smiles_str, image_path, image_size=500):
-    """
-    Draw structure for the compound with the given SMILES string as a PNG file.
+    """Draw structure for the compound with the given SMILES string as a PNG file.
 
     Note that there are more flexible functions for drawing structures in the rdkit_easy module.
     This function is only retained for backward compatibility.
@@ -337,8 +327,7 @@ def draw_structure(smiles_str, image_path, image_size=500):
 
 
 def _standardize_chemistry(df, standard='rdkit', smiles_col='rdkit_smiles', workers=1):
-    """
-    Function used by merge_dataframes_by_smiles. Converts SMILES strings in a given column of a data frame
+    """Function used by merge_dataframes_by_smiles. Converts SMILES strings in a given column of a data frame
     into either standardized salt-stripped SMILES strings or InChi strings.
     """
     smiles = list(df[smiles_col])
@@ -365,8 +354,7 @@ def _standardize_chemistry(df, standard='rdkit', smiles_col='rdkit_smiles', work
 
 
 def _merge_values(values, strategy='list'):
-    """
-    Function used by merge_dataframes_by_smiles. Returns a summary of the values in 'values', unless
+    """Function used by merge_dataframes_by_smiles. Returns a summary of the values in 'values', unless
     'strategy' == 'list', in which case it returns values itself.
     """
     try:
@@ -402,8 +390,7 @@ def _merge_values(values, strategy='list'):
 
 def _merge_dataframes_by_smiles(dataframes, smiles_col='rdkit_smiles', id_col='compound_id', how='outer', comparetype='rdkit',
                                columnmerge=None, workers=1):
-    """
-    Merge two dataframes labeled by SMILEs strings on a rdkit or InCHI canonicalization to identify shared compounds
+    """Merge two dataframes labeled by SMILEs strings on a rdkit or InCHI canonicalization to identify shared compounds
 
     DEPRECATED. This function was added by a developer no longer at ATOM and doesn't appear to be used by any
     extant code.
@@ -435,8 +422,7 @@ def _merge_dataframes_by_smiles(dataframes, smiles_col='rdkit_smiles', id_col='c
 
 
 def smiles_to_inchi_key(smiles):
-    """
-    Generates an InChI key from a SMILES string.  Note that an InChI key is different from an InChI *string*;
+    """Generates an InChI key from a SMILES string.  Note that an InChI key is different from an InChI *string*;
     it can be used as a unique identifier, but doesn't hold the information needed to reconstruct a molecule.
 
     Args:
@@ -457,8 +443,7 @@ def smiles_to_inchi_key(smiles):
 
 
 def fix_moe_smiles(smiles):
-    """
-    Correct the SMILES strings generated by MOE to standardize the representation of protonated atoms,
+    """Correct the SMILES strings generated by MOE to standardize the representation of protonated atoms,
     so that RDKit can read them.
 
     Args:
@@ -482,8 +467,7 @@ def fix_moe_smiles(smiles):
 
 
 def mol_wt_from_smiles(smiles, workers=1):
-    """
-    Calculate molecular weights for molecules represented by SMILES strings.
+    """Calculate molecular weights for molecules represented by SMILES strings.
 
     Args:
         smiles (list or str): List of SMILES strings.
@@ -517,8 +501,7 @@ def mol_wt_from_smiles(smiles, workers=1):
 
 
 def canonical_tautomers_from_smiles(smiles):
-    """
-    Returns SMILES strings for the canonical tautomers of a SMILES string or list of SMILES strings
+    """Returns SMILES strings for the canonical tautomers of a SMILES string or list of SMILES strings
 
     Args:
         smiles (list or str): List of SMILES strings.

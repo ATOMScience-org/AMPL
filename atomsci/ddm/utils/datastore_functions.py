@@ -1,5 +1,6 @@
-''' This file contains functions to make it easier to browse and retrieve data from the datastore.
-    Intended for general use. Add/modify functions as needed. Created 23Jul18 CHW'''
+'''This file contains functions to make it easier to browse and retrieve data from the datastore.
+   Intended for general use. Add/modify functions as needed. Created 23Jul18 CHW
+'''
 
 # -------------setup section-----------------
 
@@ -56,7 +57,7 @@ def config_client(
     """Configures client to access datastore service.
 
     Args:
-        token (str): Path to file containing token for accessing datastore. Defaults to 
+        token (str): Path to file containing token for accessing datastore. Defaults to
         /usr/local/data/ds_token.txt on non-LC systems, or to $HOME/data/ds_token.txt on LC systems.
 
         url (str): URL for datastore REST service.
@@ -136,7 +137,8 @@ def retrieve_bucket_names(client=None):
         client (optional): set client if not using the default
 
     Returns:
-        (list): list of bucket names that exist in the datastore which user has access to"""
+        (list): list of bucket names that exist in the datastore which user has access to
+    """
 
     if client is None:
         client = config_client()
@@ -159,7 +161,8 @@ def retrieve_keys(bucket='all', client=None, sort=True):
         sort (bool, optional): if 'True' (default), sort the keys alphabetically
 
     Returns:
-        (list): returns a list of keys in bucket(s) specified"""
+        (list): returns a list of keys in bucket(s) specified
+    """
 
     if client is None:
         client = config_client()
@@ -201,7 +204,8 @@ def key_exists(key, bucket='all', client=None):
         client (optional): set client if not using the default
 
     Returns:
-        (bool): Returns True if key exists in bucket(s) specified"""
+        (bool): Returns True if key exists in bucket(s) specified
+    """
 
     if client is None:
         client = config_client()
@@ -246,7 +250,8 @@ def retrieve_values_for_key(key, bucket='all', client=None):
         client (optional): set client if not using the default
 
     Returns:
-        (list): Returns a list of values (str) associated with a specified key"""
+        (list): Returns a list of values (str) associated with a specified key
+    """
 
     if client is None:
         client = config_client()
@@ -305,7 +310,8 @@ def dataset_key_exists(dataset_key, bucket, client=None):
         client (optional): set client if not using the default
 
     Returns:
-        (bool): returns 'True' if dataset_key is present in bucket specified"""
+        (bool): returns 'True' if dataset_key is present in bucket specified
+    """
 
     if client is None:
         client = config_client()
@@ -350,7 +356,7 @@ def retrieve_dataset_by_datasetkey(dataset_key, bucket, client=None, return_meta
         csv returns a DataFrame
 
         optionally, return a dictionary of the metadata only if 'return_metadata' is set to TRUE.
-        """
+    """
 
     if client is None:
         client = config_client()
@@ -467,32 +473,33 @@ def retrieve_dataset_by_datasetkey(dataset_key, bucket, client=None, return_meta
 
 #------------------------------------------------------------------------------------------------------
 def retrieve_dataset_by_dataset_oid(dataset_oid, client=None, return_metadata=False, nrows=None, print_metadata=False, sep=False, index_col=None, tarpath="."):
-    """ retrieves the dataset and returns as a pandas dataframe (or other format as needed depending on file type).
+    """retrieves the dataset and returns as a pandas dataframe (or other format as needed depending on file type).
 
     Args:
-        dataset_oid (str): unique identifier for the dataset you want
+       dataset_oid (str): unique identifier for the dataset you want
 
-        client (optional): set client if not using the default
+       client (optional): set client if not using the default
 
-        return_metadata (bool, optional): if set to True, return a dictionary of the metadata INSTEAD of a dataframe of the data
+       return_metadata (bool, optional): if set to True, return a dictionary of the metadata INSTEAD of a dataframe of the data
 
-        nrows (num, optional): used to limit the number of rows returned
+       nrows (num, optional): used to limit the number of rows returned
 
-        print_metadata (bool, optional): if set to True, displays the document metadata/properties
+       print_metadata (bool, optional): if set to True, displays the document metadata/properties
 
-        sep (str, optional): separator used for csv file
+       sep (str, optional): separator used for csv file
 
-        tarpath (str, optional): path to use for tarball files
+       tarpath (str, optional): path to use for tarball files
 
-        index_col (int, optional): For csv files, column to use as the row labels of the DataFrame
+       index_col (int, optional): For csv files, column to use as the row labels of the DataFrame
 
     Returns:
-        (DataFrame, OrderedDict, str, dict): filetype determines what type of object is returned.
-        xls and xlsx files returns an OrderedDict.
-        tarball (gz and tgz) files returns the location of the files as a string
-        csv returns a DataFrame
+       (DataFrame, OrderedDict, str, dict): filetype determines what type of object is returned.
+       xls and xlsx files returns an OrderedDict.
+       tarball (gz and tgz) files returns the location of the files as a string
+       csv returns a DataFrame
 
-        optionally, return a dictionary of the metadata only if 'return_metadata' is set to TRUE."""
+       optionally, return a dictionary of the metadata only if 'return_metadata' is set to TRUE.
+    """
 
     print("")
     print('caution: dataset_oid is version specific. Newer versions of this file might be available.')
@@ -593,7 +600,8 @@ def search_datasets_by_key_value(key, value, client=None, operator='in', bucket=
         display_all_columns (bool, optional): If 'False' (default), then show only a selected subset of the columns
 
     Returns:
-        (DataFrame): summary table of the files and relevant metadata matching the criteria specified"""
+        (DataFrame): summary table of the files and relevant metadata matching the criteria specified
+    """
 
     if client is None:
         client = config_client()
@@ -764,7 +772,7 @@ def filter_datasets_interactive (bucket='all', client=None, save_search=False, r
     Returns:
         None
 
-        """
+    """
 
 
     print("CAUTION: Use of filter_datasets_interactive is not recommended. This function has been replaced with 'search_files_interactive'. Please use 'search_files_interactive' instead")
@@ -1048,7 +1056,7 @@ def summarize_datasets(dataset_keys, bucket, client=None, column=None, save_as=N
 
 
 def check_key_val(key_values, client=None, df=None, enforced=True):
-    """ Checks to ensure the keys and values specified are 'approved' and that (optionally) all required keys are filled out.
+    """Checks to ensure the keys and values specified are 'approved' and that (optionally) all required keys are filled out.
 
     Args:
         key_values (dict): keys and values specified by user for a file
@@ -1060,7 +1068,8 @@ def check_key_val(key_values, client=None, df=None, enforced=True):
         enforced (bool, optional): If True (default) checks that all required keys are filled out
 
     Returns:
-        (bool): returns True if all keys and values are 'approved' AND enforcement criteria are met"""
+        (bool): returns True if all keys and values are 'approved' AND enforcement criteria are met
+    """
 
     if 'file_category' not in key_values:
         raise ValueError('file_category must be specified.')
@@ -1167,7 +1176,8 @@ def upload_file_to_DS(bucket, title, description, tags, key_values, filepath, fi
         data_type (str,optional): Specify dataType (e.g. csv,bz, etc) if not specified attempt to use file extension
 
     Returns:
-        (dict): optionally returns the metadata from the uploaded file (if return_metadata=True)"""
+        (dict): optionally returns the metadata from the uploaded file (if return_metadata=True)
+    """
 
     if client is None:
         client = config_client()
@@ -1444,15 +1454,15 @@ def repeat_defined_search(defined_search, client=None, to_return='df', display_a
 
     Args:
         defined_search (list): a list with position 0 = string/list of buckets, and remaining positions dictionaries of search criteria
-                              example: defined_search = ['gsk_ml',
-                                 {'key': 'species', 'value': ['rat'], 'operator': 'in'},
-                                 {'key': 'assay_category','value': ['solubility', 'volume_of_distribution'], 'operator': 'in'}]
+            example: defined_search = ['gsk_ml',
+                {'key': 'species', 'value': ['rat'], 'operator': 'in'},
+                {'key': 'assay_category','value': ['solubility', 'volume_of_distribution'], 'operator': 'in'}]
 
         client (optional): set client if not using the default
         to_return (str, optional): (default=df)
-                    'df' (df_results)  = return a pandas dataframe summarizing metadata of files meeting criteria
-                    'oid' (dataset_oid) = return a list of dataset_oids meeting criteria
-                    'ds_key' (dataset_key) = return a list of dataset_key + bucket tuples
+                'df' (df_results)  = return a pandas dataframe summarizing metadata of files meeting criteria
+                oid' (dataset_oid) = return a list of dataset_oids meeting criteria
+                ds_key' (dataset_key) = return a list of dataset_key + bucket tuples
 
         display_all_column (bool, optional): default False. If True, displays all associated metadata instead of just a selected subset
 
@@ -1461,7 +1471,7 @@ def repeat_defined_search(defined_search, client=None, to_return='df', display_a
         (DataFrame): dataframe of metadata for the files matching the criteria specified in the search
         (list): list of dataset_oids meeting the criteria specified in the search
         (list): list of bucket and dataset_key meeting the criteria specified in the search
-        """
+    """
 
     if to_return not in ['df', 'oid','ds_key']:
         raise ValueError('to_return entry invalid')
@@ -1498,7 +1508,8 @@ def repeat_defined_search(defined_search, client=None, to_return='df', display_a
 #----------------------------------------------------------------
 def get_keyval(dataset_oid=None, dataset_key=None, bucket=None, client=None):
     """Requires either dataset_oid *or* dataset_key+bucket.
-       Function extracts the key:value pairs and converts from the 'datastore format' (list of dictionaries) into 'model tracker format' (a single dictionary)."""
+       Function extracts the key:value pairs and converts from the 'datastore format' (list of dictionaries) into 'model tracker format' (a single dictionary).
+    """
 
 
     if client is None:
@@ -1561,7 +1572,7 @@ def upload_pickle_to_DS(data, bucket, filename, title, description, tags, key_va
     Returns:
         None
 
-        """
+    """
 
     if client is None:
         client = config_client()
@@ -1621,7 +1632,7 @@ def list_key_values(bucket, input_key, category='experimental', client=None):
     Returns:
         None
 
-        """
+    """
 
     values_for_key=[]
 
@@ -1663,7 +1674,7 @@ def search_files_interactive (bucket='all', client=None, to_return='df', display
     Returns:
         None
 
-        """
+    """
 
     if to_return not in ['df','search','oid','ds_key']:
         raise ValueError('to_return entry invalid')
@@ -2044,10 +2055,10 @@ def get_key_val(metadata, key=None):
 
        key (str):  key to search for
 
-     Returns:
+    Returns:
         returns When key is provide, returns value for matching key if found, None otherwise
         returns dictionary for the list of key,value pairs when a query key is not provided.
-        """
+    """
     if key == None :
         return dict([(kv['key'], kv['value']) for kv in metadata])
     else :
@@ -2060,8 +2071,7 @@ def get_key_val(metadata, key=None):
 
 #---------------------------------------------------------------------
 def copy_datasets_to_bucket(dataset_keys, from_bucket, to_bucket, ds_client=None):
-    """
-    Copy each named dataset from one bucket to another.
+    """Copy each named dataset from one bucket to another.
 
     Args:
         dataset_keys (str or list of str): List of dataset_keys for datasets to move.

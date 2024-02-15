@@ -13,18 +13,15 @@ from rdkit.Chem import AllChem
 import umap
 
 class SplitStats:
-    """
-    This object manages a dataset and a given split dataframe.
-    """
+    """This object manages a dataset and a given split dataframe."""
     def __init__(self, total_df, split_df, smiles_col, id_col, response_cols):
-        """
-        Calculates compount to compount Tanomoto distances between training and
+        """Calculates compount to compount Tanomoto distances between training and
         test subsets. Counts the number of samples for each subset, for each task
         and calculates the train_frac, valid_frac, and test_frac.
 
         Args:
             total_df (DataFrame): Pandas DataFrame.
-            split_df (DataFrame): AMPL split data frame. Must contain 
+            split_df (DataFrame): AMPL split data frame. Must contain
                 'cmpd_id' and 'subset' columns.
             smiles_col (str): SMILES column in total_df.
             id_col (str): ID column in total_df.
@@ -49,8 +46,7 @@ class SplitStats:
         self.train_fracs, self.valid_fracs, self.test_fracs = self._split_ratios()
 
     def _get_dists(self, df_a, df_b):
-        '''
-        Calculate pairwise compound distances between training and test subsets.
+        '''Calculate pairwise compound distances between training and test subsets.
 
         Args:
             df_a: choice of self.train_df, self.test_df, self.valid_df
@@ -63,8 +59,7 @@ class SplitStats:
                     df_b[self.smiles_col].values)
     
     def _split_ratios(self):
-        '''
-        Calculates the fraction of samples belonging to training, validation, and test subsets.
+        '''Calculates the fraction of samples belonging to training, validation, and test subsets.
 
         Args:
             None
@@ -79,9 +74,7 @@ class SplitStats:
         return train_fracs, valid_fracs, test_fracs
 
     def print_stats(self):
-        '''
-        Prints useful statistics to stdout
-        '''
+        '''Prints useful statistics to stdout'''
         print("dist tvt mean: %0.2f, median: %0.2f, std: %0.2f"%\
             (np.mean(self.dists_tvt), np.median(self.dists_tvt), np.std(self.dists_tvt)))
         print("dist tvv mean: %0.2f, median: %0.2f, std: %0.2f"%\
@@ -94,8 +87,7 @@ class SplitStats:
             (np.mean(self.valid_fracs), np.median(self.valid_fracs), np.std(self.valid_fracs)))
 
     def dist_hist_train_v_test_plot(self, ax=None):
-        """
-        Plots Tanimoto differences between training and valid subsets
+        """Plots Tanimoto differences between training and valid subsets
 
         Returns:
             g (Seaborn FacetGrid): FacetGrid object from seaborn
@@ -103,8 +95,7 @@ class SplitStats:
         return self._show_dist_hist_plot(self.dists_tvt, ax=ax)
 
     def dist_hist_train_v_valid_plot(self, ax=None):
-        """
-        Plots Tanimoto differences between training and valid subsets
+        """Plots Tanimoto differences between training and valid subsets
 
         Returns:
             g (Seaborn FacetGrid): FacetGrid object from seaborn
@@ -112,8 +103,7 @@ class SplitStats:
         return self._show_dist_hist_plot(self.dists_tvv, ax=ax)
 
     def dist_hist_plot(self, dists, title, dist_path=''):
-        """
-        Creates a histogram of pairwise Tanimoto distances between training
+        """Creates a histogram of pairwise Tanimoto distances between training
         and test sets
 
         Args:
@@ -129,8 +119,7 @@ class SplitStats:
         pyplot.close()
 
     def _show_dist_hist_plot(self, dists, ax=None):
-        """
-        Creates a histogram of pairwise Tanimoto distances between training
+        """Creates a histogram of pairwise Tanimoto distances between training
         and test sets
 
         Args:
@@ -147,8 +136,7 @@ class SplitStats:
         return g
 
     def umap_plot(self, dist_path=''):
-        """
-        Plots the first 10000 samples in Umap space using Morgan Fingerprints
+        """Plots the first 10000 samples in Umap space using Morgan Fingerprints
 
         Args:
             dist_path (str): Optional Where to save the plot. The string '_umap_scatter' will be
@@ -173,8 +161,7 @@ class SplitStats:
         pyplot.close()
 
     def subset_frac_plot(self, dist_path=''):
-        """
-        Makes a box plot of the subset fractions
+        """Makes a box plot of the subset fractions
 
         Args:
             dist_path (str): Optional Where to save the plot. The string '_frac_box' will be
@@ -196,8 +183,7 @@ class SplitStats:
             save_figure(dist_path+'_frac_box')
 
     def make_all_plots(self, dist_path=''):
-        """
-        Makes a series of diagnostic plots
+        """Makes a series of diagnostic plots
 
         Args:
             dist_path (str): Optional Where to save the plot. The string '_frac_box' will be
@@ -216,8 +202,7 @@ class SplitStats:
         self.subset_frac_plot(dist_path)
 
 def split(total_df, split_df, id_col):
-    '''
-    Splits a dataset into training, test and validation sets using a given split.
+    '''Splits a dataset into training, test and validation sets using a given split.
 
     Args:
         total_df (DataFrame): A pandas dataframe.
@@ -225,7 +210,7 @@ def split(total_df, split_df, id_col):
         id_col (str): The ID column in total_df
 
     Returns:
-        (DataFrame, DataFrame, DataFrame): Three dataframes for train, test, and valid 
+        (DataFrame, DataFrame, DataFrame): Three dataframes for train, test, and valid
             respectively.
     '''
     train_df = total_df[total_df[id_col].isin(split_df[split_df['subset']=='train']['cmpd_id'])]
@@ -235,8 +220,7 @@ def split(total_df, split_df, id_col):
     return train_df, test_df, valid_df
 
 def save_figure(filename):
-    '''
-    Saves a figure to disk. Saves both png and svg formats.
+    '''Saves a figure to disk. Saves both png and svg formats.
 
     Args:
         filename (str): The name of the figure.

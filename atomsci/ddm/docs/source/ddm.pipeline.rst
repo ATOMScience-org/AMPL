@@ -44,26 +44,10 @@ ddm.pipeline.feature\_importance module
    :undoc-members:
    :show-inheritance:
 
-ddm.pipeline.featurization module
----------------------------------
-
-.. automodule:: ddm.pipeline.featurization
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 ddm.pipeline.hyper\_perf\_plots module
 ---------------------------------------
 
 .. automodule:: ddm.pipeline.hyper_perf_plots
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-ddm.pipeline.model\_datasets module
------------------------------------
-
-.. automodule:: ddm.pipeline.model_datasets
    :members:
    :undoc-members:
    :show-inheritance:
@@ -80,14 +64,6 @@ ddm.pipeline.model\_tracker module
 ----------------------------------
 
 .. automodule:: ddm.pipeline.model_tracker
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-ddm.pipeline.model\_wrapper module
-----------------------------------
-
-.. automodule:: ddm.pipeline.model_wrapper
    :members:
    :undoc-members:
    :show-inheritance:
@@ -120,22 +96,6 @@ ddm.pipeline.predict\_from\_model module
 ----------------------------------------
 
 .. automodule:: ddm.pipeline.predict_from_model
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-ddm.pipeline.splitting module
------------------------------
-
-.. automodule:: ddm.pipeline.splitting
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-ddm.pipeline.transformations module
------------------------------------
-
-.. automodule:: ddm.pipeline.transformations
    :members:
    :undoc-members:
    :show-inheritance:

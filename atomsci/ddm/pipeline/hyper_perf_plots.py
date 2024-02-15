@@ -1,5 +1,4 @@
-"""
-Functions for visualizing hyperparameter performance. These functions work with 
+"""Functions for visualizing hyperparameter performance. These functions work with
 a dataframe of model performance metrics and hyperparameter specifications from
 compare_models.py. For models on the tracker, use get_multitask_perf_from_tracker().
 For models in the file system, use get_filesystem_perf_results().
@@ -34,22 +33,19 @@ classselmets = [
 ]
 
 def get_score_types():
-    """
-    Helper function to show score type choices.
-    """
+    """Helper function to show score type choices."""
     print(classselmets)
     print(regselmets)
 
 def _prep_perf_df(df):
-    """
-    This function splits columns that contain lists into individual columns to 
+    """This function splits columns that contain lists into individual columns to
     use for plotting later.
-    
+
     Args:
-        df (pd.DataFrame): A dataframe containing model performances from a 
-        hyperparameter search. Best practice is to use get_multitask_perf_from_tracker() or 
+        df (pd.DataFrame): A dataframe containing model performances from a
+        hyperparameter search. Best practice is to use get_multitask_perf_from_tracker() or
         get_filesystem_perf_results().
-        
+
     Returns:
         perf_track_df (pd.DataFrame): a new df with modified and extra columns.
     """
@@ -75,16 +71,15 @@ def _prep_perf_df(df):
     return perf_track_df
 
 def plot_train_valid_test_scores(df, scoretype='r2_score'):
-    """
-    This function plots kde and line plots of performance scores based on their partitions.
-    
+    """This function plots kde and line plots of performance scores based on their partitions.
+
     Args:
-        df (pd.DataFrame): A dataframe containing model performances from a 
-        hyperparameter search. Best practice is to use get_multitask_perf_from_tracker() or 
+        df (pd.DataFrame): A dataframe containing model performances from a
+        hyperparameter search. Best practice is to use get_multitask_perf_from_tracker() or
         get_filesystem_perf_results().
-        
+
         scoretype (str): the score type you want to use. Valid options can be found in
-        hpp.classselmets or hpp.regselmets.  
+        hpp.classselmets or hpp.regselmets.
     """
     sns.set_context('poster')
     perf_track_df=df.copy().reset_index(drop=True)
@@ -107,17 +102,16 @@ def plot_train_valid_test_scores(df, scoretype='r2_score'):
     
 ### the following 3 plots are originally from Amanda M.
 def plot_rf_perf(df, scoretype='r2_score',subset='valid'):
-    """
-    This function plots scatterplots of performance scores based on their RF hyperparameters.
-    
+    """This function plots scatterplots of performance scores based on their RF hyperparameters.
+
     Args:
-        df (pd.DataFrame): A dataframe containing model performances from a 
-        hyperparameter search. Best practice is to use get_multitask_perf_from_tracker() or 
+        df (pd.DataFrame): A dataframe containing model performances from a
+        hyperparameter search. Best practice is to use get_multitask_perf_from_tracker() or
         get_filesystem_perf_results().
-        
+
         scoretype (str): the score type you want to use. Valid options can be found in
         hpp.classselmets or hpp.regselmets.
-        
+
         subset (str): the subset of scores you'd like to plot from 'train', 'valid' and 'test'.
     """
     sns.set_context('poster')
@@ -142,17 +136,16 @@ def plot_rf_perf(df, scoretype='r2_score',subset='valid'):
 
         
 def plot_nn_perf(df, scoretype='r2_score',subset='valid'):
-    """
-    This function plots scatterplots of performance scores based on their NN hyperparameters.
-    
+    """This function plots scatterplots of performance scores based on their NN hyperparameters.
+
     Args:
-        df (pd.DataFrame): A dataframe containing model performances from a 
-        hyperparameter search. Best practice is to use get_multitask_perf_from_tracker() or 
+        df (pd.DataFrame): A dataframe containing model performances from a
+        hyperparameter search. Best practice is to use get_multitask_perf_from_tracker() or
         get_filesystem_perf_results().
-        
+
         scoretype (str): the score type you want to use. Valid options can be found in
         hpp.classselmets or hpp.regselmets.
-        
+
         subset (str): the subset of scores you'd like to plot from 'train', 'valid' and 'test'.
     """
     sns.set_context('poster')
@@ -176,17 +169,16 @@ def plot_nn_perf(df, scoretype='r2_score',subset='valid'):
 
         
 def plot_xg_perf(df, scoretype='r2_score',subset='valid'):
-    """
-    This function plots scatterplots of performance scores based on their XG hyperparameters.
-    
+    """This function plots scatterplots of performance scores based on their XG hyperparameters.
+
     Args:
-        df (pd.DataFrame): A dataframe containing model performances from a 
-        hyperparameter search. Best practice is to use get_multitask_perf_from_tracker() or 
+        df (pd.DataFrame): A dataframe containing model performances from a
+        hyperparameter search. Best practice is to use get_multitask_perf_from_tracker() or
         get_filesystem_perf_results().
-        
+
         scoretype (str): the score type you want to use. Valid options can be found in
         hpp.classselmets or hpp.regselmets.
-        
+
         subset (str): the subset of scores you'd like to plot from 'train', 'valid' and 'test'.
     """
     sns.set_context('poster')
@@ -211,18 +203,17 @@ def plot_xg_perf(df, scoretype='r2_score',subset='valid'):
 
         
 def plot_rf_nn_xg_perf(df, scoretype='r2_score',subset='valid'):
-    """
-    This function plots boxplots of performance scores based on their hyperparameters including
+    """This function plots boxplots of performance scores based on their hyperparameters including
     RF, NN and XGBoost parameters as well as feature types, model types and ECFP radius.
-    
+
     Args:
-        df (pd.DataFrame): A dataframe containing model performances from a 
-        hyperparameter search. Best practice is to use get_multitask_perf_from_tracker() or 
+        df (pd.DataFrame): A dataframe containing model performances from a
+        hyperparameter search. Best practice is to use get_multitask_perf_from_tracker() or
         get_filesystem_perf_results().
-        
+
         scoretype (str): the score type you want to use. Valid options can be found in
         hpp.classselmets or hpp.regselmets.
-        
+
         subset (str): the subset of scores you'd like to plot from 'train', 'valid' and 'test'.
     """
     sns.set_context('paper')
@@ -267,17 +258,16 @@ def plot_rf_nn_xg_perf(df, scoretype='r2_score',subset='valid'):
 
     
 def plot_split_perf(df, scoretype='r2_score',subset='valid'):
-    """
-    This function plots boxplots of performance scores based on the splitter type.
-    
+    """This function plots boxplots of performance scores based on the splitter type.
+
     Args:
-        df (pd.DataFrame): A dataframe containing model performances from a 
-        hyperparameter search. Best practice is to use get_multitask_perf_from_tracker() or 
+        df (pd.DataFrame): A dataframe containing model performances from a
+        hyperparameter search. Best practice is to use get_multitask_perf_from_tracker() or
         get_filesystem_perf_results().
-        
+
         scoretype (str): the score type you want to use. Valid options can be found in
         hpp.classselmets or hpp.regselmets.
-        
+
         subset (str): the subset of scores you'd like to plot from 'train', 'valid' and 'test'.
     """
     sns.set_style("ticks")

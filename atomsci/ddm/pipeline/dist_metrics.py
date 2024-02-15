@@ -52,8 +52,7 @@ def _tanimoto_worker(k, fps):
     return np.array(dists_k), 0
 
 def tanimoto_single(fp, fps):
-    """
-    Compute a vector of Tanimoto distances between a single fingerprint and each fingerprint in a list .
+    """Compute a vector of Tanimoto distances between a single fingerprint and each fingerprint in a list .
 
     Args:
         fp : Fingerprint to be compared.
@@ -70,8 +69,7 @@ def tanimoto_single(fp, fps):
     return np.array(dists), 0
 
 def tanimoto(fps1, fps2=None):
-    """
-    Compute Tanimoto distances between sets of ECFP fingerprints.
+    """Compute Tanimoto distances between sets of ECFP fingerprints.
 
     Args:
         fps1 (Sequence): First list of ECFP fingerprint vectors.
@@ -120,8 +118,7 @@ def _mcs_single(mol, mols, n_atms):
     return np.array(dists_k), n_incomp
 
 def mcs(mols1, mols2=None):
-    """
-    Computes maximum common substructure (MCS) distances between pairs of molecules.
+    """Computes maximum common substructure (MCS) distances between pairs of molecules.
 
     The MCS distance between molecules m1 and m2 is one minus the average of fMCS(m1,m2) and fMCS(m2,m1),
     where fMCS(m1,m2) is the fraction of m1's atoms that are part of the largest common substructure of m1 and m2.

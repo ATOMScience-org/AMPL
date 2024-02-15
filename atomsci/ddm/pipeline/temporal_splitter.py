@@ -1,5 +1,4 @@
-"""
-Code to split a DeepChem dataset by assigning compounds produced before a cutoff date to the training and validation subsets,
+"""Code to split a DeepChem dataset by assigning compounds produced before a cutoff date to the training and validation subsets,
 and compounds from after the cutoff date to the test subset. This is typically used to assess training performance
 under a simulated drug discovery scenario, in which models are trained on early lead compounds and used to predict properties
 of compounds designed later.

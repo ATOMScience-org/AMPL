@@ -158,7 +158,7 @@ def dist_smiles_from_ecfp(ecfp1: List[rdkit.DataStructs.cDataStructs.ExplicitBit
 
 def _generate_scaffold_dist_matrix(scaffold_lists: List[Set[int]],
                                 ecfp_features: List[rdkit.DataStructs.cDataStructs.ExplicitBitVect]) -> np.ndarray:
-        """Returns a nearest neighbors distance matrix between each scaffold. 
+        """Returns a nearest neighbors distance matrix between each scaffold.
 
         The distance between two scaffolds is defined as the
         the distance between the two closest compounds between the two
@@ -309,7 +309,7 @@ class MultitaskScaffoldSplitter(Splitter):
 
         Grades the quality of the split based on which scaffolds were alloted to
         which partitions. The difference between two partitions (part_a and part_b)
-        is measured as the minimum distance between all pairs of scaffolds between 
+        is measured as the minimum distance between all pairs of scaffolds between
         the two given partitions
 
         Parameters
@@ -455,7 +455,7 @@ class MultitaskScaffoldSplitter(Splitter):
              dataset: Dataset) -> None:
         """Creates super scaffolds used in splitting
 
-        This function sets a 
+        This function sets a
 
         Parameters
         ----------
@@ -892,8 +892,7 @@ def split_using_MultitaskScaffoldSplit(df: pd.DataFrame,
     return split_df
 
 def split_with(df, splitter, smiles_col, id_col, response_cols, **kwargs):
-    '''
-    Given a dataframe and a splitter, perform split
+    '''Given a dataframe and a splitter, perform split
     Return a split dataframe, with base_rdkit_smiles as key
     and subset with train, valid, test
     '''

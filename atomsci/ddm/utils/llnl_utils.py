@@ -1,6 +1,4 @@
-"""
-Utility functions for running and managing jobs on LC machines.
-"""
+"""Utility functions for running and managing jobs on LC machines."""
 
 import os
 import sys
@@ -9,8 +7,7 @@ import time
 
 
 def is_lc_system():
-    """
-    Use heuristic to determine if we're running on an LC system.
+    """Use heuristic to determine if we're running on an LC system.
 
     Args:
         none
@@ -25,10 +22,9 @@ def is_lc_system():
 
 
 def get_command_output(cmd):
-    """
-    Runs the given shell command in a subprocess and returns its output as a string.
+    """Runs the given shell command in a subprocess and returns its output as a string.
     Used by throttle_jobs function.
-    
+
     Args:
         cmd: Command to run
 
@@ -41,10 +37,9 @@ def get_command_output(cmd):
     return output.decode('utf-8').rstrip('\n')
 
 def get_my_username():
-    """
-    Returns the username of the effective userid of the current process.
+    """Returns the username of the effective userid of the current process.
     Used by throttle_jobs function.
-    
+
     Args:
         none
 
@@ -55,13 +50,12 @@ def get_my_username():
 
 
 def throttle_jobs(max_jobs, retry_time=10, my_username=None, verbose=True):
-    """
-    Checks the number of SLURM jobs currently queued or running under the current userid.
+    """Checks the number of SLURM jobs currently queued or running under the current userid.
     Returns immediately if this number is less than max_jobs; otherwise, loops indefinitely,
-    checking the job count every retry_time seconds. Returns when the job count drops below 
+    checking the job count every retry_time seconds. Returns when the job count drops below
     max_jobs. Call this function before queueing a batch job in order to implement a self-
     throttling mechanism.
-    
+
     Args:
         max_jobs (int): Number of jobs we are allowing ourselves to have queued or running.
 

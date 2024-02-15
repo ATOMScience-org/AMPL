@@ -304,9 +304,8 @@ def strip_optional(type_annotation):
     """In the upgrade to python 3.9 type_annotaions now use
         typeing.Optional and we need to strip that off.
 
-     Args:
-        type_annotation (object): This is a type annotation returned by the inspect
-            module
+    Args:
+        type_annotation (object): This is a type annotation returned by the inspect module
 
     Returns:
         list(type_annotation) or the __args__ of typing.Optional or typing.Union
@@ -323,7 +322,7 @@ class AutoArgumentAdder:
     """Finds, manages, and adds all parameters of an object to a argparse parser
 
     AutoArgumentAdder recursively finds all keyword arguments of a given object.
-    A prefix is added to each keyword argument to prevent collisions and help 
+    A prefix is added to each keyword argument to prevent collisions and help
     distinguish automatically added arguments from normal arguments.
 
     Attributes:
@@ -332,13 +331,12 @@ class AutoArgumentAdder:
         prefix (str): A prefix for arguments. e.g. 'AttentiveFPModel'
         types (dict): A mapping between parameter names and types. Prefixes
             are not used in the keys.
-        used_by (dict): A mapping between parameter names (no prefix) and 
+        used_by (dict): A mapping between parameter names (no prefix) and
             the object or objects that use that parameter.
         args (set): A set of all argument names
     """
     def __init__(self, func, prefix):
-        """
-        Initialize all attributes with given object
+        """Initialize all attributes with given object
 
         Args:
             func (object): Input object. e.g. dcm.AttentiveFPModel
@@ -435,9 +433,9 @@ class AutoArgumentAdder:
         return [self._make_param_name(p) for p in self.args]
 
     def add_to_parser(self, parser):
-        """Adds expected parameters to an argparse.ArgumentParser. Checks to 
+        """Adds expected parameters to an argparse.ArgumentParser. Checks to
         see if the argument has synonyms e.g. mode and prediction_type and sets dest
-        accordingly. All parameters have default=None, this is checked later in 
+        accordingly. All parameters have default=None, this is checked later in
         self.extract_params. None parameters are not passed on so we can use
         default parameters set by DeepChem.
 
@@ -565,15 +563,15 @@ not_a_str_list_outside_of_hyperparams = \
 def to_str(params_obj):
     """Converts a namespace.argparse object or a dict into a string for command line input
 
-        Args:
-            params_obj (argparse.Namespace or dict): an argparse namespace object or dict to be converted into a
-            command line input.
-                E.g. params_obj = argparse.Namespace(arg1 = val1, arg2 = val2, arg3 = val3) OR
-                params_obj = {'arg1':val1, 'arg2':val2, 'arg3':val3}
+    Args:
+        params_obj (argparse.Namespace or dict): an argparse namespace object or dict to be converted into a
+        command line input.
+            E.g. params_obj = argparse.Namespace(arg1 = val1, arg2 = val2, arg3 = val3) OR
+            params_obj = {'arg1':val1, 'arg2':val2, 'arg3':val3}
 
-        Returns:
-            str_params (str): parameters in string format
-                E.g. str_params = '--arg1 val1 --arg2 val2 --arg3 val3'
+    Returns:
+        str_params (str): parameters in string format
+            E.g. str_params = '--arg1 val1 --arg2 val2 --arg3 val3'
 
     """
     # This command converts the namespace_obj to a dict, with the spaces replaced with
@@ -591,14 +589,14 @@ def to_str(params_obj):
 def wrapper(*any_arg):
     """Wrapper to handle the ParseParams class. Calls the correct method depending on the input argument type
 
-        Args:
-            *any_arg: any single input of a str, dict, ar/printgparse.Namespace, or list
+    Args:
+        *any_arg: any single input of a str, dict, ar/printgparse.Namespace, or list
 
-        Returns:
-            argparse.Namespace: a Namespace.argparse object containing default parameters + user specified parameters
+    Returns:
+        argparse.Namespace: a Namespace.argparse object containing default parameters + user specified parameters
 
-        Raises:
-            TypeError: Input argument must be a configuration file (str), dict, argparse.Namespace, or list
+    Raises:
+        TypeError: Input argument must be a configuration file (str), dict, argparse.Namespace, or list
 
     """
     if len(any_arg) == 1:
@@ -1787,7 +1785,7 @@ def remove_unrecognized_arguments(params, hyperparam=False):
     Args:
         params (Namespace or dict): params to filter
 
-    Return:
+    Returns:
         dict of parameters
     """
     if not type(params) == dict:
