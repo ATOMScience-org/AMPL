@@ -402,7 +402,7 @@ The policy is
 > Step 2 is required for pushing directly to `master`. For a development branch, this step is recommended but not required.
 
 ### Docstring format
-[`Google docstring`](https://github.com/google/styleguide/blob/gh-pages/pyguide.md#38-comments-and-docstrings) format is used in AMPL code. When writing new code, please use this Docstring style. For more examples, [see](https://www.sphinx-doc.org/en/master/usage/extensions/example_google.html#example-google).
+The [`Google docstring`](https://github.com/google/styleguide/blob/gh-pages/pyguide.md#38-comments-and-docstrings) format is used in the AMPL code. When writing new code, please use the same Docstring style. Refer [here](https://www.sphinx-doc.org/en/master/usage/extensions/example_google.html#example-google) and [here](https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html) for examples.
 
 ### Versioning
 Versions are managed through GitHub tags on this repository.  

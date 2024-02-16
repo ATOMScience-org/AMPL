@@ -109,9 +109,9 @@ def H1_curate():
     assert (os.path.isfile('H1_curated_fit_train_valid_test_scaffold_002251a2-83f8-4511-acf5-e8bbc5f86677.csv'))
 
 def duplicate_df(original, id_col):
-    '''Copies all rows in the original and appends _dupe to the ids
+    """Copies all rows in the original and appends _dupe to the ids
     Returns a dataframe with each row duplicated once
-    '''
+    """
     second_df = original.copy()
     second_df[id_col] = second_df[id_col].apply(lambda x: x+'_dupe')
     return pd.concat([original, second_df])

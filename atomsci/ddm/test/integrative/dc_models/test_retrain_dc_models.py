@@ -32,11 +32,11 @@ def clean(prefix='delaney-processed'):
             os.remove(f)
 
 def exact_mol_weight(x):
-    '''Given SMILES, return exact mol weight'''
+    """Given SMILES, return exact mol weight"""
     return rdCD.ExactMolWt(rdC.MolFromSmiles(x))
 
 def num_atoms(x):
-    '''Given SMILES, return the number of atoms'''
+    """Given SMILES, return the number of atoms"""
     return len(rdC.MolFromSmiles(x).GetAtoms())
 
 def H1_curate():
@@ -154,7 +154,7 @@ def train_and_predict(train_json_f, prefix='delaney-processed'):
     return tar_f
 
 def verify_saved_params(original_json_f, tar_f):
-    '''compares saved params in a tar file with original json'''
+    """compares saved params in a tar file with original json"""
     reload_dir = tempfile.mkdtemp()
     with tarfile.open(tar_f, mode='r:gz') as tar:
         futils.safe_extract(tar, path=reload_dir)
@@ -188,7 +188,7 @@ def verify_saved_params(original_json_f, tar_f):
     assert original_feat_params == tar_feat_params
 
 def retrain(tar_f, prefix='H1'):
-    '''retrain a model from tar_f'''
+    """retrain a model from tar_f"""
     model = mr.train_model_from_tar(tar_f, 'result')
 
     uuid = model.params.model_uuid

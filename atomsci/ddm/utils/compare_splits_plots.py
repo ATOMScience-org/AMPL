@@ -46,7 +46,7 @@ class SplitStats:
         self.train_fracs, self.valid_fracs, self.test_fracs = self._split_ratios()
 
     def _get_dists(self, df_a, df_b):
-        '''Calculate pairwise compound distances between training and test subsets.
+        """Calculate pairwise compound distances between training and test subsets.
 
         Args:
             df_a: choice of self.train_df, self.test_df, self.valid_df
@@ -54,19 +54,19 @@ class SplitStats:
 
         Returns:
             Array of floats. Pairwise Tanimoto distances between training and test subsets.
-        '''
+        """
         return cd.calc_dist_smiles('ECFP', 'tanimoto', df_a[self.smiles_col].values, 
                     df_b[self.smiles_col].values)
     
     def _split_ratios(self):
-        '''Calculates the fraction of samples belonging to training, validation, and test subsets.
+        """Calculates the fraction of samples belonging to training, validation, and test subsets.
 
         Args:
             None
 
         Returns:
             train_fracs (array of flots), valid_fracs (array of floats), test_fracs (array of floats)
-        '''
+        """
         train_fracs = np.sum(self.train_w, axis=0)/np.sum(self.total_w, axis=0)
         valid_fracs = np.sum(self.valid_w, axis=0)/np.sum(self.total_w, axis=0)
         test_fracs = np.sum(self.test_w, axis=0)/np.sum(self.total_w, axis=0)
@@ -74,7 +74,7 @@ class SplitStats:
         return train_fracs, valid_fracs, test_fracs
 
     def print_stats(self):
-        '''Prints useful statistics to stdout'''
+        """Prints useful statistics to stdout"""
         print("dist tvt mean: %0.2f, median: %0.2f, std: %0.2f"%\
             (np.mean(self.dists_tvt), np.median(self.dists_tvt), np.std(self.dists_tvt)))
         print("dist tvv mean: %0.2f, median: %0.2f, std: %0.2f"%\
@@ -202,7 +202,7 @@ class SplitStats:
         self.subset_frac_plot(dist_path)
 
 def split(total_df, split_df, id_col):
-    '''Splits a dataset into training, test and validation sets using a given split.
+    """Splits a dataset into training, test and validation sets using a given split.
 
     Args:
         total_df (DataFrame): A pandas dataframe.
@@ -212,7 +212,7 @@ def split(total_df, split_df, id_col):
     Returns:
         (DataFrame, DataFrame, DataFrame): Three dataframes for train, test, and valid
             respectively.
-    '''
+    """
     train_df = total_df[total_df[id_col].isin(split_df[split_df['subset']=='train']['cmpd_id'])]
     test_df = total_df[total_df[id_col].isin(split_df[split_df['subset']=='test']['cmpd_id'])]
     valid_df = total_df[total_df[id_col].isin(split_df[split_df['subset']=='valid']['cmpd_id'])]
@@ -220,11 +220,11 @@ def split(total_df, split_df, id_col):
     return train_df, test_df, valid_df
 
 def save_figure(filename):
-    '''Saves a figure to disk. Saves both png and svg formats.
+    """Saves a figure to disk. Saves both png and svg formats.
 
     Args:
         filename (str): The name of the figure.
-    '''
+    """
     pyplot.tight_layout()
     pyplot.savefig(filename+'.png')
     pyplot.savefig(filename+'.svg')

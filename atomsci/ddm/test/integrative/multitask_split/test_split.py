@@ -12,7 +12,7 @@ import atomsci.ddm.pipeline.parameter_parser as parse
 from atomsci.ddm.pipeline.model_pipeline import ModelPipeline
 
 def init_data():
-    '''Copy files necessary for running tests'''
+    """Copy files necessary for running tests"""
     df = pd.read_csv('../../test_datasets/KCNA5_KCNH2_SCN5A_data.csv')
     df['base_rdkit_smiles'] = df['compound_id']
     df.to_csv('KCNA5_KCNH2_SCN5A_data.csv')
@@ -21,12 +21,12 @@ def init_data():
         os.makedirs('plots')
 
 def delete_file(file):
-    '''checks if a file exists and deletes it'''
+    """checks if a file exists and deletes it"""
     if os.path.exists(file):
         os.remove(file)
 
 def clean():
-    '''cleans up files created during the test'''
+    """cleans up files created during the test"""
     if os.path.exists('plots'):
         shutil.rmtree('plots')
 

@@ -14,7 +14,7 @@ from atomsci.ddm.utils import llnl_utils
 import sklearn.metrics as skmetrics
 
 def get_test_set(dskey, split_csv, id_col):
-    '''using model_metadata read dataset key and split uuid to split dataset into
+    """using model_metadata read dataset key and split uuid to split dataset into
     component parts
 
     Parameters:
@@ -23,7 +23,7 @@ def get_test_set(dskey, split_csv, id_col):
 
     Returns:
         train_df, valid_df, test_df
-    '''
+    """
     df = pd.read_csv(dskey)
     split_df = pd.read_csv(split_csv)
 

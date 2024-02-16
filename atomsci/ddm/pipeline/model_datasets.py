@@ -207,14 +207,14 @@ def save_joined_dataset(joined_dataset, split_metadata):
     res_path = '/ds/projdata/gsk_data/split_joined_datasets'
     filename = '%s_%s_split_dataset.csv' % (dset_key, split_uuid)
     joined_dataset.to_csv(os.path.join(res_path, filename), index=False)
-    '''
+    """
     title = 'Joined dataset for dataset %s and split UUID %s' % (dset_key, split_uuid)
     description = "Joined dataset dset_key %s with split labels for split UUID %s" % (dset_key, split_uuid)
     # TODO: Need a way to differentiate between original file and this
     tags = split_metadata['tags']
     key_values = split_metadata['metadata']
     # dfs.upload_df_to_DS(joined_dataset, bucket, filename, title, description, tags, key_values, client=ds_client)
-    '''
+    """
 
 # ****************************************************************************************
 def get_classes(y):

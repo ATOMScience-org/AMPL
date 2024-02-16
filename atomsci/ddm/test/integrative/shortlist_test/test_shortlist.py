@@ -17,7 +17,7 @@ from atomsci.ddm.utils import llnl_utils
 import atomsci.ddm.utils.file_utils as futils
 
 def init_data():
-    '''Copy files necessary for running tests'''
+    """Copy files necessary for running tests"""
     if not os.path.exists('data'):
         os.makedirs('data')
 

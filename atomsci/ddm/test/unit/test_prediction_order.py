@@ -5,15 +5,15 @@ import pandas as pd
 import sklearn.metrics as skm
 from atomsci.ddm.utils import llnl_utils
 
-'''
+"""
 make sure that the various ways of making predictions return
 predictions in the same order as the input
-'''
+"""
 
 def test_predict_from_model():
-    '''test that predict_from_model makes predictions in the same
+    """test that predict_from_model makes predictions in the same
     order as the input
-    '''
+    """
     if not llnl_utils.is_lc_system():
         assert True
         return
@@ -45,9 +45,9 @@ def test_predict_from_model():
     assert score > 0.5
 
 def test_predict_on_dataframe():
-    '''test that predict_from_model makes predictions in the same
+    """test that predict_from_model makes predictions in the same
     order as the input
-    '''
+    """
     if not llnl_utils.is_lc_system():
         assert True
         return

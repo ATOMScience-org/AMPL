@@ -551,7 +551,7 @@ class ProductionSplitter(dc.splits.Splitter):
     def split(
             self, dataset, frac_train=1, frac_valid=1, frac_test=1, seed=None, log_every_n = None
     ):
-        '''We implement a production run as having a split that contains all samples in every subset'''
+        """We implement a production run as having a split that contains all samples in every subset"""
         num_datapoints = len(dataset)
         return (list(range(num_datapoints)), list(range(num_datapoints)), list(range(num_datapoints)))
 
@@ -632,9 +632,9 @@ class ProductionSplitting(Splitting):
         return [(train, valid)], test, [(train_attr, valid_attr)], test_attr
 
 def _copy_modify_NumpyDataset(dataset, **kwargs):
-    '''Create a copy of the DeepChem Dataset object `dataset` and then modify it based on the given keyword arguments.
+    """Create a copy of the DeepChem Dataset object `dataset` and then modify it based on the given keyword arguments.
     This is useful for updating attributes like dataset.w or dataset.id
-    '''
+    """
     args = {'X':dataset.X,
         'y':dataset.y,
         'w':dataset.w,
@@ -645,15 +645,15 @@ def _copy_modify_NumpyDataset(dataset, **kwargs):
     return NumpyDataset(**args)
 
 class DatasetManager:
-    '''Different splitters have different dataset requirements.
+    """Different splitters have different dataset requirements.
         - unique compound ids
         - smiles used as ids
 
     This object transforms datasets to satisfy these requirements then undoes them
     once the splitting is done.
-    '''
+    """
     def __init__(self, dataset, attr_df, smiles_col, needs_smiles):
-        '''Before splitting we often have to compact the dataset to remove duplicate compound_ids. After
+        """Before splitting we often have to compact the dataset to remove duplicate compound_ids. After
         splitting we will have to expand that dataset again. We save self.dataset_ori so we have
         a copy of the original. We keep self.id_df to know how to map from a set of compound_ids
         or smiles to an expanded set of indicies.
@@ -664,7 +664,7 @@ class DatasetManager:
             attr_df (Pandas DataFrame): dataframe containing SMILES strings indexed by compound IDs,
 
             smiles_col (string): name of SMILES column (hack for now until deepchem fixes scaffold and butina splitters)
-        '''
+        """
         self.dataset_ori = copy.deepcopy(dataset)
         self.attr_df = attr_df
         self.smiles_col = smiles_col
@@ -693,12 +693,12 @@ class DatasetManager:
         many_to_one_df(self.id_df, id_col='compound_id', smiles_col='smiles')
 
     def compact_dataset(self):
-        '''Returns a dataset with no duplicate compounds ids and smiles strings in the
+        """Returns a dataset with no duplicate compounds ids and smiles strings in the
         id column if necessary.
 
         Builds a new dataset with no duplicates in ids (compounds or smiles). This assumes
         a many to one mapping between SMILES and compound ids
-        '''
+        """
         sub_dataset = self.dataset_ori
         sel_df = self.id_df
         if check_if_dupe_smiles_dataset(self.dataset_ori, self.attr_df, self.smiles_col):
@@ -736,7 +736,7 @@ class DatasetManager:
         return sub_dataset
 
     def expand_selection(self, ids):
-        '''Implementation note: Maybe this is better if I used select_attrs_by_dset_smiles
+        """Implementation note: Maybe this is better if I used select_attrs_by_dset_smiles
         and select_attrs_by_dset_ids respectively
 
         Args:
@@ -746,7 +746,7 @@ class DatasetManager:
 
         Returns:
             A subset of self.dataset_ori and subset of self.attr_df
-        '''
+        """
         # are we using SMILES or compound_ids as the ID column
         id_col = 'smiles' if self.needs_smiles else 'compound_id'
         sel_df = self.id_df[self.id_df[id_col].isin(ids)]

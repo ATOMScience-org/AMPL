@@ -650,7 +650,7 @@ def average_and_remove_duplicates (column, tolerance, list_bad_duplicates,
 
 # ******************************************************************************************************************************************
 def summarize_data(column, num_bins, title, units, filepath, data, log_column = 'No'):
-    '''Summarizes the in data[column]
+    """Summarizes the in data[column]
 
     Summarizes the data by printing mean, stdev, max, and min of the data. Creates
     plots of the binned values in data[column]. If log_column != 'No' this also
@@ -675,7 +675,7 @@ def summarize_data(column, num_bins, title, units, filepath, data, log_column = 
     Returns:
         None
 
-    '''
+    """
 
     dataset_mean = data[column].mean()
     dataset_max = data[column].max()

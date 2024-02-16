@@ -20,7 +20,7 @@ import atomsci.ddm.utils.struct_utils as struct_utils
 import atomsci.ddm.utils.curate_data as curate_data, imp
 
 def set_data_root(dir):
-    '''Set global variables for data directories
+    """Set global variables for data directories
 
     Creates paths for DTC and Excape given a root data directory.
     Global variables 'data_root' and 'data_dirs'. 'data_root' is the
@@ -32,7 +32,7 @@ def set_data_root(dir):
 
     Returns:
         None
-    '''
+    """
     global data_root, data_dirs
     data_root = dir
     #data_dirs = dict(ChEMBL = '%s/ChEMBL' % data_root, DTC = '%s/DTC' % data_root, 
@@ -293,7 +293,7 @@ def ic50topic50(x) :
 def compute_negative_log_responses(df, unit_col='unit', value_col='value', 
         new_value_col='average_col', relation_col=None, new_relation_col=None,
         unit_conv={'uM':lambda x: x*1e-6, 'nM':lambda x: x*1e-9}, inplace=False):
-    '''Given the response values in `value_col` (IC50, Ki, Kd, etc.), compute their negative base 10 logarithms
+    """Given the response values in `value_col` (IC50, Ki, Kd, etc.), compute their negative base 10 logarithms
     (pIC50, pKi, pKd, etc.) after converting them to molar units and store them in `new_value_col`.
     If `relation_col` is provided, replace any '<' or '>' relations with their opposites and store the result
     in `new_relation_col` (if provided), or in `relation_col` if note.
@@ -320,7 +320,7 @@ def compute_negative_log_responses(df, unit_col='unit', value_col='value',
 
     Returns:
         DataFrame: A table containing the transformed values and relations.
-    '''
+    """
 
     missing_units = list(set(df[unit_col]) - set(unit_conv.keys()))
     assert len(missing_units) == 0, f"unit_conv lacks converter(s) for units {', '.join(missing_units)}"
@@ -354,7 +354,7 @@ def compute_negative_log_responses(df, unit_col='unit', value_col='value',
 def convert_IC50_to_pIC50(df, unit_col='unit', value_col='value', 
         new_value_col='average_col', relation_col=None, new_relation_col=None,
         unit_conv={'uM':lambda x: x*1e-6, 'nM':lambda x: x*1e-9}, inplace=False):
-    '''For backward compatibiltiy only: equivalent to calling `compute_negative_log_responses` with the same arguments.'''
+    """For backward compatibiltiy only: equivalent to calling `compute_negative_log_responses` with the same arguments."""
     return compute_negative_log_responses(df, unit_col=unit_col, value_col=value_col, new_value_col=new_value_col,
                                           relation_col=relation_col, new_relation_col=new_relation_col,
                                           unit_conv=unit_conv, inplace=inplace)

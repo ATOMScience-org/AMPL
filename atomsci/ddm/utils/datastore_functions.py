@@ -1,6 +1,6 @@
-'''This file contains functions to make it easier to browse and retrieve data from the datastore.
+"""This file contains functions to make it easier to browse and retrieve data from the datastore.
    Intended for general use. Add/modify functions as needed. Created 23Jul18 CHW
-'''
+"""
 
 # -------------setup section-----------------
 
@@ -1123,11 +1123,11 @@ def check_key_val(key_values, client=None, df=None, enforced=True):
                         raise ValueError('value for key=%s invalid. Pick from these column headings:' %col, avail_headings)
 
     if enforced:
-        ''' This section checks to make sure all relevent keys have been filled in based on other selections made
+        """ This section checks to make sure all relevent keys have been filled in based on other selections made
              for example: if user includes 'curation_level':'ml_ready' as a key:value pair, then additional keys such as 'units' are also required
              1) this section requires the following 3 columns in the kv_lookup file: 'enforced_on_key', 'enforced_on_value', and 'required_keys'.
              2) if the 'enforced_on' key:value matches one input, then it checks to make sure all of the keys listed in the corresponding row in the
-                'required_keys' column have been filled out '''
+                'required_keys' column have been filled out """
 
         num_enforced_key = kv_lookup['enforced_on_key'].count()
         i=0
@@ -1326,7 +1326,7 @@ def upload_df_to_DS(df, bucket, filename, title, description, tags, key_values, 
 def update_kv(bucket, dataset_key, client=None, kv_add=None, kv_del=None, return_metadata=False):
     #TODO: function currently performs 2 separate uploads if adding and deleting, needs to be fixed to just 1 upload
 
-    '''update the key:values for specified file. No change to file.
+    """update the key:values for specified file. No change to file.
 
     Args:
         bucket (str): Specify bucket where the file exists
@@ -1342,7 +1342,7 @@ def update_kv(bucket, dataset_key, client=None, kv_add=None, kv_del=None, return
     Returns:
         None
 
-    '''
+    """
 
     #configure client if needed
     if client is None:
@@ -1389,7 +1389,7 @@ def update_kv(bucket, dataset_key, client=None, kv_add=None, kv_del=None, return
 def update_distribution_kv(bucket, dataset_key, client=None, kv_add=None, kv_del=None, return_metadata=False):
     #TODO: function currently performs 2 separate uploads if adding and deleting, needs to be fixed to just 1 upload
     #TODO: This should be merged with update_kv()
-    '''update the key:values for specified file. No change to file.
+    """update the key:values for specified file. No change to file.
 
     Args:
         bucket (str): Specify bucket where the file exists
@@ -1405,7 +1405,7 @@ def update_distribution_kv(bucket, dataset_key, client=None, kv_add=None, kv_del
     Returns:
         None
 
-    '''
+    """
 
     #configure client if needed
     if client is None:
@@ -1940,7 +1940,7 @@ def search_files_interactive (bucket='all', client=None, to_return='df', display
 #--------------------------------------------------------------------
 def bulk_export_kv_for_files(files, save_as, client=None):
     #TODO: function is slow. look into speeding up.
-    '''exports a csv file with 3 columns: bucket, dataset_key, key/value pairs to make reviewing  metadata easier
+    """exports a csv file with 3 columns: bucket, dataset_key, key/value pairs to make reviewing  metadata easier
 
     Args:
         files (list of tuples): format [(bucket1, dataset_key1), (bucket2, dataset_key2)]
@@ -1950,7 +1950,7 @@ def bulk_export_kv_for_files(files, save_as, client=None):
     Returns:
         None
 
-    '''
+    """
 
     #configure client
     if client is None:
@@ -1992,9 +1992,9 @@ def string_to_list(list_string):
 #---------------------------------------------------------------------
 ### upload info bor files to change
 def bulk_update_kv(file, client=None, i=0):
-    '''this function allows you to upload a properly formatted csv file with 4 columns (order and spelling of headings must match): bucket, dataset_key, kv_add, kv_del
+    """this function allows you to upload a properly formatted csv file with 4 columns (order and spelling of headings must match): bucket, dataset_key, kv_add, kv_del
     the metadata for the files listed will then be updated in the Datastore
-    '''
+    """
 
     #configure client
     if client is None:
