@@ -4,9 +4,6 @@ utils package
 Submodules
 ----------
 
-utils.compare\_split\_csv module
---------------------------------
-
 utils.compare\_splits\_plots module
 -----------------------------------
 
