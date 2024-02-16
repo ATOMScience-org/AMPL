@@ -1,6 +1,4 @@
-"""
-Functions to assess feature importance in AMPL models
-"""
+"""Functions to assess feature importance in AMPL models"""
 
 import os
 import sys
@@ -39,8 +37,7 @@ logging.basicConfig(format='%(asctime)-15s %(message)s')
 
 
 class _SklearnRegressorWrapper(BaseEstimator):
-    """
-    Class that implements the parts of the scikit-learn Estimator interface needed by the
+    """Class that implements the parts of the scikit-learn Estimator interface needed by the
     permutation importance code for AMPL regression models.
     """
     def __init__(self, model_pipeline):
@@ -56,8 +53,7 @@ class _SklearnRegressorWrapper(BaseEstimator):
         return y_pred.reshape((-1, 1))
 
 class _SklearnClassifierWrapper(BaseEstimator):
-    """
-    Class that implements the parts of the scikit-learn Estimator interface needed by the
+    """Class that implements the parts of the scikit-learn Estimator interface needed by the
     permutation importance code for AMPL classification models.
     """
     def __init__(self, model_pipeline):
@@ -84,8 +80,7 @@ class _SklearnClassifierWrapper(BaseEstimator):
 
 
 def _get_estimator(model_pipeline):
-    """
-    Given an AMPL ModelPipeline object, returns an object that supports the scikit-learn estimator interface (in particular, 
+    """Given an AMPL ModelPipeline object, returns an object that supports the scikit-learn estimator interface (in particular,
     the predict and predict_proba methods), for the purpose of running the permutation_importance function.
 
     Args:
@@ -115,8 +110,7 @@ def _get_estimator(model_pipeline):
         raise ValueError(f"Unsupported model type {pparams.model_type}")
 
 def _get_scorer(score_type):
-    """
-    Returns an sklearn.metrics.Scorer object that can be used to get model performance scores for
+    """Returns an sklearn.metrics.Scorer object that can be used to get model performance scores for
     various input feature sets.
 
     Args:
@@ -153,8 +147,7 @@ def _get_scorer(score_type):
 
 # ===================================================================================================
 def base_feature_importance(model_pipeline=None, params=None):
-    """
-    Minimal baseline feature importance function. Given an AMPL model (or the parameters to train a model),
+    """Minimal baseline feature importance function. Given an AMPL model (or the parameters to train a model),
     returns a data frame with a row for each feature. The columns of the data frame depend on the model type and
     prediction type. If the model is a binary classifier, the columns include  t-statistics and p-values
     for the differences between the means of the active and inactive compounds. If the model is a random forest,
@@ -241,8 +234,7 @@ def base_feature_importance(model_pipeline=None, params=None):
 # ===================================================================================================
 def permutation_feature_importance(model_pipeline=None, params=None, score_type=None, nreps=60, nworkers=1,
                                    result_file=None):
-    """
-    Assess the importance of each feature used by a trained model by permuting the values of each feature in succession
+    """Assess the importance of each feature used by a trained model by permuting the values of each feature in succession
     in the training, validation and test sets, making predictions, computing performance metrics, and measuring the effect
     of scrambling each feature on a particular metric.
 
@@ -259,7 +251,7 @@ def permutation_feature_importance(model_pipeline=None, params=None, score_type=
         'cross_entropy', 'bal_accuracy' and 'avg_precision' are also supported. Score types for which smaller
         values are better, such as 'mae', 'rmse' and 'cross_entropy' are mapped to their negative counterparts.
 
-        nreps (int): Number of repetitions of the permutation and rescoring procedure to perform for each feature; the 
+        nreps (int): Number of repetitions of the permutation and rescoring procedure to perform for each feature; the
         importance values returned will be averages over repetitions. More repetitions will yield better importance
         estimates at the cost of greater computing time.
 
@@ -300,8 +292,7 @@ def permutation_feature_importance(model_pipeline=None, params=None, score_type=
 
 # ===================================================================================================
 def plot_feature_importances(imp_df, importance_col='valid_perm_importance_mean', max_feat=20, ascending=False):
-    """
-    Display a horizontal bar plot showing the relative importances of the most important features or feature clusters, according to
+    """Display a horizontal bar plot showing the relative importances of the most important features or feature clusters, according to
     the results of `permutation_feature_importance`, `cluster_permutation_importance` or a similar function.
 
     Args:
@@ -329,8 +320,7 @@ def plot_feature_importances(imp_df, importance_col='valid_perm_importance_mean'
 # ===================================================================================================
 def display_feature_clusters(model_pipeline=None, params=None, clust_height=1, 
                                    corr_file=None, show_matrix=False, show_dendro=True):
-    """
-    Cluster the input features used in the model specified by `model_pipeline` or `params`, using Spearman correlation
+    """Cluster the input features used in the model specified by `model_pipeline` or `params`, using Spearman correlation
     as a similarity metric. Display a dendrogram and/or a correlation matrix heatmap, so the user can decide the
     height at which to cut the dendrogram in order to split the features into clusters, for input to
     `cluster_permutation_importance`.
@@ -416,8 +406,7 @@ def display_feature_clusters(model_pipeline=None, params=None, clust_height=1,
 # ===================================================================================================
 def cluster_permutation_importance(model_pipeline=None, params=None, score_type=None, clust_height=1, 
                                    result_file=None, nreps=10, nworkers=1):
-    """
-    Divide the input features used in a model into correlated clusters, then assess the importance of the features
+    """Divide the input features used in a model into correlated clusters, then assess the importance of the features
     by iterating over clusters, permuting the values of all the features in the cluster, and measuring the effect
     on the model performance metric given by score_type for the training, validation and test subsets.
 
@@ -433,7 +422,7 @@ def cluster_permutation_importance(model_pipeline=None, params=None, score_type=
 
         result_file (str): Path to a CSV file where a table of features and cluster indices will be written.
 
-        nreps (int): Number of repetitions of the permutation and rescoring procedure to perform for each feature; the 
+        nreps (int): Number of repetitions of the permutation and rescoring procedure to perform for each feature; the
         importance values returned will be averages over repetitions. More repetitions will yield better importance
         estimates at the cost of greater computing time.
 
@@ -519,9 +508,7 @@ def cluster_permutation_importance(model_pipeline=None, params=None, score_type=
 
 # ===================================================================================================
 def _calc_cluster_permutation_scores(estimator, X, y, col_indices, random_state, n_repeats, scorer):
-    """
-    Calculate score of estimator when `col_indices` are all permuted randomly.
-    """
+    """Calculate score of estimator when `col_indices` are all permuted randomly."""
     # Work on a copy of X to to ensure thread-safety in case of threading based
     # parallelism. 
     X_permuted = X.copy()

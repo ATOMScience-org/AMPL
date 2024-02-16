@@ -30,9 +30,7 @@ class CustomConfigParser(configparser.ConfigParser) :
         self.def_sec="default"
 
    def check_get(self,section,keyval) :
-      """
-         Purpose is to check the default section for  a parameter value if its not found in the section
-      """
+      """Purpose is to check the default section for  a parameter value if its not found in the section"""
 
       try :
           rval = super().get(section,keyval)
@@ -44,8 +42,7 @@ class CustomConfigParser(configparser.ConfigParser) :
       return rval;
 
 def parse_args():
-    """
-    Parse commandline arguments and return a Namespace.
+    """Parse commandline arguments and return a Namespace.
 
     User must provide the configuration file to run this script
     """
@@ -92,15 +89,13 @@ def save_combined_data(output_data_dir,output_img_dir, comb, comb_type="pre_cura
 
 class ActivitySummary:
     """Class holds list of targets to be curated
-   
+
     Currently this is responsible for just listing the targets.
-      
+
     """
 
     def __init__(self, df):
-        """
-        Sets column names and reads the table.
-        """
+        """Sets column names and reads the table."""
         self.df = df
 
         #this requires some naming convention
@@ -109,23 +104,24 @@ class ActivitySummary:
         #self.standard_col = 'Standard Type'
 
     def make_filename_by_index(self, index):
-        """
-        Creates a file name with a unique task name that combines the HUGO target name and the 
+        """Creates a file name with a unique task name that combines the HUGO target name and the
         measured paramter aka Standard Type
 
-        :param src: Path to table containing summary for the gpcr targets
+        Args:
+            src: Path to table containing summary for the gpcr targets
 
-        :return: A string filename ending in the .csv extension
+        Returns:
+            A string filename ending in the .csv extension
         """
         r = self.df.iloc[index]
 
         return '%s_%s.csv'%(r[self.target_name_col], r[self.standard_col])
 
     def iterrows(self):
-        """
-        Accessor function for self.sum_df.iterrows()
+        """Accessor function for self.sum_df.iterrows()
 
-        :return: iterator for the rows of the underlying table, self.sum_df
+        Returns:
+            iterator for the rows of the underlying table, self.sum_df
         """
 
         return self.df.iterrows()
@@ -135,7 +131,6 @@ class ActivitySummary:
 
 class AMPLDataset:
     """Manage access to bioactivty datasets
-
 
     """
     def __init__(self) :
@@ -174,14 +169,14 @@ class AMPLDataset:
     def add_base_smiles_col(self):
         """Calculate base rdkit smiles and add them to the dataframe
 
-           Uses AMPL's atomsci.ddm.utils.struct_utils.base_smiles_from_smiles procedure to 
+           Uses AMPL's atomsci.ddm.utils.struct_utils.base_smiles_from_smiles procedure to
            create a canonicalized form of the SMILES input
         """
         self.df[self.base_smiles_col] = self.df[self.smiles_col].apply(su.base_smiles_from_smiles,workers=16)
 
     def drop_na_values_base_smiles(self):
         """Remove rows in dataframe where the canonicalized SMILES string is empty
-    
+
         Called after the add_base_smiles_col() function.  Some raw input SMILES may fail
         to succesfully canonicilize using the current procedure.
 
@@ -197,17 +192,17 @@ class AMPLDataset:
 
     def filter_properties(self,parser,sec) :
         """Remove rows in dataframe based on user defined filtering properties
-  
+
         Currently two filtering properties are supported mol_weight and p_activity (-log activity value)
 
         Args:
             parser (configparser) : holds values of the filtering parameters
-            sec (str) : specifies whether filtering is specified for a specific data source 
+            sec (str) : specifies whether filtering is specified for a specific data source
 
-        Returns: 
+        Returns:
             returns a dataframe with the rows that failed to pass the filtering criteria
 
-        Examples: 
+        Examples:
             Set the following parameters in the configuration file
             filter on molecular weight outside the range of 0 to 2000 inclusive
             mol_weight = 0:2000
@@ -238,8 +233,7 @@ class AMPLDataset:
         return rej
 
     def combine_replicates(self,data_frame,ignore_compound_id, tolerance=10,max_std=1,output_value_col=None, label_actives=True, active_thresh=None,date_col=None) :
-        """
-            Combine replicates by taking average and discarding molecules with high variation in the measured value
+        """Combine replicates by taking average and discarding molecules with high variation in the measured value
 
         Args:
             data_frame: target specific subset of data_frame
@@ -249,10 +243,10 @@ class AMPLDataset:
             output_value_col: Optional; the column name to use in the output data frame for the averaged data.
             label_actives: If True, generate an additional column 'active' indicating whether the mean value is above a threshold specified by active_thresh.
             active_thresh: The threshold to be used for labeling compounds as active or inactive.
-                           If active_thresh is None (the default), the threshold used is the minimum reported value across all records
-                           with left-censored values (i.e., those with '<' in the relation column).
+                       If active_thresh is None (the default), the threshold used is the minimum reported value across all records
+                       with left-censored values (i.e., those with '<' in the relation column).
             date_col: The input data frame column containing dates when the assay data was uploaded. If not None, the code will assign the earliest
-                     date among replicates to the aggregate data record.
+                 date among replicates to the aggregate data record.
         Returns
             A data frame of compounds with averaged values and a dataframe with compounds that were rejected as having too much variation
         """
@@ -292,19 +286,17 @@ class AMPLDataset:
         return data_frame,reject 
 
 class CombineAMPLDataset:
-    """
-        Class responsibe for combining data from multiple sources into single data frame
-    """
+    """Class responsibe for combining data from multiple sources into single data frame"""
     def __init__(self, ds_lst, input_dtype):
-        """
-        Enumerate through multiple datasets taken from multiple sources, use first datasource to set the column header definitions 
+        """Enumerate through multiple datasets taken from multiple sources, use first datasource to set the column header definitions
         and concatenate
-         
+
         Args:
             ds_lst: list of AMPLDataset objects to be combined into single data frame
-            input_dtype: pre_curated or raw  ; if data is raw it means we will be running the de duplication functions on the 
+            input_dtype: pre_curated or raw  ; if data is raw it means we will be running the de duplication functions on the
                             original data, not the individually curated data sources
-                            TODO:  'raw' is not implemented yet!! See below
+        
+        TODO:  'raw' is not implemented yet!! See below
         """
 
         """

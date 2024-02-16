@@ -11,18 +11,17 @@ import atomsci.ddm.utils.file_utils as futils
 from atomsci.ddm.pipeline import parameter_parser as parse
 
 def get_multiple_models_metadata(*args):
-    """
-    A function that takes model tar.gz file(s) and extract the metadata (and if applicable, model metrics)
-    
+    """A function that takes model tar.gz file(s) and extract the metadata (and if applicable, model metrics)
+
     Args:
         *args: Variable length argument list of model tar.gz file(s)
 
     Returns:
         a list of models' most important model parameters and metrics. or an empty array if it fails to parse the input file(s).
-        
+
     Exception:
         IOError: Problem access the file or if fails to parse the input file to an AMPL model
-    
+
     """
     metadata_list = []
     for arg in args:
@@ -77,8 +76,7 @@ class ModelFileReader:
                     self.pparams = parse.wrapper(self.metadata_dict)
                 
     def get_descriptor_type(self):
-        """
-        Returns:
+        """Returns:
             (str): model descriptor type
 
         """
@@ -89,24 +87,21 @@ class ModelFileReader:
         return descriptor_type
 
     def get_model_parameters(self):
-        """
-        Returns:
+        """Returns:
             (str): model parameters
 
         """
         return self.metadata_dict.get("model_parameters")
 
     def get_model_uuid(self):
-        """
-        Returns:
+        """Returns:
             (str): model uuid
 
         """
         return self.metadata_dict.get("model_uuid")
 
     def get_version(self):
-        """
-        Returns:
+        """Returns:
             (str): model version
 
         """
@@ -114,8 +109,7 @@ class ModelFileReader:
         return version
 
     def get_featurizer(self):
-        """
-        Returns:
+        """Returns:
             (str): model featurizer
 
         """
@@ -123,32 +117,28 @@ class ModelFileReader:
         return featurizer
 
     def get_model_type(self):
-        """
-        Returns:
+        """Returns:
             (str): model type
 
         """
         return self.get_model_parameters().get('model_type')
 
     def get_training_dataset(self):
-        """
-        Returns:
+        """Returns:
             (str): model training dataset
 
         """
         return self.metadata_dict.get('training_dataset')
 
     def get_dataset_key(self):
-        """
-        Returns:
+        """Returns:
             (str): model dataset key
 
         """
         return self.get_training_dataset().get('dataset_key')
 
     def get_split_csv(self):
-        """
-        Returns:
+        """Returns:
             (str): model split csv
 
         """
@@ -156,16 +146,14 @@ class ModelFileReader:
         return f'{no_csv}_{self.get_split_strategy()}_{self.get_splitter()}_{self.get_split_uuid()}.csv'
 
     def get_splitting_parameters(self):
-        """
-        Returns:
+        """Returns:
             (str): model splitting parameters
 
         """
         return self.metadata_dict.get('splitting_parameters')
 
     def get_split_uuid(self):
-        """
-        Returns:
+        """Returns:
             (str): model split_uuid
 
         """
@@ -173,8 +161,7 @@ class ModelFileReader:
         return split_uuid
 
     def get_split_strategy(self):
-        """
-        Returns:
+        """Returns:
             (str): model split strategy
 
         """
@@ -182,8 +169,7 @@ class ModelFileReader:
         return split_strat
 
     def get_splitter(self):
-        """
-        Returns:
+        """Returns:
             (str): model splitter
 
         """
@@ -191,33 +177,29 @@ class ModelFileReader:
         return splitter
 
     def get_id_col(self):
-        """
-        Returns:
+        """Returns:
             (str): model id column
 
         """
         return self.get_training_dataset().get('id_col')
 
     def get_smiles_col(self):
-        """
-        Returns:
+        """Returns:
             (str): model smile columns
 
         """
         return self.get_training_dataset().get('smiles_col')
 
     def get_response_cols(self):
-        """
-        Returns:
+        """Returns:
             (str): model response columns
 
         """
         return self.get_training_dataset().get('response_cols')
     
     def get_model_info(self):
-        """
-        Extract the model metadata (and if applicable, model metrics) 
-        
+        """Extract the model metadata (and if applicable, model metrics)
+
         Returns:
             a dictionary of the most important model parameters and metrics.
         """

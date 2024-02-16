@@ -1,6 +1,4 @@
-"""
-Plotting routines for visualizing performance of regression and classification models
-"""
+"""Plotting routines for visualizing performance of regression and classification models"""
 
 import os
 
@@ -31,8 +29,7 @@ matplotlib.rc('axes', labelsize=12)
 
 #------------------------------------------------------------------------------------------------------------------------
 def plot_pred_vs_actual(MP, epoch_label='best', threshold=None, error_bars=False, pdf_dir=None):
-    """
-    Plot predicted vs actual values from a trained regression model for each split subset (train,
+    """Plot predicted vs actual values from a trained regression model for each split subset (train,
     valid, and test).
 
     Args:
@@ -152,8 +149,7 @@ def plot_pred_vs_actual(MP, epoch_label='best', threshold=None, error_bars=False
 
 #------------------------------------------------------------------------------------------------------------------------
 def plot_pred_vs_actual_from_df(pred_df, actual_col='avg_pIC50_actual', pred_col='avg_pIC50_pred', label='Prediction of Test Set', ax=None):
-    """
-    Plot predicted vs actual values from a trained regression model for a given dataframe.
+    """Plot predicted vs actual values from a trained regression model for a given dataframe.
 
     Args:
         pred_df (Pandas.DataFrame): A dataframe containing predicted and actual values for each compound.
@@ -188,8 +184,7 @@ def plot_pred_vs_actual_from_df(pred_df, actual_col='avg_pIC50_actual', pred_col
 
 #------------------------------------------------------------------------------------------------------------------------
 def plot_pred_vs_actual_from_file(model_path):
-    """
-    Plot predicted vs actual values from a trained regression model from a model tarball.
+    """Plot predicted vs actual values from a trained regression model from a model tarball.
 
     Args:
         model_path (str): Path to an AMPL model tar.gz file.
@@ -259,8 +254,7 @@ def plot_pred_vs_actual_from_file(model_path):
 
 #------------------------------------------------------------------------------------------------------------------------
 def plot_perf_vs_epoch(MP, pdf_dir=None):
-    """
-    Plot the current NN model's standard performance metric (r2_score or roc_auc_score) vs epoch number for the training,
+    """Plot the current NN model's standard performance metric (r2_score or roc_auc_score) vs epoch number for the training,
     validation and test subsets. If the model was trained with k-fold CV, plot shading for the validation set out to += 1 SD from the mean
     score metric values, and plot the training and test set metrics from the final model retraining rather than the cross-validation
     phase. Make a second plot showing the validation set model choice score used for ranking training epochs and other hyperparameters
@@ -347,8 +341,7 @@ def plot_perf_vs_epoch(MP, pdf_dir=None):
 
 #------------------------------------------------------------------------------------------------------------------------
 def _get_perf_curve_data(MP, epoch_label, curve_type='ROC'):
-    """
-    Common code for ROC and precision-recall curves. Returns true classes and active class probabilities
+    """Common code for ROC and precision-recall curves. Returns true classes and active class probabilities
     for each training/test data subset.
 
     Args:
@@ -396,8 +389,7 @@ def _get_perf_curve_data(MP, epoch_label, curve_type='ROC'):
 
 #------------------------------------------------------------------------------------------------------------------------
 def plot_ROC_curve(MP, epoch_label='best', pdf_dir=None):
-    """
-    Plot ROC curves for a classification model.
+    """Plot ROC curves for a classification model.
 
     Args:
         MP (`ModelPipeline`): Pipeline object for a model that was trained in the current Python session.
@@ -451,8 +443,7 @@ def plot_ROC_curve(MP, epoch_label='best', pdf_dir=None):
 
 #------------------------------------------------------------------------------------------------------------------------
 def plot_prec_recall_curve(MP, epoch_label='best', pdf_dir=None):
-    """
-    Plot precision-recall curves for a classification model.
+    """Plot precision-recall curves for a classification model.
 
     Args:
         MP (`ModelPipeline`): Pipeline object for a model that was trained in the current Python session.
@@ -508,8 +499,7 @@ def plot_umap_feature_projections(MP, ndim=2, num_neighbors=20, min_dist=0.1,
                                   fit_to_train=True,
                                   dist_metric='euclidean', dist_metric_kwds={}, 
                                   target_weight=0, random_seed=17, pdf_dir=None):
-    """
-    Projects features of a model's input dataset using UMAP to 2D or 3D coordinates and draws a scatterplot.
+    """Projects features of a model's input dataset using UMAP to 2D or 3D coordinates and draws a scatterplot.
     Shape-codes plot markers to indicate whether the associated compound was in the training, validation or
     test set. For classification models, also uses the marker shape to indicate whether the compound's class was correctly
     predicted, and uses color to indicate whether the true class was active or inactive. For regression models, uses
@@ -715,8 +705,7 @@ def plot_umap_feature_projections(MP, ndim=2, num_neighbors=20, min_dist=0.1,
 def plot_umap_train_set_neighbors(MP, num_neighbors=20, min_dist=0.1, 
                                   dist_metric='euclidean', dist_metric_kwds={}, 
                                   random_seed=17, pdf_dir=None):
-    """
-    Project features of whole dataset to 2 dimensions, without regard to response values. Plot training & validation set
+    """Project features of whole dataset to 2 dimensions, without regard to response values. Plot training & validation set
     or training and test set compounds, color- and symbol-coded according to actual classification and split set.
     The plot does not take predicted values into account at all. Does not work with regression data.
 
@@ -738,7 +727,6 @@ def plot_umap_train_set_neighbors(MP, num_neighbors=20, min_dist=0.1,
         random_seed (int): Seed for random number generator.
 
         pdf_dir (str): If given, output the plot to a PDF file in the given directory.
-
 
     """
     ndim = 2

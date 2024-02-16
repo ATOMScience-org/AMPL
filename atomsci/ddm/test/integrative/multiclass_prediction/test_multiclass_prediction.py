@@ -127,10 +127,9 @@ def test_out_of_range():
     print('DONE!!!')
 
 def test_bad_split():
-    '''
-    Every train, valid, test, split needs to have all classes.
+    """Every train, valid, test, split needs to have all classes.
     In this test the test subset does not have any 1 class samples
-    '''
+    """
     result_dir = tu.relative_to_file(__file__, 'result')
     clean(result_dir)
 

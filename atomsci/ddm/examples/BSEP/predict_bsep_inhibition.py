@@ -85,9 +85,7 @@ def predict_activity(args):
     
 # =====================================================================================================
 def parse_params():
-    """
-    Parse command line arguments
-    """
+    """Parse command line arguments"""
     parser = argparse.ArgumentParser(
         description='Script to predict BSEP inhibition for a list of compounds using a classification model.')
     parser.add_argument(

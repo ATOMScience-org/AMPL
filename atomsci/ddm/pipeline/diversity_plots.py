@@ -1,6 +1,4 @@
-"""
-Plotting routines for visualizing chemical diversity of datasets
-"""
+"""Plotting routines for visualizing chemical diversity of datasets"""
 
 import os
 import sys
@@ -85,8 +83,7 @@ def plot_dataset_dist_distr(dataset, feat_type, dist_metric, task_name, **metric
 #------------------------------------------------------------------------------------------------------------------
 def plot_tani_dist_distr(df, smiles_col, df_name, radius=2, subset_col='subset', subsets=False, 
                          ref_subset='train', plot_width=6, ndist_max=None, **metric_kwargs):
-    """
-    Generate a density plot showing the distribution of nearest neighbor distances between 
+    """Generate a density plot showing the distribution of nearest neighbor distances between
     ecfp feature vectors, using the Tanimoto metric. Optionally split by subset.
 
     Args:
@@ -169,8 +166,7 @@ def plot_tani_dist_distr(df, smiles_col, df_name, radius=2, subset_col='subset',
 #------------------------------------------------------------------------------------------------------------------
 def diversity_plots(dset_key, datastore=True, bucket='public', title_prefix=None, ecfp_radius=4, umap_file=None, out_dir=None,
                     id_col='compound_id', smiles_col='rdkit_smiles', is_base_smiles=False, response_col=None, max_for_mcs=300, colorpal=None):
-    """
-    Plot visualizations of diversity for an arbitrary table of compounds. At minimum, the file should contain
+    """Plot visualizations of diversity for an arbitrary table of compounds. At minimum, the file should contain
     columns for a compound ID and a SMILES string. Produces a clustered heatmap display of Tanimoto distances between
     compounds along with a 2D UMAP projection plot based on ECFP fingerprints, with points colored according to the response
     variable.
@@ -365,9 +361,7 @@ def diversity_plots(dset_key, datastore=True, bucket='public', title_prefix=None
 #------------------------------------------------------------------------------------------------------------------
 
 def _sa200_diversity_plots(ecfp_radius=6):
-    """
-    Plot visualizations of diversity for the 208 compounds selected for phenotypic assays.
-    """
+    """Plot visualizations of diversity for the 208 compounds selected for phenotypic assays."""
     sa200_file = '/ds/projdata/gsk_data/ExperimentalDesign/AS200_TS_12Oct18.csv'
     out_dir = '/usr/local/data/sa200'
     file_prefix = 'sa200'
@@ -377,9 +371,7 @@ def _sa200_diversity_plots(ecfp_radius=6):
 
 #------------------------------------------------------------------------------------------------------------------
 def _bsep_diversity_plots(ecfp_radius=6):
-    """
-    Plot visualizations of diversity for the compounds in the BSEP PIC50 dataset.
-    """
+    """Plot visualizations of diversity for the compounds in the BSEP PIC50 dataset."""
     dset_key = 'singletask_liability_datasets/ABCB11_Bile_Salt_Export_Pump_BSEP_membrane_vesicles_Imaging_PIC50.csv'
     out_dir = '/usr/local/data/bsep'
     os.makedirs(out_dir, exist_ok=True)
@@ -389,9 +381,7 @@ def _bsep_diversity_plots(ecfp_radius=6):
 
 #------------------------------------------------------------------------------------------------------------------
 def _obach_diversity_plots(ecfp_radius=6):
-    """
-    Plot visualizations of diversity for the compounds in the Obach, Lombardo et al PK dataset
-    """
+    """Plot visualizations of diversity for the compounds in the Obach, Lombardo et al PK dataset"""
     # TODO: Put this dataset in the datastore where everybody else can see it
     cmpd_file = '/usr/local/data/diversity_plots/obach/LombardoSupplemental_Data_rdsmiles.csv'
     out_dir = '/usr/local/data/diversity_plots/obach'
@@ -462,9 +452,7 @@ def _obach_diversity_plots(ecfp_radius=6):
 
 #------------------------------------------------------------------------------------------------------------------
 def _solubility_diversity_plots(ecfp_radius=6):
-    """
-    Plot visualizations of diversity for the compounds in the Delaney and GSK aqueous solubility datasets
-    """
+    """Plot visualizations of diversity for the compounds in the Delaney and GSK aqueous solubility datasets"""
     data_dir = '/ds/data/gsk_data/GSK_datasets/solubility'
     cmpd_file = '%s/delaney-processed.csv' % data_dir
     out_dir = '/usr/local/data/diversity_plots/solubility'
@@ -479,9 +467,7 @@ def _solubility_diversity_plots(ecfp_radius=6):
 
 #------------------------------------------------------------------------------------------------------------------
 def _compare_solubility_datasets(ecfp_radius=6):
-    """
-    Plot projections of Delaney and GSK solubility datasets using the same UMAP projectors.
-    """
+    """Plot projections of Delaney and GSK solubility datasets using the same UMAP projectors."""
     data_dir = '/ds/data/gsk_data/GSK_datasets/solubility'
     del_cmpd_file = '%s/delaney-processed.csv' % data_dir
     out_dir = '/usr/local/data/diversity_plots/solubility'
@@ -564,9 +550,7 @@ def _compare_solubility_datasets(ecfp_radius=6):
 
 #------------------------------------------------------------------------------------------------------------------
 def _compare_obach_gsk_aq_sol(ecfp_radius=6):
-    """
-    Plot projections of Obach and GSK solubility datasets using the same UMAP projectors.
-    """
+    """Plot projections of Obach and GSK solubility datasets using the same UMAP projectors."""
     obach_cmpd_file = '/usr/local/data/diversity_plots/obach/LombardoSupplemental_Data_rdsmiles.csv'
     out_dir = '/usr/local/data/diversity_plots/obach'
     obach_id_col = 'Name' 
@@ -630,8 +614,7 @@ def _compare_obach_gsk_aq_sol(ecfp_radius=6):
 
 #------------------------------------------------------------------------------------------------------------------
 def _liability_dset_diversity(bucket='public', feat_type='descriptors', dist_metric='cosine', **metric_kwargs):
-    """
-    Load datasets from datastore, featurize them, and plot distributions of their inter-compound
+    """Load datasets from datastore, featurize them, and plot distributions of their inter-compound
     distances.
     """
     log = logging.getLogger('ATOM')
@@ -695,8 +678,7 @@ def _liability_dset_diversity(bucket='public', feat_type='descriptors', dist_met
 # ------------------------------------------------------------------------------------------------------------------
 def _get_dset_diversity(dset_key, ds_client, bucket='public', feat_type='descriptors', dist_metric='cosine',
                        **metric_kwargs):
-    """
-    Load datasets from datastore, featurize them, and plot distributions of their inter-compound
+    """Load datasets from datastore, featurize them, and plot distributions of their inter-compound
     distances.
 
     TODO: Update this function so that it works on local files as well as datastore datasets. Remove the dependency on

@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 
 # noinspection SpellCheckingInspection
-"""
-Script to generate hyperparameter combinations based on input params and send off jobs to a slurm system.
+"""Script to generate hyperparameter combinations based on input params and send off jobs to a slurm system.
 Author: Amanda Minnich
 """
 
@@ -182,16 +181,14 @@ def permutate_NNlayer_combo_params(layer_nums, node_nums, dropout_list, max_fina
     The permutation will make the NN funnel shaped, so that the next layer can only be smaller or of the same size of the current layer.
 
     Example:
-
-    permutate_NNlayer_combo_params([2], [4,8,16], [0], 16)
-    returns [[16, 4], [16, 8], [8,4]] [[0,0],[0,0],[0,0]]
+        permutate_NNlayer_combo_params([2], [4,8,16], [0], 16)
+        returns [[16, 4], [16, 8], [8,4]] [[0,0],[0,0],[0,0]]
 
     If there are duplicates of the same size, it will create consecutive layers of the same size.
 
     Example:
-
-    permutate_NNlayer_combo_params([2], [4,8,8], [0], 16)
-    returns [[8, 8], [8, 4]] [[0,0],[0,0]]
+        permutate_NNlayer_combo_params([2], [4,8,8], [0], 16)
+        returns [[8, 8], [8, 4]] [[0,0],[0,0]]
 
     Args:
         layer_nums: specify numbers of layers.
@@ -1125,8 +1122,7 @@ class HyperparameterSearch(object):
         return commands
 
 class GridSearch(HyperparameterSearch):
-    """Generates fixed steps on a grid for a given hyperparameter range
-    """
+    """Generates fixed steps on a grid for a given hyperparameter range"""
 
     def __init__(self, params):
         super().__init__(params)
@@ -1170,8 +1166,7 @@ class GridSearch(HyperparameterSearch):
         return new_dict
 
 class RandomSearch(HyperparameterSearch):
-    """Generates the specified number of random parameter values for within the specified range
-    """
+    """Generates the specified number of random parameter values for within the specified range"""
 
     def __init__(self, params):
         super().__init__(params)
@@ -1214,8 +1209,7 @@ class RandomSearch(HyperparameterSearch):
         return new_dict
 
 class GeometricSearch(HyperparameterSearch):
-    """Generates parameter values in logistic steps, rather than linear like GridSearch does
-    """
+    """Generates parameter values in logistic steps, rather than linear like GridSearch does"""
 
     def __init__(self, params):
         super().__init__(params)
@@ -1259,8 +1253,7 @@ class GeometricSearch(HyperparameterSearch):
         return new_dict
 
 class UserSpecifiedSearch(HyperparameterSearch):
-    """Generates combinations using the user-specified steps
-    """
+    """Generates combinations using the user-specified steps"""
 
     def __init__(self, params):
         super().__init__(params)
@@ -1332,14 +1325,14 @@ class HyperOptSearch():
 
             method: supported searching schemes in HyperOpt include: choice, uniform, loguniform, and uniformint, see https://github.com/hyperopt/hyperopt/wiki/FMin for details.
 
-            parameters:
-                choice: all values to search from, separated by comma, e.g. choice|0.0001,0.0005,0.0002,0.001
+    parameters:
+        choice: all values to search from, separated by comma, e.g. choice|0.0001,0.0005,0.0002,0.001
 
-                uniform: low and high bound of the interval to serach, e.g. uniform|0.00001,0.001
+        uniform: low and high bound of the interval to serach, e.g. uniform|0.00001,0.001
 
-                loguniform: low and high bound (in natural log) of the interval to serach, e.g. loguniform|-13.8,-6.9
+        loguniform: low and high bound (in natural log) of the interval to serach, e.g. loguniform|-13.8,-6.9
 
-                uniformint: low and high bound of the interval to serach, e.g. uniformint|8,256
+        uniformint: low and high bound of the interval to serach, e.g. uniformint|8,256
 
         ls: similar as learning_rate, specify number of layers and size of each one.
 
@@ -1680,7 +1673,7 @@ class HyperOptSearch():
 def parse_params(param_list):
     """Parse paramters
 
-    Parses parameters using parameter_parser.wrapper and 
+    Parses parameters using parameter_parser.wrapper and
     filters out unnecessary parameters. Returns what an
     argparse.Namespace
 
@@ -1723,18 +1716,18 @@ def parse_params(param_list):
     return params
 
 def build_search(params):
-    """ Builds HyperparamterSearch object
+    """Builds HyperparamterSearch object
 
-        Looks at params.search_type and builds a HyperparamSearch object
-        of the correct flavor. Will exit if the search_type is not
-        recognized.
+       Looks at params.search_type and builds a HyperparamSearch object
+       of the correct flavor. Will exit if the search_type is not
+       recognized.
 
     Args:
-        params (Namespace): Namespace returned by 
-            atomsci.ddm.pipeline.parameter_parser.wrapper()
+       params (Namespace): Namespace returned by
+           atomsci.ddm.pipeline.parameter_parser.wrapper()
 
     Returns:
-        HyperparameterSearch
+       HyperparameterSearch
     """
     if params.search_type == 'grid':
         hs = GridSearch(params)
@@ -1754,13 +1747,13 @@ def build_search(params):
 
 def main():
     """Entry point when script is run
-    
+
     Args:
         None
 
     Returns:
         None
-    
+
     """
 
     params = parse_params(sys.argv[1:])

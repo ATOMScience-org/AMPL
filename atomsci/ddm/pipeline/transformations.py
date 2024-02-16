@@ -1,5 +1,4 @@
-"""
-Classes providing different methods of transforming response data and/or features in datasets, beyond those
+"""Classes providing different methods of transforming response data and/or features in datasets, beyond those
 provided by DeepChem.
 """
 
@@ -26,8 +25,7 @@ transformed_featurizers = ['descriptors', 'computed_descriptors']
 
 # ****************************************************************************************
 def transformers_needed(params):
-    """
-    Returns a boolean indicating whether response and/or feature transformers would be
+    """Returns a boolean indicating whether response and/or feature transformers would be
     created for a model with the given parameters.
 
     Args:
@@ -148,8 +146,7 @@ def get_transformer_specific_metadata(params):
 # ****************************************************************************************
 
 class UMAPTransformer(Transformer):
-    """
-    Dimension reduction transformations using the UMAP algorithm.
+    """Dimension reduction transformations using the UMAP algorithm.
 
     Attributes:
         mapper (UMAP) : UMAP transformer
@@ -206,9 +203,7 @@ class UMAPTransformer(Transformer):
 # ****************************************************************************************
 
 class NormalizationTransformerMissingData(NormalizationTransformer):
-    """
-    Test extension to check for missing data
-    """
+    """Test extension to check for missing data"""
     def __init__(self,
                  transform_X=False,
                  transform_y=False,
@@ -263,8 +258,7 @@ class NormalizationTransformerMissingData(NormalizationTransformer):
         return (X, y, w, ids)
 
     def untransform(self, z: np.ndarray) -> np.ndarray:
-        """
-        Undo transformation on provided data.
+        """Undo transformation on provided data.
 
         Overrides DeepChem NormalizationTransformer method to fix issue #1821.
 
@@ -310,9 +304,7 @@ class NormalizationTransformerMissingData(NormalizationTransformer):
 # ****************************************************************************************
 
 class NormalizationTransformerHybrid(NormalizationTransformer):
-    """
-    Test extension to check for missing data
-    """
+    """Test extension to check for missing data"""
     def __init__(self,
                  transform_X=False,
                  transform_y=False,

@@ -20,9 +20,7 @@ import integrative_utilities
 
 
 def clean():
-    """
-    Clean test files
-    """
+    """Clean test files"""
     if not llnl_utils.is_lc_system():
         assert True
         return
@@ -42,9 +40,7 @@ def clean():
 
 
 def curate():
-    """
-    Curate dataset for model fitting
-    """
+    """Curate dataset for model fitting"""
     with zipfile.ZipFile('ci8b00785_si_001.zip', 'r') as zip_ref:
         futils.safe_extract(zip_ref, 'clearance')
 
@@ -89,9 +85,7 @@ def curate():
 
 
 def download():
-    """
-    Separate download function so that download can be run separately if there is no internet.
-    """
+    """Separate download function so that download can be run separately if there is no internet."""
     if (not os.path.isfile('ci8b00785_si_001.zip')):
         integrative_utilities.download_save(
             'https://pubs.acs.org/doi/suppl/10.1021/acs.jcim.8b00785/suppl_file/ci8b00785_si_001.zip', 'ci8b00785_si_001.zip', verify=False)
@@ -100,9 +94,7 @@ def download():
 
 
 def test():
-    """
-    Test full model pipeline: Curate data, fit model, and predict property for new compounds
-    """
+    """Test full model pipeline: Curate data, fit model, and predict property for new compounds"""
 
     # Clean
     # -----

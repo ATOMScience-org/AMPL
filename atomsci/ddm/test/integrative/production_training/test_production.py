@@ -14,9 +14,7 @@ def clean(result_dir):
         shutil.rmtree(result_dir)
 
 def test_production():
-    '''
-    Train a model in production mode
-    '''
+    """Train a model in production mode"""
     result_dir = tu.relative_to_file(__file__, 'result')
     clean(result_dir)
 
@@ -103,9 +101,7 @@ def test_production():
     assert result_df.best_epoch[0] == (max_epochs-1)
 
 def test_production_retrain():
-    '''
-    retrain a model in production mode
-    '''
+    """retrain a model in production mode"""
     result_dir = tu.relative_to_file(__file__, 'result')
     clean(result_dir)
     new_result_dir = tu.relative_to_file(__file__, 'new_result')
