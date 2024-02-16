@@ -924,8 +924,11 @@ class ModelPipeline:
         if len(missing_ids) > 0:
             missing_df = pd.DataFrame({self.params.id_col: missing_ids})
             result_df = pd.concat([result_df, missing_df], ignore_index=True)
-        # sort in ascending order, recovering the original order
-        result_df.sort_values(by=[self.params.id_col], ascending=True, inplace=True)
+        # sort in ascending order, recovering the original order, keeping in mind that string representations
+        # of ints don't sort in the same order as the corresponding ints.
+        result_df['original_sort_order'] = [int(s) for s in result_df[self.params.id_col].values]
+        result_df.sort_values(by='original_sort_order', ascending=True, inplace=True)
+        result_df = result_df.drop(columns=['original_sort_order'])
         # map back to original id values
         result_df[self.params.id_col] = result_df[self.params.id_col].map(id_map)
 
