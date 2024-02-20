@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
-"""
-Script to create a new version of a model tarball file with the training dataset dataset_key
+"""Script to create a new version of a model tarball file with the training dataset dataset_key
 parameter (in model_metadata.json) pointing to a different file path. This may be needed when the
 model was trained on a different computer system or with data in a private directory, and the model
 is subsequently made publicly available. In this case the training data needs to be copied to an
@@ -20,8 +19,7 @@ from atomsci.ddm.utils import checksum_utils as cu
 from atomsci.ddm.utils import file_utils as futils
 
 def check_data_accessibility(model_path, verbose=True):
-    """
-    Check the dataset_key parameters in one or more AMPL model tarball files 
+    """Check the dataset_key parameters in one or more AMPL model tarball files
     to see if the associated dataset files are readable. If `model_path` is a directory, the files
     within it with .tar.gz extensions are checked; otherwise it is interpreted as a path to a model
     tarball. Returns a dictionary with tarball paths as keys and tuples as values, with the first
@@ -55,8 +53,7 @@ def check_data_accessibility(model_path, verbose=True):
 
 
 def patch_model_dataset_key(model_path, new_model_path, dataset_path, require_hash_match=True):
-    """
-    Create a new version of the model tarball given by `model_path` with its dataset_key parameter
+    """Create a new version of the model tarball given by `model_path` with its dataset_key parameter
     replaced with `dataset_path`, and write it to `new_model_path`.
 
     Args:
@@ -66,7 +63,7 @@ def patch_model_dataset_key(model_path, new_model_path, dataset_path, require_ha
 
         dataset_path (str): New path for training dataset.
 
-        require_hash_match (bool): If True, do not create a new tarball if the checksum for the file 
+        require_hash_match (bool): If True, do not create a new tarball if the checksum for the file
         at `dataset_path` doesn't match the checksum stored in the model metadata.
     """
 

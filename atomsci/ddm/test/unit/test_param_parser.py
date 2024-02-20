@@ -119,9 +119,7 @@ hierarchical_input_dict = {
 command_line_namespace_inputs = [str(list_inputs_namespace)]
 command_line_dict_inputs = [str(list_inputs_dict)]
 
-'''
-
-# The file metadata_test.json is an example config file from the model zoo. 
+"""# The file metadata_test.json is an example config file from the model zoo.
 def test_model_metadata_input_as_dict():
     with open(currentdir + '/metadata_test.json') as f:
         config = json.loads(f.read())
@@ -133,7 +131,7 @@ def test_model_metadata_input_as_dict():
     test.append(params.max_epochs == 3
     test.append(params.layer_sizes == [1000,500]
     test.append(params.result_dir == '/usr/local/data/delaney_refactored2'
-'''
+"""
 
 def test_default_params_json():
     params = parse.wrapper(currentdir + '/config_required_inputs.json')

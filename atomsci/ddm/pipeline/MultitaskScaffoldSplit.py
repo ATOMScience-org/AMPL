@@ -158,7 +158,7 @@ def dist_smiles_from_ecfp(ecfp1: List[rdkit.DataStructs.cDataStructs.ExplicitBit
 
 def _generate_scaffold_dist_matrix(scaffold_lists: List[Set[int]],
                                 ecfp_features: List[rdkit.DataStructs.cDataStructs.ExplicitBitVect]) -> np.ndarray:
-        """Returns a nearest neighbors distance matrix between each scaffold. 
+        """Returns a nearest neighbors distance matrix between each scaffold.
 
         The distance between two scaffolds is defined as the
         the distance between the two closest compounds between the two
@@ -253,7 +253,7 @@ class MultitaskScaffoldSplitter(Splitter):
 
     def expand_scaffolds(self,
                         scaffold_list: List[int]) -> List[int]:
-        '''Turns a list of scaffold indicies into a list of compound indicies
+        """Turns a list of scaffold indicies into a list of compound indicies
 
         Given a list of scaffold indices in self.ss return a list of compound
         indicies into self.dataset
@@ -267,14 +267,14 @@ class MultitaskScaffoldSplitter(Splitter):
         -------
         compound_list List[int]:
             A list of compound indicies into dataset
-        '''
+        """
         compound_list = [i for scaffold in scaffold_list for i in self.ss[scaffold]]
 
         return compound_list
 
     def split_chromosome_to_compound_split(self, 
                             split_chromosome: List[str]) -> Tuple:
-        '''Turns a split of scaffolds into a split of compounds
+        """Turns a split of scaffolds into a split of compounds
 
         A chromosome is represented as a list of strings. Each string is
         either 'train', 'valid', or 'test' which means that corresponding
@@ -291,7 +291,7 @@ class MultitaskScaffoldSplitter(Splitter):
             A tuple of length 3. Each element of this tuple contains a list of
         indexes into self.dataset. You can use these indexes to pick out compounds
         that belong to each partition
-        '''
+        """
 
         train_part = self.expand_scaffolds([scaff_ind for scaff_ind, part in enumerate(split_chromosome) if part=='train'])
         valid_part = self.expand_scaffolds([scaff_ind for scaff_ind, part in enumerate(split_chromosome) if part=='valid'])
@@ -305,11 +305,11 @@ class MultitaskScaffoldSplitter(Splitter):
                             split_chromosome: List[str],
                             part_a: str,
                             part_b: str) -> float:
-        '''Grades a chromosome based on how well the partitions are separated
+        """Grades a chromosome based on how well the partitions are separated
 
         Grades the quality of the split based on which scaffolds were alloted to
         which partitions. The difference between two partitions (part_a and part_b)
-        is measured as the minimum distance between all pairs of scaffolds between 
+        is measured as the minimum distance between all pairs of scaffolds between
         the two given partitions
 
         Parameters
@@ -322,7 +322,7 @@ class MultitaskScaffoldSplitter(Splitter):
         -------
         score: float
             Floating point value beteween 0-1. 1 is the best score and 0 is the worst
-        '''
+        """
         train_scaffolds = [i for i, part in enumerate(split_chromosome) if part==part_a]
         test_scaffolds = [i for i, part in enumerate(split_chromosome) if part==part_b]
 
@@ -455,7 +455,7 @@ class MultitaskScaffoldSplitter(Splitter):
              dataset: Dataset) -> None:
         """Creates super scaffolds used in splitting
 
-        This function sets a 
+        This function sets a
 
         Parameters
         ----------
@@ -849,7 +849,7 @@ def split_using_MultitaskScaffoldSplit(df: pd.DataFrame,
                     target_cols: List[str],
                     smiles_col: str,
                     **kwargs) -> pd.DataFrame:
-    '''Produces an AMPL compatible split file given a dataframe
+    """Produces an AMPL compatible split file given a dataframe
 
     Parameters
     ----------
@@ -870,7 +870,7 @@ def split_using_MultitaskScaffoldSplit(df: pd.DataFrame,
         Returns a DataFrame that's compatible with AMPL. Plus
         an extra column that shows which scaffold each compound was
         assigned to.
-    '''
+    """
 
     # Build a deepchem Dataset. X isn't used and can be ignored
     X = np.ones((len(df), 10))
@@ -892,11 +892,10 @@ def split_using_MultitaskScaffoldSplit(df: pd.DataFrame,
     return split_df
 
 def split_with(df, splitter, smiles_col, id_col, response_cols, **kwargs):
-    '''
-    Given a dataframe and a splitter, perform split
+    """Given a dataframe and a splitter, perform split
     Return a split dataframe, with base_rdkit_smiles as key
     and subset with train, valid, test
-    '''
+    """
     # Build a deepchem Dataset. X isn't used and can be ignored
     X = np.ones((len(df), 10))
     y, w = make_y_w(df, response_cols)

@@ -4,22 +4,6 @@ utils package
 Submodules
 ----------
 
-utils.checksum\_utils module
--------------------------------------
-
-.. automodule:: utils.checksum_utils
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-utils.compare\_split\_csv module
--------------------------------------
-
-.. automodule:: utils.compare_split_csv
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 utils.compare\_splits\_plots module
 -------------------------------------
 

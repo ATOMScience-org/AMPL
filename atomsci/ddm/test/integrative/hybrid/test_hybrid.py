@@ -13,9 +13,7 @@ from atomsci.ddm.utils import llnl_utils
 from sklearn.metrics import r2_score
 
 def clean():
-    """
-    Clean test files
-    """
+    """Clean test files"""
     if "output" not in os.listdir():
         os.mkdir("output")
     for f in os.listdir("./output"):
@@ -23,9 +21,7 @@ def clean():
             os.remove("./output/"+f)
 
 def test():
-    """
-    Test full model pipeline: Curate data, fit model, and predict property for new compounds
-    """
+    """Test full model pipeline: Curate data, fit model, and predict property for new compounds"""
 
     # Clean
     # -----

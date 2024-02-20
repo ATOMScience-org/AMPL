@@ -1,6 +1,4 @@
-"""
-Utilities for clustering and visualizing compound structures using RDKit. 
-"""
+"""Utilities for clustering and visualizing compound structures using RDKit."""
 # Mostly written by Logan Van Ravenswaay, with additions and edits by Ben Madej and Kevin McLoughlin.
 
 import os
@@ -25,8 +23,7 @@ from rdkit.ML.Descriptors import MoleculeDescriptors
 logging.basicConfig(format='%(asctime)-15s %(message)s')
 
 def setup_notebook():
-    """Set up current notebook for displaying plots and Bokeh output using full width of window
-    """
+    """Set up current notebook for displaying plots and Bokeh output using full width of window"""
     from bokeh.plotting import output_notebook
 
     get_ipython().run_line_magic('matplotlib', 'inline')
@@ -153,7 +150,7 @@ def mol_to_html(mol, highlight=None, name='', type='svg', directory='rdkit_svg',
 
         type (str): Image format; must be 'png' or 'svg'.
 
-        directory (str): Path relative to notebook directory of subdirectory where image file will be written. 
+        directory (str): Path relative to notebook directory of subdirectory where image file will be written.
         The directory will be created if necessary. Note that absolute paths will not work in notebooks. Ignored if embed=True.
 
         embed (bool): If True, image data will be embedded in the generated HTML tag. Otherwise it will be written to a
@@ -232,7 +229,7 @@ def mol_to_pil(mol, size=(400, 200), highlight=None):
         mol (rdkit.Chem.Mol): Object representing molecule.
 
         size (tuple): Width and height of bounding box of image.
-        
+
         highlight (rdkit.Chem.Mol): Object representing substructure to highlight on molecule.
 
     Returns:
@@ -254,7 +251,7 @@ def save_png(mol, name, size=(400, 200), highlight=None):
         name (str): Path to write PNG file to.
 
         size (tuple): Width and height of bounding box of image.
-        
+
         highlight (rdkit.Chem.Mol): Object representing substructure to highlight on molecule.
 
     """
@@ -269,7 +266,7 @@ def mol_to_svg(mol, size=(400,200), highlight=None):
         mol (rdkit.Chem.Mol): Object representing molecule.
 
         size (tuple): Width and height of bounding box of image.
-        
+
         highlight (rdkit.Chem.Mol): Object representing substructure to highlight on molecule.
 
     Returns:
@@ -307,7 +304,7 @@ def save_svg(mol, name, size=(400,200), highlight=None):
         name (str): Path to write SVG file to.
 
         size (tuple): Width and height of bounding box of image.
-        
+
         highlight (rdkit.Chem.Mol): Object representing substructure to highlight on molecule.
 
     """

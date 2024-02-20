@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 
-"""
-Contains class ModelWrapper and its subclasses, which are wrappers for DeepChem and scikit-learn model classes.
-"""
+"""Contains class ModelWrapper and its subclasses, which are wrappers for DeepChem and scikit-learn model classes."""
 
 import logging
 import os
@@ -66,7 +64,7 @@ def get_latest_pytorch_checkpoint(model, model_dir=None):
 
     Args:
         model: A model that inherits DeepChem TorchModel
-        
+
         model_dir: Optional argument that directs the model
             to a specific folder
 
@@ -127,22 +125,22 @@ def dc_restore(model, checkpoint=None, model_dir=None, session=None):
         model._checkpoint.restore(checkpoint).expect_partial().run_restore_ops(session)
 
 def dc_torch_restore(model, checkpoint= None, model_dir = None):
-    """Reload the values of all variables from a checkpoint file. 
+    """Reload the values of all variables from a checkpoint file.
 
-    This is copied from deepchem 2.6.1 to explicitly set the torch loading device to 
+    This is copied from deepchem 2.6.1 to explicitly set the torch loading device to
     'cpu' if cuda devices aren't available when reloading the model.
 
     Args:
         model: the torch model to restore
-        
-        checkpoint (str): 
+
+        checkpoint (str):
             the path to the checkpoint file to load.  If this is None, the most recent
-      checkpoint will be chosen automatically.  Call get_checkpoints() to get a
-      list of all available checkpoints.
-      
+            checkpoint will be chosen automatically.  Call get_checkpoints() to get a
+            list of all available checkpoints.
+
         model_dir (str): default None
             Directory to restore checkpoint from. If None, use self.model_dir.  If
-      checkpoint is not None, this is ignored.
+            checkpoint is not None, this is ignored.
     """
     model._ensure_built()
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu") # set torch device
@@ -159,8 +157,8 @@ def dc_torch_restore(model, checkpoint= None, model_dir = None):
 
 def all_bases(model):
     """Given a model
-    
-    Returns:  
+
+    Returns:
         all bases
     """
     result = [model]
@@ -234,7 +232,7 @@ class ModelWrapper(object):
     """Wrapper for DeepChem and sklearn model objects. Provides methods to train and test a model,
     generate predictions for an input dataset, and generate performance metrics for these predictions.
 
-        Attributes:
+    Attributes:
         Set in __init__
             params (argparse.Namespace): The argparse.Namespace parameter object that contains all parameter information
 
@@ -335,7 +333,7 @@ class ModelWrapper(object):
         Args:
             model_dataset: The ModelDataset object that handles the current dataset
 
-        Side effects
+        Side effects:
             Overwrites the attributes:
                 transformers: A list of deepchem transformation objects on response_col, only if conditions are met
         """
@@ -351,7 +349,7 @@ class ModelWrapper(object):
         Args:
             model_dataset: The ModelDataset object that handles the current dataset
 
-        Side effects
+        Side effects:
             Overwrites the attributes:
                 transformers_x: A list of deepchem transformation objects on featurizers, only if conditions are met.
         """
@@ -366,7 +364,7 @@ class ModelWrapper(object):
         Args:
             model_dataset: The ModelDataset object that handles the current dataset
 
-        Side effects
+        Side effects:
             Overwrites the attributes:
                 transformers: A list of deepchem transformation objects on responses, only if conditions are met
 
@@ -464,7 +462,7 @@ class ModelWrapper(object):
 
     def get_num_features(self):
         """Get the number of features.
-        
+
         Returns:
            the number of dimensions of the feature space, taking both featurization method
         and transformers into account.
@@ -478,7 +476,7 @@ class ModelWrapper(object):
 
     def get_train_valid_pred_results(self, perf_data):
         """Returns predicted values and metrics for the training, validation or test set
-        associated with the PerfData object perf_data. Results are returned as a dictionary 
+        associated with the PerfData object perf_data. Results are returned as a dictionary
         of parameter, value pairs in the format expected by the model tracker.
 
         Args:
@@ -604,9 +602,7 @@ class ModelWrapper(object):
         raise NotImplementedError
 
     def reload_model(self, reload_dir):
-        """
-
-        Args:
+        """Args:
             reload_dir:
 
         Returns:
@@ -635,16 +631,15 @@ class LCTimerIterator:
     """This creates an iterator that keeps track of time limits
 
     Side Effects:
-        Sets the following attributes in input argument params: 
-            max_epochs (int): The max_epochs attribute will be updated to the current epoch 
+        Sets the following attributes in input argument params:
+            max_epochs (int): The max_epochs attribute will be updated to the current epoch
                 index if it is projected that training will exceed the time limit
                 given.
     """
     # ****************************************************************************************
     def __init__(self, params, pipeline, log):
-        """
-        Args:
-            params (argparse.Namespace): The argparse.Namespace parameter object that contains all 
+        """Args:
+            params (argparse.Namespace): The argparse.Namespace parameter object that contains all
                parameter information
 
             pipeline (ModelPipeline): The ModelPipeline instance for this model run.
@@ -665,9 +660,7 @@ class LCTimerIterator:
         
     # ****************************************************************************************
     def __next__(self):
-        """
-        Returns epoch index or stops when the have been enough iterations.
-        """
+        """Returns epoch index or stops when the have been enough iterations."""
         self.ei = self.ei + 1
         if self.ei >= self.max_epochs:
             raise StopIteration
@@ -708,8 +701,8 @@ class LCTimerKFoldIterator(LCTimerIterator):
     """This creates an iterator that keeps track of time limits for kfold training
 
     Side Effects:
-        Sets the following attributes in input argument params: 
-            max_epochs (int): The max_epochs attribute will be updated to the current epoch 
+        Sets the following attributes in input argument params:
+            max_epochs (int): The max_epochs attribute will be updated to the current epoch
                 index if it is projected that training will exceed the time limit
                 given.
     """
@@ -719,7 +712,7 @@ class LCTimerKFoldIterator(LCTimerIterator):
         """Calculates the time needed to complete another epoch given the training time.
 
         epochs_remaining is how many epochs we have to run if we do one more across all folds,
-        then do self.best_epoch+1 epochs on the combined training & validation set, 
+        then do self.best_epoch+1 epochs on the combined training & validation set,
         allowing for the possibility that the next epoch may be the best one.
 
         Args:
@@ -737,10 +730,10 @@ class LCTimerKFoldIterator(LCTimerIterator):
 
 # ****************************************************************************************
 class NNModelWrapper(ModelWrapper):
-    """ Wrapper for NN models.
+    """Wrapper for NN models.
 
-    Many NN models share similar functions. This class aggregates those similar functions
-    to reduce copied code
+        Many NN models share similar functions. This class aggregates those similar functions
+        to reduce copied code
 
     """
 
@@ -749,7 +742,7 @@ class NNModelWrapper(ModelWrapper):
         """Returns predicted values and metrics from a training, validation or test subset
         of the current dataset, or the full dataset. subset may be 'train', 'valid', 'test' or 'full',
         epoch_label indicates the training epoch we want results for; currently the
-        only option for this is 'best'. Results are returned as a PerfData object of the appropriate class 
+        only option for this is 'best'. Results are returned as a PerfData object of the appropriate class
         for the model's split strategy and prediction type.
 
         Args:
@@ -843,7 +836,7 @@ class NNModelWrapper(ModelWrapper):
 
                 best_epoch (int): Initialized as None, keeps track of the epoch with the best validation score
 
-                train_perf_data (list of PerfData): Initialized as an empty array, 
+                train_perf_data (list of PerfData): Initialized as an empty array,
                     contains the predictions and performance of the training dataset
 
                 valid_perf_data (list of PerfData): Initialized as an empty array,
@@ -865,7 +858,7 @@ class NNModelWrapper(ModelWrapper):
     # ****************************************************************************************
     def train_kfold_cv(self, pipeline):
         """Trains a neural net model with K-fold cross-validation for a specified number of epochs.
-        Finds the epoch with the best validation set performance averaged over folds, then refits 
+        Finds the epoch with the best validation set performance averaged over folds, then refits
         a model for the same number of epochs to the combined training and validation data.
 
         Args:
@@ -877,7 +870,7 @@ class NNModelWrapper(ModelWrapper):
 
                 best_epoch (int): Initialized as None, keeps track of the epoch with the best validation score
 
-                train_perf_data (list of PerfData): Initialized as an empty array, 
+                train_perf_data (list of PerfData): Initialized as an empty array,
                     contains the predictions and performance of the training dataset
 
                 valid_perf_data (list of PerfData): Initialized as an empty array,
@@ -969,7 +962,7 @@ class NNModelWrapper(ModelWrapper):
         set metric given by params.model_choice_score_type. Saves a model checkpoint each time the metric
         is improved over its previous saved value by more than a threshold percentage. If the metric fails to
         improve for more than a specified 'patience' number of epochs, stop training and revert the model state
-        to the last saved checkpoint. 
+        to the last saved checkpoint.
 
         Args:
             pipeline (ModelPipeline): The ModelPipeline instance for this model run.
@@ -982,7 +975,7 @@ class NNModelWrapper(ModelWrapper):
 
                 best_validation_score (float): The best validation model choice score attained during training.
 
-                train_perf_data (list of PerfData): Initialized as an empty array, 
+                train_perf_data (list of PerfData): Initialized as an empty array,
                     contains the predictions and performance of the training dataset
 
                 valid_perf_data (list of PerfData): Initialized as an empty array,
@@ -1029,8 +1022,7 @@ class NNModelWrapper(ModelWrapper):
         self.log.info(f"Best model from epoch {self.best_epoch} saved to {self.best_model_dir}")
 
     def restore(self, checkpoint=None, model_dir=None):
-        """Restores this model
-        """
+        """Restores this model"""
         dc_torch_restore(self.model, checkpoint, model_dir)
 
     # ****************************************************************************************
@@ -1151,7 +1143,7 @@ class HybridModelWrapper(NNModelWrapper):
 
             best_epoch (int): Initialized as None, keeps track of the epoch with the best validation score
 
-            train_perf_data (np.array of PerfData): Initialized as an empty array, 
+            train_perf_data (np.array of PerfData): Initialized as an empty array,
                 contains the predictions and performance of the training dataset
 
             valid_perf_data (np.array of PerfData): Initialized as an empty array,
@@ -1318,8 +1310,7 @@ class HybridModelWrapper(NNModelWrapper):
         return loss_ki.item(), loss_bind.item(), len(xb)
 
     class SubsetData(object):
-        """Container for DataLoader object and attributes of a dataset subset
-        """
+        """Container for DataLoader object and attributes of a dataset subset"""
         def __init__(self, ds, dl, n_ki, n_bind):
             self.ds = ds
             self.dl = dl
@@ -1330,8 +1321,7 @@ class HybridModelWrapper(NNModelWrapper):
             return torch.tensor(x, dtype=torch.float32)
 
     def _load_hybrid_data(self, data):
-        """Convert the DeepChem dataset into the SubsetData for hybrid model.
-        """
+        """Convert the DeepChem dataset into the SubsetData for hybrid model."""
         self.train_valid_dsets = []
         test_dset = data.test_dset
         num_folds = len(data.train_valid_dsets)
@@ -1577,7 +1567,7 @@ class HybridModelWrapper(NNModelWrapper):
         Args:
             model_dataset: The ModelDataset object that handles the current dataset
 
-        Side effects
+        Side effects:
             Overwrites the attributes:
                 transformers: A list of deepchem transformation objects on response_col, only if conditions are met
         """
@@ -1722,7 +1712,7 @@ class ForestModelWrapper(ModelWrapper):
 
         Raises:
             ValueError: if subset not in ['train','valid','test','full']
-            
+
         """
         if subset == 'train':
             return self.get_train_valid_pred_results(self.train_perf_data)
@@ -1775,7 +1765,6 @@ class ForestModelWrapper(ModelWrapper):
 class DCRFModelWrapper(ForestModelWrapper):
     """Contains methods to load in a dataset, split and featurize the data, fit a model to the train dataset,
     generate predictions for an input dataset, and generate performance metrics for these predictions.
-
 
     Attributes:
         Set in __init__
@@ -1926,7 +1915,6 @@ class DCRFModelWrapper(ForestModelWrapper):
 class DCxgboostModelWrapper(ForestModelWrapper):
     """Contains methods to load in a dataset, split and featurize the data, fit a model to the train dataset,
     generate predictions for an input dataset, and generate performance metrics for these predictions.
-
 
     Attributes:
         Set in __init__
@@ -2278,11 +2266,9 @@ class PytorchDeepChemModelWrapper(NNModelWrapper):
     to propagate information from bond and neighboring atom features across a molecule represented as
     a graph.
 
-    References
-    ----------
-    .. [1] Xiong, Zhaoping et al. "Pushing the Boundaries of Molecular Representation for Drug Discovery
-    with the Graph Attention Mechanism." Journal of Medicinal Chemistry (2019) 
-    doi: 10.1021/acs.jmedchem.0b00959
+    References:
+        .. [1] Xiong, Zhaoping et al. "Pushing the Boundaries of Molecular Representation for Drug Discovery
+           with the Graph Attention Mechanism." Journal of Medicinal Chemistry (2019) doi: 10.1021/acs.jmedchem.0b00959
 
     Attributes:
         Set in __init__
@@ -2322,7 +2308,7 @@ class PytorchDeepChemModelWrapper(NNModelWrapper):
 
     # ****************************************************************************************
     def recreate_model(self, **kwargs):
-        """Creates a new DeepChem Model object of the correct type for the requested featurizer and prediction type 
+        """Creates a new DeepChem Model object of the correct type for the requested featurizer and prediction type
         and returns it.
 
         Args:
@@ -2383,8 +2369,7 @@ class PytorchDeepChemModelWrapper(NNModelWrapper):
         return model_spec_metadata
 
     def restore(self, checkpoint=None, model_dir=None):
-        """Restores this model
-        """
+        """Restores this model"""
         dc_torch_restore(self.model, checkpoint, model_dir)
 
     def count_params(self):
@@ -2435,7 +2420,7 @@ class MultitaskDCModelWrapper(PytorchDeepChemModelWrapper):
 
             best_epoch (int): Initialized as None, keeps track of the epoch with the best validation score
 
-            train_perf_data (np.array of PerfData): Initialized as an empty array, 
+            train_perf_data (np.array of PerfData): Initialized as an empty array,
                 contains the predictions and performance of the training dataset
 
             valid_perf_data (np.array of PerfData): Initialized as an empty array,
@@ -2450,7 +2435,7 @@ class MultitaskDCModelWrapper(PytorchDeepChemModelWrapper):
     """
 
     def recreate_model(self, model_dir=None):
-        """Creates a new DeepChem Model object of the correct type for the requested featurizer and prediction type 
+        """Creates a new DeepChem Model object of the correct type for the requested featurizer and prediction type
         and returns it.
 
         reload_dir (str): Directory where saved model is located.
@@ -2611,8 +2596,7 @@ class KerasDeepChemModelWrapper(PytorchDeepChemModelWrapper):
         self.reload_transformers()
 
     def restore(self, checkpoint=None, model_dir=None, session=None):
-        """Restores this model
-        """
+        """Restores this model"""
         dc_restore(self.model, checkpoint, model_dir, session)
 
     def count_params(self):
@@ -2661,7 +2645,7 @@ class GraphConvDCModelWrapper(KerasDeepChemModelWrapper):
 
             best_epoch (int): Initialized as None, keeps track of the epoch with the best validation score
 
-            train_perf_data (np.array of PerfData): Initialized as an empty array, 
+            train_perf_data (np.array of PerfData): Initialized as an empty array,
                 contains the predictions and performance of the training dataset
 
             valid_perf_data (np.array of PerfData): Initialized as an empty array,
@@ -2702,7 +2686,6 @@ class GraphConvDCModelWrapper(KerasDeepChemModelWrapper):
 
             model: The dc.models.GraphConvModel, MultitaskRegressor, or MultitaskClassifier object, as specified by the params attribute
 
-
         """
         super().__init__(params, featurizer, ds_client)
         # TODO (ksm): The next two attributes aren't used; suggest we drop them.
@@ -2714,7 +2697,7 @@ class GraphConvDCModelWrapper(KerasDeepChemModelWrapper):
 
     # ****************************************************************************************
     def recreate_model(self, model_dir=None):
-        """Creates a new DeepChem Model object of the correct type for the requested featurizer and prediction type 
+        """Creates a new DeepChem Model object of the correct type for the requested featurizer and prediction type
         and returns it.
 
         reload_dir (str): Directory where saved model is located.

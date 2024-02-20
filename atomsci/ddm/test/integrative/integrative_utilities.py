@@ -6,9 +6,7 @@ import shutil
 
 
 def clean_fit_predict():
-    """
-    Clean integrative test files
-    """
+    """Clean integrative test files"""
 
     split_files = glob.glob('./*_train_valid_test_*')
     for f in split_files:
@@ -22,8 +20,7 @@ def clean_fit_predict():
 
 
 def download_save(url, file_name, verify=True):
-    """
-    Download dataset
+    """Download dataset
 
     Arguments:
         url: URL
@@ -45,8 +42,7 @@ def download_save(url, file_name, verify=True):
 
 
 def get_subdirectory(model_dir_root):
-    """
-    Get model uuid from model directory with uuid subdirectory. Assumes that there is only one subdirectory.
+    """Get model uuid from model directory with uuid subdirectory. Assumes that there is only one subdirectory.
     model_dir_root: Model directory with uuid subdirectory
 
     Returns:
@@ -62,8 +58,7 @@ def get_subdirectory(model_dir_root):
 
 
 def training_statistics_file(model_dir, subset, minimum_r2, metric_col='r2_score'):
-    """
-    Get training statistics
+    """Get training statistics
 
     Arguments:
         model_dir: Model directory with training_model_metrics.json
@@ -76,8 +71,7 @@ def training_statistics_file(model_dir, subset, minimum_r2, metric_col='r2_score
     assert (test_r2 >= minimum_r2), 'Error: Model test R^2 %0.3f < minimum R^2 %0.3f'%(test_r2, minimum_r2)
 
 def read_training_statistics_file(model_dir, subset, metric_col):
-    """
-    Get training statistics
+    """Get training statistics
 
     Arguments:
         model_dir: Model directory with training_model_metrics.json

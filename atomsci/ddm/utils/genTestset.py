@@ -180,29 +180,39 @@ def aggregate_basesmiles(assay_df, value_col='pIC50', output_value_col=None,
                          label_actives=True,
                          active_thresh=None,
                          id_col='compound_id', smiles_col='base_rdkit_smiles', relation_col='VALUE_FLAG', date_col=None):
-    """
-    Extract from aggregate_assay_data() without the need to compute base_smiles_from_smiles().  
+    """Extract from aggregate_assay_data() without the need to compute base_smiles_from_smiles().
     Compute an MLE estimate of the mean value over rep
-licate measurements
+    licate measurements
     for the same SMILES strings, taking censoring into account. Generate an aggregated result table with one value f
-or each unique base 
+    or each unique base
     SMILES string, to be used in an ML-ready dataset.
 
-    :param assay_df: The input data frame to be processed.
-    :param value_col: The column in the data frame containing assay values to be averaged.
-    :param output_value_col: Optional; the column name to use in the output data frame for the averaged data.
-    :param label_actives: If True, generate an additional column 'active' indicating whether the mean value is above
- a threshold specified by active_thresh.
-    :param active_thresh: The threshold to be used for labeling compounds as active or inactive.
+    Args:
+        assay_df: The input data frame to be processed.
+        value_col: The column in the data frame containing assay values
+            to be averaged.
+        output_value_col: Optional; the column name to use in the output
+            data frame for the averaged data.
+        label_actives: If True, generate an additional column 'active'
+            indicating whether the mean value is above a threshold
+            specified by active_thresh.
+        active_thresh: The threshold to be used for labeling compounds
+            as active or inactive.
+        id_col: The input data frame column containing compound IDs.
+        smiles_col: The input data frame column containing SMILES
+            strings.
+        relation_col: The input data frame column containing relational
+            operators (<, >, etc.).
+        date_col: The input data frame column containing dates when the
+            assay data was uploaded. If not None, the code will assign
+            the earliest
     If active_thresh is None (the default), the threshold used is the minimum reported value across all records
     with left-censored values (i.e., those with '<' in the relation column.
-    :param id_col: The input data frame column containing compound IDs.
-    :param smiles_col: The input data frame column containing SMILES strings.
-    :param relation_col: The input data frame column containing relational operators (<, >, etc.).
-    :param date_col: The input data frame column containing dates when the assay data was uploaded. If not None, the
- code will assign the earliest
     date among replicates to the aggregate data record.
-    :return: A data frame containing averaged assay values, with one value per compound.
+
+    Returns:
+        A data frame containing averaged assay values, with one value
+        per compound.
     """
 
     assay_df = assay_df.fillna({relation_col: '', smiles_col: ''})

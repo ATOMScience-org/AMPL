@@ -83,9 +83,7 @@ def test_RF():
     clean()
 
 def init():
-    """
-    Test full model pipeline: Curate data, fit model, and predict property for new compounds
-    """
+    """Test full model pipeline: Curate data, fit model, and predict property for new compounds"""
 
     # Clean
     # -----

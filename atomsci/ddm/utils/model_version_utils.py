@@ -1,5 +1,4 @@
-"""
-model_version_utils.py
+"""model_version_utils.py
 
 Misc utilities to get the AMPL version(s) used to train one or more models and check them
 for compatibility with the currently running version of AMPL.:
@@ -44,8 +43,7 @@ comp_dict = { '1.2': 'group1', '1.3': 'group1', '1.4': 'group2', '1.5': 'group3'
 version_pattern = re.compile(r"[\d.]+")
 
 def get_ampl_version():
-    """
-    Get the running ampl version
+    """Get the running ampl version
 
     Returns:
          the AMPL version
@@ -53,13 +51,12 @@ def get_ampl_version():
     return metadata.version("atomsci-ampl")
 
 def get_ampl_version_from_dir(dirname):
-    """
-    Get the AMPL versions for all the models stored under the given directory and its subdirectories,
+    """Get the AMPL versions for all the models stored under the given directory and its subdirectories,
     recursively.
 
     Args:
         dirname (str): directory
-    
+
     Returns:
         list of AMPL versions
     """
@@ -76,12 +73,11 @@ def get_ampl_version_from_dir(dirname):
     return '\n'.join(versions)
 
 def get_ampl_version_from_model(filename):
-    """
-    Get the AMPL version from the tar file's model_metadata.json
+    """Get the AMPL version from the tar file's model_metadata.json
 
     Args:
         filename (str): tar file
-    
+
     Returns:
         the AMPL version number
     """
@@ -101,15 +97,14 @@ def get_major_version(full_version):
     return '.'.join(full_version.split('.')[:2])
 
 def get_ampl_version_from_json(metadata_path):
-    """
-    Parse model_metadata.json to get the AMPL version
+    """Parse model_metadata.json to get the AMPL version
 
     Args:
         filename (str): tar file
-    
+
     Returns:
         the AMPL version number
-        
+
     """
     with open(metadata_path, 'r') as data_file:
         metadata_dict = json.load(data_file)
@@ -123,16 +118,15 @@ def validate_version(input):
     return True
 
 def check_version_compatible(input, ignore_check=False):
-    """
-    Compare the input file's version against the running AMPL version to see if
+    """Compare the input file's version against the running AMPL version to see if
     they are compatible
 
     Args:
         filename (str): file or version number
-    
+
     Returns:
         True if the input model version matches the compatible AMPL version group
-    
+
     """
     # get the versions. only compare by the major releases
     model_ampl_version = ""

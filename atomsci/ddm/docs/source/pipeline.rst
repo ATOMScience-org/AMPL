@@ -45,26 +45,10 @@ pipeline.feature\_importance module
     :undoc-members:
     :show-inheritance:
 
-pipeline.featurization module
------------------------------
-
-.. automodule:: pipeline.featurization
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 pipeline.hyper\_perf\_plots module
 -----------------------------------
 
 .. automodule:: pipeline.hyper_perf_plots
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-pipeline.model\_datasets module
--------------------------------
-
-.. automodule:: pipeline.model_datasets
     :members:
     :undoc-members:
     :show-inheritance:
@@ -81,14 +65,6 @@ pipeline.model\_tracker module
 ------------------------------
 
 .. automodule:: pipeline.model_tracker
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-pipeline.model\_wrapper module
-------------------------------
-
-.. automodule:: pipeline.model_wrapper
     :members:
     :undoc-members:
     :show-inheritance:
@@ -124,23 +100,6 @@ pipeline.predict\_from\_model module
     :members:
     :undoc-members:
     :show-inheritance:
-
-pipeline.splitting module
--------------------------
-
-.. automodule:: pipeline.splitting
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-pipeline.transformations module
--------------------------------
-
-.. automodule:: pipeline.transformations
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 
 Module contents
 ---------------
