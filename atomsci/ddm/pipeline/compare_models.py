@@ -667,12 +667,10 @@ def get_best_models_info(col_names=None, bucket='public', pred_type="regression"
 
 
 # TODO: This function looks like work in progress, should we delete it?
-"""
+'''
 #---------------------------------------------------------------------------------------------------------
 def _get_best_grouped_models_info(collection='pilot_fixed', pred_type='regression', top_n=1, subset='test'):
-    """
-    Get results for models in the given collection.
-    """
+    """Get results for models in the given collection."""
 
     if not mlmt_supported:
         print("Model tracker not supported in your environment; can examine models saved in filesystem only.")
@@ -713,7 +711,6 @@ def _get_best_grouped_models_info(collection='pilot_fixed', pred_type='regressio
             top_model_feat.append(top_combo)
             top_scores.append(top_score)
             num_samples.append(res_df['Dataset Size'][0])
-s"""
 
 #------------------------------------------------------------------------------------------------------------------
 def get_umap_nn_model_perf_table(dataset_key, bucket, collection_name, pred_type='regression'):
@@ -862,6 +859,7 @@ def get_umap_nn_model_perf_table(dataset_key, bucket, collection_name, pred_type
 
     perf_df = perf_df.sort_values(sort_by, ascending=False)
     return perf_df
+'''
 
 #------------------------------------------------------------------------------------------------------------------
 def get_tarball_perf_table(model_tarball, pred_type='classification'):
