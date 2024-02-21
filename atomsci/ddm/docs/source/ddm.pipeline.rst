@@ -99,3 +99,11 @@ ddm.pipeline.predict\_from\_model module
    :members:
    :undoc-members:
    :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: ddm.pipeline
+   :members:
+   :undoc-members:
+   :show-inheritance:

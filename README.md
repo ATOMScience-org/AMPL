@@ -110,7 +110,7 @@ export TF_FORCE_GPU_ALLOW_GROWTH=true
 #### 6. *LLNL only*: install atomsci.clients
 ```bash
 # LLNL only: 
-# pip install -r clients_requirements.txt
+pip install -r clients_requirements.txt
 ```
 
 ### Install AMPL

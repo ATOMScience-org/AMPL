@@ -92,6 +92,15 @@ ddm.utils.rdkit\_easy module
    :undoc-members:
    :show-inheritance:
 
+
+ddm.utils.split\_response\_dist\_plots module
+---------------------------------------------
+
+.. automodule:: ddm.utils.split_response_dist_plots
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 ddm.utils.struct\_utils module
 ------------------------------
 
