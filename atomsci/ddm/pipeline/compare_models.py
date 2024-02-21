@@ -941,6 +941,7 @@ def get_filesystem_perf_results(result_dir, pred_type='classification'):
     dataset_key_list = []
     splitter_list = []
     split_strategy_list = []
+    split_uuid_list = []
     model_score_type_list = []
     feature_transform_type_list = []
 
@@ -1025,6 +1026,7 @@ def get_filesystem_perf_results(result_dir, pred_type='classification'):
         split_params = metadata_dict['splitting_parameters']
         splitter_list.append(split_params['splitter'])
         split_strategy_list.append(split_params['split_strategy'])
+        split_uuid_list.append(split_params['split_uuid'])
         dataset_key_list.append(metadata_dict['training_dataset']['dataset_key'])
         feature_transform_type = metadata_dict['training_dataset']['feature_transform_type']
         feature_transform_type_list.append(feature_transform_type)
@@ -1049,6 +1051,7 @@ def get_filesystem_perf_results(result_dir, pred_type='classification'):
                     features=featurizer_list,
                     splitter=splitter_list,
                     split_strategy=split_strategy_list,
+                    split_uuid=split_uuid_list,
                     model_score_type=model_score_type_list,
                     feature_transform_type=feature_transform_type_list))
 
@@ -1060,8 +1063,6 @@ def get_filesystem_perf_results(result_dir, pred_type='classification'):
     perf_df = perf_df.merge(param_df, on='model_uuid', how='inner')
     sort_by = 'model_choice_score'
     perf_df = perf_df.sort_values(sort_by, ascending=False)
-    
-    logger.warn('Warning: column names have been changed to align with get_multitask_perf_from_tracker(): featurizer is now features and <subset>_<metric> has been changed to best_<subset>_<metric>.')
     return perf_df
 
 def get_filesystem_models(result_dir, pred_type):
