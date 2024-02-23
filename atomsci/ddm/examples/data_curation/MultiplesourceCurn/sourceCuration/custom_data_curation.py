@@ -39,15 +39,13 @@ from tqdm import tqdm
 #---
 
 class ExcapeActivityDump(AMPLDataset):
-    """Class responsible for parsing and extracting data from the Excape-DB 
+    """Class responsible for parsing and extracting data from the Excape-DB
        tsv data dump file
 
     """
 
     def set_columns(self,sec) :
-        """
-        Sets expected column names for input file and reads the table.
-        """
+        """Sets expected column names for input file and reads the table."""
         self.smiles_col = 'SMILES'
         self.base_smiles_col = 'base_rdkit_smiles'
         self.id_col = 'compound_id'
@@ -107,9 +105,7 @@ class DrugTargetCommonsActivityDump(AMPLDataset):
 
     """
     def set_columns(self, sec ) :
-        """
-        Sets expected column names for input file and reads the table.
-        """
+        """Sets expected column names for input file and reads the table."""
         self.smiles_col = 'smiles'
         self.base_smiles_col = 'base_rdkit_smiles'
         self.id_col = 'compound_id'
@@ -180,9 +176,7 @@ class DrugTargetCommonsActivityDump(AMPLDataset):
       
           
     def add_base_smiles_col(self):
-      """
-      requires a specialized SMILES curation step as SMILES strings are stored separately
-      """
+      """requires a specialized SMILES curation step as SMILES strings are stored separately"""
       targLst=self.df[self.target_name_col].unique().tolist()
       targLst.sort()
       targ_name='_'.join(targLst)
@@ -229,14 +223,12 @@ class DrugTargetCommonsActivityDump(AMPLDataset):
 
 
 class ChEMBLActivityDump(AMPLDataset):
-    """Class responsible for parsing and extracting data from a ChEMBL json 
+    """Class responsible for parsing and extracting data from a ChEMBL json
        data dump file
 
     """
     def set_columns(self,sec) :
-        """
-        Sets expected column names for input file and reads the table.
-        """
+        """Sets expected column names for input file and reads the table."""
         self.smiles_col = 'smiles'
         self.base_smiles_col = 'base_rdkit_smiles'
         self.id_col = 'compound_id'
@@ -301,8 +293,7 @@ class ChEMBLActivityDump(AMPLDataset):
            self.df=self.df[self.df.standard_type.isin( end_point_lst ) ]
 
     def filter_task(self, target_id):
-        """when the gene target label isn't standardized, need to return the gene target mapping
-        """
+        """when the gene target label isn't standardized, need to return the gene target mapping"""
         return self.df[(self.df[self.target_id_col] == self.target_dict[target_id])],self.target_dict[target_id]
 
 def convert_dtype(x):
@@ -319,9 +310,7 @@ class GPCRChEMBLActivityDump(AMPLDataset):
 
     """
     def set_columns(self,sec) :
-        """
-        Sets expected column names for input file and reads the table.
-        """
+        """Sets expected column names for input file and reads the table."""
         ## complaining about mixed datatypes and I can't seem to fix it!
         self.smiles_col = 'Smiles'
         self.base_smiles_col = 'base_rdkit_smiles'

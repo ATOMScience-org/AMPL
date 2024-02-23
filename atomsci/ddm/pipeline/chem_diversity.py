@@ -1,6 +1,4 @@
-"""
-Functions to generate matrices or vectors of distances between compounds
-"""
+"""Functions to generate matrices or vectors of distances between compounds"""
 
 import os, sys
 import numpy as np
@@ -12,24 +10,22 @@ from scipy.spatial.distance import squareform
 import pandas as pd
 import inspect
 
-from atomsci.ddm.utils import datastore_functions as dsf
 from atomsci.ddm.pipeline import dist_metrics
 
 def calc_dist_smiles(feat_type, dist_met, smiles_arr1, smiles_arr2=None, calc_type='nearest', num_nearest=1, **metric_kwargs):
-    """
-    Returns an array of distances between compounds given as SMILES strings, either between all pairs of compounds in a
+    """Returns an array of distances between compounds given as SMILES strings, either between all pairs of compounds in a
     single dataset or between two datasets.
-    
+
     Args:
         feat_type (str): How the data is to be featurized, if dist_met is not 'mcs'. The only option supported currently is 'ECFP'.
-        
+
         dist_met (str): What distance metric to use. Current options include 'tanimoto' and 'mcs'.
 
         smiles_arr1 (list): First list of SMILES strings.
-        
+
         smiles_arr2 (list): Optional, second list of SMILES strings. Can have only 1 member if wanting compound to
         matrix comparison.
-        
+
         calc_type (str): Type of summarization to perform on rows of distance matrix. See function calc_summary for options.
 
         num_nearest (int): Additional parameter for calc_types nearest, nth_nearest and avg_n_nearest.
@@ -103,11 +99,11 @@ def calc_dist_diskdataset(feat_type, dist_met, dataset1, dataset2=None, calc_typ
 
         dist_met (str): What distance metric to use. Current options include tanimoto, cosine, cityblock, euclidean, or any
         other metric supported by scipy.spatial.distance.pdist().
-        
+
         dataset1 (deepchem.Dataset): Dataset containing features of compounds to be compared.
-        
+
         dataset2 (deepchem.Dataset, optional): Second dataset, if two datasets are to be compared.
-        
+
         calc_type (str): Type of summarization to perform on rows of distance matrix. See function calc_summary for options.
 
         num_nearest (int): Additional parameter for calc_types nearest, nth_nearest and avg_n_nearest.
@@ -132,11 +128,11 @@ def calc_dist_feat_array(feat_type, dist_met, feat1, feat2=None, calc_type='near
 
         dist_met (str): What distance metric to use. Current options include tanimoto, cosine, cityblock, euclidean, or any
         other metric supported by scipy.spatial.distance.pdist().
-        
+
         feat1: feature matrix as a numpy array
-        
+
         feat2: Optional, second feature matrix
-        
+
         calc_type (str): Type of summarization to perform on rows of distance matrix. See function calc_summary for options.
 
         num_nearest (int): Additional parameter for calc_types nearest, nth_nearest and avg_n_nearest.
@@ -177,25 +173,24 @@ def calc_summary(dist_arr, calc_type, num_nearest=1, within_dset=False):
         dist_arr: (np.array): Either a 2D distance matrix, or a 1D condensed distance matrix (flattened upper triangle).
 
         calc_type (str): The type of summary values to return:
-        
+
             all:            The distance matrix itself
-            
+
             nearest:        The distances to the num_nearest nearest neighbors of each compound (except compound itself)
-            
+
             nth_nearest:    The distance to the num_nearest'th nearest neighbor
-            
+
             avg_n_nearest:  The average of the num_nearest nearest neighbor distances
-            
+
             farthest:       The distance to the farthest neighbor
-            
+
             avg:            The average of all distances for each compound
 
         num_nearest (int):  Additional parameter for calc_types nearest, nth_nearest and avg_n_nearest.
-        
-        within_dset (bool): True if input distances are between compounds in the same dataset.
 
-    Returns:
+        within_dset (bool): True if input distances are between compounds in the same dataset.
         
+    Returns:
         dists (np.array):  A numpy array of distances. For calc_type 'nearest' with num_nearest > 1, this is a 2D array
         with a row for each compound; otherwise it is a 1D array.
     """
@@ -243,9 +238,8 @@ def calc_summary(dist_arr, calc_type, num_nearest=1, within_dset=False):
         sys.exit(1)
         
 def _get_descriptors(smiles_arr):
-    """
-    DEPRECATED. This function is guaranteed not to work, since it refers to datasets that no longer exist.
-    """
+    """DEPRECATED. This function is guaranteed not to work, since it refers to datasets that no longer exist."""
+    from atomsci.ddm.utils import datastore_functions as dsf
     ds_client = dsf.config_client()
 
     full_feature_matrix_key = '/ds/projdata/gsk_data/GSK_datasets/eXP_Panel_Min_100_Cmpds/scaled_descriptors/' \
@@ -266,36 +260,37 @@ def _get_descriptors(smiles_arr):
 
 def upload_distmatrix_to_DS(
         dist_matrix,feature_type,compound_ids,bucket,title,description,tags,key_values,filepath="./",dataset_key=None):
-    """ Uploads distance matrix in the data store with the appropriate tags
-    
+    """Uploads distance matrix in the data store with the appropriate tags
+
     Args:
-        dist_matrix (np.ndarray): The distance matrix.
-        
-        feature_type (str): How the data was featurized.
-        
-        dist_met (str): What distance metric was used.
-        
-        compound_ids (list): list of compound ids corresponding to the distance matrix (assumes that distance matrix is square
-        and is the distance between all compounds in a dataset)
-        
-        bucket (str): bucket the file will be put in
-        
-        title (str): title of the file in (human friendly format)
-        
-        description (str): long text box to describe file (background/use notes)
-        
-        tags (list): List of tags to assign to datastore object.
-        
-        key_values (dict): Dictionary of key:value pairs to include in the datastore object's metadata.
-        
-        filepath (str): local path where you want to store the pickled dataframe
-        
-        dataset_key (str): If updating a file already in the datastore enter the corresponding dataset_key.
-                      If not, leave as 'none' and the dataset_key will be automatically generated.
-                      
+       dist_matrix (np.ndarray): The distance matrix.
+
+       feature_type (str): How the data was featurized.
+
+       dist_met (str): What distance metric was used.
+
+       compound_ids (list): list of compound ids corresponding to the distance matrix (assumes that distance matrix is square
+       and is the distance between all compounds in a dataset)
+
+       bucket (str): bucket the file will be put in
+
+       title (str): title of the file in (human friendly format)
+
+       description (str): long text box to describe file (background/use notes)
+
+       tags (list): List of tags to assign to datastore object.
+
+       key_values (dict): Dictionary of key:value pairs to include in the datastore object's metadata.
+
+       filepath (str): local path where you want to store the pickled dataframe
+
+       dataset_key (str): If updating a file already in the datastore enter the corresponding dataset_key.
+                     If not, leave as 'none' and the dataset_key will be automatically generated.
+
     Returns:
-         None
+        None
     """
+    from atomsci.ddm.utils import datastore_functions as dsf
 
     dist_df = pd.DataFrame(dist_matrix)
     dist_df.index = compound_ids

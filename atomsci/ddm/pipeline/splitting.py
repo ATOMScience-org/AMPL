@@ -1,5 +1,4 @@
-"""
-Encapsulates everything that depends on how datasets are split: the splitting itself, training, validation,
+"""Encapsulates everything that depends on how datasets are split: the splitting itself, training, validation,
 testing, generation of predicted values and performance metrics.
 """
 
@@ -45,7 +44,9 @@ def create_splitting(params):
         
     """
 
-    if params.split_strategy == 'train_valid_test':
+    if params.production:
+        return ProductionSplitting(params)
+    elif params.split_strategy == 'train_valid_test':
         return TrainValidTestSplitting(params)
     elif params.split_strategy == 'k_fold_cv':
         return KFoldSplitting(params)
@@ -56,15 +57,15 @@ def create_splitting(params):
 def select_dset_by_attr_ids(dataset, attr_df):
     """Returns a subset of the given dc.data.Dataset object selected by matching compound IDs in the index of attr_df
     against the ids in the dataset.
-    
+
     Args:
         dataset (Dataset): The deepchem dataset, should have matching ids with ids in attr_df
-        
+
         attr_df (DataFrame): Contains the compound ids to subset the dataset. Ids should match with dataset
-        
+
     Returns:
         subset (Dataset): A subset of the deepchem dataset as determined by the ids in attr_df
-        
+
     """
     id_df = pd.DataFrame({'indices' : np.arange(len(dataset.ids), dtype=np.int32)}, index=[str(e) for e in dataset.ids])
     match_df = id_df.join(attr_df, how='inner')
@@ -75,15 +76,15 @@ def select_dset_by_attr_ids(dataset, attr_df):
 def select_dset_by_id_list(dataset, id_list):
     """Returns a subset of the given dc.data.Dataset object selected by matching compound IDs in the given list
     against the ids in the dataset.
-    
+
     Args:
         dataset (Dataset): The deepchem dataset, should have matching ids with ids in id_list
 
         id_list (list): Contains a list of compound ids to subset the dataset. Ids should match with dataset
-        
+
     Returns:
         subset (Dataset): A subset of the deepchem dataset as determined by the ids in id_list
-        
+
     """
     #TODO: Need to test
     id_df = pd.DataFrame({'indices' : np.arange(len(dataset.ids), dtype=np.int32)}, 
@@ -96,15 +97,15 @@ def select_dset_by_id_list(dataset, id_list):
 def select_attrs_by_dset_ids(dataset, attr_df):
     """Returns a subset of the data frame attr_df selected by matching compound IDs in the index of attr_df
     against the ids in the dc.data.Dataset object dataset.
-    
+
     Args:
         dataset (Dataset): The deepchem dataset, should have matching ids with ids in attr_df
 
         attr_df (DataFrame): Contains the compound ids. Ids should match with dataset
-        
+
     Returns:
         subattr_df (DataFrame): A subset of attr_df as determined by the ids in dataset
-    
+
     """
     #TODO: Need to test
     id_df = pd.DataFrame(index=[str(e) for e in set(dataset.ids)])
@@ -115,7 +116,7 @@ def select_attrs_by_dset_ids(dataset, attr_df):
 def select_attrs_by_dset_smiles(dataset, attr_df, smiles_col):
     """Returns a subset of the data frame attr_df selected by matching SMILES strings in attr_df
     against the ids in the dc.data.Dataset object dataset.
-    
+
     Args:
         dataset (Dataset): The deepchem dataset, should have matching ids with ids in attr_df
 
@@ -123,11 +124,11 @@ def select_attrs_by_dset_smiles(dataset, attr_df, smiles_col):
         of SMILES strings under the smiles_col
 
         smiles_col (str): Name of the column containing smiles strings
-        
+
     Returns:
         subattr_df (DataFrame): A subset of attr_df as determined by the ids in dataset. Selected by matching SMILES
         strings in attr_df to the ids in the dataset
-    
+
     """
     id_df = pd.DataFrame(index=[str(e) for e in dataset.ids])
     subattr_df = id_df.merge(attr_df.drop_duplicates(subset=smiles_col), how='inner', left_index=True, right_on=smiles_col)
@@ -135,19 +136,19 @@ def select_attrs_by_dset_smiles(dataset, attr_df, smiles_col):
 
 # ****************************************************************************************
 def check_if_dupe_smiles_dataset(dataset,attr_df, smiles_col):
-    """ Returns a boolean. True if there are duplication within the deepchem Dataset dataset.ids or if there are
-    duplicates in the smiles_col of the attr_df
-    
+    """Returns a boolean. True if there are duplication within the deepchem Dataset dataset.ids or if there are
+        duplicates in the smiles_col of the attr_df
+
     Args:
-        dataset (deepchem Dataset): full featurized dataset
+       dataset (deepchem Dataset): full featurized dataset
 
-        attr_df (Pandas DataFrame): dataframe containing SMILES strings indexed by compound IDs,
+       attr_df (Pandas DataFrame): dataframe containing SMILES strings indexed by compound IDs,
 
-        smiles_col (string): name of SMILES column (hack for now until deepchem fixes scaffold and butina splitters)
-        
+       smiles_col (string): name of SMILES column (hack for now until deepchem fixes scaffold and butina splitters)
+
     Returns:
-        (bool): True if there duplicates in the ids of the dataset or if there are duplicates in the smiles_col
-        of the attr_df. False if there are no duplicates
+       (bool): True if there duplicates in the ids of the dataset or if there are duplicates in the smiles_col
+       of the attr_df. False if there are no duplicates
 
     """
     dupes = [(item, count) for item, count in collections.Counter([str(e) for e in dataset.ids]).items() if count > 1]
@@ -162,7 +163,7 @@ def check_if_dupe_smiles_dataset(dataset,attr_df, smiles_col):
 class Splitting(object):
     """Base class for train/validation/test and k-fold dataset splitting. Wrapper for DeepChem Splitter
     classes that handle the specific splitting methods (e.g. random, scaffold, etc.).
-    
+
     Attributes:
         Set in __init__:
             params (Namespace object): contains all parameter information
@@ -175,14 +176,14 @@ class Splitting(object):
 
     def __init__(self, params):
         """Constructor, also serves as a factory method for creating the associated DeepChem splitter object
-        
+
         Args:
             params (Namespace object): contains all parameter information.
-        
+
         Raises:
             Exception: if splitter is not in ['index','random','scaffold','butina','ave_min','stratified'],
             it is not supported by this class
-            
+
         Side effects:
 
             Sets the following Splitting object attributes
@@ -236,7 +237,7 @@ class Splitting(object):
     # ****************************************************************************************
     def get_split_prefix(self, parent=''):
         """Must be implemented by subclasses
-        
+
         Raises:
             NotImplementedError: The method is implemented by subclasses
 
@@ -246,7 +247,7 @@ class Splitting(object):
     # ****************************************************************************************
     def split_dataset(self, dataset, attr_df, smiles_col):
         """Must be implemented by subclasses
-        
+
         Raises:
             NotImplementedError: The method is implemented by subclasses
 
@@ -256,7 +257,7 @@ class Splitting(object):
     # ****************************************************************************************
     def needs_smiles(self):
         """Returns True if underlying DeepChem splitter requires compound IDs to be SMILES strings
-        
+
         Returns:
             (bool): True if Deepchem splitter requires SMILES strings as compound IDs, currently only true if
             using scaffold or butina splits
@@ -268,7 +269,7 @@ class Splitting(object):
 # ****************************************************************************************
 class KFoldSplitting(Splitting):
     """Subclass to deal with everything related to k-fold cross-validation splits
-    
+
     Attributes:
         Set in __init__:
             params (Namespace object): contains all parameter information
@@ -282,17 +283,17 @@ class KFoldSplitting(Splitting):
     """
 
     def __init__(self, params):
-        """ Initialization method for KFoldSplitting.
+        """Initialization method for KFoldSplitting.
 
-        Sets the following attributes for KFoldSplitting:
-            params (Namespace object): contains all parameter information
+                Sets the following attributes for KFoldSplitting:
+           params (Namespace object): contains all parameter information
 
-            split (str): Type of splitter in ['index','random','scaffold','butina','ave_min','stratified']
+           split (str): Type of splitter in ['index','random','scaffold','butina','ave_min','stratified']
 
-            splitter (Deepchem split object): A splitting object of the subtype specified by split
+           splitter (Deepchem split object): A splitting object of the subtype specified by split
 
-            num_folds (int): The number of k-fold splits to perform
-            
+           num_folds (int): The number of k-fold splits to perform
+
         """
         super().__init__(params)
         self.num_folds = params.num_folds
@@ -302,10 +303,10 @@ class KFoldSplitting(Splitting):
     def get_split_prefix(self, parent=''):
         """Returns a string identifying the split strategy (TVT or k-fold) and the splitting method (index, scaffold,
         etc.) for use in filenames, dataset keys, etc.
-        
+
         Args:
             parent (str): Default to empty string. Sets the parent directory for the output string
-            
+
         Returns:
             (str): A string that identifies the split strategy and the splitting method. Appends a parent directory in
             front of the fold description
@@ -319,14 +320,14 @@ class KFoldSplitting(Splitting):
     def split_dataset(self, dataset, attr_df, smiles_col):
         #smiles_col is a hack for now until deepchem fixes their scaffold and butina splitters
         """Splits dataset into training, testing and validation sets.
-        
+
         Args:
             dataset (deepchem Dataset): full featurized dataset
 
             attr_df (Pandas DataFrame): dataframe containing SMILES strings indexed by compound IDs,
 
             smiles_col (string): name of SMILES column (hack for now until deepchem fixes scaffold and butina splitters)
-        
+
         Returns:
             [(train, valid)], test, [(train_attr, valid_attr)], test_attr:
 
@@ -341,7 +342,7 @@ class KFoldSplitting(Splitting):
             valid_attr (Pandas DataFrame): dataframe of SMILES strings indexed by compound IDs for validation set.
 
             test_attr (Pandas DataFrame): dataframe of SMILES strings indexed by compound IDs for test set.
-            
+
         Raises:
             Exception if there are duplicate ids or smiles strings in the dataset or the attr_df
 
@@ -405,16 +406,16 @@ class TrainValidTestSplitting(Splitting):
     """
 
     def __init__(self, params):
-        """ Initialization method for TrainValidTestSplitting.
+        """Initialization method for TrainValidTestSplitting.
 
-        Sets the following attributes for TrainValidTestSplitting:
-            params (Namespace object): contains all parameter information
+                Sets the following attributes for TrainValidTestSplitting:
+           params (Namespace object): contains all parameter information
 
-            split (str): Type of splitter in ['index','random','scaffold','butina','ave_min','temporal','stratified']
+           split (str): Type of splitter in ['index','random','scaffold','butina','ave_min','temporal','stratified']
 
-            splitter (Deepchem split object): A splitting object of the subtype specified by split
+           splitter (Deepchem split object): A splitting object of the subtype specified by split
 
-            num_folds (int): The number of k-fold splits to perform. In this case, it is always set to 1
+           num_folds (int): The number of k-fold splits to perform. In this case, it is always set to 1
 
         """
         super().__init__(params)
@@ -444,7 +445,7 @@ class TrainValidTestSplitting(Splitting):
         """Splits dataset into training, testing and validation sets.
 
         For ave_min, random, scaffold, index splits
-            self.params.split_valid_frac & self.params.split_test_frac should be defined and 
+            self.params.split_valid_frac & self.params.split_test_frac should be defined and
             train_frac = 1.0 - self.params.split_valid_frac - self.params.split_test_frac
 
         For butina split, test size is not user defined, and depends on available clusters that qualify for placement in the test set
@@ -477,7 +478,7 @@ class TrainValidTestSplitting(Splitting):
             Exception if there are duplicate ids or smiles strings in the dataset or the attr_df
 
         """
-        log.warning("Splitting data by %s" % self.params.splitter)
+        log.info("Splitting data by %s" % self.params.splitter)
 
         # Duplicate SMILES and compound_ids are merged into single compounds
         # in DatasetManager. The first instance of each is kept. Assumes many to one 
@@ -544,11 +545,96 @@ class TrainValidTestSplitting(Splitting):
         # KFoldSplitting.split_dataset().
         return [(train, valid)], test, [(train_attr, valid_attr)], test_attr
 
+# ****************************************************************************************
+
+class ProductionSplitter(dc.splits.Splitter):
+    def split(
+            self, dataset, frac_train=1, frac_valid=1, frac_test=1, seed=None, log_every_n = None
+    ):
+        """We implement a production run as having a split that contains all samples in every subset"""
+        num_datapoints = len(dataset)
+        return (list(range(num_datapoints)), list(range(num_datapoints)), list(range(num_datapoints)))
+
+
+# ****************************************************************************************
+
+class ProductionSplitting(Splitting):
+    def __init__(self, params):
+        """This Splitting only does one thing and ignores all splitter parameters"""
+        self.splitter = ProductionSplitter()
+        self.split = 'production'
+
+    # ****************************************************************************************
+    def get_split_prefix(self, parent=''):
+        """Returns a string identifying the split strategy (production) and the splitting method
+        (index, scaffold, etc.) for use in filenames, dataset keys, etc.
+
+        Args:
+            parent (str): Default to empty string. Sets the parent directory for the output string
+
+        Returns:
+            (str): A string that identifies the split strategy and the splitting method.
+            Appends a parent directory in front of the fold description
+
+        """
+        if parent != '':
+            parent = "%s/" % parent
+        return "%sproduction_%s" % (parent, self.split)
+
+    # ****************************************************************************************
+    def split_dataset(self, dataset, attr_df, smiles_col):
+        """Splits dataset into training, testing and validation sets.
+        This should contain the entire dataset in each subset
+
+        Args:
+            dataset (deepchem Dataset): full featurized dataset
+
+            attr_df (Pandas DataFrame): dataframe containing SMILES strings indexed by compound IDs,
+
+            smiles_col (string): name of SMILES column (hack for now until deepchem fixes scaffold and butina splitters)
+
+        Returns:
+            [(train, valid)], test, [(train_attr, valid_attr)], test_attr:
+            train (deepchem Dataset): training dataset.
+
+            valid (deepchem Dataset): validation dataset.
+
+            test (deepchem Dataset): testing dataset.
+
+            train_attr (Pandas DataFrame): dataframe of SMILES strings indexed by compound IDs for training set.
+
+            valid_attr (Pandas DataFrame): dataframe of SMILES strings indexed by compound IDs for validation set.
+
+            test_attr (Pandas DataFrame): dataframe of SMILES strings indexed by compound IDs for test set.
+
+        Raises:
+            Exception if there are duplicate ids or smiles strings in the dataset or the attr_df
+
+        """
+        log.info("Splitting data by Production")
+
+        # Duplicate SMILES and compound_ids are merged into single compounds
+        # in DatasetManager. The first instance of each is kept. Assumes many to one 
+        # mapping of compound_ids and SMILES. dataset.ids is either compound_id or
+        # SMILES depending on the call to self.needs_smiles(). Later expand_selection
+        # will expect SMILES or compound_ids in dataset.ids depending on needs_smiles
+        # passed into the constructor
+        dm = DatasetManager(dataset=dataset, attr_df=attr_df, smiles_col=smiles_col,
+            needs_smiles=self.needs_smiles())
+        dataset = dm.compact_dataset()
+        train, valid, test = self.splitter.train_valid_test_split(dataset)
+        
+        # After splitting unique compound_ids or SMILES are expanded 
+        train, train_attr = dm.expand_selection(train.ids)
+        valid, valid_attr = dm.expand_selection(valid.ids)
+        test, test_attr = dm.expand_selection(test.ids)
+
+        return [(train, valid)], test, [(train_attr, valid_attr)], test_attr
+
 def _copy_modify_NumpyDataset(dataset, **kwargs):
-    '''
-    Create a copy of the DeepChem Dataset object `dataset` and then modify it based on the given keyword arguments.
+    """Create a copy of the DeepChem Dataset object `dataset` and then modify it based on the given keyword arguments.
     This is useful for updating attributes like dataset.w or dataset.id
-    '''
+    """
     args = {'X':dataset.X,
         'y':dataset.y,
         'w':dataset.w,
@@ -559,17 +645,15 @@ def _copy_modify_NumpyDataset(dataset, **kwargs):
     return NumpyDataset(**args)
 
 class DatasetManager:
-    '''
-    Different splitters have different dataset requirements.
-    - unique compound ids
-    - smiles used as ids
+    """Different splitters have different dataset requirements.
+        - unique compound ids
+        - smiles used as ids
 
     This object transforms datasets to satisfy these requirements then undoes them
     once the splitting is done.
-    '''
+    """
     def __init__(self, dataset, attr_df, smiles_col, needs_smiles):
-        '''
-        Before splitting we often have to compact the dataset to remove duplicate compound_ids. After
+        """Before splitting we often have to compact the dataset to remove duplicate compound_ids. After
         splitting we will have to expand that dataset again. We save self.dataset_ori so we have
         a copy of the original. We keep self.id_df to know how to map from a set of compound_ids
         or smiles to an expanded set of indicies.
@@ -580,7 +664,7 @@ class DatasetManager:
             attr_df (Pandas DataFrame): dataframe containing SMILES strings indexed by compound IDs,
 
             smiles_col (string): name of SMILES column (hack for now until deepchem fixes scaffold and butina splitters)
-        '''
+        """
         self.dataset_ori = copy.deepcopy(dataset)
         self.attr_df = attr_df
         self.smiles_col = smiles_col
@@ -609,13 +693,12 @@ class DatasetManager:
         many_to_one_df(self.id_df, id_col='compound_id', smiles_col='smiles')
 
     def compact_dataset(self):
-        '''
-        Returns a dataset with no duplicate compounds ids and smiles strings in the
+        """Returns a dataset with no duplicate compounds ids and smiles strings in the
         id column if necessary.
 
-        Builds a new dataset with no duplicates in ids (compounds or smiles). This assumes 
+        Builds a new dataset with no duplicates in ids (compounds or smiles). This assumes
         a many to one mapping between SMILES and compound ids
-        '''
+        """
         sub_dataset = self.dataset_ori
         sel_df = self.id_df
         if check_if_dupe_smiles_dataset(self.dataset_ori, self.attr_df, self.smiles_col):
@@ -653,8 +736,7 @@ class DatasetManager:
         return sub_dataset
 
     def expand_selection(self, ids):
-        '''
-        Implementation note: Maybe this is better if I used select_attrs_by_dset_smiles
+        """Implementation note: Maybe this is better if I used select_attrs_by_dset_smiles
         and select_attrs_by_dset_ids respectively
 
         Args:
@@ -664,7 +746,7 @@ class DatasetManager:
 
         Returns:
             A subset of self.dataset_ori and subset of self.attr_df
-        '''
+        """
         # are we using SMILES or compound_ids as the ID column
         id_col = 'smiles' if self.needs_smiles else 'compound_id'
         sel_df = self.id_df[self.id_df[id_col].isin(ids)]

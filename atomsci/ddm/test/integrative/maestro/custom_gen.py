@@ -6,14 +6,14 @@ import os
 
 #---------------------------------------------------------------------
 def get_custom_generator(env, **kwargs):
-    """
-    Create a custom populated ParameterGenerator.
+    """Create a custom populated ParameterGenerator.
 
     This function recreates the exact same parameter set as the sample LULESH
     specifications. The point of this file is to present an example of how to
     generate custom parameters.
 
-    :returns: A ParameterGenerator populated with parameters.
+    Returns:
+        A ParameterGenerator populated with parameters.
     """
 
     nn_ecfp_pparams = hsw.parse_params(['--config', env.find('JSON_FILE').value])

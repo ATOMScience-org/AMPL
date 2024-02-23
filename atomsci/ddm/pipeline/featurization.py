@@ -1,6 +1,4 @@
-"""
-Classes providing different methods of featurizing compounds and other data entities
-"""
+"""Classes providing different methods of featurizing compounds and other data entities"""
 
 import logging
 import os
@@ -57,7 +55,6 @@ import collections
 
 logging.basicConfig(format='%(asctime)-15s %(message)s')
 log = logging.getLogger('ATOM')
-log.setLevel(logging.DEBUG)
 
 
 
@@ -114,8 +111,7 @@ def create_featurization(params):
 
 # ****************************************************************************************
 def remove_duplicate_smiles(dset_df, smiles_col='rdkit_smiles'):
-    """
-    Remove any rows with duplicate SMILES strings from the given dataset.
+    """Remove any rows with duplicate SMILES strings from the given dataset.
 
     Args:
         dset_df (DataFrame): The dataset table.
@@ -135,8 +131,7 @@ def remove_duplicate_smiles(dset_df, smiles_col='rdkit_smiles'):
 
 # ****************************************************************************************
 def get_dataset_attributes(dset_df, params):
-    """
-    Construct a table mapping compound IDs to SMILES strings and possibly other attributes
+    """Construct a table mapping compound IDs to SMILES strings and possibly other attributes
     (e.g., dates) specified in params.
 
     Args:
@@ -160,8 +155,7 @@ def get_dataset_attributes(dset_df, params):
 
 # ****************************************************************************************
 def featurize_smiles(df, featurizer, smiles_col, log_every_N=1000):
-    """
-    Replacement for DeepChem 2.1 featurize_smiles_df function, which is buggy. Computes
+    """Replacement for DeepChem 2.1 featurize_smiles_df function, which is buggy. Computes
     features using featurizer for dataframe df column given by smiles_col. Returns them as
     a numpy array, along with an array 'is_valid' indicating which rows of the input
     dataframe yielded valid features.
@@ -195,8 +189,7 @@ def featurize_smiles(df, featurizer, smiles_col, log_every_N=1000):
 
 # ****************************************************************************************
 def get_2d_mols(smiles_strs):
-    """
-    Convert SMILES strings to RDKit Mol objects without explicit hydrogens or 3D coordinates
+    """Convert SMILES strings to RDKit Mol objects without explicit hydrogens or 3D coordinates
 
     Args:
         smiles_strs (iterable of str): List of SMILES strings to convert
@@ -214,8 +207,7 @@ def get_2d_mols(smiles_strs):
     return mols, is_valid
 
 def get_3d_mols(smiles_strs):
-    """
-    Convert SMILES strings to Mol objects with explicit hydrogens and 3D coordinates
+    """Convert SMILES strings to Mol objects with explicit hydrogens and 3D coordinates
 
     Args:
         smiles_strs (iterable of str): List of SMILES strings to convert
@@ -251,8 +243,7 @@ def get_3d_mols(smiles_strs):
 
 
 def compute_2d_mordred_descrs(mols):
-    """
-    Compute 2D Mordred descriptors only
+    """Compute 2D Mordred descriptors only
 
     Args:
         mols: List of RDKit mol objects for molecules to compute descriptors for.
@@ -271,8 +262,7 @@ def compute_2d_mordred_descrs(mols):
         return None
 
 def compute_all_mordred_descrs(mols, max_cpus=None, quiet=True):
-    """
-    Compute all Mordred descriptors, including 3D ones
+    """Compute all Mordred descriptors, including 3D ones
 
     Args:
         mols: List of RDKit mol objects for molecules to compute descriptors for.
@@ -297,8 +287,7 @@ def compute_all_mordred_descrs(mols, max_cpus=None, quiet=True):
         return None
 
 def compute_mordred_descriptors_from_smiles(smiles_strs, max_cpus=None, quiet=True, smiles_col='rdkit_smiles'):
-    """
-    Compute 2D and 3D Mordred descriptors for the given list of SMILES strings.
+    """Compute 2D and 3D Mordred descriptors for the given list of SMILES strings.
 
     Args:
         smiles_strs:    A list or array of SMILES strings
@@ -334,8 +323,7 @@ def compute_mordred_descriptors_from_smiles(smiles_strs, max_cpus=None, quiet=Tr
 
 
 def compute_all_rdkit_descrs(mol_df, mol_col = "mol"):
-    """
-    Compute all RDKit descriptors
+    """Compute all RDKit descriptors
 
     Args:
         mols: List of RDKit Mol objects to compute descriptors for.
@@ -346,15 +334,17 @@ def compute_all_rdkit_descrs(mol_df, mol_col = "mol"):
     """
     all_desc = [x[0] for x in Descriptors._descList]
     calc = get_rdkit_calculator(all_desc)
-    for i in mol_df.index:
-        cd = calc.CalcDescriptors(mol_df.at[i, mol_col])
-        for desc, d in list(zip(all_desc, cd)):
-            mol_df.at[i, desc] = d
+    cds=[]
+    for mol in mol_df[mol_col]:
+        cd = calc.CalcDescriptors(mol)
+        cds.append(cd)
+    df2=pd.DataFrame(cds, columns=all_desc, index=mol_df.index)
+    mol_df=mol_df.join(df2, lsuffix='', rsuffix='_rdk')
     return mol_df
+    
 
 def compute_rdkit_descriptors_from_smiles(smiles_strs, smiles_col='rdkit_smiles'):
-    """
-    Compute 2D and 3D RDKit descriptors for the given list of SMILES strings.
+    """Compute 2D and 3D RDKit descriptors for the given list of SMILES strings.
 
     Args:
         smiles_strs:    A list or array of SMILES strings
@@ -386,8 +376,7 @@ def compute_rdkit_descriptors_from_smiles(smiles_strs, smiles_col='rdkit_smiles'
     return desc_df, is_valid
 
 def get_mordred_calculator(exclude=subclassed_mordred_classes, ignore_3D=False):
-    """
-    Create a Mordred calculator with all descriptor modules registered except those whose names are in the exclude list.
+    """Create a Mordred calculator with all descriptor modules registered except those whose names are in the exclude list.
     Register ATOM versions of the classes in those modules instead.
 
     Args:
@@ -410,9 +399,7 @@ def get_mordred_calculator(exclude=subclassed_mordred_classes, ignore_3D=False):
 
 
 def get_rdkit_calculator(desc_list):
-    """
-    Create a Mordred calculator with only the RDKit wrapper descriptor modules registered
-    """
+    """Create a Mordred calculator with only the RDKit wrapper descriptor modules registered"""
     #calc = Calculator(ignore_3D=True)
     #for desc_mod in rdkit_desc_mods:
     #    calc.register(desc_mod, ignore_3D=True)
@@ -424,8 +411,7 @@ def get_rdkit_calculator(desc_list):
 # Module-level functions for MOE descriptor calculations
 # ****************************************************************************************
 def compute_all_moe_descriptors(smiles_df, params):
-    """
-    Run MOE to compute all 317 standard descriptors.
+    """Run MOE to compute all 317 standard descriptors.
 
     Args:
         smiles_df (DataFrame): Table containing SMILES strings and compound IDs
@@ -492,7 +478,8 @@ def compute_all_moe_descriptors(smiles_df, params):
                 log.error('MOE descriptor calculation failed.')
                 return None
             log.debug("Reading descriptors from %s" % output_file)
-            result_df = pd.read_csv(output_file, index_col=False)
+            result_df = pd.read_csv(output_file, index_col=False,
+                            dtype={'cmpd_id':'string'}) # IDs should always be treated as strings
             result_df = result_df.rename(columns={'cmpd_id' : params.id_col, 'original_smiles' : params.smiles_col})
             os.chdir(curdir)
             return result_df
@@ -690,8 +677,7 @@ class DynamicFeaturization(Featurization):
 
     # ****************************************************************************************
     def featurize(self,mols) :
-        """Calls DeepChem featurize() object
-        """
+        """Calls DeepChem featurize() object"""
 
         return self.featurizer_obj.featurize(mols)
 
@@ -761,7 +747,7 @@ class DynamicFeaturization(Featurization):
             feat_df = pd.DataFrame(dict(c0=features))
         featurized_dset_df = pd.concat([keep_df, feat_df], ignore_index=False, axis=1)
 
-        if contains_responses:
+        if contains_responses and (params.model_type != 'hybrid'):
             vals, w = make_weights(featurized_dset_df[params.response_cols].values) #, self.id_field)
         else:
             vals = np.zeros((nrows,ncols))
@@ -881,8 +867,7 @@ class DynamicFeaturization(Featurization):
 
 # ****************************************************************************************
 class EmbeddingFeaturization(DynamicFeaturization):
-    """
-    Featurizer that uses a pretrained AMPL neural network model to compute features consisting
+    """Featurizer that uses a pretrained AMPL neural network model to compute features consisting
     of the activations from the "embedding" layer of the network. For this to work, the underlying
     DeepChem model must implement the predict_embedding function.
     """
@@ -925,8 +910,7 @@ class EmbeddingFeaturization(DynamicFeaturization):
 
     # ****************************************************************************************
     def featurize(self,mols) :
-        """Calls DeepChem featurize() object
-        """
+        """Calls DeepChem featurize() object"""
 
         # TODO Does this actually get called externally?
         raise NotImplementedError
@@ -942,7 +926,6 @@ class EmbeddingFeaturization(DynamicFeaturization):
             params (Namespace): Parsed parameters to be used for featurization.
 
             contains_responses (bool): Whether the dataset being featurized contains response columns.
-
 
         Returns:
             Tuple of (features, ids, vals, attr, weights, featurized_dset_df):
@@ -982,6 +965,8 @@ class EmbeddingFeaturization(DynamicFeaturization):
         vals = input_dataset.y
         weights = input_dataset.w
         attr = input_model_dataset.attr
+
+        input_dataset = self.embedding_pipeline.model_wrapper.transform_dataset(input_dataset)
 
         # Run the embedding model to generate features. 
         embedding = self.embedding_pipeline.model_wrapper.generate_embeddings(input_dataset)
@@ -1126,6 +1111,7 @@ class PersistentFeaturization(Featurization):
 class DescriptorFeaturization(PersistentFeaturization):
     """Subclass for featurizers that map sets of (usually) precomputed descriptors to compound IDs; the resulting merged
     dataset is persisted to the filesystem or datastore.
+    
     Attributes:
         Set in __init_:
         feat_type (str): Type of featurizer, set in super.(__init__)
@@ -1142,7 +1128,6 @@ class DescriptorFeaturization(PersistentFeaturization):
 
     Class attributes:
         supported_descriptor_types
-
         all_desc_col
     """
 
@@ -1211,10 +1196,10 @@ class DescriptorFeaturization(PersistentFeaturization):
 
         if ds_client is None or desc_spec_bucket == '':
             if os.path.exists(desc_spec_key):
-                log.info("Reading descriptor spec table from %s" % desc_spec_key)
+                log.debug("Reading descriptor spec table from %s" % desc_spec_key)
                 desc_spec_df = pd.read_csv(desc_spec_key, index_col=False)
             else:
-                log.info("Reading descriptor spec table from %s" % desc_spec_key_fallback)
+                log.debug("Reading descriptor spec table from %s" % desc_spec_key_fallback)
                 desc_spec_df = pd.read_csv(desc_spec_key_fallback, index_col=False)
         else :
             # Try the descriptor_spec_key parameter first, then fall back to package file
@@ -1327,8 +1312,7 @@ class DescriptorFeaturization(PersistentFeaturization):
 
     # ****************************************************************************************
     def load_descriptor_table(self, params):
-        """
-        Load the table of precomputed feature values for the descriptor type specified in params, from
+        """Load the table of precomputed feature values for the descriptor type specified in params, from
         the datastore_key or path specified by params.descriptor_key and params.descriptor_bucket. Will try
         to load the table from the local filesystem if possible, but the table should at least have a
         metadata record in the datastore. The local file path is the same as descriptor_key on twintron-blue,
@@ -1484,7 +1468,7 @@ class DescriptorFeaturization(PersistentFeaturization):
 
         nrows = len(ids)
         ncols = len(params.response_cols)
-        if contains_responses:
+        if contains_responses and (params.model_type != 'hybrid'):
             vals = featurized_dset_df[params.response_cols].values
             vals, weights = make_weights(vals)
         else:
@@ -1781,7 +1765,7 @@ class ComputedDescriptorFeaturization(DescriptorFeaturization):
         ids = featurized_dset_df[params.id_col]
         nrows = len(ids)
         ncols = len(params.response_cols)
-        if contains_responses:
+        if contains_responses and (params.model_type != 'hybrid'):
             vals = featurized_dset_df[params.response_cols].values
             vals, weights = make_weights(vals)
         else:
@@ -1810,8 +1794,7 @@ class ComputedDescriptorFeaturization(DescriptorFeaturization):
 
     # ****************************************************************************************
     def compute_descriptors(self, smiles_df, params):
-        """
-        Compute descriptors for the SMILES strings given in smiles_df.
+        """Compute descriptors for the SMILES strings given in smiles_df.
 
         Args:
             smiles_df: DataFrame containing SMILES strings to compute descriptors for.
@@ -1866,8 +1849,7 @@ class ComputedDescriptorFeaturization(DescriptorFeaturization):
 
     # ****************************************************************************************
     def compute_mordred_descriptors(self, smiles_strs, params):
-        """
-        Compute Mordred descriptors for the given list of SMILES strings
+        """Compute Mordred descriptors for the given list of SMILES strings
 
         Args:
             smiles_strs (iterable): SMILES strings to compute descriptors for.
@@ -1889,8 +1871,7 @@ class ComputedDescriptorFeaturization(DescriptorFeaturization):
 
     # ****************************************************************************************
     def compute_rdkit_descriptors(self, smiles_df, smiles_col="rdkit_smiles"):
-        """
-        Compute RDKit descriptors for the given list of SMILES strings
+        """Compute RDKit descriptors for the given list of SMILES strings
 
         Args:
             smiles_strs: SMILES strings to compute descriptors for.
@@ -1909,8 +1890,7 @@ class ComputedDescriptorFeaturization(DescriptorFeaturization):
 
     # ****************************************************************************************
     def compute_moe_descriptors(self, smiles_df, params):
-        """
-        Compute MOE descriptors for the given list of SMILES strings
+        """Compute MOE descriptors for the given list of SMILES strings
 
         Args:
             smiles_strs (iterable): SMILES strings to compute descriptors for.
@@ -1939,8 +1919,7 @@ class ComputedDescriptorFeaturization(DescriptorFeaturization):
 
     # ****************************************************************************************
     def scale_moe_descriptors(self, desc_df, descr_type):
-        """
-        Scale selected descriptors computed by MOE by dividing their values by the atom count per molecule.
+        """Scale selected descriptors computed by MOE by dividing their values by the atom count per molecule.
 
         Args:
             desc_df (DataFrame): Data frame containing computed descriptors.
@@ -1964,10 +1943,17 @@ class ComputedDescriptorFeaturization(DescriptorFeaturization):
                 scaled_df[scaled_col] = desc_df[unscaled_col].values
         return scaled_df.copy()
 
+    # ****************************************************************************************
+    def __str__(self):
+        """Returns a human-readable description of this Featurization object.
+        Returns:
+            (str): Describes the featurization type
+        """
+        return "ComputedDescriptorFeaturization with %s descriptors" % self.descriptor_type
+
 # ****************************************************************************************
 def get_user_specified_features(df, featurizer, verbose=False):
-    """
-    Temp fix for DC 2.3 issue. See
+    """Temp fix for DC 2.3 issue. See
     https://github.com/deepchem/deepchem/issues/1841
     """
 
@@ -2016,9 +2002,7 @@ if mordred_supported:
                 )
 
     class ATOMMolecularDistanceEdge(MolecularDistanceEdge):
-        """
-        MolecularDistanceEdge descriptors restricted to those that can be computed for most compounds
-        """
+        """MolecularDistanceEdge descriptors restricted to those that can be computed for most compounds"""
 
         @classmethod
         def preset(cls, version):

@@ -1,7 +1,5 @@
 
-"""
-Featurize several files at once
-"""
+"""Featurize several files at once"""
 import sys
 import os
 import json
@@ -11,8 +9,7 @@ from atomsci.ddm.pipeline import model_pipeline as mp
 from atomsci.ddm.pipeline import parameter_parser as parse
  
 def featurize_from_shortlist(shortlist_path=None, split_json = None):
-    """
-    Featurize and split the ChEMBL hERG pIC50 dataset. Then create a config
+    """Featurize and split the ChEMBL hERG pIC50 dataset. Then create a config
     file for running a hyperparameter search to model this dataset.
     """
     sl = pd.read_csv(shortlist_path)

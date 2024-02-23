@@ -1,5 +1,4 @@
-"""
-data_curation_functions.py
+"""data_curation_functions.py
 
 Extract Kevin's functions for curation of public datasets
 Modify them to match Jonathan's curation methods in notebook
@@ -10,7 +9,6 @@ import os
 import sys
 import numpy as np
 import pandas as pd
-
 import pdb
 
 from rdkit import Chem
@@ -22,9 +20,9 @@ import atomsci.ddm.utils.struct_utils as struct_utils
 import atomsci.ddm.utils.curate_data as curate_data, imp
 
 def set_data_root(dir):
-    '''Set global variables for data directories
+    """Set global variables for data directories
 
-    Creates paths for DTC and Excape given a root data directory. 
+    Creates paths for DTC and Excape given a root data directory.
     Global variables 'data_root' and 'data_dirs'. 'data_root' is the
     root data directory. 'data_dirs' is a dictionary that maps 'DTC' and 'Excape'
     to directores calcuated from 'data_root'
@@ -34,7 +32,7 @@ def set_data_root(dir):
 
     Returns:
         None
-    '''
+    """
     global data_root, data_dirs
     data_root = dir
     #data_dirs = dict(ChEMBL = '%s/ChEMBL' % data_root, DTC = '%s/DTC' % data_root, 
@@ -81,9 +79,7 @@ def is_organometallic(mol):
 
 # ----------------------------------------------------------------------------------------------------------------------
 def exclude_organometallics(df, smiles_col='rdkit_smiles'):
-    """
-    Filters data frame df based on column smiles_col to exclude organometallic compounds
-    """
+    """Filters data frame df based on column smiles_col to exclude organometallic compounds"""
     mols = mols_from_smiles(df[smiles_col].values.tolist(), workers=16)
     include = np.array([not is_organometallic(mol) for mol in mols])
     return df[include].copy()
@@ -91,30 +87,30 @@ def exclude_organometallics(df, smiles_col='rdkit_smiles'):
 
 # ----------------------------------------------------------------------------------------------------------------------
 def standardize_relations(dset_df, db=None, rel_col=None, output_rel_col=None, invert=False):
-    """ Standardizes censoring operators
+    """Standardizes censoring operators
 
-    Standardize the censoring operators to =, < or >, and remove any rows whose operators
-    don't map to a standard one. There is a special case for db='ChEMBL' that strips
-    the extra "'"s around relationship symbols. Assumes relationship columns are 
-    'Standard Relation', 'standard_relation' and 'activity_prefix' for ChEMBL, DTC and GoStar respectively.
+        Standardize the censoring operators to =, < or >, and remove any rows whose operators
+        don't map to a standard one. There is a special case for db='ChEMBL' that strips
+        the extra "'"s around relationship symbols. Assumes relationship columns are
+        'Standard Relation', 'standard_relation' and 'activity_prefix' for ChEMBL, DTC and GoStar respectively.
 
-    This function makes the following mappings: ">" to ">", ">=" to ">", "<" to "<",
-    "<=" to "<", and "=" to "=". All other relations are removed from the DataFrame.
+        This function makes the following mappings: ">" to ">", ">=" to ">", "<" to "<",
+        "<=" to "<", and "=" to "=". All other relations are removed from the DataFrame.
 
     Args:
         dset_df (DataFrame): Input DataFrame. Must contain either 'Standard Relation'
-            or 'standard_relation'
+           or 'standard_relation'
 
         db (str): Source database. Must be either 'GoStar', 'DTC' or 'ChEMBL'. Required if rel_col is not specified.
-        
-        rel_col (str): Column containing relational operators. If specified, overrides the default relation column 
-            for db.
-        
+
+        rel_col (str): Column containing relational operators. If specified, overrides the default relation column
+           for db.
+
         output_rel_col (str): If specified, put the standardized operators in a new column with this name and leave
-            the original operator column unchanged.
-        
+           the original operator column unchanged.
+
         invert (bool): If true, replace the inequality operators with their inverses. This is useful when a reported
-            value such as IC50 is converted to its negative log such as pIC50.
+           value such as IC50 is converted to its negative log such as pIC50.
 
     Returns:
         DataFrame: Dataframe with the standardized relationship sybmols
@@ -168,7 +164,7 @@ def upload_file_dtc_raw_data(dset_name, title, description, tags,
                            force_update=False):
     """Uploads raw DTC data to the datastore
 
-    Upload a raw dataset to the datastore from the given DataFrame. 
+    Upload a raw dataset to the datastore from the given DataFrame.
     Returns the datastore OID of the uploaded dataset. The dataset is uploaded to the
     public bucket and lists https://doi.org/10.1016/j.chembiol.2017.11.009' as the doi.
     This also assumes that the id_col is 'compound_id'
@@ -245,27 +241,28 @@ def upload_file_dtc_raw_data(dset_name, title, description, tags,
     return raw_dset_oid
 
 def filter_dtc_data(orig_df,geneNames):
-    """ Extracts and post processes JAK1, 2, and 3 datasets from DTC
+    """Extracts and post processes JAK1, 2, and 3 datasets from DTC
 
-    This is specific to the DTC database.
-    Extract JAK1, 2 and 3 datasets from Drug Target Commons database, filtered for data usability.
-    filter criteria:
-       gene_names == JAK1 | JAK2 | JAK3
-       InChi key not missing
-       standard_type IC50
-       units NM
-       standard_relation mappable to =, < or >
-       wildtype_or_mutant != 'mutated'
-       valid SMILES
-       maps to valid RDKit base SMILES
-       standard_value not missing
-       pIC50 > 3
+        This is specific to the DTC database.
+        Extract JAK1, 2 and 3 datasets from Drug Target Commons database, filtered for data usability.
+        filter criteria:
+        
+            gene_names == JAK1 | JAK2 | JAK3
+            InChi key not missing
+            standard_type IC50
+            units NM
+            standard_relation mappable to =, < or >
+            wildtype_or_mutant != 'mutated'
+            valid SMILES
+            maps to valid RDKit base SMILES
+            standard_value not missing
+            pIC50 > 3
 
     Args:
         orig_df (DataFrame): Input DataFrame. Must contain the following columns: gene_names
-            standard_inchi_key, standard_type, standard_units, standard_value, compound_id,
-            wildtype_or_mutant.
-
+           standard_inchi_key, standard_type, standard_units, standard_value, compound_id,
+           wildtype_or_mutant.
+        
         geneNames (list): A list of gene names to filter out of orig_df e.g. ['JAK1', 'JAK2'].
 
     Returns:
@@ -284,8 +281,6 @@ def filter_dtc_data(orig_df,geneNames):
 def ic50topic50(x) :
     """Calculates pIC50 from IC50
 
-    Calculates pIC50 from IC50
-
     Args:
         x (float): An IC50 in nanomolar (nM) units.
 
@@ -294,6 +289,76 @@ def ic50topic50(x) :
     """
     print(x)
     return -np.log10((x/1000000000.0))
+
+def compute_negative_log_responses(df, unit_col='unit', value_col='value', 
+        new_value_col='average_col', relation_col=None, new_relation_col=None,
+        unit_conv={'uM':lambda x: x*1e-6, 'nM':lambda x: x*1e-9}, inplace=False):
+    """Given the response values in `value_col` (IC50, Ki, Kd, etc.), compute their negative base 10 logarithms
+    (pIC50, pKi, pKd, etc.) after converting them to molar units and store them in `new_value_col`.
+    If `relation_col` is provided, replace any '<' or '>' relations with their opposites and store the result
+    in `new_relation_col` (if provided), or in `relation_col` if note.
+    Rows where the original value is 0 or negative will be dropped from the dataset.
+
+    Args:
+        df (DataFrame): A DataFrame that contains `value_col`, `unit_col` and `relation_col`.
+
+        unit_conv (dict): A dictionary mapping concentration units found in `unit_col` to functions
+        that convert the corresponding concentrations to molar. The default handles micromolar and
+        nanomolar units, represented as 'uM' and 'nM' respectively.
+
+        unit_col (str): Column containing units.
+
+        value_col (str): Column containing input values.
+
+        new_value_col (str): Column to receive converted values.
+
+        relation_col (str): Column containing relational operators for censored data.
+
+        new_relation_col (str): Column to receive inverted relations applicable to the negative log transformed values.
+
+        inplace (bool): If True, the input DataFrame is modified in place when possible. The default is to return a copy
+
+    Returns:
+        DataFrame: A table containing the transformed values and relations.
+    """
+
+    missing_units = list(set(df[unit_col]) - set(unit_conv.keys()))
+    assert len(missing_units) == 0, f"unit_conv lacks converter(s) for units {', '.join(missing_units)}"
+    # Drop rows for which log can't be computed
+    if np.any(df[value_col].values <= 0.0):
+        df = df[df[value_col] > 0.0].copy()
+    elif not inplace:
+        df = df.copy()
+    new_vals = []
+    new_relations = []
+    inverse_rel = str.maketrans('<>', '><')
+    for i, row in df.iterrows():
+        ic50 = row[value_col]
+        pic50 = -np.log10(unit_conv[row[unit_col]](ic50))
+        new_vals.append(pic50)
+        if relation_col is not None:
+            rel = row[relation_col]
+            if isinstance(rel, str):
+                rel = rel.translate(inverse_rel)
+            new_relations.append(rel)
+    df[new_value_col] = new_vals
+    if relation_col is not None:
+        if new_relation_col is None:
+            df[relation_col] = new_relations
+        else:
+            df[new_relation_col] = new_relations
+
+    return df
+
+
+def convert_IC50_to_pIC50(df, unit_col='unit', value_col='value', 
+        new_value_col='average_col', relation_col=None, new_relation_col=None,
+        unit_conv={'uM':lambda x: x*1e-6, 'nM':lambda x: x*1e-9}, inplace=False):
+    """For backward compatibiltiy only: equivalent to calling `compute_negative_log_responses` with the same arguments."""
+    return compute_negative_log_responses(df, unit_col=unit_col, value_col=value_col, new_value_col=new_value_col,
+                                          relation_col=relation_col, new_relation_col=new_relation_col,
+                                          unit_conv=unit_conv, inplace=inplace)
+
 
 def down_select(df,kv_lst) :
     """Filters rows given a set of values
@@ -320,7 +385,7 @@ def get_smiles_dtc_data(nm_df,targ_lst,save_smiles_df):
     standard_type, standard_value, 'standard_inchi_key', and standard_relation.
 
     This function selects all rows where nm_df['gene_names'] is in targ_lst,
-    nm_df['standard_type']=='IC50', nm_df['standard_relation']=='=', and 
+    nm_df['standard_type']=='IC50', nm_df['standard_relation']=='=', and
     'standard_value' > 0.
 
     Then pIC50 values are calculated and added to the 'PIC50' column, and
@@ -392,7 +457,7 @@ def get_smiles_4dtc_data(nm_df,targ_lst,save_smiles_df):
     standard_type, standard_value, 'standard_inchi_key', and standard_relation.
 
     This function selects all rows where nm_df['gene_names'] is in targ_lst,
-    nm_df['standard_type']=='IC50', nm_df['standard_relation']=='=', and 
+    nm_df['standard_type']=='IC50', nm_df['standard_relation']=='=', and
     'standard_value' > 0.
 
     Then pIC50 values are calculated and added to the 'PIC50' column, and
@@ -471,7 +536,7 @@ def upload_df_dtc_smiles(dset_name, title, description, tags,
                            force_update=False):
     """Uploads DTC smiles data to the datastore
 
-    Upload a raw dataset to the datastore from the given DataFrame. 
+    Upload a raw dataset to the datastore from the given DataFrame.
     Returns the datastore OID of the uploaded dataset. The dataset is uploaded to the
     public bucket and lists https://doi.org/10.1016/j.chembiol.2017.11.009' as the doi.
     This also assumes that the id_col is 'compound_id'
@@ -546,9 +611,7 @@ def upload_df_dtc_smiles(dset_name, title, description, tags,
     return raw_dset_oid
 
 def atom_curation(targ_lst, smiles_lst, shared_inchi_keys):
-    """Apply ATOM standard 'curation' step to "shared_df"
-
-    Apply ATOM standard 'curation' step to "shared_df": Average replicate assays, 
+    """Apply ATOM standard 'curation' step to "shared_df": Average replicate assays,
     remove duplicates and drop cases with large variance between replicates.
     mleqonly
 
@@ -605,8 +668,8 @@ def upload_df_dtc_mleqonly(dset_name, title, description, tags,
     """Uploads DTC mleqonly data to the datastore
 
     Upload mleqonly data to the datastore from the given DataFrame. The DataFrame
-    must contain the column 'rdkit_smiles' and 'VALUE_NUM_mean'. This function is 
-    meant to upload data that has been aggregated using 
+    must contain the column 'rdkit_smiles' and 'VALUE_NUM_mean'. This function is
+    meant to upload data that has been aggregated using
     atomsci.ddm.utils.curate_data.average_and_remove_duplicates.
     Returns the datastore OID of the uploaded dataset. The dataset is uploaded to the
     public bucket and lists https://doi.org/10.1016/j.chembiol.2017.11.009' as the doi.
@@ -694,8 +757,8 @@ def upload_df_dtc_mleqonly_class(dset_name, title, description, tags,
     """Uploads DTC mleqonly classification data to the datastore
 
     Upload mleqonly classification data to the datastore from the given DataFrame. The DataFrame
-    must contain the column 'rdkit_smiles' and 'binary_class'. This function is 
-    meant to upload data that has been aggregated using 
+    must contain the column 'rdkit_smiles' and 'binary_class'. This function is
+    meant to upload data that has been aggregated using
     atomsci.ddm.utils.curate_data.average_and_remove_duplicates and then thresholded to
     make a binary classification dataset.
     Returns the datastore OID of the uploaded dataset. The dataset is uploaded to the
@@ -1045,7 +1108,7 @@ def upload_file_excape_raw_data(dset_name, title, description, tags,
                            force_update=False):
     """Uploads raw Excape data to the datastore
 
-    Upload a raw dataset to the datastore from the given DataFrame. 
+    Upload a raw dataset to the datastore from the given DataFrame.
     Returns the datastore OID of the uploaded dataset. The dataset is uploaded to the
     public bucket and lists https://dx.doi.org/10.1186%2Fs13321-017-0203-5 as the doi.
     This also assumes that the id_col is 'Original_Entry_ID'
@@ -1124,7 +1187,7 @@ def get_smiles_excape_data(nm_df,targ_lst):
     Divides up nm_df based on target and makes one DataFrame for each target.
 
     Rows with NaN pXC50 values are dropped. Base rdkit SMILES are calculated
-    from the SMILES column using 
+    from the SMILES column using
     atomsci.ddm.utils.struct_utils.base_rdkit_smiles_from_smiles. A new column,
     'rdkit_smiles, is added to each output DataFrame.
 
@@ -1135,7 +1198,7 @@ def get_smiles_excape_data(nm_df,targ_lst):
         targ_lst (list): A list of targets to filter out of nm_df
 
     Returns:
-        list, list: A list of DataFrames, one for each target, and a list of 
+        list, list: A list of DataFrames, one for each target, and a list of
             all inchi keys used in the dataset.
 
     """
@@ -1179,7 +1242,7 @@ def upload_df_excape_smiles(dset_name, title, description, tags,
                            force_update=False):
     """Uploads Excape SMILES data to the datastore
 
-    Upload SMILES to the datastore from the given DataFrame. 
+    Upload SMILES to the datastore from the given DataFrame.
     Returns the datastore OID of the uploaded dataset. The dataset is uploaded to the
     public bucket and lists https://dx.doi.org/10.1186%2Fs13321-017-0203-5 as the doi.
     This also assumes that the id_col is 'Original_Entry_ID'
@@ -1255,9 +1318,7 @@ def upload_df_excape_smiles(dset_name, title, description, tags,
     return raw_dset_oid
 
 def atom_curation_excape(targ_lst, smiles_lst, shared_inchi_keys):
-    """Apply ATOM standard 'curation' step
-
-    Apply ATOM standard 'curation' step: Average replicate assays, 
+    """Apply ATOM standard 'curation' step: Average replicate assays,
     remove duplicates and drop cases with large variance between replicates.
     Rows with NaN values in rdkit_smiles, VALUE_NUM_mean, and pXC50 are dropped
 
@@ -1319,7 +1380,7 @@ def upload_df_excape_mleqonly(dset_name, title, description, tags,
                            force_update=False):
     """Uploads Excape mleqonly data to the datastore
 
-    Upload mleqonly to the datastore from the given DataFrame. 
+    Upload mleqonly to the datastore from the given DataFrame.
     Returns the datastore OID of the uploaded dataset. The dataset is uploaded to the
     public bucket and lists https://dx.doi.org/10.1186%2Fs13321-017-0203-5 as the doi.
     This also assumes that the id_col is 'Original_Entry_ID', smiles_col is 'rdkit_smiles'
@@ -1409,7 +1470,7 @@ def upload_df_excape_mleqonly_class(dset_name, title, description, tags,
 
     data_df contains a binary classification dataset with 'active' and 'incative' classes.
 
-    Upload mleqonly classification to the datastore from the given DataFrame. 
+    Upload mleqonly classification to the datastore from the given DataFrame.
     Returns the datastore OID of the uploaded dataset. The dataset is uploaded to the
     public bucket and lists https://dx.doi.org/10.1186%2Fs13321-017-0203-5 as the doi.
     This also assumes that the id_col is 'Original_Entry_ID', smiles_col is 'rdkit_smiles'

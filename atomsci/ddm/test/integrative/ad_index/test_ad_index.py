@@ -12,9 +12,7 @@ from atomsci.ddm.pipeline import model_pipeline as mp
 from atomsci.ddm.pipeline import predict_from_model as pfm
 
 def clean():
-    """
-    Clean test files
-    """
+    """Clean test files"""
     if "output" not in os.listdir():
         os.mkdir("output")
     for f in os.listdir("./output"):
@@ -22,9 +20,7 @@ def clean():
             os.remove("./output/"+f)
 
 def test():
-    """
-    Test full model pipeline: Curate data, fit model, and predict property for new compounds
-    """
+    """Test full model pipeline: Curate data, fit model, and predict property for new compounds"""
 
     # Clean
     # -----
