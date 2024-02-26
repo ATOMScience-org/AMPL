@@ -79,23 +79,25 @@ The tutorials examples are in:
 http://127.0.0.1:<port_number>/tree/AMPL/atomsci/ddm/examples/tutorials2023
 ```
 
+![Browse tutorials](../../docs/source/_static/img/01_install_from_docker_files/docker-browse-tutorials.png)
+
 Also, there are examples in 
 [AMPL's Read the Docs](https://ampl.readthedocs.io/en/latest/) on how to use AMPL Framework.
 
 ---
 
-## 7. To use AMPL, select `venv` as the run kernel
+## 7. To use AMPL, select `atomsci-env` as the run kernel
 
 There are two ways to set a kernel:
 
-* From a notebook, top menu bar `Kernel` > `Change Kernel` > `venv`
+* From a notebook, top menu bar `Kernel` > `Change Kernel` > `atomsci-env`
 
-![Select a kernel from a notebook](../../docs/source/_static/img/01_install_from_docker_files/docker_notebook_env2.png)
+![Select a kernel from a notebook](../../docs/source/_static/img/01_install_from_docker_files/docker-kernel-inside-nb.png)
 
 * Outside of a notebook, click `New` dropdown from upper right corner, 
-and select `venv` as the run kernel
+and select `atomsci-env` as the run kernel
 
-![Select a kernel outside of a notebook](../../docs/source/_static/img/01_install_from_docker_files/docker_notebook_env1.png)
+![Select a kernel outside of a notebook](../../docs/source/_static/img/01_install_from_docker_files/docker-kernel-outside-nb.png)
 
 
 

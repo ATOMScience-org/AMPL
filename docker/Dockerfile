@@ -2,7 +2,7 @@ FROM ubuntu:20.04
 RUN apt-get update && apt-get install -y curl
 RUN apt-get update && apt-get install -y python3.9 python3.9-dev python3-venv
 
-ENV VIRTUAL_ENV=/opt/venv
+ENV VIRTUAL_ENV=/opt/atomsci-env
 RUN python3 -m venv $VIRTUAL_ENV
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
@@ -30,6 +30,6 @@ RUN pip install --no-cache-dir --force-reinstall --trusted-host pypi.python.org 
 
 CMD ["build.sh"]
 RUN pip install -e .
-RUN python -m ipykernel install --user --name venv
+RUN python -m ipykernel install --user --name atomsci-env
 
 CMD ["bash"]
