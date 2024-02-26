@@ -12,18 +12,20 @@ import seaborn as sns
 # ---------------------------------------------------------------------------------------------------------------------------------
 def plot_split_subset_response_distrs(params):
     """Plot the distributions of the response variable(s) in each split subset of a dataset.
+    
     Args:
         params (argparse.Namespace or dict): Structure containing dataset and split parameters.
         The following parameters are required, if not set to default values:
-        - dataset_key
-        - split_uuid
-        - split_strategy
-        - splitter
-        - split_valid_frac
-        - split_test_frac
-        - num_folds
-        - smiles_col
-        - response_cols
+        
+        | - dataset_key
+        | - split_uuid
+        | - split_strategy
+        | - splitter
+        | - split_valid_frac
+        | - split_test_frac
+        | - num_folds
+        | - smiles_col
+        | - response_cols
 
     Returns:
         None
@@ -70,20 +72,22 @@ def get_split_labeled_dataset(params):
     Args:
         params (argparse.Namespace or dict): Structure containing dataset and split parameters.
         The following parameters are required, if not set to default values:
-        - dataset_key
-        - split_uuid
-        - split_strategy
-        - splitter
-        - split_valid_frac
-        - split_test_frac
-        - num_folds
-        - smiles_col
-        - response_cols
+        
+        | - dataset_key
+        | - split_uuid
+        | - split_strategy
+        | - splitter
+        | - split_valid_frac
+        | - split_test_frac
+        | - num_folds
+        | - smiles_col
+        | - response_cols
 
     Returns:
         A tuple (dset_df, split_label):
-        - dset_df (DataFrame): The dataset specified by `params.dataset_key`, with additional column `split_subset`.
-        - split_label (str): A short description of the split, useful for plot labeling.
+        
+        | - dset_df (DataFrame): The dataset specified by `params.dataset_key`, with additional column `split_subset`.
+        | - split_label (str): A short description of the split, useful for plot labeling.
     """
     if isinstance(params, dict):
         params = parse.wrapper(params)
