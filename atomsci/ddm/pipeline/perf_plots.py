@@ -184,7 +184,7 @@ def plot_pred_vs_actual_from_df(pred_df, actual_col='avg_pIC50_actual', pred_col
 
 #------------------------------------------------------------------------------------------------------------------------
 def plot_pred_vs_actual_from_file(model_path):
-    """Plot predicted vs actual values from a trained regression model from a model tarball.
+    """Plot predicted vs actual values from a trained regression model from a model tarball. This function only works for locally trained models; otherwise see the `predict_from_model` module.
 
     Args:
         model_path (str): Path to an AMPL model tar.gz file.
@@ -207,7 +207,10 @@ def plot_pred_vs_actual_from_file(model_path):
     
     # load (featurized) data
     dataset_dict=config['training_dataset']
+    if external_training_data is not None:
+        dataset_dict['dataset_key']=external_training_data
     dataset_key=dataset_dict['dataset_key']
+
     is_featurized=False
     AD_method=None
     if config['model_parameters']['featurizer'] in ['descriptors','computed_descriptors']:
@@ -234,7 +237,7 @@ def plot_pred_vs_actual_from_file(model_path):
     
     # run predictions
     pred_df=pfm.predict_from_model_file(model_path, df, id_col=dataset_dict['id_col'], smiles_col=dataset_dict['smiles_col'], 
-                                        response_col=response_cols, is_featurized=is_featurized, AD_method=AD_method, dont_standardize=True)                              
+                                        response_col=response_cols, is_featurized=is_featurized, AD_method=AD_method, dont_standardize=True)          
     
     # plot
     sns.set_context('notebook')
