@@ -148,7 +148,7 @@ def plot_pred_vs_actual(MP, epoch_label='best', threshold=None, error_bars=False
 
 
 #------------------------------------------------------------------------------------------------------------------------
-def plot_pred_vs_actual_from_df(pred_df, actual_col='avg_pIC50_actual', pred_col='avg_pIC50_pred', label='Prediction of Test Set', ax=None):
+def plot_pred_vs_actual_from_df(pred_df, actual_col='avg_pIC50_actual', pred_col='avg_pIC50_pred', label=None, ax=None):
     """Plot predicted vs actual values from a trained regression model for a given dataframe.
 
     Args:
@@ -166,7 +166,7 @@ def plot_pred_vs_actual_from_df(pred_df, actual_col='avg_pIC50_actual', pred_col
         g (matplotlib.axes.Axes): The axes object with data.
 
     """
-    g=sns.scatterplot(x='avg_pIC50_actual', y='avg_pIC50_pred', data=pred_df, ax=ax)
+    g=sns.scatterplot(x=actual_col, y=pred_col, data=pred_df, ax=ax)
     lims = [
         pred_df[[actual_col,pred_col]].min().min(),  # min of both axes
         pred_df[[actual_col,pred_col]].max().max(),  # max of both axes
@@ -728,6 +728,7 @@ def plot_umap_train_set_neighbors(MP, num_neighbors=20, min_dist=0.1,
 
         pdf_dir (str): If given, output the plot to a PDF file in the given directory.
 
+
     """
     ndim = 2
     params = MP.params
@@ -851,4 +852,3 @@ def plot_umap_train_set_neighbors(MP, num_neighbors=20, min_dist=0.1,
     if pdf_dir is not None:
         pdf.close()
         MP.log.info("Wrote plot to %s" % pdf_path)
-
