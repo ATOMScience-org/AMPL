@@ -31,39 +31,45 @@ Built with
 - `Mordred`_: Chemical descriptors
 - Other Python package dependencies
 
-User guide
-----------
-
-A step-by-step guide to getting started with MolVS.
-
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
+   :caption: Getting Started
 
-   guide/getting_started
-   guide/install
-   guide/tests
-   guide/running_ampl
-   guide/advanced_ampl_usage
-   guide/advanced_installation
-   guide/advanced_testing
-
-API documentation
------------------
+   get_started/introduction
+   get_started/install
+   get_started/run_ampl
+   get_started/tests
 
 .. toctree::
    :maxdepth: 2
+   :caption: Tutorials
 
-   modules 
+   tutorials/01_install_from_docker
+   tutorials/02_data_curation
+   tutorials/03_perform_a_split
+   tutorials/apply_trained_model
+   tutorials/compare_models
+   tutorials/hyperparameter_search
+   tutorials/production_model
+   tutorials/train_simple_model
+   tutorials/visualization
 
-Useful links
------------------
-- `ATOM Data-Driven Modeling Pipeline on GitHub`_
-- `Pipeline parameters (options)`_
-- `Library documentation`_
+.. toctree::
+   :maxdepth: 2
+   :caption: Advanced Concepts
 
-.. _`DeepChem`: https://github.com/deepchem/deepchem
-.. _`RDKit`: http://www.rdkit.org
-.. _`Mordred`: https://github.com/mordred-descriptor/mordred
-.. _`ATOM Data-Driven Modeling Pipeline on GitHub`: https://github.com/ATOMScience-org/AMPL
-.. _`Pipeline parameters (options)`: https://github.com/ATOMScience-org/AMPL/blob/master/atomsci/ddm/docs/PARAMETERS.md
-.. _`Library documentation`: https://ampl.readthedocs.io/en/latest/index.html
+   advanced/advanced_ampl_usage
+   advanced/advanced_installation
+   advanced/advanced_testing
+
+.. toctree::
+   :maxdepth: 1
+   :caption: API Package Reference
+
+   modules
+
+.. toctree::
+   :maxdepth: 1
+   :caption: External Resources
+
+   external/resources
