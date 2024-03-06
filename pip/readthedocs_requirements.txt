@@ -13,4 +13,5 @@ scikit-learn
 sphinx
 sphinx_rtd_theme
 tensorflow
+torch
 umap-learn
