@@ -26,7 +26,7 @@ Read the data
 =============
 
 We've prepared an example dataset containing IC50 values for the KCNA5
-target collected from `ChEMBL <https://www.ebi.ac.uk/chembl/>`__. This
+target collected from `ChEMBL <https://www.ebi.ac.uk/chembl/>`_. This
 dataset is simpler than what is commonly found in the wild, but will
 concisely demonstrate AMPL tools.
 
