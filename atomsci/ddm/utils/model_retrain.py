@@ -194,7 +194,7 @@ def train_models_from_dataset_keys(input, output, pred_type='regression', produc
         pred_type (str, optional): set the model prediction type. if not, uses the default 'regression'
 
     Returns:
-        the model pipeline object with trained model
+        None
     """
     df = pd.DataFrame()
     # parse the input file
