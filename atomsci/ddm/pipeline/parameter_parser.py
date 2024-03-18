@@ -590,7 +590,7 @@ def wrapper(*any_arg):
     """Wrapper to handle the ParseParams class. Calls the correct method depending on the input argument type
 
     Args:
-        *any_arg: any single input of a str, dict, ar/printgparse.Namespace, or list
+        *any_arg: any single input of a str, dict, argparse.Namespace, or list
 
     Returns:
         argparse.Namespace: a Namespace.argparse object containing default parameters + user specified parameters
@@ -1719,7 +1719,7 @@ def postprocess_args(parsed_args):
     # set num_model_tasks to equal len(response_cols)
     # this ignores the current value of num_model_tasks
     if not parsed_args.num_model_tasks is None:
-        print("num_model_tasks is deprecated and its value is ignored.")
+        log.debug("num_model_tasks is deprecated and its value is ignored.")
     if parsed_args.response_cols is None or type(parsed_args.response_cols) == str:
         parsed_args.num_model_tasks = 1
     elif type(parsed_args.response_cols) == list:
@@ -1797,10 +1797,12 @@ def remove_unrecognized_arguments(params, hyperparam=False):
     keep = set(list(vars(default).keys())).union(all_auto_arguments())
     newdict = {k: params[k] for k in keep if k in params}
 
-    # Writes a warning for any arguments that are not in the default list of parameters
+    # Writes a warning for any arguments that are not in the default list of parameters. This commonly happens
+    # when the parser is applied to the metadata from a saved model, because the metadata stores many values
+    # that are not parameters. For this reason, only complain if logLevel is set to 'debug'.
     extra_keys = [x for x in list(params.keys()) if x not in newdict.keys()]
     if len(extra_keys)>0:
-        log.warning(str(extra_keys) + " are not part of the accepted list of parameters and will be ignored")
+        log.debug(str(extra_keys) + " are not part of the accepted list of parameters and will be ignored")
 
     return newdict
 
