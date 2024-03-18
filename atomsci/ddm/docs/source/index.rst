@@ -6,6 +6,8 @@
 ATOM Modeling PipeLine (AMPL) for Drug Discovery
 ==============================================================
 
+.. include:: /_static/shared/links.rst
+
 **AMPL** is an open-source, modular, extensible software pipeline for building and sharing models to advance in silico drug discovery.
 
 The ATOM Modeling PipeLine (AMPL) extends the functionality of DeepChem and supports an array of machine learning and molecular featurization tools. AMPL is an end-to-end data-driven modeling pipeline to generate machine learning models that can predict key safety and pharmacokinetic-relevant parameters. AMPL has been benchmarked on a large collection of pharmaceutical datasets covering a wide range of parameters.
@@ -26,18 +28,17 @@ More detailed documentation is in the library documentation.
 Built with
 ----------
 
-- `DeepChem`_: The basis for the graph convolution models
-- `RDKit`_: Molecular informatics library
-- `Mordred`_: Chemical descriptors
+- `DeepChem <DeepChem_>`_: The basis for the graph convolution models
+- `RDKit <RDKit_>`_: Molecular informatics library
+- `Mordred <Mordred_>`_: Chemical descriptors
 - Other Python package dependencies
 
 .. toctree::
    :maxdepth: 2
    :caption: Getting Started
 
-   get_started/introduction
    get_started/install
-   get_started/run_ampl
+   get_started/running_ampl
    get_started/tests
 
 .. toctree::

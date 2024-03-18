@@ -6,6 +6,8 @@
 
 ------------
 
+.. include:: /_static/shared/links.rst
+
 AMPL can be run from Docker to provide its accessibility across multiple platforms. This can be done from one of these options:
 
 
@@ -89,7 +91,7 @@ The tutorials examples are in:
 
    http://localhost:8888/tree/AMPL/atomsci/ddm/examples/tutorials2023
 
-There are also examples in `AMPL's Read the Docs <https://ampl.readthedocs.io/en/latest/>`_ on how to use AMPL Framework.
+There are also examples in `AMPL's Read the Docs <ampl docs_>`_ on how to use AMPL Framework.
 
 ----
 
@@ -120,7 +122,7 @@ There are two ways to set an environment:
 Create a local image using ``Dockerfile``
 ========================================
 
-AMPL `Dockerfile <../../../docker/Dockerfile>`_ is in ``AMPL/docker`` directory. To build a Docker image:
+AMPL `Dockerfile <ampl dockerfile_>`_ is in ``AMPL/docker`` directory. To build a Docker image:
 
 .. code-block:: bash
 
