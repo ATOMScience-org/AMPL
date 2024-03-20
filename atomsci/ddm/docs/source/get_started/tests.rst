@@ -18,7 +18,7 @@ To run the `Delaney` Python script that curates a dataset, fits a model, and mak
  
 The important files for this test are listed below:
 
-* `test_delany_RF.py`: This script loads and curates the dataset, generates a model pipeline object, and fits a model. The model is reloaded from the filesystem and then used to predict solubilities for a new dataset.
+* `test_delaney_RF.py`: This script loads and curates the dataset, generates a model pipeline object, and fits a model. The model is reloaded from the filesystem and then used to predict solubilities for a new dataset.
 * `config_delaney_fit_RF.json`: Basic parameter file for fitting
 * `config_delaney_predict_RF.json`: Basic parameter file for predicting  
 
