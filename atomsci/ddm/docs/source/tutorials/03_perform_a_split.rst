@@ -29,7 +29,7 @@ AMPL to perform a split.
   :align: center
   :width: 700px  
 
-.. code:: ipython3
+.. code:: ipython
 
     '''We will use the curated dataset that we created in tutorial 2 
     and learn how to split it into train,validation and test sets.'''
@@ -63,7 +63,7 @@ are split into train/validation/test at random. If a model is trained on
 molecules that belong to only a handful of scaffold classes, its ability
 to predict a molecule in an unfamiliar scaffold is unknown.
 
-.. code:: ipython3
+.. code:: ipython
 
     split_type=['scaffold','random']
     param_lst=[]
@@ -97,7 +97,7 @@ The dataset split table is saved as a .csv in the same directory as the
 ``dataset_key`` and is followed by the split type (scaffold/random),
 split strategy, and the split\_uuid; an unique identifier of the split.
 
-.. code:: ipython3
+.. code:: ipython
 
     from atomsci.ddm.pipeline import model_pipeline as mp
     from atomsci.ddm.pipeline import parameter_parser as parse
@@ -123,7 +123,7 @@ A scaffold split tests model generalizability better than a random
 split. When using a random split, there is no guarantee that the test
 set will be structurally different than the training sets.
 
-.. code:: ipython3
+.. code:: ipython
 
     # display the split file location and names
     import os
@@ -156,7 +156,7 @@ subset tells you if the compound is in the train/validation/ test set
 and fold tell you which fold (Folds and split stratergies will be
 explained in a later tutorial)
 
-.. code:: ipython3
+.. code:: ipython
 
     # Explore contents of the split file
     file,sid,split_val = file_lst[0]
@@ -196,7 +196,7 @@ explained in a later tutorial)
 Show difference in Tanimoto distance between training and test comparison between random and scaffold split
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. code:: ipython3
+.. code:: ipython
 
     import atomsci.ddm.utils.compare_splits_plots as csp
     from atomsci.ddm.pipeline import chem_diversity as cd

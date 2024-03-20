@@ -3,6 +3,8 @@
 Advanced AMPL Usage
 ===================
 
+.. include:: /_static/shared/links.rst
+
 Command line
 ------------
 **AMPL** can `fit` models from the command line with:
@@ -12,6 +14,6 @@ Command line
  
 Hyperparameter optimization
 ---------------------------
-Hyperparameter optimization for AMPL model fitting is available to run on SLURM clusters or with `HyperOpt <https://hyperopt.github.io/hyperopt/>`_. (Bayesian Optimization). To run Bayesian Optimization, the following steps can be followed.
+Hyperparameter optimization for AMPL model fitting is available to run on SLURM clusters or with `HyperOpt <HyperOpt_>`_. (Bayesian Optimization). To run Bayesian Optimization, the following steps can be followed.
 
-See `Hyperparameter optimization <https://github.com/ATOMScience-org/AMPL#hyperparameter-optimization>`_ for more details.
+See `Hyperparameter optimization <Hyperparameter optimization_>`_ for more details.

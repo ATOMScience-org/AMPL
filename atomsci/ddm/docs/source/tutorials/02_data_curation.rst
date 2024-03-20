@@ -26,11 +26,11 @@ Read the data
 =============
 
 We've prepared an example dataset containing IC50 values for the KCNA5
-target collected from `ChEMBL <https://www.ebi.ac.uk/chembl/>`__. This
+target collected from `ChEMBL <https://www.ebi.ac.uk/chembl/>`_. This
 dataset is simpler than what is commonly found in the wild, but will
 concisely demonstrate AMPL tools.
 
-.. code:: ipython3
+.. code:: ipython
 
     import pandas as pd
     import numpy as np
@@ -53,7 +53,7 @@ censored or not. - ``standard_value``: The IC50 value is recorded here.
 - ``standard_units``: IC50 values can be recorded in different units
 which are recorded here. Fortunately, all of this data uses nM.
 
-.. code:: ipython3
+.. code:: ipython
 
     kcna5.shape
 
@@ -66,7 +66,7 @@ which are recorded here. Fortunately, all of this data uses nM.
 
 
 
-.. code:: ipython3
+.. code:: ipython
 
     kcna5.columns
 
@@ -93,7 +93,7 @@ same way.
 
    **Beware!** The input to base\_smiles\_from\_smiles must be a ``list``.
 
-.. code:: ipython3
+.. code:: ipython
 
     from atomsci.ddm.utils.struct_utils import base_smiles_from_smiles
     kcna5['base_rdkit_smiles'] = base_smiles_from_smiles(kcna5.smiles.tolist())
@@ -121,7 +121,7 @@ Relations can also differ from database to database. This function will
 standardize the relation column for use with AMPL. Since this data is
 from ChEMBL, we will call the function with ``db='ChEMBL'``
 
-.. code:: ipython3
+.. code:: ipython
 
     from atomsci.ddm.utils.data_curation_functions import standardize_relations
     kcna5 = standardize_relations(kcna5, db='ChEMBL', 
@@ -143,7 +143,7 @@ from ChEMBL, we will call the function with ``db='ChEMBL'``
 
 
 
-.. code:: ipython3
+.. code:: ipython
 
     kcna5.fixed_relation.value_counts()
 
@@ -166,7 +166,7 @@ We will convert the IC50s to pIC50s before performing machine learning.
 This function will use ``standard_units`` and ``standard_value``
 columns. This function converts IC50s in nM to pIC50s.
 
-.. code:: ipython3
+.. code:: ipython
 
     from atomsci.ddm.utils.data_curation_functions import convert_IC50_to_pIC50
     kcna5 = convert_IC50_to_pIC50(kcna5, 
@@ -198,7 +198,7 @@ Remove outliers and aggregate
 The final step is to remove outliers and aggregate duplicate
 measurements.
 
-.. code:: ipython3
+.. code:: ipython
 
     from atomsci.ddm.utils.curate_data import remove_outlier_replicates, aggregate_assay_data
     
@@ -232,7 +232,7 @@ measurements.
     value column ``avg_pIC50``. The column ``active`` is added but is not
     used in this tutorial. It will be covered in a classification tutorial.
 
-.. code:: ipython3
+.. code:: ipython
 
     kcna5.shape, kcna5_cur.shape
 
@@ -245,7 +245,7 @@ measurements.
 
 
 
-.. code:: ipython3
+.. code:: ipython
 
     kcna5.columns
 
@@ -261,7 +261,7 @@ measurements.
 
 
 
-.. code:: ipython3
+.. code:: ipython
 
     kcna5_cur.columns
 
@@ -277,7 +277,7 @@ measurements.
 All together, the curation process looks like this. We use this function
 to curate two more datasets for related targets.
 
-.. code:: ipython3
+.. code:: ipython
 
     import os
     
@@ -342,7 +342,7 @@ Multi-task data
 Now that the data is curated we can combine it with 2 other datasets
 that are already curated.
 
-.. code:: ipython3
+.. code:: ipython
 
     kcna5 = pd.read_csv('dataset/curated_kcna5_ic50.csv')
     kcna3 = pd.read_csv('dataset/curated_kcna3_ic50.csv')
@@ -363,7 +363,7 @@ that are already curated.
           dtype='object')
 
 
-.. code:: ipython3
+.. code:: ipython
 
     df.head()
 
@@ -434,7 +434,7 @@ that are already curated.
 This plot shows there are not many SMILES that overlap between the three
 targets.
 
-.. code:: ipython3
+.. code:: ipython
 
     import matplotlib_venn as mpv
     mpv.venn3([set(df.loc[~df.avg_pIC50_kcna5.isna(), 'base_rdkit_smiles']),

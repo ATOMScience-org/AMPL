@@ -2,6 +2,9 @@
 |xx Tutorial Title Here|
 ########################
 
-*Published: |Month|, |Year|, ATOM DDM Team*
+.. |date| date:: %b, %Y
+.. |time| date:: %H:%M
+
+Published: |date| ATOM DDM Team
 
 ------------
