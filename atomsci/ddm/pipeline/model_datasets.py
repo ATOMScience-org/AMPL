@@ -1,6 +1,4 @@
-"""
- Classes for dealing with datasets for data-driven modeling.
-"""
+"""Classes for dealing with datasets for data-driven modeling."""
 
 import logging
 import os
@@ -33,10 +31,10 @@ def create_model_dataset(params, featurization, ds_client=None):
 
     Args:
         params (Namespace object): contains all parameter information.
-        
+
         featurization (Featurization object): The featurization object created by ModelDataset or input as an argument
         in the factory function.
-        
+
         ds_client (Datastore client)
 
     Returns:
@@ -52,15 +50,15 @@ def create_minimal_dataset(params, featurization, contains_responses=False):
     """Create a MinimalDataset object for non-persistent data (e.g., a list of compounds or SMILES
     strings or a data frame). This object will be suitable for running predictions on a pretrained
     model, but not for training.
-    
+
     Args:
         params (Namespace object): contains all parameter information.
-        
+
         featurization (Featurization object): The featurization object created by ModelDataset or input as an argument
         in the factory function.
-        
+
         contains_responses (Boolean): Boolean specifying whether the dataset has a column with response values
-        
+
     Returns:
         (MinimalDataset): a new MinimalDataset object
 
@@ -75,7 +73,7 @@ def check_task_columns(params, dset_df):
         params (Namespace): Parsed parameter structure; must include response_cols parameter at minimum.
 
         dset_df (pd.DataFrame): Dataset as a DataFrame that contains columns for the prediction tasks
-        
+
     Raises:
         Exception:
             If response columns not set in params.
@@ -135,10 +133,10 @@ def set_group_permissions(system, path, data_owner='public', data_owner_group='p
 # ****************************************************************************************
 def key_value_list_to_dict(kvp_list):
     """Convert a key-value pair list from the datastore metadata into a proper dictionary
-    
+
     Args:
         kvp_list (list): List of key-value pairs
-        
+
     Returns:
         (dictionary): the kvp-list reformatted as a dictionary
     """
@@ -148,13 +146,12 @@ def key_value_list_to_dict(kvp_list):
 # TODO: This function refers to hardcoded directories on TTB. It is only called by model_pipeline.regenerate_results.
 # Consider moving this function outside the pipeline code.
 def create_split_dataset_from_metadata(model_metadata, ds_client, save_file=False):
-    """
-    Function that pulls the split metadata from the datastore and then joins that info with the dataset itself.
+    """Function that pulls the split metadata from the datastore and then joins that info with the dataset itself.
     Args:
         model_metadata (Namespace): Namespace object of model metadata
-        
+
         ds_client: datastore client
-        
+
         save_file (Boolean): Boolean specifying whether we want to save split dataset to disk
 
     Returns:
@@ -194,12 +191,11 @@ def create_split_dataset_from_metadata(model_metadata, ds_client, save_file=Fals
 # ***************************************************************************************
 # TODO: This function isn't used anywhere; consider removing it.
 def save_joined_dataset(joined_dataset, split_metadata):
-    """
-    DEPRECATED: Refers to absolute file paths that no longer exist.
-    
+    """DEPRECATED: Refers to absolute file paths that no longer exist.
+
     Args:
         joined_dataset (DataFrame): DataFrame containing split information with the response column
-        
+
         split_metadata (dictionary): Dictionary containing metadata with split info
 
     Returns:
@@ -211,20 +207,18 @@ def save_joined_dataset(joined_dataset, split_metadata):
     res_path = '/ds/projdata/gsk_data/split_joined_datasets'
     filename = '%s_%s_split_dataset.csv' % (dset_key, split_uuid)
     joined_dataset.to_csv(os.path.join(res_path, filename), index=False)
-    '''
+    """
     title = 'Joined dataset for dataset %s and split UUID %s' % (dset_key, split_uuid)
     description = "Joined dataset dset_key %s with split labels for split UUID %s" % (dset_key, split_uuid)
     # TODO: Need a way to differentiate between original file and this
     tags = split_metadata['tags']
     key_values = split_metadata['metadata']
     # dfs.upload_df_to_DS(joined_dataset, bucket, filename, title, description, tags, key_values, client=ds_client)
-    '''
+    """
 
 # ****************************************************************************************
 def get_classes(y):
-    """
-    Returns the class indices for a set of labels
-    """
+    """Returns the class indices for a set of labels"""
     class_indeces = set(y.flatten())
 
     return class_indeces
@@ -232,38 +226,37 @@ def get_classes(y):
 # ****************************************************************************************
 
 class ModelDataset(object):
-    """
-    Base class representing a dataset for data-driven modeling. Subclasses are specialized for dealing with
+    """Base class representing a dataset for data-driven modeling. Subclasses are specialized for dealing with
     dataset objects persisted in the datastore or in the filesystem.
 
     Attributes:
 
         set in __init__:
             params (Namespace object): contains all parameter information
-            
+
             log (logger object): logger for all warning messages.
-            
+
             dataset_name (str): set from the parameter object, the name of the dataset
-            
+
             output_dit (str): The root directory for saving output files
-            
+
             split_strategy (str): the flag for determining the split strategy (e.g. 'train_test_valid','k-fold')
-            
+
             featurization (Featurization object): The featurization object created by ModelDataset or input as an
             argument in the factory function.
-            
+
             splitting (Splitting object): A splitting object created by the ModelDataset intiailization method
-            
+
             combined_train_valid_data (dc.Dataset): A dataset object (initialized as None), of the merged train
             and valid splits
 
         set in get_featurized_data:
             dataset: A new featurized DeepChem Dataset.
-            
+
             n_features: The count of features (int)
-            
+
             vals: The response col after featurization (np.array)
-            
+
             attr: A pd.dataframe containing the compound ids and smiles
 
         set in get_dataset_tasks:
@@ -271,11 +264,11 @@ class ModelDataset(object):
 
         set in split_dataset or load_presplit_dataset:
             train_valid_dsets:  A list of tuples of (training,validation) DeepChem Datasets
-            
+
             test_dset: (dc.data.Dataset): The test dataset to be held out
-            
+
             train_valid_attr: A list of tuples of (training,validation) attribute DataFrames
-            
+
             test_attr: The attribute DataFrame for the test set, containing compound IDs and SMILES strings.
     """
 
@@ -284,7 +277,7 @@ class ModelDataset(object):
 
         Arguments:
             params (Namespace object): contains all parameter information.
-            
+
             featurization: Featurization object; will be created if necessary based on params
 
         """
@@ -416,14 +409,14 @@ class ModelDataset(object):
 
     # ****************************************************************************************
     def get_dataset_tasks(self, dset_df):
-        """Sets self.tasks to the list of prediction task (response) columns defined by the current model parameters. 
-        
+        """Sets self.tasks to the list of prediction task (response) columns defined by the current model parameters.
+
         Args:
             dset_df (pd.DataFrame): Dataset as a DataFrame that contains columns for the prediction tasks
-            
+
         Returns:
             sucess (boolean): True is self.tasks is set. False if not user supplied.
-            
+
         Side effects:
             Sets the self.tasks attribute to be the list of prediction task columns
         """
@@ -439,21 +432,20 @@ class ModelDataset(object):
 
     # ****************************************************************************************
     def split_dataset(self):
-        """ Splits the dataset into paired training/validation and test subsets, according to the split strategy
-        selected by the model params. For traditional train/valid/test splits, there is only one training/validation
-        pair. For k-fold cross-validation splits, there are k different train/valid pairs; the validation sets are
-        disjoint but the training sets overlap.
-
+        """Splits the dataset into paired training/validation and test subsets, according to the split strategy
+                selected by the model params. For traditional train/valid/test splits, there is only one training/validation
+                pair. For k-fold cross-validation splits, there are k different train/valid pairs; the validation sets are
+                disjoint but the training sets overlap.
 
         Side effects:
-            Sets the following attributes in the ModelDataset object:
-                train_valid_dsets:  A list of tuples of (training,validation) DeepChem Datasets
-                
-                test_dset: (dc.data.Dataset): The test dataset to be held out
-                
-                train_valid_attr: A list of tuples of (training,validation) attribute DataFrames
-                
-                test_attr: The attribute DataFrame for the test set, containing compound IDs and SMILES strings.
+           Sets the following attributes in the ModelDataset object:
+               train_valid_dsets:  A list of tuples of (training,validation) DeepChem Datasets
+
+               test_dset: (dc.data.Dataset): The test dataset to be held out
+
+               train_valid_attr: A list of tuples of (training,validation) attribute DataFrames
+
+               test_attr: The attribute DataFrame for the test set, containing compound IDs and SMILES strings.
         """
 
         # Create object to delegate splitting to.
@@ -469,8 +461,7 @@ class ModelDataset(object):
     # ****************************************************************************************
 
     def _validate_classification_dataset(self):
-        """
-        Verifies that this is a valid data for classification
+        """Verifies that this is a valid data for classification
         Checks that all classes are represented in all subsets. This causes performance metrics to crash.
         Checks that multi-class labels are between 0 and class_number
         """
@@ -480,9 +471,8 @@ class ModelDataset(object):
             raise ClassificationDataException("Dataset {} does not have all classes labeled using positive integers 0 <= i < {}".format(self.dataset_name, self.params.class_number))
 
     def _check_classes(self):
-        """
-        Checks to see if all classes are represented in all splits.
-        
+        """Checks to see if all classes are represented in all splits.
+
         Returns:
             (Boolean): boolean specifying if all classes are specified in all splits
         """
@@ -500,8 +490,7 @@ class ModelDataset(object):
     # ****************************************************************************************
 
     def _check_deepchem_classes(self):
-        """
-        Checks if classes adhear to DeepChem class index convention. Classes must be >=0 and < class_number
+        """Checks if classes adhear to DeepChem class index convention. Classes must be >=0 and < class_number
 
         Returns:
             (Boolean): boolean spechifying if classes adhear to DeepChem convention
@@ -532,11 +521,11 @@ class ModelDataset(object):
         Returns:
             split_df (DataFrame): Table with one row per compound in the dataset, with columns:
                 cmpd_id:    Compound ID
-                
+
                 subset:     The subset the compound was assigned to in the split. Either 'train', 'valid',
                             'test', or 'train_valid'. 'train_valid' is used for a k-fold split to indicate
                             that the compound was rotated between training and validation sets.
-                            
+
                 fold:       For a k-fold split, an integer indicating the fold in which the compound was in
                             the validation set. Is zero for compounds in the test set and for all compounds
                             when a train/valid/test split was used.
@@ -578,23 +567,23 @@ class ModelDataset(object):
 
         Args:
             directory (str): Optional directory where the split table is stored; used only by FileDataset.
-            
+
             Defaults to the directory containing the current dataset.
 
         Returns:
             success (boolean): True if the split table was loaded successfully and used to split the dataset.
 
-            Side effects:
+        Side effects:
                 Sets the following attributes of the ModelDataset object
                     train_valid_dsets:  A list of tuples of (training,validation) DeepChem Datasets
-                    
+
                     test_dset: (dc.data.Dataset): The test dataset to be held out
-                    
+
                     train_valid_attr: A list of tuples of (training,validation) attribute DataFrames
-                    
+
                     test_attr: The attribute DataFrame for the test set, containing compound IDs and SMILES strings.
-            Raises:
-                Exception: Catches exceptions from split.select_dset_by_attr_ids
+        Raises:
+            Exception: Catches exceptions from split.select_dset_by_attr_ids
                             or from other errors while splitting dataset using metadata
         """
 
@@ -657,7 +646,7 @@ class ModelDataset(object):
         Returns:
             combined_dataset (dc.data.Dataset): Dataset containing the combined training
             and validation data.
-            
+
         Side effects:
             Overwrites the combined_train_valid_data attribute of the ModelDataset with the combined data
         """
@@ -675,14 +664,13 @@ class ModelDataset(object):
     # ****************************************************************************************
 
     def has_all_feature_columns(self, dset_df):
-        """
-        Compare the columns in dataframe dset_df against the feature columns required by
+        """Compare the columns in dataframe dset_df against the feature columns required by
         the current featurization and descriptor_type param. Returns True if dset_df contains
         all the required columns.
-        
+
         Args:
             dset_df (DataFrame): Feature matrix
-        
+
         Returns:
             (Boolean): boolean specifying whether there are any missing columns in dset_df
         """
@@ -694,12 +682,12 @@ class ModelDataset(object):
     def get_subset_responses_and_weights(self, subset, transformers):
         """Returns a dictionary mapping compound IDs in the given dataset subset to arrays of response values
         and weights.  Used by the perf_data module under k-fold CV.
-        
+
         Args:
             subset (string): Label of subset, 'train', 'test', or 'valid'
 
             transformers: Transformers object for full dataset
-            
+
         Returns:
             tuple(response_dict, weight_dict)
                 (response_dict): dictionary mapping compound ids to arrays of per-task untransformed response values
@@ -724,9 +712,8 @@ class ModelDataset(object):
     # *************************************************************************************
 
     def _get_split_key(self):
-        """
-        Creates the proper CSV name for a split file
-        
+        """Creates the proper CSV name for a split file
+
         Returns:
             (str): String containing the dataset name, split type, and split_UUID. Used as key in datastore or filename
             on disk.
@@ -736,8 +723,7 @@ class ModelDataset(object):
 # ****************************************************************************************
 
 class MinimalDataset(ModelDataset):
-    """
-    A lightweight dataset class that does not support persistence or splitting, and therefore can be
+    """A lightweight dataset class that does not support persistence or splitting, and therefore can be
     used for predictions with an existing model, but not for training a model. Is not expected to
     contain response columns, i.e. the ground truth is assumed to be unknown.
 
@@ -782,13 +768,13 @@ class MinimalDataset(ModelDataset):
     def get_dataset_tasks(self, dset_df):
         """Sets self.tasks to the list of prediction task columns defined for this dataset. These should be defined in
         the params.response_cols list that was provided when this object was created.
-        
+
         Args:
             dset_df (pd.DataFrame): Ignored in this version.
-            
+
         Returns:
             Success (bool): Returns true if task names are retrieved.
-            
+
         Side effects:
             Sets the task attribute of the MinimalDataset object to a list of task names.
         """
@@ -801,19 +787,19 @@ class MinimalDataset(ModelDataset):
 
         Args:
             dset_df (DataFrame): DataFrame either with compound id and smiles string or Feature matrix
-            
+
             is_featurized (Boolean): boolean specifying whether the dset_df is already featurized
-        
+
         Returns:
             None
-            
+
         Side effects:
             Sets the following attributes in the ModelDataset object:
-            
+
                 dataset: A new featurized DeepChem Dataset.
-                
+
                 n_features: The count of features (int)
-                
+
                 attr: A pd.dataframe containing the compound ids and smiles
         """
 
@@ -845,16 +831,15 @@ class MinimalDataset(ModelDataset):
     # ****************************************************************************************
     def save_featurized_data(self, featurized_dset_df):
         """Does nothing, since a MinimalDataset object does not persist its data.
-        
-            Args:
+
+        Args:
                 featurized_dset_df (pd.DataFrame): Ignored.
         """
 
 # ****************************************************************************************
 
 class DatastoreDataset(ModelDataset):
-    """
-    Subclass representing a dataset for data-driven modeling that lives in the datastore.
+    """Subclass representing a dataset for data-driven modeling that lives in the datastore.
 
         Attributes:
 
@@ -955,13 +940,12 @@ class DatastoreDataset(ModelDataset):
         these should be available in the metadata. Otherwise we guess by looking at the column names in dset_df
         and excluding features, compound IDs, SMILES string columns, etc.
 
-        
         Args:
             dset_df (pd.DataFrame): Dataset containing the prediction tasks
-            
+
         Returns:
             Success (bool): Returns true if task names are retrieved.
-            
+
         Side effects:
             Sets the task attribute of the DatastoreDataset object to a list of task names.
         """
@@ -1039,7 +1023,7 @@ class DatastoreDataset(ModelDataset):
     def load_featurized_data(self):
         """Loads prefeaturized data from the datastore. Returns a data frame,
         which is then passed to featurization.extract_prefeaturized_data() for processing.
-        
+
         Returns:
             featurized_dset_df (pd.DataFrame): dataframe of the prefeaturized data, needs futher processing
         """
@@ -1128,7 +1112,7 @@ class DatastoreDataset(ModelDataset):
 
         Args:
             directory:    Ignored; included only for compatibility with the FileDataset version of this method.
-        
+
         Returns:
             tuple(split_df, split_kv):
                 split_df (DataFrame): Table assigning compound IDs to split subsets and folds.
@@ -1150,39 +1134,38 @@ class DatastoreDataset(ModelDataset):
 
 
 class FileDataset(ModelDataset):
-    """
-    Subclass representing a dataset for data-driven modeling that lives in the filesystem.
+    """Subclass representing a dataset for data-driven modeling that lives in the filesystem.
 
     Attributes:
 
         set in __init__:
             params (Namespace object): contains all parameter information
-            
+
             log (logger object): logger for all warning messages.
-            
+
             dataset_name (str): set from the parameter object, the name of the dataset
-            
+
             output_dit (str): The root directory for saving output files
-            
+
             split_strategy (str): the flag for determining the split strategy (e.g. 'train_test_valid','k-fold')
-            
+
             featurization (Featurization object): The featurization object created by ModelDataset or input as an
             optional argument in the factory function.
-            
+
             splitting (Splitting object): A splitting object created by the ModelDataset intiailization method
-            
+
             combined_train_valid_data (dc.Dataset): A dataset object (initialized as None), of the merged train and
             valid splits
-            
+
             ds_client (datastore client):
 
         set in get_featurized_data:
             dataset: A new featurized DeepChem Dataset.
-            
+
             n_features: The count of features (int)
-            
+
             vals: The response col after featurization (np.array)
-            
+
             attr: A pd.dataframe containing the compound ids and smiles
 
         set in get_dataset_tasks:
@@ -1190,11 +1173,11 @@ class FileDataset(ModelDataset):
 
         set in split_dataset or load_presplit_dataset:
             train_valid_dsets:  A list of tuples of (training,validation) DeepChem Datasets
-            
+
             test_dset: (dc.data.Dataset): The test dataset to be held out
-            
+
             train_valid_attr: A list of tuples of (training,validation) attribute DataFrames
-            
+
             test_attr: The attribute DataFrame for the test set, containing compound IDs and SMILES strings.
     """
 
@@ -1203,7 +1186,7 @@ class FileDataset(ModelDataset):
 
         Args:
             params (Namespace object): contains all parameter information.
-            
+
             featurization: Featurization object; will be created if necessary based on params
         """
         super().__init__(params, featurization)
@@ -1218,7 +1201,7 @@ class FileDataset(ModelDataset):
 
         Returns:
             dset_df: Dataset as a DataFrame loaded in from a CSV or feather file
-        
+
         Raises:
             exception: if dataset is empty or failed to load
         """
@@ -1247,13 +1230,13 @@ class FileDataset(ModelDataset):
         """Returns the list of prediction task columns defined for this dataset. If the dataset is in the datastore,
         these should be available in the metadata. Otherwise you can guess by looking at the column names in dset_df
         and excluding features, compound IDs, SMILES string columns, etc.
-        
+
         Args:
             dset_df (pd.DataFrame): Dataset as a DataFrame that contains columns for the prediction tasks
-        
+
         Returns:
             sucess (boolean): True is self.tasks is set. False if not user supplied.
-        
+
         Side effects:
             Sets the self.tasks attribute of FileDataset to be the list of prediction task columns
         """
@@ -1275,9 +1258,9 @@ class FileDataset(ModelDataset):
 
     def save_featurized_data(self, featurized_dset_df):
         """Save a featurized dataset to the filesystem.
-        
-            Args:
-                featurized_dset_df (pd.DataFrame): Dataset as a DataFrame that contains the featurized data
+
+        Args:
+            featurized_dset_df (pd.DataFrame): Dataset as a DataFrame that contains the featurized data
         """
 
         try:
@@ -1304,7 +1287,7 @@ class FileDataset(ModelDataset):
     def load_featurized_data(self):
         """Loads prefeaturized data from the filesystem. Returns a data frame,
         which is then passed to featurization.extract_prefeaturized_data() for processing.
-        
+
         Returns:
             featurized_dset_df (pd.DataFrame): dataframe of the prefeaturized data, needs futher processing
         """
@@ -1351,7 +1334,7 @@ class FileDataset(ModelDataset):
         split_table_file = '{0}/{1}'.format(directory, self._get_split_key())
         split_df.to_csv(split_table_file, index=False)
 
-        self.log.warning('Dataset split table saved to %s' % split_table_file)
+        self.log.info('Dataset split table saved to %s' % split_table_file)
 
     # ****************************************************************************************
     def load_dataset_split_table(self, directory=None):
@@ -1373,10 +1356,9 @@ class FileDataset(ModelDataset):
         return split_df, None
 
 class ClassificationDataException(Exception):
-    '''
-    Used when dataset for classification problem violates assumptions
-    -   Every subset in a split must have all classes
-    -   Labels must range from 0 <= L < num_classes. DeepChem requires this.
-        Errors occur when L > num_classes or L < 0
-    '''
+    """Used when dataset for classification problem violates assumptions
+       -   Every subset in a split must have all classes
+       -   Labels must range from 0 <= L < num_classes. DeepChem requires this.
+           Errors occur when L > num_classes or L < 0
+    """
     pass

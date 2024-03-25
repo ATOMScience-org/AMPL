@@ -4,14 +4,6 @@ ddm.pipeline package
 Submodules
 ----------
 
-ddm.pipeline.ave\_splitter module
----------------------------------
-
-.. automodule:: ddm.pipeline.ave_splitter
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 ddm.pipeline.chem\_diversity module
 -----------------------------------
 
@@ -44,18 +36,18 @@ ddm.pipeline.diversity\_plots module
    :undoc-members:
    :show-inheritance:
 
-ddm.pipeline.featurization module
----------------------------------
+ddm.pipeline.feature\_importance module
+----------------------------------------
 
-.. automodule:: ddm.pipeline.featurization
+.. automodule:: ddm.pipeline.feature_importance
    :members:
    :undoc-members:
    :show-inheritance:
 
-ddm.pipeline.model\_datasets module
------------------------------------
+ddm.pipeline.hyper\_perf\_plots module
+---------------------------------------
 
-.. automodule:: ddm.pipeline.model_datasets
+.. automodule:: ddm.pipeline.hyper_perf_plots
    :members:
    :undoc-members:
    :show-inheritance:
@@ -76,14 +68,6 @@ ddm.pipeline.model\_tracker module
    :undoc-members:
    :show-inheritance:
 
-ddm.pipeline.model\_wrapper module
-----------------------------------
-
-.. automodule:: ddm.pipeline.model_wrapper
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 ddm.pipeline.parameter\_parser module
 -------------------------------------
 
@@ -93,7 +77,7 @@ ddm.pipeline.parameter\_parser module
    :show-inheritance:
 
 ddm.pipeline.perf\_data module
-------------------------------
+-------------------------------
 
 .. automodule:: ddm.pipeline.perf_data
    :members:
@@ -112,30 +96,6 @@ ddm.pipeline.predict\_from\_model module
 ----------------------------------------
 
 .. automodule:: ddm.pipeline.predict_from_model
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-ddm.pipeline.splitting module
------------------------------
-
-.. automodule:: ddm.pipeline.splitting
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-ddm.pipeline.temporal\_splitter module
---------------------------------------
-
-.. automodule:: ddm.pipeline.temporal_splitter
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-ddm.pipeline.transformations module
------------------------------------
-
-.. automodule:: ddm.pipeline.transformations
    :members:
    :undoc-members:
    :show-inheritance:

@@ -52,19 +52,19 @@ except (ModuleNotFoundError, ImportError):
 
 
 def train_model(input, output, dskey='', production=False):
-    """ Retrain a model saved in a model_metadata.json file
-
+    """Retrain a model saved in a model_metadata.json file
+    
     Args:
-        input (str): path to model_metadata.json file
+       input (str): path to model_metadata.json file
 
-        output (str): path to output directory
+       output (str): path to output directory
 
-        dskey (str): new dataset key if file location has changed
+       dskey (str): new dataset key if file location has changed
 
-        production (bool): retrain the model using production mode
+       production (bool): retrain the model using production mode
 
     Returns:
-        None
+       None
     """
     # Train model
     # -----------
@@ -104,17 +104,17 @@ def train_model(input, output, dskey='', production=False):
     return model
 
 def train_model_from_tar(input, output, dskey='', production=False):
-    """ Retrain a model saved in a tar.gz file
-
+    """Retrain a model saved in a tar.gz file
+    
     Args:
-        input (str): path to a tar.gz file
+       input (str): path to a tar.gz file
 
-        output (str): path to output directory
+       output (str): path to output directory
 
-        dskey (str): new dataset key if file location has changed
+       dskey (str): new dataset key if file location has changed
 
     Returns:
-        None
+       None
     """
     tmpdir = tempfile.mkdtemp()
 
@@ -127,15 +127,15 @@ def train_model_from_tar(input, output, dskey='', production=False):
     return train_model(metadata_path, output, dskey=dskey, production=production)
 
 def train_model_from_tracker(model_uuid, output_dir, production=False):
-    """ Retrain a model saved in the model tracker, but save it to output_dir and don't insert it into the model tracker
+    """Retrain a model saved in the model tracker, but save it to output_dir and don't insert it into the model tracker
 
     Args:
-        model_uuid (str): model tracker model_uuid file
+       model_uuid (str): model tracker model_uuid file
 
-        output_dir (str): path to output directory
+       output_dir (str): path to output directory
 
     Returns:
-        the model pipeline object with trained model
+       the model pipeline object with trained model
     """
     
     if not mlmt_supported:
@@ -184,7 +184,7 @@ def train_model_from_tracker(model_uuid, output_dir, production=False):
     return model
 
 def train_models_from_dataset_keys(input, output, pred_type='regression', production=False):
-    """ Retrain a list of models from an input file
+    """Retrain a list of models from an input file
 
     Args:
         input (str): path to an Excel or csv file. the required columns are 'dataset_key' and 'bucket' (public, private_file or Filesystem).

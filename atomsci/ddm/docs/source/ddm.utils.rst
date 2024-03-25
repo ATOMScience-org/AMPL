@@ -3,6 +3,14 @@ ddm.utils package
 
 Submodules
 ----------
+ 
+ddm.utils.compare\_splits\_plots module
+---------------------------------------
+ 
+.. automodule:: ddm.utils.compare_splits_plots
+     :members:
+     :undoc-members:
+     :show-inheritance:
 
 ddm.utils.curate\_data module
 -----------------------------
@@ -28,14 +36,6 @@ ddm.utils.datastore\_functions module
    :undoc-members:
    :show-inheritance:
 
-ddm.utils.genTestset module
----------------------------
-
-.. automodule:: ddm.utils.genTestset
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 ddm.utils.hyperparam\_search\_wrapper module
 --------------------------------------------
 
@@ -44,10 +44,18 @@ ddm.utils.hyperparam\_search\_wrapper module
    :undoc-members:
    :show-inheritance:
 
-ddm.utils.llnl\_utils module
-----------------------------
+ddm.utils.many\_to\_one module
+------------------------------
 
-.. automodule:: ddm.utils.llnl_utils
+.. automodule:: ddm.utils.many_to_one
+    :members:
+    :undoc-members:
+    :show-inheritance:
+ 
+ddm.utils.model\_file\_reader module
+------------------------------------
+ 
+.. automodule:: ddm.utils.model_file_reader
    :members:
    :undoc-members:
    :show-inheritance:
@@ -60,10 +68,10 @@ ddm.utils.model\_retrain module
    :undoc-members:
    :show-inheritance:
 
-ddm.utils.process\_slurm module
--------------------------------
+ddm.utils.model\_version\_utils module
+---------------------------------------
 
-.. automodule:: ddm.utils.process_slurm
+.. automodule:: ddm.utils.model_version_utils
    :members:
    :undoc-members:
    :show-inheritance:
@@ -84,18 +92,19 @@ ddm.utils.rdkit\_easy module
    :undoc-members:
    :show-inheritance:
 
-ddm.utils.struct\_utils module
-------------------------------
 
-.. automodule:: ddm.utils.struct_utils
+ddm.utils.split\_response\_dist\_plots module
+---------------------------------------------
+
+.. automodule:: ddm.utils.split_response_dist_plots
    :members:
    :undoc-members:
    :show-inheritance:
 
-ddm.utils.verify\_results module
---------------------------------
+ddm.utils.struct\_utils module
+------------------------------
 
-.. automodule:: ddm.utils.verify_results
+.. automodule:: ddm.utils.struct_utils
    :members:
    :undoc-members:
    :show-inheritance:

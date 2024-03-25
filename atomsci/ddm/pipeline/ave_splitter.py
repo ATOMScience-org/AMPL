@@ -1,5 +1,4 @@
-"""
-Code to split a DeepChem dataset in such a way as to minimize the AVE bias, as described in `this paper by Wallach & Heifets
+"""Code to split a DeepChem dataset in such a way as to minimize the AVE bias, as described in `this paper by Wallach & Heifets
 <https://pubs.acs.org/doi/10.1021/acs.jcim.7b00403>`_
 
 Although the AVEMinSplitter class and its methods are public, you will typically not call them directly. Instead, they are invoked by
@@ -73,8 +72,7 @@ def _Cdist(params):
 
 #*******************************************************************************************************************************************
 def _calc_dist_mat(feat1, feat2, metric, pool, num_workers):
-    """
-    Calculate distance matrix between rows of feat1 and rows of feat2
+    """Calculate distance matrix between rows of feat1 and rows of feat2
 
     Args:
         feat1 (np.ndarray): First feature array
@@ -103,8 +101,7 @@ def _calc_dist_mat(feat1, feat2, metric, pool, num_workers):
 
 #*******************************************************************************************************************************************
 def analyze_split(params, id_col='compound_id', smiles_col='rdkit_smiles', active_col='active'):
-    """
-    Evaluate the AVE bias for the training/validation and training/test set splits of the given dataset.
+    """Evaluate the AVE bias for the training/validation and training/test set splits of the given dataset.
 
     Also show the active frequencies in each subset and for the dataset as a whole.
     id_col, smiles_col and active_col are defaults to be used in case they aren't found in the dataset metadata; if found
@@ -268,8 +265,7 @@ def analyze_split(params, id_col='compound_id', smiles_col='rdkit_smiles', activ
 
 #*******************************************************************************************************************************************
 def _check_split_similarity( params ):
-    """
-    Compare index sets given by params[0:4] against the corresponding sets given by params[4] and return True if
+    """Compare index sets given by params[0:4] against the corresponding sets given by params[4] and return True if
     any have more than a certain fraction of molecules in common.
 
     Args:
@@ -290,8 +286,7 @@ def _check_split_similarity( params ):
 
 #*******************************************************************************************************************************************
 def _calc_bias(params):
-    """
-    Compute the AVE bias objective function for the split set given by params[0], based on the distance matrices in the remaining params
+    """Compute the AVE bias objective function for the split set given by params[0], based on the distance matrices in the remaining params
 
     Args:
         params (tuple): Split index sets, distance matrices and thresholds
@@ -334,8 +329,7 @@ def _calc_bias(params):
 
 #*******************************************************************************************************************************************
 def _plot_nn_dist_distr(params):
-    """
-    Plot distributions of nearest neighbor distances
+    """Plot distributions of nearest neighbor distances
 
     Args:
         params (tuple): Split index sets, distance matrices and thresholds
@@ -371,8 +365,7 @@ def _plot_nn_dist_distr(params):
 
 #*******************************************************************************************************************************************
 def _plot_bias(params, niter):
-    """
-    Plot nearest neighbor functions used to compute AVE bias. Used in place of _calc_bias for debugging splitter code.
+    """Plot nearest neighbor functions used to compute AVE bias. Used in place of _calc_bias for debugging splitter code.
 
     Args:
         params (tuple): Split index sets, distance matrices and thresholds
@@ -444,8 +437,7 @@ def _plot_bias(params, niter):
 
 #*******************************************************************************************************************************************
 class AVEMinSplitter(Splitter):
-    """
-    Class for splitting a DeepChem dataset in order to minimize the Asymmetric Validation Embedding bias.
+    """Class for splitting a DeepChem dataset in order to minimize the Asymmetric Validation Embedding bias.
 
     Uses distances between feature vectors and binary classifications to compute
     the AVE bias for a candidate split and find a split that minimizes the bias.
@@ -486,8 +478,7 @@ class AVEMinSplitter(Splitter):
             self.calc_bias_pool = None
 
     def split(self, dataset, frac_train=0.8, frac_valid=0.2, frac_test=0.0, seed=None, log_every_n=None):
-        """
-        Split dataset into training and validation sets that minimize the AVE bias. A test set is not generated;
+        """Split dataset into training and validation sets that minimize the AVE bias. A test set is not generated;
         to do a 3-way split, call this function twice.
 
         Args:
@@ -504,8 +495,8 @@ class AVEMinSplitter(Splitter):
             log_every_n (int or None): Ignored
 
         Returns:
-            tuple: Lists of indices of compounds assigned to the training and validation/test sets. 
-            
+            tuple: Lists of indices of compounds assigned to the training and validation/test sets.
+
             The third element of the tuple is an empty list, because this function only does a 2-way split.
 
         Todo:

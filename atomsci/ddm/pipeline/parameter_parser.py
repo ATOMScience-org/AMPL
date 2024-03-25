@@ -50,8 +50,7 @@ featurizer_wl = {'MolGraphConvFeaturizer':dcf.MolGraphConvFeaturizer,
 
 #**********************************************************************************************************
 def all_auto_arguments():
-    '''
-    Returns a set of all arguments that get automatically added
+    """Returns a set of all arguments that get automatically added
 
     Args:
         None
@@ -59,7 +58,7 @@ def all_auto_arguments():
     Returns:
         set: A set of all arguments that were automatically added.
 
-    '''
+    """
     result = []
     for k,m in model_wl.items():
         aaa = AutoArgumentAdder(func=m, prefix=k)
@@ -74,8 +73,7 @@ def all_auto_arguments():
     return set(result)
 
 def all_auto_int_lists():
-    '''
-    Returns a set of all arguments that are automatically added and
+    """Returns a set of all arguments that are automatically added and
     accept a list of ints.
 
     Args:
@@ -84,7 +82,7 @@ def all_auto_int_lists():
     Returns:
         set: A set of automatically added arugments that could accept a
             list of ints.
-    '''
+    """
     result = []
     for k,m in model_wl.items():
         aaa = AutoArgumentAdder(func=m, prefix=k)
@@ -99,8 +97,7 @@ def all_auto_int_lists():
     return set(result)
 
 def all_auto_float_lists():
-    '''
-    Returns a set of all arguments that are automatically added and
+    """Returns a set of all arguments that are automatically added and
     accept a list of float.
 
     Args:
@@ -108,7 +105,7 @@ def all_auto_float_lists():
 
     Returns:
         A set of automatically added arguments that accept a list of floats
-    '''
+    """
     result = []
     for k,m in model_wl.items():
         aaa = AutoArgumentAdder(func=m, prefix=k)
@@ -123,15 +120,14 @@ def all_auto_float_lists():
     return set(result)
 
 def all_auto_lists():
-    '''
-    Returns a set of all arguments that get automatically added and are lists
+    """Returns a set of all arguments that get automatically added and are lists
 
     Args:
         None
 
     Returns:
         set: A set of automatically added arguments that accept a list.
-    '''
+    """
     result = []
     for k,m in model_wl.items():
         aaa = AutoArgumentAdder(func=m, prefix=k)
@@ -146,8 +142,7 @@ def all_auto_lists():
     return set(result)
 
 def extract_model_params(params, strip_prefix=True):
-    '''
-    Extracts parameters meant for a specific model. Use only for
+    """Extracts parameters meant for a specific model. Use only for
     arguments automatically added by an AutoArgumentAdder
 
     Args:
@@ -159,15 +154,14 @@ def extract_model_params(params, strip_prefix=True):
     Returns:
         dict: A subset of parameters from params that should be passed on to the
             model
-    '''
+    """
     assert params.model_type in model_wl
 
     aaa = AutoArgumentAdder(model_wl[params.model_type], params.model_type)
     return aaa.extract_params(params, strip_prefix=strip_prefix)
 
 def extract_featurizer_params(params, strip_prefix=True):
-    '''
-    Extracts parameters meant for a specific featurizer. Use only for
+    """Extracts parameters meant for a specific featurizer. Use only for
     arguments automatically added by an AutoArgumentAdder
 
     Args:
@@ -179,27 +173,25 @@ def extract_featurizer_params(params, strip_prefix=True):
     Returns:
         dict: A subset of parameters from params that should be passed on to the
             featurizer
-    '''
+    """
     assert params.featurizer in featurizer_wl
 
     aaa = AutoArgumentAdder(featurizer_wl[params.featurizer], params.featurizer)
     return aaa.extract_params(params, strip_prefix=strip_prefix)
 
 def is_primative_type(t):
-    '''
-    Returns true if t is of type int, str, or float
+    """Returns true if t is of type int, str, or float
 
     Args:
         t (type): A type
 
     Returns:
         bool. True if type is int, str, or float
-    '''
+    """
     return t == int or t == str or t == float
 
 def primative_type_only(type_annotation):
-    '''
-    Given annotation, return only primative types that can be read in
+    """Given annotation, return only primative types that can be read in
     from commandline, int, float, and str.
 
     Default return value is str, which is default for type parameter in
@@ -210,7 +202,7 @@ def primative_type_only(type_annotation):
 
     Returns:
         type: One of 3 choices, int, float, str
-    '''
+    """
     if is_primative_type(type_annotation):
         return type_annotation
 
@@ -224,8 +216,7 @@ def primative_type_only(type_annotation):
         return str
 
 def is_list_int(p, type_annotation):
-    '''
-    Given parameter name and annotation, returns true if this accepts an integer list
+    """Given parameter name and annotation, returns true if this accepts an integer list
 
     Returns False on generic list will only return true for 'typing.List[int]'
 
@@ -239,7 +230,7 @@ def is_list_int(p, type_annotation):
 
     Returns:
         boolean: If this annotation will accept a List[int]
-    '''
+    """
     # some guesses because annotations aren't always 100% correct.
     if 'graph_conv_layers' in p:
         return True
@@ -254,8 +245,7 @@ def is_list_int(p, type_annotation):
         return str(type_annotation) == 'typing.List[int]'
 
 def is_list_float(p, type_annotation):
-    '''
-    Given paramter name and annotation, returns true if it accepts a float list
+    """Given paramter name and annotation, returns true if it accepts a float list
 
     Returns False on generic list will only return true for 'typing.List[float]'
 
@@ -269,7 +259,7 @@ def is_list_float(p, type_annotation):
 
     Returns:
         boolean: If this annotation will accept a List[float]
-    '''
+    """
     ta = str(type_annotation)
     annots = strip_optional(type_annotation=type_annotation)
     if len(annots) > 1:
@@ -281,8 +271,7 @@ def is_list_float(p, type_annotation):
         return ta == 'typing.List[float]'
 
 def is_list(p, type_annotation):
-    '''
-    Given paramter name and annotation, returns true if it accepts a list
+    """Given paramter name and annotation, returns true if it accepts a list
 
     Returns False on generic list will only return true for 'typing.List' or <class 'list'>
 
@@ -296,7 +285,7 @@ def is_list(p, type_annotation):
 
     Returns:
         boolean: If this annotation will accept a List
-    '''
+    """
     # some guesses because annotations aren't always 100% correct.
     if 'graph_conv_layers' in p:
         return True
@@ -312,17 +301,15 @@ def is_list(p, type_annotation):
         return str(type_annotation).startswith('typing.List') or str(type_annotation) == "<class 'list'>"
 
 def strip_optional(type_annotation):
-    '''
-    In the upgrade to python 3.9 type_annotaions now use
+    """In the upgrade to python 3.9 type_annotaions now use
         typeing.Optional and we need to strip that off.
 
-     Args:
-        type_annotation (object): This is a type annotation returned by the inspect
-            module
+    Args:
+        type_annotation (object): This is a type annotation returned by the inspect module
 
     Returns:
         list(type_annotation) or the __args__ of typing.Optional or typing.Union
-    '''
+    """
     ta = str(type_annotation)
     # could not find a better way to do this check:
     # https://stackoverflow.com/questions/49171189/whats-the-correct-way-to-check-if-an-object-is-a-typing-generic
@@ -332,11 +319,10 @@ def strip_optional(type_annotation):
         return [type_annotation]
 
 class AutoArgumentAdder:
-    '''
-    Finds, manages, and adds all parameters of an object to a argparse parser
+    """Finds, manages, and adds all parameters of an object to a argparse parser
 
     AutoArgumentAdder recursively finds all keyword arguments of a given object.
-    A prefix is added to each keyword argument to prevent collisions and help 
+    A prefix is added to each keyword argument to prevent collisions and help
     distinguish automatically added arguments from normal arguments.
 
     Attributes:
@@ -345,13 +331,12 @@ class AutoArgumentAdder:
         prefix (str): A prefix for arguments. e.g. 'AttentiveFPModel'
         types (dict): A mapping between parameter names and types. Prefixes
             are not used in the keys.
-        used_by (dict): A mapping between parameter names (no prefix) and 
+        used_by (dict): A mapping between parameter names (no prefix) and
             the object or objects that use that parameter.
         args (set): A set of all argument names
-    '''
+    """
     def __init__(self, func, prefix):
-        '''
-        Initialize all attributes with given object
+        """Initialize all attributes with given object
 
         Args:
             func (object): Input object. e.g. dcm.AttentiveFPModel
@@ -360,7 +345,7 @@ class AutoArgumentAdder:
                 AMPL arguments
 
         Returns: None
-        '''
+        """
         self.func = func # original function e.g. dcm.AttentiveFPModel
         self.funcs = [] # a list of all parents. e.g. KerasModel
         self.prefix = prefix # name of original function e.g. AttentiveFPModel
@@ -371,8 +356,7 @@ class AutoArgumentAdder:
         self._add_all_keyword_arguments()
 
     def _add_all_keyword_arguments(self):
-        '''
-        Recursively explores self.func and its parents to find all keyword
+        """Recursively explores self.func and its parents to find all keyword
         arguments. The type and which object uses each argument is recorded
 
         Args:
@@ -380,7 +364,7 @@ class AutoArgumentAdder:
 
         Returns:
             None
-        '''
+        """
         self.funcs.append(self.func)
         current_funcs = [self.func]
         while len(current_funcs)>0:
@@ -427,34 +411,31 @@ class AutoArgumentAdder:
                     self.types[a] = t
 
     def _make_param_name(self, arg_name):
-        '''
-        Combines the prefix and argument name
+        """Combines the prefix and argument name
 
         Args:
             arg_name (str): The name of an argument
 
         Returns:
             str: The same argument with a prefix.
-        '''
+        """
         return f'{self.prefix}_{arg_name}'
 
     def all_prefixed_names(self):
-        '''
-        Returns a list of all argument names with prefixes added
+        """Returns a list of all argument names with prefixes added
 
         Args:
             None
 
         Returns:
             List[str]: A list of all arguments with prefix added
-        '''
+        """
         return [self._make_param_name(p) for p in self.args]
 
     def add_to_parser(self, parser):
-        '''
-        Adds expected parameters to an argparse.ArgumentParser. Checks to 
+        """Adds expected parameters to an argparse.ArgumentParser. Checks to
         see if the argument has synonyms e.g. mode and prediction_type and sets dest
-        accordingly. All parameters have default=None, this is checked later in 
+        accordingly. All parameters have default=None, this is checked later in
         self.extract_params. None parameters are not passed on so we can use
         default parameters set by DeepChem.
 
@@ -463,7 +444,7 @@ class AutoArgumentAdder:
 
         Returns:
             None
-        '''
+        """
         for p in self.args:
             p_name = f'--{self._make_param_name(p)}'
             t = self.types[p]
@@ -479,8 +460,7 @@ class AutoArgumentAdder:
                     help=f'Auto added argument used in one of these: '+', '.join(self.used_by[p]))
 
     def extract_params(self, params, strip_prefix=False):
-        '''
-        Extracts non-None parameters from the given Namespace.
+        """Extracts non-None parameters from the given Namespace.
 
         Args:
             params (Namespace): Parameters.
@@ -490,7 +470,7 @@ class AutoArgumentAdder:
         Returns:
             dict: Dictionary containing a subset of parameters that are expected
                 by this function.
-        '''
+        """
         args = {}
         params = vars(params)
         for p in self.args:
@@ -516,39 +496,36 @@ class AutoArgumentAdder:
         return args
 
     def get_list_int_args(self):
-        '''
-        Returns a list of arguments that accept a List[int]
+        """Returns a list of arguments that accept a List[int]
 
         Args:
             None
 
         Returns:
             List[str]: A list of prefixed argument names that will accept a List[int]
-        '''
+        """
         return [self._make_param_name(p) for p in self.args if is_list_int(p, self.types[p])]
 
     def get_list_float_args(self):
-        '''
-        Returns a list of arguments that accept a List[float]
+        """Returns a list of arguments that accept a List[float]
 
         Args:
             None
 
         Returns:
             List[str]: A list of prefixed argument names that will accept a List[float]
-        '''
+        """
         return [self._make_param_name(p) for p in self.args if is_list_float(p, self.types[p])]
 
     def get_list_args(self):
-        '''
-        Returns a list of arguments that accept a List
+        """Returns a list of arguments that accept a List
 
         Args:
             None
 
         Returns:
             List[str]: A list of prefixed argument names that will accept a List
-        '''
+        """
         return [self._make_param_name(p) for p in self.args if is_list(p, self.types[p])]
 
 
@@ -584,17 +561,17 @@ not_a_str_list_outside_of_hyperparams = \
 
 #**********************************************************************************************************
 def to_str(params_obj):
-    """ Converts a namespace.argparse object or a dict into a string for command line input
+    """Converts a namespace.argparse object or a dict into a string for command line input
 
-        Args:
-            params_obj (argparse.Namespace or dict): an argparse namespace object or dict to be converted into a
-            command line input.
-                E.g. params_obj = argparse.Namespace(arg1 = val1, arg2 = val2, arg3 = val3) OR
-                params_obj = {'arg1':val1, 'arg2':val2, 'arg3':val3}
+    Args:
+        params_obj (argparse.Namespace or dict): an argparse namespace object or dict to be converted into a
+        command line input.
+            E.g. params_obj = argparse.Namespace(arg1 = val1, arg2 = val2, arg3 = val3) OR
+            params_obj = {'arg1':val1, 'arg2':val2, 'arg3':val3}
 
-        Returns:
-            str_params (str): parameters in string format
-                E.g. str_params = '--arg1 val1 --arg2 val2 --arg3 val3'
+    Returns:
+        str_params (str): parameters in string format
+            E.g. str_params = '--arg1 val1 --arg2 val2 --arg3 val3'
 
     """
     # This command converts the namespace_obj to a dict, with the spaces replaced with
@@ -610,16 +587,16 @@ def to_str(params_obj):
 
 #**********************************************************************************************************
 def wrapper(*any_arg):
-    """"Wrapper to handle the ParseParams class. Calls the correct method depending on the input argument type
+    """Wrapper to handle the ParseParams class. Calls the correct method depending on the input argument type
 
-        Args:
-            *any_arg: any single input of a str, dict, ar/printgparse.Namespace, or list
+    Args:
+        *any_arg: any single input of a str, dict, ar/printgparse.Namespace, or list
 
-        Returns:
-            argparse.Namespace: a Namespace.argparse object containing default parameters + user specified parameters
+    Returns:
+        argparse.Namespace: a Namespace.argparse object containing default parameters + user specified parameters
 
-        Raises:
-            TypeError: Input argument must be a configuration file (str), dict, argparse.Namespace, or list
+    Raises:
+        TypeError: Input argument must be a configuration file (str), dict, argparse.Namespace, or list
 
     """
     if len(any_arg) == 1:
@@ -671,7 +648,7 @@ def wrapper(*any_arg):
 
 
 def parse_config_file(config_file_path):
-    """"Method to convert a .json configuration file to a Namespace object. Does the following conversions:
+    """Method to convert a .json configuration file to a Namespace object. Does the following conversions:
     .json -> hierarchical dict -> flat dict -> dict_to_list.
     WARNING: if there are two identical parameters on the same hierarchical level in the config.json, the .json will
     inherently silence the parameter higher up on the list without flagging a duplication. However, duplicate
@@ -1547,6 +1524,21 @@ def get_parser():
     parser.add_argument(
         '--xgbl', dest='xgbl', required=False, default=None,
         help='xgb_learning_rate shown in HyperOpt domain format, e.g. --xgbl=loguniform|-6.9,-2.3')
+    parser.add_argument(
+        '--xgbd', dest='xgbd', required=False, default=None,
+        help='xgb_max_depth shown in HyperOpt domain format, e.g. --xgbd=uniformint|3,10')
+    parser.add_argument(
+        '--xgbc', dest='xgbc', required=False, default=None,
+        help='xgb_colsample_bytree shown in HyperOpt domain format, e.g. --xgbc=uniform|0.1,1.0')
+    parser.add_argument(
+        '--xgbs', dest='xgbs', required=False, default=None,
+        help='xgb_subsample shown in HyperOpt domain format, e.g. --xgbs=uniform|0.1,1.0')
+    parser.add_argument(
+        '--xgbn', dest='xgbn', required=False, default=None,
+        help='xgb_n_estimators shown in HyperOpt domain format, e.g. --xgbn=choice|200,500,1000')
+    parser.add_argument(
+        '--xgbw', dest='xgbw', required=False, default=None,
+        help='xgb_min_child_weight shown in HyperOpt domain format, e.g. --xgbw=uniform|1.0,1.2')
     # checkpoint
     parser.add_argument(
         '--hp_checkpoint_save', dest='hp_checkpoint_save', required=False, default=None,
@@ -1571,7 +1563,7 @@ def get_parser():
 
 #***********************************************************************************************************
 def postprocess_args(parsed_args):
-    """ Postprocessing for the parsed arguments.
+    """Postprocessing for the parsed arguments.
     Replaces any string in null_options with a NoneType
 
     Replaces any string that matches replace_with_space with whitespace.
@@ -1716,7 +1708,7 @@ def postprocess_args(parsed_args):
     try:
         if os.path.exists(parsed_args.dataset_key):
             parsed_args.dataset_hash = cu.create_checksum(parsed_args.dataset_key)
-            log.info("Created a dataset hash '%s' from dataset_key '%s'", parsed_args.dataset_hash, parsed_args.dataset_key)
+            log.debug("Created a dataset hash '%s' from dataset_key '%s'", parsed_args.dataset_hash, parsed_args.dataset_key)
     except Exception:
         pass # continue if it doesn't have a 'dataset_key'
 
@@ -1746,7 +1738,7 @@ def postprocess_args(parsed_args):
 
 #***********************************************************************************************************
 def make_dataset_key_absolute(parsed_args):
-    """ Converts dataset_key to an aboslute path
+    """Converts dataset_key to an aboslute path
 
     Args:
         params (argparse.Namespace): Raw parsed arguments.
@@ -1786,14 +1778,14 @@ def prune_defaults(params, keep_params={}):
 #***********************************************************************************************************
 
 def remove_unrecognized_arguments(params, hyperparam=False):
-    """ Removes arguments not recognized by argument parser
+    """Removes arguments not recognized by argument parser
 
     Can be used to clean inputs to wrapper function or model_pipeline. Used heavily in hyperparam_search_wrapper
 
     Args:
         params (Namespace or dict): params to filter
 
-    Return:
+    Returns:
         dict of parameters
     """
     if not type(params) == dict:

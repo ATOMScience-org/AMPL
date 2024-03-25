@@ -1,5 +1,4 @@
-"""
-file_utils.py
+"""file_utils.py
 Utilities for file related functions
 """
 
@@ -18,9 +17,9 @@ def is_within_directory(directory, target):
    return prefix == abs_directory
 
 def safe_extract(tar, path=".", members=None, numeric_owner=False):
-   """Fix the vulnerability of the path traversal attack in extract() and 
+   """Fix the vulnerability of the path traversal attack in extract() and
    extractall() functions.
-   
+
    @see bugs -  CVE-2007-4559
    https://www.trellix.com/en-us/about/newsroom/stories/research/tarfile-exploiting-the-world.html
 

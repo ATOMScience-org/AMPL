@@ -1,5 +1,4 @@
-"""
-checksum_utils.py
+"""checksum_utils.py
 
 Utilities for checksum related functions
 """
@@ -30,15 +29,14 @@ def create_checksum(filename):
     return hash.hexdigest()
 
 def uses_same_training_data_by_datasets(ds1, ds2):
-    """
-    Checks if the two input files' checksums match.
+    """Checks if the two input files' checksums match.
 
     Args:
         ds1 (str): dataset 1
-    
+
         ds2 (str): dataset 2
 
-    Return:
+    Returns:
         True if the checksums of the two input match
 
     """
@@ -48,18 +46,17 @@ def uses_same_training_data_by_datasets(ds1, ds2):
     return hash1 == hash2
 
 def uses_same_training_data_by_tarballs(tar1, tar2):
-    """
-    Checks if the two input files' checksums match.
+    """Checks if the two input files' checksums match.
 
     Args:
         tar1 (str): path to the first tar file
-    
+
         tar2 (str):  path to the second tar file
 
-    Return:
+    Returns:
         True if the checksums of the two input files match
-        False if 
-               1) the two checksums don't match 
+        False if
+               1) the two checksums don't match
                2) one of the file doesn't have checksums (will generate a warning)
 
     """

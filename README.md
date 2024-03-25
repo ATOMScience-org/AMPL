@@ -1,5 +1,7 @@
 # ATOM Modeling PipeLine (AMPL) for Drug Discovery
-[![License](http://img.shields.io/:license-mit-blue.svg)](https://github.com/ATOMScience-org/AMPL/blob/master/LICENSE) | [Install](#install) | [Docker](#install-docker) | [Tutorials](#ampl-tutorials) |  [Features](#ampl-features) | [Pipeline parameters](atomsci/ddm/docs/PARAMETERS.md) | [Docs](https://ampl.readthedocs.io/en/latest/pipeline.html)
+[![License](http://img.shields.io/:license-mit-blue.svg)](https://github.com/ATOMScience-org/AMPL/blob/master/LICENSE) 
+
+| [Install](#install) | [Docker](#install-docker) | [Tutorials](#ampl-tutorials) |  [Features](#ampl-features) | [Pipeline parameters](atomsci/ddm/docs/PARAMETERS.md) | [Docs](https://ampl.readthedocs.io/en/latest/pipeline.html) |
 
 <img src="atomsci/ddm/docs/ATOM_cymatics_black_wordmark.jpg" width="370" height="100" class="center"></img>
 
@@ -19,13 +21,13 @@ An [article describing the AMPL project](https://pubs.acs.org/doi/abs/10.1021/ac
    - [Quick Install](#installation-quick-summary)
    - [Jupyter kernel](#create-jupyter-notebook-kernel-optional)
    - [Docker](#install-with-docker)
-   - [Uninstall](#uninstallation)
-- [Tutorials](#ampl-tutorials)
-- [Tests](#tests)
+   - [Uninstall](#uninstall)
 - [AMPL Features](#ampl-features)
 - [Running AMPL](#running-ampl)
+- [Tests](#tests)
 - [Advanced AMPL usage](#advanced-ampl-usage)
 - [Advanced testing](#advanced-testing)
+- [Tutorials](#ampl-tutorials)
 - [Development](#development)
 - [Project information](#project-information)  
 - [Suggestions or Report Issues](#suggestions-issues)
@@ -39,19 +41,30 @@ AMPL 1.6 is supports Python 3.9 CPU or CUDA-enabled machines using CUDA 11.8 on 
 
 ### Create pip environment
 
-#### 1. Create a virtual env with Python 3.9. 
+#### 1. Create a virtual env with Python 3.9 
 Make sure to create your virtual env in a convenient directory that has at least 12Gb space.
-> *We use `workspace` and `atomsci` as an example here.*
+
+Go to the directory where the new environment directory be installed in. Define an environment variable - `ENVROOT`. 
 
 ```bash
-# LLNL only: module load python/3.9.12
-cd ~/workspace
-python3.9 -m venv atomsci
+export ENVROOT=~/workspace # for LLNL LC users, use your workspace
+or
+export ENVROOT=~ # or the directory as your environment root
+cd $ENVROOT
+```
+
+> *We use `workspace` and `atomsci-env` as an example here.*
+
+```bash
+# LLNL only: 
+# module load python/3.9.12
+cd $ENVROOT
+python3.9 -m venv atomsci-env
 ```
 
 #### 2. Activate the environment
 ```bash
-source ~/workspace/atomsci/bin/activate
+source $ENVROOT/atomsci-env/bin/activate
 ```
 
 #### 3. Update pip
@@ -66,7 +79,7 @@ git clone https://github.com/ATOMScience-org/AMPL.git
 
 #### 5. Install pip requirements
 Depending on system performance, creating the environment can take some time.
-> *Only run one of the following:*
+> ***Note:*** *Based on which environment (CPU or CUDA) to run on, only run one of the following:*
 
 - CPU-only installation:
 ```bash
@@ -75,18 +88,34 @@ pip install -r cpu_requirements.txt
 ```
 
 - CUDA installation:
+
+First load the CUDA module. Then run cuda specific package install.
+
 ```bash
 cd AMPL/pip
+# LLNL only: 
+# module load cuda/11.8
 pip install -r cuda_requirements.txt
+```
+If you get `out of memory` errors, try setting these environment variables:
+```
+export LD_LIBRARY_PATH=<your_env>/lib:$LD_LIBRARY_PATH
+export PYTHONUSERBASE=<your_env>
+export OPENBLAS_NUM_THREADS=1
+export OMP_NUM_THREADS=48
+export PYTORCH_HIP_ALLOC_CONF=gargage_collection_threshold:0.9,max_split_size_mb:128
+export TF_FORCE_GPU_ALLOW_GROWTH=true
 ```
 
 #### 6. *LLNL only*: install atomsci.clients
 ```bash
-# LLNL only: pip install -r clients_requirements.txt
+# LLNL only: 
+pip install -r clients_requirements.txt
 ```
 
 ### Install AMPL
 Run the following to build the `atomsci` modules. This is required.
+
 ```bash
 # return to AMPL parent directory
 cd ..
@@ -96,28 +125,35 @@ pip install -e .
 ---
 ## Installation Quick Summary
 ```bash
-# LLNL only: module load python/3.9.12 cuda/11.8
+export ENVROOT=~/workspace           # set ENVROOT example
+cd $ENVROOT                          # go to a convenient home directory
+# LLNL only:
+# module load python/3.9.12
 
-cd ~/workspace                          # go to a convenient home directory
-python3.9 -m venv atomsci               # create environment with Python 3.9
-source ~/workspace/atomsci/bin/activate # activate venv
-pip install pip --upgrade               # upgrade pip
+python3.9 -m venv atomsci-env        # create environment with Python 3.9
+source $ENVROOT/atomsci-env/bin/activate 
+pip install pip --upgrade               
 
 git clone https://github.com/ATOMScience-org/AMPL.git # clone AMPL
-cd AMPL/pip                             # go to AMPL pip directory
-pip install -r cuda_requirements.txt    # install CUDA requirements OR cpu_requirements.txt
+cd AMPL/pip    
+# LLNL only:
+# If use CUDA: 
+# module load cuda/11.8                         
+pip install -r cpu_requirements.txt    # install cpu_requirements.txt OR cuda_requirements.txt  
 
-# LLNL only: pip install -r clients_requirements.txt
+# LLNL only: 
+# pip install -r clients_requirements.txt
 
-cd ..                                   # go back to AMPL parent directory
-./build.sh                              # build AMPL package
-pip install -e .                        # install AMPL
+cd ..                                   
+./build.sh                            
+pip install -e .                        
 ```
 ---
 ## Create jupyter notebook kernel (optional)
-With your environment activated:
+To run AMPL from Jupyter Notebook, with your environment activated. To setup a new kernel:
+
 ```
-python -m ipykernel install --user --name atomsci
+python -m ipykernel install --user --name atomsci-env
 ```
 ---
 ## Install with Docker
@@ -137,19 +173,20 @@ python -m ipykernel install --user --name atomsci
   - http://d33b0faf6bc9:8888/?token=656b8597498b18db2213b1ec9a00e9d738dfe112bbe7566d
   - Replace the `d33b0faf6bc9` with `localhost`
   - If this doesn't work, exit the container and change port from 8888 to some other number such as 7777 or 8899 (in all 3 places it's written), then rerun both commands
-- Be sure to save any work you want to be permanent in your workspace folder. If the container is shut down, you'll lose anything not in that folder.
+- From the notebook, you may need to set the kernel that atomsci is installed (`atomsci-venv`) in order to acccess the `atomsci` package.
 
+> ***Note***: *Be sure to save any work you want to be permanent in your workspace folder. If the container is shut down, you'll lose anything not in that folder.*  
 ---
 
-## Uninstallation
+## Uninstall
 To remove AMPL from a pip environment use:
 ```bash
 pip uninstall atomsci-ampl
 ```
 
-To remove an entire virtual environment named atomsci:
+To remove an entire virtual environment named `atomsci-env`:
 ```bash
-rm -rf ~/workspace/atomsci
+rm -rf $ENVROOT/atomsci-env
 ```
 
 To remove cached packages and clear space:
@@ -158,35 +195,8 @@ pip cache purge
 ```
 
 ---
-## AMPL tutorials
- Please follow the link, [`atomsci/ddm/examples/tutorials`](https://github.com/ATOMScience-org/AMPL/tree/master/atomsci/ddm/examples/tutorials), to access a collection of AMPL tutorial notebooks. The tutorial notebooks give an exhaustive coverage of AMPL features. The AMPL team has prepared the tutorials to help beginners understand the basics to advanced AMPL features, and a reference for advanced AMPL users. 
-
----
-## Tests
-AMPL includes a suite of software tests. This section explains how to run a very simple test that is fast to run. The Python test fits a random forest model using Mordred descriptors on a set of compounds from Delaney, *et al* with solubility data. A molecular scaffold-based split is used to create the training and test sets. In addition, an external holdout set is used to demonstrate how to make predictions on new compounds.
-
-To run the Delaney Python script that curates a dataset, fits a model, and makes predictions, run the following commands:
-```
-source $ENVROOT/atomsci/bin/activate # activate your pip environment.
-
-cd atomsci/ddm/test/integrative/delaney_RF
-
-pytest
-```
-> ***Note***: *This test generally takes a few minutes on a modern system*  
-
-The important files for this test are listed below:
-
-- `test_delany_RF.py`: This script loads and curates the dataset, generates a model pipeline object, and fits a model. The model is reloaded from the filesystem and then used to predict solubilities for a new dataset.
-- `config_delaney_fit_RF.json`: Basic parameter file for fitting
-- `config_delaney_predict_RF.json`: Basic parameter file for predicting
-
-### More example and test information
-- More details on examples and tests can be found in [Advanced testing](#advanced-testing).
-
----
 ## AMPL Features
-AMPL enables tasks for modeling and prediction from data ingestion to data analysis and can be broken down into the following stages:
+<details><summary>AMPL enables tasks for modeling and prediction from data ingestion to data analysis and can be broken down into the following stages:</summary>
 
 ### 1. Data curation
 - Generation of RDKit molecular SMILES structures
@@ -213,7 +223,7 @@ AMPL enables tasks for modeling and prediction from data ingestion to data analy
 
 ### 5. Visualization and analysis
 - Visualization and analysis tools  
-
+</details>
 Details of running specific features are within the [parameter (options) documentation](#Pipeline-parameters). More detailed documentation is in the [library documentation](#Library-documentation).  
 
 ---
@@ -236,6 +246,27 @@ AMPL includes detailed docstrings and comments to explain the modules. Full HTML
 - More information on AMPL usage can be found in [Advanced AMPL usage](#advanced-ampl-usage)   
 
 ---
+## Tests
+AMPL includes a suite of software tests. This section explains how to run a very simple test that is fast to run. The Python test fits a random forest model using Mordred descriptors on a set of compounds from Delaney, *et al* with solubility data. A molecular scaffold-based split is used to create the training and test sets. In addition, an external holdout set is used to demonstrate how to make predictions on new compounds.
+
+To run the Delaney Python script that curates a dataset, fits a model, and makes predictions, run the following commands:
+```
+source $ENVROOT/atomsci-env/bin/activate # activate your pip environment.
+cd atomsci/ddm/test/integrative/delaney_RF
+pytest
+```
+> ***Note***: *This test generally takes a few minutes on a modern system*  
+
+The important files for this test are listed below:
+
+- `test_delany_RF.py`: This script loads and curates the dataset, generates a model pipeline object, and fits a model. The model is reloaded from the filesystem and then used to predict solubilities for a new dataset.
+- `config_delaney_fit_RF.json`: Basic parameter file for fitting
+- `config_delaney_predict_RF.json`: Basic parameter file for predicting
+
+### More example and test information
+- More details on examples and tests can be found in [Advanced testing](#advanced-testing).
+
+---
 ## Advanced AMPL usage
 
 ### Command line
@@ -253,7 +284,7 @@ To get more info on an AMPL config file, please refer to:
      - [11_CHEMBL26_SCN5A_IC50_prediction.ipynb](atomsci/ddm/examples/tutorials/11_CHEMBL26_SCN5A_IC50_prediction.ipynb)
 
 ### Hyperparameter optimization
-Hyperparameter optimization for AMPL model fitting is available to run on SLURM clusters or with [HyperOpt](https://hyperopt.github.io/hyperopt/) (Bayesian Optimization). To run Bayesian Optimization, the following steps can be followed.
+<details><summary>Hyperparameter optimization for AMPL model fitting is available to run on SLURM clusters or with [HyperOpt](https://hyperopt.github.io/hyperopt/) (Bayesian Optimization). To run Bayesian Optimization, the following steps can be followed.</summary>
 
 1. (Optional) Install HyperOpt with `pip install hyperopt`
 2. Pre-split your dataset with computed_descriptors if you want to use Mordred/MOE/RDKit descriptors.
@@ -309,6 +340,7 @@ Hyperparameter optimization for AMPL model fitting is available to run on SLURM 
     - "hp_checkpoint_load": "/path/to/the/checkpoint/file.pkl"
     
     If the "hp_checkpoint_load" is provided, the hyperparameter search will continue from the checkpoint. 
+</details>
 
 ---
 
@@ -316,45 +348,42 @@ Hyperparameter optimization for AMPL model fitting is available to run on SLURM 
 ### Running all tests
 To run the full set of tests, use Pytest from the test directory:
 ```bash
-source $ENVROOT/atomsci/bin/activate # activate your pip environment. `atomsci` is an example here.
-
+source $ENVROOT/atomsci-env/bin/activate # activate your pip environment. `atomsci` is an example here.
 cd atomsci/ddm/test
-
 pytest
 ```
 
 ### Running SLURM tests
-Several of the tests take some time to fit. These tests can be submitted to a SLURM cluster as a batch job. Example general SLURM submit scripts are included as `pytest_slurm.sh`.
+<details><summary>Several of the tests take some time to fit. These tests can be submitted to a SLURM cluster as a batch job.</summary> Example general SLURM submit scripts are included as `pytest_slurm.sh`.
 
 ```bash
-source $ENVROOT/atomsci/bin/activate # activate your pip environment. `atomsci` is an example here.
-
+source $ENVROOT/atomsci-env/bin/activate # activate your pip environment. `atomsci-env` is an example here.
 cd atomsci/ddm/test/integrative/delaney_NN
-
 sbatch pytest_slurm.sh
-
 cd ../../../..
-
 cd atomsci/ddm/test/integrative/wenzel_NN
-
 sbatch pytest_slurm.sh
 ```
+</details>
 
 ### Running tests without internet access
-AMPL works without internet access. Curation, fitting, and prediction do not require internet access.
+<details><summary>AMPL works without internet access. Curation, fitting, and prediction do not require internet access.</summary>
 
 However, the public datasets used in tests and examples are not included in the repo due to licensing concerns. These are automatically downloaded when the tests are run. 
 
 If a system does not have internet access, the datasets will need to be downloaded before running the tests and examples. From a system with internet access, run the following shell script to download the public datasets. Then, copy the AMPL directory to the offline system.
+
 ```
 cd atomsci/ddm/test
-
 bash download_datset.sh
-
 cd ../../..
-
 # Copy AMPL directory to offline system
 ```
+</details>
+
+---
+## AMPL tutorials
+Please follow link, [`atomsci/ddm/examples/tutorials`](https://github.com/ATOMScience-org/AMPL/tree/master/atomsci/ddm/examples/tutorials), to access a collection of AMPL tutorial notebooks. The tutorial notebooks give an exhaustive coverage of AMPL features. The AMPL team has prepared the tutorials to help beginners understand the basics to advanced AMPL features, and a reference for advanced AMPL users. 
 
 ---
 ## Development
@@ -372,6 +401,9 @@ The policy is
 > ***Note***:
 > Step 2 is required for pushing directly to `master`. For a development branch, this step is recommended but not required.
 
+### Docstring format
+The [`Google docstring`](https://github.com/google/styleguide/blob/gh-pages/pyguide.md#38-comments-and-docstrings) format is used in the AMPL code. When writing new code, please use the same Docstring style. Refer [here](https://www.sphinx-doc.org/en/master/usage/extensions/example_google.html#example-google) and [here](https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html) for examples.
+
 ### Versioning
 Versions are managed through GitHub tags on this repository.  
 
@@ -386,34 +418,34 @@ Versions are managed through GitHub tags on this repository.
 ### Authors
 **[The Accelerating Therapeutics for Opportunities in Medicine (ATOM) Consortium](https://atomscience.org)**
 
-- Amanda J. Minnich (1)
-- Kevin McLoughlin (1)
-- Margaret Tse (2)
-- Jason Deng (2)
-- Andrew Weber (2)
-- Neha Murad (2)
-- Benjamin D. Madej (3)
-- Bharath Ramsundar (4)
-- Tom Rush (2)
-- Stacie Calad-Thomson (2)
-- Jim Brase (1)
-- Jonathan E. Allen (1)
+- Amanda J. Minnich <sub>(1)</sub>
+- Kevin McLoughlin <sub>(1)</sub>
+- Margaret Tse <sub>(2)</sub>
+- Jason Deng <sub>(2)</sub>
+- Andrew Weber <sub>(2)</sub>
+- Neha Murad <sub>(2)</sub>
+- Benjamin D. Madej <sub>(3)</sub>
+- Bharath Ramsundar <sub>(4)</sub>
+- Tom Rush <sub>(2)</sub>
+- Stacie Calad-Thomson <sub>(2)</sub>
+- Jim Brase <sub>(1)</sub>
+- Jonathan E. Allen <sub>(1)</sub>
 &nbsp;  
 
 ### Contributors
-- [Amanda Paulson](@paulsonak) (5)
-- Stewart He (1)
-- Da Shi (6)
-- Ravichandran Sarangan (7)
-- Jessica Mauvais (1)
+- [Amanda Paulson](@paulsonak) <sub>(5)</sub>
+- Stewart He <sub>(1)</sub>
+- Da Shi <sub>(6)</sub>
+- Ravichandran Sarangan <sub>(7)</sub>
+- Jessica Mauvais <sub>(1)</sub>
 
-1. Lawrence Livermore National Laboratory
-2. GlaxoSmithKline Inc.
-3. Frederick National Laboratory for Cancer Research
-4. Computable
-5. University of California, San Francisco
-6. Schrodinger
-7. Leidos
+<sub>1. [Lawrence Livermore National Laboratory](https://www.llnl.gov/)</sub>\
+<sub>2. [GlaxoSmithKline Inc.](https://www.gsk.com/en-gb)</sub>\
+<sub>3. [Frederick National Laboratory for Cancer Research](https://frederick.cancer.gov)</sub>\
+<sub>4. Computable</sub>\
+<sub>5. [University of California, San Francisco](https://www.ucsf.edu/)</sub>\
+<sub>6. [Schrodinger](https://www.schrodinger.com/)</sub>\
+<sub>7. [Leidos](https://www.leidos.com)</sub>
 &nbsp;  
 
 ### Support, Suggestions or Report Issues

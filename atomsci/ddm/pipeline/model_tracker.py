@@ -1,6 +1,4 @@
-"""
-Module to interface model pipeline to model tracker service.
-"""
+"""Module to interface model pipeline to model tracker service."""
 
 import os
 import tempfile
@@ -251,8 +249,7 @@ def get_model_training_data_by_uuid(uuid):
 
 # *********************************************************************************************************************************
 def save_model_tarball(output_dir, model_tarball_path):
-    """
-    Save the model parameters, metadata and transformers as a portable gzipped tar archive.
+    """Save the model parameters, metadata and transformers as a portable gzipped tar archive.
 
     Args:
         output_dir (str): Output directory from model training
@@ -272,8 +269,7 @@ def save_model_tarball(output_dir, model_tarball_path):
 
 # *********************************************************************************************************************************
 def extract_datastore_model_tarball(model_uuid, model_bucket, output_dir, model_dir):
-    """
-    Load a model tarball saved in the datastore and check the format. If it is a new style tarball (containing
+    """Load a model tarball saved in the datastore and check the format. If it is a new style tarball (containing
     the model metadata and transformers along with the model state), unpack it into output_dir. Otherwise
     it contains the model state only; unpack it into model_dir.
 
@@ -321,8 +317,7 @@ def extract_datastore_model_tarball(model_uuid, model_bucket, output_dir, model_
 
 # *********************************************************************************************************************************
 def export_model(model_uuid, collection, model_dir, alt_bucket='CRADA'):
-    """
-    Export the metadata (parameters) and other files needed to recreate a model
+    """Export the metadata (parameters) and other files needed to recreate a model
     from the model tracker database to a gzipped tar archive.
 
     Args:
@@ -428,8 +423,7 @@ def export_model(model_uuid, collection, model_dir, alt_bucket='CRADA'):
 
 # *********************************************************************************************************************************
 def convert_metadata(old_metadata):
-    """
-    Convert model metadata from old format (with camel-case parameter group names) to new format.
+    """Convert model metadata from old format (with camel-case parameter group names) to new format.
 
     Args:
         old_metadata (dict): Model metadata in old format

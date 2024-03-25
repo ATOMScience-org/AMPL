@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 
 # noinspection SpellCheckingInspection
-"""
-Script to generate hyperparameter combinations based on input params and send off jobs to a slurm system.
+"""Script to generate hyperparameter combinations based on input params and send off jobs to a slurm system.
 Author: Amanda Minnich
 """
 
@@ -43,8 +42,7 @@ import pdb
 
 
 def run_command(shell_script, python_path, script_dir, params):
-    """
-    Function to submit jobs on a slurm system
+    """Function to submit jobs on a slurm system
 
     Args:
         shell_script: Name of shell script to run
@@ -71,8 +69,7 @@ def run_command(shell_script, python_path, script_dir, params):
     os.system(slurm_command)
 
 def gen_maestro_command(python_path, script_dir, params):
-    """
-    Generates a string that can be fed into a command line.
+    """Generates a string that can be fed into a command line.
 
     Side Effects:
         Dataset key will be converted to an absolute path before
@@ -104,8 +101,7 @@ def gen_maestro_command(python_path, script_dir, params):
     return slurm_command
 
 def run_cmd(cmd):
-    """
-    Function to submit a job using subprocess
+    """Function to submit a job using subprocess
 
     Args:
         cmd: Command to run
@@ -121,8 +117,7 @@ def run_cmd(cmd):
 
 
 def reformat_filter_dict(filter_dict):
-    """
-    Function to reformat a filter dictionary to match the Model Tracker metadata structure. Updated 9/2020 by A. Paulson
+    """Function to reformat a filter dictionary to match the Model Tracker metadata structure. Updated 9/2020 by A. Paulson
     for new LC model tracker.
 
     Args:
@@ -181,22 +176,19 @@ def reformat_filter_dict(filter_dict):
 
 
 def permutate_NNlayer_combo_params(layer_nums, node_nums, dropout_list, max_final_layer_size):
-    """
-    to generate combos of layer_sizes(str) and dropouts(str) params from the layer_nums (list), node_nums (list), dropout_list (list).
+    """Generate combos of layer_sizes(str) and dropouts(str) params from the layer_nums (list), node_nums (list), dropout_list (list).
 
     The permutation will make the NN funnel shaped, so that the next layer can only be smaller or of the same size of the current layer.
 
     Example:
-
-    permutate_NNlayer_combo_params([2], [4,8,16], [0], 16)
-    returns [[16, 4], [16, 8], [8,4]] [[0,0],[0,0],[0,0]]
+        permutate_NNlayer_combo_params([2], [4,8,16], [0], 16)
+        returns [[16, 4], [16, 8], [8,4]] [[0,0],[0,0],[0,0]]
 
     If there are duplicates of the same size, it will create consecutive layers of the same size.
 
     Example:
-
-    permutate_NNlayer_combo_params([2], [4,8,8], [0], 16)
-    returns [[8, 8], [8, 4]] [[0,0],[0,0]]
+        permutate_NNlayer_combo_params([2], [4,8,8], [0], 16)
+        returns [[8, 8], [8, 4]] [[0,0],[0,0]]
 
     Args:
         layer_nums: specify numbers of layers.
@@ -234,8 +226,7 @@ def permutate_NNlayer_combo_params(layer_nums, node_nums, dropout_list, max_fina
 
 
 def get_num_params(combo):
-    """
-    Calculates the number of parameters in a fully-connected neural networ
+    """Calculates the number of parameters in a fully-connected neural networ
 
     Args:
         combo: Model parameters
@@ -268,8 +259,7 @@ excluded_keys = {'shortlist_key', 'use_shortlist', 'dataset_key', 'object_oid', 
 
 
 class HyperparameterSearch(object):
-    """
-    The class for generating and running all hyperparameter combinations based on the input params given
+    """The class for generating and running all hyperparameter combinations based on the input params given
     """
     def __init__(self, params):
         """
@@ -364,8 +354,7 @@ class HyperparameterSearch(object):
                     'runtime=$((end-start))\necho "runtime: " $runtime')
 
     def generate_param_combos(self):
-        """
-        Performs additional parsing of parameters and generates all combinations
+        """Performs additional parsing of parameters and generates all combinations
 
         Returns:
             None
@@ -471,8 +460,7 @@ class HyperparameterSearch(object):
                         self.param_combos.extend(self.generate_combos(subcombo))
 
     def generate_combos(self, params_dict):
-        """
-        Calls sub-function generate_combo and then uses itertools.product to generate all desired combinations
+        """Calls sub-function generate_combo and then uses itertools.product to generate all desired combinations
 
         Args:
             params_dict:
@@ -493,8 +481,7 @@ class HyperparameterSearch(object):
         return hyperparam_combos
 
     def assemble_layers(self):
-        """
-        Reformats layer parameters
+        """Reformats layer parameters
 
         Returns:
             None
@@ -515,8 +502,7 @@ class HyperparameterSearch(object):
         self.hyperparam_keys.add('layers')
 
     def generate_assay_list(self):
-        """
-        Generates the list of datasets to build models for, with their key, bucket, split, and split uuid
+        """Generates the list of datasets to build models for, with their key, bucket, split, and split uuid
 
         Returns:
            None
@@ -546,8 +532,7 @@ class HyperparameterSearch(object):
         self.assays = [(t[0].strip(), t[1].strip(), t[2], t[3].strip(), t[4].strip(), t[5].strip()) for t in self.assays]
 
     def get_dataset_metadata(self, assay_params, retry_time=60):
-        """
-        Gather the required metadata for a dataset
+        """Gather the required metadata for a dataset
 
         Args:
             assay_params: dataset metadata
@@ -597,8 +582,7 @@ class HyperparameterSearch(object):
         assay_params['hyperparam_uuid'] = self.hyperparam_uuid
 
     def split_and_save_dataset(self, assay_params):
-        """
-        Splits a given dataset, saves it, and sets the split_uuid in the metadata
+        """Splits a given dataset, saves it, and sets the split_uuid in the metadata
 
         Args:
             assay_params: Dataset metadata
@@ -620,8 +604,7 @@ class HyperparameterSearch(object):
         assay_params['split_uuid'] = data.split_uuid
 
     def return_split_uuid(self, dataset_key, bucket=None, splitter=None, split_combo=None, retry_time=60):
-        """
-        Loads a dataset, splits it, saves it, and returns the split_uuid
+        """Loads a dataset, splits it, saves it, and returns the split_uuid
 
         Args:
             dataset_key: key for dataset to split
@@ -714,8 +697,7 @@ class HyperparameterSearch(object):
                     return None
 
     def return_split_uuid_file(self, dataset_key, response_cols, bucket=None, splitter=None, split_combo=None, retry_time=60):
-        """
-        Loads a dataset, splits it, saves it, and returns the split_uuid.
+        """Loads a dataset, splits it, saves it, and returns the split_uuid.
 
         Args:
             dataset_key: key for dataset to split
@@ -772,8 +754,7 @@ class HyperparameterSearch(object):
             
     
     def generate_split_shortlist(self, retry_time=60):
-        """
-        Processes a shortlist, generates splits for each dataset on the list, and uploads a new shortlist file with the
+        """Processes a shortlist, generates splits for each dataset on the list, and uploads a new shortlist file with the
         split_uuids included. Generates splits for the split_combos [[0.1,0.1], [0.1,0.2],[0.2,0.2]], [random, scaffold]
 
         Returns:
@@ -842,8 +823,7 @@ class HyperparameterSearch(object):
                     retry = False
     
     def generate_split_shortlist_file(self):
-        """
-        Processes a shortlist, generates splits for each dataset on the list, and uploads a new shortlist file with the
+        """Processes a shortlist, generates splits for each dataset on the list, and uploads a new shortlist file with the
         split_uuids included. Generates splits for the split_combos [[0.1,0.1], [0.15,0.15], [0.1,0.2], [0.2,0.2]], [random, scaffold]
 
         Returns:
@@ -871,7 +851,7 @@ class HyperparameterSearch(object):
         df.to_csv(fname, index=False)
 
     def get_shortlist_df(self, split_uuids=False, retry_time=60):
-        """
+        """Get dataframe short list
 
         Args:
             split_uuids: Boolean value saying if you want just datasets returned or the split_uuids as well
@@ -958,8 +938,7 @@ class HyperparameterSearch(object):
         return assays
 
     def build_jobs(self):
-        """
-        Builds jobs.
+        """Builds jobs.
         Reformats parameters as necessary
 
         Returns:
@@ -1008,8 +987,7 @@ class HyperparameterSearch(object):
         return result_assay_params
 
     def filter_jobs(self, job_list):
-        """
-        Removes jobs that should not be run
+        """Removes jobs that should not be run
 
         Returns:
             None
@@ -1029,8 +1007,7 @@ class HyperparameterSearch(object):
         return result_list
 
     def submit_jobs(self, job_list, retry_time=60):
-        """
-        Reformats parameters as necessary and then calls run_command in a loop to submit a job for each param combo
+        """Reformats parameters as necessary and then calls run_command in a loop to submit a job for each param combo
 
         Returns:
             None
@@ -1047,8 +1024,7 @@ class HyperparameterSearch(object):
                 run_command(self.shell_script, self.params.python_path, self.params.script_dir, assay_params)
 
     def already_run(self, assay_params, retry_time=10):
-        """
-        Checks to see if a model with a given metadata combination has already been built
+        """Checks to see if a model with a given metadata combination has already been built
 
         Args:
             assay_params: model metadata information
@@ -1085,15 +1061,13 @@ class HyperparameterSearch(object):
         return False
 
     def generate_combo(self, params_dict):
-        """
-        This is implemented in the specific sub-classes
+        """This is implemented in the specific sub-classes
 
         """
         raise NotImplementedError
 
     def run_search(self):
-        """
-        The driver code for generating hyperparameter combinations and submitting jobs
+        """The driver code for generating hyperparameter combinations and submitting jobs
 
         Returns:
             None
@@ -1148,9 +1122,7 @@ class HyperparameterSearch(object):
         return commands
 
 class GridSearch(HyperparameterSearch):
-    """
-    Generates fixed steps on a grid for a given hyperparameter range
-    """
+    """Generates fixed steps on a grid for a given hyperparameter range"""
 
     def __init__(self, params):
         super().__init__(params)
@@ -1165,8 +1137,7 @@ class GridSearch(HyperparameterSearch):
         super().generate_assay_list()
 
     def generate_combo(self, params_dict):
-        """
-        Method to generate all combinations from a given set of key-value pairs
+        """Method to generate all combinations from a given set of key-value pairs
 
         Args:
             params_dict: Set of key-value pairs with the key being the param name and the value being the list of values
@@ -1195,9 +1166,7 @@ class GridSearch(HyperparameterSearch):
         return new_dict
 
 class RandomSearch(HyperparameterSearch):
-    """
-    Generates the specified number of random parameter values for within the specified range
-    """
+    """Generates the specified number of random parameter values for within the specified range"""
 
     def __init__(self, params):
         super().__init__(params)
@@ -1212,8 +1181,7 @@ class RandomSearch(HyperparameterSearch):
         super().generate_assay_list()
 
     def generate_combo(self, params_dict):
-        """
-        Method to generate all combinations from a given set of key-value pairs
+        """Method to generate all combinations from a given set of key-value pairs
 
         Args:
             params_dict: Set of key-value pairs with the key being the param name and the value being the list of values
@@ -1241,9 +1209,7 @@ class RandomSearch(HyperparameterSearch):
         return new_dict
 
 class GeometricSearch(HyperparameterSearch):
-    """
-    Generates parameter values in logistic steps, rather than linear like GridSearch does
-    """
+    """Generates parameter values in logistic steps, rather than linear like GridSearch does"""
 
     def __init__(self, params):
         super().__init__(params)
@@ -1258,8 +1224,7 @@ class GeometricSearch(HyperparameterSearch):
         super().generate_assay_list()
 
     def generate_combo(self, params_dict):
-        """
-        Method to generate all combinations from a given set of key-value pairs
+        """Method to generate all combinations from a given set of key-value pairs
 
         Args:
             params_dict: Set of key-value pairs with the key being the param name and the value being the list of values
@@ -1288,9 +1253,7 @@ class GeometricSearch(HyperparameterSearch):
         return new_dict
 
 class UserSpecifiedSearch(HyperparameterSearch):
-    """
-    Generates combinations using the user-specified steps
-    """
+    """Generates combinations using the user-specified steps"""
 
     def __init__(self, params):
         super().__init__(params)
@@ -1305,8 +1268,7 @@ class UserSpecifiedSearch(HyperparameterSearch):
         super().generate_assay_list()
 
     def generate_combo(self, params_dict):
-        """
-        Method to generate all combinations from a given set of key-value pairs
+        """Method to generate all combinations from a given set of key-value pairs
 
         Args:
             params_dict: Set of key-value pairs with the key being the param name and the value being the list of values
@@ -1333,8 +1295,7 @@ class UserSpecifiedSearch(HyperparameterSearch):
         return new_dict
 
 def build_hyperopt_search_domain(label, method, param_list):
-    """
-    Generate HyperOpt search domain object from method and parameters, layer_nums is only for NN models.
+    """Generate HyperOpt search domain object from method and parameters, layer_nums is only for NN models.
     This function is used by the HyperOptSearch class, not intended for standalone usage.
     """
     if method == "choice":
@@ -1349,8 +1310,7 @@ def build_hyperopt_search_domain(label, method, param_list):
         raise Exception(f"Method {method} is not supported, choose from 'choice, uniform, loguniform, uniformint'.")
 
 class HyperOptSearch():
-    """
-    Perform hyperparameter search with Bayesian Optmization (Tree Parzen Estimator)
+    """Perform hyperparameter search with Bayesian Optmization (Tree Parzen Estimator)
 
     To use HyperOptSearch, modify the config json file as follows:
 
@@ -1365,14 +1325,14 @@ class HyperOptSearch():
 
             method: supported searching schemes in HyperOpt include: choice, uniform, loguniform, and uniformint, see https://github.com/hyperopt/hyperopt/wiki/FMin for details.
 
-            parameters:
-                choice: all values to search from, separated by comma, e.g. choice|0.0001,0.0005,0.0002,0.001
+    parameters:
+        choice: all values to search from, separated by comma, e.g. choice|0.0001,0.0005,0.0002,0.001
 
-                uniform: low and high bound of the interval to serach, e.g. uniform|0.00001,0.001
+        uniform: low and high bound of the interval to serach, e.g. uniform|0.00001,0.001
 
-                loguniform: low and high bound (in natural log) of the interval to serach, e.g. loguniform|-13.8,-6.9
+        loguniform: low and high bound (in natural log) of the interval to serach, e.g. loguniform|-13.8,-6.9
 
-                uniformint: low and high bound of the interval to serach, e.g. uniformint|8,256
+        uniformint: low and high bound of the interval to serach, e.g. uniformint|8,256
 
         ls: similar as learning_rate, specify number of layers and size of each one.
 
@@ -1479,6 +1439,36 @@ class HyperOptSearch():
                 par_list = [float(e) for e in domain_list[1].split(",")]
                 self.space["xgbl"] = build_hyperopt_search_domain("xgbl", method, par_list)
 
+            if self.params.xgbd:
+                domain_list = self.params.xgbd.split("|")
+                method = domain_list[0]
+                par_list = [float(e) for e in domain_list[1].split(",")]
+                self.space["xgbd"] = build_hyperopt_search_domain("xgbd", method, par_list)
+
+            if self.params.xgbc:
+                domain_list = self.params.xgbc.split("|")
+                method = domain_list[0]
+                par_list = [float(e) for e in domain_list[1].split(",")]
+                self.space["xgbc"] = build_hyperopt_search_domain("xgbc", method, par_list)
+
+            if self.params.xgbs:
+                domain_list = self.params.xgbs.split("|")
+                method = domain_list[0]
+                par_list = [float(e) for e in domain_list[1].split(",")]
+                self.space["xgbs"] = build_hyperopt_search_domain("xgbs", method, par_list)
+
+            if self.params.xgbn:
+                domain_list = self.params.xgbn.split("|")
+                method = domain_list[0]
+                par_list = [float(e) for e in domain_list[1].split(",")]
+                self.space["xgbn"] = build_hyperopt_search_domain("xgbn", method, par_list)
+
+            if self.params.xgbw:
+                domain_list = self.params.xgbw.split("|")
+                method = domain_list[0]
+                par_list = [float(e) for e in domain_list[1].split(",")]
+                self.space["xgbw"] = build_hyperopt_search_domain("xgbw", method, par_list)
+
 
     def run_search(self):
         #name of the results
@@ -1525,8 +1515,24 @@ class HyperOptSearch():
                     self.params.xgb_gamma = p["xgbg"]
                 if self.params.xgbl:
                     self.params.xgb_learning_rate = p["xgbl"]
-                hp_params = f'{self.params.xgb_gamma}_{self.params.xgb_learning_rate}'
-                print(f"xgb_gamma: {self.params.xgb_gamma}, xgb_learing_rate: {self.params.xgb_learning_rate}")
+                if self.params.xgbd:
+                    self.params.xgb_max_depth = p["xgbd"]
+                if self.params.xgbc:
+                    self.params.xgb_colsample_bytree = p["xgbc"]
+                if self.params.xgbs:
+                    self.params.xgb_subsample = p["xgbs"]
+                if self.params.xgbn:
+                    self.params.xgb_n_estimators = p["xgbn"]
+                if self.params.xgbw:
+                    self.params.xgb_min_child_weight = p["xgbw"]
+                hp_params = f'{self.params.xgb_gamma}_{self.params.xgb_learning_rate}_{self.params.xgb_max_depth}_{self.params.xgb_colsample_bytree}_{self.params.xgb_subsample}_{self.params.xgb_n_estimators}_{self.params.xgb_min_child_weight}'
+                print(f"xgb_gamma: {self.params.xgb_gamma}, "
+                      f"xgb_learning_rate: {self.params.xgb_learning_rate}, "
+                      f"xgb_max_depth: {self.params.xgb_max_depth}, "
+                      f"xgb_colsample_bytree: {self.params.xgb_colsample_bytree}, "
+                      f"xgb_subsample: {self.params.xgb_subsample}, "
+                      f"xgb_n_estimators: {self.params.xgb_n_estimators}, "
+                      f"xgb_min_child_weight: {self.params.xgb_min_child_weight}")
 
             # set hyperparam to False to make sure the layer_sizes and dropouts are not lists if not optimized.
             self.params.hyperparam = False
@@ -1667,7 +1673,7 @@ class HyperOptSearch():
 def parse_params(param_list):
     """Parse paramters
 
-    Parses parameters using parameter_parser.wrapper and 
+    Parses parameters using parameter_parser.wrapper and
     filters out unnecessary parameters. Returns what an
     argparse.Namespace
 
@@ -1703,25 +1709,25 @@ def parse_params(param_list):
                    'slurm_time_limit'} | excluded_keys
     if params.search_type == 'hyperopt':
         # keep more parameters
-        keep_params = keep_params | {'lr', 'learning_rate','ls', 'layer_sizes','ls_ratio','dp', 'dropouts','rfe', 'rf_estimators','rfd', 'rf_max_depth','rff', 'rf_max_features','xgbg', 'xgb_gamma','xgbl', 'xgb_learning_rate', 'hp_checkpoint_load', 'hp_checkpoint_save'}
+        keep_params = keep_params | {'lr', 'learning_rate','ls', 'layer_sizes','ls_ratio','dp', 'dropouts','rfe', 'rf_estimators','rfd', 'rf_max_depth','rff', 'rf_max_features','xgbg', 'xgb_gamma','xgbl', 'xgb_learning_rate', 'xgbd', 'xgb_max_depth', 'xgbc', 'xgb_colsample_bytree', 'xgbs', 'xgb_subsample', 'xgbn', 'xgb_n_estimators', 'xgbw', 'xgb_min_child_weight', 'hp_checkpoint_load', 'hp_checkpoint_save'}
 
     params.__dict__ = parse.prune_defaults(params, keep_params=keep_params)
 
     return params
 
 def build_search(params):
-    """ Builds HyperparamterSearch object
+    """Builds HyperparamterSearch object
 
-        Looks at params.search_type and builds a HyperparamSearch object
-        of the correct flavor. Will exit if the search_type is not
-        recognized.
+       Looks at params.search_type and builds a HyperparamSearch object
+       of the correct flavor. Will exit if the search_type is not
+       recognized.
 
     Args:
-        params (Namespace): Namespace returned by 
-            atomsci.ddm.pipeline.parameter_parser.wrapper()
+       params (Namespace): Namespace returned by
+           atomsci.ddm.pipeline.parameter_parser.wrapper()
 
     Returns:
-        HyperparameterSearch
+       HyperparameterSearch
     """
     if params.search_type == 'grid':
         hs = GridSearch(params)
@@ -1741,13 +1747,13 @@ def build_search(params):
 
 def main():
     """Entry point when script is run
-    
+
     Args:
         None
 
     Returns:
         None
-    
+
     """
 
     params = parse_params(sys.argv[1:])

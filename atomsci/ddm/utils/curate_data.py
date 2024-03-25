@@ -1,6 +1,4 @@
-"""
-Utility functions used for AMPL dataset curation and creation.
-"""
+"""Utility functions used for AMPL dataset curation and creation."""
 
 """ TOC:
 aggregate_assay_data(assay_df, value_col='VALUE_NUM', output_value_col=None,
@@ -47,16 +45,15 @@ import matplotlib.pyplot as plt
 
 # ******************************************************************************************************************************************
 def set_group_permissions(path, system='AD', owner='GSK'):
-    """ Sets file and group permissions
-    Set file group and permissions to standard values for a dataset containing proprietary
+    """Sets file and group permissions to standard values for a dataset containing proprietary
     data owned by 'owner'. Later we may add a 'public' option, or groups for data from other pharma companies.
 
     Args:
         path (string): File path
-
+        
         system (string): Computing environment from which group ownerships will be derived; currently, either 'LC' for LC
         filesystems or 'AD' for LLNL systems where owners and groups are managed by Active Directory.
-
+        
         owner (string): Who the data belongs to, either 'public' or the name of a company (e.g. 'GSK') associated with a
         restricted access group.
 
@@ -233,7 +230,7 @@ def aggregate_assay_data(assay_df, value_col='VALUE_NUM', output_value_col=None,
     norig = len(set(orig_smiles_strs))
     smiles_strs = [base_smiles_from_smiles(smiles, True) for smiles in orig_smiles_strs]
     assay_df['base_rdkit_smiles'] = smiles_strs
-    uniq_smiles_strs = list(set(smiles_strs))
+    uniq_smiles_strs = sorted(set(smiles_strs))
     nuniq = len(uniq_smiles_strs)
     if verbose:
         print("%d unique SMILES strings are reduced to %d unique base SMILES strings" % (norig, nuniq))
@@ -332,16 +329,16 @@ def labeled_freq_table(dset_df, columns, min_freq=1):
         dset_df (DataFrame): The input DataFrame.
 
         columns (list(str)): A list of columns to include in the output frequency table.
-            The first column in 'columns' is assumed to be a unique ID; there should be 
+            The first column in 'columns' is assumed to be a unique ID; there should be
             a many-to-1 mapping from the ID to each of the additional columns.
 
         min_freq (int): Restrict unique count to at least min_freq times.
 
     Returns:
         DataFrame: A DataFrame containing a frequency table.
-    
+
     Raises:
-        Exception: If the DataFrame violates the rule: there should be a many-to-1 
+        Exception: If the DataFrame violates the rule: there should be a many-to-1
             mapping from the ID to each of the additional columns.
 
     """
@@ -368,8 +365,8 @@ def labeled_freq_table(dset_df, columns, min_freq=1):
 def filter_in_out_by_column_values(column, values, data, in_out):
     """Include rows only for given values in specified column.
 
-    Given a DataFrame, column, and an iterable, Series, DataFrame, or dict, of values, 
-    return a DataFrame with rows containing value in values or all rows 
+    Given a DataFrame, column, and an iterable, Series, DataFrame, or dict, of values,
+    return a DataFrame with rows containing value in values or all rows
     that do not containe a value in values.
 
     Args:
@@ -515,8 +512,7 @@ def get_rdkit_smiles_parent (data):
 
 # ---------------------------------------------------------------------------------------------------------------------------------
 def remove_outlier_replicates(df, response_col='pIC50', id_col='compound_id', max_diff_from_median=1.0):
-    """
-    Examine groups of replicate measurements for compounds identified by compound ID and compute median response
+    """Examine groups of replicate measurements for compounds identified by compound ID and compute median response
     for each group. Eliminate measurements that differ by more than a given value from the median; note that
     in some groups this will result in all replicates being deleted. This function should be used together with
     `aggregate_assay_data` instead of `average_and_remove_duplicates` to reduce data to a single value per compound.
@@ -583,8 +579,8 @@ def average_and_remove_duplicates (column, tolerance, list_bad_duplicates,
 
     Returns:
         DataFrame: Returns remaining rows after all bad duplicates have been removed.
-            
-      """
+
+    """
 
     list_bad_duplicates = list_bad_duplicates
     i = 0
@@ -654,7 +650,7 @@ def average_and_remove_duplicates (column, tolerance, list_bad_duplicates,
 
 # ******************************************************************************************************************************************
 def summarize_data(column, num_bins, title, units, filepath, data, log_column = 'No'):
-    '''Summarizes the in data[column]
+    """Summarizes the in data[column]
 
     Summarizes the data by printing mean, stdev, max, and min of the data. Creates
     plots of the binned values in data[column]. If log_column != 'No' this also
@@ -679,7 +675,7 @@ def summarize_data(column, num_bins, title, units, filepath, data, log_column = 
     Returns:
         None
 
-    '''
+    """
 
     dataset_mean = data[column].mean()
     dataset_max = data[column].max()
@@ -735,7 +731,7 @@ def summarize_data(column, num_bins, title, units, filepath, data, log_column = 
 
 # ******************************************************************************************************************************************
 def create_new_rows_for_extra_results ( extra_result_col, value_col, data):
-    """ Moves results from an extra column to an existing column
+    """Moves results from an extra column to an existing column
 
     Returns a new DataFrame with values from 'extra_result_col' appended to the
     end of 'value_col'. NaN values in 'extra_result_col' are dropped. 'Extra_result_col'
@@ -743,9 +739,9 @@ def create_new_rows_for_extra_results ( extra_result_col, value_col, data):
 
     Args:
         extra_result_col (str): A column in 'data'.
-
+        
         value_col (str): A column in 'data'.
-
+        
         data (DataFrame):
 
     Returns:
@@ -811,12 +807,10 @@ def add_classification_column(thresholds, value_column, label_column, data, righ
 def xc50topxc50_for_nm(x) :
    """Convert XC50 values measured in nanomolars to -log10 (PX50)
 
-   Convert XC50 values measured in nanomolars to -log10 (PX50)
-   
    Args :
-     x (float): input XC50 value measured in nanomolars
+        x (float): input XC50 value measured in nanomolars
 
    Returns :
-       float: -log10 value of x
+        float: -log10 value of x
    """
    return -np.log10((x/1000000000.0))

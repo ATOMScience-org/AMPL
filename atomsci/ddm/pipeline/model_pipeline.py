@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
-"""
-Contains class ModelPipeline, which loads in a dataset, splits it, trains a model, and generates predictions and output
+"""Contains class ModelPipeline, which loads in a dataset, splits it, trains a model, and generates predictions and output
 metrics for that model. Works for a variety of featurizers, splitters and other parameters on a generic dataset
 """
 
@@ -38,8 +37,7 @@ logging.basicConfig(format='%(asctime)-15s %(message)s')
 
 # ---------------------------------------------
 def calc_AD_kmean_dist(train_dset, pred_dset, k, train_dset_pair_distance=None, dist_metric="euclidean"):
-    """
-    calculate the probability of the prediction dataset fall in the the domain of traning set. Use Euclidean distance of the K nearest neighbours.
+    """calculate the probability of the prediction dataset fall in the the domain of traning set. Use Euclidean distance of the K nearest neighbours.
     train_dset and pred_dset should be in 2D numpy array format where each row is a compound.
     """
     if train_dset_pair_distance is None:
@@ -63,9 +61,7 @@ def calc_AD_kmean_dist(train_dset, pred_dset, k, train_dset_pair_distance=None, 
 
 # ---------------------------------------------
 def calc_AD_kmean_local_density(train_dset, pred_dset, k, train_dset_pair_distance=None, dist_metric="euclidean"):
-    """
-    Evaluate the AD of pred data by comparing the distance betweenthe unseen object and its k nearest neighbors in the training set to the distance between these k nearest neighbors and their k nearest neighbors in the training set. Return the distance ratio. Greater than 1 means the pred data is far from the domain.
-    """
+    """Evaluate the AD of pred data by comparing the distance betweenthe unseen object and its k nearest neighbors in the training set to the distance between these k nearest neighbors and their k nearest neighbors in the training set. Return the distance ratio. Greater than 1 means the pred data is far from the domain."""
     if train_dset_pair_distance is None:
         # calculate the pair-wise distance of training set
         train_dset_pair_distance = pairwise_distances(X=train_dset, metric=dist_metric)
@@ -90,32 +86,30 @@ def calc_AD_kmean_local_density(train_dset, pred_dset, k, train_dset_pair_distan
 
 # ---------------------------------------------
 def build_tarball_name(dataset_name, model_uuid, result_dir=''):
-    """ format for building model tarball names
-    Creates the file name for a model tarball from dataset key and model_uuid
-    with optional result_dir.
+    """format for building model tarball names
+        Creates the file name for a model tarball from dataset key and model_uuid
+        with optional result_dir.
 
     Args:
-        dataset_name (str): The dataset_name used to train this model
-        model_uuid (str): The model_uuid assigned to this model
-        result_dir (str): Optional directory for this model
+       dataset_name (str): The dataset_name used to train this model
+       model_uuid (str): The model_uuid assigned to this model
+       result_dir (str): Optional directory for this model
 
     Returns:
-        The path or filename of the tarball for this model
+       The path or filename of the tarball for this model
     """
     model_tarball_path = os.path.join(str(result_dir), "{}_model_{}.tar.gz".format(dataset_name, model_uuid))
     return model_tarball_path
 
 # ---------------------------------------------
 def build_dataset_name(dataset_key):
-    """ Returns dataset_name when given dataset_key
-    Returns the dataset_name when given a dataset_key. Assumes that the dataset_name is a path
-    and ends with an extension
+    """Return the dataset_name when given a dataset_key. Assumes that the dataset_name is a path and ends with an extension
 
     Args:
-        dataset_key (str): A dataset_key
+       dataset_key (str): A dataset_key
 
     Returns:
-        The dataset_name which is the base name stripped of extensions
+       The dataset_name which is the base name stripped of extensions
     """
     return os.path.splitext(os.path.basename(dataset_key))[0]
 
@@ -254,7 +248,6 @@ class ModelPipeline:
         Args:
             params (Namespace): Optional set of parameters to be used for featurization; by default this function
             uses the parameters used when the pipeline was created.
-            
 
         Side effects:
             Sets the following attributes of the ModelPipeline
@@ -270,7 +263,7 @@ class ModelPipeline:
             # Ignore prevoiusly split if in production mode
             if params.production:
                 # if in production mode, make a new split do not load
-                self.log.warning('Training in production mode. Ignoring '
+                self.log.info('Training in production mode. Ignoring '
                     'previous split and creating production split. '
                     'Production split will not be saved.')
                 self.data.split_dataset()
@@ -300,7 +293,7 @@ class ModelPipeline:
         """Initializes a data structure describing the current model, to be saved in the model zoo.
         This should include everything necessary to reproduce a model run.
 
-        Side effect:
+        Side effects:
             Sets self.model_metadata (dictionary): A dictionary of the model metadata required to recreate the model.
             Also contains metadata about the generating dataset.
         """
@@ -371,8 +364,7 @@ class ModelPipeline:
 
     # ****************************************************************************************
     def save_model_metadata(self, retries=5, sleep_sec=60):
-        """
-        Saves the data needed to reload the model in the model tracker DB or in a local tarball file.
+        """Saves the data needed to reload the model in the model tracker DB or in a local tarball file.
 
         Inserts the model metadata into the model tracker DB, if self.params.save_results is True.
         Otherwise, saves the model metadata to a local .json file. Generates a gzipped tar archive
@@ -468,7 +460,7 @@ class ModelPipeline:
     # ****************************************************************************************
 
     def save_metrics(self, model_metrics, prefix=None, retries=5, sleep_sec=60):
-        """Saves the given model_metrics dictionary to a JSON file on disk, and also to the model tracker 
+        """Saves the given model_metrics dictionary to a JSON file on disk, and also to the model tracker
         database if we're using it.
 
         If writing to disk, outputs to a JSON file <prefix>_model_metrics.json in the current output directory.
@@ -525,14 +517,13 @@ class ModelPipeline:
     # ****************************************************************************************
 
     def split_dataset(self, featurization=None):
-        """
-        Load, featurize and split the dataset according to the current model parameter settings,
+        """Load, featurize and split the dataset according to the current model parameter settings,
         but don't actually train a model. Returns the split_uuid for the dataset split.
 
         Args:
             featurization (Featurization object): An optional featurization object.
 
-        Return:
+        Returns:
             split_uuid (str): The unique identifier for the dataset split.
         """
 
@@ -664,9 +655,7 @@ class ModelPipeline:
 
     # ****************************************************************************************
     def calc_train_dset_pair_dis(self, metric="euclidean"):
-        """
-        Calculate the pairwise distance for training set compound feature vectors, needed for AD calculation.
-        """
+        """Calculate the pairwise distance for training set compound feature vectors, needed for AD calculation."""
         
         self.featurization = self.model_wrapper.featurization
         self.load_featurize_data()
@@ -724,7 +713,7 @@ class ModelPipeline:
 
             k (int): Number of nearest neighbors of each training data point used to evaluate the AD index.
 
-            dist_metric (str): Metric used to compute distances between feature vectors for AD index calculation. 
+            dist_metric (str): Metric used to compute distances between feature vectors for AD index calculation.
             Valid values are 'cityblock', 'cosine', 'euclidean', 'jaccard', and 'manhattan'. If binary
             features such as fingerprints are used in model, 'jaccard' (equivalent to Tanimoto distance) may
             be a better choice than the other metrics which operate on continuous features.
@@ -763,8 +752,7 @@ class ModelPipeline:
     # ****************************************************************************************
     def predict_full_dataset(self, dset_df, is_featurized=False, contains_responses=False, dset_params=None, AD_method=None, k=5, dist_metric="euclidean",
                              max_train_records_for_AD=1000):
-        """
-        Compute predicted responses from a pretrained model on a set of compounds listed in
+        """Compute predicted responses from a pretrained model on a set of compounds listed in
         a data frame. The data frame should contain, at minimum, a column of compound IDs; if
         SMILES strings are needed to compute features, they should be provided as well. Feature
         columns may be provided as well. If response columns are included in the input, they will
@@ -796,12 +784,12 @@ class ModelPipeline:
 
             k (int): Number of nearest neighbors of each training data point used to evaluate the AD index.
 
-            dist_metric (str): Metric used to compute distances between feature vectors for AD index calculation. 
+            dist_metric (str): Metric used to compute distances between feature vectors for AD index calculation.
             Valid values are 'cityblock', 'cosine', 'euclidean', 'jaccard', and 'manhattan'. If binary
             features such as fingerprints are used in model, 'jaccard' (equivalent to Tanimoto distance) may
             be a better choice than the other metrics which operate on continuous features.
 
-            max_train_records_for_AD (int): Maximum number of training data rows to use for AD calculation. 
+            max_train_records_for_AD (int): Maximum number of training data rows to use for AD calculation.
             Note that the AD calculation time scales as the square of the number of training records used.
             If the training dataset is larger than `max_train_records_for_AD`, a random sample of rows with
             this size is used instead for the AD calculations.
@@ -831,7 +819,7 @@ class ModelPipeline:
 
         # assign unique ids to each row
         old_ids = dset_df[self.params.id_col].values
-        new_ids = list(range(len(dset_df)))
+        new_ids = [str(i) for i in range(len(dset_df))]
         id_map = dict([(i, id) for i, id in zip(new_ids, old_ids)])
         dset_df[self.params.id_col] = new_ids
 
@@ -893,7 +881,7 @@ class ModelPipeline:
 
             try:
                 if not hasattr(self, 'featurized_train_data'):
-                    self.log.info("Featurizing training data for AD calculation.")
+                    self.log.debug("Featurizing training data for AD calculation.")
                     self.run_mode = 'training'
                     # If training data is too big to compute distances in a reasonable time, use a sample of the data
                     train_data_params = copy.deepcopy(self.orig_params)
@@ -908,7 +896,7 @@ class ModelPipeline:
                         train_X = self.data.train_valid_dsets[0][0].X
     
                     if self.featurization.feat_type == "graphconv":
-                        self.log.info("Computing training data embeddings for AD calculation.")
+                        self.log.debug("Computing training data embeddings for AD calculation.")
                         train_dset = dc.data.NumpyDataset(train_X)
                         self.featurized_train_data = self.model_wrapper.generate_embeddings(train_dset)
                     else:
@@ -918,7 +906,7 @@ class ModelPipeline:
                     self.train_pair_dis = pairwise_distances(X=self.featurized_train_data, metric=dist_metric)
                     self.train_pair_dis_metric = dist_metric
 
-                self.log.info("Calculating AD index.")
+                self.log.debug("Calculating AD index.")
 
 
                 if AD_method == "local_density":
@@ -927,7 +915,7 @@ class ModelPipeline:
                     result_df["AD_index"] = calc_AD_kmean_dist(self.featurized_train_data, pred_data, k, train_dset_pair_distance=self.train_pair_dis, dist_metric=dist_metric)
 
             except:
-                self.log.info("AD index calculation failed")
+                self.log.warning("AD index calculation failed")
                 # xxx re-raise for debugging
                 raise
 
@@ -936,8 +924,11 @@ class ModelPipeline:
         if len(missing_ids) > 0:
             missing_df = pd.DataFrame({self.params.id_col: missing_ids})
             result_df = pd.concat([result_df, missing_df], ignore_index=True)
-        # sort in ascending order, recovering the original order
-        result_df.sort_values(by=[self.params.id_col], ascending=True, inplace=True)
+        # sort in ascending order, recovering the original order, keeping in mind that string representations
+        # of ints don't sort in the same order as the corresponding ints.
+        result_df['original_sort_order'] = [int(s) for s in result_df[self.params.id_col].values]
+        result_df.sort_values(by='original_sort_order', ascending=True, inplace=True)
+        result_df = result_df.drop(columns=['original_sort_order'])
         # map back to original id values
         result_df[self.params.id_col] = result_df[self.params.id_col].map(id_map)
 
@@ -945,8 +936,7 @@ class ModelPipeline:
 
     # ****************************************************************************************
     def predict_embedding(self, dset_df, dset_params=None):
-        """
-        Compute embeddings from a pretrained model on a set of compounds listed in a data frame. The data 
+        """Compute embeddings from a pretrained model on a set of compounds listed in a data frame. The data
         frame should contain, at minimum, a column of compound IDs and a column of SMILES strings.
         """
 
@@ -1290,8 +1280,7 @@ def create_prediction_pipeline(params, model_uuid, collection_name=None, featuri
 # ****************************************************************************************
 def create_prediction_pipeline_from_file(params, reload_dir, model_path=None, model_type='best_model', featurization=None,
                                          verbose=True):
-    """
-    Create a ModelPipeline object to be used for running blind predictions on datasets, given a pretrained model stored
+    """Create a ModelPipeline object to be used for running blind predictions on datasets, given a pretrained model stored
     in the filesystem. The model may be stored either as a gzipped tar archive or as a directory.
 
     Args:
@@ -1398,8 +1387,7 @@ def create_prediction_pipeline_from_file(params, reload_dir, model_path=None, mo
 # ****************************************************************************************
 
 def load_from_tracker(model_uuid, collection_name=None, client=None, verbose=False, alt_bucket='CRADA'):
-    """
-    DEPRECATED. Use the function create_prediction_pipeline() directly, or use the higher-level function
+    """DEPRECATED. Use the function create_prediction_pipeline() directly, or use the higher-level function
     predict_from_model.predict_from_tracker_model().
 
     Create a ModelPipeline object using the metadata in the  model tracker.
@@ -1458,8 +1446,7 @@ def load_from_tracker(model_uuid, collection_name=None, client=None, verbose=Fal
 # ****************************************************************************************
 def ensemble_predict(model_uuids, collections, dset_df, labels=None, dset_params=None, splitters=None,
                      mt_client=None, aggregate="mean", contains_responses=False):
-    """
-    Load a series of pretrained models and predict responses with each model; then aggregate
+    """Load a series of pretrained models and predict responses with each model; then aggregate
     the predicted responses into one prediction per compound.
 
     Args:

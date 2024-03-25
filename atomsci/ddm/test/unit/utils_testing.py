@@ -29,9 +29,7 @@ def clean():
         shutil.rmtree('pytest')
 
 def datastore_status():
-    """
-    Returns True if the datastore is down, False otherwise. Will figure out how to do this programmatically 
-    """
+    """Returns True if the datastore is down, False otherwise. Will figure out how to do this programmatically"""
     try:
         a = datastore_objects()
     except Exception as e:
@@ -106,9 +104,7 @@ def moe_descriptors(datastore = False):
 
 
 def curate_delaney():
-    """
-    Curate dataset for model fitting
-    """
+    """Curate dataset for model fitting"""
     if (not os.path.isfile('delaney-processed_curated.csv') and
             not os.path.isfile('delaney-processed_curated_fit.csv') and
             not os.path.isfile('delaney-processed_curated_external.csv')):
@@ -147,9 +143,7 @@ def curate_delaney():
 
 
 def download_delaney():
-    """
-    Separate download function so that download can be run separately if there is no internet.
-    """
+    """Separate download function so that download can be run separately if there is no internet."""
     if (not os.path.isfile('delaney-processed.csv')):
         download_save(
             'https://deepchemdata.s3-us-west-1.amazonaws.com/datasets/delaney-processed.csv',
@@ -159,8 +153,7 @@ def download_delaney():
 
 
 def download_save(url, file_name, verify=True):
-    """
-    Download dataset
+    """Download dataset
 
     Arguments:
         url: URL

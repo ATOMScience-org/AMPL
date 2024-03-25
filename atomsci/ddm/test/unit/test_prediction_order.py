@@ -2,19 +2,19 @@ import atomsci.ddm.pipeline.predict_from_model as pfm
 from atomsci.ddm.pipeline import model_pipeline as mp
 from atomsci.ddm.pipeline import parameter_parser as parse
 import pandas as pd
+import numpy as np
 import sklearn.metrics as skm
 from atomsci.ddm.utils import llnl_utils
 
-'''
+"""
 make sure that the various ways of making predictions return
 predictions in the same order as the input
-'''
+"""
 
 def test_predict_from_model():
-    '''
-    test that predict_from_model makes predictions in the same
+    """test that predict_from_model makes predictions in the same
     order as the input
-    '''
+    """
     if not llnl_utils.is_lc_system():
         assert True
         return
@@ -45,11 +45,11 @@ def test_predict_from_model():
     print('accuracy score', score)
     assert score > 0.5
 
-def test_predict_on_dataframe():
-    '''
-    test that predict_from_model makes predictions in the same
+
+def test_predict_full_dataset():
+    """test that predict_full_dataset makes predictions in the same
     order as the input
-    '''
+    """
     if not llnl_utils.is_lc_system():
         assert True
         return
@@ -77,20 +77,20 @@ def test_predict_on_dataframe():
     pred_params = parse.wrapper(pred_params)
 
     pipe = mp.create_prediction_pipeline_from_file(pred_params, reload_dir=None, model_path=model_path)
-    pred_df = pipe.predict_on_dataframe(input_df, contains_responses=has_responses, is_featurized=is_featurized,
+    pred_df = pipe.predict_full_dataset(input_df, contains_responses=has_responses, is_featurized=is_featurized,
                                         AD_method=AD_method, k=k, dist_metric=dist_metric)
 
     old_id_col = shuffled_df[id_col].values
     new_id_col = pred_df[id_col].values
 
-    match_rows = all([n == o for n, o in zip(new_id_col, old_id_col)])
-    print('do all rows match?', match_rows)
-    assert all([n == o for n, o in zip(new_id_col, old_id_col)])
+    match_rows = np.all(new_id_col == old_id_col)
+    print('do all rows match? ', match_rows)
+    assert match_rows
 
-    score = skm.accuracy_score(shuffled_df[response_col].values, pred_df['pred'].values)
-    print('accuracy score', score)
+    score = skm.accuracy_score(shuffled_df[response_col].values, pred_df[response_col+'_pred'].values)
+    print('accuracy score ', score)
     assert score > 0.5
 
 if __name__ == '__main__':
-    test_predict_on_dataframe()
+    test_predict_full_dataset()
     test_predict_from_model()
