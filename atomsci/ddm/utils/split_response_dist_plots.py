@@ -49,8 +49,8 @@ def plot_split_subset_response_distrs(params):
             pct_active = []
             for ss in subset_order:
                 ss_df = dset_df[dset_df.split_subset == ss]
-                nactive = sum(ss_df[col].values)
-                pct_active.append(100*nactive/len(ss_df))
+                nactive = np.nansum(ss_df[col].values)
+                pct_active.append(100*nactive/sum(ss_df[col].notna()))
             active_df = pd.DataFrame(dict(subset=subset_order, percent_active=pct_active))
             if params.split_strategy == 'k_fold_cv':
                 fig, ax = plt.subplots(figsize=(9,7))
