@@ -276,7 +276,11 @@ def plot_pred_vs_actual_from_file(model_path, external_training_data=None, plot_
     dataset_key=dataset_dict['dataset_key']
     split_dict=config['splitting_parameters']
     splitter = split_dict['splitter']
-    split_file=dataset_key.replace('.csv',f"_{split_dict['split_strategy']}_{splitter}_{split_dict['split_uuid']}.csv")
+    split_strategy = split_dict['split_strategy']
+    if split_strategy == 'k_fold_cv':
+        split_file=dataset_key.replace('.csv',f"_{split_dict['num_folds']}_fold_cv_{splitter}_{split_dict['split_uuid']}.csv")
+    else:
+        split_file=dataset_key.replace('.csv',f"_{split_strategy}_{splitter}_{split_dict['split_uuid']}.csv")
     split=pd.read_csv(split_file)
     split=split.rename(columns={'cmpd_id':dataset_dict['id_col']})
     
@@ -299,8 +303,9 @@ def plot_pred_vs_actual_from_file(model_path, external_training_data=None, plot_
     for i,resp in enumerate(response_cols):
         actual_col = f'{resp}_actual'
         pred_col = f'{resp}_pred'
-        y_actual = pred_df[actual_col].values
-        y_pred = pred_df[pred_col].values
+        task_pred_df = pred_df[pred_df[actual_col].notna() & pred_df[pred_col].notna()]
+        y_actual = task_pred_df[actual_col].values
+        y_pred = task_pred_df[pred_col].values
         ymin = min(min(y_actual), min(y_pred))
         ymax = max(max(y_actual), max(y_pred))
         for j, subset in enumerate(['train','valid','test']):
@@ -308,7 +313,7 @@ def plot_pred_vs_actual_from_file(model_path, external_training_data=None, plot_
             # Force axes to have same scale for all subsets for same task (but not different tasks!)
             ax.set_xlim(ymin, ymax)
             ax.set_ylim(ymin, ymax)
-            tmp=pred_df[pred_df.subset==subset]
+            tmp = task_pred_df[task_pred_df.subset==subset]
             r2 = metrics.r2_score(tmp[actual_col].values, tmp[pred_col].values)
             ax.set_xlabel(f"Actual {resp}")
             ax.set_ylabel(f"Predicted {resp}")
