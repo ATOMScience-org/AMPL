@@ -1,5 +1,4 @@
-"""
-Functions for visualizing hyperparameter performance. These functions work with 
+"""Functions for visualizing hyperparameter performance. These functions work with
 a dataframe of model performance metrics and hyperparameter specifications from
 compare_models.py. For models on the tracker, use get_multitask_perf_from_tracker().
 For models in the file system, use get_filesystem_perf_results().
@@ -51,16 +50,14 @@ classselmets = [
 
 
 def get_score_types():
-    """
-    Helper function to show score type choices.
+    """Helper function to show score type choices.
     """
     print("Classification metrics: ", classselmets)
     print("Regression metrics: ", regselmets)
 
 
 def _prep_perf_df(df):
-    """
-    This function splits columns that contain lists into individual columns to use for plotting later.
+    """This function splits columns that contain lists into individual columns to use for plotting later.
     
     Args:
         df (pd.DataFrame): A dataframe containing model performances from a hyperparameter search. Best practice is to use get_multitask_perf_from_tracker() or get_filesystem_perf_results().
@@ -97,8 +94,7 @@ def _prep_perf_df(df):
 
 
 def plot_train_valid_test_scores(df, prediction_type='regression'):
-    """
-    This function creates line plots of performance scores based on their partitions.
+    """This function creates line plots of performance scores based on their partitions.
     
     Args:
         df (pd.DataFrame): A dataframe containing model performances from a hyperparameter search. Best practice is to use get_multitask_perf_from_tracker() or get_filesystem_perf_results().
@@ -131,8 +127,7 @@ def plot_train_valid_test_scores(df, prediction_type='regression'):
 
     
 def plot_split_perf(df, prediction_type='regression', subset='valid'):
-    """
-    This function creates boxplots of performance scores based on the splitter type.
+    """This function creates boxplots of performance scores based on the splitter type.
     
     Args:
         df (pd.DataFrame): A dataframe containing model performances from a hyperparameter search. Best practice is to use get_multitask_perf_from_tracker() or get_filesystem_perf_results().
@@ -174,8 +169,7 @@ def plot_split_perf(df, prediction_type='regression', subset='valid'):
 
 
 def plot_hyper_perf(df, scoretype='r2_score', subset='valid', model_type='general'):
-    """
-    This function creates boxplots or scatter plots of performance scores based on their hyperparameters.
+    """This function creates boxplots or scatter plots of performance scores based on their hyperparameters.
     
     Args:
         df (pd.DataFrame): A dataframe containing model performances from a hyperparameter search. Best practice is to use get_multitask_perf_from_tracker() or get_filesystem_perf_results().
@@ -228,8 +222,7 @@ def plot_hyper_perf(df, scoretype='r2_score', subset='valid', model_type='genera
 
 ### the following 3 plots are originally from Amanda M.
 def plot_rf_perf(df, scoretype='r2_score',subset='valid'):
-    """
-    This function plots scatterplots of performance scores based on their RF hyperparameters.
+    """This function plots scatterplots of performance scores based on their RF hyperparameters.
     
     Args:
         df (pd.DataFrame): A dataframe containing model performances from a hyperparameter search. Best practice is to use get_multitask_perf_from_tracker() or get_filesystem_perf_results().
@@ -264,8 +257,7 @@ def plot_rf_perf(df, scoretype='r2_score',subset='valid'):
 
         
 def plot_nn_perf(df, scoretype='r2_score',subset='valid'):
-    """
-    This function plots scatterplots of performance scores based on their NN hyperparameters.
+    """This function plots scatterplots of performance scores based on their NN hyperparameters.
     
     Args:
         df (pd.DataFrame): A dataframe containing model performances from a hyperparameter search. Best practice is to use get_multitask_perf_from_tracker() or get_filesystem_perf_results().
@@ -314,8 +306,7 @@ def plot_nn_perf(df, scoretype='r2_score',subset='valid'):
 
 
 def plot_xg_perf(df, scoretype='r2_score',subset='valid'):
-    """
-    This function plots scatterplots of performance scores based on their XG hyperparameters.
+    """This function plots scatterplots of performance scores based on their XG hyperparameters.
     
     Args:
         df (pd.DataFrame): A dataframe containing model performances from a hyperparameter search. Best practice is to use get_multitask_perf_from_tracker() or get_filesystem_perf_results().
