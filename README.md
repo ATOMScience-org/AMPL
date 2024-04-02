@@ -107,9 +107,9 @@ export PYTORCH_HIP_ALLOC_CONF=gargage_collection_threshold:0.9,max_split_size_mb
 export TF_FORCE_GPU_ALLOW_GROWTH=true
 ```
 
-#### 6. *LLNL only*: install atomsci.clients
+#### 6. *(Optional) LLNL LC only*: if you use [model_tracker](https://ampl.readthedocs.io/en/latest/pipeline.html#module-pipeline.model_tracker), install atomsci.clients
 ```bash
-# LLNL only: 
+# LLNL only: required for ATOM model_tracker
 pip install -r clients_requirements.txt
 ```
 
@@ -141,7 +141,7 @@ cd AMPL/pip
 # module load cuda/11.8                         
 pip install -r cpu_requirements.txt    # install cpu_requirements.txt OR cuda_requirements.txt  
 
-# LLNL only: 
+# LLNL only: required for ATOM model_tracker
 # pip install -r clients_requirements.txt
 
 cd ..                                   
