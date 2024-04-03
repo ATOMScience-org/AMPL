@@ -91,7 +91,10 @@ def plot_pred_vs_actual(model, epoch_label='best', threshold=None, error_bars=Fa
     num_tasks = len(tasks)
     if model.params.model_type != "hybrid":
         fig, axes = plt.subplots(num_tasks, num_ss, figsize=(plot_size*num_ss, plot_size*num_tasks))
-        suptitle = f"{dataset_name}  {splitter} split {model_type} model on {featurizer}, predicted vs actual values"
+        if num_ss > 1:
+            suptitle = f"{dataset_name}  {splitter} {params.split_strategy} split {model_type} model on {featurizer} features, predicted vs actual values by split subset"
+        else:
+            suptitle = f"{model_type} model on {featurizer} features, predicted vs actual values on dataset {dataset_name}"
         fig.suptitle(suptitle, y=0.95)
         axes = axes.flatten()
         for t, resp in enumerate(tasks):
@@ -279,8 +282,10 @@ def plot_pred_vs_actual_from_file(model_path, external_training_data=None, plot_
     split_strategy = split_dict['split_strategy']
     if split_strategy == 'k_fold_cv':
         split_file=dataset_key.replace('.csv',f"_{split_dict['num_folds']}_fold_cv_{splitter}_{split_dict['split_uuid']}.csv")
+        split_subsets = ['train_valid', 'test']
     else:
         split_file=dataset_key.replace('.csv',f"_{split_strategy}_{splitter}_{split_dict['split_uuid']}.csv")
+        split_subsets = ['train', 'valid', 'test']
     split=pd.read_csv(split_file)
     split=split.rename(columns={'cmpd_id':dataset_dict['id_col']})
     
@@ -296,8 +301,9 @@ def plot_pred_vs_actual_from_file(model_path, external_training_data=None, plot_
     
     # plot
     sns.set_context('notebook')
-    fig, axes = plt.subplots(len(response_cols), 3, figsize=(plot_size*3, plot_size*len(response_cols)))
-    suptitle = f"{dataset_name}  {splitter} split {model_type} model on {features_label}, predicted vs actual values"
+    nss = len(split_subsets)
+    fig, axes = plt.subplots(len(response_cols), nss, figsize=(plot_size*nss, plot_size*len(response_cols)))
+    suptitle = f"{dataset_name}  {splitter} {split_strategy} split {model_type} model on {features_label}, predicted vs actual values"
     fig.suptitle(suptitle, y=0.95)
     axes = axes.flatten()
     for i,resp in enumerate(response_cols):
@@ -308,8 +314,8 @@ def plot_pred_vs_actual_from_file(model_path, external_training_data=None, plot_
         y_pred = task_pred_df[pred_col].values
         ymin = min(min(y_actual), min(y_pred))
         ymax = max(max(y_actual), max(y_pred))
-        for j, subset in enumerate(['train','valid','test']):
-            ax = axes[3*i + j]
+        for j, subset in enumerate(split_subsets):
+            ax = axes[nss*i + j]
             # Force axes to have same scale for all subsets for same task (but not different tasks!)
             ax.set_xlim(ymin, ymax)
             ax.set_ylim(ymin, ymax)
