@@ -75,10 +75,10 @@ def make_weights(vals):
     if not np.issubdtype(out_vals.dtype, np.number):
         # there might be strings or other objects in this array
         out_vals[out_vals==''] = np.nan
-    
     out_vals = out_vals.astype(float)
-    w = np.where(np.isnan(out_vals), 0, 1).astype(float)
-
+    w = np.where(np.isnan(out_vals), 0., 1).astype(float)
+    out_vals = np.where(np.isnan(out_vals), 0., out_vals)
+    
     return out_vals, w
 
 
