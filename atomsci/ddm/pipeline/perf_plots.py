@@ -639,13 +639,17 @@ def plot_confusion_matrices(model, epoch_label='best', plot_size=7):
     axes = axes.flatten()
     for it, task in enumerate(tasks):
         for iss, subset in enumerate(subsets):
-            cmatrix = np.array(metrics_dict[task][subset]['confusion_matrix'][0])
+            if len(tasks)>1:
+                cmatrix = np.array(metrics_dict[task][subset]['confusion_matrix'])
+            else:
+                cmatrix = np.array(metrics_dict[task][subset]['confusion_matrix'][0])
             cmd = ConfusionMatrixDisplay(cmatrix)
             ax = axes[len(subsets)*it + iss]
             cmd.plot(ax=ax, colorbar=False)
             ax.set_title(f"{task}, {subset} subset")
             ax.set_ylabel("True class")
             ax.set_xlabel("Predicted class")
+            plt.tight_layout()
 
 
 #------------------------------------------------------------------------------------------------------------------------
