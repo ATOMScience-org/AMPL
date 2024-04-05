@@ -1,7 +1,7 @@
 # ATOM Modeling PipeLine (AMPL) for Drug Discovery
 [![License](http://img.shields.io/:license-mit-blue.svg)](https://github.com/ATOMScience-org/AMPL/blob/master/LICENSE) 
 
-| [Install](#install) | [Docker](#install-docker) | [Tutorials](#ampl-tutorials) |  [Features](#ampl-features) | [Pipeline parameters](atomsci/ddm/docs/PARAMETERS.md) | [Docs](https://ampl.readthedocs.io/en/latest/pipeline.html) |
+| [Install](#install) | [Docker](#install-with-docker) | [Tutorials](#ampl-tutorials) |  [Features](#ampl-features) | [Pipeline parameters](atomsci/ddm/docs/PARAMETERS.md) | [Docs](https://ampl.readthedocs.io/en/latest/pipeline.html) |
 
 <img src="atomsci/ddm/docs/ATOM_cymatics_black_wordmark.jpg" width="370" height="100" class="center"></img>
 
@@ -30,7 +30,7 @@ An [article describing the AMPL project](https://pubs.acs.org/doi/abs/10.1021/ac
 - [Tutorials](#ampl-tutorials)
 - [Development](#development)
 - [Project information](#project-information)  
-- [Suggestions or Report Issues](#suggestions-issues)
+- [Suggestions or Report Issues](#support-suggestions-or-report-issues)
 
 ## Useful links
 - [Pipeline parameters (options)](atomsci/ddm/docs/PARAMETERS.md)
@@ -107,9 +107,9 @@ export PYTORCH_HIP_ALLOC_CONF=gargage_collection_threshold:0.9,max_split_size_mb
 export TF_FORCE_GPU_ALLOW_GROWTH=true
 ```
 
-#### 6. *LLNL only*: install atomsci.clients
+#### 6. *(Optional) LLNL LC only*: if you use [model_tracker](https://ampl.readthedocs.io/en/latest/pipeline.html#module-pipeline.model_tracker), install atomsci.clients
 ```bash
-# LLNL only: 
+# LLNL only: required for ATOM model_tracker
 pip install -r clients_requirements.txt
 ```
 
@@ -141,7 +141,7 @@ cd AMPL/pip
 # module load cuda/11.8                         
 pip install -r cpu_requirements.txt    # install cpu_requirements.txt OR cuda_requirements.txt  
 
-# LLNL only: 
+# LLNL only: required for ATOM model_tracker
 # pip install -r clients_requirements.txt
 
 cd ..                                   
@@ -231,7 +231,7 @@ Details of running specific features are within the [parameter (options) documen
 AMPL can be run from the command line or by importing into Python scripts and Jupyter notebooks.  
 
 ### Python scripts and Jupyter notebooks
-AMPL can be used to fit and predict molecular activities and properties by importing the appropriate modules. See the [examples](#Example-AMPL-usage) for more descriptions on how to fit and make predictions using AMPL.  
+AMPL can be used to fit and predict molecular activities and properties by importing the appropriate modules. See the [examples](atomsci/ddm/examples/tutorials/14_BSEP_modeling.ipynb) for more descriptions on how to fit and make predictions using AMPL.
 
 ### Pipeline parameters
 AMPL includes many parameters to run various model fitting and prediction tasks.
@@ -433,7 +433,7 @@ Versions are managed through GitHub tags on this repository.
 &nbsp;  
 
 ### Contributors
-- [Amanda Paulson](@paulsonak) <sub>(5)</sub>
+- [Amanda Paulson](https://github.com/paulsonak) <sub>(5)</sub>
 - Stewart He <sub>(1)</sub>
 - Da Shi <sub>(6)</sub>
 - Ravichandran Sarangan <sub>(7)</sub>

@@ -78,10 +78,10 @@ def make_weights(vals):
     if not np.issubdtype(out_vals.dtype, np.number):
         # there might be strings or other objects in this array
         out_vals[out_vals==''] = np.nan
-    
     out_vals = out_vals.astype(float)
-    w = np.where(np.isnan(out_vals), 0, 1).astype(float)
-
+    w = np.where(np.isnan(out_vals), 0., 1).astype(float)
+    out_vals = np.where(np.isnan(out_vals), 0., out_vals)
+    
     return out_vals, w
 
 
@@ -1713,9 +1713,11 @@ class ComputedDescriptorFeaturization(DescriptorFeaturization):
             calc_smiles_df = input_df[input_df[params.smiles_col].isin(calc_smiles)]
             calc_desc_df, is_valid = self.compute_descriptors(calc_smiles_df, params)
             calc_smiles_feat_df = calc_smiles_df[is_valid].reset_index(drop=True)[[params.smiles_col]]
-            for col in descr_cols:
-                calc_smiles_feat_df[col] = calc_desc_df[col]
-
+            # update descr_cols with smiles col to merge instead of concat data
+            df_cols=[self.desc_smiles_col]
+            df_cols.extend(descr_cols)
+            calc_smiles_feat_df=calc_smiles_feat_df.merge(calc_desc_df[df_cols], how='left', on=self.desc_smiles_col)
+            
             if len(precomp_smiles) == 0:
                 uniq_smiles_feat_df = calc_smiles_feat_df
 

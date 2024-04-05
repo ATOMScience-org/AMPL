@@ -64,7 +64,7 @@ def train_model(input, output, dskey='', production=False):
        production (bool): retrain the model using production mode
 
     Returns:
-       None
+       the model pipeline object with trained model
     """
     # Train model
     # -----------
@@ -114,7 +114,7 @@ def train_model_from_tar(input, output, dskey='', production=False):
        dskey (str): new dataset key if file location has changed
 
     Returns:
-       None
+       the model pipeline object with trained model
     """
     tmpdir = tempfile.mkdtemp()
 
