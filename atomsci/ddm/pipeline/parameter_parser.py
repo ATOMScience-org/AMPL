@@ -1249,7 +1249,10 @@ def get_parser():
         help='How much weight to give the tanimoto distance between training and valid partitions.')
     parser.add_argument(
         '--mtss_split_fraction_weight', default=1.0, type=float,
-        help='How much weight to give adherence to requested subset franctions.')
+        help='How much weight to give adherence to requested subset fractions.')
+    parser.add_argument(
+        '--mtss_response_distr_weight', default=1.0, type=float,
+        help='How much weight to give to matching the response value distributions between split subsets.')
 
     # **********************************************************************************************************
     # model_building_parameters: transformers

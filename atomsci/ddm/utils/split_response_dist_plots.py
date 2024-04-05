@@ -7,6 +7,7 @@ from atomsci.ddm.pipeline import parameter_parser as parse
 
 import matplotlib.pyplot as plt
 import seaborn as sns
+from scipy import stats
 
 
 # ---------------------------------------------------------------------------------------------------------------------------------
@@ -59,6 +60,57 @@ def plot_split_subset_response_distrs(params):
             ax = sns.barplot(data=active_df, x='subset', y='percent_active', hue='subset')
             ax.set_title(f"Percent of {col} = 1 by subset under {split_label}")
             ax.set_xlabel('')
+
+
+# ---------------------------------------------------------------------------------------------------------------------------------
+def compute_split_subset_wasserstein_distances(params):
+    """Compute the Wasserstein ("earth-moving") distance between the distributions of the response variable(s) in the validation
+    and test sets to that of the training set. In the case of a k-fold CV split, compare the distributions of folds 1 through k-1
+    and the test set to that of fold 0.
+    
+    Args:
+        params (argparse.Namespace or dict): Structure containing dataset and split parameters.
+        The following parameters are required, if not set to default values:
+        
+        | - dataset_key
+        | - split_uuid
+        | - split_strategy
+        | - splitter
+        | - split_valid_frac
+        | - split_test_frac
+        | - num_folds
+        | - smiles_col
+        | - response_cols
+
+    Returns:
+        (DataFrame): A table of Wasserstein distances relative to the training set or fold 0 for each other split subset, for each
+        response variable.
+    """
+
+    if isinstance(params, dict):
+        params = parse.wrapper(params)
+    dset_df, split_label = get_split_labeled_dataset(params)
+    if params.split_strategy == 'k_fold_cv':
+        subset_order = sorted(set(dset_df.split_subset.values))
+    else:
+        subset_order = ['train', 'valid', 'test']
+
+    response_vars = []
+    subsets = []
+    distances = []
+    train_set = subset_order[0]
+    for col in params.response_cols:
+        train_vals = dset_df[dset_df.split_subset == train_set][col].values
+        train_vals = train_vals[~np.isnan(train_vals)]
+        for subset in subset_order[1:]:
+            subset_vals = dset_df[dset_df.split_subset == subset][col].values
+            subset_vals = subset_vals[~np.isnan(subset_vals)]
+            dist = stats.wasserstein_distance(train_vals, subset_vals)
+            response_vars.append(col)
+            subsets.append(subset)
+            distances.append(dist)
+    dist_df = pd.DataFrame(dict(response_col=response_vars, split_subset=subsets, distance=distances))
+    return dist_df
 
 
 # ---------------------------------------------------------------------------------------------------------------------------------

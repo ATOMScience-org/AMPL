@@ -27,7 +27,8 @@ smiles_splits = ['scaffold', 'multitaskscaffold', 'butina', 'fingerprint']
 split_params = ['splitter', 'split_strategy', 'split_valid_frac', 'split_test_frac', 'butina_cutoff',
                 'num_folds', 'base_splitter', 'cutoff_date', 'date_col', 'previously_split',
                 'mtss_num_super_scaffolds', 'mtss_num_generations', 'mtss_train_test_dist_weight', 
-                'mtss_train_valid_dist_weight', 'mtss_split_fraction_weight', 'mtss_num_pop']
+                'mtss_train_valid_dist_weight', 'mtss_split_fraction_weight', 'mtss_num_pop',
+                'mtss_response_distr_weight']
 
 def create_splitting(params):
     """Factory function to create appropriate type of Splitting object, based on dataset parameters
@@ -528,6 +529,7 @@ class TrainValidTestSplitting(Splitting):
                 diff_fitness_weight_tvt=self.params.mtss_train_test_dist_weight,
                 diff_fitness_weight_tvv=self.params.mtss_train_valid_dist_weight,
                 ratio_fitness_weight=self.params.mtss_split_fraction_weight,
+                response_distr_fitness_weight=self.params.mtss_response_distr_weight,
                 num_super_scaffolds=self.params.mtss_num_super_scaffolds,
                 num_pop=self.params.mtss_num_pop,
                 num_generations=self.params.mtss_num_generations)
