@@ -8,7 +8,7 @@ The purpose of this tutorial is to install the **[AMPL](https://github.com/ATOMS
 * [Option 2: Pull an existing AMPL image from the Docker repo](#option-2-pull-an-existing-ampl-image-from-docker-repo)
 * [Start a container from the AMPL image](#start-a-container-from-the-AMPL-image)
    * [Use an existing image to start a container](#use-an-existing-image-to-start-a-container)
-* [From the container, start the Jupyter notebook](#from-inside-the-container-start-the-jupyter-notebookk)
+* [Start the Jupyter notebook from a container](#start-the-jupyter-notebook-from-a-container)
    * [To connect the Jupyter notebook from a browser](#to-connect-the-jupyter-notebook-from-a-browser)
    * [Use `atomsci-env` as the run kernel for AMP](#use-atomsci-env-as-the-run-kernel-for-AMPL)
 * [Code examples](#code-examples)
@@ -88,7 +88,7 @@ docker run -it -p 8888:8888 -v ~:/home atomsci/atomsci-ampl
 >  -p, --publish port(s) list           Publish a container's port(s) to the host
 >  -v, --volume list                    Bind mount a volume </pre>
 
-## From inside the container, start the Jupyter notebook
+## Start the Jupyter notebook from a container
 
 ```
 #inside docker container
@@ -114,7 +114,7 @@ Copy and paste the URL from your output message to the browser on your computer.
 > 8888 to some other number such as `7777` or `8899` (in all 3 places it's 
 > written), then rerun both commands in 
 > [Start a container](#start-a-container-from-the-ampl-image) and 
-> [Start Jupyter Notebook](#from-inside-the-container-start-the-jupyter-notebook). 
+> [Start Jupyter Notebook](#start-the-Jupyter-notebook-from-a-container). 
 > Be sure to save any work you want to be permanent in your workspace folder. 
 > If the container is shut down, you'll lose anything not in that folder.*  
 
