@@ -3,14 +3,14 @@
 The purpose of this tutorial is to install the **[AMPL](https://github.com/ATOMScience-org/AMPL)** software from Docker, which will provide accessibility across multiple platforms. Here are the topics to be covered in this tutorial:
 
 * [Prerequisite: Download and install Docker](#prerequisite-download-and-install-docker) 
-* [Option 1: Build a local AMPL image using Dockerfile](#option-1-build-a-local-image-using-dockerfile)
+* [Option 1: Build a local AMPL image using `Dockerfile`](#option-1-build-a-local-ampl-image-using-dockerfile)
    * [To build a Docker image](#to-build-a-docker-image)
 * [Option 2: Pull an existing AMPL image from the Docker repo](#option-2-pull-an-existing-ampl-image-from-docker-repo)
 * [Start a container from the AMPL image](#start-a-container-from-the-AMPL-image)
    * [Use an existing image to start a container](#use-an-existing-image-to-start-a-container)
-* [From the container, start the Jupyter notebook](#from-the-container-start-the-jupyter-notebook)
-* [To connect the Jupyter notebook from a browser](#to-connect-the-jupyter-notebook-from-a-browser)
-   * [Use `atomsci-env` as the run kernel for AMP](#use-`atomsci-env`-as-the-run-kernel-for-AMPL)
+* [From the container, start the Jupyter notebook](#from-inside-the-container-start-the-jupyter-notebookk)
+   * [To connect the Jupyter notebook from a browser](#to-connect-the-jupyter-notebook-from-a-browser)
+   * [Use `atomsci-env` as the run kernel for AMP](#use-atomsci-env-as-the-run-kernel-for-AMPL)
 * [Code examples](#code-examples)
 * [Useful Docker commands](#useful-docker-commands)
 * [Trouble Shooting](#trouble-shooting)
@@ -27,7 +27,7 @@ Click on the Docker icon to start the Docker. Leave it running when using Docker
 ## Option 1: Build a local AMPL image using `Dockerfile`
 
 - Clone **[AMPL](https://github.com/ATOMScience-org/AMPL)**  github repo if you don't have one yet. 
-- *(Optional)* if you plan to use code from a development branch, see line 2 for example.
+- *(Optional)* if you plan to use code from a different branch other than the default (master), see line 2 for example.
 
 ```
 git clone https://github.com/ATOMScience-org/AMPL.git  
@@ -39,32 +39,30 @@ cd <your AMPL directory>
 
 ### To build a Docker image
 
-Example 1:
 ```
-docker build -t atomsci-ampl . # by default, `latest` will be used as the tag
-```
+# example 1
+docker build -t atomsci-ampl .       # by default, `latest` will be used as the tag
 
-or 
-
-Example 2:
-```
-docker build -t atomsci-ampl:<tag> . # give a name for <tag>
+# or
+# example 2
+docker build -t atomsci-ampl:<tag> . # specify a name for <tag>
 ```
 
 This normally takes about 15 minutes to build. The image can be **reused**. 
 
-Once it's built, follow the steps starting [Start a container from the AMPL image](#start-a-container-from-the-ampl-image) to start and run the AMPL docker image.
+Once it's built, follow the [steps](#start-a-container-from-the-ampl-image) to start and run the AMPL docker image.
 
 ## Option 2: Pull an existing AMPL image from Docker repo
 
 ```
 docker pull atomsci/atomsci-ampl:latest
 ```
+
 ## Start a container from the AMPL image
 
 ### Use an existing image to start a container
 
-If you have an image built/downloaded, type `docker images` to see what images are currently on your desktop/computer. Pick an image you like to use. For example:
+If you have an image built/downloaded, type `docker images` to see what images are currently available. Pick one to use. For example:
 
 ![Docker Run](../../docs/source/_static/img/01_install_from_docker_files/docker_run.png)
 
@@ -74,15 +72,12 @@ The `docker run` command syntax:
 docker run -it -p 8888:8888 -v </local_workspace_folder>:</directory_in_docker> atomsci/atomsci-ampl
 ```
 
-Example 1 (if built from option 1):
 ```
+# example 1 # if built from Dockerfile
 docker run -it -p 8888:8888 -v ~:/home atomsci-ampl
-```
 
-or
-
-Example 2 (If built from option 2):
-```
+# or
+# example 2 # if pulled from atomsci
 docker run -it -p 8888:8888 -v ~:/home atomsci/atomsci-ampl
 ```
 
@@ -106,9 +101,9 @@ As a result, this will output a message with similar URLs to this:
 ![Jupyter Notebook Token](../../docs/source/_static/img/01_install_from_docker_files/jupyter_token.png)
 
 
-## To connect the Jupyter notebook from a browser
+### To connect the Jupyter notebook from a browser
 
-Copy and paste the URL from your output message into the browser on your computer. For example:
+Copy and paste the URL from your output message to the browser on your computer. For example:
 
 ![Notebook URL](../../docs/source/_static/img/01_install_from_docker_files/browser_url.png)
 
@@ -119,7 +114,7 @@ Copy and paste the URL from your output message into the browser on your compute
 > 8888 to some other number such as `7777` or `8899` (in all 3 places it's 
 > written), then rerun both commands in 
 > [Start a container](#start-a-container-from-the-ampl-image) and 
-> [Start Jupyter Notebook](#when-inside-the-container-start-the-jupyter-notebook). 
+> [Start Jupyter Notebook](#from-inside-the-container-start-the-jupyter-notebook). 
 > Be sure to save any work you want to be permanent in your workspace folder. 
 > If the container is shut down, you'll lose anything not in that folder.*  
 
@@ -137,7 +132,7 @@ and select `atomsci-env` as the run kernel
 ![Select a kernel outside of a notebook](../../docs/source/_static/img/01_install_from_docker_files/docker-kernel-outside-nb.png)
 
 
-* The notebook should look like this:
+* The notebook would look like this:
 
 ![Notebook example](../../docs/source/_static/img/01_install_from_docker_files/notebook-env.png)
 
@@ -149,13 +144,13 @@ The AMPL code is in:
 http://127.0.0.1:<port_number>/tree/AMPL/atomsci/ddm/
 ```
 
+> **Note:** *`<port_number>` is the number that you used when starting `docker run -p ...`.*
+
 The tutorials examples are in:
 
 ```
 http://127.0.0.1:<port_number>/tree/AMPL/atomsci/ddm/examples/tutorials2023
 ```
-
-> **Note:** *`<port_number>` is the number that you used when starting `docker run -p ...`.*
 
 ![Browse tutorials](../../docs/source/_static/img/01_install_from_docker_files/tutorial_tree.png)
 
@@ -179,7 +174,7 @@ docker cp <container_id>:/file.txt file.txt # copy from container to local
 
 * Problem with token
 
-If you try to connect the Jupyter Notebook URL but got a prompt for password or token. From the docker terminal window, type in
+If you try to connect the Jupyter Notebook URL but got a prompt for password or token. From the docker terminal, type in
 
 ```
 jupyter server list
