@@ -19,8 +19,8 @@ RUN git clone https://github.com/ATOMScience-org/AMPL.git
 WORKDIR /AMPL
 ENV PATH="/AMPL:$PATH"
 
-# checkout develop branch if needed, for example: 1.6.0
-# RUN git checkout -b setup_tutorials && git pull origin setup_tutorials
+# uncomment the following line to checkout develop branch if needed, for example: 1.6.1
+# RUN git checkout -b 1.6.1 && git pull origin 1.6.1
 
 COPY . .
 RUN echo "before pip install"
