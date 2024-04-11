@@ -171,8 +171,9 @@ def test_XGB_results():
 
     df1, df2, model_info = all_similar_tests(json_f)
 
-    assert json.loads(model_info['model_parameters_dict']) == {"xgb_gamma": 0.1,
-            "xgb_learning_rate": 0.11,}
+    assert json.loads(model_info['model_parameters_dict']) == {'xgb_colsample_bytree': 1.0,
+            'xgb_gamma': 0.1, 'xgb_learning_rate': 0.11, 'xgb_max_depth': 6,
+            'xgb_min_child_weight': 1.0, 'xgb_n_estimators': 100, 'xgb_subsample': 1.0}
 
     assert model_info['feat_parameters_dict'] == json.dumps({})
 
