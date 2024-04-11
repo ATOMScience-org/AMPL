@@ -8,7 +8,6 @@ import tarfile
 import json
 import glob
 import pandas as pd
-import pdb
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../delaney_Panel'))
 from test_delaney_panel import init, train_and_predict
@@ -169,7 +168,6 @@ def test_XGB_results():
     clean()
     init()
     json_f = 'jsons/reg_config_delaney_fit_XGB_mordred_filtered.json'
-    pdb.set_trace()
 
     df1, df2, model_info = all_similar_tests(json_f)
 
