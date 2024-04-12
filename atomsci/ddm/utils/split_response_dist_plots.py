@@ -11,7 +11,7 @@ from scipy import stats
 
 
 # ---------------------------------------------------------------------------------------------------------------------------------
-def plot_split_subset_response_distrs(params):
+def plot_split_subset_response_distrs(params, axes=None, plot_size=7):
     """Plot the distributions of the response variable(s) in each split subset of a dataset.
     
     Args:
@@ -28,6 +28,8 @@ def plot_split_subset_response_distrs(params):
         | - smiles_col
         | - response_cols
 
+        axes (matplotlib.Axes): Axes to draw plots in, if provided
+        plot_size (float): Height of plots; ignored if axes is provided
     Returns:
         None
     """
@@ -40,9 +42,15 @@ def plot_split_subset_response_distrs(params):
     else:
         subset_order = ['train', 'valid', 'test']
 
-    for col in params.response_cols:
+    if axes is None:
+        fig, axes = plt.subplots(1, len(params.response_cols), figsize=(plot_size*len(params.response_cols), plot_size))
+    if len(params.response_cols) == 1:
+        axes = [axes]
+    else:
+        axes = axes.flatten()
+    for colnum, col in enumerate(params.response_cols):
+        ax = axes[colnum]
         if params.prediction_type == 'regression':
-            fig, ax = plt.subplots(figsize=(9,7))
             ax = sns.kdeplot(data=dset_df, x=col, hue='split_subset', hue_order=subset_order, 
                              bw_adjust=0.7, fill=True, common_norm=False, ax=ax)
             ax.set_title(f"{col} distribution by subset under {split_label}")
@@ -53,11 +61,7 @@ def plot_split_subset_response_distrs(params):
                 nactive = np.nansum(ss_df[col].values)
                 pct_active.append(100*nactive/sum(ss_df[col].notna()))
             active_df = pd.DataFrame(dict(subset=subset_order, percent_active=pct_active))
-            if params.split_strategy == 'k_fold_cv':
-                fig, ax = plt.subplots(figsize=(9,7))
-            else:
-                fig, ax = plt.subplots(figsize=(5,5))
-            ax = sns.barplot(data=active_df, x='subset', y='percent_active', hue='subset')
+            ax = sns.barplot(data=active_df, x='subset', y='percent_active', hue='subset', ax=ax)
             ax.set_title(f"Percent of {col} = 1 by subset under {split_label}")
             ax.set_xlabel('')
 
