@@ -297,7 +297,7 @@ def get_training_perf_table(dataset_key, bucket, collection_name, pred_type='reg
     return perf_df
 
 # -----------------------------------------------------------------------------------------------------------------
-def extract_model_and_feature_parameters(metadata_dict):
+def extract_model_and_feature_parameters(metadata_dict, keep_required=True):
     """Given a config file, extract model and featurizer parameters. Looks for parameter names
     that end in *_specific. e.g. nn_specific, auto_featurizer_specific
 
@@ -320,42 +320,45 @@ def extract_model_and_feature_parameters(metadata_dict):
 
     model_info = {}
     model_info['model_uuid'] = metadata_dict['model_uuid']
-    if model_type == 'NN':
-        nn_params = metadata_dict['nn_specific']
-        model_info['max_epochs'] = nn_params['max_epochs']
-        model_info['best_epoch'] = nn_params['best_epoch']
-        model_info['learning_rate'] = nn_params['learning_rate']
-        model_info['layer_sizes'] = ','.join(['%d' % s for s in nn_params['layer_sizes']])
-        model_info['dropouts'] = ','.join(['%.2f' % d for d in nn_params['dropouts']])
-    elif model_type == 'RF':
-        rf_params = metadata_dict['rf_specific']
-        model_info['rf_estimators'] = rf_params['rf_estimators']
-        model_info['rf_max_features'] = rf_params['rf_max_features']
-        model_info['rf_max_depth'] = rf_params['rf_max_depth']
-    elif model_type == 'xgboost':
-        xgb_params = metadata_dict['xgb_specific']
-        model_info['xgb_gamma'] = xgb_params['xgb_gamma']
-        model_info['xgb_learning_rate'] = xgb_params['xgb_learning_rate']
-        model_info['xgb_max_depth'] = xgb_params['xgb_max_depth']
-        model_info['xgb_colsample_bytree'] = xgb_params['xgb_colsample_bytree']
-        model_info['xgb_subsample'] = xgb_params['xgb_subsample']
-        model_info['xgb_n_estimators'] = xgb_params['xgb_n_estimators']
-        model_info['xgb_min_child_weight'] = xgb_params['xgb_min_child_weight']
 
-    for r in required:
-        if r not in model_info:
-            # all fields must be filled in
-            model_info[r] = nan
+    if keep_required:
+        if model_type == 'NN':
+            nn_params = metadata_dict['nn_specific']
+            model_info['max_epochs'] = nn_params['max_epochs']
+            model_info['best_epoch'] = nn_params['best_epoch']
+            model_info['learning_rate'] = nn_params['learning_rate']
+            model_info['layer_sizes'] = ','.join(['%d' % s for s in nn_params['layer_sizes']])
+            model_info['dropouts'] = ','.join(['%.2f' % d for d in nn_params['dropouts']])
+        elif model_type == 'RF':
+            rf_params = metadata_dict['rf_specific']
+            model_info['rf_estimators'] = rf_params['rf_estimators']
+            model_info['rf_max_features'] = rf_params['rf_max_features']
+            model_info['rf_max_depth'] = rf_params['rf_max_depth']
+        elif model_type == 'xgboost':
+            xgb_params = metadata_dict['xgb_specific']
+            model_info['xgb_gamma'] = xgb_params['xgb_gamma']
+            model_info['xgb_learning_rate'] = xgb_params['xgb_learning_rate']
+            model_info['xgb_max_depth'] = xgb_params['xgb_max_depth']
+            model_info['xgb_colsample_bytree'] = xgb_params['xgb_colsample_bytree']
+            model_info['xgb_subsample'] = xgb_params['xgb_subsample']
+            model_info['xgb_n_estimators'] = xgb_params['xgb_n_estimators']
+            model_info['xgb_min_child_weight'] = xgb_params['xgb_min_child_weight']
+    
+        for r in required:
+            if r not in model_info:
+                # all fields must be filled in
+                model_info[r] = nan
 
     # the new way of extracting model parameters is to simply save them in json
     if 'nn_specific' in metadata_dict:
         model_metadata = metadata_dict['nn_specific']
-        # include learning rate, max_epochs, and best_epoch for convenience 
-        model_info['max_epochs'] = model_metadata.get('max_epochs', np.nan)
-        model_info['best_epoch'] = model_metadata.get('best_epoch', np.nan)
-        learning_rate_col = [c for c in model_metadata.keys() if c.endswith('learning_rate')]
-        if len(learning_rate_col) == 1:
-            model_info['learning_rate'] = model_metadata[learning_rate_col[0]]
+        if keep_required:
+            # include learning rate, max_epochs, and best_epoch for convenience 
+            model_info['max_epochs'] = model_metadata.get('max_epochs', np.nan)
+            model_info['best_epoch'] = model_metadata.get('best_epoch', np.nan)
+            learning_rate_col = [c for c in model_metadata.keys() if c.endswith('learning_rate')]
+            if len(learning_rate_col) == 1:
+                model_info['learning_rate'] = model_metadata[learning_rate_col[0]]
         # delete several parameters that aren't normally saved
         ignored_params = ['batch_size','bias_init_consts','optimizer_type',
             'weight_decay_penalty','weight_decay_penalty_type','weight_init_stddevs']
@@ -910,7 +913,7 @@ def get_tarball_perf_table(model_tarball, pred_type='classification'):
     return perf_df, meta_json
 
 #------------------------------------------------------------------------------------------------------------------
-def get_filesystem_perf_results(result_dir, pred_type='classification'):
+def get_filesystem_perf_results(result_dir, pred_type='classification', expand=True):
     """Retrieve metadata and performance metrics for models stored in the filesystem from a hyperparameter search run.
 
     Args:
@@ -1789,110 +1792,139 @@ def get_multitask_perf_from_files_new(result_dir, pred_type='regression'):
 
     """
 
+    ampl_version_list = []
     model_uuid_list = []
-    learning_rate_list = []
-    dropouts_list = []
-    layer_sizes_list = []
-    best_epoch_list = []
-    max_epochs_list = []
+    model_type_list = []
     featurizer_list = []
+    dataset_key_list = []
+    splitter_list = []
+    split_strategy_list = []
+    model_score_type_list = []
+    feature_transform_type_list = []
+
+    # model type specific lists
+    param_list = []
 
     subsets = ['train', 'valid', 'test']
 
     if pred_type == 'regression':
-        metrics = ['num_compounds', 'r2_score', 'task_r2_scores',
-                   'task_rms_scores']
+        metrics = ['r2_score', 'rms_score', 'mae_score', 'num_compounds']
     else:
-        metrics = ['num_compounds', 'roc_auc_score', 'task_roc_auc_scores']
+        metrics = ['roc_auc_score', 'prc_auc_score', 'precision', 'recall_score', 'num_compounds',
+                   'accuracy_score', 'bal_accuracy', 'npv', 'matthews_cc', 'kappa', 'cross_entropy', 'confusion_matrix']
     score_dict = {}
     for subset in subsets:
         score_dict[subset] = {}
         for metric in metrics:
             score_dict[subset][metric] = []
-
-
+            # if metric.endswith('y'):
+            #     metric=metric.replace('y', 'ies')
+            # else
+            #     metric=metric+'s'
+            # score_dict[subset]['task_
+    score_dict['valid']['model_choice_score'] = []
+       
     # Navigate the results directory tree
     model_list = []
     metrics_list = []
+    tar_list = []
     for dirpath, dirnames, filenames in os.walk(result_dir):
+        # collect all tars for later
+        tar_list = tar_list + [os.path.join(dirpath, f) for f in filenames if f.endswith('.tar.gz')]
+        
         if ('model_metadata.json' in filenames) and ('model_metrics.json' in filenames):
+#             print(dirpath)
+            meta_path = os.path.join(dirpath, 'model_metadata.json')
             try:
-                meta_path = os.path.join(dirpath, 'model_metadata.json')
                 with open(meta_path, 'r') as meta_fp:
                     meta_dict = json.load(meta_fp)
-                model_list.append(meta_dict)
-                metrics_path = os.path.join(dirpath, 'model_metrics.json')
-                with open(metrics_path, 'r') as metrics_fp:
-                    metrics_dicts = json.load(metrics_fp)
-                metrics_list.append(metrics_dicts)
+                if meta_dict['model_parameters']['prediction_type']==pred_type:
+                    model_list.append(meta_dict)
+                    metrics_path = os.path.join(dirpath, 'model_metrics.json')
+                    with open(metrics_path, 'r') as metrics_fp:
+                        metrics_dicts = json.load(metrics_fp)
+                    metrics_list.append(metrics_dicts)
             except:
-                print(f'Cannot access model {dirpath}')
+                print(f"Can't access model {dirpath}")
 
     print("Found data for %d models under %s" % (len(model_list), result_dir))
-
+    
+    # build dictonary of tarball names
+    tar_dict = {os.path.basename(tf):tf for tf in tar_list}
+    path_list = []
     for metadata_dict, metrics_dicts in zip(model_list, metrics_list):
         model_uuid = metadata_dict['model_uuid']
-        #print("Got metadata for model UUID %s" % model_uuid)
+        dataset_key = metadata_dict['training_dataset']['dataset_key']
+        dataset_name = mp.build_tarball_name(mp.build_dataset_name(dataset_key), model_uuid)
+        if dataset_name in tar_dict:
+            path_list.append(tar_dict[dataset_name])
+        else:
+            # unable to find saved tar file
+            path_list.append('')
 
         # Get list of training run metrics for this model
-        #print("Got %d metrics dicts for model %s" % (len(metrics_dicts), model_uuid))
         if len(metrics_dicts) < 3:
-            raise Exception("Got no or incomplete metrics for model %s, skipping..." % model_uuid)
-            #print("Got no or incomplete metrics for model %s, skipping..." % model_uuid)
-            #continue
+            print("Got no or incomplete metrics for model %s, skipping..." % model_uuid)
+            continue
         subset_metrics = {}
         for metrics_dict in metrics_dicts:
             if metrics_dict['label'] == 'best':
                 subset = metrics_dict['subset']
                 subset_metrics[subset] = metrics_dict['prediction_results']
-
+        
         model_uuid_list.append(model_uuid)
         model_params = metadata_dict['model_parameters']
-        dset_params = metadata_dict['training_dataset']
-        response_cols = dset_params['response_cols']
-        nn_params = metadata_dict['nn_specific']
-        max_epochs_list.append(nn_params['max_epochs'])
-        best_epoch_list.append(nn_params['best_epoch'])
-        learning_rate_list.append(nn_params['learning_rate'])
-        layer_sizes_list.append(','.join(['%d' % s for s in nn_params['layer_sizes']]))
-        dropouts_list.append(','.join(['%.2f' % d for d in nn_params['dropouts']]))
-        featurizer_list.append(model_params["featurizer"])
+        ampl_version = model_params['ampl_version']
+        ampl_version_list.append(ampl_version)
+        model_type = model_params['model_type']
+        model_type_list.append(model_type)
+        model_score_type = model_params['model_choice_score_type']
+        model_score_type_list.append(model_score_type)
+        featurizer = model_params['featurizer']
+        #mix ecfp, graphconv, moe, mordred, rdkit for concise representation
+        if featurizer in ["computed_descriptors", "descriptors"]:
+            featurizer = metadata_dict["descriptor_specific"]["descriptor_type"]
+        featurizer_list.append(featurizer)
+        split_params = metadata_dict['splitting_parameters']
+        splitter_list.append(split_params['splitter'])
+        split_strategy_list.append(split_params['split_strategy'])
+        dataset_key_list.append(metadata_dict['training_dataset']['dataset_key'])
+        feature_transform_type = metadata_dict['training_dataset']['feature_transform_type']
+        feature_transform_type_list.append(feature_transform_type)
+
+        param_list.append(extract_model_and_feature_parameters(metadata_dict, keep_required=False))
+
         for subset in subsets:
             for metric in metrics:
-                score_dict[subset][metric].append(subset_metrics[subset][metric])
+                try:
+                    score_dict[subset][metric].append(subset_metrics[subset][metric])
+                except:
+                    score_dict[subset][metric].append(np.nan)
+        score_dict['valid']['model_choice_score'].append(subset_metrics['valid']['model_choice_score'])
 
+    param_df = pd.DataFrame(param_list)
+    perf_df = pd.DataFrame(dict(
+                    model_uuid=model_uuid_list,
+                    model_path = path_list,
+                    ampl_version=ampl_version_list,
+                    model_type=model_type_list,
+                    dataset_key=dataset_key_list,
+                    features=featurizer_list,
+                    splitter=splitter_list,
+                    split_strategy=split_strategy_list,
+                    model_score_type=model_score_type_list,
+                    feature_transform_type=feature_transform_type_list))
 
-    # Format the data as a table with groups of 3 columns for each model
-    num_models = len(model_uuid_list)
-
-    data = {
-        "model_uuid": model_uuid_list,
-        "learning_rate": learning_rate_list,
-        "layer_sizes": layer_sizes_list,
-        "dropouts": dropouts_list,
-        "featurizer": featurizer_list
-    }
-
-    for i in range(num_models):
-        for subset in subsets:
-            for ix, task in enumerate(response_cols):
-                if pred_type == "regression":
-                    colr2 = f"{subset}_{task}_r2"
-                    colrms = f"{subset}_{task}_rms"
-                    if colr2 not in data:
-                        data[colr2] = []
-                        data[colrms] = []
-                    data[colr2].append(score_dict[subset]["task_r2_scores"][i][ix])
-                    data[colrms].append(score_dict[subset]["task_rms_scores"][i][ix])
-                else:
-                    colauc = f"{subset}_{task}_roc_auc"
-                    if colauc not in data:
-                        data[colauc] = []
-                    data[colauc].append(score_dict[subset]["task_roc_auc_scores"][i][ix])
-
-    perf_df = pd.DataFrame(data)
-
-    return perf_df
+    perf_df['model_choice_score'] = score_dict['valid']['model_choice_score']
+    for subset in subsets:
+        for metric in metrics:
+            metric_col = 'best_%s_%s' % (subset, metric)
+            perf_df[metric_col] = score_dict[subset][metric]
+    perf_df = perf_df.merge(param_df, on='model_uuid', how='inner')
+    sort_by = 'model_choice_score'
+    perf_df = perf_df.sort_values(sort_by, ascending=False)
+    
+    return perf_df, model_list
 
 
 #-------------------------------------------------------------------------------------------------------------------
