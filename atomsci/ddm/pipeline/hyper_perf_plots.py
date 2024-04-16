@@ -66,6 +66,12 @@ def _prep_perf_df(df):
         perf_track_df (pd.DataFrame): a new df with modified and extra columns.
     """
     perf_track_df=df.copy()
+
+    if 'model_params' in perf_track_df:
+        exp=pd.DataFrame(perf_track_df.model_params.tolist())
+        exp['model_uuid']=perf_track_df.model_uuid
+        perf_track_df=perf_track_df.merge(exp)
+    
     if 'NN' in perf_track_df.model_type.unique():
         
         cols=['dummy_nodes_1','dummy_nodes_2','dummy_nodes_3']
@@ -113,8 +119,9 @@ def plot_train_valid_test_scores(df, prediction_type='regression'):
     
     with sns.axes_style("ticks"):
         fig, ax = plt.subplots(nrows,len(selmets), figsize=(5*len(selmets),5*nrows))
-        for i, splitter in enumerate(perf_track_df.splitter.unique()):
-            for j, scoretype in enumerate(selmets):
+        if nrows>1:
+            for i, splitter in enumerate(perf_track_df.splitter.unique()):
+                for j, scoretype in enumerate(selmets):
                     plot_df=perf_track_df[perf_track_df.splitter==splitter]
                     plot_df=plot_df[[f"best_train_{scoretype}",f"best_valid_{scoretype}",f"best_test_{scoretype}"]]
                     plot_df=plot_df.sort_values(f"best_valid_{scoretype}")
@@ -122,6 +129,17 @@ def plot_train_valid_test_scores(df, prediction_type='regression'):
                     ax[i,j].set_ylim(plot_df.min().min()-.1,1)
                     ax[i,j].tick_params(rotation=15)
                     ax[i,j].set_title(f'{splitter} {scoretype}')
+        else:
+            splitter=perf_track_df.splitter.iloc[0]
+            for j, scoretype in enumerate(selmets):
+                plot_df=perf_track_df[perf_track_df.splitter==splitter]
+                plot_df=plot_df[[f"best_train_{scoretype}",f"best_valid_{scoretype}",f"best_test_{scoretype}"]]
+                plot_df=plot_df.sort_values(f"best_valid_{scoretype}")
+                ax[j].plot(plot_df.T);
+                ax[j].set_ylim(plot_df.min().min()-.1,1)
+                ax[j].tick_params(rotation=15)
+                ax[j].set_title(f'{splitter} {scoretype}')
+            
         fig.suptitle(f"Model performance by partition");
         plt.tight_layout()
 
@@ -211,7 +229,7 @@ def plot_hyper_perf(df, scoretype='r2_score', subset='valid', model_type='genera
                 labs=ax[i].get_xticklabels()
                 labs=[lab for lab in labs if lab.get_position()[0]>=0]
             else:       
-                sns.boxplot(x=feat,y=winnertype,palette=sns.cubehelix_palette(perf_track_df[feat].nunique(), rot=rot,start=start,), data=perf_track_df, ax=ax[i])
+                sns.boxplot(x=feat,y=winnertype,hue=feat,palette=sns.cubehelix_palette(perf_track_df[feat].nunique(), rot=rot,start=start,), data=perf_track_df, ax=ax[i],legend=False)
                 ticks=ax[i].get_xticks()
                 labs=ax[i].get_xticklabels()
             ax[i].set_xticks(ticks) # avoid warning by including this line

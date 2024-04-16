@@ -219,7 +219,10 @@ def save_joined_dataset(joined_dataset, split_metadata):
 # ****************************************************************************************
 def get_classes(y):
     """Returns the class indices for a set of labels"""
-    class_indeces = set(y.flatten())
+    
+    # remove nan's automatically flattens the array
+    # even if there are no nan's in it
+    class_indeces = set(y[~np.isnan(y)])
 
     return class_indeces
 

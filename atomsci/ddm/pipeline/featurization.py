@@ -59,7 +59,7 @@ log = logging.getLogger('ATOM')
 
 
 # ****************************************************************************************
-def make_weights(vals):
+def make_weights(vals, is_class=False):
     """In the case of multitask learning, we must create weights for each sample labeling
     it with 0 if there is not value or 1 if there is.
 
@@ -67,7 +67,7 @@ def make_weights(vals):
         vals: numpy array containing nans where there are not labels
 
     Returns:
-        vals: numpy array same as input vals, but nans are replaced with 0
+        out_vals: numpy array same as input vals, but nans are replaced with 0
         w: numpy array same shape as vals, where w[i,j] = 1 if vals[i,j] is nan else w[i,j] = 0
     """
     # sometimes instead of nan, '' is used for missing values
@@ -78,8 +78,10 @@ def make_weights(vals):
     out_vals = out_vals.astype(float)
     w = np.where(np.isnan(out_vals), 0., 1).astype(float)
     out_vals = np.where(np.isnan(out_vals), 0., out_vals)
-    
-    return out_vals, w
+    if is_class:
+        return out_vals, w
+    else:
+        return vals, w
 
 
 # ****************************************************************************************
@@ -747,8 +749,9 @@ class DynamicFeaturization(Featurization):
             feat_df = pd.DataFrame(dict(c0=features))
         featurized_dset_df = pd.concat([keep_df, feat_df], ignore_index=False, axis=1)
 
+        is_class=params.model_type=='classification'
         if contains_responses and (params.model_type != 'hybrid'):
-            vals, w = make_weights(featurized_dset_df[params.response_cols].values) #, self.id_field)
+            vals, w = make_weights(featurized_dset_df[params.response_cols].values, is_class=is_class) #, self.id_field)
         else:
             vals = np.zeros((nrows,ncols))
             w = np.ones((nrows,ncols)) ## JEA
@@ -1468,9 +1471,10 @@ class DescriptorFeaturization(PersistentFeaturization):
 
         nrows = len(ids)
         ncols = len(params.response_cols)
+        is_class= params.model_type=='classification'
         if contains_responses and (params.model_type != 'hybrid'):
             vals = featurized_dset_df[params.response_cols].values
-            vals, weights = make_weights(vals)
+            vals, weights = make_weights(vals, is_class=is_class)
         else:
             vals = np.zeros((nrows,ncols))
             weights = np.ones_like(vals, dtype=np.float32)
@@ -1767,9 +1771,10 @@ class ComputedDescriptorFeaturization(DescriptorFeaturization):
         ids = featurized_dset_df[params.id_col]
         nrows = len(ids)
         ncols = len(params.response_cols)
+        is_class=params.model_type=='classification'
         if contains_responses and (params.model_type != 'hybrid'):
             vals = featurized_dset_df[params.response_cols].values
-            vals, weights = make_weights(vals)
+            vals, weights = make_weights(vals, is_class=is_class)
         else:
             vals = np.zeros((nrows,ncols))
             weights = np.ones_like(vals, dtype=np.float32)
