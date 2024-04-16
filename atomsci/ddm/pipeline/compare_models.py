@@ -14,6 +14,7 @@ import json
 import shutil
 import tarfile
 import tempfile
+from glob import glob
 
 from collections import OrderedDict
 from atomsci.ddm.utils import datastore_functions as dsf
@@ -1776,7 +1777,7 @@ def get_multitask_perf_from_files(result_dir, pred_type='regression'):
 
 
 #-------------------------------------------------------------------------------------------------------------------
-def get_multitask_perf_from_files_new(result_dir, pred_type='regression'):
+def get_multitask_perf_from_files_new(result_dir, pred_type='regression', dataset_key=None, tar=False):
     """Retrieve model metadata and performance metrics stored in the filesystem from a multitask hyperparameter search.
     Format the per-task performance metrics in a table with a row for each task and columns for each model/subset
     combination.
@@ -1786,144 +1787,153 @@ def get_multitask_perf_from_files_new(result_dir, pred_type='regression'):
 
         pred_type (str): Prediction type ('classification' or 'regression') of models to query.
 
+        dataset_key(str): Optional, the dataset_key to filter models only trained on a single dataset.
+
+        tar (bool): Default false, whether to open tar files or only search for models in folders.
+
     Returns:
         pd.DataFrame: Table of model metadata fields and performance metrics.
 
     """
 
-    ampl_version_list = []
-    model_uuid_list = []
-    model_type_list = []
-    featurizer_list = []
-    dataset_key_list = []
-    splitter_list = []
-    split_strategy_list = []
-    model_score_type_list = []
-    feature_transform_type_list = []
-
-    # model type specific lists
-    param_list = []
-
-    subsets = ['train', 'valid', 'test']
-
-    if pred_type == 'regression':
-        metrics = ['r2_score', 'rms_score', 'mae_score', 'num_compounds']
-    else:
-        metrics = ['roc_auc_score', 'prc_auc_score', 'precision', 'recall_score', 'num_compounds',
-                   'accuracy_score', 'bal_accuracy', 'npv', 'matthews_cc', 'kappa', 'cross_entropy', 'confusion_matrix']
-    score_dict = {}
-    for subset in subsets:
-        score_dict[subset] = {}
-        for metric in metrics:
-            score_dict[subset][metric] = []
-            # if metric.endswith('y'):
-            #     metric=metric.replace('y', 'ies')
-            # else
-            #     metric=metric+'s'
-            # score_dict[subset]['task_
-    score_dict['valid']['model_choice_score'] = []
-       
-    # Navigate the results directory tree
+    # Navigate the results directory tree (read tar files version, which is slower)
     model_list = []
-    metrics_list = []
-    tar_list = []
-    for dirpath, dirnames, filenames in os.walk(result_dir):
-        # collect all tars for later
-        tar_list = tar_list + [os.path.join(dirpath, f) for f in filenames if f.endswith('.tar.gz')]
-        
-        if ('model_metadata.json' in filenames) and ('model_metrics.json' in filenames):
-#             print(dirpath)
-            meta_path = os.path.join(dirpath, 'model_metadata.json')
-            try:
-                with open(meta_path, 'r') as meta_fp:
-                    meta_dict = json.load(meta_fp)
-                if meta_dict['model_parameters']['prediction_type']==pred_type:
-                    model_list.append(meta_dict)
-                    metrics_path = os.path.join(dirpath, 'model_metrics.json')
-                    with open(metrics_path, 'r') as metrics_fp:
-                        metrics_dicts = json.load(metrics_fp)
-                    metrics_list.append(metrics_dicts)
-            except:
-                print(f"Can't access model {dirpath}")
+    tar_list=glob(f'{result_dir}/**/*.tar.gz', recursive=True)
+    if tar:
+        for tar_file in tar_list:
+            with tarfile.open(tar_file, "r:gz") as tar:
+                if './model_metadata.json' in tar.getnames():
+                    with tar.extractfile('./model_metadata.json') as meta:
+                        meta=json.loads(meta.read())
+                        meta['model_path']=tar_file
+                elif 'model_metadata.json' in tar.getnames():
+                    with tar.extractfile('model_metadata.json') as meta:
+                        meta=json.loads(meta.read())
+                else:
+                    continue
+            if meta['model_parameters']['prediction_type']==pred_type:
+                if (dataset_key is not None) and (meta['training_dataset']['dataset_key']==dataset_key):
+                        model_list.append(meta)
+                elif dataset_key is None:
+                    model_list.append(meta)
+    else:
+        model_path_list=glob(f'{result_dir}/**/model_metadata.json', recursive=True)
+        for model_path in model_path_list:
+            with open(model_path, 'r') as model:
+                meta=json.loads(model.read())
+                tarfiles=[x for x in tar_list if meta['model_uuid'] in x]
+                if len(tarfiles)==1:
+                    meta['model_path']=tarfiles[0]
+                else:
+                    meta['model_path']=os.path.dirname(model_path)               
+            if meta['model_parameters']['prediction_type']==pred_type:
+                if (dataset_key is not None) and (meta['training_dataset']['dataset_key']==dataset_key):
+                        model_list.append(meta)
+                elif dataset_key is None:
+                    model_list.append(meta)
 
-    print("Found data for %d models under %s" % (len(model_list), result_dir))
+    print(f'Found data for {len(model_list)} {pred_type} models under {result_dir}')
     
-    # build dictonary of tarball names
-    tar_dict = {os.path.basename(tf):tf for tf in tar_list}
-    path_list = []
-    for metadata_dict, metrics_dicts in zip(model_list, metrics_list):
-        model_uuid = metadata_dict['model_uuid']
-        dataset_key = metadata_dict['training_dataset']['dataset_key']
-        dataset_name = mp.build_tarball_name(mp.build_dataset_name(dataset_key), model_uuid)
-        if dataset_name in tar_dict:
-            path_list.append(tar_dict[dataset_name])
-        else:
-            # unable to find saved tar file
-            path_list.append('')
-
-        # Get list of training run metrics for this model
-        if len(metrics_dicts) < 3:
-            print("Got no or incomplete metrics for model %s, skipping..." % model_uuid)
-            continue
-        subset_metrics = {}
-        for metrics_dict in metrics_dicts:
-            if metrics_dict['label'] == 'best':
-                subset = metrics_dict['subset']
-                subset_metrics[subset] = metrics_dict['prediction_results']
-        
-        model_uuid_list.append(model_uuid)
-        model_params = metadata_dict['model_parameters']
-        ampl_version = model_params['ampl_version']
-        ampl_version_list.append(ampl_version)
-        model_type = model_params['model_type']
-        model_type_list.append(model_type)
-        model_score_type = model_params['model_choice_score_type']
-        model_score_type_list.append(model_score_type)
-        featurizer = model_params['featurizer']
-        #mix ecfp, graphconv, moe, mordred, rdkit for concise representation
-        if featurizer in ["computed_descriptors", "descriptors"]:
-            featurizer = metadata_dict["descriptor_specific"]["descriptor_type"]
-        featurizer_list.append(featurizer)
-        split_params = metadata_dict['splitting_parameters']
-        splitter_list.append(split_params['splitter'])
-        split_strategy_list.append(split_params['split_strategy'])
-        dataset_key_list.append(metadata_dict['training_dataset']['dataset_key'])
-        feature_transform_type = metadata_dict['training_dataset']['feature_transform_type']
-        feature_transform_type_list.append(feature_transform_type)
-
-        param_list.append(extract_model_and_feature_parameters(metadata_dict, keep_required=False))
-
-        for subset in subsets:
-            for metric in metrics:
-                try:
-                    score_dict[subset][metric].append(subset_metrics[subset][metric])
-                except:
-                    score_dict[subset][metric].append(np.nan)
-        score_dict['valid']['model_choice_score'].append(subset_metrics['valid']['model_choice_score'])
-
-    param_df = pd.DataFrame(param_list)
-    perf_df = pd.DataFrame(dict(
-                    model_uuid=model_uuid_list,
-                    model_path = path_list,
-                    ampl_version=ampl_version_list,
-                    model_type=model_type_list,
-                    dataset_key=dataset_key_list,
-                    features=featurizer_list,
-                    splitter=splitter_list,
-                    split_strategy=split_strategy_list,
-                    model_score_type=model_score_type_list,
-                    feature_transform_type=feature_transform_type_list))
-
-    perf_df['model_choice_score'] = score_dict['valid']['model_choice_score']
-    for subset in subsets:
-        for metric in metrics:
-            metric_col = 'best_%s_%s' % (subset, metric)
-            perf_df[metric_col] = score_dict[subset][metric]
-    perf_df = perf_df.merge(param_df, on='model_uuid', how='inner')
-    sort_by = 'model_choice_score'
-    perf_df = perf_df.sort_values(sort_by, ascending=False)
+    # unpack metadata dicts
+    metadata=pd.DataFrame(model_list)
     
-    return perf_df, model_list
+    # establish initial unpacked models df
+    dropcols=['model_uuid','time_built','model_path','training_metrics']
+    models=metadata[['model_uuid','time_built','model_path']]
+    
+    # find colums to keep as dicts and extract
+    dict_cols=['model_uuid','splitting_parameters']
+    dict_cols.extend([x for x in metadata.columns if 'specific' in x and (x!='descriptor_specific')])
+    dropcols.extend([x for x in metadata.columns if ('specific' in x) and (x!='descriptor_specific')])
+    keep_dicts=metadata[dict_cols]       
+    
+    # extract training data
+    training_metrics=metadata[['model_uuid','training_metrics']]
+    
+    # drop info from metadata
+    metadata=metadata.drop(columns=dropcols)
+    
+    # unpack and re-merge simple dicts into models df
+    for col in metadata.columns:
+        df=pd.DataFrame(dict(zip(models.model_uuid, metadata[col]))).T.dropna(how='all').reset_index(names=['model_uuid'])
+        models=models.merge(df, how='left', on='model_uuid')
+    
+    # manipulate dfs
+    models['features']=np.where(models.featurizer=='computed_descriptors',models.descriptor_type, models.featurizer)
+    keep_dicts=keep_dicts[keep_dicts.model_uuid.isin(models.model_uuid)]
+
+    # deal with metrics
+    tm=pd.DataFrame(training_metrics.training_metrics.tolist())
+    preds=[]
+    for col in tm.columns:
+        
+        # get metrics and metric label
+        met=pd.DataFrame(tm[col].tolist())
+        metlabel=met.label.iloc[0]+'_'+met.subset.iloc[0]
+    
+        # expand metrics to get scores
+        pred=pd.DataFrame(met.prediction_results.tolist())
+        pred=models[['model_uuid','response_cols']].join(pred)
+
+        # check for > 1 dataset
+        if len(set(models.response_cols.astype(str)))>1:
+            raise Exception (f"Warning: you cannot export multitask model performances for more than one dataset at a time. Please provide the dataset_key as an additional parameter. Your {pred_type} options are: {list(set(models.dataset_key))}.")
+
+        num_model_tasks=models.num_model_tasks.iloc[0]
+        
+        # get task scores - long form and rename columns
+        taskcols=['response_cols']
+        taskcols.extend([x for x in pred.columns if 'task' in x])    
+        task_preds=pred[['model_uuid']+taskcols].set_index('model_uuid').explode(taskcols).reset_index()
+
+        # get full model scores and rename columns
+        predcols=[x for x in pred.columns if 'task' not in x]
+        predcols.remove('response_cols')
+        pred=pred[predcols].copy()
+        pred.columns=[metlabel+'_'+col if col!='model_uuid' else col for col in predcols]
+        pred['response_cols']='full_model'
+        
+        # rename task_pred columns to match full model names
+        coldict={}
+        for col in task_preds.columns:
+            if col not in ['model_uuid','response_cols']:
+                coldict[col]=[predcol for predcol in pred.columns if predcol.replace(metlabel+'_','').startswith(col.replace('task_','')[0:3])][0]
+        task_preds=task_preds.rename(columns=coldict)
+
+        # concatenate all scores
+        if num_model_tasks>1:
+            pred=pd.concat([pred,task_preds])
+            
+        # if single task model, rename response columns and filter out empty rows
+        if num_model_tasks==1:
+            pred=pred[pred.response_cols=='full_model']
+            pred['response_cols']=[x[0] for x in models.response_cols]
+    
+        # append to list
+        preds.append(pred)
+        
+    # trim model df columns - add compatibility for new metadata weight_transform_type
+    models=models.filter(items=['model_uuid', 'time_built', 'ampl_version','dataset_key', 'model_path',
+           'model_type', 'prediction_type', 'splitter',
+           'split_strategy', 'split_valid_frac', 'split_test_frac', 'split_uuid', 
+            'production', 'feature_transform_type','response_transform_type', 'weight_transform_type',
+           'smiles_col', 'features','model_choice_score_type',])
+    
+    # merge model info and pred_df info
+    for pred in preds:
+        models=models.merge(pred)
+
+    # deal with info left in dicts
+    models=models.merge(keep_dicts)
+    models['model_params']=np.nan
+    models['model_params']=models.filter(items=['xgb_specific','nn_specific','rf_specific','model_params']).ffill(axis=1).model_params
+    models['feat_params']=np.nan
+    models['feat_params']=models.filter(items=['ecfp_specific','auto_featurizer_specific','autoencoder_specific','feat_params']).ffill(axis=1).feat_params     
+    for col in ['xgb_specific','nn_specific','rf_specific','ecfp_specific','auto_featurizer_specific','autoencoder_specific']:
+        try: models=models.drop(columns=col)
+        except: pass
+
+    return models
 
 
 #-------------------------------------------------------------------------------------------------------------------
