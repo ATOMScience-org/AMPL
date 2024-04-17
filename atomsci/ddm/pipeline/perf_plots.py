@@ -253,6 +253,9 @@ def plot_pred_vs_actual_from_file(model_path, external_training_data=None, plot_
     # reload metadata
     with open(os.path.join(reload_dir, 'model_metadata.json')) as f:
         config=json.loads(f.read())
+
+    if config['model_parameters']['prediction_type']=='classification':
+        raise ValueError("plot_pred_vs_actual_from_file() should only be called for regression models. Please try plot_confusion_matrices() instead.")
     
     # load (featurized) data
     dataset_dict=config['training_dataset']
