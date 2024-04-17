@@ -173,7 +173,7 @@ def plot_split_perf(df, prediction_type='regression', subset='valid'):
                 legend=False
             selection_metric = f'best_{subset}_{selmets[i]}'
             sns.boxplot(x="features", y=selection_metric, # x="txptr_features" x="model_type"
-                        hue='splitter', palette = sns.color_palette(colors[0:plot_df.features.nunique()]), #showfliers=False, 
+                        hue='splitter', palette = sns.color_palette(colors[0:plot_df.splitter.nunique()]), #showfliers=False, 
                           legend=legend,
                         data=plot_df, ax=ax);
             ax.set_xlabel('')
