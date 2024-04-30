@@ -10,7 +10,7 @@ The purpose of this tutorial is to install the **[AMPL](https://github.com/ATOMS
    * [Use an existing image to start a container](#use-an-existing-image-to-start-a-container)
 * [Start the Jupyter notebook from a container](#start-the-jupyter-notebook-from-a-container)
    * [To connect the Jupyter notebook from a browser](#to-connect-the-jupyter-notebook-from-a-browser)
-   * [Use `atomsci-env` as the run kernel for AMP](#use-atomsci-env-as-the-run-kernel-for-AMPL)
+   * [Use `atomsci-env` as the run kernel for AMPL](#use-atomsci-env-as-the-run-kernel-for-AMPL)
 * [Code examples](#code-examples)
 * [Useful Docker commands](#useful-docker-commands)
 * [Trouble Shooting](#trouble-shooting)
