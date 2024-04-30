@@ -82,7 +82,8 @@ def smush_small_scaffolds(scaffolds: List[Set[int]],
     """
 
     if len(scaffolds) <= num_super_scaffolds:
-        return scaffolds
+        # Nothing to do, except change the sets to numpy arrays
+        return [np.array(list(s)) for s in scaffolds]
 
     total_length = np.sum([len(s) for s in scaffolds])
     size_per_scaffold = int(total_length)/(num_super_scaffolds-1)

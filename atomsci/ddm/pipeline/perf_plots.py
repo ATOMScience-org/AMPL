@@ -102,6 +102,8 @@ def plot_pred_vs_actual(model, epoch_label='best', threshold=None, error_bars=Fa
                 perf_data = wrapper.get_perf_data(subset, epoch_label)
                 pred_results = perf_data.get_prediction_results()
                 y_actual = perf_data.get_real_values()
+                y_weights = perf_data.get_weights()
+                y_actual=np.where(y_weights==0, np.nan, y_actual)
                 ids, y_pred, y_std = perf_data.get_pred_values()
                 r2 = pred_results['r2_score']
                 if perf_data.num_tasks > 1:
@@ -110,8 +112,8 @@ def plot_pred_vs_actual(model, epoch_label='best', threshold=None, error_bars=Fa
                     r2_scores = [r2]
                 ax_ind = num_ss*t + s
                 ax = axes[ax_ind]
-                ymin = min(min(y_actual[:,t]), min(y_pred[:,t]))
-                ymax = max(max(y_actual[:,t]), max(y_pred[:,t]))
+                ymin = min(np.nanmin(y_actual[:,t]), np.nanmin(y_pred[:,t]))
+                ymax = max(np.nanmax(y_actual[:,t]), np.nanmax(y_pred[:,t]))
                 # Force axes to have same scale for all subsets
                 ax.set_xlim(ymin, ymax)
                 ax.set_ylim(ymin, ymax)
