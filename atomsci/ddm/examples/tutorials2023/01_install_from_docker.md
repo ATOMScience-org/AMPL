@@ -13,7 +13,7 @@ The purpose of this tutorial is to install the **[AMPL](https://github.com/ATOMS
    * [Use `atomsci-env` as the run kernel for AMPL](#use-atomsci-env-as-the-run-kernel-for-AMPL)
 * [Code examples](#code-examples)
 * [Useful Docker commands](#useful-docker-commands)
-* [Trouble Shooting](#trouble-shooting)
+* [Troubleshooting](#troubleshooting)
 
 > **Note:** 
 > ***If you already have an AMPL image previously built from either option 1 or 2, go to this [step](#use-an-existing-image-to-start-a-container) to start/run a container.***
@@ -27,18 +27,17 @@ Click on the Docker icon to start the Docker. Leave it running when using Docker
 ## Option 1: Build a local AMPL image using `Dockerfile`
 
 - Clone **[AMPL](https://github.com/ATOMScience-org/AMPL)**  github repo if you don't have one yet. 
-- *(Optional)* if you plan to use code from a different branch other than the default (master), see line 2 for example.
 
 ```
 git clone https://github.com/ATOMScience-org/AMPL.git  
-git checkout 1.6.1                                     # checkout 1.6.1 for example
-cd <your AMPL directory>
+### The following line is optional. If you want to check out a development branch.
+git checkout 1.6.1                    # checkout a dev branch, 1.6.1 for example
+cd AMPL/docker                        # Dockerfile is in AMPL/docker direcotry
 ```
-
-- The AMPL [Dockerfile](../../../../docker/Dockerfile) is in `AMPL/docker` directory.
 
 ### To build a Docker image
 
+* Examples:
 ```
 # example 1
 docker build -t atomsci-ampl .       # by default, `latest` will be used as the tag
@@ -48,9 +47,9 @@ docker build -t atomsci-ampl .       # by default, `latest` will be used as the 
 docker build -t atomsci-ampl:<tag> . # specify a name for <tag>
 ```
 
-This normally takes about 15 minutes to build. The image can be **reused**. 
+This normally takes about 10-15 minutes to build. The image can be **reused**. 
 
-Once it's built, follow the [steps](#start-a-container-from-the-ampl-image) to start and run the AMPL docker image.
+Once it's built, follow the [steps](#start-a-container-from-the-ampl-image) to run the **[AMPL](https://github.com/ATOMScience-org/AMPL)** docker image.
 
 ## Option 2: Pull an existing AMPL image from Docker repo
 
@@ -66,12 +65,13 @@ If you have an image built/downloaded, type `docker images` to see what images a
 
 ![Docker Run](../../docs/source/_static/img/01_install_from_docker_files/docker_run.png)
 
-The `docker run` command syntax:
+* The `docker run` command syntax:
 
 ```
 docker run -it -p 8888:8888 -v </local_workspace_folder>:</directory_in_docker> atomsci/atomsci-ampl
 ```
 
+* Examples
 ```
 # example 1 # if built from Dockerfile
 docker run -it -p 8888:8888 -v ~:/home atomsci-ampl
@@ -138,7 +138,7 @@ and select `atomsci-env` as the run kernel
 
 ## Code examples:
 
-The AMPL code is in:
+The **[AMPL](https://github.com/ATOMScience-org/AMPL)** code is in:
 
 ```
 http://127.0.0.1:<port_number>/tree/AMPL/atomsci/ddm/
@@ -155,7 +155,7 @@ http://127.0.0.1:<port_number>/tree/AMPL/atomsci/ddm/examples/tutorials2023
 ![Browse tutorials](../../docs/source/_static/img/01_install_from_docker_files/tutorial_tree.png)
 
 Also, there are examples in 
-[AMPL's Read the Docs](https://ampl.readthedocs.io/en/latest/) on how to use AMPL Framework.
+[AMPL's Read the Docs](https://ampl.readthedocs.io/en/latest/) on how to use the **[AMPL](https://github.com/ATOMScience-org/AMPL)** Framework.
 
 ---
 
@@ -170,7 +170,7 @@ docker cp file.txt <container_id>:/file.txt # copy from local to container
 docker cp <container_id>:/file.txt file.txt # copy from container to local
 ```
 
-## Trouble Shooting
+## Troubleshooting
 
 * Problem with token
 
