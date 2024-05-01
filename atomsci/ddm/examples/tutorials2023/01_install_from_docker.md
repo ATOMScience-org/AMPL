@@ -2,11 +2,11 @@
 
 The purpose of this tutorial is to install the **[AMPL](https://github.com/ATOMScience-org/AMPL)** software from Docker, which will provide accessibility across multiple platforms. Here are the topics to be covered in this tutorial:
 
-* [Prerequisite: Download and install Docker](#prerequisite-download-and-install-docker) 
-* [Option 1: Build a local AMPL image using `Dockerfile`](#option-1-build-a-local-ampl-image-using-dockerfile)
-   * [To build a Docker image](#to-build-a-docker-image)
-* [Option 2: Pull an existing AMPL image from the Docker repo](#option-2-pull-an-existing-ampl-image-from-docker-repo)
-* [Start a container from the AMPL image](#start-a-container-from-the-AMPL-image)
+* [Create a Docker Image](#create-a-docker-image)
+   * [Prerequisite: Download and install Docker](#prerequisite-download-and-install-docker) 
+   * [Option 1: Build a local AMPL image using `Dockerfile`](#option-1-build-a-local-ampl-image-using-dockerfile)
+   * [Option 2: Pull an existing AMPL image from the Docker repo](#option-2-pull-an-existing-ampl-image-from-docker-repo)
+* [Start a Docker container](#start-a-docker-container)
    * [Use an existing image to start a container](#use-an-existing-image-to-start-a-container)
 * [Start the Jupyter notebook from a container](#start-the-jupyter-notebook-from-a-container)
    * [To connect the Jupyter notebook from a browser](#to-connect-the-jupyter-notebook-from-a-browser)
@@ -18,6 +18,7 @@ The purpose of this tutorial is to install the **[AMPL](https://github.com/ATOMS
 > **Note:** 
 > ***If you already have an AMPL image previously built from either option 1 or 2, go to this [step](#use-an-existing-image-to-start-a-container) to start/run a container.***
 
+# Create a Docker Image
 ## Prerequisite: Download and install Docker
 
 If you don't have a Docker Desktop installed, please follow instructions here: https://www.docker.com/get-started.
@@ -35,7 +36,7 @@ git checkout 1.6.1                    # checkout a dev branch, 1.6.1 for example
 cd AMPL/docker                        # Dockerfile is in AMPL/docker direcotry
 ```
 
-### To build a Docker image
+To build a Docker image
 
 * Examples:
 ```
@@ -57,9 +58,9 @@ Once it's built, follow the [steps](#start-a-container-from-the-ampl-image) to r
 docker pull atomsci/atomsci-ampl:latest
 ```
 
-## Start a container from the AMPL image
+# Start a Docker container
 
-### Use an existing image to start a container
+## Use an existing image to start a container
 
 If you have an image built/downloaded, type `docker images` to see what images are currently available. Pick one to use. For example:
 
