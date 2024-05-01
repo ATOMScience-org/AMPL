@@ -224,10 +224,14 @@ def plot_hyper_perf(df, scoretype='r2_score', subset='valid', model_type='genera
         if feat in perf_track_df.columns:    
             if perf_track_df[feat].nunique()>12:
                 sns.scatterplot(x=feat, y=winnertype, data=perf_track_df, ax=ax[i])
-                ticks=ax[i].get_xticks()
-                ticks=ticks[ticks>=0]
-                labs=ax[i].get_xticklabels()
-                labs=[lab for lab in labs if lab.get_position()[0]>=0]
+                old_ticks=ax[i].get_xticks()
+                old_labs=ax[i].get_xticklabels()
+                ticks=[]
+                labs=[]
+                for tick, lab in zip(old_ticks, old_labs):
+                    if tick>=0:
+                        ticks.append(tick)
+                        labs.append(lab)
             else:       
                 sns.boxplot(x=feat,y=winnertype,hue=feat,palette=sns.cubehelix_palette(perf_track_df[feat].nunique(), rot=rot,start=start,), data=perf_track_df, ax=ax[i],legend=False)
                 ticks=ax[i].get_xticks()
