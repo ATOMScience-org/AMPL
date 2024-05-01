@@ -19,7 +19,7 @@ from atomsci.ddm.pipeline import parameter_parser as pp
 
 # get all possible things to plot from parameter parser
 parser=pp.get_parser()
-d=vars(pp.get_parser().parse_args())
+d=vars(pp.get_parser().parse_args([]))
 keywords=['AttentiveFPModel','GCNModel','GraphConvModel','MPNNModel','PytorchMPNNModel','rf_','xgb_']
 plot_dict={}
 for word in keywords:
