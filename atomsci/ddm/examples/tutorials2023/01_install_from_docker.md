@@ -1,56 +1,56 @@
 # Install AMPL From Docker
 
-The purpose of this tutorial is to install the **[AMPL](https://github.com/ATOMScience-org/AMPL)** software from Docker, which will provide accessibility across multiple platforms. Here are the topics to be covered in this tutorial:
+The purpose of this tutorial is to install the **[AMPL](https://github.com/ATOMScience-org/AMPL)** software using Docker, which will provide accessibility across multiple platforms. Here are the topics to be covered in this tutorial:
 
-* [Prerequisite: Download and install Docker](#prerequisite-download-and-install-docker) 
-* [Option 1: Build a local AMPL image using `Dockerfile`](#option-1-build-a-local-ampl-image-using-dockerfile)
-   * [To build a Docker image](#to-build-a-docker-image)
-* [Option 2: Pull an existing AMPL image from the Docker repo](#option-2-pull-an-existing-ampl-image-from-docker-repo)
-* [Start a container from the AMPL image](#start-a-container-from-the-AMPL-image)
+* [Create a Docker Image](#create-a-docker-image)
+   * [Prerequisite: Download and install Docker](#prerequisite-download-and-install-docker) 
+   * [Option 1: Build a local AMPL image using `Dockerfile`](#option-1-build-a-local-ampl-image-using-dockerfile)
+   * [Option 2: Pull an existing AMPL image from the Docker repo](#option-2-pull-an-existing-ampl-image-from-docker-repo)
+* [Start a Docker container](#start-a-docker-container)
    * [Use an existing image to start a container](#use-an-existing-image-to-start-a-container)
 * [Start the Jupyter notebook from a container](#start-the-jupyter-notebook-from-a-container)
    * [To connect the Jupyter notebook from a browser](#to-connect-the-jupyter-notebook-from-a-browser)
    * [Use `atomsci-env` as the run kernel for AMPL](#use-atomsci-env-as-the-run-kernel-for-AMPL)
 * [Code examples](#code-examples)
 * [Useful Docker commands](#useful-docker-commands)
-* [Trouble Shooting](#trouble-shooting)
+* [Troubleshooting](#troubleshooting)
 
 > **Note:** 
 > ***If you already have an AMPL image previously built from either option 1 or 2, go to this [step](#use-an-existing-image-to-start-a-container) to start/run a container.***
 
+# Create a Docker Image
 ## Prerequisite: Download and install Docker
 
 If you don't have a Docker Desktop installed, please follow instructions here: https://www.docker.com/get-started.
 
-Click on the Docker icon to start the Docker. Leave it running when using Docker.
+Once it's installed, click on the Docker icon to start. Leave it running when using Docker.
 
 ## Option 1: Build a local AMPL image using `Dockerfile`
 
 - Clone **[AMPL](https://github.com/ATOMScience-org/AMPL)**  github repo if you don't have one yet. 
-- *(Optional)* if you plan to use code from a different branch other than the default (master), see line 2 for example.
 
 ```
 git clone https://github.com/ATOMScience-org/AMPL.git  
-git checkout 1.6.1                                     # checkout 1.6.1 for example
-cd <your AMPL directory>
+### The following line is optional. If you want to check out a development branch instead of the default branch (master).
+git checkout 1.6.1                    # (optional) checkout a dev branch, 1.6.1 for example
+cd AMPL/docker                        # Dockerfile is in AMPL/docker direcotry
 ```
 
-- The AMPL [Dockerfile](../../../../docker/Dockerfile) is in `AMPL/docker` directory.
+To build a Docker image
 
-### To build a Docker image
-
+* Examples:
 ```
 # example 1
-docker build -t atomsci-ampl .       # by default, `latest` will be used as the tag
+docker build -t atomsci-ampl .       # by default, `latest` will be the tag
 
 # or
 # example 2
 docker build -t atomsci-ampl:<tag> . # specify a name for <tag>
 ```
 
-This normally takes about 15 minutes to build. The image can be **reused**. 
+This normally takes about 10-15 minutes to build. The image can be **reused**. 
 
-Once it's built, follow the [steps](#start-a-container-from-the-ampl-image) to start and run the AMPL docker image.
+Once it's built, follow the [steps](#start-a-container-from-the-ampl-image) to run the **[AMPL](https://github.com/ATOMScience-org/AMPL)** docker container.
 
 ## Option 2: Pull an existing AMPL image from Docker repo
 
@@ -58,20 +58,21 @@ Once it's built, follow the [steps](#start-a-container-from-the-ampl-image) to s
 docker pull atomsci/atomsci-ampl:latest
 ```
 
-## Start a container from the AMPL image
+# Start a Docker container
 
-### Use an existing image to start a container
+## Use an existing image to start a container
 
-If you have an image built/downloaded, type `docker images` to see what images are currently available. Pick one to use. For example:
+If you have an image built/downloaded, type `docker images` to see what images are currently available. Pick one to use for the `docker run` command. For example:
 
 ![Docker Run](../../docs/source/_static/img/01_install_from_docker_files/docker_run.png)
 
-The `docker run` command syntax:
+* The `docker run` command syntax:
 
 ```
-docker run -it -p 8888:8888 -v </local_workspace_folder>:</directory_in_docker> atomsci/atomsci-ampl
+docker run -it -p <port>:<port> -v <local_folder>:<directory_in_docker> <IMAGE>
 ```
 
+* Examples
 ```
 # example 1 # if built from Dockerfile
 docker run -it -p 8888:8888 -v ~:/home atomsci-ampl
@@ -103,7 +104,7 @@ As a result, this will output a message with similar URLs to this:
 
 ### To connect the Jupyter notebook from a browser
 
-Copy and paste the URL from your output message to the browser on your computer. For example:
+Copy and paste the URL from the output message to the browser on your computer. For example:
 
 ![Notebook URL](../../docs/source/_static/img/01_install_from_docker_files/browser_url.png)
 
@@ -136,9 +137,9 @@ and select `atomsci-env` as the run kernel
 
 ![Notebook example](../../docs/source/_static/img/01_install_from_docker_files/notebook-env.png)
 
-## Code examples:
+### Code examples:
 
-The AMPL code is in:
+The **[AMPL](https://github.com/ATOMScience-org/AMPL)** code is in:
 
 ```
 http://127.0.0.1:<port_number>/tree/AMPL/atomsci/ddm/
@@ -155,11 +156,11 @@ http://127.0.0.1:<port_number>/tree/AMPL/atomsci/ddm/examples/tutorials2023
 ![Browse tutorials](../../docs/source/_static/img/01_install_from_docker_files/tutorial_tree.png)
 
 Also, there are examples in 
-[AMPL's Read the Docs](https://ampl.readthedocs.io/en/latest/) on how to use AMPL Framework.
+[AMPL's Read the Docs](https://ampl.readthedocs.io/en/latest/) on how to use the **[AMPL](https://github.com/ATOMScience-org/AMPL)** Framework.
 
 ---
 
-## Useful Docker commands
+### Useful Docker commands
 
 ```
 docker run --help                           # get help messages
@@ -170,7 +171,7 @@ docker cp file.txt <container_id>:/file.txt # copy from local to container
 docker cp <container_id>:/file.txt file.txt # copy from container to local
 ```
 
-## Trouble Shooting
+### Troubleshooting
 
 * Problem with token
 
