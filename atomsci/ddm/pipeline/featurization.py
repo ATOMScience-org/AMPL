@@ -426,7 +426,7 @@ def compute_all_moe_descriptors(smiles_df, params):
     """
 
     # TODO: Get MOE_PATH from params
-    moe_path = os.environ.get('MOE_PATH', '/usr/workspace/atom/moe2020_site/moe2020_site/bin')
+    moe_path = os.environ.get('MOE_PATH', '/usr/workspace/atom/moe2022_site/bin')
     if not os.path.exists(moe_path):
         raise Exception("MOE is not available, or MOE_PATH environment variable needs to be set.")
     moe_root = os.path.abspath('%s/..' % moe_path)
