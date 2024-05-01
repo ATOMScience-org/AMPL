@@ -66,7 +66,7 @@ def plot_pred_vs_actual(model, epoch_label='best', threshold=None, error_bars=Fa
     params = model.params
     # For now restrict this to regression models. 
     if params.prediction_type != 'regression':
-        model.log.error("plot_pred_vs_actual is currently for regression models only.")
+        model.log.error("plot_pred_vs_actual() should only be called for regression models. Please try plot_confusion_matrices() instead..")
         return
     wrapper = model.model_wrapper
     if pdf_dir is not None:
