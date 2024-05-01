@@ -1949,7 +1949,9 @@ class ComputedDescriptorFeaturization(DescriptorFeaturization):
                 tmp_col=tmp_col.rename(scaled_col)
                 scaled_cols.append(tmp_col)
             else:
-                scaled_cols.append(desc_df[unscaled_col])
+                tmp_col=desc_df[unscaled_col]
+                tmp_col=tmp_col.rename(scaled_col)
+                scaled_cols.append(tmp_col)
         scaled_df=pd.concat(scaled_cols, axis=1)
         return scaled_df.copy()
 
