@@ -1,6 +1,6 @@
 # Install AMPL From Docker
 
-The purpose of this tutorial is to install the **[AMPL](https://github.com/ATOMScience-org/AMPL)** software from Docker, which will provide accessibility across multiple platforms. Here are the topics to be covered in this tutorial:
+The purpose of this tutorial is to install the **[AMPL](https://github.com/ATOMScience-org/AMPL)** software using Docker, which will provide accessibility across multiple platforms. Here are the topics to be covered in this tutorial:
 
 * [Create a Docker Image](#create-a-docker-image)
    * [Prerequisite: Download and install Docker](#prerequisite-download-and-install-docker) 
@@ -23,7 +23,7 @@ The purpose of this tutorial is to install the **[AMPL](https://github.com/ATOMS
 
 If you don't have a Docker Desktop installed, please follow instructions here: https://www.docker.com/get-started.
 
-Click on the Docker icon to start the Docker. Leave it running when using Docker.
+Once it's installed, click on the Docker icon to start. Leave it running when using Docker.
 
 ## Option 1: Build a local AMPL image using `Dockerfile`
 
@@ -31,8 +31,8 @@ Click on the Docker icon to start the Docker. Leave it running when using Docker
 
 ```
 git clone https://github.com/ATOMScience-org/AMPL.git  
-### The following line is optional. If you want to check out a development branch.
-git checkout 1.6.1                    # checkout a dev branch, 1.6.1 for example
+### The following line is optional. If you want to check out a development branch instead of the default branch (master).
+git checkout 1.6.1                    # (optional) checkout a dev branch, 1.6.1 for example
 cd AMPL/docker                        # Dockerfile is in AMPL/docker direcotry
 ```
 
@@ -41,7 +41,7 @@ To build a Docker image
 * Examples:
 ```
 # example 1
-docker build -t atomsci-ampl .       # by default, `latest` will be used as the tag
+docker build -t atomsci-ampl .       # by default, `latest` will be the tag
 
 # or
 # example 2
@@ -50,7 +50,7 @@ docker build -t atomsci-ampl:<tag> . # specify a name for <tag>
 
 This normally takes about 10-15 minutes to build. The image can be **reused**. 
 
-Once it's built, follow the [steps](#start-a-container-from-the-ampl-image) to run the **[AMPL](https://github.com/ATOMScience-org/AMPL)** docker image.
+Once it's built, follow the [steps](#start-a-container-from-the-ampl-image) to run the **[AMPL](https://github.com/ATOMScience-org/AMPL)** docker container.
 
 ## Option 2: Pull an existing AMPL image from Docker repo
 
@@ -62,14 +62,14 @@ docker pull atomsci/atomsci-ampl:latest
 
 ## Use an existing image to start a container
 
-If you have an image built/downloaded, type `docker images` to see what images are currently available. Pick one to use. For example:
+If you have an image built/downloaded, type `docker images` to see what images are currently available. Pick one to use for the `docker run` command. For example:
 
 ![Docker Run](../../docs/source/_static/img/01_install_from_docker_files/docker_run.png)
 
 * The `docker run` command syntax:
 
 ```
-docker run -it -p 8888:8888 -v </local_workspace_folder>:</directory_in_docker> atomsci/atomsci-ampl
+docker run -it -p <port>:<port> -v <local_folder>:<directory_in_docker> <IMAGE>
 ```
 
 * Examples
@@ -104,7 +104,7 @@ As a result, this will output a message with similar URLs to this:
 
 ### To connect the Jupyter notebook from a browser
 
-Copy and paste the URL from your output message to the browser on your computer. For example:
+Copy and paste the URL from the output message to the browser on your computer. For example:
 
 ![Notebook URL](../../docs/source/_static/img/01_install_from_docker_files/browser_url.png)
 
@@ -137,7 +137,7 @@ and select `atomsci-env` as the run kernel
 
 ![Notebook example](../../docs/source/_static/img/01_install_from_docker_files/notebook-env.png)
 
-## Code examples:
+### Code examples:
 
 The **[AMPL](https://github.com/ATOMScience-org/AMPL)** code is in:
 
@@ -160,7 +160,7 @@ Also, there are examples in
 
 ---
 
-## Useful Docker commands
+### Useful Docker commands
 
 ```
 docker run --help                           # get help messages
@@ -171,7 +171,7 @@ docker cp file.txt <container_id>:/file.txt # copy from local to container
 docker cp <container_id>:/file.txt file.txt # copy from container to local
 ```
 
-## Troubleshooting
+### Troubleshooting
 
 * Problem with token
 
