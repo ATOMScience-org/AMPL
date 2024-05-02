@@ -21,13 +21,13 @@ The purpose of this tutorial is to install the **[AMPL](https://github.com/ATOMS
 # Create a Docker Image
 ## Prerequisite: Download and install Docker
 
-If you don't have a Docker Desktop installed, please follow instructions here: https://www.docker.com/get-started.
+If you don't have Docker Desktop installed, please follow instructions here: https://www.docker.com/get-started.
 
 Once it's installed, click on the Docker icon to start. Leave it running when using Docker.
 
 ## Option 1: Build a local AMPL image using `Dockerfile`
 
-- Clone **[AMPL](https://github.com/ATOMScience-org/AMPL)**  github repo if you don't have one yet. 
+- Clone **[AMPL](https://github.com/ATOMScience-org/AMPL)**  github repo. 
 
 ```
 git clone https://github.com/ATOMScience-org/AMPL.git  
@@ -62,7 +62,8 @@ docker pull atomsci/atomsci-ampl:latest
 
 ## Use an existing image to start a container
 
-If you have an image built/downloaded, type `docker images` to see what images are currently available. Pick one to use for the `docker run` command. For example:
+If you have an image built/downloaded, type `docker images` to see what images are currently available. 
+Pick one and run it using the `docker run` command. For example:
 
 ![Docker Run](../../docs/source/_static/img/01_install_from_docker_files/docker_run.png)
 
@@ -97,7 +98,7 @@ jupyter-notebook --ip=0.0.0.0 --allow-root --port=8888 &
 # -OR-
 jupyter-lab --ip=0.0.0.0 --allow-root --port=8888 &
 ```
-As a result, this will output a message with similar URLs to this:
+This will output a message with similar URLs to this:
 
 ![Jupyter Notebook Token](../../docs/source/_static/img/01_install_from_docker_files/jupyter_token.png)
 
@@ -111,12 +112,12 @@ Copy and paste the URL from the output message to the browser on your computer. 
 
 
 > **NOTE:**
-> *If this doesn't work, exit the container and change port from 
-> 8888 to some other number such as `7777` or `8899` (in all 3 places it's 
+> *If this doesn't work, exit the container and choose a different port
+> such as `7777` or `8899` (in all 3 places it's 
 > written), then rerun both commands in 
 > [Start a container](#start-a-container-from-the-ampl-image) and 
 > [Start Jupyter Notebook](#start-the-Jupyter-notebook-from-a-container). 
-> Be sure to save any work you want to be permanent in your workspace folder. 
+> Be sure to save any work in your workspace folder. 
 > If the container is shut down, you'll lose anything not in that folder.*  
 
 ### Use `atomsci-env` as the run kernel for AMPL
