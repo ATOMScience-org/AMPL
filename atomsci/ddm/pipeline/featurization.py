@@ -1942,12 +1942,17 @@ class ComputedDescriptorFeaturization(DescriptorFeaturization):
         a_count = desc_df.a_count.values
         unscaled_moe_desc_cols = [col.replace('_per_atom', '') for col in descr_cols]
         nondesc_cols = list(set(desc_df.columns.values) - set(unscaled_moe_desc_cols))
-        scaled_df = desc_df[nondesc_cols].copy()
+        scaled_cols=[desc_df[nondesc_cols].copy()]
         for scaled_col, unscaled_col in zip(descr_cols, unscaled_moe_desc_cols):
             if scaled_col.endswith('_per_atom'):
-                scaled_df[scaled_col] = desc_df[unscaled_col].values / a_count
+                tmp_col=desc_df[unscaled_col] / a_count
+                tmp_col=tmp_col.rename(scaled_col)
+                scaled_cols.append(tmp_col)
             else:
-                scaled_df[scaled_col] = desc_df[unscaled_col].values
+                tmp_col=desc_df[unscaled_col]
+                tmp_col=tmp_col.rename(scaled_col)
+                scaled_cols.append(tmp_col)
+        scaled_df=pd.concat(scaled_cols, axis=1)
         return scaled_df.copy()
 
     # ****************************************************************************************
