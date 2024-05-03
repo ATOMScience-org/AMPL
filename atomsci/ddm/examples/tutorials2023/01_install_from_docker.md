@@ -11,6 +11,7 @@ The purpose of this tutorial is to install the **[AMPL](https://github.com/ATOMS
 * [Start the Jupyter notebook from a container](#start-the-jupyter-notebook-from-a-container)
    * [To connect the Jupyter notebook from a browser](#to-connect-the-jupyter-notebook-from-a-browser)
    * [Use `atomsci-env` as the run kernel for AMPL](#use-atomsci-env-as-the-run-kernel-for-AMPL)
+   * [Save work from Docker Jupyter](#save-work-from-docker-jupyter)
 * [Code examples](#code-examples)
 * [Useful Docker commands](#useful-docker-commands)
 * [Troubleshooting](#troubleshooting)
@@ -117,8 +118,8 @@ Copy and paste the URL from the output message to the browser on your computer. 
 > written), then rerun both commands in 
 > [Start a container](#start-a-container-from-the-ampl-image) and 
 > [Start Jupyter Notebook](#start-the-Jupyter-notebook-from-a-container). 
-> Be sure to save any work in your workspace folder. 
-> If the container is shut down, you'll lose anything not in that folder.*  
+> Be sure to save any work in your container. This is because if the container 
+> is shut down, you'll lose anything not in that folder. See instructions on [how to save work from container](#save-work-from-docker-jupyter).*  
 
 ### Use `atomsci-env` as the run kernel for AMPL
 
@@ -137,6 +138,38 @@ and select `atomsci-env` as the run kernel
 * The notebook would look like this:
 
 ![Notebook example](../../docs/source/_static/img/01_install_from_docker_files/notebook-env.png)
+
+### Save work from Docker Jupyter
+
+Docker container is stateless. Once you exit, the work will not be kept. There are a couple of ways to save your changes:
+
+1) Use the browser Jupyter. Use `File` -> `Download` to download the file(s).
+
+1) Use mount. When you start the Docker with `-v` option:
+
+```
+docker run -it -p <port>:<port> -v <local_folder>:<directory_in_docker> <IMAGE>
+```
+
+It binds the <local_folder> with <directory_in_docker>, meaning that the file(s) in <directory_in_docker>, will be available in <local_folder>.
+
+For example:
+
+* Run the docker with "-v" to bind the directories
+
+```
+docker run -it -p 8888:8888 -v ~:/home atomsci-ampl # <local_folder> -> `~`, <directory_in_docker> -> `/home`.
+```
+
+* Save, copy the file(s) to <directory_in_docker>
+
+```
+root@d8ae116b2a83:/AMPL# pwd
+/AMPL
+root@d8ae116b2a83:/AMPL# cp atomsci/ddm/examples/tutorials2023/01_install_from_docker.md /home
+```
+
+* The file(s) will be in <local_folder>
 
 ### Code examples:
 
@@ -164,12 +197,12 @@ Also, there are examples in
 ### Useful Docker commands
 
 ```
-docker run --help                           # get help messages
-docker ps -a                                # check docker processes
-docker images                               # list local docker images
-docker rmi <image>                          # remove an image
-docker cp file.txt <container_id>:/file.txt # copy from local to container
-docker cp <container_id>:/file.txt file.txt # copy from container to local
+docker run --help                              # get help messages
+docker ps -a                                   # check docker processes
+docker images                                  # list local docker images
+docker rmi <image>                             # remove an image
+docker cp file.txt <container_id>:/file.txt    # copy from local to container
+docker cp <container_id>:source_path dest_path # copy from container to local
 ```
 
 ### Troubleshooting
