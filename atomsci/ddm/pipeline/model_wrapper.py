@@ -10,6 +10,7 @@ import pdb
 
 import deepchem as dc
 import numpy as np
+import pandas as pd
 import tensorflow as tf
 if dc.__version__.startswith('2.1'):
     from deepchem.models.tensorgraph.fcnet import MultitaskRegressor, MultitaskClassifier
@@ -986,6 +987,9 @@ class NNModelWrapper(ModelWrapper):
                 valid_epoch_perfs (np.array): A standard validation set performance metric (r2_score or roc_auc), at the end of each epoch.
         """
         self.data = pipeline.data
+        feature_names = self.data.featurization.get_feature_columns()
+        nfeatures = len(feature_names)
+        self.feature_weights = dict(zip(feature_names, [[] for f in feature_names]))
 
         em = perf.EpochManager(self,
                                 prediction_type=self.params.prediction_type, 
@@ -1008,10 +1012,21 @@ class NNModelWrapper(ModelWrapper):
                           ei, pipeline.metric_type, train_perf, pipeline.metric_type, valid_perf,
                           pipeline.metric_type, test_perf))
 
+            layer1_weights = self.model.model.layers[0].weight
+            feature_weights = np.zeros(nfeatures, dtype=float)
+            for node_weights in layer1_weights:
+                node_feat_weights = torch.abs(node_weights).detach().numpy()
+                feature_weights += node_feat_weights
+            for fnum, fname in enumerate(feature_names):
+                self.feature_weights[fname].append(feature_weights[fnum])
+
             self.num_epochs_trained = ei + 1
             # Compute performance metrics for each subset, and check if we've reached a new best validation set score
             if em.should_stop():
                 break
+
+        self.feature_weights_df = pd.DataFrame(self.feature_weights)
+        self.feature_weights_df['epoch'] = range(len(self.feature_weights_df))
 
         # Revert to last checkpoint
         self.restore()
@@ -1975,8 +1990,8 @@ class DCxgboostModelWrapper(ForestModelWrapper):
                                          subsample=self.params.xgb_subsample,
                                          colsample_bytree=self.params.xgb_colsample_bytree,
                                          colsample_bylevel=1,
-                                         reg_alpha=0,
-                                         reg_lambda=1,
+                                         reg_alpha=self.params.xgb_alpha,
+                                         reg_lambda=self.params.xgb_lambda,
                                          scale_pos_weight=1,
                                          base_score=0.5,
                                          random_state=0,
@@ -2000,8 +2015,8 @@ class DCxgboostModelWrapper(ForestModelWrapper):
                                           subsample=self.params.xgb_subsample,
                                           colsample_bytree=self.params.xgb_colsample_bytree,
                                           colsample_bylevel=1,
-                                          reg_alpha=0,
-                                          reg_lambda=1,
+                                          reg_alpha=self.params.xgb_alpha,
+                                          reg_lambda=self.params.xgb_lambda,
                                           scale_pos_weight=1,
                                           base_score=0.5,
                                           random_state=0,
@@ -2110,8 +2125,8 @@ class DCxgboostModelWrapper(ForestModelWrapper):
                                          subsample=self.params.xgb_subsample,
                                          colsample_bytree=self.params.xgb_colsample_bytree,
                                          colsample_bylevel=1,
-                                         reg_alpha=0,
-                                         reg_lambda=1,
+                                         reg_alpha=self.params.xgb_alpha,
+                                         reg_lambda=self.params.xgb_lambda,
                                          scale_pos_weight=1,
                                          base_score=0.5,
                                          random_state=0,
@@ -2135,8 +2150,8 @@ class DCxgboostModelWrapper(ForestModelWrapper):
                                          subsample=self.params.xgb_subsample,
                                          colsample_bytree=self.params.xgb_colsample_bytree,
                                          colsample_bylevel=1,
-                                         reg_alpha=0,
-                                         reg_lambda=1,
+                                         reg_alpha=self.params.xgb_alpha,
+                                         reg_lambda=self.params.xgb_lambda,
                                          scale_pos_weight=1,
                                          base_score=0.5,
                                          random_state=0,
