@@ -120,7 +120,7 @@ There are two ways to set an environment:
 .. _create-local:
 
 Create a local image using ``Dockerfile``
-========================================
+=========================================
 
 AMPL `Dockerfile <ampl dockerfile_>`_ is in ``AMPL/docker`` directory. To build a Docker image:
 
