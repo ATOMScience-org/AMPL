@@ -7,7 +7,7 @@
 ------------
 
 In this tutorial we will use some of the tools provided by
-`AMPL <https://github.com/ATOMScience-org/AMPL>`_ to visualize the
+|ampl| to visualize the
 model training process and the performance of the final model. Some of
 the tools we'll apply here are only applicable to certain classes of
 models; as we go along we will indicate where each function can be
@@ -56,10 +56,10 @@ Visualizing the Training Process for a Neural Network Regression Model
 **********************************************************************
 
 When you train a neural network model,
-`AMPL <https://github.com/ATOMScience-org/AMPL>`_ makes a series of
+|ampl| makes a series of
 iterations through the entire training subset of your curated dataset;
 each iteration is called an ``epoch``. At the end of each epoch,
-`AMPL <https://github.com/ATOMScience-org/AMPL>`_ saves the model
+|ampl| saves the model
 parameters (i.e., the weights of each network connection) in a
 checkpoint file. It then computes and stores a set of metrics describing
 the model's performance at that stage of training: the :math:`R^2` value
@@ -74,13 +74,13 @@ decline, as the model becomes overfitted to the training subset. The
 function ``plot_perf_vs_epoch`` allows you to visualize this process.
 
 The code below will train a simple fully-connected neural network on the
-`SLC6A3 <https://www.ebi.ac.uk/chembl/target_report_card/CHEMBL238/>`_
+|slc6a3| 
 dataset. By default,
-`AMPL <https://github.com/ATOMScience-org/AMPL>`_ uses an
+|ampl| uses an
 ``early stopping`` algorithm to terminate training if the chosen
 validation set metric peaks and does not improve further after a certain
 number of epochs, set by the ``early_stopping_patience`` parameter. Here
-we tell `AMPL <https://github.com/ATOMScience-org/AMPL>`_ to
+we tell |ampl| to
 optimize the ``root mean squared error (RMSE)`` rather than :math:`R^2`,
 to train for up to 100 epochs, and to stop training if the ``RMSE`` does
 not improve for 20 epochs after reaching a minimum.
@@ -192,7 +192,7 @@ Comparing Predicted with Actual Values by Split Subset
 There are times when a single number like :math:`R^2` or ``RMSE`` is not
 enough to give you a feeling for how well your model is performing (or
 more importantly, where it is failing). For this reason,
-`AMPL <https://github.com/ATOMScience-org/AMPL>`_ provides a
+|ampl| provides a
 function to produce a scatterplot of predicted vs actual values for each
 split subset, as shown below.
 
@@ -254,12 +254,12 @@ performance metrics than regression models; in most cases these call for
 completely different visualization tools. In this section of the
 tutorial, we will construct a binary classification dataset, train a
 model against it, and use it to demonstrate some of the visualizations
-provided by `AMPL <https://github.com/ATOMScience-org/AMPL>`_
+provided by |ampl|
 specifically for classification models.
 
 To create a binary classification dataset, we will simply add a column
 called 'active' to the
-`SLC6A3 <https://www.ebi.ac.uk/chembl/target_report_card/CHEMBL238/>`_
+|slc6a3| 
 :math:`K_i` dataset containing "1" for compounds with :math:`pK_i \ge 8`
 and "0" for all others:
 
@@ -287,7 +287,7 @@ and "0" for all others:
 Note that we have purposely created an imbalanced dataset, with many
 more inactive than active compounds. This provides us an opportunity to
 apply some of the tools
-`AMPL <https://github.com/ATOMScience-org/AMPL>`_ supplies to deal
+|ampl| supplies to deal
 with this common situation.
 
 Next we will split the dataset by scaffold:
@@ -348,7 +348,7 @@ will check later to see if the higher percentage of actives in the
 training set causes the model to predict too many false positives.
 
 Now we will train a neural network to predict compound classes using
-`ECFP <https://pubs.acs.org/doi/10.1021/ci100050t>`_ fingerprints
+|ecfp| fingerprints
 as features:
 
 .. code:: ipython3
@@ -413,12 +413,11 @@ predicts every compound to be inactive will be correct, on average,
 1597/(1597+222) = 88% of the time. We need to look at some other metrics
 to see if our model is doing any better than a dumb classifier.
 
-First, we will plot a `confusion
-matrix <https://en.wikipedia.org/wiki/Confusion_matrix>`_ for each
+First, we will plot a |matrix| for each
 split subset. A confusion matrix is simply a table that shows the
 numbers of compounds with each possible class that are predicted to
 belong to that class and each other class.
-`AMPL <https://github.com/ATOMScience-org/AMPL>`_ provides the
+|ampl| provides the
 function ``plot_confusion_matrices`` to draw the confusion matrix for
 each subset:
 
@@ -436,12 +435,11 @@ differently from a dumb classifier. In the validation set, it predicts
 the inactive class 97% of the time, even though inactives are only 88%
 of the compounds.
 
-`AMPL <https://github.com/ATOMScience-org/AMPL>`_ calculates many
+|ampl| calculates many
 other metrics for classification models, which may provide additional
 insight into how a model is performing. We can display a barplot of
 metric values for each subset using the function ``plot_model_metrics``.
-For an unbalanced dataset, the `precision and
-recall <https://en.wikipedia.org/wiki/Precision_and_recall>`_ metrics
+For an unbalanced dataset, the |recall| metrics
 are far more sensitive indicators of performance than accuracy or ROC
 AUC. Here the accuracy is about 0.9, about what would be expected from a
 dumb classifier, for all 3 subsets; while the validation set precision
@@ -462,10 +460,8 @@ Given the rather mediocre recall performance of our model, we would like
 to try training a new model that has better recall without sacrificing
 too much precision. One way to do this is to change the
 ``model_choice_score_type`` parameter to optimize the number of training
-epochs for a metric that balances precision and recall. `Balanced
-accuracy <https://scikit-learn.org/stable/modules/model_evaluation.html#balanced-accuracy-score>`_
-and the `Matthews correlation coefficient
-(MCC) <https://en.wikipedia.org/wiki/Phi_coefficient>`_ are two such
+epochs for a metric that balances precision and recall. |accuracy|
+and the |mcc| are two such
 metrics often used for this purpose. We'll try out using the ``MCC``,
 with all other parameters left the same.
 
@@ -536,11 +532,11 @@ depending on your situation. Do you want to minimize the cost of
 synthesizing and testing compounds that may turn out to be false
 positives? Or do you want to minimize the chance that your model will
 overlook a potential blockbuster drug? The numerous selection metrics
-supported by `AMPL <https://github.com/ATOMScience-org/AMPL>`_ give
+supported by |ampl| give
 you flexibility to tailor model training according to your priorities.
 
 As an aside,
-`SLC6A3 <https://www.ebi.ac.uk/chembl/target_report_card/CHEMBL238/>`_
+|slc6a3|
 provides another option for dealing with unbalanced classification
 datasets: the ``weight_transform_type`` parameter. Setting this
 parameter to "balancing" changes the way the cost function to be
@@ -693,8 +689,7 @@ obtained as a nested dictionary using the function
 Plotting ROC and Precision-Recall Curves
 ****************************************
 
-A `receiver operating
-characteristic <https://en.wikipedia.org/wiki/Receiver_operating_characteristic>`_
+A |characteristic|
 curve is a commonly used plot for assessing the performance of a binary
 classifier. It is generated from lists of true classes and predicted
 probabilities for the positive class by varying a threshold on the class
@@ -708,8 +703,7 @@ close to a diagonal line running from (0,0) to (1,1), with AUC = 0.5. A
 perfect classifier has a ROC curve that follows the Y axis and then runs
 horizontally across the top of the plot.
 
-`SLC6A3 <https://www.ebi.ac.uk/chembl/target_report_card/CHEMBL238/>`_
-provides the function ``plot_ROC_curve``, which takes a
+|slc6a3| provides the function ``plot_ROC_curve``, which takes a
 ``ModelPipeline`` object as its main argument; it plots separate curves
 for the training, validation and test sets on the same axes.
 
@@ -722,8 +716,7 @@ for the training, validation and test sets on the same axes.
 .. image:: ../_static/img/09_visualization_files/09_visualization_38_0.png
 
 
-A `precision-recall
-curve <https://en.wikipedia.org/wiki/Precision_and_recall>`_ is
+A |curve| is
 generated using a similar thresholding process, except that the metrics
 computed and plotted for each threshold are the precision and recall.
 Although the precision generally decreases with increasing recall, it
@@ -731,7 +724,7 @@ usually doesn't decrease monotonically, especially for imbalanced
 datasets where the validation and test sets have very small numbers of
 active compounds.
 
-`AMPL <https://github.com/ATOMScience-org/AMPL>`_ provides the
+|ampl| provides the
 function ``plot_prec_recall_curve`` to draw precision vs recall curves
 for the training, validation and test sets on one plot. The area under
 the curve, also known as the ``average precision (AP)``, is computed as
@@ -750,13 +743,60 @@ Conclusion
 **********
 
 This concludes our series of tutorials highlighting the core functions
-of `AMPL <https://github.com/ATOMScience-org/AMPL>`_. We hope that
+of |ampl|. We hope that
 completing these tutorials will provide you with the essential skills to
 train, evaluate and apply your own models for predicting chemical
 properties. In future versions of
-`AMPL <https://github.com/ATOMScience-org/AMPL>`_ we will release
+|ampl| we will release
 specialized tutorials covering some of
-`AMPL <https://github.com/ATOMScience-org/AMPL>`_'s more advanced
+|ampl|'s more advanced
 capabilities, such as multitask modeling, transfer learning, feature
 importance analysis and more.
 
+
+.. |ampl| raw:: html
+
+   <em>
+   <b><a href="https://github.com/ATOMScience-org/AMPL">AMPL</a></b></em>
+
+.. |recall| raw:: html
+
+   <em>
+   <b><a href="https://en.wikipedia.org/wiki/Precision_and_recall">recall</a></b></em>
+
+.. |slc6a3| raw:: html
+
+   <em>
+   <b><a href="https://www.ebi.ac.uk/chembl/target_report_card/CHEMBL238/">SLC6A3</a></b></em>
+
+.. |matrix| raw:: html
+
+   <em>
+   <b><a href="https://en.wikipedia.org/wiki/Confusion_matrix">matrix</a></b></em>
+
+.. |characteristic| raw:: html
+
+   <em>
+   <b><a href="https://en.wikipedia.org/wiki/Receiver_operating_characteristic>receiver operating
+characteristic</a></b></em>
+
+.. |ecfp| raw:: html
+
+   <em>
+   <b><a href="https://pubs.acs.org/doi/10.1021/ci100050t">ECFP</a></b></em>
+
+.. |accuracy| raw:: html
+
+   <em>
+   <b><a href="https://scikit-learn.org/stable/modules/model_evaluation.html#balanced-accuracy-score">accuracy</a></b></em>
+
+.. |mcc| raw:: html
+
+   <em>
+   <b><a href="https://en.wikipedia.org/wiki/Phi_coefficient">Matthews correlation coefficient (MCC)</a></b></em>
+
+
+.. |curve| raw:: html
+
+   <em>
+   <b><a href="https://en.wikipedia.org/wiki/Precision_and_recall>precision-recall curve</a></b></em>
