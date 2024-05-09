@@ -8,7 +8,7 @@
 tensorflow==2.13.1
 
 # jax[cpu]==0.4.13
-jax[cpu]
+jax
 
 torch==2.0.1
 torch_geometric
