@@ -34,6 +34,10 @@ def plot_split_subset_response_distrs(params, axes=None, plot_size=7):
         None
     """
 
+    # Save current matplotlib color cycle and switch to 'colorblind' palette
+    old_palette = sns.color_palette()
+    sns.set_palette('colorblind')
+
     if isinstance(params, dict):
         params = parse.wrapper(params)
     dset_df, split_label = get_split_labeled_dataset(params)
@@ -65,6 +69,8 @@ def plot_split_subset_response_distrs(params, axes=None, plot_size=7):
             ax.set_title(f"Percent of {col} = 1 by subset under {split_label}")
             ax.set_xlabel('')
 
+    # Restore previous matplotlib color cycle
+    sns.set_palette(old_palette)
 
 # ---------------------------------------------------------------------------------------------------------------------------------
 def compute_split_subset_wasserstein_distances(params):
