@@ -38,6 +38,33 @@ score_type_label = dict(r2 = '$R^2$', mae = 'MAE', rmse = 'RMSE',
         MCC = 'Matthews corr coef', mcc = 'Matthews corr coef', kappa = "Cohen's kappa")
 
 #------------------------------------------------------------------------------------------------------------------------
+# CVD-friendly plot colors. Use the more saturated 'colorblind' palette for point and line plots and 'pastel' for shading.
+
+# Map train/valid/test categories to colors and shades
+sat_cols = sns.color_palette('colorblind').as_hex()
+train_col = sat_cols[0]
+valid_col = sat_cols[2]
+test_col = sat_cols[1]
+full_col = sat_cols[4]
+
+shade_cols = sns.color_palette('pastel').as_hex()
+train_shade = shade_cols[0]
+valid_shade = shade_cols[2]
+test_shade = shade_cols[1]
+
+# Map boolean distinctions (false/true, incorrect/correct, etc.) to colors from 'colorblind' palette
+binary_pal = {0 : sat_cols[3], 1 : sat_cols[0]}
+
+# Map combined split subset / activity categories to colors from 'colorblind' palette
+train_active_col = sat_cols[0]
+train_inactive_col = sat_cols[9]
+test_active_col = sat_cols[3]
+test_inactive_col = sat_cols[2]
+
+# Use sequential 'crest' palette, which runs from light green to dark blue, for continuous values
+continuous_pal = sns.color_palette('crest', as_cmap=True)
+
+#------------------------------------------------------------------------------------------------------------------------
 def plot_pred_vs_actual(model, epoch_label='best', threshold=None, error_bars=False, plot_size=7, 
                        external_training_data=None, pdf_dir=None):
     """Plot predicted vs actual values from a trained regression model for each split subset (train,
@@ -119,17 +146,17 @@ def plot_pred_vs_actual(model, epoch_label='best', threshold=None, error_bars=Fa
                 ax.set_ylim(ymin, ymax)
                 if error_bars and y_std is not None:
                     # Draw error bars
-                    ax.errorbar(y_actual[:,t], y_pred[:,t], y_std[:,t], c='blue', marker='o', alpha=0.4, linestyle='')
+                    ax.errorbar(y_actual[:,t], y_pred[:,t], y_std[:,t], c=train_col, marker='o', alpha=0.4, linestyle='')
                 else:
                     ax.scatter(y_actual[:,t], y_pred[:,t], s=25, marker='o', alpha=0.4)
                 ax.set_xlabel(f"Actual {resp}")
                 ax.set_ylabel(f"Predicted {resp}")
                 # Draw an identity line
-                ax.plot([ymin,ymax], [ymin,ymax], c='red', linestyle='--')
+                ax.plot([ymin,ymax], [ymin,ymax], c=test_col, linestyle='--', alpha=0.75, zorder=0)
                 # Draw threshold lines if requested
                 if threshold is not None:
-                    plt.axvline(threshold, color='r', linestyle='--')
-                    plt.axhline(threshold, color='r', linestyle='--')
+                    plt.axvline(threshold, color=test_col, linestyle='--')
+                    plt.axhline(threshold, color=test_col, linestyle='--')
                 # Set subplot title
                 if s == 0:
                     subtitle = f"{resp} {subset}, {score_type_label['r2']} = {r2_scores[t]:.3f}"
@@ -164,13 +191,13 @@ def plot_pred_vs_actual(model, epoch_label='best', threshold=None, error_bars=Fa
             ki_ymax = max(max(y_real_ki), max(y_pred_ki)) + 0.5
             ax[0].set_xlim(ki_ymin, ki_ymax)
             ax[0].set_ylim(ki_ymin, ki_ymax)
-            ax[0].scatter(y_real_ki, y_pred_ki, s=9, c='blue', marker='o', alpha=0.4)
+            ax[0].scatter(y_real_ki, y_pred_ki, s=9, c=train_col, marker='o', alpha=0.4)
             ax[0].set_xlabel('Observed value')
             ax[0].set_ylabel('Predicted value')
-            ax[0].plot([ki_ymin,ki_ymax], [ki_ymin,ki_ymax], c='forestgreen', linestyle='--')
+            ax[0].plot([ki_ymin,ki_ymax], [ki_ymin,ki_ymax], c=valid_col, linestyle='--')
             if threshold is not None:
-                ax[0].axvline(threshold, color='r', linestyle='--')
-                ax[0].axhline(threshold, color='r', linestyle='--')
+                ax[0].axvline(threshold, color=test_col, linestyle='--')
+                ax[0].axhline(threshold, color=test_col, linestyle='--')
             ax[0].set_title(title, fontdict={'fontsize' : 10})
             
             title = '%s\n%s split %s model on %s features\n%s subset predicted vs actual %s, R^2 = %.3f' % (
@@ -179,13 +206,13 @@ def plot_pred_vs_actual(model, epoch_label='best', threshold=None, error_bars=Fa
             bind_ymax = max(max(y_real_bind), max(y_pred_bind)) + 0.1
             ax[1].set_xlim(bind_ymin, bind_ymax)
             ax[1].set_ylim(bind_ymin, bind_ymax)
-            ax[1].scatter(y_real_bind, y_pred_bind, s=9, c='blue', marker='o', alpha=0.4)
+            ax[1].scatter(y_real_bind, y_pred_bind, s=9, c=train_col, marker='o', alpha=0.4)
             ax[1].set_xlabel('Observed value')
             ax[1].set_ylabel('Predicted value')
-            ax[1].plot([bind_ymin,bind_ymax], [bind_ymin,bind_ymax], c='forestgreen', linestyle='--')
+            ax[1].plot([bind_ymin,bind_ymax], [bind_ymin,bind_ymax], c=valid_col, linestyle='--')
             if threshold is not None:
-                ax[1].axvline(threshold, color='r', linestyle='--')
-                ax[1].axhline(threshold, color='r', linestyle='--')
+                ax[1].axvline(threshold, color=test_col, linestyle='--')
+                ax[1].axhline(threshold, color=test_col, linestyle='--')
             ax[1].set_title(title, fontdict={'fontsize' : 10})
 
     if pdf_dir is not None:
@@ -219,7 +246,9 @@ def plot_pred_vs_actual_from_df(pred_df, actual_col='avg_pIC50_actual', pred_col
     ]
     margin=(lims[1]-lims[0])*0.05
     lims=[lims[0]-margin,lims[1]+margin]
-    g.plot(lims, lims, 'r-', alpha=0.75, zorder=0)
+    #g.plot(lims, lims, 'r-', alpha=0.75, zorder=0)
+    # Draw an identity line
+    g.plot(lims, lims, c=test_col, linestyle='--', alpha=0.75, zorder=0)
     # plt.gca().set_aspect('equal', adjustable='box')
     g.set_aspect('equal')
     g.set_xlim(lims)
@@ -386,8 +415,8 @@ def plot_perf_vs_epoch(MP, plot_size=7, pdf_dir=None):
     if pdf_dir is not None:
         pdf_path = os.path.join(pdf_dir, '%s_perf_vs_epoch.pdf' % os.path.basename(MP.params.output_dir))
         pdf = PdfPages(pdf_path)
-    subset_colors = dict(training='blue', validation='forestgreen', test='red')
-    subset_shades = dict(training='deepskyblue', validation='lightgreen', test='hotpink')
+    subset_colors = dict(training=train_col, validation=valid_col, test=test_col)
+    subset_shades = dict(training=train_shade, validation=valid_shade, test=test_shade)
 
     with sns.plotting_context("notebook"):
     
@@ -410,7 +439,7 @@ def plot_perf_vs_epoch(MP, plot_size=7, pdf_dir=None):
             if (num_folds > 1) and (subset == 'validation'):
                 ax.fill_between(epoch, subset_perf[subset] + subset_std[subset], subset_perf[subset] - subset_std[subset],
                                 alpha=0.3, facecolor=subset_shades[subset], linewidth=0)
-        ax.axvline(best_epoch, color='red', linestyle='--')
+        ax.axvline(best_epoch, color=test_col, linestyle='--')
         ax.set_xlabel('Epoch')
         ax.set_ylabel(perf_label)
         title = f"{perf_label} vs epoch"
@@ -429,7 +458,7 @@ def plot_perf_vs_epoch(MP, plot_size=7, pdf_dir=None):
             """
             epoch = list(range(num_epochs))
             ax.plot(epoch, model_scores, color=subset_colors['validation'])
-            plt.axvline(best_epoch, color='red', linestyle='--')
+            plt.axvline(best_epoch, color=test_col, linestyle='--')
             ax.set_xlabel('Epoch')
             if model_score_type in perf.loss_funcs:
                 score_label = f"Negative {model_score_type_label}"
@@ -671,6 +700,10 @@ def plot_model_metrics(model, epoch_label='best', plot_size=7):
     Returns:
         None
     """
+    # Save current color palette and restore it later
+    old_palette = sns.color_palette()
+    sns.set_palette('colorblind')
+
     if isinstance(model, mp.ModelPipeline):
         metrics_dict = get_metrics_from_model_pipeline(model, epoch_label)
     elif isinstance(model, str):
@@ -696,6 +729,9 @@ def plot_model_metrics(model, epoch_label='best', plot_size=7):
     with sns.plotting_context('poster'):
         fgrid = sns.FacetGrid(data=metric_df, row='task', col='subset', height=plot_size, hue='metric', sharex=True, sharey=True)
         fgrid.map_dataframe(sns.barplot, x='value', y='metric')
+
+    # Restore previous matplotlib color cycle
+    sns.set_palette(old_palette)
 
 #------------------------------------------------------------------------------------------------------------------------
 def plot_ROC_curve(MP, epoch_label='best', plot_size=7, pdf_dir=None):
@@ -725,7 +761,7 @@ def plot_ROC_curve(MP, epoch_label='best', plot_size=7, pdf_dir=None):
         pdf_path = os.path.join(pdf_dir, '%s_%s_model_%s_features_%s_split_ROC_curves.pdf' % (
                                 params.dataset_name, params.model_type, params.featurizer, params.splitter))
         pdf = PdfPages(pdf_path)
-    subset_colors = dict(train='blue', valid='forestgreen', test='red', full='purple')
+    subset_colors = dict(train=train_col, valid=valid_col, test=test_col, full=full_col)
     # For multitask, do a separate figure for each task
     ntasks = curve_data[subsets[0]]['prob_active'].shape[1]
     with sns.plotting_context('talk'):
@@ -772,7 +808,7 @@ def plot_prec_recall_curve(MP, epoch_label='best', plot_size=7, pdf_dir=None):
     ntasks = len(tasks)
     with sns.plotting_context('notebook'):
         fig, axes = plt.subplots(ntasks, 1, figsize=(plot_size, plot_size*ntasks))
-        subset_colors = dict(train='blue', valid='forestgreen', test='red', full='purple')
+        subset_colors = dict(train=train_col, valid=valid_col, test=test_col, full=full_col)
         for itt, task in enumerate(tasks):
             if ntasks > 1:
                 ax = axes[itt]
@@ -820,7 +856,7 @@ def old_plot_prec_recall_curve(MP, epoch_label='best', plot_size=7, pdf_dir=None
         pdf_path = os.path.join(pdf_dir, '%s_%s_model_%s_features_%s_split_PRC_curves.pdf' % (
                                 params.dataset_name, params.model_type, params.featurizer, params.splitter))
         pdf = PdfPages(pdf_path)
-    subset_colors = dict(train='blue', valid='forestgreen', test='red', full='purple')
+    subset_colors = dict(train=train_col, valid=valid_col, test=test_col, full=full_col)
     # For multitask, do a separate figure for each task
     ntasks = curve_data[subsets[0]]['prob_active'].shape[1]
     for i in range(ntasks):
@@ -999,7 +1035,6 @@ def plot_umap_feature_projections(MP, ndim=2, num_neighbors=20, min_dist=0.1,
             result = [('incorrect', 'correct')[i] for i in is_correct]
             # Mark predictions as correct or incorrect; check that class representations are the same.
             proj_df['subset'] = ['%s/%s' % vals for vals in zip(dset_subset,result)]
-            green_red_pal = {0 : 'forestgreen', 1 : 'red'}
             marker_map = {'training/correct' : 'o', 'training/incorrect' : 's', 
                         'valid/correct' : '^', 'valid/incorrect' : 'v', 
                         'test/correct' : 'P', 'test/incorrect' : '*'}
@@ -1008,7 +1043,7 @@ def plot_umap_feature_projections(MP, ndim=2, num_neighbors=20, min_dist=0.1,
                         'test/correct' : 125, 'test/incorrect' : 225}
             if ndim == 2:
                 ax = fig.add_subplot(111)
-                sns.scatterplot(x='umap_X', y='umap_Y', hue='actual', palette=green_red_pal, 
+                sns.scatterplot(x='umap_X', y='umap_Y', hue='actual', palette=binary_pal, 
                         style='subset', markers=marker_map,
                         style_order=['training/correct', 'training/incorrect', 'valid/correct', 'valid/incorrect',
                                      'test/correct', 'test/incorrect' ],
@@ -1016,7 +1051,7 @@ def plot_umap_feature_projections(MP, ndim=2, num_neighbors=20, min_dist=0.1,
                         data=proj_df, ax=ax)
             elif ndim == 3:
                 ax = fig.add_subplot(111, projection='3d')
-                colors = [green_red_pal[a] for a in proj_df.actual.values]
+                colors = [binary_pal[a] for a in proj_df.actual.values]
                 markers = [marker_map[subset] for subset in proj_df.subset.values]
                 #ax.scatter(proj_df.umap_X.values, proj_df.umap_Y.values, proj_df.umap_Z.values, c=colors, m=markers, s=49)
                 ax.scatter(proj_df.umap_X.values, proj_df.umap_Y.values, proj_df.umap_Z.values, c=colors, s=49)
@@ -1026,11 +1061,10 @@ def plot_umap_feature_projections(MP, ndim=2, num_neighbors=20, min_dist=0.1,
             proj_df['error'] = preds[:,i] - all_actual[:,i]
             marker_map = {'training' : 'o', 'valid' : 'v', 'test' : 'P'}
             ncol = 12
-            blue_red_pal = sns.blend_palette(['red', 'green', 'blue'], 12, as_cmap=True)
             if ndim == 2:
                 ax = fig.add_subplot(111)
                 #sns.scatterplot(x='umap_X', y='umap_Y', hue='error',
-                sns.scatterplot(x='umap_X', y='umap_Y', hue='error', palette=blue_red_pal, 
+                sns.scatterplot(x='umap_X', y='umap_Y', hue='error', palette=continuous_pal, 
                         size='actual', sizes=(49,144), alpha=0.95,
                         style='subset', markers=marker_map, style_order=['training', 'valid', 'test'],
                         data=proj_df, ax=ax)
@@ -1040,7 +1074,7 @@ def plot_umap_feature_projections(MP, ndim=2, num_neighbors=20, min_dist=0.1,
                 errs = proj_df.error.values.astype(np.int32)
                 ind = 1 + errs - min(errs)
                 ind[ind >= ncol] = ncol-1
-                colors = [blue_red_pal[i] for i in ind]
+                colors = [continuous_pal[i] for i in ind]
                 markers = [marker_map[subset] for subset in proj_df.subset.values]
                 ax.scatter(proj_df.umap_X.values, proj_df.umap_Y.values, proj_df.umap_Z.values, c=colors, m=markers, s=49)
     
@@ -1166,7 +1200,7 @@ def plot_umap_train_set_neighbors(MP, num_neighbors=20, min_dist=0.1,
         else:
             feat_type = params.featurizer
             
-    
+
         classif = np.array(['inactive']*proj_df.shape[0])
         classif[proj_df.actual == 1] = 'active'
         proj_df['classif'] = classif
@@ -1175,16 +1209,16 @@ def plot_umap_train_set_neighbors(MP, num_neighbors=20, min_dist=0.1,
             fig, ax = plt.subplots(figsize=(15,15))
             proj_plt_df = proj_df[(proj_df.dset_subset == 'train') | (proj_df.dset_subset == subset)]
             if subset == 'valid':
-                pal = {'train/active' : 'forestgreen', 'train/inactive' : 'red', 
-                            'valid/active' : 'blue', 'valid/inactive' : 'magenta'}
+                pal = {'train/active' : train_active_col, 'train/inactive' : train_inactive_col, 
+                            'valid/active' : test_active_col, 'valid/inactive' : test_inactive_col}
                 marker_map = {'train/active' : 'o', 'train/inactive' : 's', 
                             'valid/active' : '*', 'valid/inactive' : 'v'}
                 size_map = {'train/active' : 64, 'train/inactive' : 49, 
                             'valid/active' : 192, 'valid/inactive' : 81}
                 style_order=['train/inactive', 'valid/inactive', 'train/active', 'valid/active' ]
             else:
-                pal = {'train/active' : 'forestgreen', 'train/inactive' : 'red', 
-                            'test/active' : 'blue', 'test/inactive' : 'magenta'}
+                pal = {'train/active' : train_active_col, 'train/inactive' : train_inactive_col, 
+                            'test/active' : test_active_col, 'test/inactive' : test_inactive_col}
                 marker_map = {'train/active' : 'o', 'train/inactive' : 's', 
                             'test/active' : '*', 'test/inactive' : 'v'}
                 size_map = {'train/active' : 64, 'train/inactive' : 49, 
