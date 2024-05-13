@@ -11,6 +11,7 @@ The purpose of this tutorial is to install the **[AMPL](https://github.com/ATOMS
 * [Start the Jupyter notebook from a container](#start-the-jupyter-notebook-from-a-container)
    * [To connect the Jupyter notebook from a browser](#to-connect-the-jupyter-notebook-from-a-browser)
    * [Use `atomsci-env` as the run kernel for AMPL](#use-atomsci-env-as-the-run-kernel-for-AMPL)
+   * [Save work from Docker Jupyter](#save-work-from-docker-jupyter)
 * [Code examples](#code-examples)
 * [Useful Docker commands](#useful-docker-commands)
 * [Troubleshooting](#troubleshooting)
@@ -21,13 +22,13 @@ The purpose of this tutorial is to install the **[AMPL](https://github.com/ATOMS
 # Create a Docker Image
 ## Prerequisite: Download and install Docker
 
-If you don't have a Docker Desktop installed, please follow instructions here: https://www.docker.com/get-started.
+If you don't have Docker Desktop installed, please follow instructions here: https://www.docker.com/get-started.
 
 Once it's installed, click on the Docker icon to start. Leave it running when using Docker.
 
 ## Option 1: Build a local AMPL image using `Dockerfile`
 
-- Clone **[AMPL](https://github.com/ATOMScience-org/AMPL)**  github repo if you don't have one yet. 
+- Clone **[AMPL](https://github.com/ATOMScience-org/AMPL)**  github repo. 
 
 ```
 git clone https://github.com/ATOMScience-org/AMPL.git  
@@ -62,7 +63,8 @@ docker pull atomsci/atomsci-ampl:latest
 
 ## Use an existing image to start a container
 
-If you have an image built/downloaded, type `docker images` to see what images are currently available. Pick one to use for the `docker run` command. For example:
+If you have an image built/downloaded, type `docker images` to see what images are currently available. 
+Pick one and run it using the `docker run` command. For example:
 
 ![Docker Run](../../docs/source/_static/img/01_install_from_docker_files/docker_run.png)
 
@@ -97,7 +99,7 @@ jupyter-notebook --ip=0.0.0.0 --allow-root --port=8888 &
 # -OR-
 jupyter-lab --ip=0.0.0.0 --allow-root --port=8888 &
 ```
-As a result, this will output a message with similar URLs to this:
+This will output a message with similar URLs to this:
 
 ![Jupyter Notebook Token](../../docs/source/_static/img/01_install_from_docker_files/jupyter_token.png)
 
@@ -111,13 +113,13 @@ Copy and paste the URL from the output message to the browser on your computer. 
 
 
 > **NOTE:**
-> *If this doesn't work, exit the container and change port from 
-> 8888 to some other number such as `7777` or `8899` (in all 3 places it's 
+> *If this doesn't work, exit the container and choose a different port
+> such as `7777` or `8899` (in all 3 places it's 
 > written), then rerun both commands in 
 > [Start a container](#start-a-container-from-the-ampl-image) and 
 > [Start Jupyter Notebook](#start-the-Jupyter-notebook-from-a-container). 
-> Be sure to save any work you want to be permanent in your workspace folder. 
-> If the container is shut down, you'll lose anything not in that folder.*  
+> Be sure to save any work in your container. This is because if the container 
+> is shut down, you'll lose anything not in that folder. See instructions on [how to save work from container](#save-work-from-docker-jupyter).*  
 
 ### Use `atomsci-env` as the run kernel for AMPL
 
@@ -136,6 +138,38 @@ and select `atomsci-env` as the run kernel
 * The notebook would look like this:
 
 ![Notebook example](../../docs/source/_static/img/01_install_from_docker_files/notebook-env.png)
+
+### Save work from Docker Jupyter
+
+Docker container is stateless. Once you exit, the work will not be kept. There are a couple of ways to save your changes:
+
+1) Use the browser Jupyter. Use `File` -> `Download` to download the file(s).
+
+1) Use mount. When you start the Docker with `-v` option:
+
+```
+docker run -it -p <port>:<port> -v <local_folder>:<directory_in_docker> <IMAGE>
+```
+
+It binds the <local_folder> with <directory_in_docker>, meaning that the file(s) in <directory_in_docker>, will be available in <local_folder>.
+
+For example:
+
+* Run the docker with "-v" to bind the directories
+
+```
+docker run -it -p 8888:8888 -v ~:/home atomsci-ampl # <local_folder> -> `~`, <directory_in_docker> -> `/home`.
+```
+
+* Save, copy the file(s) to <directory_in_docker>
+
+```
+root@d8ae116b2a83:/AMPL# pwd
+/AMPL
+root@d8ae116b2a83:/AMPL# cp atomsci/ddm/examples/tutorials2023/01_install_from_docker.md /home
+```
+
+* The file(s) will be in <local_folder>
 
 ### Code examples:
 
@@ -163,12 +197,12 @@ Also, there are examples in
 ### Useful Docker commands
 
 ```
-docker run --help                           # get help messages
-docker ps -a                                # check docker processes
-docker images                               # list local docker images
-docker rmi <image>                          # remove an image
-docker cp file.txt <container_id>:/file.txt # copy from local to container
-docker cp <container_id>:/file.txt file.txt # copy from container to local
+docker run --help                              # get help messages
+docker ps -a                                   # check docker processes
+docker images                                  # list local docker images
+docker rmi <image>                             # remove an image
+docker cp file.txt <container_id>:/file.txt    # copy from local to container
+docker cp <container_id>:source_path dest_path # copy from container to local
 ```
 
 ### Troubleshooting

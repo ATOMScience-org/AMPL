@@ -15,7 +15,7 @@ import umap
 class SplitStats:
     """This object manages a dataset and a given split dataframe."""
     def __init__(self, total_df, split_df, smiles_col, id_col, response_cols):
-        """Calculates compount to compount Tanomoto distances between training and
+        """Calculates compound to compound Tanomoto distances between training and
         test subsets. Counts the number of samples for each subset, for each task
         and calculates the train_frac, valid_frac, and test_frac.
 
@@ -40,20 +40,21 @@ class SplitStats:
         self.test_y, self.test_w = mss.make_y_w(self.test_df, response_cols)
         self.valid_y, self.valid_w = mss.make_y_w(self.valid_df, response_cols)
 
-        self.dists_tvt = self._get_dists(self.train_df, self.test_df)
-        self.dists_tvv = self._get_dists(self.train_df, self.valid_df)
+        self.dists_tvt = self._get_dists(self.test_df, self.train_df)
+        self.dists_tvv = self._get_dists(self.valid_df, self.train_df)
 
         self.train_fracs, self.valid_fracs, self.test_fracs = self._split_ratios()
 
     def _get_dists(self, df_a, df_b):
-        """Calculate pairwise compound distances between training and test subsets.
+        """Calculate Tanimoto distances between each compound in df_a and its nearest neighbor in df_b.
 
         Args:
             df_a: choice of self.train_df, self.test_df, self.valid_df
             df_b: choice of self.train_df, self.test_df, self.valid_df
 
         Returns:
-            Array of floats. Pairwise Tanimoto distances between training and test subsets.
+            1-D array of floats with one element per row of df_a, containing nearest neighbor
+            Tanimoto distances.
         """
         return cd.calc_dist_smiles('ECFP', 'tanimoto', df_a[self.smiles_col].values, 
                     df_b[self.smiles_col].values)
@@ -65,7 +66,7 @@ class SplitStats:
             None
 
         Returns:
-            train_fracs (array of flots), valid_fracs (array of floats), test_fracs (array of floats)
+            train_fracs (array of floats), valid_fracs (array of floats), test_fracs (array of floats)
         """
         train_fracs = np.sum(self.train_w, axis=0)/np.sum(self.total_w, axis=0)
         valid_fracs = np.sum(self.valid_w, axis=0)/np.sum(self.total_w, axis=0)
@@ -87,18 +88,24 @@ class SplitStats:
             (np.mean(self.valid_fracs), np.median(self.valid_fracs), np.std(self.valid_fracs)))
 
     def dist_hist_train_v_test_plot(self, ax=None):
-        """Plots Tanimoto differences between training and valid subsets
+        """Plots histogram of nearest neighbor Tanimoto distances between test and training subset compounds.
+
+        Args:
+            ax (matploblib Axes): Axes object to draw plot in. If None, one will be created.
 
         Returns:
-            g (Seaborn FacetGrid): FacetGrid object from seaborn
+            ax (matploblib Axes): Axes object for plot
         """
         return self._show_dist_hist_plot(self.dists_tvt, ax=ax)
 
     def dist_hist_train_v_valid_plot(self, ax=None):
-        """Plots Tanimoto differences between training and valid subsets
+        """Plots histogram of nearest neighbor Tanimoto distances between valid and training subset compounds.
+
+        Args:
+            ax (matploblib Axes): Axes object to draw plot in. If None, one will be created.
 
         Returns:
-            g (Seaborn FacetGrid): FacetGrid object from seaborn
+            ax (matploblib Axes): Axes object for plot
         """
         return self._show_dist_hist_plot(self.dists_tvv, ax=ax)
 
@@ -123,17 +130,19 @@ class SplitStats:
         and test sets
 
         Args:
-            dists (matrix): matrix of distances either self.dists_tvt or self.dists_tvv
+            dists (np.ndarray): array of distances, either self.dists_tvt or self.dists_tvv
+
+            ax (matploblib Axes): Axes object to draw plot in. If None, one will be created.
 
         Returns:
-            g (Seaborn FacetGrid): Plot object from seaborn
+            ax (matploblib Axes): Axes object for plot
 
         """
-        g=sns.histplot(dists, kde=False, stat='probability', ax=ax)
-        g.set_xlabel('Tanimoto Distance',fontsize=13)
-        g.set_ylabel('Proportion of Compounds',fontsize=13)
+        ax=sns.histplot(dists, kde=False, stat='probability', binrange=(0,1), ax=ax)
+        ax.set_xlabel('Tanimoto distance',fontsize=13)
+        ax.set_ylabel('Proportion of compounds',fontsize=13)
 
-        return g
+        return ax
 
     def umap_plot(self, dist_path=''):
         """Plots the first 10000 samples in Umap space using Morgan Fingerprints
