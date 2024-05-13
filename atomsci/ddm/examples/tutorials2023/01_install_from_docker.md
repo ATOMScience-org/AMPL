@@ -48,7 +48,9 @@ docker build -t atomsci-ampl .       # by default, `latest` will be the tag
 docker build -t atomsci-ampl:<tag> . # specify a name for <tag>
 ```
 
-This normally takes about 10-15 minutes to build. The image can be **reused**. 
+This normally takes about 15-10 minutes to build. The image can be **reused**.
+
+> **Note:** *To build without cache, add `--no-cache` flag after `docker build`. For example, `docker build --no-cache -t atomsci-ampl .`*
 
 Once it's built, follow the [steps](#start-a-container-from-the-ampl-image) to run the **[AMPL](https://github.com/ATOMScience-org/AMPL)** docker container.
 
@@ -75,11 +77,11 @@ docker run -it -p <port>:<port> -v <local_folder>:<directory_in_docker> <IMAGE>
 * Examples
 ```
 # example 1 # if built from Dockerfile
-docker run -it -p 8888:8888 -v ~:/home atomsci-ampl
+docker run -it -p 8888:8888 -v ${PWD}:home atomsci-ampl
 
 # or
 # example 2 # if pulled from atomsci
-docker run -it -p 8888:8888 -v ~:/home atomsci/atomsci-ampl
+docker run -it -p 8888:8888 -v ${PWD}:home atomsci/atomsci-ampl
 ```
 
 > #### To get more info for the `docker run` command options, type `docker run --help`. For example: 
