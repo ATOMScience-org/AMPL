@@ -49,7 +49,17 @@ import some standard packages and modules:
 
 .. parsed-literal::
 
-    Skipped loading some Jax models, missing a dependency. No module named 'jax'
+    2024-05-10 16:13:24.275406: I tensorflow/tsl/cuda/cudart_stub.cc:28] Could not find cuda drivers on your machine, GPU will not be used.
+    2024-05-10 16:13:24.332150: E tensorflow/compiler/xla/stream_executor/cuda/cuda_dnn.cc:9342] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered
+    2024-05-10 16:13:24.332221: E tensorflow/compiler/xla/stream_executor/cuda/cuda_fft.cc:609] Unable to register cuFFT factory: Attempting to register factory for plugin cuFFT when one has already been registered
+    2024-05-10 16:13:24.332259: E tensorflow/compiler/xla/stream_executor/cuda/cuda_blas.cc:1518] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
+    2024-05-10 16:13:24.341944: I tensorflow/tsl/cuda/cudart_stub.cc:28] Could not find cuda drivers on your machine, GPU will not be used.
+    2024-05-10 16:13:24.343056: I tensorflow/core/platform/cpu_feature_guard.cc:182] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+    To enable the following instructions: AVX2 FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+    2024-05-10 16:13:27.251720: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Could not find TensorRT
+    Skipped loading some Jax models, missing a dependency. No module named 'haiku'
+    /usr/WS2/kmelough/ampl161_env/lib/python3.9/site-packages/tqdm/auto.py:21: TqdmWarning: IProgress not found. Please update jupyter and ipywidgets. See https://ipywidgets.readthedocs.io/en/stable/user_install.html
+      from .autonotebook import tqdm as notebook_tqdm
 
 
 Visualizing the Training Process for a Neural Network Regression Model
@@ -145,16 +155,16 @@ not improve for 20 epochs after reaching a minimum.
     INFO:ATOM:Total score for epoch 0 is -1.2
     ...
     INFO:ATOM:No improvement after 20 epochs, stopping training
-    INFO:ATOM:Epoch 56: training r2_score = 0.779, validation r2_score = 0.390, test r2_score = 0.252
-    INFO:ATOM:Saved model files to 'dataset/SLC6A3_models/SLC6A3_Ki_curated/NN_computed_descriptors_scaffold_regression/885cc43a-4c8d-418f-a68f-3a64e6bbaf43/best_model'
-    INFO:ATOM:Best model from epoch 35 saved to dataset/SLC6A3_models/SLC6A3_Ki_curated/NN_computed_descriptors_scaffold_regression/885cc43a-4c8d-418f-a68f-3a64e6bbaf43/best_model
-    INFO:ATOM:Wrote model tarball to dataset/SLC6A3_models/SLC6A3_Ki_curated_model_885cc43a-4c8d-418f-a68f-3a64e6bbaf43.tar.gz
+    INFO:ATOM:Epoch 51: training r2_score = 0.766, validation r2_score = 0.396, test r2_score = 0.310
+    INFO:ATOM:Saved model files to 'dataset/SLC6A3_models/SLC6A3_Ki_curated/NN_computed_descriptors_scaffold_regression/362b134a-924b-4549-a341-cffb5ba36757/best_model'
+    INFO:ATOM:Best model from epoch 30 saved to dataset/SLC6A3_models/SLC6A3_Ki_curated/NN_computed_descriptors_scaffold_regression/362b134a-924b-4549-a341-cffb5ba36757/best_model
+    INFO:ATOM:Wrote model tarball to dataset/SLC6A3_models/SLC6A3_Ki_curated_model_362b134a-924b-4549-a341-cffb5ba36757.tar.gz
 
 
 .. parsed-literal::
 
-    ['dataset/SLC6A3_models/SLC6A3_Ki_curated/NN_computed_descriptors_scaffold_regression/885cc43a-4c8d-418f-a68f-3a64e6bbaf43/model/checkpoint1.pt', 'dataset/SLC6A3_models/SLC6A3_Ki_curated/NN_computed_descriptors_scaffold_regression/885cc43a-4c8d-418f-a68f-3a64e6bbaf43/model/checkpoint2.pt', 'dataset/SLC6A3_models/SLC6A3_Ki_curated/NN_computed_descriptors_scaffold_regression/885cc43a-4c8d-418f-a68f-3a64e6bbaf43/model/checkpoint3.pt', 'dataset/SLC6A3_models/SLC6A3_Ki_curated/NN_computed_descriptors_scaffold_regression/885cc43a-4c8d-418f-a68f-3a64e6bbaf43/model/checkpoint4.pt', 'dataset/SLC6A3_models/SLC6A3_Ki_curated/NN_computed_descriptors_scaffold_regression/885cc43a-4c8d-418f-a68f-3a64e6bbaf43/model/checkpoint5.pt']
-    dataset/SLC6A3_models/SLC6A3_Ki_curated/NN_computed_descriptors_scaffold_regression/885cc43a-4c8d-418f-a68f-3a64e6bbaf43/model/checkpoint1.pt
+    ['dataset/SLC6A3_models/SLC6A3_Ki_curated/NN_computed_descriptors_scaffold_regression/362b134a-924b-4549-a341-cffb5ba36757/model/checkpoint1.pt', 'dataset/SLC6A3_models/SLC6A3_Ki_curated/NN_computed_descriptors_scaffold_regression/362b134a-924b-4549-a341-cffb5ba36757/model/checkpoint2.pt', 'dataset/SLC6A3_models/SLC6A3_Ki_curated/NN_computed_descriptors_scaffold_regression/362b134a-924b-4549-a341-cffb5ba36757/model/checkpoint3.pt', 'dataset/SLC6A3_models/SLC6A3_Ki_curated/NN_computed_descriptors_scaffold_regression/362b134a-924b-4549-a341-cffb5ba36757/model/checkpoint4.pt', 'dataset/SLC6A3_models/SLC6A3_Ki_curated/NN_computed_descriptors_scaffold_regression/362b134a-924b-4549-a341-cffb5ba36757/model/checkpoint5.pt']
+    dataset/SLC6A3_models/SLC6A3_Ki_curated/NN_computed_descriptors_scaffold_regression/362b134a-924b-4549-a341-cffb5ba36757/model/checkpoint1.pt
 
 
 We now use the ``plot_perf_vs_epoch`` function to show how the
@@ -417,8 +427,7 @@ First, we will plot a |matrix| for each
 split subset. A confusion matrix is simply a table that shows the
 numbers of compounds with each possible class that are predicted to
 belong to that class and each other class.
-|ampl| provides the
-function ``plot_confusion_matrices`` to draw the confusion matrix for
+|ampl| provides the function ``plot_confusion_matrices`` to draw the confusion matrix for
 each subset:
 
 .. code:: ipython3
@@ -608,76 +617,77 @@ obtained as a nested dictionary using the function
 
 .. parsed-literal::
 
+
     {
         "active": {
             "train": {
-                "roc_auc": 0.9534207289864063,
-                "prc_auc": 0.7756610803118112,
-                "accuracy": 0.8633150039277298,
-                "precision": 0.48717948717948717,
-                "recall": 0.9156626506024096,
-                "bal_accuracy": 0.8855639359606446,
-                "npv": 0.9854318418314256,
-                "cross_entropy": 0.28670199338803964,
-                "kappa": 0.5613039947713454,
-                "MCC": 0.6036917826060559,
+                "roc_auc": 0.9839738357222929,
+                "prc_auc": 0.8866116456224803,
+                "accuracy": 0.9269442262372348,
+                "precision": 0.6442687747035574,
+                "recall": 0.9819277108433735,
+                "bal_accuracy": 0.9503134489176217,
+                "npv": 0.9970588235294118,
+                "cross_entropy": 0.17187009506671735,
+                "kappa": 0.7365568068786424,
+                "MCC": 0.759997950847689,
                 "confusion_matrix": [
                     [
                         [
-                            947,
-                            160
+                            1017,
+                            90
                         ],
                         [
-                            14,
-                            152
+                            3,
+                            163
                         ]
                     ]
                 ]
             },
             "valid": {
-                "roc_auc": 0.8631195335276968,
-                "prc_auc": 0.49986008588727204,
-                "accuracy": 0.8424908424908425,
-                "precision": 0.35294117647058826,
-                "recall": 0.6428571428571429,
-                "bal_accuracy": 0.7540816326530613,
-                "npv": 0.954954954954955,
-                "cross_entropy": 0.3210928434802311,
-                "kappa": 0.3726150392817059,
-                "MCC": 0.39555215019049894,
+                "roc_auc": 0.8443148688046648,
+                "prc_auc": 0.48576226827635516,
+                "accuracy": 0.8827838827838828,
+                "precision": 0.4411764705882353,
+                "recall": 0.5357142857142857,
+                "bal_accuracy": 0.7290816326530611,
+                "npv": 0.9456066945606695,
+                "cross_entropy": 0.32558061545729045,
+                "kappa": 0.4184529356943151,
+                "MCC": 0.4209629887651163,
                 "confusion_matrix": [
                     [
                         [
-                            212,
-                            33
+                            226,
+                            19
                         ],
                         [
-                            10,
-                            18
+                            13,
+                            15
                         ]
                     ]
                 ]
             },
             "test": {
-                "roc_auc": 0.8585276967930029,
-                "prc_auc": 0.4167812519638371,
-                "accuracy": 0.8681318681318682,
-                "precision": 0.42,
-                "recall": 0.75,
-                "bal_accuracy": 0.8158163265306122,
-                "npv": 0.968609865470852,
-                "cross_entropy": 0.29946132217711685,
-                "kappa": 0.46858440575321725,
-                "MCC": 0.49543786727814804,
+                "roc_auc": 0.8563411078717201,
+                "prc_auc": 0.5286311317357362,
+                "accuracy": 0.8717948717948718,
+                "precision": 0.41025641025641024,
+                "recall": 0.5714285714285714,
+                "bal_accuracy": 0.7387755102040816,
+                "npv": 0.9487179487179487,
+                "cross_entropy": 0.2981516587921453,
+                "kappa": 0.4067796610169492,
+                "MCC": 0.41403933560541256,
                 "confusion_matrix": [
                     [
                         [
-                            216,
-                            29
+                            222,
+                            23
                         ],
                         [
-                            7,
-                            21
+                            12,
+                            16
                         ]
                     ]
                 ]
@@ -686,10 +696,11 @@ obtained as a nested dictionary using the function
     }
 
 
+
 Plotting ROC and Precision-Recall Curves
 ****************************************
 
-A |characteristic|
+A `receiver operating characteristic <https://en.wikipedia.org/wiki/Receiver_operating_characteristic>`_ 
 curve is a commonly used plot for assessing the performance of a binary
 classifier. It is generated from lists of true classes and predicted
 probabilities for the positive class by varying a threshold on the class
@@ -724,8 +735,8 @@ usually doesn't decrease monotonically, especially for imbalanced
 datasets where the validation and test sets have very small numbers of
 active compounds.
 
-|ampl| provides the
-function ``plot_prec_recall_curve`` to draw precision vs recall curves
+|ampl|
+provides the function ``plot_prec_recall_curve`` to draw precision vs recall curves
 for the training, validation and test sets on one plot. The area under
 the curve, also known as the ``average precision (AP)``, is computed as
 well and shown in the figure legend.
