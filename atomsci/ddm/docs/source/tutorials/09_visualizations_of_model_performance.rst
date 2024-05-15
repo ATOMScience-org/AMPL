@@ -423,7 +423,7 @@ predicts every compound to be inactive will be correct, on average,
 1597/(1597+222) = 88% of the time. We need to look at some other metrics
 to see if our model is doing any better than a dumb classifier.
 
-First, we will plot a |matrix| for each
+First, we will plot a `confusion matrix <https://en.wikipedia.org/wiki/Confusion_matrix>`_ for each
 split subset. A confusion matrix is simply a table that shows the
 numbers of compounds with each possible class that are predicted to
 belong to that class and each other class.
@@ -469,8 +469,8 @@ Given the rather mediocre recall performance of our model, we would like
 to try training a new model that has better recall without sacrificing
 too much precision. One way to do this is to change the
 ``model_choice_score_type`` parameter to optimize the number of training
-epochs for a metric that balances precision and recall. |accuracy|
-and the |mcc| are two such
+epochs for a metric that balances precision and recall. `Balanced accuracy <https://scikit-learn.org/stable/modules/model_evaluation.html#balanced-accuracy-score>`_ 
+and the `Matthews correlation coefficient (MCC) <https://en.wikipedia.org/wiki/Phi_coefficient>`_  are two such
 metrics often used for this purpose. We'll try out using the ``MCC``,
 with all other parameters left the same.
 
@@ -727,7 +727,7 @@ for the training, validation and test sets on the same axes.
 .. image:: ../_static/img/09_visualization_files/09_visualization_38_0.png
 
 
-A |curve| is
+A  `precision-recall curve <https://en.wikipedia.org/wiki/Precision_and_recall>`_ is
 generated using a similar thresholding process, except that the metrics
 computed and plotted for each threshold are the precision and recall.
 Although the precision generally decreases with increasing recall, it
@@ -773,41 +773,14 @@ importance analysis and more.
 .. |recall| raw:: html
 
    <em>
-   <b><a href="https://en.wikipedia.org/wiki/Precision_and_recall">recall</a></b></em>
+   <b><a href="https://en.wikipedia.org/wiki/Precision_and_recall">precision and recall</a></b></em>
 
 .. |slc6a3| raw:: html
 
    <em>
    <b><a href="https://www.ebi.ac.uk/chembl/target_report_card/CHEMBL238/">SLC6A3</a></b></em>
 
-.. |matrix| raw:: html
-
-   <em>
-   <b><a href="https://en.wikipedia.org/wiki/Confusion_matrix">matrix</a></b></em>
-
-.. |characteristic| raw:: html
-
-   <em>
-   <b><a href="https://en.wikipedia.org/wiki/Receiver_operating_characteristic>receiver operating
-characteristic</a></b></em>
-
 .. |ecfp| raw:: html
 
    <em>
    <b><a href="https://pubs.acs.org/doi/10.1021/ci100050t">ECFP</a></b></em>
-
-.. |accuracy| raw:: html
-
-   <em>
-   <b><a href="https://scikit-learn.org/stable/modules/model_evaluation.html#balanced-accuracy-score">accuracy</a></b></em>
-
-.. |mcc| raw:: html
-
-   <em>
-   <b><a href="https://en.wikipedia.org/wiki/Phi_coefficient">Matthews correlation coefficient (MCC)</a></b></em>
-
-
-.. |curve| raw:: html
-
-   <em>
-   <b><a href="https://en.wikipedia.org/wiki/Precision_and_recall>precision-recall curve</a></b></em>
