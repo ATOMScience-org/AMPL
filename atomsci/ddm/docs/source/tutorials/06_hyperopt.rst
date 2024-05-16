@@ -522,30 +522,25 @@ models to select the best ``hyperparameters`` for ``production models``.
 
 .. |ampl| raw:: html
 
-   <em>
-   <b><a href="https://github.com/ATOMScience-org/AMPL">AMPL</a></b></em>
+   <b><a href="https://github.com/ATOMScience-org/AMPL">AMPL</a></b>
+
 
 .. |wiki| raw:: html
 
-   <em>
-   <b><a href="https://en.wikipedia.org/wiki/Hyperparameter_optimization">wikipedia</a></b></em>
+   <b><a href="https://en.wikipedia.org/wiki/Hyperparameter_optimization">wikipedia</a></b>
 
 .. |hyper_opt| raw:: html
 
-   <em>
-   <b><a href="https://github.com/ATOMScience-org/AMPL#hyperparameter-optimization">here</a></b></em>
+   <b><a href="https://github.com/ATOMScience-org/AMPL#hyperparameter-optimization">here</a></b>
 
 .. |params| raw:: html
 
-   <em>
-   <b><a href="https://github.com/ATOMScience-org/AMPL/blob/master/atomsci/ddm/docs/PARAMETERS.md">here</a></b></em>
+   <b><a href="https://github.com/ATOMScience-org/AMPL/blob/master/atomsci/ddm/docs/PARAMETERS.md">here</a></b>
 
 .. |xgboost| raw:: html
 
-   <em>
-   <b><a href="https://en.wikipedia.org/wiki/XGBoost">XGBoost</a></b></em>
+   <b><a href="https://en.wikipedia.org/wiki/XGBoost">XGBoost</a></b>
 
 .. |ecfp| raw:: html
 
-   <em>
-   <b><a href="https://pubs.acs.org/doi/10.1021/ci100050t">ECFP</a></b></em>
+   <b><a href="https://pubs.acs.org/doi/10.1021/ci100050t">ECFP</a></b>

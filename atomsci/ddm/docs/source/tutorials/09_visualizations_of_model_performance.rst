@@ -767,20 +767,16 @@ importance analysis and more.
 
 .. |ampl| raw:: html
 
-   <em>
-   <b><a href="https://github.com/ATOMScience-org/AMPL">AMPL</a></b></em>
+   <b><a href="https://github.com/ATOMScience-org/AMPL">AMPL</a></b>
 
 .. |recall| raw:: html
 
-   <em>
-   <b><a href="https://en.wikipedia.org/wiki/Precision_and_recall">precision and recall</a></b></em>
+   <b><a href="https://en.wikipedia.org/wiki/Precision_and_recall">precision and recall</a></b>
 
 .. |slc6a3| raw:: html
 
-   <em>
-   <b><a href="https://www.ebi.ac.uk/chembl/target_report_card/CHEMBL238/">SLC6A3</a></b></em>
+   <b><a href="https://www.ebi.ac.uk/chembl/target_report_card/CHEMBL238/">SLC6A3</a></b>
 
 .. |ecfp| raw:: html
 
-   <em>
-   <b><a href="https://pubs.acs.org/doi/10.1021/ci100050t">ECFP</a></b></em>
+   <b><a href="https://pubs.acs.org/doi/10.1021/ci100050t">ECFP</a></b>

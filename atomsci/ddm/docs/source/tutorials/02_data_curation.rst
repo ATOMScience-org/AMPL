@@ -32,10 +32,10 @@ Import Standard Data Science Packages
 
 To use |ampl|, or to do
 almost anything else with data, you'll need to become familiar with the
-popular packages |pandas|,
-|numpy|,
-|matplotlib| and
-|seaborn|. When you
+popular packages `pandas <https://pandas.pydata.org>`_,
+`numpy <https://numpy.org>`_,
+`matplotlib <https://matplotlib.org/>`_ and
+`seaborn <https://seaborn.pydata.org/index.html/>`_. When you
 installed |ampl| you
 will have installed these packages as well, so you simply need to import
 them here.
@@ -48,18 +48,14 @@ them here.
     import matplotlib.pyplot as plt
     import seaborn as sns
 
+
 Read the Data
 *************
 
-We've prepared an example dataset containing
-|ki|
-values for inhibitors of the
-|slc6a3|
-dopamine transporter collected from
-|chembl|. This dataset is simpler
+We've prepared an example dataset containing `ki <https://en.wikipedia.org/wiki/Ligand_(biochemistry)#Receptor/ligand_binding_affinity>`_ 
+values for inhibitors of the |slc6a3| dopamine transporter collected from `ChEMBL <https://www.ebi.ac.uk/chembl/>`_. This dataset is simpler
 than most that we find in the wild, but it will let us concisely
-demonstrate some |ampl| 
-curation tools. The first step of data curation is to read the raw data
+demonstrate some |ampl| curation tools. The first step of data curation is to read the raw data
 into a Pandas data frame.
 
 .. code:: ipython3
@@ -97,45 +93,25 @@ into a Pandas data frame.
 
 
 
-| This dataset is drawn from the
-  |chembl| database and contains
-  the following columns: - ``molecule_chembl_id``: The ChEMBL ID for the
-  molecule. - ``smiles``: The
- |smiles|
-  string that represents the molecule's structure. This is the main
-  input used to derive features for
-|ampl| models. -
-  ``standard_type``: The type of measurement, e.g., :math:`IC_{50}`,
-  :math:`K_i`, :math:`K_d`, etc. This dataset only contains :math:`K_i`
-  data points. - ``standard_relation``: The relational operator for a
-  measurement reported as "< :math:`X`" or "> :math:`X`", indicating the
-  true value is below or above some limit :math:`X` (e.g., the lowest or
-  highest concentration tested). When this occurs we say the measurement
-  is "left-" or "right-censored". - ``standard_value``: The measured
-  value (or the limit value for a censored measurement). -
-  ``standard_units``: The units of the measurement. :math:`K_i` values
-  may be recorded in different units which will need to be converted to
-  a common unit. The
-  |slc6a3|
-  dataset
-| contains a mixture of nanomolar and micromolar (µM) units.
+This dataset is drawn from the `ChEMBL <https://www.ebi.ac.uk/chembl/>`_ database and contains the following columns: 
+  
+-  ``molecule_chembl_id``: The ChEMBL ID for the molecule. 
+-  ``smiles``: The |smiles| string that represents the molecule's structure. This is the main input used to derive features for |ampl| models. 
+-  ``standard_type``: The type of measurement, e.g., :math:`IC_{50}`, :math:`K_i`, :math:`K_d`, etc. This dataset only contains :math:`K_i` data points. 
+-  ``standard_relation``: The relational operator for a measurement reported as  "< :math:`X`" or "> :math:`X`", indicating the true value is below or above some limit :math:`X` (e.g., the lowest or highest concentration tested). When this occurs we say the measurement is "left-" or "right-censored". 
+-  ``standard_value``: The measured value (or the limit value for a censored measurement). 
+-  ``standard_units``: The units of the measurement. :math:`K_i` values may be recorded in different units which will need to be converted to a common unit. The |slc6a3| dataset contains a mixture of nanomolar and micromolar (µM) units.
+
 
 Standardize SMILES
 ******************
 
-The
-|smiles|
-grammar allows the same chemical structure to be represented by many
-different
-|smiles|
-strings. In addition, measurements may be performed on compounds with
+The |smiles| grammar allows the same chemical structure to be represented by many
+different |smiles| strings. In addition, measurements may be performed on compounds with
 different salt groups or with radioisotope labels, which we treat as
-equivalent to the base compounds.
-|ampl| provides a
-|smiles|
+equivalent to the base compounds. |ampl| provides a |smiles|
 standardization function, ``base_smiles_to_smiles``, that removes salt
-groups and isotopes and returns a unique
-|smiles|
+groups and isotopes and returns a unique |smiles|
 string for each base compound structure. This step simplifies the
 machine learning problem by ensuring each compound is represented with
 the same set of features and multiple measurements on the same compound
@@ -167,12 +143,9 @@ can be grouped together.
 
 
 
-For this dataset there are 1830 unique
-|smiles|
-that are standardized to 1823 unique base
-|smiles|.
-It is common for two different
-|smiles|
+For this dataset there are 1830 unique |smiles|
+that are standardized to 1823 unique base |smiles|.
+It is common for two different |smiles|
 strings to be standardized to the same value. From now on we will use
 ``base_rdkit_smiles`` to represent compound structures.
 
@@ -193,9 +166,13 @@ shown at right. Similar transformations are often applied to properties
 like :math:`IC_{50}`'s, :math:`K_d`'s and :math:`EC_{50}`'s, yielding
 :math:`pIC_{50}`'s, :math:`pK_d`'s, and :math:`EC_{50}`'s.
 
+
 .. image:: ../_static/img/02_data_curation_files/02_data_curation_pki_mean.png
 
-    **Note**: *For those who want more details: It's hard to fit ML
+
+.. note::
+    
+    *For those who want more details: It's hard to fit ML
     models to raw :math:`K_i`'s because typical training methods seek to
     minimize a squared-error loss function (the error being the
     difference between the actual and predicted values). Squared errors
@@ -204,6 +181,7 @@ like :math:`IC_{50}`'s, :math:`K_d`'s and :math:`EC_{50}`'s, yielding
     i.e. those with the largest :math:`K_i`'s. This leads to models that
     perform OK on the least potent compounds and terribly on the most
     potent.*
+
 
 The |ampl| function
 ``compute_negative_log_responses`` performs these variance stabilizing
@@ -245,11 +223,10 @@ Standardize Relations
 
 Some databases may contain measurements reported with a variety of
 relational operators such as ":math:`>=`", ":math:`<=`", ":math:`~`" and
-so on. In datasets used to train models,
-|ampl| expects the
+so on. In datasets used to train models, |ampl| expects the
 relation column to contain one of the three standard operators
 ":math:`>`", ":math:`<`" or ":math:`=`", or an empty field representing
-equality. |ampl| 
+equality. |ampl|
 provides a ``standardize_relations`` function to coerce nonstandard
 relations to one of the standard values. We use the ``rel_col`` and
 ``output_rel_col`` arguments to indicate that the input relations are in
@@ -396,12 +373,11 @@ into account.
      - 6.352617
 
 
+
 The data frame returned by ``aggregate_assay_data`` contains only four
 columns: - ``compound_id``, a unique ID for each base
-|smiles|
-string. When multiple values are found in ``id_col`` for the same
-|smiles|
-string, the function assigns it the first one in lexicographic order. -
+|smiles| string. When multiple values are found in ``id_col`` for the same
+|smiles| string, the function assigns it the first one in lexicographic order. -
 ``base_rdkit_smiles``, the standardized
 |smiles|
 string. - ``relation``, an *aggregate* relation for the set of
@@ -409,7 +385,10 @@ replicates. - ``avg_pKi``, or whatever you specified in the
 ``output_value_col`` argument, containing the aggregate/average
 :math:`pK_i` value.
 
-    **Note**: *When the ``label_actives`` argument is True (the
+
+.. note::
+    
+    *When the ``label_actives`` argument is True (the
     default), an additional column ``active`` is added for use in
     training classification models. We will cover classification models
     in a future tutorial*.
@@ -426,45 +405,12 @@ training, validation and test sets for model training.
 
 .. |ampl| raw:: html
 
-   <em>
-   <b><a href="https://github.com/ATOMScience-org/AMPL">AMPL</a></b></em>
+   <b><a href="https://github.com/ATOMScience-org/AMPL">AMPL</a></b>
 
 .. |smiles| raw:: html
 
-   <em>
-   <b><a href="https://en.wikipedia.org/wiki/Simplified_molecular-input_line-entry_system">SMILES</a></b></em>
-
-.. |ki| raw:: html
-
-   <em>
-   <b><a href="https://en.wikipedia.org/wiki/Ligand_(biochemistry)#Receptor/ligand_binding_affinity">Ki</a></b></em>
+   <b><a href="https://en.wikipedia.org/wiki/Simplified_molecular-input_line-entry_system">SMILES</a></b>
 
 .. |slc6a3| raw:: html
 
-   <em>
-   <b><a href="https://www.ebi.ac.uk/chembl/target_report_card/CHEMBL238/">SLC6A3</a></b></em>
-
-.. |chembl| raw:: html
-
-   <em>
-   <b><a href="https://www.ebi.ac.uk/chembl/">ChEMBL</a></b></em>
-
-.. |pandas| raw:: html
-
-   <em>
-   <b><a href="https://pandas.pydata.org">pandas</a></b></em>
-
-.. |numpy| raw:: html
-
-   <em>
-   <b><a href="https://numpy.org">numpy</a></b></em>
-
-.. |matplotlib| raw:: html
-
-   <em>
-   <b><a href="https://matplotlib.org/">matplotlib</a></b></em>
-
-.. |seaborn| raw:: html
-
-   <em>
-   <b><a href="https://seaborn.pydata.org/index.html/">ChEMBL</a></b></em>
+   <b><a href="https://www.ebi.ac.uk/chembl/target_report_card/CHEMBL238/">SLC6A3</a></b>
