@@ -52,7 +52,7 @@ Built with
    tutorials/05_application_of_a_trained_model
    tutorials/06_hyperopt
    tutorials/07_compare_models
-   tutorials/08_train_production_model
+   tutorials/08_train_a_production_model
    tutorials/09_visualizations_of_model_performance
 
 .. toctree::

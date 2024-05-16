@@ -318,5 +318,4 @@ many models.
 
 .. |ampl| raw:: html
 
-   <em>
-   <b><a href="https://github.com/ATOMScience-org/AMPL">AMPL</a></b></em>
+   <b><a href="https://github.com/ATOMScience-org/AMPL">AMPL</a></b>
