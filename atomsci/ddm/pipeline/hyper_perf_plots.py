@@ -19,7 +19,7 @@ from atomsci.ddm.pipeline import parameter_parser as pp
 
 # get all possible things to plot from parameter parser
 parser=pp.get_parser()
-d=vars(pp.get_parser().parse_args())
+d=vars(pp.get_parser().parse_args([]))
 keywords=['AttentiveFPModel','GCNModel','GraphConvModel','MPNNModel','PytorchMPNNModel','rf_','xgb_']
 plot_dict={}
 for word in keywords:
@@ -67,8 +67,8 @@ def _prep_perf_df(df):
     """
     perf_track_df=df.copy()
 
-    if 'model_params' in perf_track_df:
-        exp=pd.DataFrame(perf_track_df.model_params.tolist())
+    if 'model_parameters_dict' in perf_track_df:
+        exp=pd.DataFrame(perf_track_df.model_parameters_dict.tolist())
         exp['model_uuid']=perf_track_df.model_uuid
         perf_track_df=perf_track_df.merge(exp)
     
@@ -173,7 +173,7 @@ def plot_split_perf(df, prediction_type='regression', subset='valid'):
                 legend=False
             selection_metric = f'best_{subset}_{selmets[i]}'
             sns.boxplot(x="features", y=selection_metric, # x="txptr_features" x="model_type"
-                        hue='splitter', palette = sns.color_palette(colors[0:plot_df.features.nunique()]), #showfliers=False, 
+                        hue='splitter', palette = sns.color_palette(colors[0:plot_df.splitter.nunique()]), #showfliers=False, 
                           legend=legend,
                         data=plot_df, ax=ax);
             ax.set_xlabel('')
@@ -224,10 +224,14 @@ def plot_hyper_perf(df, scoretype='r2_score', subset='valid', model_type='genera
         if feat in perf_track_df.columns:    
             if perf_track_df[feat].nunique()>12:
                 sns.scatterplot(x=feat, y=winnertype, data=perf_track_df, ax=ax[i])
-                ticks=ax[i].get_xticks()
-                ticks=ticks[ticks>=0]
-                labs=ax[i].get_xticklabels()
-                labs=[lab for lab in labs if lab.get_position()[0]>=0]
+                old_ticks=ax[i].get_xticks()
+                old_labs=ax[i].get_xticklabels()
+                ticks=[]
+                labs=[]
+                for tick, lab in zip(old_ticks, old_labs):
+                    if tick>=0:
+                        ticks.append(tick)
+                        labs.append(lab)
             else:       
                 sns.boxplot(x=feat,y=winnertype,hue=feat,palette=sns.cubehelix_palette(perf_track_df[feat].nunique(), rot=rot,start=start,), data=perf_track_df, ax=ax[i],legend=False)
                 ticks=ax[i].get_xticks()
