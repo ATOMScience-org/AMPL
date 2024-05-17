@@ -93,7 +93,7 @@ def plot_pred_vs_actual(model, epoch_label='best', threshold=None, error_bars=Fa
     params = model.params
     # For now restrict this to regression models. 
     if params.prediction_type != 'regression':
-        model.log.error("plot_pred_vs_actual is currently for regression models only.")
+        model.log.error("plot_pred_vs_actual() should only be called for regression models. Please try plot_confusion_matrices() instead..")
         return
     wrapper = model.model_wrapper
     if pdf_dir is not None:
@@ -282,6 +282,9 @@ def plot_pred_vs_actual_from_file(model_path, external_training_data=None, plot_
     # reload metadata
     with open(os.path.join(reload_dir, 'model_metadata.json')) as f:
         config=json.loads(f.read())
+
+    if config['model_parameters']['prediction_type']=='classification':
+        raise ValueError("plot_pred_vs_actual_from_file() should only be called for regression models. Please try plot_confusion_matrices() instead.")
     
     # load (featurized) data
     dataset_dict=config['training_dataset']
