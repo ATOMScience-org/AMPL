@@ -4,7 +4,7 @@
    contain the root `toctree` directive.
 
 ATOM Modeling PipeLine (AMPL) for Drug Discovery
-==============================================================
+=================================================
 
 .. include:: /_static/shared/links.rst
 
