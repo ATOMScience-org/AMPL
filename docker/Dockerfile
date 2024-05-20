@@ -20,7 +20,7 @@ WORKDIR /AMPL
 ENV PATH="/AMPL:$PATH"
 
 # uncomment the following line to checkout develop branch if needed, for example: 1.6.1
-# RUN git checkout -b 1.6.1_jax && git pull origin 1.6.1_jax
+# RUN git checkout -b 1.6.1 && git pull origin 1.6.1
 
 COPY . .
 RUN echo "before pip install"
