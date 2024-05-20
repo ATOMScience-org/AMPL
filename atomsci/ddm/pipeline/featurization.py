@@ -961,7 +961,7 @@ class EmbeddingFeaturization(DynamicFeaturization):
             for orig_col, embed_col in zip(params.response_cols, self.embedding_pipeline.params.response_cols):
                 colmap[orig_col] = embed_col
             input_dset_df = input_dset_df.rename(columns=colmap)
-        input_model_dataset.get_featurized_data(input_dset_df)
+        input_model_dataset.get_featurized_data(input_dset_df, is_featurized=params.embedding_pre_featurized)
         input_dataset = input_model_dataset.dataset
         input_features = input_dataset.X
         ids = input_dataset.ids

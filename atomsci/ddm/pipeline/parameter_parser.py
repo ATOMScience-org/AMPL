@@ -779,7 +779,7 @@ def dict_to_list(inp_dictionary,replace_spaces=False):
     temp_list_to_command_line = []
 
     # Special case handling for arguments that are False or True by default
-    default_false = ['previously_split','use_shortlist','datastore', 'save_results','verbose', 'hyperparam', 'split_only', 'is_ki', 'production'] 
+    default_false = ['previously_split','use_shortlist','datastore', 'save_results','verbose', 'hyperparam', 'split_only', 'is_ki', 'production', 'embedding_pre_featurized'] 
     default_true = ['transformers','previously_featurized','uncertainty', 'rerun']
     for key, value in inp_dictionary.items():
         if key in default_false:
@@ -1005,6 +1005,12 @@ def get_parser():
         '--embedding_model_path', dest='embedding_model_path', type=str, default=None,
         help='File path for pretrained model used to compute embedding features')
 
+    parser.add_argument(
+        '--embedding_pre_featurized', dest='embedding_pre_featurized', action='store_true',
+        help='Boolean flag for loading in previously featurized data files. If set to True, the method'
+             'MinimalDataset.get_featurized_data within model_datasets will assume features are'
+             'contained in the columns of the data file.')
+    parser.set_defaults(embedding_pre_featurized=False)
 
     # **********************************************************************************************************
     # model_building_parameters: general
