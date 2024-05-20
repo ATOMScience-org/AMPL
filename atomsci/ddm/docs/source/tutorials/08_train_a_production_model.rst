@@ -37,12 +37,12 @@ external test dataset.
     ``model_retrain`` module can be used to update a previously trained
     model when there is a new |ampl| release that
     is not compatible with previous versions. This is not covered in
-    this tutorial. 
+    this tutorial.* 
     
-    2. When a model input dataset is updated with
+    *2. When a model input dataset is updated with
     additional data, the model should be trained from scratch with a new
-    hyperparameter optimization run; *\ then\* a new version of the
-    production model can be generated\*.
+    hyperparameter optimization run; then a new version of the
+    production model can be generated.*
 
 Import Packages
 ***************
@@ -147,10 +147,6 @@ we will be calling later to run predictions from the saved model.
     INFO:atomsci.ddm.utils.model_version_utils:Version compatible check: dataset/SLC6A3_models/SLC6A3_Ki_curated_model_9b6c9332-15f3-4f96-9579-bf407d0b69a8.tar.gz version = "1.6", AMPL version = "1.6"
     INFO:atomsci.ddm.utils.model_version_utils:dataset/SLC6A3_models/SLC6A3_Ki_curated_model_9b6c9332-15f3-4f96-9579-bf407d0b69a8.tar.gz, 1.6.0
     INFO:atomsci.ddm.utils.model_version_utils:Version compatible check: dataset/SLC6A3_models/SLC6A3_Ki_curated_model_9b6c9332-15f3-4f96-9579-bf407d0b69a8.tar.gz version = "1.6", AMPL version = "1.6"
-
-
-.. parsed-literal::
-
     installed AMPL version: 1.6.1
     best model AMPL version: 1.6.0
     orig_params.production: False
@@ -181,10 +177,6 @@ production model's model parameter ``production`` is set to ``True``.
 .. parsed-literal::
 
     INFO:atomsci.ddm.utils.model_version_utils:dataset/SLC6A3_models/SLC6A3_Ki_curated_model_ee11dd2d-51fa-4a89-b42f-c2832a50ff21.tar.gz, 1.6.1
-
-
-.. parsed-literal::
-
     production_model.params.production: True
     production_model.params.model_tarball_path: dataset/SLC6A3_models/SLC6A3_Ki_curated_model_ee11dd2d-51fa-4a89-b42f-c2832a50ff21.tar.gz
     production model AMPL version: 1.6.1
@@ -321,12 +313,9 @@ We now predict :math:`pK_i` values with the original best model:
 .. parsed-literal::
 
     Standardizing SMILES strings for 533 compounds.
-
-
-.. parsed-literal::
-
     INFO:atomsci.ddm.utils.model_version_utils:dataset/SLC6A3_models/SLC6A3_Ki_curated_model_9b6c9332-15f3-4f96-9579-bf407d0b69a8.tar.gz, 1.6.0
-    INFO:atomsci.ddm.utils.model_version_utils:Version compatible check: dataset/SLC6A3_models/SLC6A3_Ki_curated_model_9b6c9332-15f3-4f96-9579-bf407d0b69a8.tar.gz version = "1.6", AMPL version = "1.6"
+    INFO:atomsci.ddm.utils.model_version_utils:Version compatible check: dataset/SLC6A3_models/SLC6A3_Ki_curated_model_9b6c9332-15f3-4f96-9579-bf407d0b69a8.tar.gz version = "1.6", AMPL version = "1.6
+
 
 .. list-table:: 
    :widths: 3 5 5 5 5 5 5 5 5 5 5 5 
@@ -410,25 +399,23 @@ We now predict :math:`pK_i` values with the original best model:
 
     5 rows 207 columns
 
+
+Now we'll run predictions on the same dataset with the production model:
+
 .. code:: ipython3
 
     prod_pred_df = pfm.predict_from_model_file(model_path = production_model.params.model_tarball_path, 
-                                          input_df = test_data,
-                                          id_col = id_col ,
-                                          smiles_col = smiles_col, 
-                                          response_col = response_col,
-                                          is_featurized=False)
-                                          
+                                      input_df = test_data,
+                                      id_col = id_col ,
+                                      smiles_col = smiles_col, 
+                                      response_col = response_col,
+                                      is_featurized=False)
+                                      
     prod_pred_df.head()
 
-
 .. parsed-literal::
-
+  
     Standardizing SMILES strings for 533 compounds.
-
-
-.. parsed-literal::
-
     INFO:atomsci.ddm.utils.model_version_utils:dataset/SLC6A3_models/SLC6A3_Ki_curated_model_ee11dd2d-51fa-4a89-b42f-c2832a50ff21.tar.gz, 1.6.1
     INFO:atomsci.ddm.utils.model_version_utils:Version compatible check: dataset/SLC6A3_models/SLC6A3_Ki_curated_model_ee11dd2d-51fa-4a89-b42f-c2832a50ff21.tar.gz version = "1.6", AMPL version = "1.6"
 
@@ -514,6 +501,7 @@ We now predict :math:`pK_i` values with the original best model:
 
     5 rows 207 columns
 
+
 To compare the performance of the production model with the original
 best model, we'll compute the :math:`R^2` scores for the predictions
 from each model and then plot the predicted vs actual values:
@@ -536,12 +524,11 @@ from each model and then plot the predicted vs actual values:
 
     fig, ax = plt.subplots(1,2, figsize=(12,6))
     pp.plot_pred_vs_actual_from_df(best_pred_df, actual_col='avg_pKi_actual', pred_col='avg_pKi_pred', 
-        label=f"Best model, $R^2$ = {best_r2:.3f}", ax=ax[0])
+    label=f"Best model, $R^2$ = {best_r2:.3f}", ax=ax[0])
     pp.plot_pred_vs_actual_from_df(prod_pred_df, actual_col='avg_pKi_actual', pred_col='avg_pKi_pred', 
-        label=f"Production model, $R^2$ = {prod_r2:.3f}", ax=ax[1])
+    label=f"Production model, $R^2$ = {prod_r2:.3f}", ax=ax[1])
     fig.tight_layout(pad=3.0)
     fig.show()
-
 
 
 .. image:: ../_static/img/08_train_production_model_files/08_train_production_model_16_0.png
@@ -554,11 +541,11 @@ slightly more concentrated along the diagonal. A possible explanation
 for the mediocre performance is that the external dataset compounds were
 filtered so that none have Tanimoto distance < 0.4 to any compound in
 the original model dataset, so that the test set compounds are outside
-of the **`applicability
-domain <https://en.wikipedia.org/wiki/Applicability_domain>`_** of both
+of the `applicability
+domain <https://en.wikipedia.org/wiki/Applicability_domain>`_ of both
 models. We expect that the models' performance would improve on a
-dataset filtered with a smaller **`Tanimoto
-distance <https://en.wikipedia.org/wiki/Jaccard_index#Tanimoto_similarity_and_distance>`_**
+dataset filtered with a smaller `Tanimoto
+distance <https://en.wikipedia.org/wiki/Jaccard_index#Tanimoto_similarity_and_distance>`_
 threshold.
 
 Developing models that generalize well to diverse sets of compounds
@@ -577,10 +564,10 @@ in the |ampl|
 will be trained in production mode, using the entire dataset for
 training. Note that for neural network models, the model will be trained
 for the number of epochs corresponding to the best epoch from the
-original model training run. -
-`train\_model <https://ampl.readthedocs.io/en/latest/utils.html#utils.model_retrain.train_model>`_
--
-`train\_models\_from\_dataset\_keys <https://ampl.readthedocs.io/en/latest/utils.html#utils.model_retrain.train_models_from_dataset_keys>`_
+original model training run. 
+
+-  `train\_model <https://ampl.readthedocs.io/en/latest/utils.html#utils.model_retrain.train_model>`_
+-  `train\_models\_from\_dataset\_keys <https://ampl.readthedocs.io/en/latest/utils.html#utils.model_retrain.train_models_from_dataset_keys>`_
 
 In the next tutorial, we'll explore a wide range of methods for
 visualizing and evaluating the performance of
