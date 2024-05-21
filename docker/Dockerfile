@@ -10,7 +10,7 @@ RUN . $VIRTUAL_ENV/bin/activate
 RUN apt-get update \
     && apt-get install -y python3-pip
 
-RUN apt-get update && apt-get install -y python3-wheel wget git
+RUN apt-get update && apt-get install -y python3-wheel wget git pkg-config libhdf5-dev
 RUN apt-get install libxrender1
 
 RUN git clone https://github.com/ATOMScience-org/AMPL.git
@@ -24,9 +24,8 @@ ENV PATH="/AMPL:$PATH"
 
 COPY . .
 RUN echo "before pip install"
+RUN pip install wheel h5py
 RUN pip install --no-cache-dir --force-reinstall --trusted-host pypi.python.org --trusted-host files.pythonhosted.org --trusted-host pypi.org --trusted-host data.dgl.ai --trusted-host download.pytorch.org -r pip/docker_requirements.txt
-
-#RUN pip install jupyter
 
 CMD ["build.sh"]
 RUN pip install -e .
