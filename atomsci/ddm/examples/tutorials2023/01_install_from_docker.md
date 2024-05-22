@@ -42,11 +42,11 @@ To build a Docker image
 * Examples:
 ```
 # example 1
-docker build -t atomsci-ampl .       # by default, `latest` will be the tag
+docker build -t atomsci-ampl .         # by default, `latest` will be the tag
 
 # or
 # example 2
-docker build -t atomsci-ampl:<tag> . # specify a name for <tag>
+docker build -t atomsci-ampl:<tag> .   # specify a name for <tag>
 ```
 
 This normally takes about 15-20 minutes to build. The image can be **reused**.
@@ -160,7 +160,7 @@ For example:
 * Run the docker with "-v" to bind the directories
 
 ```
-docker run -it -p 8888:8888 -v ~:/home atomsci-ampl # <local_folder> -> `~`, <directory_in_docker> -> `/home`.
+docker run -it -p 8888:8888 -v ${PWD}:/home atomsci-ampl # <local_folder> -> `${PWD}`, <directory_in_docker> -> `/home`.
 ```
 
 * Save, copy the file(s) to <directory_in_docker>
@@ -199,12 +199,12 @@ Also, there are examples in
 ### Useful Docker commands
 
 ```
-docker run --help                              # get help messages
-docker ps -a                                   # check docker processes
-docker images                                  # list local docker images
-docker rmi <image>                             # remove an image
-docker cp file.txt <container_id>:/file.txt    # copy from local to container
-docker cp <container_id>:source_path dest_path # copy from container to local
+docker run --help                               # get help messages
+docker ps -a                                    # check docker processes
+docker images                                   # list local docker images
+docker rmi <image>                              # remove an image
+docker cp file.txt <container_id>:/file.txt     # copy from local to container
+docker cp <container_id>:source_path dest_path  # copy from container to local
 ```
 
 ### Troubleshooting
