@@ -219,7 +219,10 @@ def save_joined_dataset(joined_dataset, split_metadata):
 # ****************************************************************************************
 def get_classes(y):
     """Returns the class indices for a set of labels"""
-    class_indeces = set(y.flatten())
+    
+    # remove nan's automatically flattens the array
+    # even if there are no nan's in it
+    class_indeces = set(y[~np.isnan(y)])
 
     return class_indeces
 
@@ -370,7 +373,7 @@ class ModelDataset(object):
                 
                 # don't do make_weights which convert all NaN rows into 0 for hybrid model
                 if params.model_type != "hybrid":
-                    self.vals, w = feat.make_weights(self.vals)
+                    self.vals, w = feat.make_weights(self.vals, is_class=params.prediction_type=='classification')
                 else:
                     w = np.ones_like(self.vals)
 

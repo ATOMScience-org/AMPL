@@ -127,7 +127,7 @@ def standardize_relations(dset_df, db=None, rel_col=None, output_rel_col=None, i
         output_rel_col = rel_col
 
     try:
-        dset_df[rel_col].fillna('=', inplace=True)
+        dset_df[rel_col] = dset_df[rel_col].fillna('=')
     except KeyError:
         raise ValueError(f"Dataset doesn't contain relation column {rel_col} expected for source database {db}")
     ops = dset_df[rel_col].values

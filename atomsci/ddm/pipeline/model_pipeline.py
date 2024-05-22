@@ -316,6 +316,7 @@ class ModelPipeline:
             response_cols=self.params.response_cols,
             feature_transform_type=self.params.feature_transform_type,
             response_transform_type=self.params.response_transform_type,
+            weight_transform_type=self.params.weight_transform_type,
             external_export_parameters=dict(
                 result_dir=self.params.result_dir),
             dataset_metadata=dataset_metadata,

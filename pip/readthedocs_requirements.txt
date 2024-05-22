@@ -11,7 +11,7 @@ pygments
 pytest
 scikit-learn
 scipy
-seaborn
+seaborn>=0.13.0
 setuptools
 sphinx
 sphinx_rtd_theme
