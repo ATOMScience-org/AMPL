@@ -34,6 +34,10 @@ def plot_split_subset_response_distrs(params, axes=None, plot_size=7):
         None
     """
 
+    # Save current matplotlib color cycle and switch to 'colorblind' palette
+    old_palette = sns.color_palette()
+    sns.set_palette('colorblind')
+
     if isinstance(params, dict):
         params = parse.wrapper(params)
     dset_df, split_label = get_split_labeled_dataset(params)
@@ -65,6 +69,8 @@ def plot_split_subset_response_distrs(params, axes=None, plot_size=7):
             ax.set_title(f"Percent of {col} = 1 by subset under {split_label}")
             ax.set_xlabel('')
 
+    # Restore previous matplotlib color cycle
+    sns.set_palette(old_palette)
 
 # ---------------------------------------------------------------------------------------------------------------------------------
 def compute_split_subset_wasserstein_distances(params):
@@ -152,7 +158,7 @@ def get_split_labeled_dataset(params):
         split_file = f"{os.path.splitext(params.dataset_key)[0]}_{params.num_folds}_fold_cv_{params.splitter}_{params.split_uuid}.csv"
     else:
         split_file = f"{os.path.splitext(params.dataset_key)[0]}_{params.split_strategy}_{params.splitter}_{params.split_uuid}.csv"
-    split_df = pd.read_csv(split_file).rename(columns={'cmpd_id': 'compound_id'})
+    split_df = pd.read_csv(split_file, dtype={'cmpd_id': str}).rename(columns={'cmpd_id': 'compound_id'})
     dset_df = dset_df.merge(split_df, how='left', on='compound_id')
     if params.split_strategy == 'k_fold_cv':
         dset_df['split_subset'] = [f"fold_{f}" for f in dset_df.fold.values]

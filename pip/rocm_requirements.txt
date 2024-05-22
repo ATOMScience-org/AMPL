@@ -15,7 +15,7 @@ xgboost
 bokeh
 matplotlib
 matplotlib-venn
-seaborn
+seaborn>=0.13.0
 umap-learn
 
 pyarrow
