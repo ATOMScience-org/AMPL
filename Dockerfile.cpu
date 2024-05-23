@@ -1,0 +1,24 @@
+FROM python:3.9
+
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt update -y && apt install -y \
+    build-essential \
+    libcairo2-dev \
+    pkg-config \
+    python3-dev \
+    python3-openssl && \
+    apt clean && \
+    rm -rf /var/lib/apt/lists/*
+
+COPY ./pip/ ./pip
+RUN pip install -U pip
+RUN pip install -r ./pip/cpu_requirements.txt
+RUN pip install -r ./pip/dev_requirements.txt
+
+COPY setup.py .
+COPY VERSION .
+COPY build.sh .
+COPY ./atomsci atomsci/
+
+RUN ./build.sh
+RUN pip install -e .
