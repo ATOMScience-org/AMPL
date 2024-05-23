@@ -8,11 +8,12 @@
 
 In this tutorial we demonstrate the following: - Build a parameter
 dictionary to perform a ``hyperparameter optimization`` for a random
-forest using ``Bayesian optimization``. - Perform the optimization
-process. - Review the results
+forest using ``Bayesian optimization``. 
 
-We will use these |ampl| 
-functions here:
+-  Perform the optimization process. 
+-  Review the results
+
+We will use these |ampl| functions here:
 
 -  `parse\_params <https://ampl.readthedocs.io/en/latest/utils.html#utils.hyperparam_search_wrapper.parse_params>`_
 -  `build\_search <https://ampl.readthedocs.io/en/latest/utils.html#utils.hyperparam_search_wrapper.build_search>`_

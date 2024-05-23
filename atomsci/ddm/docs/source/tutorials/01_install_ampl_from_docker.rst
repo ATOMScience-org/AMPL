@@ -25,7 +25,7 @@ The purpose of this tutorial is to install the |ampl| software using Docker, whi
 
 .. note::
      
-    If you already have an AMPL image previously built from either option 1 or 2, go to this step :ref:`Use existing` to start/run a container.
+    If you already have an AMPL image previously built from either option 1 or 2, go to this :ref:`Use existing` step to start/run a container.
 
 .. _Create Docker:
 
@@ -99,13 +99,13 @@ Start a Docker container
 Use an existing image to start a container
 ==========================================
 
-If you have an image built/downloaded, type `docker images` to see what images are currently available. 
-Pick one and run it using the `docker run` command. For example:
+If you have an image built/downloaded, type ``docker images`` to see what images are currently available. 
+Pick one and run it using the ``docker run`` command. For example:
 
 .. image:: ../_static/img/01_install_from_docker_files/docker_run.png
 
 
-* The `docker run` command syntax:
+* The ``docker run`` command syntax:
 
 .. code-block::
 
@@ -124,7 +124,7 @@ Pick one and run it using the `docker run` command. For example:
    docker run -it -p 8888:8888 -v ${PWD}:home atomsci/atomsci-ampl
 
 
-To get more info for the `docker run` command options, type `docker run --help`. For example: 
+To get more info for the ``docker run`` command options, type ``docker run --help``. For example: 
     
 .. code-block::
 
@@ -177,11 +177,11 @@ Use `atomsci-env` as the run kernel for AMPL
 
 There are two ways to set a kernel:
 
-* From a notebook, top menu bar `Kernel` > `Change Kernel` > `atomsci-env`
+* From a notebook, top menu bar ``Kernel`` > ``Change Kernel`` > ``atomsci-env``
 
 .. image:: ../_static/img/01_install_from_docker_files/docker-kernel-inside-nb.png
 
-* Outside of a notebook, click `New` dropdown from upper right corner, and select `atomsci-env` as the run kernel
+* Outside of a notebook, click ``New`` dropdown from upper right corner, and select ``atomsci-env`` as the run kernel
 
 .. image:: ../_static/img/01_install_from_docker_files/docker-kernel-outside-nb.png
    
@@ -196,9 +196,9 @@ Save work from Docker Jupyter
 
 Docker container is stateless. Once you exit, the work will not be kept. There are a couple of ways to save your changes:
 
-1) Use the browser Jupyter. Use `File` -> `Download` to download the file(s).
+1) Use the browser Jupyter. Use ``File`` -> ``Download`` to download the file(s).
 
-2) Use mount. When you start the Docker with `-v` option:
+2) Use mount. When you start the Docker with ``-v`` option:
 
 .. code-block::
 
@@ -239,7 +239,7 @@ The |ampl| code is in:
 
 .. note::
     
-    *<port_number> is the number that you used when starting `docker run -p ...`.*
+    *<port_number> is the number that you used when starting ``docker run -p ...``.*
 
 The tutorials examples are in:
 

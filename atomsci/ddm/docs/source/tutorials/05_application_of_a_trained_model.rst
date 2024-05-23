@@ -34,7 +34,9 @@ This tutorial focuses on these |ampl| functions:
 
 .. parsed-literal::
 
-    Skipped loading some Jax models, missing a dependency. No module named 'jax'
+    Skipped loading some Jax models, missing a dependency. No module named 'haiku'
+    /opt/anaconda3/envs/atomsci-env/lib/python3.9/site-packages/tqdm/auto.py:21: TqdmWarning: IProgress not found. Please update jupyter and ipywidgets. See https://ipywidgets.readthedocs.io/en/stable/user_install.html
+      from .autonotebook import tqdm as notebook_tqdm
 
 
 First, create a test set by selecting the test data from the curated
@@ -56,8 +58,9 @@ dataset. Here we are using the pre-featurized dataset to save time.
 
 
 
+
+
 .. list-table:: 
-   :widths: 3 5 5 5 5 5 5 5 5 5 5 5
    :header-rows: 1
    :class: tight-table 
  
@@ -135,6 +138,11 @@ dataset. Here we are using the pre-featurized dataset to save time.
      - ...
 
 
+.. parsed-literal::
+    
+    5 rows × 205 columns
+
+
 Next, load a pretrained model from a model tarball file and run
 predictions on compounds in the test set. If the original model
 response\_col was ``avg_pKi``, the returned data frame will contain
@@ -152,9 +160,10 @@ the pre-featurized dataset.
     the path to the local copy of the training dataset as an additional
     parameter called ``external_training_data``.*
 
+
 .. code:: ipython3
 
-    model_dir = 'dataset/SLC6A3_models/SLC6A3_Ki_curated_model_8afb64d6-993e-4d8b-9072-60dcb40d2c83.tar.gz'
+    model_dir = 'dataset/SLC6A3_models/SLC6A3_Ki_curated_model_9ff5a924-ef49-407c-a4d4-868a1288a67e.tar.gz'
     input_df = test_data
     id_col = 'compound_id'
     smiles_col = 'base_rdkit_smiles'
@@ -179,16 +188,10 @@ the pre-featurized dataset.
 
 .. parsed-literal::
 
-    INFO:atomsci.ddm.utils.model_version_utils:dataset/SLC6A3_models/SLC6A3_Ki_curated_model_8afb64d6-993e-4d8b-9072-60dcb40d2c83.tar.gz, 1.6.0
-    INFO:atomsci.ddm.utils.model_version_utils:Version compatible check: dataset/SLC6A3_models/SLC6A3_Ki_curated_model_8afb64d6-993e-4d8b-9072-60dcb40d2c83.tar.gz version = "1.6", AMPL version = "1.6"
-    WARNING:ATOM:['ampl_version', 'time_generated', 'time_built', 'dataset_hash', 'dataset_metadata', 'training_metrics'] are not part of the accepted list of parameters and will be ignored
-    /home/apaulson/repos/AMPL_umbrella/AMPL/atomsci/ddm/pipeline/transformations.py:250: RuntimeWarning: invalid value encountered in divide
+    INFO:atomsci.ddm.utils.model_version_utils:dataset/SLC6A3_models/SLC6A3_Ki_curated_model_9ff5a924-ef49-407c-a4d4-868a1288a67e.tar.gz, 1.6.1
+    INFO:atomsci.ddm.utils.model_version_utils:Version compatible check: dataset/SLC6A3_models/SLC6A3_Ki_curated_model_9ff5a924-ef49-407c-a4d4-868a1288a67e.tar.gz version = "1.6", AMPL version = "1.6"
+    /Users/rwilfong/Downloads/2024_LLNL/computing/AMPL/atomsci/ddm/pipeline/transformations.py:250: RuntimeWarning: invalid value encountered in divide
       X = np.nan_to_num((X - self.X_means) * X_weight / self.X_stds)
-
-
-.. parsed-literal::
-
-    num_model_tasks is deprecated and its value is ignored.
 
 
 
@@ -270,10 +273,15 @@ the pre-featurized dataset.
      - 0.873262
      - 0.734541
      - ...
-          
+
+
+.. parsed-literal::
+
+    5 rows × 209 columns
+
 
 Then, calculate the :math:`R^2` score and compare it with the expected
-test :math:`R^2` score of ``0.416391``, reported in **Tutorial 4, "Train
+test :math:`R^2` score of ``0.426594``, reported in **Tutorial 4, "Train
 a Simple Regression Model"**.
 
 .. code:: ipython3
@@ -288,7 +296,7 @@ a Simple Regression Model"**.
 
 .. parsed-literal::
 
-    0.416391
+    0.426594
 
 
 
@@ -309,7 +317,7 @@ Last, visualize the results in a scatter plot of predicted values.
 
 
 
-.. image:: ../_static/img/05_application_trained_model_files/05_application_trained_model_10_0.png
+.. image::  ../_static/img/05_application_trained_model_files/05_application_trained_model_10_0.png
 
 
 In **Tutorial 6, "Hyperparameter Optimization"** we will move beyond a
