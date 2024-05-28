@@ -68,6 +68,8 @@ def _prep_perf_df(df):
     perf_track_df=df.copy()
 
     if 'model_parameters_dict' in perf_track_df:
+        # reset the index of perf_track_df so the dataframes merge correctly
+        perf_track_df.reset_index(drop=True, inplace=True)
         exp=pd.DataFrame(perf_track_df.model_parameters_dict.tolist())
         exp['model_uuid']=perf_track_df.model_uuid
         perf_track_df=perf_track_df.merge(exp)
