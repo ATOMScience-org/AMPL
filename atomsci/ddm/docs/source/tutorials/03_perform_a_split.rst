@@ -13,14 +13,14 @@ but fails miserably on molecules that differ from the training
 compounds. To avoid overfitting and provide a way to test a model's
 ability to generalize to new molecules, ML researchers have developed a
 variety of data splitting and training schemes.
-|ampl| supports two of the most popular strategies: 
+`AMPL <https://github.com/ATOMScience-org/AMPL>`_ supports two of the most popular strategies: 
 
 -  3-way training/validation/test splits 
 -  *k*-fold cross-validation (CV).
 
 In this tutorial we will perform a ``3-way split`` of the curated
 dataset we prepared in **Tutorial 2, "Data Curation"**, using the
-|ampl| modules, classes
+`AMPL <https://github.com/ATOMScience-org/AMPL>`_ modules, classes
 and functions listed below. *k* ``-fold cross-validation`` will be
 addressed in a future tutorial.
 
@@ -34,7 +34,7 @@ With 3-way data splitting, you divide your curated dataset into three
 subsets:
 
 -  **Training set**: Usually the largest subset.
-   |ampl| feeds the
+   `AMPL <https://github.com/ATOMScience-org/AMPL>`_ feeds the
    training set compound features and response values in batches to the
    model fitting algorithm. The fitting algorithm iteratively adjusts
    the model parameters after each batch so that the predicted responses
@@ -44,12 +44,12 @@ subsets:
    how well each one performs on "new" compounds that weren't used
    directly to fit the model parameters, so you can choose the best
    model. The validation set is also used by
-   |ampl|  during neural
+   `AMPL <https://github.com/ATOMScience-org/AMPL>`_  during neural
    network model training to implement "early stopping", a trick to
    avoid overfitting the training set.
 
 -  **Test set**: After training is completed,
-   |ampl|  scores the
+   `AMPL <https://github.com/ATOMScience-org/AMPL>`_  scores the
    predictions on the test set compounds to provide a measure of the
    final model's performance.
 
@@ -71,7 +71,7 @@ subsets:
 Splitting methods
 *****************
 
-|ampl| supports a
+`AMPL <https://github.com/ATOMScience-org/AMPL>`_ supports a
 variety of splitting algorithms, including random and scaffold splits. A
 ``scaffold`` is the core structure of a molecule, with its side chains
 removed. Scaffold splits assign molecules to the training, validation
@@ -128,7 +128,7 @@ We start by constructing a dictionary of parameter values:
 
 We parse the ``params`` dict with the ``parameter_parser`` module to
 create a parameter object for input to
-|ampl| functions.
+`AMPL <https://github.com/ATOMScience-org/AMPL>`_ functions.
 
 We then create a ``ModelPipeline`` object and call its ``split_dataset``
 method to do the actual split.
@@ -283,11 +283,11 @@ k-fold cross-validation splits.
 Visualizing Scaffold Splits
 ***************************
 
-|tanimoto| is a handy way to measure structural dissimilarity between compounds
-represented using |ecfp|.
+`Tanimoto distances <https://en.wikipedia.org/wiki/Jaccard_index#Tanimoto_similarity_and_distance/>`_ is a handy way to measure structural dissimilarity between compounds
+represented using `ECFP fingerprints <https://pubs.acs.org/doi/10.1021/ci100050t>`_.
 
 We can use functions in the ``compare_splits_plots`` module to compute
-|tanimoto| between each validation and test set compound and its nearest neighbor
+`Tanimoto distances <https://en.wikipedia.org/wiki/Jaccard_index#Tanimoto_similarity_and_distance/>`_ between each validation and test set compound and its nearest neighbor
 in the training set, and then plot the distribution of distances for
 each subset.
 
@@ -319,7 +319,7 @@ each subset.
 .. image::  ../_static/img/03_perform_a_split_files/03_perform_a_split_14_0.png
 
 
-The majority of compounds have |tanimoto|
+The majority of compounds have `Tanimoto distances <https://en.wikipedia.org/wiki/Jaccard_index#Tanimoto_similarity_and_distance/>`_
 between 0.2 and 0.8 from the training set, indicating that they are
 structurally different from the training compounds. The distance
 distributions are similar between the test and validation sets. This
@@ -354,15 +354,3 @@ across the scaffold split subsets, except that the training set has
 slightly more compounds with large :math:`pK_i` values. In the next
 tutorial, we will use this dataset and scaffold split to train a model
 to predict the :math:`pK_i`'s.
-
-.. |ampl| raw:: html
-
-   <b><a href="https://github.com/ATOMScience-org/AMPL">AMPL</a></b>
-
-.. |ecfp| raw:: html
-
-   <b><a href="https://pubs.acs.org/doi/10.1021/ci100050t">ECFP fingerprints </a></b>
-
-.. |tanimoto| raw:: html
-
-   <b><a href="https://en.wikipedia.org/wiki/Jaccard_index#Tanimoto_similarity_and_distance/">Tanimoto distances</a></b>

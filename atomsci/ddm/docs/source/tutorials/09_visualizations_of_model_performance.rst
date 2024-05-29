@@ -7,7 +7,7 @@
 ------------
 
 In this tutorial we will use some of the tools provided by
-|ampl| to visualize the
+`AMPL <https://github.com/ATOMScience-org/AMPL>`_ to visualize the
 model training process and the performance of the final model. Some of
 the tools we'll apply here are only applicable to certain classes of
 models; as we go along we will indicate where each function can be
@@ -66,10 +66,10 @@ Visualizing the Training Process for a Neural Network Regression Model
 **********************************************************************
 
 When you train a neural network model,
-|ampl| makes a series of
+`AMPL <https://github.com/ATOMScience-org/AMPL>`_  makes a series of
 iterations through the entire training subset of your curated dataset;
 each iteration is called an ``epoch``. At the end of each epoch,
-|ampl| saves the model
+`AMPL <https://github.com/ATOMScience-org/AMPL>`_ saves the model
 parameters (i.e., the weights of each network connection) in a
 checkpoint file. It then computes and stores a set of metrics describing
 the model's performance at that stage of training: the :math:`R^2` value
@@ -84,13 +84,13 @@ decline, as the model becomes overfitted to the training subset. The
 function ``plot_perf_vs_epoch`` allows you to visualize this process.
 
 The code below will train a simple fully-connected neural network on the
-|slc6a3| 
+`SLC6A3 <https://www.ebi.ac.uk/chembl/target_report_card/CHEMBL238/>`_ 
 dataset. By default,
-|ampl| uses an
+`AMPL <https://github.com/ATOMScience-org/AMPL>`_ uses an
 ``early stopping`` algorithm to terminate training if the chosen
 validation set metric peaks and does not improve further after a certain
 number of epochs, set by the ``early_stopping_patience`` parameter. Here
-we tell |ampl| to
+we tell `AMPL <https://github.com/ATOMScience-org/AMPL>`_ to
 optimize the ``root mean squared error (RMSE)`` rather than :math:`R^2`,
 to train for up to 100 epochs, and to stop training if the ``RMSE`` does
 not improve for 20 epochs after reaching a minimum.
@@ -202,7 +202,7 @@ Comparing Predicted with Actual Values by Split Subset
 There are times when a single number like :math:`R^2` or ``RMSE`` is not
 enough to give you a feeling for how well your model is performing (or
 more importantly, where it is failing). For this reason,
-|ampl| provides a
+`AMPL <https://github.com/ATOMScience-org/AMPL>`_ provides a
 function to produce a scatterplot of predicted vs actual values for each
 split subset, as shown below.
 
@@ -264,12 +264,12 @@ performance metrics than regression models; in most cases these call for
 completely different visualization tools. In this section of the
 tutorial, we will construct a binary classification dataset, train a
 model against it, and use it to demonstrate some of the visualizations
-provided by |ampl|
+provided by `AMPL <https://github.com/ATOMScience-org/AMPL>`_
 specifically for classification models.
 
 To create a binary classification dataset, we will simply add a column
 called 'active' to the
-|slc6a3| 
+`SLC6A3 <https://www.ebi.ac.uk/chembl/target_report_card/CHEMBL238/>`_ 
 :math:`K_i` dataset containing "1" for compounds with :math:`pK_i \ge 8`
 and "0" for all others:
 
@@ -297,7 +297,7 @@ and "0" for all others:
 Note that we have purposely created an imbalanced dataset, with many
 more inactive than active compounds. This provides us an opportunity to
 apply some of the tools
-|ampl| supplies to deal
+`AMPL <https://github.com/ATOMScience-org/AMPL>`_ supplies to deal
 with this common situation.
 
 Next we will split the dataset by scaffold:
@@ -358,7 +358,7 @@ will check later to see if the higher percentage of actives in the
 training set causes the model to predict too many false positives.
 
 Now we will train a neural network to predict compound classes using
-|ecfp| fingerprints
+`ECFP fingerprints <https://pubs.acs.org/doi/10.1021/ci100050t>`_ fingerprints
 as features:
 
 .. code:: ipython3
@@ -427,7 +427,7 @@ First, we will plot a `confusion matrix <https://en.wikipedia.org/wiki/Confusion
 split subset. A confusion matrix is simply a table that shows the
 numbers of compounds with each possible class that are predicted to
 belong to that class and each other class.
-|ampl| provides the function ``plot_confusion_matrices`` to draw the confusion matrix for
+`AMPL <https://github.com/ATOMScience-org/AMPL>`_ provides the function ``plot_confusion_matrices`` to draw the confusion matrix for
 each subset:
 
 .. code:: ipython3
@@ -444,11 +444,11 @@ differently from a dumb classifier. In the validation set, it predicts
 the inactive class 97% of the time, even though inactives are only 88%
 of the compounds.
 
-|ampl| calculates many
+`AMPL <https://github.com/ATOMScience-org/AMPL>`_ calculates many
 other metrics for classification models, which may provide additional
 insight into how a model is performing. We can display a barplot of
 metric values for each subset using the function ``plot_model_metrics``.
-For an unbalanced dataset, the |recall| metrics
+For an unbalanced dataset, the`precision and `recall <https://en.wikipedia.org/wiki/Precision_and_recall>`_ metrics
 are far more sensitive indicators of performance than accuracy or ROC
 AUC. Here the accuracy is about 0.9, about what would be expected from a
 dumb classifier, for all 3 subsets; while the validation set precision
@@ -541,11 +541,11 @@ depending on your situation. Do you want to minimize the cost of
 synthesizing and testing compounds that may turn out to be false
 positives? Or do you want to minimize the chance that your model will
 overlook a potential blockbuster drug? The numerous selection metrics
-supported by |ampl| give
+supported by `AMPL <https://github.com/ATOMScience-org/AMPL>`_ give
 you flexibility to tailor model training according to your priorities.
 
 As an aside,
-|slc6a3|
+`SLC6A3 <https://www.ebi.ac.uk/chembl/target_report_card/CHEMBL238/>`_
 provides another option for dealing with unbalanced classification
 datasets: the ``weight_transform_type`` parameter. Setting this
 parameter to "balancing" changes the way the cost function to be
@@ -714,7 +714,7 @@ close to a diagonal line running from (0,0) to (1,1), with AUC = 0.5. A
 perfect classifier has a ROC curve that follows the Y axis and then runs
 horizontally across the top of the plot.
 
-|slc6a3| provides the function ``plot_ROC_curve``, which takes a
+`SLC6A3 <https://www.ebi.ac.uk/chembl/target_report_card/CHEMBL238/>`_ provides the function ``plot_ROC_curve``, which takes a
 ``ModelPipeline`` object as its main argument; it plots separate curves
 for the training, validation and test sets on the same axes.
 
@@ -735,7 +735,7 @@ usually doesn't decrease monotonically, especially for imbalanced
 datasets where the validation and test sets have very small numbers of
 active compounds.
 
-|ampl|
+`AMPL <https://github.com/ATOMScience-org/AMPL>`_
 provides the function ``plot_prec_recall_curve`` to draw precision vs recall curves
 for the training, validation and test sets on one plot. The area under
 the curve, also known as the ``average precision (AP)``, is computed as
@@ -754,29 +754,12 @@ Conclusion
 **********
 
 This concludes our series of tutorials highlighting the core functions
-of |ampl|. We hope that
+of `AMPL <https://github.com/ATOMScience-org/AMPL>`_. We hope that
 completing these tutorials will provide you with the essential skills to
 train, evaluate and apply your own models for predicting chemical
 properties. In future versions of
-|ampl| we will release
+`AMPL <https://github.com/ATOMScience-org/AMPL>`_ we will release
 specialized tutorials covering some of
-|ampl|'s more advanced
+`AMPL <https://github.com/ATOMScience-org/AMPL>`_'s more advanced
 capabilities, such as multitask modeling, transfer learning, feature
 importance analysis and more.
-
-
-.. |ampl| raw:: html
-
-   <b><a href="https://github.com/ATOMScience-org/AMPL">AMPL</a></b>
-
-.. |recall| raw:: html
-
-   <b><a href="https://en.wikipedia.org/wiki/Precision_and_recall">precision and recall</a></b>
-
-.. |slc6a3| raw:: html
-
-   <b><a href="https://www.ebi.ac.uk/chembl/target_report_card/CHEMBL238/">SLC6A3</a></b>
-
-.. |ecfp| raw:: html
-
-   <b><a href="https://pubs.acs.org/doi/10.1021/ci100050t">ECFP</a></b>

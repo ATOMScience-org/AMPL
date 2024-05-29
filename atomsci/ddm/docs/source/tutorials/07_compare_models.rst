@@ -6,7 +6,8 @@
 
 ------------
 
-This tutorial will review |ampl| functions for
+This tutorial will review
+`AMPL <https://github.com/ATOMScience-org/AMPL>`_ functions for
 visualizing the results of a ``hyperparameter search`` in order to find
 the optimal hyperparameters for your model.
 
@@ -44,11 +45,20 @@ Import packages
     from atomsci.ddm.pipeline import hyper_perf_plots as hpp
     from atomsci.ddm.pipeline import perf_plots as pp
     import pandas as pd
+    pd.set_option('display.max_columns', None)
     
     # ignore warnings in tutorials
     import warnings
     warnings.filterwarnings('ignore', category=FutureWarning)
     warnings.filterwarnings('ignore', category=RuntimeWarning)
+
+
+.. parsed-literal::
+
+    Skipped loading some Jax models, missing a dependency. No module named 'haiku'
+    /opt/anaconda3/envs/atomsci-env/lib/python3.9/site-packages/tqdm/auto.py:21: TqdmWarning: IProgress not found. Please update jupyter and ipywidgets. See https://ipywidgets.readthedocs.io/en/stable/user_install.html
+      from .autonotebook import tqdm as notebook_tqdm
+
 
 Get model results and filter
 ****************************
@@ -89,7 +99,7 @@ entire directory if a parent folder is passed.
    :header-rows: 1
    :class: tight-table 
  
-   * -  
+   * - 
      - model_uuid
      - model_path
      - ampl_version
@@ -114,12 +124,11 @@ entire directory if a parent folder is passed.
      - ecfp
      - ...
 
-
 .. parsed-literal::
 
     2 rows  41 columns
 
-|
+
 We can look at a brief count of models for important parameters by
 creating a pivot table. Here we can see ``ECFP`` and ``RDKit`` features
 and ``fingerprint`` and ``scaffold`` splitters were used for each model
@@ -170,7 +179,8 @@ type.
      - 20
      - 76
 
-|
+
+
 Often, certain random combinations of hyperparameters result in terribly
 performing models. Here we will filter those out so they don't affect
 the visualization by only keeping models with a validation ``r2_score``
@@ -236,7 +246,8 @@ of 0.1 or greater.
 After filtering out models with extremely poor metrics, we can see that
 some combinations don't work at all, and are completely filtered from
 the set. For example, decision tree based models using
-|rdkit| or |ecfp| features work
+`RDKit <https://github.com/rdkit/rdkit>`_ or
+`ECFP <https://pubs.acs.org/doi/10.1021/ci100050t>`_ features work
 very poorly to predict on fingerprint-split models.
 
 .. code:: ipython3
@@ -284,7 +295,7 @@ very poorly to predict on fingerprint-split models.
      - NaN
      - 50.0
 
-|
+
 Visualize hyperparameters
 *************************
 
@@ -326,11 +337,14 @@ separated by feature type, for each performance metric.
 
 We can see that ``fingerprint splits`` perform much worse than
 ``scaffold splits`` for this dataset, and but
-|rdkit| and |ecfp| features perform differently.
-|ecfp| features work better for ``scaffold splits`` while
-|rdkit| features work better for
+`RDKit <https://github.com/rdkit/rdkit>`_ and
+`ECFP <https://pubs.acs.org/doi/10.1021/ci100050t>`_ features
+perform differently.
+`ECFP <https://pubs.acs.org/doi/10.1021/ci100050t>`_ features work
+better for ``scaffold splits`` while
+`RDKit <https://github.com/rdkit/rdkit>`_ features work better for
 fingerprint splits. Recalling the filtering from above, we know that
-|rdkit| features for fingerprint
+`RDKit <https://github.com/rdkit/rdkit>`_ features for fingerprint
 splits are only represented by ``NN`` models.
 
 .. code:: ipython3
@@ -351,9 +365,9 @@ feature type and their effect on performance. We can use
 visualize these.
 
 We can see that ``random forests`` or neural networks perform the best
-while |ecfp| features
+while `ECFP <https://pubs.acs.org/doi/10.1021/ci100050t>`_ features
 perform better than
-|ecfp|. Additionally,
+`ECFP <https://pubs.acs.org/doi/10.1021/ci100050t>`_. Additionally,
 the ``random forest`` models are very consistent while there is a lot of
 variability in the ``NN`` model performance.
 
@@ -442,7 +456,7 @@ and features.
    * - ``max_epochs``
      - The max number of epochs the model was allowed to train (although early stopping may have occurred). If the max_epochs is too small you may underfit your model. This could be shown by all of your best_epochs being at max_epoch.
 
-|
+
 .. code:: ipython3
 
     subsetted=result_df[result_df.splitter=='scaffold']
@@ -460,12 +474,12 @@ XGBoost visualization
 
 Using ``plot_xg_perf()``, we can simultaneously visualize the two most
 important parameters for
-|xgboost| models - the
+`XGBoost <https://en.wikipedia.org/wiki/XGBoost>`_ models - the
 learning rate and gamma. We can see that ``xgb_learning_rate`` should be
 between 0 and 0.45, after which the performance starts to deteriorate.
 There's no clear trend for ``xgb_gamma``. We can additionally use
 ``plot_hyper_perf()`` to visualize more
-|xgboost| parameters, but
+`XGBoost <https://en.wikipedia.org/wiki/XGBoost>`_ parameters, but
 this is not shown here.
 
 .. code:: ipython3
@@ -494,6 +508,7 @@ best model. We can visualize this model using
   
     *not all scores should be maximized. For example, ``mae_score`` or ``rms_score`` should be minimized instead.*
 
+
 .. code:: ipython3
 
     winnertype='best_valid_r2_score'
@@ -508,7 +523,7 @@ We can examine important parameters of the top model directly from the
 
 We see that through hyperparameter optimization, we have increased our
 ``best_valid_r2_score`` to 0.56, as compared to our baseline model
-``valid_r2_score`` of 0.475 (from **tutorial 4, "Train a Simple
+``valid_r2_score`` of 0.50011 (from **tutorial 4, "Train a Simple
 Regression Model"**).
 
 .. code:: ipython3
@@ -556,7 +571,6 @@ Regression Model"**).
 Here we use ``plot_pred_vs_actual_from_file()`` to visualize the
 prediction accuracy for the train, validation and test sets. 
 
-
 .. note::
 
     *For the purposes of this tutorial, the following models have been
@@ -564,6 +578,7 @@ prediction accuracy for the train, validation and test sets.
     for quick analysis of models you've trained on your own machine. To use
     an external model and predict on external data, see **tutorial 5,
     "Application of a Trained Model".*
+
 
 .. code:: ipython3
 
@@ -576,15 +591,14 @@ prediction accuracy for the train, validation and test sets.
 
 .. parsed-literal::
 
-    2024-02-29 11:57:32,707 dataset/SLC6A3_models/SLC6A3_Ki_curated_model_b24a2887-8eca-43e2-8fc2-3642189d2c94.tar.gz, 1.6.0
-    2024-02-29 11:57:32,708 Version compatible check: dataset/SLC6A3_models/SLC6A3_Ki_curated_model_b24a2887-8eca-43e2-8fc2-3642189d2c94.tar.gz version = "1.6", AMPL version = "1.6"
+    2024-05-28 16:38:12,802 dataset/SLC6A3_models/SLC6A3_Ki_curated_model_b24a2887-8eca-43e2-8fc2-3642189d2c94.tar.gz, 1.6.0
+    2024-05-28 16:38:12,805 Version compatible check: dataset/SLC6A3_models/SLC6A3_Ki_curated_model_b24a2887-8eca-43e2-8fc2-3642189d2c94.tar.gz version = "1.6", AMPL version = "1.6"
 
 
 .. parsed-literal::
 
-    num_model_tasks is deprecated and its value is ignored.
-    ['/tmp/tmpbh02lnpg/best_model/checkpoint1.pt']
-    /tmp/tmpbh02lnpg/best_model/checkpoint1.pt
+    ['/var/folders/rf/_d6b2mgd3p9f422kk977zjlh0000gn/T/tmpqe3tvzkx/best_model/checkpoint1.pt']
+    /var/folders/rf/_d6b2mgd3p9f422kk977zjlh0000gn/T/tmpqe3tvzkx/best_model/checkpoint1.pt
 
 
 
@@ -595,7 +609,7 @@ This ``NN`` model looks like it isn't very good at predicting things
 with :math:`pKi` < 4.5. Additionally, there is a set of data at
 :math:`pKi`\ =5 (this data is censored and all we know is that the
 compounds have a :math:`pKi` < 5 because higher concentrations of drug
-were not tested). This data is poorly predicted by the NN model. 
+were not tested). This data is poorly predicted by the NN model.
 
 .. note::
    
@@ -615,13 +629,12 @@ were not tested). This data is poorly predicted by the NN model.
 
 .. parsed-literal::
 
-    2024-02-29 11:36:56,695 dataset/SLC6A3_models/SLC6A3_Ki_curated_model_9b6c9332-15f3-4f96-9579-bf407d0b69a8.tar.gz, 1.6.0
-    2024-02-29 11:36:56,696 Version compatible check: dataset/SLC6A3_models/SLC6A3_Ki_curated_model_9b6c9332-15f3-4f96-9579-bf407d0b69a8.tar.gz version = "1.6", AMPL version = "1.6"
+    2024-05-28 16:38:22,495 dataset/SLC6A3_models/SLC6A3_Ki_curated_model_9b6c9332-15f3-4f96-9579-bf407d0b69a8.tar.gz, 1.6.0
+    2024-05-28 16:38:22,498 Version compatible check: dataset/SLC6A3_models/SLC6A3_Ki_curated_model_9b6c9332-15f3-4f96-9579-bf407d0b69a8.tar.gz version = "1.6", AMPL version = "1.6"
 
 
 .. parsed-literal::
 
-    num_model_tasks is deprecated and its value is ignored.
     
     Best valid r2 score:  0.5595899501867392
     
@@ -651,13 +664,21 @@ more accurately.
 
 .. parsed-literal::
 
-    2024-02-29 11:37:00,623 dataset/SLC6A3_models/SLC6A3_Ki_curated_model_94458d7b-7f94-44c9-83c3-a35833e76c37.tar.gz, 1.6.0
-    2024-02-29 11:37:00,624 Version compatible check: dataset/SLC6A3_models/SLC6A3_Ki_curated_model_94458d7b-7f94-44c9-83c3-a35833e76c37.tar.gz version = "1.6", AMPL version = "1.6"
+    2024-05-28 16:38:31,608 dataset/SLC6A3_models/SLC6A3_Ki_curated_model_94458d7b-7f94-44c9-83c3-a35833e76c37.tar.gz, 1.6.0
+    2024-05-28 16:38:31,610 Version compatible check: dataset/SLC6A3_models/SLC6A3_Ki_curated_model_94458d7b-7f94-44c9-83c3-a35833e76c37.tar.gz version = "1.6", AMPL version = "1.6"
+    /opt/anaconda3/envs/atomsci-env/lib/python3.9/site-packages/xgboost/core.py:160: UserWarning: [16:38:31] WARNING: /Users/runner/work/xgboost/xgboost/src/gbm/../common/error_msg.h:80: If you are loading a serialized model (like pickle in Python, RDS in R) or
+    configuration generated by an older version of XGBoost, please export the model by calling
+    `Booster.save_model` from that version first, then load it back in current version. See:
+    
+        https://xgboost.readthedocs.io/en/stable/tutorials/saving_model.html
+    
+    for more details about differences between saving model and serializing.
+    
+      warnings.warn(smsg, UserWarning)
 
 
 .. parsed-literal::
 
-    num_model_tasks is deprecated and its value is ignored.
     
     Best valid r2 score:  0.5031490908520113
     
@@ -669,7 +690,7 @@ more accurately.
 .. image:: ../_static/img/07_compare_models_files/07_compare_models_42_2.png
 
 
-This |xgboost| model
+This `XGBoost <https://en.wikipedia.org/wiki/XGBoost>`_ model
 learns the low :math:`pKi` values better but still suffers from problems
 with predicting the censored data.
 
@@ -678,19 +699,3 @@ Moving forward, we would select the ``RF`` model as the best performer.
 In **tutorial 8, "Train a Production Model"**, we will use the
 best-performing parameters to create a production model for the entire
 dataset.
-
-.. |ampl| raw:: html
-
-   <b><a href="https://github.com/ATOMScience-org/AMPL">AMPL</a></b>
-
-.. |rdkit| raw:: html
-
-   <b><a href="https://github.com/rdkit/rdkit">RDKit</a></b>
-
-.. |ecfp| raw:: html
-
-   <b><a href="https://pubs.acs.org/doi/10.1021/ci100050t">ECFP</a></b>
-
-.. |xgboost| raw:: html
-
-   <b><a href="https://en.wikipedia.org/wiki/XGBoost">XGBoost</a></b>

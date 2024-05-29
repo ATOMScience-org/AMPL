@@ -6,7 +6,7 @@
 
 ------------
 
-The purpose of this tutorial is to install the |ampl| software using Docker, which will provide accessibility across multiple platforms. Here are the topics to be covered in this tutorial:
+The purpose of this tutorial is to install the `AMPL <https://github.com/ATOMScience-org/AMPL>`_ software using Docker, which will provide accessibility across multiple platforms. Here are the topics to be covered in this tutorial:
 
 
 * :ref:`Create Docker`
@@ -47,7 +47,7 @@ Option 1: Build a local AMPL image using ``Dockerfile``
 =======================================================
 
 
-* Clone |ampl|  github repo. 
+* Clone `AMPL <https://github.com/ATOMScience-org/AMPL>`_  github repo. 
 
 .. code-block::
 
@@ -78,7 +78,7 @@ This normally takes about 15-20 minutes to build. The image can be **reused**.
     
     *To build without cache, add `--no-cache` flag after `docker build`. For example, `docker build --no-cache -t atomsci-ampl .`*
 
-Once it's built, follow the :ref:`Start container` step to run the |ampl| docker container.
+Once it's built, follow the :ref:`Start container` step to run the `AMPL <https://github.com/ATOMScience-org/AMPL>`_ docker container.
 
 .. _Option 2:
 
@@ -231,7 +231,7 @@ For example:
 Code examples:
 ==============
 
-The |ampl| code is in:
+The `AMPL <https://github.com/ATOMScience-org/AMPL>`_ code is in:
 
 .. code-block::
 
@@ -251,7 +251,7 @@ The tutorials examples are in:
 .. image:: ../_static/img/01_install_from_docker_files/tutorial_tree.png
 
 
-Also, there are examples in |readthedocs| on how to use the |ampl| Framework.
+Also, there are examples in `AMPL's Read the Docs <https://ampl.readthedocs.io/en/latest/>`_ on how to use the `AMPL <https://github.com/ATOMScience-org/AMPL>`_ Framework.
 
 .. _Docker commands:
 
@@ -287,12 +287,3 @@ If you try to connect the Jupyter Notebook URL but got a prompt for password or 
 And copy the string after ``token=`` and  paste the token to log in
 
 .. image:: ../_static/img/01_install_from_docker_files/localhost_token.png
-
-
-.. |ampl| raw:: html
-
-   <b><a href="https://github.com/ATOMScience-org/AMPL">AMPL</a></b>
-
-.. |readthedocs| raw:: html
-
-   <b><a href="https://ampl.readthedocs.io/en/latest/">AMPL's Read the Docs</a></b>

@@ -14,17 +14,17 @@ training, the result is referred to as a trained ML model or an
 artifact.
 
 This tutorial will detail how we can use
-|ampl| regression model to predict how much a compound will inhibit the
-|slc6a3| protein as measured by :math:`pK_i`. We will train a random forest model
+`AMPL <https://github.com/ATOMScience-org/AMPL>`_ regression model to predict how much a compound will inhibit the
+`SLC6A3 <https://www.ebi.ac.uk/chembl/target_report_card/CHEMBL238/>`_ protein as measured by :math:`pK_i`. We will train a random forest model
 using the following inputs:
 
 1. The curated
-   |slc6a3|
+   `SLC6A3 <https://www.ebi.ac.uk/chembl/target_report_card/CHEMBL238/>`_
    dataset from **Tutorial 2, "Data Curation"**.
 2. The split file generated in **Tutorial 3, "Splitting Datasets for
    Validation and Testing"**.
-3. |rdkit| features calculated by
-   the |ampl| pipeline.
+3. `RDKit <https://github.com/rdkit/rdkit>`_ features calculated by
+   the `AMPL <https://github.com/ATOMScience-org/AMPL>`_ pipeline.
 
 The tutorial will present the following functions:
 
@@ -52,13 +52,13 @@ training. We set ``"previously_split": "True"`` and set the
 ``"split_uuid": "c35aeaab-910c-4dcf-8f9f-04b55179aa1a"`` which is saved
 in ``dataset/`` as a convenience for these tutorials.
 
-|ampl| provides an
+`AMPL <https://github.com/ATOMScience-org/AMPL>`_ provides an
 extensive featurization module that can generate a variety of molecular
 feature types, given SMILES strings as input. For demonstration
 purposes, we choose to use RDKit features in this tutorial.
 
 When the featurized dataset is not previously saved for ``SLC6A3_Ki``,
-|ampl| will create a
+`AMPL <https://github.com/ATOMScience-org/AMPL>`_ will create a
 featurized dataset and save it in a folder called ``scaled_descriptors``
 as a csv file e.g.
 ``dataset/scaled_descriptors/SLC6A3_Ki_with_rdkit_raw_descriptors.csv``
@@ -119,11 +119,11 @@ Model Training (Split data and train)
 
 It is possible to split and train a model in one step. Here, we set
 ``"previously_split": "False"`` and not have a split\_uuid parameter.
-|ampl| splits the data
+`AMPL <https://github.com/ATOMScience-org/AMPL>`_ splits the data
 by the type of split specified in the splitter parameter, scaffold in
 this example, and writes the split file in
 ``dataset/SLC6A3_Ki_train_valid_test_scaffold_{split_uuid}.csv.`` After
-training, |ampl| saves
+training, `AMPL <https://github.com/ATOMScience-org/AMPL>`_ saves
 the model and all of its parameters as a tarball in the result\_dir.
 
 .. code:: ipython3
@@ -168,7 +168,7 @@ validation and test sets. The validation set is used while optimizing
 the model and choosing the best parameter settings. Then the performance
 on the test set is to final judge of model performance.
 
-|ampl| has several
+`AMPL <https://github.com/ATOMScience-org/AMPL>`_ has several
 popular metrics to evaulate regression models;
 ``Mean Absolute Error (MAE)``, ``Root Mean Squared Error (RMSE)`` and
 :math:`R^2` (R-Squared). In our tutorials, we will use :math:`R^2`
@@ -332,15 +332,3 @@ model is saved is in ``top_model.model_path``.
 
 In **Tutorial 5, "Application of a Trained Model"** we will learn how to
 use a selected model to make predictions and evaluate those predictions
-
-.. |ampl| raw:: html
-
-   <b><a href="https://github.com/ATOMScience-org/AMPL">AMPL</a></b>
-
-.. |slc6a3| raw:: html
-
-   <b><a href="https://www.ebi.ac.uk/chembl/target_report_card/CHEMBL238/">SLC6A3</a></b>
-
-.. |rdkit| raw:: html
-
-   <b><a href="https://github.com/rdkit/rdkit">RDKit</a></b>

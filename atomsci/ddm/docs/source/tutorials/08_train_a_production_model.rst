@@ -13,7 +13,7 @@ full dataset, rather than just the training subset from a scaffold
 split. Training a model on the full dataset is one approach for creating
 a production model. Another approach, not demonstrated in this tutorial,
 is to combine the training and validation subsets for training and
-evaluating with the test subset. |validation|
+evaluating with the test subset. `K-fold cross validation <https://en.wikipedia.org/wiki/Cross-validation_(statistics)#k-fold_cross-validation>`_
 makes use of this approach. The production model could be shared with
 other researchers to predict on new data.
 
@@ -35,7 +35,7 @@ external test dataset.
   
     *1. ``train_model_from_tar`` and other functions in the
     ``model_retrain`` module can be used to update a previously trained
-    model when there is a new |ampl| release that
+    model when there is a new AMPL release that
     is not compatible with previous versions. This is not covered in
     this tutorial.* 
     
@@ -112,9 +112,9 @@ In the following code, ``create_prediction_pipeline_from_file`` is used
 to reload the original best model. We then verify that it was trained
 with ``production`` set to ``False``.
 
-We also check the |ampl|
+We also check the `AMPL <https://github.com/ATOMScience-org/AMPL>`_
 version to make sure the saved model was trained with a version of
-|ampl| that is
+`AMPL <https://github.com/ATOMScience-org/AMPL>`_ that is
 compatible with the installed version. The versions must be compatible
 in order to be used by ``create_prediction_pipeline_from_file``, which
 we will be calling later to run predictions from the saved model.
@@ -195,7 +195,7 @@ including the test subset, the original test subset **should not** be
 used to evaluate its performance.
 
 First we'll load the external test dataset, which we've already
-featurized with |rdkt| descriptors:
+featurized with `RDKit <https://github.com/rdkit/rdkit>`_ descriptors:
 
 .. code:: ipython3
 
@@ -559,7 +559,7 @@ Other functions with production parameters
 ******************************************
 
 A boolean ``production`` parameter is available in these other functions
-in the |ampl|
+in the `AMPL <https://github.com/ATOMScience-org/AMPL>`_
 ``model_retrain`` module. If ``production`` is set to True, the model
 will be trained in production mode, using the entire dataset for
 training. Note that for neural network models, the model will be trained
@@ -571,16 +571,4 @@ original model training run.
 
 In the next tutorial, we'll explore a wide range of methods for
 visualizing and evaluating the performance of
-|ampl| models.       
-
-.. |ampl| raw:: html
-
-   <b><a href="https://github.com/ATOMScience-org/AMPL">AMPL</a></b>
-
-.. |validation| raw:: html
-
-   <b><a href="https://en.wikipedia.org/wiki/Cross-validation_(statistics)#k-fold_cross-validation">K-fold cross validation</a></b>
-
-.. |rdkt| raw:: html
-
-   <b><a href="https://github.com/rdkit/rdkit">RDKit</a></b>
+`AMPL <https://github.com/ATOMScience-org/AMPL>`_ models.       

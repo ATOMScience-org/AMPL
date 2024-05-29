@@ -17,7 +17,7 @@ The purpose of this tutorial is to install the **[AMPL](https://github.com/ATOMS
 * [Troubleshooting](#troubleshooting)
 
 > **Note:** 
-> ***If you already have an AMPL image previously built from either option 1 or 2, go to this [step](#use-an-existing-image-to-start-a-container) to start/run a container.***
+> ***If you already have an AMPL image previously built from either option 1 or 2, go to this [Use an existing image to start a container](#use-an-existing-image-to-start-a-container) step to start/run a container.***
 
 # Create a Docker Image
 ## Prerequisite: Download and install Docker
@@ -53,7 +53,7 @@ This normally takes about 15-20 minutes to build. The image can be **reused**.
 
 > **Note:** *To build without cache, add `--no-cache` flag after `docker build`. For example, `docker build --no-cache -t atomsci-ampl .`*
 
-Once it's built, follow the [steps](#start-a-container-from-the-ampl-image) to run the **[AMPL](https://github.com/ATOMScience-org/AMPL)** docker container.
+Once it's built, follow the [Start a Docker container](#start-a-container-from-the-ampl-image) step to run the **[AMPL](https://github.com/ATOMScience-org/AMPL)** docker container.
 
 ## Option 2: Pull an existing AMPL image from Docker repo
 
@@ -118,10 +118,10 @@ Copy and paste the URL from the output message to the browser on your computer. 
 > *If this doesn't work, exit the container and choose a different port
 > such as `7777` or `8899` (in all 3 places it's 
 > written), then rerun both commands in 
-> [Start a container](#start-a-container-from-the-ampl-image) and 
-> [Start Jupyter Notebook](#start-the-Jupyter-notebook-from-a-container). 
+> [Start a Docker container ](#start-a-container-from-the-ampl-image) and 
+> [Start the Jupyter notebook from a container](#start-the-Jupyter-notebook-from-a-container). 
 > Be sure to save any work in your container. This is because if the container 
-> is shut down, you'll lose anything not in that folder. See instructions on [how to save work from container](#save-work-from-docker-jupyter).*  
+> is shut down, you'll lose anything not in that folder. See instructions on [Save work from Docker Jupyter](#save-work-from-docker-jupyter).*  
 
 ### Use `atomsci-env` as the run kernel for AMPL
 

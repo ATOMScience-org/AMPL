@@ -12,7 +12,7 @@ on the test set created based on the data split file from "**Tutorial 3:
 Splitting Datasets for Validation and Testing**", and the curated
 dataset from "**Tutorial 2: Data Curation**\ ”.
 
-This tutorial focuses on these |ampl| functions:
+This tutorial focuses on these `AMPL <https://github.com/ATOMScience-org/AMPL>`_ functions:
 
 -  `predict\_from\_model\_file <https://ampl.readthedocs.io/en/latest/pipeline.html#pipeline.predict_from_model.predict_from_model_file>`_
 -  `plot\_pred\_vs\_actual\_from\_df <https://ampl.readthedocs.io/en/latest/pipeline.html#pipeline.perf_plots.plot_pred_vs_actual_from_df>`_
@@ -324,6 +324,6 @@ In **Tutorial 6, "Hyperparameter Optimization"** we will move beyond a
 single model and learn to optimize model hyperparameters by training
 many models.
 
-.. |ampl| raw:: html
+.. `AMPL <https://github.com/ATOMScience-org/AMPL>`_ raw:: html
 
    <b><a href="https://github.com/ATOMScience-org/AMPL">AMPL</a></b>

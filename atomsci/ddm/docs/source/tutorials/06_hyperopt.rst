@@ -13,7 +13,7 @@ forest using ``Bayesian optimization``.
 -  Perform the optimization process. 
 -  Review the results
 
-We will use these |ampl| functions here:
+We will use these `AMPL <https://github.com/ATOMScience-org/AMPL>`_ functions here:
 
 -  `parse\_params <https://ampl.readthedocs.io/en/latest/utils.html#utils.hyperparam_search_wrapper.parse_params>`_
 -  `build\_search <https://ampl.readthedocs.io/en/latest/utils.html#utils.hyperparam_search_wrapper.build_search>`_
@@ -27,16 +27,16 @@ parameter for a random forest is the set of features that is contained
 in a single node (in a single tree) and the cutoff values for each of
 those features that determines how the data is split at that node. A
 full discussion of hyperparameter optimization can be found on
-|wiki|.
+`wikipedia <https://en.wikipedia.org/wiki/Hyperparameter_optimization>`_.
 
 The choice for hyperparameters strongly influence model performance, so
 it is important to be able to optimize them as well.
-|ampl|  offers a variety
+`AMPL <https://github.com/ATOMScience-org/AMPL>`_  offers a variety
 of hyperparameter optimization methods including random sampling, grid
 search, and Bayesian optimization. Further information for
-|ampl|'s
+`AMPL <https://github.com/ATOMScience-org/AMPL>`_'s
 ``Bayesian optimization`` can be found
-|hyper_opt|.
+`here <https://github.com/ATOMScience-org/AMPL#hyperparameter-optimization>`_.
 
 Setup directories
 *****************
@@ -79,7 +79,7 @@ Parameter dictionary settings.
    please refer to the full documentation. Here we are using the
    ``Bayesian optimization`` method.
 -  ``'model_type':'RF|10'`` This means
-   |ampl|  will try 10
+   `AMPL <https://github.com/ATOMScience-org/AMPL>`_  will try 10
    times to find the best set of hyperparameters using random forests.
    In production this parameter could be set to 100 or more.
 -  ``'rfe':'uniformint|8,512'`` The ``Bayesian optimizer`` will
@@ -94,7 +94,7 @@ Regression models are optimized using root mean squared loss and
 classification models are optimized using area under the receiver
 operating characteristic curve. A full list of parameters can be found
 on our github
-|params|.
+`here <https://github.com/ATOMScience-org/AMPL/blob/master/atomsci/ddm/docs/PARAMETERS.md>`_.
 
 .. code:: ipython3
 
@@ -351,9 +351,9 @@ Examples for other parameters
 =============================
 
 Below are some parameters that can be used for neural networks,
-|xgboost| models,
+`XGBoost <https://en.wikipedia.org/wiki/XGBoost>`_ models,
 fingerprint splits and
-|ecfp| features. Each
+`ECFP fingerprints <https://pubs.acs.org/doi/10.1021/ci100050t>`_ features. Each
 set of parameters can be used to replace the parameters above. Trying
 them out is left as an exercise for the reader.
 
@@ -520,28 +520,3 @@ This uses an XGBoost model with ECFP features and a scaffold split.
 
 In **tutorial 7**, we analyze the performance of these large sets of
 models to select the best ``hyperparameters`` for ``production models``.
-
-.. |ampl| raw:: html
-
-   <b><a href="https://github.com/ATOMScience-org/AMPL">AMPL</a></b>
-
-
-.. |wiki| raw:: html
-
-   <b><a href="https://en.wikipedia.org/wiki/Hyperparameter_optimization">wikipedia</a></b>
-
-.. |hyper_opt| raw:: html
-
-   <b><a href="https://github.com/ATOMScience-org/AMPL#hyperparameter-optimization">here</a></b>
-
-.. |params| raw:: html
-
-   <b><a href="https://github.com/ATOMScience-org/AMPL/blob/master/atomsci/ddm/docs/PARAMETERS.md">here</a></b>
-
-.. |xgboost| raw:: html
-
-   <b><a href="https://en.wikipedia.org/wiki/XGBoost">XGBoost</a></b>
-
-.. |ecfp| raw:: html
-
-   <b><a href="https://pubs.acs.org/doi/10.1021/ci100050t">ECFP</a></b>
