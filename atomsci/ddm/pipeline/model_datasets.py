@@ -15,6 +15,7 @@ from pathlib import Path
 import getpass
 import traceback
 import sys
+import pdb
 
 feather_supported = True
 try:
@@ -38,9 +39,13 @@ def create_model_dataset(params, featurization, ds_client=None):
         ds_client (Datastore client)
 
     Returns:
-        either (DatastoreDataset) or (FileDataset): instantiated ModelDataset subclass specified by params
+        either (DatastoreDataset) or (FileDataset) or (DatastoreEmbeddingDataset) or (FileEmbeddingDataset): instantiated ModelDataset subclass specified by params
     """
-    if params.datastore:
+    if params.featurizer == 'embedding' and params.datastore:
+        return DatastoreEmbeddingDataset(params, featurization, ds_client)
+    if params.featurizer == 'embedding':
+        return FileEmbeddingDataset(params, featurization)
+    elif params.datastore:
         return DatastoreDataset(params, featurization, ds_client)
     else:
         return FileDataset(params, featurization)
@@ -1132,9 +1137,7 @@ class DatastoreDataset(ModelDataset):
         return split_df, split_kv
 
 
-
 # ****************************************************************************************
-
 
 class FileDataset(ModelDataset):
     """Subclass representing a dataset for data-driven modeling that lives in the filesystem.
@@ -1317,8 +1320,6 @@ class FileDataset(ModelDataset):
         self.dataset_key = featurized_dset_path
         featurized_dset_df[self.params.id_col] = featurized_dset_df[self.params.id_col].astype(str)
 
-        
-
         return featurized_dset_df
 
     # ****************************************************************************************
@@ -1358,10 +1359,171 @@ class FileDataset(ModelDataset):
         split_df = pd.read_csv(split_table_file, index_col=False)
         return split_df, None
 
+
+class EmbeddingDataset:
+    """Template representing a dataset for transfer learning modeling.
+    The dataset itself inherits from DatastoreDataset or FileDataset and contains a second dataset, FileDataset or
+    DatastoreDataset, etc, to calculate input features to the embedding model
+
+    Attributes:
+
+    set in get_featurized_data:
+        dataset: A new featurized DeepChem Dataset.
+        n_features: The count of features (int)
+        attr: A pd.dataframe containing the compound ids and smiles
+        input_dataset: This is the inner dataset responsible for handling features for the input to the embedding model
+    """
+
+    # ****************************************************************************************
+    def get_featurized_data(self, params=None):
+        """Does whatever is necessary to prepare a featurized dataset.
+        Loads an existing prefeaturized dataset if one exists and if parameter previously_featurized is
+        set True; otherwise loads a raw dataset and featurizes it. Creates an associated DeepChem Dataset
+        object. Once the data is featurized, it is fed into the embedding featurization to calculate
+        the final dataset.
+
+        Side effects:
+            Sets the following attributes in the ModelDataset object:
+                dataset: A new featurized DeepChem Dataset.
+                n_features: The count of features (int)
+                vals: The response col after featurization (np.array)
+                attr: A pd.dataframe containing the compound ids and smiles
+                input_dataset: This is used for saving splits
+        """
+
+        self._create_input_dataset()
+
+        if params is None:
+            params = self.params
+        load_success = False
+        # see if input features have alraedy been calculated
+        if params.previously_featurized:
+            try:
+                self.log.debug("Attempting to load featurized dataset")
+                featurized_dset_df = self.input_dataset.load_featurized_data()
+                if (params.max_dataset_rows > 0) and (len(featurized_dset_df) > params.max_dataset_rows):
+                    featurized_dset_df = featurized_dset_df.sample(n=params.max_dataset_rows)
+                featurized_dset_df[params.id_col] = featurized_dset_df[params.id_col].astype(str)
+
+                load_success = True
+                should_save = False
+
+            except AssertionError as a:
+                raise a
+            except Exception as e:
+                self.log.debug("Exception when trying to load featurized data:\n%s" % str(e))
+                self.log.info("Featurized dataset not previously saved for dataset %s, creating new" % self.input_dataset.dataset_name)
+                pass
+
+        # if not, calculate input features
+        if not load_success:
+            self.log.info("Creating new featurized dataset for dataset %s" % self.input_dataset.dataset_name)
+            dset_df = self.input_dataset.load_full_dataset()
+            should_save = True
+            if (params.max_dataset_rows > 0) and (len(dset_df) > params.max_dataset_rows):
+                dset_df = dset_df.sample(n=params.max_dataset_rows).reset_index(drop=True)
+                should_save = False
+            check_task_columns(params, dset_df)
+            _, _, _, _, _, featurized_dset_df = self.featurization.input_featurization.featurize_data(
+                                                    dset_df,
+                                                    self.featurization.input_data_params,
+                                                    self.input_dataset.contains_responses)
+            load_success = True
+
+        if should_save:
+            self.input_dataset.save_featurized_data(featurized_dset_df)
+
+        # calculate the embedding
+        features, ids, self.vals, self.attr, w, featurized_dset_df = self.featurization.featurize_data(
+                                                    featurized_dset_df, params, self.contains_responses)
+        self.n_features = self.featurization.get_feature_count()
+        self.log.debug("Number of features: " + str(self.n_features))
+           
+        # Create the DeepChem dataset       
+        self.dataset = NumpyDataset(features, self.vals, ids=ids, w=w)
+        # Checking for minimum number of rows
+        if len(self.dataset) < params.min_compound_number:
+            self.log.warning("Dataset of length %i is shorter than the required length %i" % (len(self.dataset), params.min_compound_number))
+
+        return
+
+    # ****************************************************************************************
+    def save_featurized_data(self, featurized_dset_df):
+        """Does nothing, since a EmbeddingDataset object does not persist its data.
+
+        Args:
+                featurized_dset_df (pd.DataFrame): Ignored.
+        """
+        pass
+
+# ****************************************************************************************
+class DatastoreEmbeddingDataset(EmbeddingDataset, DatastoreDataset):
+    """Subclass representing a datastore dataset for transfer learning modeling.
+    The dataset itself inherits from DatastoreDataset and contains a second dataset, 
+    DatastoreDataset, etc, to calculate input features to the embedding model
+
+    Attributes:
+
+    Same as DatastoreDataset
+
+    set in get_featurized_data:
+        dataset: A new featurized DeepChem Dataset.
+        n_features: The count of features (int)
+        attr: A pd.dataframe containing the compound ids and smiles
+        input_dataset: This is the inner dataset responsible for handling features for the input to the embedding model
+    """
+
+    # ****************************************************************************************
+    def _create_input_dataset(self):
+        """Creates input_dataset used to load featurized data for the embedding model
+
+        Side effects:
+            Sets the following attributes :
+                input_dataset: This is used for saving splits
+        """
+
+        self.input_dataset = create_model_dataset(params=self.featurization.input_data_params,
+                            featurization=self.featurization.input_featurization,
+                            ds_client=self.ds_client)
+
+
+# ****************************************************************************************
+class FileEmbeddingDataset(EmbeddingDataset, FileDataset):
+    """Subclass representing a file dataset for transfer learning modeling.
+    The dataset itself inherits from FileDataset and contains a second dataset, 
+    FileDataset, etc, to calculate input features to the embedding model
+
+    Attributes:
+
+    Same as DatastoreDataset
+
+    set in get_featurized_data:
+        dataset: A new featurized DeepChem Dataset.
+        n_features: The count of features (int)
+        attr: A pd.dataframe containing the compound ids and smiles
+        input_dataset: This is the inner dataset responsible for handling features for the input to the embedding model
+    """
+
+    # ****************************************************************************************
+    def _create_input_dataset(self):
+        """Creates input_dataset used to load featurized data for the embedding model
+
+        Side effects:
+            Sets the following attributes :
+                input_dataset: This is used for saving splits
+        """
+
+        self.input_dataset = create_model_dataset(params=self.featurization.input_data_params,
+                            featurization=self.featurization.input_featurization,
+                            ds_client=None)
+
+
+# ****************************************************************************************
 class ClassificationDataException(Exception):
     """Used when dataset for classification problem violates assumptions
        -   Every subset in a split must have all classes
        -   Labels must range from 0 <= L < num_classes. DeepChem requires this.
            Errors occur when L > num_classes or L < 0
     """
+
     pass
