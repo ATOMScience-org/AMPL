@@ -1522,6 +1522,12 @@ def get_parser():
     parser.add_argument(
         '--dp', dest='dp', required=False, default=None,
         help='dropouts shown in HyperOpt domain format, e.g. --dp=uniform|3|0,0.4')
+    parser.add_argument(
+        '--wdp', dest='wdp', required=False, default=None,
+        help='weight_decay_penalty shown in HyperOpt domain format, e.g. --wdp=loguniform|-6.908,-4.605')
+    parser.add_argument(
+        '--wdt', dest='wdt', required=False, default=None,
+        help='weight_decay_penalty_type shown in HyperOpt domain format, e.g. --wdt=choice|l1,l2')
     # RF model
     parser.add_argument(
         '--rfe', dest='rfe', required=False, default=None,
