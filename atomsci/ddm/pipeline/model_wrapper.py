@@ -2261,6 +2261,8 @@ class DCxgboostModelWrapper(ForestModelWrapper):
                        "xgb_learning_rate" : self.params.xgb_learning_rate,
                        "xgb_n_estimators" : self.params.xgb_n_estimators,
                        "xgb_gamma" : self.params.xgb_gamma,
+                       "xgb_alpha" : self.params.xgb_alpha,
+                       "xgb_lambda" : self.params.xgb_lambda,
                        "xgb_min_child_weight" : self.params.xgb_min_child_weight,
                        "xgb_subsample" : self.params.xgb_subsample,
                        "xgb_colsample_bytree"  :self.params.xgb_colsample_bytree
