@@ -143,7 +143,7 @@ and select `atomsci-env` as the run kernel
 
 ### Save work from Docker Jupyter
 
-Docker container is stateless. Once you exit, the work will not be kept. There are a couple of ways to save your changes:
+Docker container is stateless. Once you exit, the work will not be persist. There are a couple of ways to save your changes:
 
 1) Use the browser Jupyter. Use `File` -> `Download` to download the file(s).
 
@@ -168,12 +168,12 @@ docker run -it -p 8888:8888 -v ~:/home atomsci-ampl # <local_folder> -> `~`, <di
 ```
 root@d8ae116b2a83:/AMPL# pwd
 /AMPL
-root@d8ae116b2a83:/AMPL# cp atomsci/ddm/examples/tutorials2023/01_install_from_docker.md /home
+root@d8ae116b2a83:/AMPL# cp atomsci/ddm/examples/01_install_from_docker.md /home
 ```
 
 * The file(s) will be in <local_folder>
 
-### Code examples:
+### Code examples
 
 The **[AMPL](https://github.com/ATOMScience-org/AMPL)** code is in:
 
@@ -186,7 +186,7 @@ http://127.0.0.1:<port_number>/tree/AMPL/atomsci/ddm/
 The tutorials examples are in:
 
 ```
-http://127.0.0.1:<port_number>/tree/AMPL/atomsci/ddm/examples/tutorials2023
+http://127.0.0.1:<port_number>/tree/AMPL/atomsci/ddm/examples/
 ```
 
 ![Browse tutorials](../../docs/source/_static/img/01_install_from_docker_files/tutorial_tree.png)
@@ -211,7 +211,7 @@ docker cp <container_id>:source_path dest_path # copy from container to local
 
 * Problem with token
 
-If you try to connect the Jupyter Notebook URL but got a prompt for password or token. From the docker terminal, type in
+If you try to connect the Jupyter Notebook URL, but got a prompt for password or token, You can go to the docker terminal, type in
 
 ```
 jupyter server list
@@ -222,3 +222,7 @@ jupyter server list
 And copy the string after `token=` and  paste the token to log in
 
 ![Localhost Token](../../docs/source/_static/img/01_install_from_docker_files/localhost_token.png)
+
+Welcome to the ATOM Modeling PipeLine now that you have installed Docker! You are ready to use the AMPL Tutorials on your journey to build a machine learning model. 
+
+To kick-start the Tutorial series, check out **Tutorial 2, "Data Curation"**, to learn how to curate a dataset that will be used throughout the Tutorial series.
