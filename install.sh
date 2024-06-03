@@ -1,21 +1,29 @@
 #!/bin/bash
 
-PACKAGE=atomsci
-APP=ampl
+set -ex
 
-INSTALL=--user
+: "${PYTHON:=python3}"
+PACKAGE="atomsci"
+APP="ampl"
+
+INSTALL="--user"
 if [ "$1" = "system" ]; then
-    INSTALL=
+    INSTALL=""
 fi
 
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 echo "DIR: $DIR"
-cd $DIR
+cd "$DIR"
 
-TOPDIR=`readlink -f .`
+TOPDIR="$(readlink -f .)"
+DIST_DIR="${TOPDIR}/dist"
 
-DIST_DIR=${TOPDIR}.dist
+mkdir -p "$DIST_DIR"
 
-mkdir -p $DIST_DIR
+# Ensure the package is in the DIST_DIR
+if [ ! -f "${DIST_DIR}/${PACKAGE}_${APP}"* ]; then
+    echo "ERROR: ${PACKAGE}_${APP} package not found in ${DIST_DIR}"
+    exit 1
+fi
 
-python3 -m pip install --pre --upgrade --no-index --find-links=$DIST_DIR --no-deps ${PACKAGE}_${APP} $INSTALL --force-reinstall -I -v || exit 1
+$PYTHON -m pip install --pre --upgrade --no-index --find-links="$DIST_DIR" --no-deps "${PACKAGE}_${APP}" $INSTALL --force-reinstall -I -v || exit 1
