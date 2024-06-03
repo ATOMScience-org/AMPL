@@ -186,7 +186,38 @@ python -m ipykernel install --user --name atomsci-env
 
 ### Using Makefile
 
-If you have `make` installed on your computer, you can quickly get a notebook up and running using the available commands. See further documentation in [Makefile.md](./Makefile.md) and script definitions in [Makefile](./Makefile)
+If you have `make` installed on your computer, you can quickly get a notebook up and running using the available commands. Here are the key commands and their descriptions from the `Makefile`:
+
+#### Environment Variables
+
+- `ENV`: Set the environment (default: `dev`).
+- `JUPYTER_PORT`: Set the Jupyter Notebook port (default: `8888`).
+- `PLATFORM`: Set the platform (default: `gpu`).
+- `PYTHON_BIN`: Path to the Python executable.
+- `IMAGE_REPO`: Docker image repository (default: `atomsci/atomsci-ampl`).
+- `VENV`: Virtual environment directory (default: `venv`).
+- `WORK_DIR`: Work directory (default: `work`).
+
+#### Key Targets
+
+| Target             | Description                                                  | Command                 |
+| ------------------ | ------------------------------------------------------------ | ----------------------- |
+| `push-docker`      | Push Docker image for the specified platform and environment | `make push-docker`      |
+| `build-docker`     | Build Docker image for the specified platform                | `make build-docker`     |
+| `install`          | Install atomsci-ampl using the system Python                 | `make install`          |
+| `install-system`   | Install atomsci-ampl into the specified Python environment   | `make install-system`   |
+| `install-venv`     | Install atomsci-ampl into the virtual environment            | `make install-venv`     |
+| `jupyter-notebook` | Run Jupyter Notebook inside a Docker container               | `make jupyter-notebook` |
+| `jupyter-lab`      | Run Jupyter Lab inside a Docker container                    | `make jupyter-lab`      |
+| `pytest`           | Run pytest using the virtual environment                     | `make pytest`           |
+| `ruff`             | Run ruff linter                                              | `make ruff`             |
+| `ruff-fix`         | Run ruff linter with auto-fix                                | `make ruff-fix`         |
+| `setup`            | Setup virtual environment with CPU dependencies              | `make setup`            |
+| `uninstall`        | Uninstall atomsci-ampl                                       | `make uninstall`        |
+| `uninstall-system` | Uninstall atomsci-ampl from the system Python                | `make uninstall-system` |
+| `uninstall-venv`   | Uninstall atomsci-ampl from the virtual environment          | `make uninstall-venv`   |
+
+For more detailed information on the `Makefile`, refer to the file itself in the repository.
 
 ### Manual Steps
 
@@ -399,11 +430,10 @@ To get more info on an AMPL config file, please refer to:
     ```
 
 5.  Save a checkpoint to continue it later.
-        To save a checkpoint file of the hyperparameter search job, you want to set the following two parameters.
-        - "hp_checkpoint_save": "/path/to/the/checkpoint/file.pkl"
-        - "hp_checkpoint_load": "/path/to/the/checkpoint/file.pkl"
+    To save a checkpoint file of the hyperparameter search job, you want to set the following two parameters. - "hp_checkpoint_save": "/path/to/the/checkpoint/file.pkl" - "hp_checkpoint_load": "/path/to/the/checkpoint/file.pkl"
 
         If the "hp_checkpoint_load" is provided, the hyperparameter search will continue from the checkpoint.
+
     </details>
 
 ---
@@ -542,7 +572,7 @@ Versions are managed through GitHub tags on this repository.
 Thank you for contributing to AMPL!
 
 - Contributions must be submitted through pull requests.
-- All new contributions must adhere to the MIT license.  
+- All new contributions must adhere to the MIT license.
   &nbsp;
 
 ### Release
@@ -553,5 +583,5 @@ See [MIT license](LICENSE) and [NOTICE](NOTICE) for more details.
 
 - LLNL-CODE-795635
 - CRADA TC02264
-  &nbsp;  
+  &nbsp;
   &nbsp;
