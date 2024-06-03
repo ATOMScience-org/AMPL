@@ -4,13 +4,13 @@ The purpose of this tutorial is to install the **[AMPL](https://github.com/ATOMS
 
 * [Create a Docker Image](#create-a-docker-image)
    * [Prerequisite: Download and install Docker](#prerequisite-download-and-install-docker) 
-   * [Option 1: Build a local AMPL image using `Dockerfile`](#option-1-build-a-local-ampl-image-using-dockerfile)
+   * [Option 1: Build a local AMPL image using  **Dockerfile**](#option-1-build-a-local-ampl-image-using-dockerfile)
    * [Option 2: Pull an existing AMPL image from the Docker repo](#option-2-pull-an-existing-ampl-image-from-docker-repo)
 * [Start a Docker container](#start-a-docker-container)
    * [Use an existing image to start a container](#use-an-existing-image-to-start-a-container)
 * [Start the Jupyter notebook from a container](#start-the-jupyter-notebook-from-a-container)
    * [To connect the Jupyter notebook from a browser](#to-connect-the-jupyter-notebook-from-a-browser)
-   * [Use `atomsci-env` as the run kernel for AMPL](#use-atomsci-env-as-the-run-kernel-for-AMPL)
+   * [Use **atomsci-env** as the run kernel for AMPL](#use-atomsci-env-as-the-run-kernel-for-AMPL)
    * [Save work from Docker Jupyter](#save-work-from-docker-jupyter)
 * [Code examples](#code-examples)
 * [Useful Docker commands](#useful-docker-commands)
@@ -26,7 +26,7 @@ If you don't have Docker Desktop installed, please follow instructions here: htt
 
 Once it's installed, click on the Docker icon to start. Leave it running when using Docker.
 
-## Option 1: Build a local AMPL image using `Dockerfile`
+## Option 1: Build a local AMPL image using **Dockerfile**
 
 - Clone **[AMPL](https://github.com/ATOMScience-org/AMPL)**  github repo. 
 
@@ -123,16 +123,16 @@ Copy and paste the URL from the output message to the browser on your computer. 
 > Be sure to save any work in your container. This is because if the container 
 > is shut down, you'll lose anything not in that folder. See instructions on [Save work from Docker Jupyter](#save-work-from-docker-jupyter).*  
 
-### Use `atomsci-env` as the run kernel for AMPL
+### Use **atomsci-env** as the run kernel for AMPL
 
 There are two ways to set a kernel:
 
-* From a notebook, top menu bar `Kernel` > `Change Kernel` > `atomsci-env`
+* From a notebook, top menu bar "Kernel" > "Change Kernel" > "atomsci-env"
 
 ![Select a kernel from a notebook](../../docs/source/_static/img/01_install_from_docker_files/docker-kernel-inside-nb.png)
 
-* Outside of a notebook, click `New` dropdown from upper right corner, 
-and select `atomsci-env` as the run kernel
+* Outside of a notebook, click "New" dropdown from upper right corner, 
+and select **atomsci-env** as the run kernel
 
 ![Select a kernel outside of a notebook](../../docs/source/_static/img/01_install_from_docker_files/docker-kernel-outside-nb.png)
 
@@ -145,7 +145,7 @@ and select `atomsci-env` as the run kernel
 
 Docker container is stateless. Once you exit, the work will not be persist. There are a couple of ways to save your changes:
 
-1) Use the browser Jupyter. Use `File` -> `Download` to download the file(s).
+1) Use the browser Jupyter. Use **File** -> **Download** to download the file(s).
 
 1) Use mount. When you start the Docker with `-v` option:
 
