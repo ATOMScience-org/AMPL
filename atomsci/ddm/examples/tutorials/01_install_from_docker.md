@@ -211,7 +211,7 @@ docker cp <container_id>:source_path dest_path # copy from container to local
 
 * Problem with token
 
-If you try to connect the Jupyter Notebook URL, but got a prompt for password or token, You can go to the docker terminal, type in
+If you try to connect the Jupyter Notebook URL, but got a prompt for password or token, go to the docker terminal, type in
 
 ```
 jupyter server list
