@@ -195,7 +195,9 @@ def _generate_scaffold_dist_matrix(scaffold_lists: List[np.ndarray],
                     continue
 
                 dists = dmat[scaff1_rows, scaff2].flatten()
-                min_dist = np.median(dists)
+                #min_dist = np.median(dists)
+                # ksm: Change back to min and see what happens
+                min_dist = np.min(dists)
 
                 if min_dist==0:
                     print("two scaffolds match exactly?!?", i, j)
