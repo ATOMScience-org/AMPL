@@ -49,7 +49,7 @@ docker build -t atomsci-ampl .       # by default, "latest" will be the tag
 docker build -t atomsci-ampl:<tag> . # specify a name for <tag>
 ```
 
-This normally takes about 15-20 minutes to build. The image can be **reused**.
+This normally takes about 15-20 minutes to build. The image can be reused.
 
 > **Note:** *To build without cache, add "--no-cache" flag after "docker build". For example, "docker build --no-cache -t atomsci-ampl ."*
 
@@ -143,7 +143,7 @@ and select **atomsci-env** as the run kernel
 
 ### Save work from Docker Jupyter
 
-Docker container is stateless. Once you exit, the work will not be persist. There are a couple of ways to save your changes:
+A Docker container is stateless. Once you exit, the work will not be persist. There are a couple of ways to save your changes:
 
 1) Use the browser Jupyter. Use "File" -> "Download" to download the file(s).
 
