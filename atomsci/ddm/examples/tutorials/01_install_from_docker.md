@@ -79,11 +79,11 @@ docker run -it -p <port>:<port> -v <local_folder>:<directory_in_docker> <IMAGE>
 * Examples
 ```
 # example 1 # if built from Dockerfile
-docker run -it -p 8888:8888 -v ${PWD}:home atomsci-ampl
+docker run -it -p 8888:8888 -v ${PWD}:/home atomsci-ampl
 
 # or
 # example 2 # if pulled from atomsci
-docker run -it -p 8888:8888 -v ${PWD}:home atomsci/atomsci-ampl
+docker run -it -p 8888:8888 -v ${PWD}:/home atomsci/atomsci-ampl
 ```
 
 > #### To get more info for the `docker run` command options, type `docker run --help`. For example: 
