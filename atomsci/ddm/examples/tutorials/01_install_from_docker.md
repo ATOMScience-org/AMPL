@@ -143,7 +143,7 @@ and select **atomsci-env** as the run kernel
 
 ### Save work from Docker Jupyter
 
-A Docker container is stateless. Once you exit, the work will not be persist. There are a couple of ways to save your changes:
+A Docker container is stateless. Once you exit, the work will not persist. There are a couple of ways to save your files:
 
 1) Use the browser Jupyter. Use "File" -> "Download" to download the file(s).
 
