@@ -3,30 +3,30 @@
 The purpose of this tutorial is to install the **[AMPL](https://github.com/ATOMScience-org/AMPL)** software using Docker, which will provide accessibility across multiple platforms. Here are the topics to be covered in this tutorial:
 
 * [Create a Docker Image](#create-a-docker-image)
-   * [Prerequisite: Download and install Docker](#prerequisite-download-and-install-docker) 
-   * [Option 1: Build a local AMPL image using  **Dockerfile**](#option-1-build-a-local-ampl-image-using-dockerfile)
-   * [Option 2: Pull an existing AMPL image from the Docker repo](#option-2-pull-an-existing-ampl-image-from-docker-repo)
-* [Start a Docker container](#start-a-docker-container)
-   * [Use an existing image to start a container](#use-an-existing-image-to-start-a-container)
-* [Start the Jupyter notebook from a container](#start-the-jupyter-notebook-from-a-container)
-   * [To connect the Jupyter notebook from a browser](#to-connect-the-jupyter-notebook-from-a-browser)
-   * [Use **atomsci-env** as the run kernel for AMPL](#use-atomsci-env-as-the-run-kernel-for-AMPL)
-   * [Save work from Docker Jupyter](#save-work-from-docker-jupyter)
-* [Code examples](#code-examples)
-* [Useful Docker commands](#useful-docker-commands)
+   * [Prerequisite: Download and Install Docker](#prerequisite-download-and-install-docker) 
+   * [Option 1: Build a Local AMPL Image Using **Dockerfile**](#option-1-build-a-local-ampl-image-using-dockerfile)
+   * [Option 2: Pull an Existing AMPL Image From a Docker Repo](#option-2-pull-an-existing-ampl-image-from-docker-repo)
+* [Start a Docker Container](#start-a-docker-container)
+   * [Use an Existing Image to Start a Container](#use-an-existing-image-to-start-a-container)
+* [Start the Jupyter Jotebook From a Container](#start-the-jupyter-notebook-from-a-container)
+   * [To Connect the Jupyter Notebook From a Browser](#to-connect-the-jupyter-notebook-from-a-browser)
+   * [Use **atomsci-env** As the Run Kernel for AMPL](#use-atomsci-env-as-the-run-kernel-for-AMPL)
+   * [Save Work From Docker Jupyter](#save-work-from-docker-jupyter)
+* [Code Examples](#code-examples)
+* [Useful Docker Commands](#useful-docker-commands)
 * [Troubleshooting](#troubleshooting)
 
 > **Note:** 
 > ***If you already have an AMPL image previously built from either option 1 or 2, go to this [Use an existing image to start a container](#use-an-existing-image-to-start-a-container) step to start/run a container.***
 
 # Create a Docker Image
-## Prerequisite: Download and install Docker
+## Prerequisite: Download and Install Docker
 
 If you don't have Docker Desktop installed, please follow instructions here: https://www.docker.com/get-started.
 
 Once it's installed, click on the Docker icon to start. Leave it running when using Docker.
 
-## Option 1: Build a local AMPL image using **Dockerfile**
+## Option 1: Build a Local Ampl Image Using **Dockerfile**
 
 - Clone **[AMPL](https://github.com/ATOMScience-org/AMPL)**  github repo. 
 
@@ -55,15 +55,15 @@ This normally takes about 15-20 minutes to build. The image can be reused.
 
 Once it's built, follow the [Start a Docker container](#start-a-container-from-the-ampl-image) step to run the **[AMPL](https://github.com/ATOMScience-org/AMPL)** docker container.
 
-## Option 2: Pull an existing AMPL image from Docker repo
+## Option 2: Pull an Existing Ampl Image From a Docker Repo
 
 ```
 docker pull atomsci/atomsci-ampl:latest
 ```
 
-# Start a Docker container
+# Start a Docker Container
 
-## Use an existing image to start a container
+## Use an Existing Image to Start a Container
 
 If you have an image built/downloaded, type "docker images" to see what images are currently available. 
 Pick one and run it using the "docker run" command. For example:
@@ -78,7 +78,7 @@ docker run -it -p <port>:<port> -v <local_folder>:<directory_in_docker> <IMAGE>
 
 * Examples
 ```
-# example 1 # if built from Dockerfile
+# example 1 # if built from a Dockerfile
 docker run -it -p 8888:8888 -v ${PWD}:/home atomsci-ampl
 
 # or
@@ -93,7 +93,7 @@ docker run -it -p 8888:8888 -v ${PWD}:/home atomsci/atomsci-ampl
 >  -p, --publish port(s) list           Publish a container's port(s) to the host
 >  -v, --volume list                    Bind mount a volume </pre>
 
-## Start the Jupyter notebook from a container
+## Start the Jupyter Notebook From a Container
 
 ```
 #inside docker container
@@ -106,7 +106,7 @@ This will output a message with similar URLs to this:
 ![Jupyter Notebook Token](../../docs/source/_static/img/01_install_from_docker_files/jupyter_token.png)
 
 
-### To connect the Jupyter notebook from a browser
+### To Connect the Jupyter Notebook From a Browser
 
 Copy and paste the URL from the output message to the browser on your computer. For example:
 
@@ -123,7 +123,7 @@ Copy and paste the URL from the output message to the browser on your computer. 
 > Be sure to save any work in your container. This is because if the container 
 > is shut down, you'll lose anything not in that folder. See instructions on [Save work from Docker Jupyter](#save-work-from-docker-jupyter).*  
 
-### Use **atomsci-env** as the run kernel for AMPL
+### Use **atomsci-env** As the Run Kernel for Ampl
 
 There are two ways to set a kernel:
 
@@ -141,7 +141,7 @@ and select **atomsci-env** as the run kernel
 
 ![Notebook example](../../docs/source/_static/img/01_install_from_docker_files/notebook-env.png)
 
-### Save work from Docker Jupyter
+### Save Work From Docker Jupyter
 
 A Docker container is stateless. Once you exit, the work will not persist. There are a couple of ways to save your files:
 
@@ -173,7 +173,7 @@ root@d8ae116b2a83:/AMPL# cp atomsci/ddm/examples/01_install_from_docker.md /home
 
 * The file(s) will be in <local_folder>
 
-### Code examples
+### Code Examples
 
 The **[AMPL](https://github.com/ATOMScience-org/AMPL)** code is in:
 
@@ -196,7 +196,7 @@ Also, there are examples in
 
 ---
 
-### Useful Docker commands
+### Useful Docker Commands
 
 ```
 docker run --help                              # get help messages
