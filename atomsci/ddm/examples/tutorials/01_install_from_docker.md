@@ -8,7 +8,7 @@ The purpose of this tutorial is to install the **[AMPL](https://github.com/ATOMS
    * [Option 2: Pull an Existing AMPL Image From a Docker Repo](#option-2-pull-an-existing-ampl-image-from-docker-repo)
 * [Start a Docker Container](#start-a-docker-container)
    * [Use an Existing Image to Start a Container](#use-an-existing-image-to-start-a-container)
-* [Start the Jupyter Jotebook From a Container](#start-the-jupyter-notebook-from-a-container)
+* [Start the Jupyter Notebook From a Container](#start-the-jupyter-notebook-from-a-container)
    * [To Connect the Jupyter Notebook From a Browser](#to-connect-the-jupyter-notebook-from-a-browser)
    * [Use **atomsci-env** As the Run Kernel for AMPL](#use-atomsci-env-as-the-run-kernel-for-AMPL)
    * [Save Work From Docker Jupyter](#save-work-from-docker-jupyter)
@@ -26,7 +26,7 @@ If you don't have Docker Desktop installed, please follow instructions here: htt
 
 Once it's installed, click on the Docker icon to start. Leave it running when using Docker.
 
-## Option 1: Build a Local Ampl Image Using **Dockerfile**
+## Option 1: Build a Local AMPL Image Using **Dockerfile**
 
 - Clone **[AMPL](https://github.com/ATOMScience-org/AMPL)**  github repo. 
 
@@ -53,9 +53,9 @@ This normally takes about 15-20 minutes to build. The image can be reused.
 
 > **Note:** *To build without cache, add "--no-cache" flag after "docker build". For example, "docker build --no-cache -t atomsci-ampl ."*
 
-Once it's built, follow the [Start a Docker container](#start-a-container-from-the-ampl-image) step to run the **[AMPL](https://github.com/ATOMScience-org/AMPL)** docker container.
+Once it's built, follow the **[Start a Docker container](#start-a-container-from-the-ampl-image)** step to run the **[AMPL](https://github.com/ATOMScience-org/AMPL)** docker container.
 
-## Option 2: Pull an Existing Ampl Image From a Docker Repo
+## Option 2: Pull an Existing AMPL Image From a Docker Repo
 
 ```
 docker pull atomsci/atomsci-ampl:latest
@@ -123,7 +123,7 @@ Copy and paste the URL from the output message to the browser on your computer. 
 > Be sure to save any work in your container. This is because if the container 
 > is shut down, you'll lose anything not in that folder. See instructions on [Save work from Docker Jupyter](#save-work-from-docker-jupyter).*  
 
-### Use **atomsci-env** As the Run Kernel for Ampl
+### Use **atomsci-env** As the Run Kernel for AMPL
 
 There are two ways to set a kernel:
 
@@ -178,21 +178,24 @@ root@d8ae116b2a83:/AMPL# cp atomsci/ddm/examples/01_install_from_docker.md /home
 The **[AMPL](https://github.com/ATOMScience-org/AMPL)** code is in:
 
 ```
+# if start with a "jupyter-notebook" command
 http://127.0.0.1:<port_number>/tree/AMPL/atomsci/ddm/
+# or
+# if start with a "jupyter-lab" command
+http://127.0.0.1:<port_number>/lab/atomsci/ddm/examples
 ```
 
 > **Note:** *"<port_number>" is the number that you used when starting "docker run -p ...".*
 
 The tutorials examples are in:
-
 ```
-http://127.0.0.1:<port_number>/tree/AMPL/atomsci/ddm/examples/
+http://127.0.0.1:<port_number>/tree/AMPL/atomsci/ddm/examples/tutorials
+# or
+http://127.0.0.1:<port_number>/lab/atomsci/ddm/examples/tutorials
 ```
-
-![Browse tutorials](../../docs/source/_static/img/01_install_from_docker_files/tutorial_tree.png)
 
 Also, there are examples in 
-[AMPL's Read the Docs](https://ampl.readthedocs.io/en/latest/) on how to use the **[AMPL](https://github.com/ATOMScience-org/AMPL)** Framework.
+**[AMPL's Read the Docs](https://ampl.readthedocs.io/en/latest/)** on how to use the **[AMPL](https://github.com/ATOMScience-org/AMPL)** Framework.
 
 ---
 
@@ -223,6 +226,6 @@ And copy the string after "token=" and  paste the token to log in
 
 ![Localhost Token](../../docs/source/_static/img/01_install_from_docker_files/localhost_token.png)
 
-Welcome to the ATOM Modeling PipeLine now that you have installed Docker! You are ready to use the AMPL Tutorials on your journey to build a machine learning model. 
+Welcome to the ATOM Modeling PipeLine now that you have installed Docker! You are ready to use the **[AMPL](https://github.com/ATOMScience-org/AMPL)** Tutorials on your journey to build a machine learning model. 
 
 To kick-start the Tutorial series, check out **Tutorial 2, "Data Curation"**, to learn how to curate a dataset that will be used throughout the Tutorial series.
