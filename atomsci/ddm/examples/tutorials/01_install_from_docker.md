@@ -180,7 +180,7 @@ The **[AMPL](https://github.com/ATOMScience-org/AMPL)** code is in:
 ```
 # if start with a "jupyter-notebook" command
 http://127.0.0.1:<port_number>/tree/AMPL/atomsci/ddm/
-# or
+# -OR-
 # if start with a "jupyter-lab" command
 http://127.0.0.1:<port_number>/lab/atomsci/ddm/examples
 ```
@@ -190,7 +190,7 @@ http://127.0.0.1:<port_number>/lab/atomsci/ddm/examples
 The tutorials examples are in:
 ```
 http://127.0.0.1:<port_number>/tree/AMPL/atomsci/ddm/examples/tutorials
-# or
+# -OR-
 http://127.0.0.1:<port_number>/lab/atomsci/ddm/examples/tutorials
 ```
 
