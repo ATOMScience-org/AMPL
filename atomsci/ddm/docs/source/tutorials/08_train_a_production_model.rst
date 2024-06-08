@@ -2,18 +2,20 @@
 08 Train a Production Model
 ###########################
 
-*Published: May, 2024, ATOM DDM Team*
+*Published: June, 2024, ATOM DDM Team*
 
 ------------
+
 
 In this tutorial, you will use the existing hyperparameters that yielded
 the best performing model in the previous **Tutorial 7, "Compare models
 to select the best hyperparameters"** to train a production model on the
-full dataset, rather than just the training subset from a scaffold
-split. Training a model on the full dataset is one approach for creating
-a production model. Another approach, not demonstrated in this tutorial,
-is to combine the training and validation subsets for training and
-evaluating with the test subset. `K-fold cross validation <https://en.wikipedia.org/wiki/Cross-validation_(statistics)#k-fold_cross-validation>`_
+full dataset, rather than just the training subset from a **scaffold
+split**. Training a model on the full dataset is one approach for
+creating a production model. Another approach, not demonstrated in this
+tutorial, is to combine the training and validation subsets for training
+and evaluating with the test subset. `K-fold cross
+validation <https://en.wikipedia.org/wiki/Cross-validation_(statistics)#k-fold_cross-validation>`_
 makes use of this approach. The production model could be shared with
 other researchers to predict on new data.
 
@@ -27,25 +29,29 @@ We will use functions covered in **Tutorial 5, "Train a Simple
 Regression Model"** to evaluate the original and production models on an
 external test dataset.
 
--  `create\_prediction\_pipeline\_from\_file <https://ampl.readthedocs.io/en/latest/pipeline.html#pipeline.model_pipeline.create_prediction_pipeline_from_file>`_
--  `train\_model\_from\_tar <https://ampl.readthedocs.io/en/latest/utils.html#utils.model_retrain.train_model_from_tar>`_
+We will focus on these functions in this tutorial:
 
+-  `create_prediction_pipeline_from_file <https://ampl.readthedocs.io/en/latest/pipeline.html#pipeline.model_pipeline.create_prediction_pipeline_from_file>`_
+-  `train_model_from_tar <https://ampl.readthedocs.io/en/latest/utils.html#utils.model_retrain.train_model_from_tar>`_
 
 .. note::
-  
-    *1. ``train_model_from_tar`` and other functions in the
-    ``model_retrain`` module can be used to update a previously trained
-    model when there is a new AMPL release that
+
+    *1. "train_model_from_tar" and other functions in the
+    "model_retrain" module can be used to update a previously trained
+    model when there is a new
+    AMPL release that
     is not compatible with previous versions. This is not covered in
-    this tutorial.* 
-    
-    *2. When a model input dataset is updated with
-    additional data, the model should be trained from scratch with a new
-    hyperparameter optimization run; then a new version of the
-    production model can be generated.*
+    this tutorial.*
+
+    *2. When a model input dataset is updated with additional data, the
+    model should be trained from scratch with a new hyperparameter
+    optimization run; then a new version of the production model
+    can be generated*.
 
 Import Packages
 ***************
+
+
 
 .. code:: ipython3
 
@@ -64,30 +70,14 @@ Import Packages
     warnings.filterwarnings('ignore', category=FutureWarning)
 
 
-.. parsed-literal::
 
-    2024-03-20 15:04:08.496794: I tensorflow/tsl/cuda/cudart_stub.cc:28] Could not find cuda drivers on your machine, GPU will not be used.
-    2024-03-20 15:04:08.541563: E tensorflow/compiler/xla/stream_executor/cuda/cuda_dnn.cc:9342] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered
-    2024-03-20 15:04:08.541650: E tensorflow/compiler/xla/stream_executor/cuda/cuda_fft.cc:609] Unable to register cuFFT factory: Attempting to register factory for plugin cuFFT when one has already been registered
-    2024-03-20 15:04:08.541686: E tensorflow/compiler/xla/stream_executor/cuda/cuda_blas.cc:1518] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
-    2024-03-20 15:04:08.549942: I tensorflow/tsl/cuda/cudart_stub.cc:28] Could not find cuda drivers on your machine, GPU will not be used.
-    2024-03-20 15:04:08.550953: I tensorflow/core/platform/cpu_feature_guard.cc:182] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
-    To enable the following instructions: AVX2 FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
-    2024-03-20 15:04:14.310319: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Could not find TensorRT
-    WARNING:deepchem.models:Skipped loading some Jax models, missing a dependency. No module named 'haiku'
-    /usr/WS2/kmelough/ampl161_env/lib/python3.9/site-packages/tqdm/auto.py:21: TqdmWarning: IProgress not found. Please update jupyter and ipywidgets. See https://ipywidgets.readthedocs.io/en/stable/user_install.html
-      from .autonotebook import tqdm as notebook_tqdm
-
-
-Start from saved best model
+Start From Saved Best Model
 ***************************
 
 We're using the best performing model by validation set :math:`R^2` from
 **Tutorial 7, "Compare models to select the best hyperparameters"**.
-This was a random forest model. The model path, validation set
+This was a **random forest** model. The model path, validation set
 :math:`R^2` and RF-specific parameters were as follows:
-
-.. parsed-literal::
 
     dataset/SLC6A3\_models/SLC6A3\_Ki\_curated\_model\_9b6c9332-15f3-4f96-9579-bf407d0b69a8.tar.gz
 
@@ -140,19 +130,8 @@ we will be calling later to run predictions from the saved model.
     print("orig_params.production: " + str(best_model_pipe.orig_params.production))
 
 
-.. parsed-literal::
 
-    INFO:atomsci.ddm.utils.model_version_utils:dataset/SLC6A3_models/SLC6A3_Ki_curated_model_9b6c9332-15f3-4f96-9579-bf407d0b69a8.tar.gz, 1.6.0
-    INFO:atomsci.ddm.utils.model_version_utils:dataset/SLC6A3_models/SLC6A3_Ki_curated_model_9b6c9332-15f3-4f96-9579-bf407d0b69a8.tar.gz, 1.6.0
-    INFO:atomsci.ddm.utils.model_version_utils:Version compatible check: dataset/SLC6A3_models/SLC6A3_Ki_curated_model_9b6c9332-15f3-4f96-9579-bf407d0b69a8.tar.gz version = "1.6", AMPL version = "1.6"
-    INFO:atomsci.ddm.utils.model_version_utils:dataset/SLC6A3_models/SLC6A3_Ki_curated_model_9b6c9332-15f3-4f96-9579-bf407d0b69a8.tar.gz, 1.6.0
-    INFO:atomsci.ddm.utils.model_version_utils:Version compatible check: dataset/SLC6A3_models/SLC6A3_Ki_curated_model_9b6c9332-15f3-4f96-9579-bf407d0b69a8.tar.gz version = "1.6", AMPL version = "1.6"
-    installed AMPL version: 1.6.1
-    best model AMPL version: 1.6.0
-    orig_params.production: False
-
-
-Retrain best model as production model
+Retrain Best Model as Production Model
 **************************************
 
 Setting the ``production`` argument for ``train_model_from_tar`` to
@@ -174,15 +153,8 @@ production model's model parameter ``production`` is set to ``True``.
     print("production model AMPL version: " + str(mv.get_ampl_version_from_model(production_model.params.model_tarball_path)))
 
 
-.. parsed-literal::
 
-    INFO:atomsci.ddm.utils.model_version_utils:dataset/SLC6A3_models/SLC6A3_Ki_curated_model_ee11dd2d-51fa-4a89-b42f-c2832a50ff21.tar.gz, 1.6.1
-    production_model.params.production: True
-    production_model.params.model_tarball_path: dataset/SLC6A3_models/SLC6A3_Ki_curated_model_ee11dd2d-51fa-4a89-b42f-c2832a50ff21.tar.gz
-    production model AMPL version: 1.6.1
-
-
-Compare performance on a separate external test dataset
+Compare Performance on a Separate External Test Dataset
 *******************************************************
 
 Here we will apply **Tutorial 5, "Application of a Trained Model"**'s
@@ -195,7 +167,8 @@ including the test subset, the original test subset **should not** be
 used to evaluate its performance.
 
 First we'll load the external test dataset, which we've already
-featurized with `RDKit <https://github.com/rdkit/rdkit>`_ descriptors:
+featurized with `RDKit <https://github.com/rdkit/rdkit>`_
+descriptors:
 
 .. code:: ipython3
 
@@ -203,8 +176,6 @@ featurized with `RDKit <https://github.com/rdkit/rdkit>`_ descriptors:
     test_data = pd.read_csv(test_file_path)
     
     test_data.head()
-
-
 
 
 .. list-table:: 
@@ -286,11 +257,6 @@ featurized with `RDKit <https://github.com/rdkit/rdkit>`_ descriptors:
      - ...
 
 
-.. parsed-literal::
-
-    5 rows  203 columns
-
-
 
 We now predict :math:`pK_i` values with the original best model:
 
@@ -308,13 +274,6 @@ We now predict :math:`pK_i` values with the original best model:
                                           is_featurized=False) #throws error if is_featurized=True
                                           
     best_pred_df.head()
-
-
-.. parsed-literal::
-
-    Standardizing SMILES strings for 533 compounds.
-    INFO:atomsci.ddm.utils.model_version_utils:dataset/SLC6A3_models/SLC6A3_Ki_curated_model_9b6c9332-15f3-4f96-9579-bf407d0b69a8.tar.gz, 1.6.0
-    INFO:atomsci.ddm.utils.model_version_utils:Version compatible check: dataset/SLC6A3_models/SLC6A3_Ki_curated_model_9b6c9332-15f3-4f96-9579-bf407d0b69a8.tar.gz version = "1.6", AMPL version = "1.6
 
 
 .. list-table:: 
@@ -395,29 +354,21 @@ We now predict :math:`pK_i` values with the original best model:
      - 281.270
      - ...
 
-.. parsed-literal::
-
-    5 rows 207 columns
-
 
 Now we'll run predictions on the same dataset with the production model:
 
 .. code:: ipython3
 
     prod_pred_df = pfm.predict_from_model_file(model_path = production_model.params.model_tarball_path, 
-                                      input_df = test_data,
-                                      id_col = id_col ,
-                                      smiles_col = smiles_col, 
-                                      response_col = response_col,
-                                      is_featurized=False)
-                                      
+                                          input_df = test_data,
+                                          id_col = id_col ,
+                                          smiles_col = smiles_col, 
+                                          response_col = response_col,
+                                          is_featurized=False)
+                                          
     prod_pred_df.head()
 
-.. parsed-literal::
-  
-    Standardizing SMILES strings for 533 compounds.
-    INFO:atomsci.ddm.utils.model_version_utils:dataset/SLC6A3_models/SLC6A3_Ki_curated_model_ee11dd2d-51fa-4a89-b42f-c2832a50ff21.tar.gz, 1.6.1
-    INFO:atomsci.ddm.utils.model_version_utils:Version compatible check: dataset/SLC6A3_models/SLC6A3_Ki_curated_model_ee11dd2d-51fa-4a89-b42f-c2832a50ff21.tar.gz version = "1.6", AMPL version = "1.6"
+
 
 .. list-table:: 
    :widths: 3 5 5 5 5 5 5 5 5 5 5 5 
@@ -497,10 +448,6 @@ Now we'll run predictions on the same dataset with the production model:
      - 281.270
      - ...
 
-.. parsed-literal::
-
-    5 rows 207 columns
-
 
 To compare the performance of the production model with the original
 best model, we'll compute the :math:`R^2` scores for the predictions
@@ -514,24 +461,19 @@ from each model and then plot the predicted vs actual values:
     print("Production model r2_score: " + str(prod_r2))
 
 
-.. parsed-literal::
-
-    Best model r2_score: 0.156877
-    Production model r2_score: 0.266679
-
-
 .. code:: ipython3
 
     fig, ax = plt.subplots(1,2, figsize=(12,6))
     pp.plot_pred_vs_actual_from_df(best_pred_df, actual_col='avg_pKi_actual', pred_col='avg_pKi_pred', 
-    label=f"Best model, $R^2$ = {best_r2:.3f}", ax=ax[0])
+        label=f"Best model, $R^2$ = {best_r2:.3f}", ax=ax[0])
     pp.plot_pred_vs_actual_from_df(prod_pred_df, actual_col='avg_pKi_actual', pred_col='avg_pKi_pred', 
-    label=f"Production model, $R^2$ = {prod_r2:.3f}", ax=ax[1])
+        label=f"Production model, $R^2$ = {prod_r2:.3f}", ax=ax[1])
     fig.tight_layout(pad=3.0)
     fig.show()
 
 
-.. image:: ../_static/img/08_train_production_model_files/08_train_production_model_16_0.png
+
+.. image:: ../_static/img/08_train_production_model_files/08_train_production_model_18_0.png
 
 
 Although neither model has a great :math:`R^2` score, the production
@@ -550,25 +492,27 @@ threshold.
 
 Developing models that generalize well to diverse sets of compounds
 (i.e., that have a broader applicability domain) is one of the major
-challenges in machine learning for chemistry. Training a
-``production model`` is one approach to this problem. To do better we
-may need to explore other model types or methods of featurizing
-molecules, with additional rounds of ``hyperparameter optimization``.
+challenges in machine learning for chemistry. Training a **production
+model** is one approach to this problem. To do better we may need to
+explore other model types or methods of featurizing molecules, with
+additional rounds of **hyperparameter optimization**.
 
-Other functions with production parameters
+Other Functions With Production Parameters
 ******************************************
 
 A boolean ``production`` parameter is available in these other functions
 in the `AMPL <https://github.com/ATOMScience-org/AMPL>`_
 ``model_retrain`` module. If ``production`` is set to True, the model
 will be trained in production mode, using the entire dataset for
-training. Note that for neural network models, the model will be trained
-for the number of epochs corresponding to the best epoch from the
-original model training run. 
+training. Note that for **neural network models**, the model will be
+trained for the number of epochs corresponding to the best epoch from
+the original model training run. -
+`train\_model <https://ampl.readthedocs.io/en/latest/utils.html#utils.model_retrain.train_model>`_
+-
+`train\_models\_from\_dataset\_keys <https://ampl.readthedocs.io/en/latest/utils.html#utils.model_retrain.train_models_from_dataset_keys>`_
 
--  `train\_model <https://ampl.readthedocs.io/en/latest/utils.html#utils.model_retrain.train_model>`_
--  `train\_models\_from\_dataset\_keys <https://ampl.readthedocs.io/en/latest/utils.html#utils.model_retrain.train_models_from_dataset_keys>`_
+In **Tutorial 9, "Visualizations of Model Performances"**, we'll explore
+a wide range of methods for visualizing and evaluating the performance
+of `AMPL <https://github.com/ATOMScience-org/AMPL>`_ models.
 
-In the next tutorial, we'll explore a wide range of methods for
-visualizing and evaluating the performance of
-`AMPL <https://github.com/ATOMScience-org/AMPL>`_ models.       
+If you have specific feedback about a tutorial, please complete the `AMPL Tutorial Evaluation <https://forms.gle/pa9sHj4MHbS5zG7A6>`_.

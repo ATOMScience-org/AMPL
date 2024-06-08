@@ -2,47 +2,66 @@
 06 Hyperparameter Optimization
 ##############################
 
-*Published: May, 2024, ATOM DDM Team*
+*Published: June, 2024, ATOM DDM Team*
 
 ------------
 
 In this tutorial we demonstrate the following: - Build a parameter
-dictionary to perform a ``hyperparameter optimization`` for a random
-forest using ``Bayesian optimization``. 
+dictionary to perform a hyperparameter search for a **random forest**
+using Bayesian optimization. - Perform the optimization process. -
+Review the results
 
--  Perform the optimization process. 
--  Review the results
+We will use these `AMPL <https://github.com/ATOMScience-org/AMPL>`_
+functions:
 
-We will use these `AMPL <https://github.com/ATOMScience-org/AMPL>`_ functions here:
+-  `parse_params <https://ampl.readthedocs.io/en/latest/utils.html#utils.hyperparam_search_wrapper.parse_params>`_
+-  `build_search <https://ampl.readthedocs.io/en/latest/utils.html#utils.hyperparam_search_wrapper.build_search>`_
+-  `run_search <https://ampl.readthedocs.io/en/latest/utils.html#utils.hyperparam_search_wrapper.HyperOptSearch.run_search>`_
+-  `get_filesystem_perf_results <https://ampl.readthedocs.io/en/latest/pipeline.html#pipeline.compare_models.get_filesystem_perf_results>`_
 
--  `parse\_params <https://ampl.readthedocs.io/en/latest/utils.html#utils.hyperparam_search_wrapper.parse_params>`_
--  `build\_search <https://ampl.readthedocs.io/en/latest/utils.html#utils.hyperparam_search_wrapper.build_search>`_
--  `run\_search <https://ampl.readthedocs.io/en/latest/utils.html#utils.hyperparam_search_wrapper.HyperOptSearch.run_search>`_
--  `get\_filesystem\_perf\_results <https://ampl.readthedocs.io/en/latest/pipeline.html#pipeline.compare_models.get_filesystem_perf_results>`_
-
-``Hyperparameters`` dictate the parameters of the training process and
-the architecture of the model itself. For example, the number of random
-trees is a hyperparameter for a random forest. In contrast, a learned
-parameter for a random forest is the set of features that is contained
-in a single node (in a single tree) and the cutoff values for each of
-those features that determines how the data is split at that node. A
-full discussion of hyperparameter optimization can be found on
-`wikipedia <https://en.wikipedia.org/wiki/Hyperparameter_optimization>`_.
+Hyperparameters dictate the parameters of the training process and the
+architecture of the model itself. For example, the number of random
+trees is a hyperparameter for a **random forest**. In contrast, a
+learned parameter for a **random forest** is the set of features that is
+contained in a single node (in a single tree) and the cutoff values for
+each of those features that determines how the data is split at that
+node. A full discussion of hyperparameter optimization can be found on
+`Wikipedia <https://en.wikipedia.org/wiki/Hyperparameter_optimization>`_.
 
 The choice for hyperparameters strongly influence model performance, so
 it is important to be able to optimize them as well.
-`AMPL <https://github.com/ATOMScience-org/AMPL>`_  offers a variety
+`AMPL <https://github.com/ATOMScience-org/AMPL>`_ offers a variety
 of hyperparameter optimization methods including random sampling, grid
-search, and Bayesian optimization. Further information for
-`AMPL <https://github.com/ATOMScience-org/AMPL>`_'s
-``Bayesian optimization`` can be found
-`here <https://github.com/ATOMScience-org/AMPL#hyperparameter-optimization>`_.
+search, and Bayesian optimization. Please refer to the parameter
+documentation
+`page <https://github.com/ATOMScience-org/AMPL#hyperparameter-optimization>`_
+for further information.
 
-Setup directories
-*****************
+Set Up Directories
+******************
 
-Describe important features like descriptor type and output directories.
-Make sure the directories are created before training the models.
+Here we set up a few important variables corresponding to required
+directories and specific features for the **hyperparameter optimization
+(HPO)** process. Then, we ensure that the directories are created before
+saving models into them.
+
+
+.. list-table::
+   :header-rows: 1
+   :class: tight-table
+
+   * - Variable
+     - Description
+   * - `dataset_key`
+     - The relative path to the dataset you want to use for HPO
+   * - `descriptor_type`  
+     - The type of features you want to use during HPO
+   * - `model_dir`
+     - The directory where you want to save all of the models
+   * - `best_model_dir`
+     - For Bayesian optimization, the winning model is saved in this separate folder
+   * - `split_uuid`
+     - The presaved split uuid from **Tutorial 3, "Splitting Datasets for Validation and Testing"**
 
 .. code:: ipython3
 
@@ -65,36 +84,34 @@ Make sure the directories are created before training the models.
     if not os.path.exists(f'./{model_dir}'):
         os.mkdir(f'./{model_dir}')
 
-Parameter dictionary settings.
-******************************
+Parameter Dictionary Settings
+*****************************
 
--  ``'hyperparam':True`` This setting indicates that we are performing a
-   hyperparameter search instead of just training one model.
--  ``'previously_featurized':'True'`` This tells AMPL to search for
-   previously generated features in ``../dataset/scaled_descriptors``
-   instead of regenerating them on the fly.
--  ``'search_type':'hyperopt'`` This specifies the hyperparameter search
-   method. Other options include grid, random, and geometric.
-   Specifications for each hyperparameter search method is different,
-   please refer to the full documentation. Here we are using the
-   ``Bayesian optimization`` method.
--  ``'model_type':'RF|10'`` This means
-   `AMPL <https://github.com/ATOMScience-org/AMPL>`_  will try 10
-   times to find the best set of hyperparameters using random forests.
-   In production this parameter could be set to 100 or more.
--  ``'rfe':'uniformint|8,512'`` The ``Bayesian optimizer`` will
-   uniformly search between 8 and 512 for the best number of random
-   forest estimators. Similarly ``rfd`` stands for random forest depth
-   and ``rff`` stands for random forest features.
--  ``result_dir`` Now expects two parameters. The first directory will
-   contain the best trained models while the second directory will
-   contain all models trained in the search.
+.. list-table::
+   :header-rows: 1
+   :class: tight-table
+
+   * - Parameter
+     - Description
+   * - 'hyperparam':True
+     - This setting indicates that we are performing a hyperparameter search instead of just training one model.
+   * - 'previously_featurized':True'
+     - This tells AMPL to search for previously generated features in ../dataset/scaled_descriptors instead of regenerating them on the fly.
+   * - 'search_type':'hyperopt'
+     - This specifies the hyperparameter search method. Other options include grid, random, and geometric. Specifications for each hyperparameter search method is different, please refer to the full documentation. Here we are using the Bayesian optimization method.
+   * - 'model_type':'RF\|10'
+     - This means AMPL will try 10 times to find the best set of hyperparameters using random forests. In practice, this parameter could be set to 100 or more.
+   * - 'rfe':'uniformint\|8,512'
+     - The Bayesian optimizer will uniformly search between 8 and 512 for the best number of random forest estimators. Similarly rfd stands for random forest depth and rff stands for random forest features.
+   * - `result_dir`
+     - Now expects two parameters. The first directory will contain the best trained models while the second directory will contain all models trained in the search.
+
 
 Regression models are optimized using root mean squared loss and
 classification models are optimized using area under the receiver
 operating characteristic curve. A full list of parameters can be found
-on our github
-`here <https://github.com/ATOMScience-org/AMPL/blob/master/atomsci/ddm/docs/PARAMETERS.md>`_.
+on our
+`github <https://github.com/ATOMScience-org/AMPL/blob/master/atomsci/ddm/docs/PARAMETERS.md>`_.
 
 .. code:: ipython3
 
@@ -124,12 +141,18 @@ on our github
         "result_dir": f"./{best_model_dir},./{model_dir}"
     }
 
-In **Tutorial 4, "Train a Simple Regression Model"** we directly
+Run Hyperparameter Search
+*************************
+
+In **Tutorial 4, "Train a Simple Regression Model"**, we directly
 imported the ``parameter_parser`` and ``model_pipeline`` objects to
-parse the config dict and train a single model. Here, we use
+parse the ``config`` dict and train a single model. Here, we use
 ``hyperparameter_search_wrapper`` to handle many models for us. First we
 build the search by creating a list of parameters to use, and then we
 run the search.
+
+Running the Optimization
+************************
 
 .. code:: ipython3
 
@@ -140,144 +163,6 @@ run the search.
     hs = hsw.build_search(ampl_param)
     hs.run_search()
 
-
-.. parsed-literal::
-
-    model_performance|train_r2|train_rms|valid_r2|valid_rms|test_r2|test_rms|model_params|model
-    
-    rf_estimators: 65, rf_max_depth: 22, rf_max_feature: 33
-    RF model with computed_descriptors and rdkit_raw      
-      0%|          | 0/10 [00:00<?, ?trial/s, best loss=?]
-
-.. parsed-literal::
-
-    2024-04-16 11:19:29,471 Previous dataset split restored
-
-
-.. parsed-literal::
-
-    model_performance|0.948|0.284|0.463|0.885|0.385|0.955|65_22_33|./dataset/SLC6A3_models/SLC6A3_Ki_curated_model_65d93c86-11e8-4f79-a6be-384db6956d26.tar.gz
-    
-    rf_estimators: 233, rf_max_depth: 28, rf_max_feature: 12                        
-    RF model with computed_descriptors and rdkit_raw                                
-     10%|█         | 1/10 [00:00<00:06,  1.44trial/s, best loss: 0.5365818670592989]
-
-.. parsed-literal::
-
-    2024-04-16 11:19:30,177 Previous dataset split restored
-
-
-.. parsed-literal::
-
-    model_performance|0.948|0.284|0.481|0.871|0.400|0.944|233_28_12|./dataset/SLC6A3_models/SLC6A3_Ki_curated_model_2b63bedb-7983-49cd-8d9b-b2039439ae98.tar.gz
-    
-    rf_estimators: 60, rf_max_depth: 28, rf_max_feature: 73                         
-    RF model with computed_descriptors and rdkit_raw                                
-     20%|██        | 2/10 [00:02<00:09,  1.25s/trial, best loss: 0.5194165178690741]
-
-.. parsed-literal::
-
-    2024-04-16 11:19:31,809 Previous dataset split restored
-
-
-.. parsed-literal::
-
-    model_performance|0.947|0.287|0.481|0.871|0.450|0.903|60_28_73|./dataset/SLC6A3_models/SLC6A3_Ki_curated_model_9da5fa7a-610f-469a-9562-b760c03581bc.tar.gz
-    
-    rf_estimators: 158, rf_max_depth: 7, rf_max_feature: 92                         
-    RF model with computed_descriptors and rdkit_raw                                
-     30%|███       | 3/10 [00:03<00:06,  1.00trial/s, best loss: 0.5190614320716579]
-
-.. parsed-literal::
-
-    2024-04-16 11:19:32,512 Previous dataset split restored
-
-
-.. parsed-literal::
-
-    model_performance|0.836|0.503|0.471|0.879|0.418|0.929|158_7_92|./dataset/SLC6A3_models/SLC6A3_Ki_curated_model_4f36098e-a8fe-4469-922e-5dca432f355b.tar.gz
-    
-    rf_estimators: 262, rf_max_depth: 16, rf_max_feature: 40                        
-    RF model with computed_descriptors and rdkit_raw                                
-     40%|████      | 4/10 [00:04<00:06,  1.04s/trial, best loss: 0.5190614320716579]
-
-.. parsed-literal::
-
-    2024-04-16 11:19:33,614 Previous dataset split restored
-
-
-.. parsed-literal::
-
-    model_performance|0.948|0.285|0.488|0.864|0.424|0.924|262_16_40|./dataset/SLC6A3_models/SLC6A3_Ki_curated_model_dbd1d89c-05f5-4224-bce4-7dbeafaba313.tar.gz
-    
-    rf_estimators: 393, rf_max_depth: 28, rf_max_feature: 190                       
-    RF model with computed_descriptors and rdkit_raw                                
-     50%|█████     | 5/10 [00:05<00:06,  1.28s/trial, best loss: 0.5115391017103005]
-
-.. parsed-literal::
-
-    2024-04-16 11:19:35,308 Previous dataset split restored
-
-
-.. parsed-literal::
-
-    model_performance|0.950|0.277|0.476|0.875|0.428|0.921|393_28_190|./dataset/SLC6A3_models/SLC6A3_Ki_curated_model_8e7bb4a7-40ef-4400-8c9d-c07dbf496e56.tar.gz
-    
-    rf_estimators: 29, rf_max_depth: 23, rf_max_feature: 177                        
-    RF model with computed_descriptors and rdkit_raw                                
-     60%|██████    | 6/10 [00:08<00:07,  1.83s/trial, best loss: 0.5115391017103005]
-
-.. parsed-literal::
-
-    2024-04-16 11:19:38,210 Previous dataset split restored
-
-
-.. parsed-literal::
-
-    model_performance|0.946|0.288|0.471|0.879|0.427|0.922|29_23_177|./dataset/SLC6A3_models/SLC6A3_Ki_curated_model_4596c9af-f98c-4ce4-bb79-91fedb4c0ea6.tar.gz
-    
-    rf_estimators: 106, rf_max_depth: 10, rf_max_feature: 112                       
-    RF model with computed_descriptors and rdkit_raw                                
-     70%|███████   | 7/10 [00:09<00:04,  1.40s/trial, best loss: 0.5115391017103005]
-
-.. parsed-literal::
-
-    2024-04-16 11:19:38,736 Previous dataset split restored
-
-
-.. parsed-literal::
-
-    model_performance|0.914|0.366|0.474|0.876|0.414|0.932|106_10_112|./dataset/SLC6A3_models/SLC6A3_Ki_curated_model_67b2be27-3a1f-4e16-9d0a-2337e431907c.tar.gz
-    
-    rf_estimators: 190, rf_max_depth: 15, rf_max_feature: 135                       
-    RF model with computed_descriptors and rdkit_raw                                
-     80%|████████  | 8/10 [00:10<00:02,  1.21s/trial, best loss: 0.5115391017103005]
-
-.. parsed-literal::
-
-    2024-04-16 11:19:39,511 Previous dataset split restored
-
-
-.. parsed-literal::
-
-    model_performance|0.947|0.286|0.484|0.868|0.449|0.905|190_15_135|./dataset/SLC6A3_models/SLC6A3_Ki_curated_model_601ae89f-a8bb-4da2-b7a7-b434a2bdcbbe.tar.gz
-    
-    rf_estimators: 146, rf_max_depth: 27, rf_max_feature: 112                       
-    RF model with computed_descriptors and rdkit_raw                                
-     90%|█████████ | 9/10 [00:11<00:01,  1.28s/trial, best loss: 0.5115391017103005]
-
-.. parsed-literal::
-
-    2024-04-16 11:19:40,938 Previous dataset split restored
-
-
-.. parsed-literal::
-
-    model_performance|0.949|0.280|0.483|0.869|0.436|0.915|146_27_112|./dataset/SLC6A3_models/SLC6A3_Ki_curated_model_0967e5ea-64a1-4509-80da-176bd8773775.tar.gz
-    
-    100%|██████████| 10/10 [00:12<00:00,  1.27s/trial, best loss: 0.5115391017103005]
-    Generating the performance -- iteration table and Copy the best model tarball.
-    Best model: ./dataset/SLC6A3_models/SLC6A3_Ki_curated_model_dbd1d89c-05f5-4224-bce4-7dbeafaba313.tar.gz, valid R2: 0.4884608982896995
 
 
 The top scoring model will be saved in
@@ -301,12 +186,6 @@ models to select the best hyperparameters"**.
     # sort by validation r2 score to see top performing models
     result_df = result_df.sort_values(by='best_valid_r2_score', ascending=False)
     result_df[['model_uuid','model_parameters_dict','best_valid_r2_score','best_test_r2_score']].head()
-
-
-.. parsed-literal::
-
-    Found data for 10 models under dataset/SLC6A3_models
-
 
 
 
@@ -347,35 +226,36 @@ models to select the best hyperparameters"**.
      - 0.399987
 
 
-Examples for other parameters
+Examples for Other Parameters
 =============================
 
-Below are some parameters that can be used for neural networks,
+Below are some parameters that can be used for **neural networks**,
 `XGBoost <https://en.wikipedia.org/wiki/XGBoost>`_ models,
-fingerprint splits and
-`ECFP fingerprints <https://pubs.acs.org/doi/10.1021/ci100050t>`_ features. Each
+**fingerprint splits** and
+`ECFP <https://pubs.acs.org/doi/10.1021/ci100050t>`_ features. Each
 set of parameters can be used to replace the parameters above. Trying
 them out is left as an exercise for the reader.
 
 Neural Network Hyperopt Search
 ------------------------------
 
--  ``lr`` This controls the learning rate. ``loguniform|-13.8,-3`` means
-   the logarithm of the learning rate is uniformly distributed between
-   ``-13.8`` and ``-3``.
--  ``ls`` This controls layer sizes. ``3|8,512`` means 3 layers with
-   sizes ranging between 8 and 512 neurons. A good strategy is to start
-   with a fewer layers and slowly increase the number until performance
-   plateaus.
--  ``dp`` This controls dropout. ``3|0,0.4`` means 3 dropout layers with
-   probability of zeroing a weight between 0 and 40%. This needs to
-   match the number of layers specified with ``ls`` and should range
-   between 0% and 50%.
--  ``max_epochs`` This controls how long to train each model. Training
-   for more epochs increases runtime, but allows models more time to
-   optimize.
+.. list-table::
+   :widths: 3 10 10 5 5
+   :header-rows: 1
+   :class: tight-table
+  
+   * - Parameter                                     
+     - Description   
+   * - `lr`
+     - This controls the learning rate. loguniform|-13.8,-3 means the logarithm of the learning rate is uniformly distributed between -13.8 and -3.
+   * - `ls`
+     - This controls layer sizes. 3|8,512 means 3 layers with sizes ranging between 8 and 512 neurons. A good strategy is to start with a fewer layers and slowly increase the number until performance plateaus.
+   * - `dp`
+     - This controls dropout. 3|0,0.4 means 3 dropout layers with probability of zeroing a weight between 0 and 40%. This needs to match the number of layers specified with ls and should range between 0% and 50%.
+   * - `max_epochs`
+     - This controls how long to train each model. Training for more epochs increases runtime, but allows models more time to optimize.
 
-::
+.. code:: ipython3
 
     params = {
         "hyperparam": "True",
@@ -400,7 +280,7 @@ Neural Network Hyperopt Search
         "lr": "loguniform|-13.8,-3",
         "ls": "uniformint|3|8,512",
         "dp": "uniform|3|0,0.4",
-        "max_epochs":100
+        "max_epochs":100,
         ###
 
         "result_dir": f"./{best_model_dir},./{model_dir}"
@@ -409,13 +289,15 @@ Neural Network Hyperopt Search
 XGBoost
 -------
 
--  ``xgbg`` Stands for xgb\_gamma and controls the minimum loss
+-  ``xgbg`` Stands for ``xgb_gamma`` and controls the minimum loss
    reduction required to make a further partition on a leaf node of the
    tree.
--  ``xgbl`` Stands for xgb\_learning\_rate and controls the boosting
-   learning rate searching domain of XGBoost models.
+-  ``xgbl`` Stands for ``xgb_learning_rate`` and controls the boosting
+   learning rate searching domain of
+   `XGBoost <https://en.wikipedia.org/wiki/XGBoost>`_ models.
 
-::
+
+.. code:: ipython3
 
     params = {
         "hyperparam": "True",
@@ -447,10 +329,12 @@ XGBoost
 Fingerprint Split
 -----------------
 
-This trains an XGBoost model using a fingerprint split created in
-**Tutorial 3, "Splitting Datasets for Validation and Testing"**.
+This trains an `XGBoost <https://en.wikipedia.org/wiki/XGBoost>`_
+model using a **fingerprint split** created in **Tutorial 3, "Splitting
+Datasets for Validation and Testing"**.
 
-::
+
+.. code:: ipython3
 
     fp_split_uuid="be60c264-6ac0-4841-a6b6-41bf846e4ae4"
 
@@ -484,11 +368,12 @@ This trains an XGBoost model using a fingerprint split created in
 ECFP Features
 -------------
 
-This uses an XGBoost model with ECFP features and a scaffold split.
+This uses an `XGBoost <https://en.wikipedia.org/wiki/XGBoost>`_
+model with `ECFP
+fingerprints <https://pubs.acs.org/doi/10.1021/ci100050t>`_ features
+and a **scaffold split**.
 
-::
-
-    fp_split_uuid="be60c264-6ac0-4841-a6b6-41bf846e4ae4"
+.. code:: ipython3
 
     params = {
         "hyperparam": "True",
@@ -518,5 +403,8 @@ This uses an XGBoost model with ECFP features and a scaffold split.
         "result_dir": f"./{best_model_dir},./{model_dir}"
     }
 
-In **tutorial 7**, we analyze the performance of these large sets of
-models to select the best ``hyperparameters`` for ``production models``.
+In **Tutorial 7, "Compare Models to Select the Best Hyperparameters"**,
+we analyze the performance of these large sets of models to select the
+best hyperparameters for production models.
+
+If you have specific feedback about a tutorial, please complete the `AMPL Tutorial Evaluation <https://forms.gle/pa9sHj4MHbS5zG7A6>`_.

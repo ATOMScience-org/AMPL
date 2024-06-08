@@ -2,7 +2,7 @@
 04 Train a Simple Regression Model
 ##################################
 
-*Published: May, 2024, ATOM DDM Team*
+*Published: June, 2024, ATOM DDM Team*
 
 ------------
 
@@ -14,12 +14,14 @@ training, the result is referred to as a trained ML model or an
 artifact.
 
 This tutorial will detail how we can use
-`AMPL <https://github.com/ATOMScience-org/AMPL>`_ regression model to predict how much a compound will inhibit the
-`SLC6A3 <https://www.ebi.ac.uk/chembl/target_report_card/CHEMBL238/>`_ protein as measured by :math:`pK_i`. We will train a random forest model
+`AMPL <https://github.com/ATOMScience-org/AMPL>`_ tools to train a
+regression model to predict how much a compound will inhibit the
+`SLC6A3 <https://www.ebi.ac.uk/chembl/target_report_card/CHEMBL238/>`_
+protein as measured by :math:`pK_i`. We will train a random forest model
 using the following inputs:
 
 1. The curated
-   `SLC6A3 <https://www.ebi.ac.uk/chembl/target_report_card/CHEMBL238/>`_
+   `SLC6A3 <https://www.ebi.ac.uk/chembl/target_report_card/CHEMBL238>`_
    dataset from **Tutorial 2, "Data Curation"**.
 2. The split file generated in **Tutorial 3, "Splitting Datasets for
    Validation and Testing"**.
@@ -29,24 +31,24 @@ using the following inputs:
 The tutorial will present the following functions:
 
 -  `ModelPipeline <https://ampl.readthedocs.io/en/latest/pipeline.html#module-pipeline.model_pipeline>`_
--  `parameter\_parser.wrapper <https://ampl.readthedocs.io/en/latest/pipeline.html#module-pipeline.model_pipeline>`_
--  `compare\_models.get\_filesystem\_perf\_results <https://ampl.readthedocs.io/en/latest/pipeline.html#module-pipeline.model_pipeline>`_
+-  `parameter_parser.wrapper <https://ampl.readthedocs.io/en/latest/pipeline.html#module-pipeline.model_pipeline>`_
+-  `compare_models.get_filesystem_perf_results <https://ampl.readthedocs.io/en/latest/pipeline.html#module-pipeline.model_pipeline>`_
 
 We will explain the use of descriptors, how to evaluate model
 performance, and where the model is saved as a .tar.gz file.
 
-.. note:: 
+ .. note::   
     
     *Training a random forest model and splitting the dataset
     are non-deterministic. You will obtain a slightly different random
     forest model by running this tutorial each time.*
 
-Model Training (using already split data)
-*****************************************
+Model Training (Using Previously Split Data)
+********************************************
 
 We will use the curated dataset created in **Tutorial 2, "Data
-Curation"** and the split file created in **Tutorial 3, "Splitting
-Datasets for Validation and Testing"** to build a json file for
+Curation"**, and the split file created in **Tutorial 3, "Splitting
+Datasets for Validation and Testing"**, to build a json file for
 training. We set ``"previously_split": "True"`` and set the
 ``split_uuid``. Here, we will use
 ``"split_uuid": "c35aeaab-910c-4dcf-8f9f-04b55179aa1a"`` which is saved
@@ -54,14 +56,17 @@ in ``dataset/`` as a convenience for these tutorials.
 
 `AMPL <https://github.com/ATOMScience-org/AMPL>`_ provides an
 extensive featurization module that can generate a variety of molecular
-feature types, given SMILES strings as input. For demonstration
-purposes, we choose to use RDKit features in this tutorial.
+feature types, given
+`SMILES <https://en.wikipedia.org/wiki/Simplified_molecular-input_line-entry_system>`_
+strings as input. For demonstration purposes, we choose to use
+`RDKit <https://github.com/rdkit/rdkit>`_ ** features in this
+tutorial.
 
-When the featurized dataset is not previously saved for ``SLC6A3_Ki``,
+When the featurized dataset is not previously saved for SLC6A3\_Ki,
 `AMPL <https://github.com/ATOMScience-org/AMPL>`_ will create a
 featurized dataset and save it in a folder called ``scaled_descriptors``
 as a csv file e.g.
-``dataset/scaled_descriptors/SLC6A3_Ki_with_rdkit_raw_descriptors.csv``
+``dataset/scaled_descriptors/SLC6A3_Ki_curated_with_rdkit_raw_descriptors.csv``
 
 .. code:: ipython3
 
@@ -104,17 +109,7 @@ as a csv file e.g.
 
 
 
-.. parsed-literal::
-
-    Skipped loading some Jax models, missing a dependency. No module named 'haiku'
-    /opt/anaconda3/envs/atomsci-env/lib/python3.9/site-packages/tqdm/auto.py:21: TqdmWarning: IProgress not found. Please update jupyter and ipywidgets. See https://ipywidgets.readthedocs.io/en/stable/user_install.html
-      from .autonotebook import tqdm as notebook_tqdm
-    WARNING:ATOM:Previous dataset split restored
-    /Users/rwilfong/Downloads/2024_LLNL/computing/AMPL/atomsci/ddm/pipeline/transformations.py:250: RuntimeWarning: invalid value encountered in divide
-      X = np.nan_to_num((X - self.X_means) * X_weight / self.X_stds)
-
-
-Model Training (Split data and train)
+Model Training (Split Data and Train)
 *************************************
 
 It is possible to split and train a model in one step. Here, we set
@@ -122,9 +117,10 @@ It is possible to split and train a model in one step. Here, we set
 `AMPL <https://github.com/ATOMScience-org/AMPL>`_ splits the data
 by the type of split specified in the splitter parameter, scaffold in
 this example, and writes the split file in
-``dataset/SLC6A3_Ki_train_valid_test_scaffold_{split_uuid}.csv.`` After
-training, `AMPL <https://github.com/ATOMScience-org/AMPL>`_ saves
-the model and all of its parameters as a tarball in the result\_dir.
+``dataset/SLC6A3_Ki_curated_train_valid_test_scaffold_{split_uuid}.csv``
+After training, `AMPL <https://github.com/ATOMScience-org/AMPL>`_
+saves the model and all of its parameters as a tarball in the
+result\_dir.
 
 .. code:: ipython3
 
@@ -154,30 +150,25 @@ the model and all of its parameters as a tarball in the result\_dir.
     pl.train_model()
 
 
-.. parsed-literal::
-
-    /Users/rwilfong/Downloads/2024_LLNL/computing/AMPL/atomsci/ddm/pipeline/transformations.py:250: RuntimeWarning: invalid value encountered in divide
-      X = np.nan_to_num((X - self.X_means) * X_weight / self.X_stds)
-
 
 Performance of the Model
 ************************
 
-We evaluate model performance by measuring how a accurate models are on
+We evaluate model performance by measuring how accurate models are on
 validation and test sets. The validation set is used while optimizing
-the model and choosing the best parameter settings. Then the performance
-on the test set is to final judge of model performance.
+the model and choosing the best parameter settings. Finally, we use the
+model's performance on the test set to judge the model.
 
 `AMPL <https://github.com/ATOMScience-org/AMPL>`_ has several
-popular metrics to evaulate regression models;
-``Mean Absolute Error (MAE)``, ``Root Mean Squared Error (RMSE)`` and
-:math:`R^2` (R-Squared). In our tutorials, we will use :math:`R^2`
-metric to compare our models. The best model will have the highest
-:math:`R^2` score.
+popular metrics to evaulate regression models; **Mean Absolute Error
+(MAE)**, **Root Mean Squared Error (RMSE)** and :math:`R^2` (R-Squared).
+In our tutorials, we will use :math:`R^2` metric to compare our models.
+The best model will have the highest :math:`R^2` score.
 
 .. note::
     
-    *The model tracker client will not be supported in your environment.*
+    *The model tracker client will not be supported in your
+    environment.*
 
 .. code:: ipython3
 
@@ -186,23 +177,16 @@ metric to compare our models. The best model will have the highest
     pred_df = cm.get_filesystem_perf_results(odir, pred_type='regression')
 
 
-.. parsed-literal::
-
-    Found data for 2 models under dataset/SLC6A3_models
-
-
-The pred\_df dataframe has details about the model\_uuid, model\_path,
-ampl\_version, model\_type, features, splitter and the results for
-popular metrics that help evaluate the performance. Let us view the
-contents of the pred\_df dataframe.
+The ``pred_df`` dataframe has details about the ``model_uuid``,
+``model_path``, ``ampl_version``, ``model_type``, ``features``,
+``splitter``\ and the results for popular metrics that help evaluate the
+performance. Let us view the contents of the ``pred_df`` dataframe.
 
 .. code:: ipython3
 
     # save pred_df
     import os
     pred_df.to_csv(os.path.join(odir, 'pred_df.csv'))
-
-.. code:: ipython3
 
     # View the pred_df dataframe
     pred_df
@@ -247,6 +231,7 @@ contents of the pred\_df dataframe.
      - ...
 
 
+
 Top Performing Model
 ********************
 
@@ -261,60 +246,11 @@ column in descending order and pick the one that is maximum.
 
 
 
-
-.. parsed-literal::
-
-    model_uuid                               9ff5a924-ef49-407c-a4d4-868a1288a67e
-    model_path                  dataset/SLC6A3_models/SLC6A3_Ki_curated_model_...
-    ampl_version                                                            1.6.1
-    model_type                                                                 RF
-    dataset_key                 /Users/rwilfong/Downloads/2024_LLNL/fork_ampl/...
-    features                                                            rdkit_raw
-    splitter                                                             scaffold
-    split_strategy                                               train_valid_test
-    split_uuid                               c35aeaab-910c-4dcf-8f9f-04b55179aa1a
-    model_score_type                                                           r2
-    feature_transform_type                                          normalization
-    weight_transform_type                                                    None
-    model_choice_score                                                    0.50011
-    best_train_r2_score                                                  0.949835
-    best_train_rms_score                                                  0.27884
-    best_train_mae_score                                                 0.198072
-    best_train_num_compounds                                                 1273
-    best_valid_r2_score                                                   0.50011
-    best_valid_rms_score                                                 0.854443
-    best_valid_mae_score                                                 0.700053
-    best_valid_num_compounds                                                  273
-    best_test_r2_score                                                   0.426594
-    best_test_rms_score                                                   0.92241
-    best_test_mae_score                                                  0.746781
-    best_test_num_compounds                                                   273
-    rf_estimators                                                             500
-    rf_max_features                                                            32
-    rf_max_depth                                                             None
-    max_epochs                                                                NaN
-    best_epoch                                                                NaN
-    learning_rate                                                             NaN
-    layer_sizes                                                               NaN
-    dropouts                                                                  NaN
-    xgb_gamma                                                                 NaN
-    xgb_learning_rate                                                         NaN
-    xgb_max_depth                                                             NaN
-    xgb_colsample_bytree                                                      NaN
-    xgb_subsample                                                             NaN
-    xgb_n_estimators                                                          NaN
-    xgb_min_child_weight                                                      NaN
-    model_parameters_dict       {"rf_estimators": 500, "rf_max_depth": null, "...
-    feat_parameters_dict                                                       {}
-    Name: 0, dtype: object
-
-
-
 Model Tarball
 *************
 
-The model\_path or the location of the tarball where the top performing
-model is saved is in ``top_model.model_path``.
+The ``model_path`` or the location of the tarball where the top
+performing model is saved is in ``top_model.model_path``.
 
 .. code:: ipython3
 
@@ -323,12 +259,8 @@ model is saved is in ``top_model.model_path``.
 
 
 
+In **Tutorial 5, "Application of a Trained Model"**, we will learn how
+to use a selected model to make predictions and evaluate those
+predictions
 
-.. parsed-literal::
-
-    'dataset/SLC6A3_models/SLC6A3_Ki_curated_model_9ff5a924-ef49-407c-a4d4-868a1288a67e.tar.gz'
-
-
-
-In **Tutorial 5, "Application of a Trained Model"** we will learn how to
-use a selected model to make predictions and evaluate those predictions
+If you have specific feedback about a tutorial, please complete the `AMPL Tutorial Evaluation <https://forms.gle/pa9sHj4MHbS5zG7A6>`_.

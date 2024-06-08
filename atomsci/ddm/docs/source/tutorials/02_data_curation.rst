@@ -2,7 +2,7 @@
 02 Data Curation
 ################
 
-*Published: May, 2024, ATOM DDM Team*
+*Published: June, 2024, ATOM DDM Team*
 
 ------------
 
@@ -18,27 +18,26 @@ be used to train useful predictive models. Here we will cover some
 functions in `AMPL <https://github.com/ATOMScience-org/AMPL>`_ that
 will help you to perform these steps.
 
--  `base\_smiles\_from\_smiles <https://ampl.readthedocs.io/en/latest/utils.html#utils.struct_utils.base_smiles_from_smiles>`_
--  `standardize\_relations <https://ampl.readthedocs.io/en/latest/utils.html#utils.data_curation_functions.standardize_relations>`_
--  `compute\_negative\_log\_responses <https://ampl.readthedocs.io/en/latest/utils.html#utils.data_curation_functions.compute_negative_log_responses>`_
--  `remove\_outlier\_replicates <https://ampl.readthedocs.io/en/latest/utils.html#utils.curate_data.remove_outlier_replicates>`_
--  `aggregate\_assay\_data <https://ampl.readthedocs.io/en/latest/utils.html#utils.curate_data.aggregate_assay_data>`_
+-  `base_smiles_from_smiles <https://ampl.readthedocs.io/en/latest/utils.html#utils.struct_utils.base_smiles_from_smiles>`_
+-  `standardize_relations <https://ampl.readthedocs.io/en/latest/utils.html#utils.data_curation_functions.standardize_relations>`_
+-  `compute_negative_log_responses <https://ampl.readthedocs.io/en/latest/utils.html#utils.data_curation_functions.compute_negative_log_responses>`_
+-  `remove_outlier_replicates <https://ampl.readthedocs.io/en/latest/utils.html#utils.curate_data.remove_outlier_replicates>`_
+-  `aggregate_assay_data <https://ampl.readthedocs.io/en/latest/utils.html#utils.curate_data.aggregate_assay_data>`_
 
-These are just a few of the steps needed to curate a dataset; another
-tutorial will cover data curation in more detail.
+These are just a few of the steps needed to curate a dataset.
 
 Import Standard Data Science Packages
 *************************************
 
-To use `AMPL <https://github.com/ATOMScience-org/AMPL>`_, or to do
+To use `AMPL <https://github.com/ATOMScience-org/AMPL>`_ , or to do
 almost anything else with data, you'll need to become familiar with the
-popular packages `pandas <https://pandas.pydata.org>`_,
-`numpy <https://numpy.org>`_,
+popular packages `pandas <https://pandas.pydata.org/>`_,
+`numpy <https://numpy.org/>`_*,
 `matplotlib <https://matplotlib.org/>`_ and
-`seaborn <https://seaborn.pydata.org/index.html/>`_. When you
-installed `AMPL <https://github.com/ATOMScience-org/AMPL>`_ you
-will have installed these packages as well, so you simply need to import
-them here.
+`seaborn <https://seaborn.pydata.org/>`_. When you installed
+`AMPL <https://github.com/ATOMScience-org/AMPL>`_ you will have
+installed these packages as well, so you simply need to import them
+here.
 
 .. code:: ipython3
 
@@ -48,14 +47,18 @@ them here.
     import matplotlib.pyplot as plt
     import seaborn as sns
 
-
 Read the Data
 *************
 
-We've prepared an example dataset containing `ki <https://en.wikipedia.org/wiki/Ligand_(biochemistry)#Receptor/ligand_binding_affinity>`_ 
-values for inhibitors of the `SLC6A3 <https://www.ebi.ac.uk/chembl/target_report_card/CHEMBL238/>`_ dopamine transporter collected from `ChEMBL <https://www.ebi.ac.uk/chembl/>`_. This dataset is simpler
+We've prepared an example dataset containing
+ `ki <https://en.wikipedia.org/wiki/Ligand_(biochemistry)#Receptor/ligand_binding_affinity>`_
+values for inhibitors of the
+`SLC6A3 <https://www.ebi.ac.uk/chembl/target_report_card/CHEMBL238/>`_
+dopamine transporter collected from
+`ChEMBL <https://www.ebi.ac.uk/chembl/>`_. This dataset is simpler
 than most that we find in the wild, but it will let us concisely
-demonstrate some `AMPL <https://github.com/ATOMScience-org/AMPL>`_ curation tools. The first step of data curation is to read the raw data
+demonstrate some `AMPL <https://github.com/ATOMScience-org/AMPL>`_
+curation tools. The first step of data curation is to read the raw data
 into a Pandas data frame.
 
 .. code:: ipython3
@@ -63,65 +66,64 @@ into a Pandas data frame.
     # Read in data
     raw_df = pd.read_csv('dataset/SLC6A3_Ki.csv')
 
-.. code:: ipython3
-
     # Check the number of rows and columns in the dataset
     raw_df.shape
-
-
-
-
-.. parsed-literal::
-
-    (2236, 6)
-
-
-
-.. code:: ipython3
 
     # List the column names
     raw_df.columns.values
 
 
+This dataset is drawn from the
+`ChEMBL <https://www.ebi.ac.uk/chembl/>`_ database and contains the
+following columns:
 
+.. list-table:: 
+   :header-rows: 1
+   :class: tight-table 
 
-.. parsed-literal::
-
-    array(['molecule_chembl_id', 'smiles', 'standard_type',
-           'standard_relation', 'standard_value', 'standard_units'],
-          dtype=object)
-
-
-
-This dataset is drawn from the `ChEMBL <https://www.ebi.ac.uk/chembl/>`_ database and contains the following columns: 
-  
--  ``molecule_chembl_id``: The ChEMBL ID for the molecule. 
--  ``smiles``: The `SMILES <https://en.wikipedia.org/wiki/Simplified_molecular-input_line-entry_system>`_ string that represents the molecule's structure. This is the main input used to derive features for `AMPL <https://github.com/ATOMScience-org/AMPL>`_ models. 
--  ``standard_type``: The type of measurement, e.g., :math:`IC_{50}`, :math:`K_i`, :math:`K_d`, etc. This dataset only contains :math:`K_i` data points. 
--  ``standard_relation``: The relational operator for a measurement reported as  "< :math:`X`" or "> :math:`X`", indicating the true value is below or above some limit :math:`X` (e.g., the lowest or highest concentration tested). When this occurs we say the measurement is "left-" or "right-censored". 
--  ``standard_value``: The measured value (or the limit value for a censored measurement). 
--  ``standard_units``: The units of the measurement. :math:`K_i` values may be recorded in different units which will need to be converted to a common unit. The `SLC6A3 <https://www.ebi.ac.uk/chembl/target_report_card/CHEMBL238/>`_ dataset contains a mixture of nanomolar and micromolar (µM) units.
+   * - Column
+     - Description
+   * - `molecule_chembl_id`
+     - The ChEMBL ID for the molecule.
+   * - `smiles`
+     - The `SMILES <https://en.wikipedia.org/wiki/Simplified_molecular-input_line-entry_system>`_ string that represents the molecule's structure. This is the main input used to derive features for AMPL <https://github.com/ATOMScience-org/AMPL>`_  models.
+   * - `standard_type`
+     - The type of measurement, e.g., $IC_{50}$, $K_i$, $K_d$, etc. This dataset only contains $K_i$ data points.
+   * - `standard_relation`
+     - The relational operator for a measurement reported as "< $X$" or "> $X$", indicating the true value is below or above some limit $X$ (e.g., the lowest or highest concentration tested). When this occurs we say the measurement is "left-" or "right-censored".
+   * - `standard_value`
+     - The measured value (or the limit value for a censored measurement).
+   * - `standard_units`
+     - The units of the measurement. $K_i$ values may be recorded in different units which will need to be converted to a common unit. The `SLC6A3 <https://www.ebi.ac.uk/chembl/target_report_card/CHEMBL238/>`_ dataset contains a mixture of nanomolar (nM) and micromolar (µM) units.
 
 
 Standardize SMILES
 ******************
 
-The `SMILES <https://en.wikipedia.org/wiki/Simplified_molecular-input_line-entry_system>`_ grammar allows the same chemical structure to be represented by many
-different `SMILES <https://en.wikipedia.org/wiki/Simplified_molecular-input_line-entry_system>`_ strings. In addition, measurements may be performed on compounds with
+The
+`SMILES <https://en.wikipedia.org/wiki/Simplified_molecular-input_line-entry_system>`_
+grammar allows the same chemical structure to be represented by many
+different
+`SMILES <https://en.wikipedia.org/wiki/Simplified_molecular-input_line-entry_system>`_
+strings. In addition, measurements may be performed on compounds with
 different salt groups or with radioisotope labels, which we treat as
-equivalent to the base compounds. `AMPL <https://github.com/ATOMScience-org/AMPL>`_ provides a `SMILES <https://en.wikipedia.org/wiki/Simplified_molecular-input_line-entry_system>`_
-standardization function, ``base_smiles_to_smiles``, that removes salt
-groups and isotopes and returns a unique `SMILES <https://en.wikipedia.org/wiki/Simplified_molecular-input_line-entry_system>`_
+equivalent to the base compounds.
+`AMPL <https://github.com/ATOMScience-org/AMPL>`_ provides a
+`SMILES <https://en.wikipedia.org/wiki/Simplified_molecular-input_line-entry_system>`_
+standardization function, ``base_smiles_from_smiles``, that removes salt
+groups and isotopes and returns a unique
+`SMILES <https://en.wikipedia.org/wiki/Simplified_molecular-input_line-entry_system>`_
 string for each base compound structure. This step simplifies the
 machine learning problem by ensuring each compound is represented with
 the same set of features and multiple measurements on the same compound
 can be grouped together.
 
-.. note::
-    
-    *The input to base\_smiles\_from\_smiles must be a
-    ``list``; ``numpy`` arrays and ``pandas`` Series objects must be
-    converted with the ``tolist`` function.*
+
+.. note: 
+
+    *The input to "base_smiles_from_smiles" must be a list;
+    numpy arrays and pandas Series objects must be converted with the
+    tolist function.*
 
 .. code:: ipython3
 
@@ -129,30 +131,21 @@ can be grouped together.
     # Since the base_smiles_from_smiles function can be slow, we specify the workers=8 argument
     # to divide the work across 8 threads.
     raw_df['base_rdkit_smiles'] = base_smiles_from_smiles(raw_df.smiles.tolist(), workers=8)
-
-.. code:: ipython3
-
     raw_df.smiles.nunique(), raw_df.base_rdkit_smiles.nunique()
 
-
-
-
-.. parsed-literal::
-
-    (1830, 1823)
-
-
-
-For this dataset there are 1830 unique `SMILES <https://en.wikipedia.org/wiki/Simplified_molecular-input_line-entry_system>`_
-that are standardized to 1823 unique base `SMILES <https://en.wikipedia.org/wiki/Simplified_molecular-input_line-entry_system>`_.
-It is common for two different `SMILES <https://en.wikipedia.org/wiki/Simplified_molecular-input_line-entry_system>`_
+For this dataset there are 1830 unique
+`SMILES <https://en.wikipedia.org/wiki/Simplified_molecular-input_line-entry_system>`_
+that are standardized to 1823 unique base
+`SMILES <https://en.wikipedia.org/wiki/Simplified_molecular-input_line-entry_system>`_.
+It is common for two different
+`SMILES <https://en.wikipedia.org/wiki/Simplified_molecular-input_line-entry_system>`_
 strings to be standardized to the same value. From now on we will use
 ``base_rdkit_smiles`` to represent compound structures.
 
 Calculate :math:`pK_i`'s
 ------------------------
 
-A :math:`K_i` is an equiulibrium constant for the reaction of an
+A :math:`K_i` is an equilibrium constant for the reaction of an
 inhibitor with a target protein; it is measured in concentration units.
 Like many other chemical properties, :math:`K_i` values may span several
 orders of magnitude, from picomolar to millimolar (a billion-fold
@@ -164,24 +157,21 @@ work with :math:`pK_i` values, where
 because the log transformed measurements have more stable variances, as
 shown at right. Similar transformations are often applied to properties
 like :math:`IC_{50}`'s, :math:`K_d`'s and :math:`EC_{50}`'s, yielding
-:math:`pIC_{50}`'s, :math:`pK_d`'s, and :math:`EC_{50}`'s.
-
+:math:`pIC_{50}`'s, :math:`pK_d`'s, and :math:`pEC_{50}`'s.
 
 .. image:: ../_static/img/02_data_curation_files/02_data_curation_pki_mean.png
 
+.. note:
 
-.. note::
-    
-    *For those who want more details: It's hard to fit ML
-    models to raw :math:`K_i`'s because typical training methods seek to
-    minimize a squared-error loss function (the error being the
-    difference between the actual and predicted values). Squared errors
-    tend to scale with the variance among replicates, so the loss
-    function is dominated by the compounds with the largest variance,
-    i.e. those with the largest :math:`K_i`'s. This leads to models that
-    perform OK on the least potent compounds and terribly on the most
-    potent.*
-
+    *For those who want more details: It's hard to fit machine
+    learning (ML) models to raw :math:`K_i`'s because typical training
+    methods seek to minimize a squared-error loss function (the error
+    being the difference between the actual and predicted values).
+    Squared errors tend to scale with the variance among replicates, so
+    the loss function is dominated by the compounds with the largest
+    variance, i.e. those with the largest :math:`K_i`'s. This leads to
+    models that perform OK on the least potent compounds and terribly on
+    the most potent.*
 
 The `AMPL <https://github.com/ATOMScience-org/AMPL>`_ function
 ``compute_negative_log_responses`` performs these variance stabilizing
@@ -192,7 +182,7 @@ the :math:`K_i`'s in the ``standard_value`` column to molar units before
 applying the log transformation. It also inverts the ":math:`<`" and
 ":math:`>`" operators in ``relation_col`` so that they correctly
 describe the :math:`pK_i` values, which *decrease* as :math:`K_i` values
-*increase* (e.g., ":math:`K_i > 100 \mathrm{uM}`" means
+*increase* (e.g., ":math:`K_i > 100 \mathrm{µ}M`" means
 ":math:`K_i > 10^{-4} \mathrm{M}`" which implies ":math:`pK_i < 4`").
 
 .. code:: ipython3
@@ -223,7 +213,8 @@ Standardize Relations
 
 Some databases may contain measurements reported with a variety of
 relational operators such as ":math:`>=`", ":math:`<=`", ":math:`~`" and
-so on. In datasets used to train models, `AMPL <https://github.com/ATOMScience-org/AMPL>`_ expects the
+so on. In datasets used to train models,
+`AMPL <https://github.com/ATOMScience-org/AMPL>`_ expects the
 relation column to contain one of the three standard operators
 ":math:`>`", ":math:`<`" or ":math:`=`", or an empty field representing
 equality. `AMPL <https://github.com/ATOMScience-org/AMPL>`_
@@ -242,42 +233,10 @@ quotes around operators).
                         rel_col='standard_relation', db='ChEMBL',
                         output_rel_col='fixed_relation')
 
-.. code:: ipython3
-
     # Look at the operator counts before and after standardization
     raw_df.standard_relation.value_counts()
 
-
-
-
-.. parsed-literal::
-
-    standard_relation
-    '='     1868
-    '<'      319
-    =         39
-    '>'        8
-    '<='       2
-    Name: count, dtype: int64
-
-
-
-.. code:: ipython3
-
     raw_df.fixed_relation.value_counts()
-
-
-
-
-.. parsed-literal::
-
-    fixed_relation
-    =    1907
-    <     321
-    >       8
-    Name: count, dtype: int64
-
-
 
 For this dataset, we see that the nonstandard operator ":math:`<=`" was
 changed to ":math:`<`", and the single quotes around some operators were
@@ -325,19 +284,7 @@ into account.
     curated_df.head()
 
 
-.. parsed-literal::
-
-    Removed 17 pKi replicate measurements that were > 1.0 from median
-    9 entries in input table are missing SMILES strings
-    1819 unique SMILES strings are reduced to 1819 unique base SMILES strings
-    Original data shape:  (2236, 9)
-    Curated data shape:  (1819, 4)
-
-
-
-
 .. list-table:: 
-   :widths: 3 5 20 5 5 
    :header-rows: 1
    :class: tight-table 
  
@@ -373,23 +320,29 @@ into account.
      - 6.352617
 
 
-
 The data frame returned by ``aggregate_assay_data`` contains only four
-columns: - ``compound_id``, a unique ID for each base
-`SMILES <https://en.wikipedia.org/wiki/Simplified_molecular-input_line-entry_system>`_ string. When multiple values are found in ``id_col`` for the same
-`SMILES <https://en.wikipedia.org/wiki/Simplified_molecular-input_line-entry_system>`_ string, the function assigns it the first one in lexicographic order. -
-``base_rdkit_smiles``, the standardized
-`SMILES <https://en.wikipedia.org/wiki/Simplified_molecular-input_line-entry_system>`_
-string. - ``relation``, an *aggregate* relation for the set of
-replicates. - ``avg_pKi``, or whatever you specified in the
-``output_value_col`` argument, containing the aggregate/average
-:math:`pK_i` value.
+columns:
 
+
+.. list-table::
+   :header-rows: 1
+   :class: tight-table
+
+   * - Column
+     - Description
+   * - `compound_id`
+     - a unique ID for each base `SMILES <https://en.wikipedia.org/wiki/Simplified_molecular-input_line-entry_system>`_  string. When multiple values are found in id_col for the same `SMILES <https://en.wikipedia.org/wiki/Simplified_molecular-input_line-entry_system>`_  string, the function assigns it the first one in lexicographic order.
+   * - `base_rdkit_smiles`
+     - he standardized `SMILES <https://en.wikipedia.org/wiki/Simplified_molecular-input_line-entry_system>`_  string.
+   * - `relation`
+     - an aggregate relation for the set of replicates
+   * - `avg_pK`
+     - or whatever you specified in the output_value_col argument, containing the aggregate/average value.
 
 .. note::
     
-    *When the ``label_actives`` argument is True (the
-    default), an additional column ``active`` is added for use in
+    *When the "label_actives" argument is True (the
+    default), an additional column "active" is added for use in
     training classification models. We will cover classification models
     in a future tutorial*.
 
@@ -399,6 +352,8 @@ Finally, we save the curated dataset to a CSV file.
 
     curated_df.to_csv('dataset/SLC6A3_Ki_curated.csv', index=False)
 
+In **Tutorial 3, "Splitting Datasets for Validation and Testing"**,
+we'll show how to split this dataset into training, validation and test
+sets for model training.
 
-In the next tutorial, we'll show how to split this dataset into
-training, validation and test sets for model training.
+If you have specific feedback about a tutorial, please complete the `AMPL Tutorial Evaluation <https://forms.gle/pa9sHj4MHbS5zG7A6>`_.

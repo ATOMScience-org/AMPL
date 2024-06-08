@@ -2,56 +2,48 @@
 03 Splitting Datasets for Validation and Testing
 ################################################
 
-*Published: May, 2024, ATOM DDM Team*
+*Published: June, 2024, ATOM DDM Team*
 
 ------------
 
-A common problem with machine learning models is that they can very
+A common problem with machine learning (ML) models is that they can very
 easily "overfit" the training data. This means that the model predicts
 the response values for training set compounds with perfect accuracy,
 but fails miserably on molecules that differ from the training
 compounds. To avoid overfitting and provide a way to test a model's
 ability to generalize to new molecules, ML researchers have developed a
 variety of data splitting and training schemes.
-`AMPL <https://github.com/ATOMScience-org/AMPL>`_ supports two of the most popular strategies: 
+`AMPL <https://github.com/ATOMScience-org/AMPL>`_ supports two of
+the most popular strategies: - 3-way training/validation/test splits -
+*k*-fold cross-validation (CV).
 
--  3-way training/validation/test splits 
--  *k*-fold cross-validation (CV).
-
-In this tutorial we will perform a ``3-way split`` of the curated
-dataset we prepared in **Tutorial 2, "Data Curation"**, using the
+In this tutorial we will perform a 3-way split of the curated dataset we
+prepared in **Tutorial 2, "Data Curation"**, using the
 `AMPL <https://github.com/ATOMScience-org/AMPL>`_ modules, classes
-and functions listed below. *k* ``-fold cross-validation`` will be
-addressed in a future tutorial.
+and functions listed below. *k*-fold cross-validation will be addressed
+in a future tutorial.
 
--  `parameter\_parser <https://ampl.readthedocs.io/en/latest/pipeline.html#pipeline-parameter-parser-module>`_
+-  `parameter_parser <https://ampl.readthedocs.io/en/latest/pipeline.html#pipeline-parameter-parser-module>`_
 -  `ModelPipeline <https://ampl.readthedocs.io/en/latest/pipeline.html#pipeline.model_pipeline.ModelPipeline>`_
--  `split\_dataset <https://ampl.readthedocs.io/en/latest/pipeline.html#pipeline.model_pipeline.ModelPipeline.split_dataset>`_
--  `compare\_splits\_plots <https://ampl.readthedocs.io/en/latest/utils.html#module-utils.compare_splits_plots>`_
--  `split\_response\_dist\_plots <https://ampl.readthedocs.io/en/latest/utils.html#module-utils.split_response_dist_plots>`_
+-  `split_dataset <https://ampl.readthedocs.io/en/latest/pipeline.html#pipeline.model_pipeline.ModelPipeline.split_dataset>`_
+-  `compare_splits_plots <https://ampl.readthedocs.io/en/latest/utils.html#module-utils.compare_splits_plots>`_
+-  `split_response_dist_plots <https://ampl.readthedocs.io/en/latest/utils.html#module-utils.split_response_dist_plots>`_
 
 With 3-way data splitting, you divide your curated dataset into three
 subsets:
 
--  **Training set**: Usually the largest subset.
-   `AMPL <https://github.com/ATOMScience-org/AMPL>`_ feeds the
-   training set compound features and response values in batches to the
-   model fitting algorithm. The fitting algorithm iteratively adjusts
-   the model parameters after each batch so that the predicted responses
-   are close (on average) to the actual response values.
+.. list-table::
+   :header-rows: 1
+   :class: tight-table
 
--  **Validation set**: Used after training a collection of models to see
-   how well each one performs on "new" compounds that weren't used
-   directly to fit the model parameters, so you can choose the best
-   model. The validation set is also used by
-   `AMPL <https://github.com/ATOMScience-org/AMPL>`_  during neural
-   network model training to implement "early stopping", a trick to
-   avoid overfitting the training set.
-
--  **Test set**: After training is completed,
-   `AMPL <https://github.com/ATOMScience-org/AMPL>`_  scores the
-   predictions on the test set compounds to provide a measure of the
-   final model's performance.
+   * - Subset
+     - Description
+   * - Training set
+     - Usually the largest subset. `AMPL <https://github.com/ATOMScience-org/AMPL>`_ feeds the training set compound features and response values in batches to the model fitting algorithm. The fitting algorithm iteratively adjusts the model parameters after each batch so that the predicted responses are close (on average) to the actual response values.
+   * - Validation set
+     - Used after training a collection of models to see how well each one performs on "new" compounds that weren't used directly to fit the model parameters, so you can choose the best model. The validation set is also used by AMPL during **neural network model** training to implement "early stopping", a trick to avoid overfitting the training set.
+   * - Test set
+     - After training is completed, `AMPL <https://github.com/ATOMScience-org/AMPL>`_ scores the predictions on the test set compounds to provide a measure of the final model's performance.
 
 .. image:: ../_static/img/03_perform_a_split_files/03_split_example_figure.png
 
@@ -68,24 +60,24 @@ subsets:
     logger = logging.getLogger('ATOM')
     logger.setLevel(logging.INFO)
 
-Splitting methods
+Splitting Methods
 *****************
 
 `AMPL <https://github.com/ATOMScience-org/AMPL>`_ supports a
-variety of splitting algorithms, including random and scaffold splits. A
-``scaffold`` is the core structure of a molecule, with its side chains
-removed. Scaffold splits assign molecules to the training, validation
-and test sets so that molecules with the same scaffold group together in
-the same subset. This ensures that compounds in the validation and test
-sets have different scaffolds from those in the training set, and are
-thus more likely to be structurally different. By contrast, a random
-split assigns molecules to subsets randomly.
+variety of splitting algorithms, including **random** and **scaffold
+splits**. A **scaffold** is the core structure of a molecule, with its
+side chains removed. **Scaffold splits** assign molecules to the
+training, validation and test sets, so that molecules with the same
+scaffold group together in the same subset. This ensures that compounds
+in the validation and test sets have different scaffolds from those in
+the training set, and are thus more likely to be structurally different.
+By contrast, a random split assigns molecules to subsets randomly.
 
-Rationale for using scaffold vs random splits
+Rationale for Using Scaffold vs Random Splits
 =============================================
 
-A ``scaffold split`` is more challenging for model fitting than a
-``random split``. With a random split, many test set compounds may be
+A **scaffold split** is more challenging for model fitting than a
+**random split**. With a random split, many test set compounds may be
 similar to molecules in the training set, so a model may *appear* to
 perform well when it is simply "memorizing" training compound structures
 associated with different response levels. Such a model will perform
@@ -97,7 +89,7 @@ with novel scaffolds. A scaffold split provides a way to select models
 with greater generalization ability and assess their performance
 realistically.
 
-Performing a split
+Performing a Split
 ******************
 
 We start by constructing a dictionary of parameter values:
@@ -133,11 +125,11 @@ create a parameter object for input to
 We then create a ``ModelPipeline`` object and call its ``split_dataset``
 method to do the actual split.
 
-.. note:: 
-    
-    *When we wish to only split the data and not train, we
-    set the split\_only parameter to "True". ``split_dataset()`` can
-    also featurize the dataset; we will explore featurization in a later
+.. note::
+  
+    *When we wish to only split the data and not train, we set
+    the split\_only parameter to "True".* *``split_dataset()`` can also
+    featurize the dataset; we will explore featurization in a later
     tutorial. For now, we provide prefeaturized data in the
     ``./dataset/scaled_descriptors`` folder.*
 
@@ -149,16 +141,6 @@ method to do the actual split.
     pparams = parse.wrapper(params)
     MP = mp.ModelPipeline(pparams)
     split_uuid = MP.split_dataset()
-
-
-.. parsed-literal::
-
-    Skipped loading some Jax models, missing a dependency. No module named 'haiku'
-    /opt/anaconda3/envs/atomsci-env/lib/python3.9/site-packages/tqdm/auto.py:21: TqdmWarning: IProgress not found. Please update jupyter and ipywidgets. See https://ipywidgets.readthedocs.io/en/stable/user_install.html
-      from .autonotebook import tqdm as notebook_tqdm
-    INFO:ATOM:Using prefeaturized data; number of features = 200
-    INFO:ATOM:Splitting data by scaffold
-    INFO:ATOM:Dataset split table saved to /Users/rwilfong/Downloads/2024_LLNL/fork_ampl/AMPL/atomsci/ddm/examples/tutorials2023/dataset/SLC6A3_Ki_curated_train_valid_test_scaffold_7c871b97-648d-4634-a251-fabad1f114e1.csv
 
 
 The dataset split table is saved as a .csv in the same directory as the
@@ -178,14 +160,7 @@ The dataset split table is saved as a .csv in the same directory as the
 
 
 
-
-.. parsed-literal::
-
-    'dataset/SLC6A3_Ki_curated_train_valid_test_scaffold_7c871b97-648d-4634-a251-fabad1f114e1.csv'
-
-
-
-Format of the split file
+Format of the Split File
 ************************
 
 The split file consists of three columns: ``cmpd_id`` is the compound
@@ -198,8 +173,6 @@ k-fold cross-validation splits.
     # Explore contents of the split file
     split_df = pd.read_csv(split_file)
     split_df
-
-
 
 
 .. list-table:: 
@@ -256,12 +229,6 @@ k-fold cross-validation splits.
      - 0
 
 
-.. parsed-literal::
-
-    1819 rows 3 columns
-
-
-
 .. code:: ipython3
 
     # Show the numbers of compounds in each split subset
@@ -269,25 +236,19 @@ k-fold cross-validation splits.
 
 
 
-
-.. parsed-literal::
-
-    subset
-    train    1273
-    valid     273
-    test      273
-    Name: count, dtype: int64
-
-
-
 Visualizing Scaffold Splits
 ***************************
 
-`Tanimoto distances <https://en.wikipedia.org/wiki/Jaccard_index#Tanimoto_similarity_and_distance/>`_ is a handy way to measure structural dissimilarity between compounds
-represented using `ECFP fingerprints <https://pubs.acs.org/doi/10.1021/ci100050t>`_.
+`Tanimoto
+distance <https://en.wikipedia.org/wiki/Jaccard_index#Tanimoto_similarity_and_distance>`_
+is a handy way to measure structural dissimilarity between compounds
+represented using `ECFP
+fingerprints <https://pubs.acs.org/doi/10.1021/ci100050t>`_.
 
 We can use functions in the ``compare_splits_plots`` module to compute
-`Tanimoto distances <https://en.wikipedia.org/wiki/Jaccard_index#Tanimoto_similarity_and_distance/>`_ between each validation and test set compound and its nearest neighbor
+`Tanimoto
+distance <https://en.wikipedia.org/wiki/Jaccard_index#Tanimoto_similarity_and_distance>`_
+between each validation and test set compound and its nearest neighbor
 in the training set, and then plot the distribution of distances for
 each subset.
 
@@ -316,10 +277,11 @@ each subset.
 
 
 
-.. image::  ../_static/img/03_perform_a_split_files/03_perform_a_split_14_0.png
+.. image:: ../_static/img/03_perform_a_split_files/03_perform_a_split_14_0.png
 
 
-The majority of compounds have `Tanimoto distances <https://en.wikipedia.org/wiki/Jaccard_index#Tanimoto_similarity_and_distance/>`_
+The majority of compounds have `Tanimoto
+distances <https://en.wikipedia.org/wiki/Jaccard_index#Tanimoto_similarity_and_distance>`_
 between 0.2 and 0.8 from the training set, indicating that they are
 structurally different from the training compounds. The distance
 distributions are similar between the test and validation sets. This
@@ -346,11 +308,15 @@ train a model that performs well on the test set.
 
 
 
-.. image::  ../_static/img/03_perform_a_split_files/03_perform_a_split_17_0.png
+.. image:: ../_static/img/03_perform_a_split_files/03_perform_a_split_17_0.png
 
 
 For this dataset, the :math:`pK_i`'s have roughly similar distributions
-across the scaffold split subsets, except that the training set has
-slightly more compounds with large :math:`pK_i` values. In the next
-tutorial, we will use this dataset and scaffold split to train a model
-to predict the :math:`pK_i`'s.
+across the **scaffold split** subsets, except that the training set has
+slightly more compounds with large values.
+
+In  **Tutorial 4, "Train a Simple Regression Model"**, we will use this
+dataset and **scaffold split** to train a model to predict the
+:math:`pK_i`'s.
+
+If you have specific feedback about a tutorial, please complete the `AMPL Tutorial Evaluation <https://forms.gle/pa9sHj4MHbS5zG7A6>`_.

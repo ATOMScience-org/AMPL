@@ -2,11 +2,11 @@
 09 Visualizations of Model Performance
 ######################################
 
-*Published: May, 2024, ATOM DDM Team*
+*Published: June, 2024, ATOM DDM Team*
 
 ------------
 
-In this tutorial we will use some of the tools provided by
+In this tutorial, we will use some of the tools provided by
 `AMPL <https://github.com/ATOMScience-org/AMPL>`_ to visualize the
 model training process and the performance of the final model. Some of
 the tools we'll apply here are only applicable to certain classes of
@@ -16,18 +16,18 @@ applied.
 The tutorial will present the following functions, all from the
 ``perf_plots`` module: 
 
--  `plot\_perf\_vs\_epoch <https://ampl.readthedocs.io/en/latest/pipeline.html#pipeline.perf_plots.plot_perf_vs_epoch>`_
--  `plot\_pred\_vs\_actual <https://ampl.readthedocs.io/en/latest/pipeline.html#pipeline.perf_plots.pred_vs_actual>`_
--  `plot\_confusion\_matrices <https://ampl.readthedocs.io/en/latest/pipeline.html#pipeline.perf_plots.confusion_matrices>`_
--  `plot\_model\_metrics <https://ampl.readthedocs.io/en/latest/pipeline.html#pipeline.perf_plots.plot_model_metrics>`_
--  `plot\_ROC\_curve <https://ampl.readthedocs.io/en/latest/pipeline.html#pipeline.perf_plots.plot_ROC_curve>`_
--  `plot\_prec\_recall\_curve <https://ampl.readthedocs.io/en/latest/pipeline.html#pipeline.perf_plots.plot_prec_recall_curve>`_
+-  `plot_perf_vs_epoch <https://ampl.readthedocs.io/en/latest/pipeline.html#pipeline.perf_plots.plot_perf_vs_epoch>`_
+-  `plot_pred_vs_actual <https://ampl.readthedocs.io/en/latest/pipeline.html#pipeline.perf_plots.pred_vs_actual>`_
+-  `plot_confusion_matrices <https://ampl.readthedocs.io/en/latest/pipeline.html#pipeline.perf_plots.confusion_matrices>`_
+-  `plot_model_metrics <https://ampl.readthedocs.io/en/latest/pipeline.html#pipeline.perf_plots.plot_model_metrics>`_
+-  `plot_ROC_curve <https://ampl.readthedocs.io/en/latest/pipeline.html#pipeline.perf_plots.plot_ROC_curve>`_
+-  `plot_prec_recall_curve <https://ampl.readthedocs.io/en/latest/pipeline.html#pipeline.perf_plots.plot_prec_recall_curve>`_
 
-We will use the same training dataset and scaffold split as in
+We will use the same training dataset and **scaffold split** as in
 **Tutorial 4, "Train a Simple Regression Model**", to create some
-``neural network models`` and visualize their iterative training
+**neural network models** and visualize their iterative training
 process. Later, we'll generate a binary classification dataset based on
-the same data, so we can train ``classification models`` and show the
+the same data, so we can train **classification models** and show the
 visualizations that are specific to classifiers. For starters, let's
 import some standard packages and modules:
 
@@ -47,33 +47,19 @@ import some standard packages and modules:
     from atomsci.ddm.pipeline import perf_plots as pp
 
 
-.. parsed-literal::
-
-    2024-05-10 16:13:24.275406: I tensorflow/tsl/cuda/cudart_stub.cc:28] Could not find cuda drivers on your machine, GPU will not be used.
-    2024-05-10 16:13:24.332150: E tensorflow/compiler/xla/stream_executor/cuda/cuda_dnn.cc:9342] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered
-    2024-05-10 16:13:24.332221: E tensorflow/compiler/xla/stream_executor/cuda/cuda_fft.cc:609] Unable to register cuFFT factory: Attempting to register factory for plugin cuFFT when one has already been registered
-    2024-05-10 16:13:24.332259: E tensorflow/compiler/xla/stream_executor/cuda/cuda_blas.cc:1518] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
-    2024-05-10 16:13:24.341944: I tensorflow/tsl/cuda/cudart_stub.cc:28] Could not find cuda drivers on your machine, GPU will not be used.
-    2024-05-10 16:13:24.343056: I tensorflow/core/platform/cpu_feature_guard.cc:182] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
-    To enable the following instructions: AVX2 FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
-    2024-05-10 16:13:27.251720: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Could not find TensorRT
-    Skipped loading some Jax models, missing a dependency. No module named 'haiku'
-    /usr/WS2/kmelough/ampl161_env/lib/python3.9/site-packages/tqdm/auto.py:21: TqdmWarning: IProgress not found. Please update jupyter and ipywidgets. See https://ipywidgets.readthedocs.io/en/stable/user_install.html
-      from .autonotebook import tqdm as notebook_tqdm
-
 
 Visualizing the Training Process for a Neural Network Regression Model
 **********************************************************************
 
-When you train a neural network model,
-`AMPL <https://github.com/ATOMScience-org/AMPL>`_  makes a series of
+When you train a **neural network model**,
+`AMPL <https://github.com/ATOMScience-org/AMPL>`_ makes a series of
 iterations through the entire training subset of your curated dataset;
-each iteration is called an ``epoch``. At the end of each epoch,
+each iteration is called an **epoch**. At the end of each epoch,
 `AMPL <https://github.com/ATOMScience-org/AMPL>`_ saves the model
 parameters (i.e., the weights of each network connection) in a
 checkpoint file. It then computes and stores a set of metrics describing
 the model's performance at that stage of training: the :math:`R^2` value
-for regression models and the ``ROC AUC`` for classification models. By
+for regression models and the **ROC AUC** for classification models. By
 default these metrics are used to select the epoch yielding the best
 validation set performance; but you may choose a different metric by
 setting the ``model_choice_score_type`` parameter. The metrics are
@@ -84,16 +70,16 @@ decline, as the model becomes overfitted to the training subset. The
 function ``plot_perf_vs_epoch`` allows you to visualize this process.
 
 The code below will train a simple fully-connected neural network on the
-`SLC6A3 <https://www.ebi.ac.uk/chembl/target_report_card/CHEMBL238/>`_ 
+`SLC6A3 <https://www.ebi.ac.uk/chembl/target_report_card/CHEMBL238/>`_
 dataset. By default,
-`AMPL <https://github.com/ATOMScience-org/AMPL>`_ uses an
-``early stopping`` algorithm to terminate training if the chosen
-validation set metric peaks and does not improve further after a certain
-number of epochs, set by the ``early_stopping_patience`` parameter. Here
-we tell `AMPL <https://github.com/ATOMScience-org/AMPL>`_ to
-optimize the ``root mean squared error (RMSE)`` rather than :math:`R^2`,
-to train for up to 100 epochs, and to stop training if the ``RMSE`` does
-not improve for 20 epochs after reaching a minimum.
+`AMPL <https://github.com/ATOMScience-org/AMPL>`_ uses an **early
+stopping** algorithm to terminate training if the chosen validation set
+metric peaks and does not improve further after a certain number of
+epochs, set by the ``early_stopping_patience`` parameter. Here we tell
+`AMPL <https://github.com/ATOMScience-org/AMPL>`_ to optimize the
+**root mean squared error (RMSE)** rather than :math:`R^2`, to train for
+up to 100 epochs, and to stop training if the **RMSE** does not improve
+for 20 epochs after reaching a minimum.
 
 .. code:: ipython3
 
@@ -139,33 +125,6 @@ not improve for 20 epochs after reaching a minimum.
     regr_pipe.train_model()
 
 
-.. parsed-literal::
-
-    INFO:ATOM:Using prefeaturized data; number of features = 200
-    WARNING:ATOM:Previous dataset split restored
-    INFO:ATOM:Wrote transformers to dataset/SLC6A3_models/SLC6A3_Ki_curated/NN_computed_descriptors_scaffold_regression/885cc43a-4c8d-418f-a68f-3a64e6bbaf43/transformers.pkl
-    INFO:ATOM:Transforming response data
-    INFO:ATOM:Transforming feature data
-    /home/apaulson/repos/AMPL_umbrella/AMPL/atomsci/ddm/pipeline/transformations.py:250: RuntimeWarning: invalid value encountered in divide
-      X = np.nan_to_num((X - self.X_means) * X_weight / self.X_stds)
-    INFO:ATOM:Transforming response data
-    INFO:ATOM:Transforming feature data
-    INFO:ATOM:Transforming response data
-    INFO:ATOM:Transforming feature data
-    INFO:ATOM:Total score for epoch 0 is -1.2
-    ...
-    INFO:ATOM:No improvement after 20 epochs, stopping training
-    INFO:ATOM:Epoch 51: training r2_score = 0.766, validation r2_score = 0.396, test r2_score = 0.310
-    INFO:ATOM:Saved model files to 'dataset/SLC6A3_models/SLC6A3_Ki_curated/NN_computed_descriptors_scaffold_regression/362b134a-924b-4549-a341-cffb5ba36757/best_model'
-    INFO:ATOM:Best model from epoch 30 saved to dataset/SLC6A3_models/SLC6A3_Ki_curated/NN_computed_descriptors_scaffold_regression/362b134a-924b-4549-a341-cffb5ba36757/best_model
-    INFO:ATOM:Wrote model tarball to dataset/SLC6A3_models/SLC6A3_Ki_curated_model_362b134a-924b-4549-a341-cffb5ba36757.tar.gz
-
-
-.. parsed-literal::
-
-    ['dataset/SLC6A3_models/SLC6A3_Ki_curated/NN_computed_descriptors_scaffold_regression/362b134a-924b-4549-a341-cffb5ba36757/model/checkpoint1.pt', 'dataset/SLC6A3_models/SLC6A3_Ki_curated/NN_computed_descriptors_scaffold_regression/362b134a-924b-4549-a341-cffb5ba36757/model/checkpoint2.pt', 'dataset/SLC6A3_models/SLC6A3_Ki_curated/NN_computed_descriptors_scaffold_regression/362b134a-924b-4549-a341-cffb5ba36757/model/checkpoint3.pt', 'dataset/SLC6A3_models/SLC6A3_Ki_curated/NN_computed_descriptors_scaffold_regression/362b134a-924b-4549-a341-cffb5ba36757/model/checkpoint4.pt', 'dataset/SLC6A3_models/SLC6A3_Ki_curated/NN_computed_descriptors_scaffold_regression/362b134a-924b-4549-a341-cffb5ba36757/model/checkpoint5.pt']
-    dataset/SLC6A3_models/SLC6A3_Ki_curated/NN_computed_descriptors_scaffold_regression/362b134a-924b-4549-a341-cffb5ba36757/model/checkpoint1.pt
-
 
 We now use the ``plot_perf_vs_epoch`` function to show how the
 performance metrics change during training:
@@ -180,16 +139,16 @@ performance metrics change during training:
 
 
 The vertical dashed lines indicate the epoch at which the validation set
-``RMSE`` was minimized; the parameters retrieved from the checkpoint
+**RMSE** was minimized; the parameters retrieved from the checkpoint
 file for this epoch are the ones saved in the model file.
 
 When the model is trained to optimize the default score type
-(:math:`R^2` or ``ROC AUC``), only the left hand plot is drawn. Note
+(:math:`R^2` or **ROC AUC**), only the left hand plot is drawn. Note
 that the epoch with the maximum :math:`R^2` may or may not be the same
-as the one that minimizes ``RMSE``.
+as the one that minimizes **RMSE**.
 
 .. note::
-    
+ 
     *The ``pipe`` argument to ``plot_perf_vs_epoch`` is a
     ``ModelPipeline`` object for a model you have trained in your
     current Python session; it doesn't work with a previously saved
@@ -199,7 +158,7 @@ as the one that minimizes ``RMSE``.
 Comparing Predicted with Actual Values by Split Subset
 ******************************************************
 
-There are times when a single number like :math:`R^2` or ``RMSE`` is not
+There are times when a single number like :math:`R^2` or **RMSE** is not
 enough to give you a feeling for how well your model is performing (or
 more importantly, where it is failing). For this reason,
 `AMPL <https://github.com/ATOMScience-org/AMPL>`_ provides a
@@ -229,29 +188,21 @@ As with ``plot_perf_vs_epoch``, the ``plot_pred_vs_actual`` function
 only works with "live" ``ModelPipeline`` objects trained in the current
 Python session. However, there is an alternative version of this
 function specifically for saved models. We'll try out this function on
-the best random forest model from the hyperparameter searches performed
-in **Tutorial 6, "Hyperparameter Optimization"**:
+the best **random forest** model from the hyperparameter searches
+performed in **Tutorial 6, "Hyperparameter Optimization"**:
 
 .. code:: ipython3
 
     pp.plot_pred_vs_actual_from_file('dataset/SLC6A3_models/SLC6A3_Ki_curated_model_9b6c9332-15f3-4f96-9579-bf407d0b69a8.tar.gz')
 
 
-.. parsed-literal::
-
-    INFO:atomsci.ddm.utils.model_version_utils:dataset/SLC6A3_models/SLC6A3_Ki_curated_model_9b6c9332-15f3-4f96-9579-bf407d0b69a8.tar.gz, 1.6.0
-    INFO:atomsci.ddm.utils.model_version_utils:Version compatible check: dataset/SLC6A3_models/SLC6A3_Ki_curated_model_9b6c9332-15f3-4f96-9579-bf407d0b69a8.tar.gz version = "1.6", AMPL version = "1.6"
-    INFO:ATOM:Featurization = DynamicFeaturization with ecfp features
-
-
-
 .. image:: ../_static/img/09_visualization_files/09_visualization_13_1.png
 
 
-The points predicted by the optimized ``RF model`` are indeed closer to
-the identity line, as one would expect from the higher :math:`R^2`
-scores. Although the lower :math:`K_i` values are still overpredicted in
-the validation and test sets, the spread of predicted values above the
+The points predicted by the optimized RF model are indeed closer to the
+identity line, as one would expect from the higher :math:`R^2` scores.
+Although the lower :math:`K_i` values are still overpredicted in the
+validation and test sets, the spread of predicted values above the
 identity line is much reduced.
 
 Visualizations of Classification Model Performance
@@ -269,7 +220,7 @@ specifically for classification models.
 
 To create a binary classification dataset, we will simply add a column
 called 'active' to the
-`SLC6A3 <https://www.ebi.ac.uk/chembl/target_report_card/CHEMBL238/>`_ 
+`SLC6A3 <https://www.ebi.ac.uk/chembl/target_report_card/CHEMBL238/>`_
 :math:`K_i` dataset containing "1" for compounds with :math:`pK_i \ge 8`
 and "0" for all others:
 
@@ -281,17 +232,6 @@ and "0" for all others:
     classif_dset_file = 'dataset/SLC6A3_classif_pKi_ge_8.csv'
     dset_df.to_csv(classif_dset_file, index=False)
     dset_df.active.value_counts()
-
-
-
-
-.. parsed-literal::
-
-    active
-    0    1597
-    1     222
-    Name: count, dtype: int64
-
 
 
 Note that we have purposely created an imbalanced dataset, with many
@@ -357,8 +297,8 @@ The proportion of actives is fairly even across the split subsets. We
 will check later to see if the higher percentage of actives in the
 training set causes the model to predict too many false positives.
 
-Now we will train a neural network to predict compound classes using
-`ECFP fingerprints <https://pubs.acs.org/doi/10.1021/ci100050t>`_ fingerprints
+Now we will train a **neural network** to predict compound classes using
+`ECFP <https://pubs.acs.org/doi/10.1021/ci100050t>`_ fingerprints
 as features:
 
 .. code:: ipython3
@@ -394,17 +334,12 @@ as features:
     classif_pipe.train_model()
 
 
-.. parsed-literal::
-
-    ['dataset/SLC6A3_models/SLC6A3_classif_pKi_ge_8/NN_ecfp_scaffold_classification/5eb65cb8-09f8-47bb-91ba-4ce71f739fff/model/checkpoint1.pt', 'dataset/SLC6A3_models/SLC6A3_classif_pKi_ge_8/NN_ecfp_scaffold_classification/5eb65cb8-09f8-47bb-91ba-4ce71f739fff/model/checkpoint2.pt', 'dataset/SLC6A3_models/SLC6A3_classif_pKi_ge_8/NN_ecfp_scaffold_classification/5eb65cb8-09f8-47bb-91ba-4ce71f739fff/model/checkpoint3.pt', 'dataset/SLC6A3_models/SLC6A3_classif_pKi_ge_8/NN_ecfp_scaffold_classification/5eb65cb8-09f8-47bb-91ba-4ce71f739fff/model/checkpoint4.pt', 'dataset/SLC6A3_models/SLC6A3_classif_pKi_ge_8/NN_ecfp_scaffold_classification/5eb65cb8-09f8-47bb-91ba-4ce71f739fff/model/checkpoint5.pt']
-    dataset/SLC6A3_models/SLC6A3_classif_pKi_ge_8/NN_ecfp_scaffold_classification/5eb65cb8-09f8-47bb-91ba-4ce71f739fff/model/checkpoint1.pt
-
 
 As we did before for a regression model, we use the function
 ``plot_perf_vs_epoch`` to display the changes in the default performance
 metric over successive epochs of training. In this case only one plot is
-drawn because we are using the default metric (ROC AUC) evaluated on the
-validation set to decide when to stop training.
+drawn because we are using the default metric (**ROC AUC**) evaluated on
+the validation set to decide when to stop training.
 
 .. code:: ipython3
 
@@ -415,7 +350,7 @@ validation set to decide when to stop training.
 .. image:: ../_static/img/09_visualization_files/09_visualization_24_0.png
 
 
-Note that the validation set ``ROC AUC`` peaked at only 13 epochs, at
+Note that the validation set **ROC AUC** peaked at only 13 epochs, at
 around 0.88. Although this seems at first glance like a good result, we
 need to remind ourselves that our dataset is highly unbalanced, with
 1597 inactives and 222 actives. Therefore, a 'dumb' classifier that
@@ -423,11 +358,13 @@ predicts every compound to be inactive will be correct, on average,
 1597/(1597+222) = 88% of the time. We need to look at some other metrics
 to see if our model is doing any better than a dumb classifier.
 
-First, we will plot a `confusion matrix <https://en.wikipedia.org/wiki/Confusion_matrix>`_ for each
+First, we will plot a `confusion
+matrix <https://en.wikipedia.org/wiki/Confusion_matrix>`_ for each
 split subset. A confusion matrix is simply a table that shows the
 numbers of compounds with each possible class that are predicted to
 belong to that class and each other class.
-`AMPL <https://github.com/ATOMScience-org/AMPL>`_ provides the function ``plot_confusion_matrices`` to draw the confusion matrix for
+`AMPL <https://github.com/ATOMScience-org/AMPL>`_ provides the
+function ``plot_confusion_matrices`` to draw the confusion matrix for
 each subset:
 
 .. code:: ipython3
@@ -448,10 +385,11 @@ of the compounds.
 other metrics for classification models, which may provide additional
 insight into how a model is performing. We can display a barplot of
 metric values for each subset using the function ``plot_model_metrics``.
-For an unbalanced dataset, the`precision and `recall <https://en.wikipedia.org/wiki/Precision_and_recall>`_ metrics
-are far more sensitive indicators of performance than accuracy or ROC
-AUC. Here the accuracy is about 0.9, about what would be expected from a
-dumb classifier, for all 3 subsets; while the validation set precision
+For an unbalanced dataset, the `precision and
+recall <https://en.wikipedia.org/wiki/Precision_and_recall>`_ metrics
+are far more sensitive indicators of performance than accuracy or **ROC
+AUC**. Here the accuracy is about 0.9, about what would be expected from
+a dumb classifier, for all 3 subsets; while the validation set precision
 and recall are 78% and 25% respectively. We can also see this from the
 confusion matrix: 7/9 of the predicted actives are indeed active; but
 only 7/28 of the true actives are predicted to be active.
@@ -469,8 +407,10 @@ Given the rather mediocre recall performance of our model, we would like
 to try training a new model that has better recall without sacrificing
 too much precision. One way to do this is to change the
 ``model_choice_score_type`` parameter to optimize the number of training
-epochs for a metric that balances precision and recall. `Balanced accuracy <https://scikit-learn.org/stable/modules/model_evaluation.html#balanced-accuracy-score>`_ 
-and the `Matthews correlation coefficient (MCC) <https://en.wikipedia.org/wiki/Phi_coefficient>`_  are two such
+epochs for a metric that balances precision and recall. `Balanced
+accuracy <https://scikit-learn.org/stable/modules/model_evaluation.html#balanced-accuracy-score>`_
+and the `Matthews correlation coefficient
+(MCC) <https://en.wikipedia.org/wiki/Phi_coefficient>`_ are two such
 metrics often used for this purpose. We'll try out using the ``MCC``,
 with all other parameters left the same.
 
@@ -509,18 +449,12 @@ with all other parameters left the same.
     pp.plot_perf_vs_epoch(mcc_pipe)
 
 
-.. parsed-literal::
-
-    ['dataset/SLC6A3_models/SLC6A3_classif_pKi_ge_8/NN_ecfp_scaffold_classification/34c6f7c3-098c-41c9-a926-284c9023321c/model/checkpoint1.pt', 'dataset/SLC6A3_models/SLC6A3_classif_pKi_ge_8/NN_ecfp_scaffold_classification/34c6f7c3-098c-41c9-a926-284c9023321c/model/checkpoint2.pt', 'dataset/SLC6A3_models/SLC6A3_classif_pKi_ge_8/NN_ecfp_scaffold_classification/34c6f7c3-098c-41c9-a926-284c9023321c/model/checkpoint3.pt', 'dataset/SLC6A3_models/SLC6A3_classif_pKi_ge_8/NN_ecfp_scaffold_classification/34c6f7c3-098c-41c9-a926-284c9023321c/model/checkpoint4.pt', 'dataset/SLC6A3_models/SLC6A3_classif_pKi_ge_8/NN_ecfp_scaffold_classification/34c6f7c3-098c-41c9-a926-284c9023321c/model/checkpoint5.pt']
-    dataset/SLC6A3_models/SLC6A3_classif_pKi_ge_8/NN_ecfp_scaffold_classification/34c6f7c3-098c-41c9-a926-284c9023321c/model/checkpoint1.pt
-
-
 
 .. image:: ../_static/img/09_visualization_files/09_visualization_30_1.png
 
 
 Note that the maximum validation set MCC is achieved at epoch 30, while
-the ROC AUC is maximized much earlier at epoch 13. In general, the
+the **ROC AUC** is maximized much earlier at epoch 13. In general, the
 metric selected for ``model_choice_score_type`` has a much greater
 impact for classification models than for regression models.
 
@@ -549,8 +483,8 @@ As an aside,
 provides another option for dealing with unbalanced classification
 datasets: the ``weight_transform_type`` parameter. Setting this
 parameter to "balancing" changes the way the cost function to be
-minimized during training to be calculated so that compounds belonging
-to the minority class are given higher weight in the cost function. This
+minimized during training is calculated so that compounds belonging to
+the minority class are given higher weight in the cost function. This
 modification eliminates the incentive for classifiers to always predict
 the majority class. This parameter can be combined with the
 ``model_choice_score_type`` parameter to yield different effects on the
@@ -592,13 +526,6 @@ precision and recall metrics:
     pp.plot_model_metrics(mcc_wts_pipe, plot_size=8)
 
 
-.. parsed-literal::
-
-    ['dataset/SLC6A3_models/SLC6A3_classif_pKi_ge_8/NN_ecfp_scaffold_classification/68c7a414-cf1c-4a9a-94aa-fe7ceca88db8/model/checkpoint1.pt', 'dataset/SLC6A3_models/SLC6A3_classif_pKi_ge_8/NN_ecfp_scaffold_classification/68c7a414-cf1c-4a9a-94aa-fe7ceca88db8/model/checkpoint2.pt', 'dataset/SLC6A3_models/SLC6A3_classif_pKi_ge_8/NN_ecfp_scaffold_classification/68c7a414-cf1c-4a9a-94aa-fe7ceca88db8/model/checkpoint3.pt', 'dataset/SLC6A3_models/SLC6A3_classif_pKi_ge_8/NN_ecfp_scaffold_classification/68c7a414-cf1c-4a9a-94aa-fe7ceca88db8/model/checkpoint4.pt', 'dataset/SLC6A3_models/SLC6A3_classif_pKi_ge_8/NN_ecfp_scaffold_classification/68c7a414-cf1c-4a9a-94aa-fe7ceca88db8/model/checkpoint5.pt']
-    dataset/SLC6A3_models/SLC6A3_classif_pKi_ge_8/NN_ecfp_scaffold_classification/68c7a414-cf1c-4a9a-94aa-fe7ceca88db8/model/checkpoint1.pt
-
-
-
 .. image:: ../_static/img/09_visualization_files/09_visualization_34_1.png
 
 
@@ -615,108 +542,29 @@ obtained as a nested dictionary using the function
     print(json.dumps(metrics_dict, indent=4))
 
 
-.. parsed-literal::
-
-
-    {
-        "active": {
-            "train": {
-                "roc_auc": 0.9839738357222929,
-                "prc_auc": 0.8866116456224803,
-                "accuracy": 0.9269442262372348,
-                "precision": 0.6442687747035574,
-                "recall": 0.9819277108433735,
-                "bal_accuracy": 0.9503134489176217,
-                "npv": 0.9970588235294118,
-                "cross_entropy": 0.17187009506671735,
-                "kappa": 0.7365568068786424,
-                "MCC": 0.759997950847689,
-                "confusion_matrix": [
-                    [
-                        [
-                            1017,
-                            90
-                        ],
-                        [
-                            3,
-                            163
-                        ]
-                    ]
-                ]
-            },
-            "valid": {
-                "roc_auc": 0.8443148688046648,
-                "prc_auc": 0.48576226827635516,
-                "accuracy": 0.8827838827838828,
-                "precision": 0.4411764705882353,
-                "recall": 0.5357142857142857,
-                "bal_accuracy": 0.7290816326530611,
-                "npv": 0.9456066945606695,
-                "cross_entropy": 0.32558061545729045,
-                "kappa": 0.4184529356943151,
-                "MCC": 0.4209629887651163,
-                "confusion_matrix": [
-                    [
-                        [
-                            226,
-                            19
-                        ],
-                        [
-                            13,
-                            15
-                        ]
-                    ]
-                ]
-            },
-            "test": {
-                "roc_auc": 0.8563411078717201,
-                "prc_auc": 0.5286311317357362,
-                "accuracy": 0.8717948717948718,
-                "precision": 0.41025641025641024,
-                "recall": 0.5714285714285714,
-                "bal_accuracy": 0.7387755102040816,
-                "npv": 0.9487179487179487,
-                "cross_entropy": 0.2981516587921453,
-                "kappa": 0.4067796610169492,
-                "MCC": 0.41403933560541256,
-                "confusion_matrix": [
-                    [
-                        [
-                            222,
-                            23
-                        ],
-                        [
-                            12,
-                            16
-                        ]
-                    ]
-                ]
-            }
-        }
-    }
-
-
 
 Plotting ROC and Precision-Recall Curves
 ****************************************
 
-A `receiver operating characteristic <https://en.wikipedia.org/wiki/Receiver_operating_characteristic>`_ 
+A `receiver operating
+characteristic <https://en.wikipedia.org/wiki/Receiver_operating_characteristic>`_
 curve is a commonly used plot for assessing the performance of a binary
 classifier. It is generated from lists of true classes and predicted
 probabilities for the positive class by varying a threshold on the class
 probability, classifying as positive the compounds with probability
 greater than that threshold, and computing the fractions of true and
-false positives (the ``true positive rate (TPR)`` and
-``false positive rate (FPR)``). The ROC curve plots the resulting TPRs
-against the corresponding FPRs; the ROC AUC is simply the area under the
-ROC curve. The ROC curve for a completely random classifier will be
-close to a diagonal line running from (0,0) to (1,1), with AUC = 0.5. A
-perfect classifier has a ROC curve that follows the Y axis and then runs
+false positives (the **true positive rate (TPR)** and **false positive
+rate (FPR)**). The ROC curve plots the resulting TPRs against the
+corresponding FPRs; the **ROC AUC** is simply the area under the ROC
+curve. The ROC curve for a completely random classifier will be close to
+a diagonal line running from (0,0) to (1,1), with AUC = 0.5. A perfect
+classifier has a ROC curve that follows the Y axis and then runs
 horizontally across the top of the plot.
 
-`SLC6A3 <https://www.ebi.ac.uk/chembl/target_report_card/CHEMBL238/>`_ provides the function ``plot_ROC_curve``, which takes a
-``ModelPipeline`` object as its main argument; it plots separate curves
-for the training, validation and test sets on the same axes.
+`AMPL <https://github.com/ATOMScience-org/AMPL>`_ provides the
+function ``plot_ROC_curve``, which takes a ``ModelPipeline`` object as
+its main argument; it plots separate curves for the training, validation
+and test sets on the same axes.
 
 .. code:: ipython3
 
@@ -727,7 +575,8 @@ for the training, validation and test sets on the same axes.
 .. image:: ../_static/img/09_visualization_files/09_visualization_38_0.png
 
 
-A  `precision-recall curve <https://en.wikipedia.org/wiki/Precision_and_recall>`_ is
+A `precision-recall
+curve <https://en.wikipedia.org/wiki/Precision_and_recall>`_ is
 generated using a similar thresholding process, except that the metrics
 computed and plotted for each threshold are the precision and recall.
 Although the precision generally decreases with increasing recall, it
@@ -735,8 +584,8 @@ usually doesn't decrease monotonically, especially for imbalanced
 datasets where the validation and test sets have very small numbers of
 active compounds.
 
-`AMPL <https://github.com/ATOMScience-org/AMPL>`_
-provides the function ``plot_prec_recall_curve`` to draw precision vs recall curves
+`AMPL <https://github.com/ATOMScience-org/AMPL>`_ provides the
+function ``plot_prec_recall_curve`` to draw precision vs recall curves
 for the training, validation and test sets on one plot. The area under
 the curve, also known as the ``average precision (AP)``, is computed as
 well and shown in the figure legend.
@@ -747,7 +596,7 @@ well and shown in the figure legend.
 
 
 
-.. image:: ../_static/img/09_visualization_files/09_visualization_40_0.png
+.. image::../_static/img/ 09_visualization_files/09_visualization_40_0.png
 
 
 Conclusion
@@ -758,9 +607,10 @@ of `AMPL <https://github.com/ATOMScience-org/AMPL>`_. We hope that
 completing these tutorials will provide you with the essential skills to
 train, evaluate and apply your own models for predicting chemical
 properties. In future versions of
-`AMPL <https://github.com/ATOMScience-org/AMPL>`_ we will release
+`AMPL <https://github.com/ATOMScience-org/AMPL>`_, we will release
 specialized tutorials covering some of
 `AMPL <https://github.com/ATOMScience-org/AMPL>`_'s more advanced
 capabilities, such as multitask modeling, transfer learning, feature
 importance analysis and more.
 
+If you have specific feedback about a tutorial, please complete the `AMPL Tutorial Evaluation <https://forms.gle/pa9sHj4MHbS5zG7A6>`_.

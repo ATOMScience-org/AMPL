@@ -45,6 +45,7 @@ Built with
    :maxdepth: 2
    :caption: Tutorials
 
+   tutorials/ampl_tutorials_intro
    tutorials/01_install_ampl_from_docker
    tutorials/02_data_curation
    tutorials/03_perform_a_split

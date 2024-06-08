@@ -1,42 +1,42 @@
 ####################################################
-07 Compare models to select the best hyperparameters
+07 Compare Models to Select the Best Hyperparameters
 ####################################################
 
-*Published: May, 2024, ATOM DDM Team*
+*Published: June, 2024, ATOM DDM Team*
 
 ------------
 
 This tutorial will review
 `AMPL <https://github.com/ATOMScience-org/AMPL>`_ functions for
-visualizing the results of a ``hyperparameter search`` in order to find
-the optimal hyperparameters for your model.
+visualizing the results of a hyperparameter search in order to find the
+optimal hyperparameters for your model.
 
-After performing a ``hyperparameter search``, it is prudent to examine
-each hyperparameter in order to determine the best combination before
+After performing a hyperparameter search, it is prudent to examine each
+hyperparameter in order to determine the best combination before
 training a production model with all of the data. Additionally, it is
 good to explore multiple performance metrics and visualize the
 predictions instead of relying solely on metrics.
 
-For the purposes of this tutorial, we simply ran **tutorial 6,
-"Hyperparameter Optimization"** with different parameters such as those
+For the purposes of this tutorial, we simply ran **Tutorial 6,
+"Hyperparameter Optimization"**, with different parameters such as those
 outlined
 `here <https://github.com/ATOMScience-org/AMPL#hyperparameter-optimization>`_
 to get enough models for comparison. Specifically, we created additional
-``NN`` and ``XGBoost`` models as well as using ``fingerprint`` and
-``scaffold splits``. If you don't want to run that many models, you can
-use the result\_df saved here:
-``dataset/SLC6A3_models/07_example_pred_df.csv``.
+**NN** and `XGBoost <https://en.wikipedia.org/wiki/XGBoost>`_
+models as well as using **fingerprint** and **scaffold splits**. If you
+don't want to run that many models, you can use the ``result_df`` saved
+here: ``dataset/SLC6A3_models/07_example_pred_df.csv``.
 
 In this tutorial, we will focus on these functions:
 
--  `plot\_train\_valid\_test\_scores <https://ampl.readthedocs.io/en/latest/pipeline.html#pipeline.hyper_perf_plots.plot_train_valid_test_scores>`_
--  `plot\_split\_perf <https://ampl.readthedocs.io/en/latest/pipeline.html#pipeline.hyper_perf_plots.plot_split_perf>`_
--  `plot\_hyper\_perf <https://ampl.readthedocs.io/en/latest/pipeline.html#pipeline.hyper_perf_plots.plot_hyper_perf>`_
--  `get\_score\_types <https://ampl.readthedocs.io/en/latest/pipeline.html#pipeline.hyper_perf_plots.get_score_types>`_
--  `plot\_xg\_perf <https://ampl.readthedocs.io/en/latest/pipeline.html#pipeline.hyper_perf_plots.plot_xg_perf>`_
--  `plot\_pred\_vs\_actual\_from\_file <https://ampl.readthedocs.io/en/latest/pipeline.html#pipeline.perf_plots.plot_pred_vs_actual_from_file>`_
+-  `plot_train_valid_test_scores <https://ampl.readthedocs.io/en/latest/pipeline.html#pipeline.hyper_perf_plots.plot_train_valid_test_scores>`_
+-  `plot_split_perf <https://ampl.readthedocs.io/en/latest/pipeline.html#pipeline.hyper_perf_plots.plot_split_perf>`_
+-  `plot_hyper_perf <https://ampl.readthedocs.io/en/latest/pipeline.html#pipeline.hyper_perf_plots.plot_hyper_perf>`_
+-  `get_score_types <https://ampl.readthedocs.io/en/latest/pipeline.html#pipeline.hyper_perf_plots.get_score_types>`_
+-  `plot_xg_perf <https://ampl.readthedocs.io/en/latest/pipeline.html#pipeline.hyper_perf_plots.plot_xg_perf>`_
+-  `plot_pred_vs_actual_from_file <https://ampl.readthedocs.io/en/latest/pipeline.html#pipeline.perf_plots.plot_pred_vs_actual_from_file>`_
 
-Import packages
+Import Packages
 ***************
 
 .. code:: ipython3
@@ -53,18 +53,12 @@ Import packages
     warnings.filterwarnings('ignore', category=RuntimeWarning)
 
 
-.. parsed-literal::
 
-    Skipped loading some Jax models, missing a dependency. No module named 'haiku'
-    /opt/anaconda3/envs/atomsci-env/lib/python3.9/site-packages/tqdm/auto.py:21: TqdmWarning: IProgress not found. Please update jupyter and ipywidgets. See https://ipywidgets.readthedocs.io/en/stable/user_install.html
-      from .autonotebook import tqdm as notebook_tqdm
-
-
-Get model results and filter
+Get Model Results and Filter
 ****************************
 
 First we pull the results of the hyperparameter search into a dataframe.
-In **tutorial 6, "Hyperparameter Optimization"** we used
+In **Tutorial 6, "Hyperparameter Optimization"**, we used
 ``get_filesystem_perf_results()`` which packs hyperparameters in a dict
 in the column ``model_parameters_dict``. Here we use the individual
 hyperparameter columns to create visualizations.
@@ -86,13 +80,6 @@ entire directory if a parent folder is passed.
     result_df=result_df.sort_values('best_valid_r2_score', ascending=False)
     print(result_df.shape)
     result_df.head(2)
-
-
-.. parsed-literal::
-
-    (467, 41)
-
-
 
 
 .. list-table:: 
@@ -124,14 +111,12 @@ entire directory if a parent folder is passed.
      - ecfp
      - ...
 
-.. parsed-literal::
-
-    2 rows  41 columns
-
 
 We can look at a brief count of models for important parameters by
-creating a pivot table. Here we can see ``ECFP`` and ``RDKit`` features
-and ``fingerprint`` and ``scaffold`` splitters were used for each model
+creating a pivot table. Here we can see `ECFP
+fingerprints <https://pubs.acs.org/doi/10.1021/ci100050t>`_ and
+`RDKit <https://github.com/rdkit/rdkit>`_ features and
+**fingerprint** and **scaffold splitters** were used for each model
 type.
 
 .. code:: ipython3
@@ -140,7 +125,6 @@ type.
     model_counts=pd.DataFrame(result_df.groupby(['features','splitter','model_type'])['model_uuid'].count()).reset_index()
     model_counts=model_counts.pivot(index='model_type',columns=['splitter','features',], values='model_uuid')
     model_counts
-
 
 
 
@@ -186,25 +170,10 @@ performing models. Here we will filter those out so they don't affect
 the visualization by only keeping models with a validation ``r2_score``
 of 0.1 or greater.
 
+
 .. code:: ipython3
 
     result_df.best_valid_r2_score.describe()
-
-
-
-
-.. parsed-literal::
-
-    count    4.670000e+02
-    mean    -6.111789e+73
-    std      1.320769e+75
-    min     -2.854206e+76
-    25%     -2.751967e-01
-    50%      2.719028e-01
-    75%      4.323609e-01
-    max      5.620908e-01
-    Name: best_valid_r2_score, dtype: float64
-
 
 
 .. code:: ipython3
@@ -214,33 +183,9 @@ of 0.1 or greater.
     result_df.shape
 
 
-
-
-.. parsed-literal::
-
-    (264, 41)
-
-
-
 .. code:: ipython3
 
     result_df.best_valid_r2_score.describe()
-
-
-
-
-.. parsed-literal::
-
-    count    264.000000
-    mean       0.405931
-    std        0.108515
-    min        0.110739
-    25%        0.337459
-    50%        0.418931
-    75%        0.484987
-    max        0.562091
-    Name: best_valid_r2_score, dtype: float64
-
 
 
 After filtering out models with extremely poor metrics, we can see that
@@ -256,7 +201,6 @@ very poorly to predict on fingerprint-split models.
     model_counts=pd.DataFrame(result_df.groupby(['features','splitter','model_type'])['model_uuid'].count()).reset_index()
     model_counts=model_counts.pivot(index='model_type',columns=['splitter','features',], values='model_uuid')
     model_counts
-
 
 
 
@@ -296,7 +240,7 @@ very poorly to predict on fingerprint-split models.
      - 50.0
 
 
-Visualize hyperparameters
+Visualize Hyperparameters
 *************************
 
 There are several plotting functions in the ``hyper_perf_plots`` module
@@ -329,23 +273,24 @@ not helping the model to generalize.
 .. image:: ../_static/img/07_compare_models_files/07_compare_models_15_0.png
 
 
-Examine splits
+Examine Splits
 --------------
 
 ``plot_split_perf()`` plots the performance of each split type,
 separated by feature type, for each performance metric.
 
-We can see that ``fingerprint splits`` perform much worse than
-``scaffold splits`` for this dataset, and but
+We can see that **fingerprint splits** perform much worse than
+**scaffold splits** for this dataset, and but
 `RDKit <https://github.com/rdkit/rdkit>`_ and
 `ECFP <https://pubs.acs.org/doi/10.1021/ci100050t>`_ features
 perform differently.
 `ECFP <https://pubs.acs.org/doi/10.1021/ci100050t>`_ features work
-better for ``scaffold splits`` while
+better for scaffold splits while
 `RDKit <https://github.com/rdkit/rdkit>`_ features work better for
-fingerprint splits. Recalling the filtering from above, we know that
-`RDKit <https://github.com/rdkit/rdkit>`_ features for fingerprint
-splits are only represented by ``NN`` models.
+**fingerprint splits**. Recalling the filtering from above, we know that
+`RDKit <https://github.com/rdkit/rdkit>`_ features for
+**fingerprint splits** are only represented by **NN** models, which may
+skew these results.
 
 .. code:: ipython3
 
@@ -356,7 +301,7 @@ splits are only represented by ``NN`` models.
 .. image:: ../_static/img/07_compare_models_files/07_compare_models_17_0.png
 
 
-General model features
+General Model Features
 ======================
 
 We also want to understand general hyperparameters like model type and
@@ -364,35 +309,36 @@ feature type and their effect on performance. We can use
 ``plot_hyper_perf()`` with ``model_type='general'`` as a shortcut to
 visualize these.
 
-We can see that ``random forests`` or neural networks perform the best
-while `ECFP <https://pubs.acs.org/doi/10.1021/ci100050t>`_ features
-perform better than
-`ECFP <https://pubs.acs.org/doi/10.1021/ci100050t>`_. Additionally,
-the ``random forest`` models are very consistent while there is a lot of
-variability in the ``NN`` model performance.
+We can see that **random forests** or **neural networks** perform the
+best while `ECFP <https://pubs.acs.org/doi/10.1021/ci100050t>`_
+features perform best while
+`ECFP <https://pubs.acs.org/doi/10.1021/ci100050t>`_ features
+perform better than **RDKit**. Additionally, the **random forest**
+models are very consistent while there is more variability in the **NN**
+and **XGBoost** model performance.
 
 .. code:: ipython3
 
-    hpp.plot_hyper_perf(result_df)
+    hpp.plot_hyper_perf(result_df, model_type='general')
 
 
 
 .. image:: ../_static/img/07_compare_models_files/07_compare_models_19_0.png
 
 
-RF-specific hyperparameters
----------------------------
+RF-specific Hyperparameters
+--------------------------
 
 We can also use ``plot_hyper_perf()`` to visualize model-specific
 hyperparameters. In this case we examine random forest models because
 they generally perform the best for this dataset.
 
 Here, we can see two distinct sets of ``valid_r2_scores`` (probably from
-fingerprint vs scaffold split models), but both sets show similar
-trends. For ``rf_estimators`` it looks like 100-150 trees is optimal,
-while ``rf_max_depth`` does worse below ~15 and improves slowly after
-that. ``rf_max_features`` doesn't show a clear trend except that below
-50 might result in worse models.
+**fingerprint** vs **scaffold split** models), but both sets show
+similar trends. For ``rf_estimators`` it looks like 100-150 trees is
+optimal, while ``rf_max_depth`` does worse below ~15 and improves slowly
+after that. ``rf_max_features`` doesn't show a clear trend except that
+below 50 might result in worse models.
 
 .. code:: ipython3
 
@@ -411,12 +357,6 @@ and create the same plots with different metrics.
     hpp.get_score_types()
 
 
-.. parsed-literal::
-
-    Classification metrics:  ['roc_auc_score', 'prc_auc_score', 'precision', 'recall_score', 'npv', 'accuracy_score', 'kappa', 'matthews_cc', 'bal_accuracy']
-    Regression metrics:  ['r2_score', 'mae_score', 'rms_score']
-
-
 .. code:: ipython3
 
     hpp.plot_hyper_perf(result_df, model_type='RF', subset='valid', scoretype='mae_score')
@@ -426,36 +366,33 @@ and create the same plots with different metrics.
 .. image:: ../_static/img/07_compare_models_files/07_compare_models_24_0.png
 
 
-NN visualization
+NN Visualization
 ================
 
-When visualizing hyperparameters of ``NN`` models in this case, it is
+When visualizing hyperparameters of NN models in this case, it is
 slightly hard to see important trends because there is a large variance
 in their model performance. To avoid this, we use ``plot_hyper_perf()``
 with a subsetted dataframe to look at a single combination of splitter
 and features.
 
-
 .. list-table:: 
-   :widths: 15 75 
    :header-rows: 1
    :class: tight-table 
- 
-   * - Plot features
-     - 
-   * - ``avg_dropout``
-     - The average of drop out proportions across all layers of the model. This parameter can affect the generalizability and overfitting of the model and usually drop out of 0.1 or higher is best.
-   * - ``learning_rate``
-     - The learning rate during training. Generally, learning rates that are ~10e -3 do best.
-   * - ``num_weights``
-     - The product of layer size s plus number of nodes in first layer, a rough estimate of total model size /complexity. This parameter should be minimized by selecting the smallest layer sizes possible that still maximize the preferred metric
-   * - ``num_layers``
+   
+   * - Plot Features
+     - Description
+   * - `avg_dropout`
+     - The average of dropout proportions across all layers of the model. This parameter can affect the generalizability and overfitting of the model and usually dropout of 0.1 or higher is best.
+   * - `learning_rate`
+     - The learning rate during training. Generally, learning rates that are ~10e-3 do best.
+   * - `num_weights`
+     - The product of layer sizes plus number of nodes in first layer, a rough estimate of total model size/complexity. This parameter should be minimized by selecting the smallest layer sizes possible that still maximize the preferred metric
+   * - `num_layers`
      - The number of layers in the NN, another marker of complexity. This should also be minimized.
-   * - ``best_epoch``
-     - Which epoch had the highest performance metric during training . This canindicate problematic training if the best_epochs are very small.
-   * - ``max_epochs``
-     - The max number of epochs the model was allowed to train (although early stopping may have occurred). If the max_epochs is too small you may underfit your model. This could be shown by all of your best_epochs being at max_epoch.
-
+   * - `best_epoch`
+     - Which epoch had the highest performance metric during training. This can indicate problematic training if the best_epochs are very small.
+   * - `max_epochs`
+     - The max number of epochs the model was allowed to train (although "early stopping" may have occurred). If the max_epochs is too small you may underfit your model. This could be shown by all of your best_epochs being at max_epoch.
 
 .. code:: ipython3
 
@@ -469,7 +406,7 @@ and features.
 .. image:: ../_static/img/07_compare_models_files/07_compare_models_26_0.png
 
 
-XGBoost visualization
+XGBoost Visualization
 =====================
 
 Using ``plot_xg_perf()``, we can simultaneously visualize the two most
@@ -486,8 +423,6 @@ this is not shown here.
 
     # hpp.plot_hyper_perf(result_df, model_type='xgboost')
 
-.. code:: ipython3
-
     hpp.plot_xg_perf(result_df)
 
 
@@ -495,7 +430,7 @@ this is not shown here.
 .. image:: ../_static/img/07_compare_models_files/07_compare_models_29_0.png
 
 
-Evaluation of a single model
+Evaluation of a Single Model
 ****************************
 
 After calling ``compare_models.get_filesystem_perf_results()``, the
@@ -505,9 +440,9 @@ best model. We can visualize this model using
 ``perf_plots.plot_pred_vs_actual_from_file()``.
 
 .. note::
-  
-    *not all scores should be maximized. For example, ``mae_score`` or ``rms_score`` should be minimized instead.*
-
+    
+    *not all scores should be maximized. For example,
+    ``mae_score`` or ``rms_score`` should be minimized instead.*
 
 .. code:: ipython3
 
@@ -523,7 +458,7 @@ We can examine important parameters of the top model directly from the
 
 We see that through hyperparameter optimization, we have increased our
 ``best_valid_r2_score`` to 0.56, as compared to our baseline model
-``valid_r2_score`` of 0.50011 (from **tutorial 4, "Train a Simple
+``valid_r2_score`` of 0.50011 (from **Tutorial 4, "Train a Simple
 Regression Model"**).
 
 .. code:: ipython3
@@ -531,41 +466,14 @@ Regression Model"**).
     result_df.iloc[0][['features','splitter','best_valid_r2_score']]
 
 
-
-
-.. parsed-literal::
-
-    features                   ecfp
-    splitter               scaffold
-    best_valid_r2_score    0.562091
-    Name: 310, dtype: object
-
-
-
 .. code:: ipython3
 
     result_df.iloc[0].model_parameters_dict
 
 
-
-
-.. parsed-literal::
-
-    '{"best_epoch": 24, "dropouts": [0.27866421599874197, 0.3041982566364109, 0.29943876674824], "layer_sizes": [369, 283, 146], "learning_rate": 8.28816038984145e-05, "max_epochs": 100}'
-
-
-
 .. code:: ipython3
 
     result_df.iloc[0].model_path
-
-
-
-
-.. parsed-literal::
-
-    'dataset/SLC6A3_models/SLC6A3_Ki_curated_model_b24a2887-8eca-43e2-8fc2-3642189d2c94.tar.gz'
-
 
 
 Here we use ``plot_pred_vs_actual_from_file()`` to visualize the
@@ -576,9 +484,8 @@ prediction accuracy for the train, validation and test sets.
     *For the purposes of this tutorial, the following models have been
     altered to work on every file system. In general, this function is meant
     for quick analysis of models you've trained on your own machine. To use
-    an external model and predict on external data, see **tutorial 5,
-    "Application of a Trained Model".*
-
+    an external model and predict on external data, see **Tutorial 5,
+    "Application of a Trained Model"**.*
 
 .. code:: ipython3
 
@@ -589,30 +496,17 @@ prediction accuracy for the train, validation and test sets.
     pp.plot_pred_vs_actual_from_file(model_path)
 
 
-.. parsed-literal::
-
-    2024-05-28 16:38:12,802 dataset/SLC6A3_models/SLC6A3_Ki_curated_model_b24a2887-8eca-43e2-8fc2-3642189d2c94.tar.gz, 1.6.0
-    2024-05-28 16:38:12,805 Version compatible check: dataset/SLC6A3_models/SLC6A3_Ki_curated_model_b24a2887-8eca-43e2-8fc2-3642189d2c94.tar.gz version = "1.6", AMPL version = "1.6"
-
-
-.. parsed-literal::
-
-    ['/var/folders/rf/_d6b2mgd3p9f422kk977zjlh0000gn/T/tmpqe3tvzkx/best_model/checkpoint1.pt']
-    /var/folders/rf/_d6b2mgd3p9f422kk977zjlh0000gn/T/tmpqe3tvzkx/best_model/checkpoint1.pt
-
-
-
 .. image:: ../_static/img/07_compare_models_files/07_compare_models_38_2.png
 
 
-This ``NN`` model looks like it isn't very good at predicting things
-with :math:`pKi` < 4.5. Additionally, there is a set of data at
+This NN model looks like it isn't very good at predicting things with
+:math:`pKi` < 4.5. Additionally, there is a set of data at
 :math:`pKi`\ =5 (this data is censored and all we know is that the
 compounds have a :math:`pKi` < 5 because higher concentrations of drug
-were not tested). This data is poorly predicted by the NN model.
+were not tested). This data is poorly predicted by the NN model. 
 
 .. note::
-   
+
     *Be wary of selecting models only based on their performance
     metrics! As we can see, this NN has problems even though the r2\_score
     is fairly high.*
@@ -627,30 +521,15 @@ were not tested). This data is poorly predicted by the NN model.
     print('\nModel Parameters: ',result_df[result_df.model_type==model_type].iloc[0].model_parameters_dict,'\n')
 
 
-.. parsed-literal::
-
-    2024-05-28 16:38:22,495 dataset/SLC6A3_models/SLC6A3_Ki_curated_model_9b6c9332-15f3-4f96-9579-bf407d0b69a8.tar.gz, 1.6.0
-    2024-05-28 16:38:22,498 Version compatible check: dataset/SLC6A3_models/SLC6A3_Ki_curated_model_9b6c9332-15f3-4f96-9579-bf407d0b69a8.tar.gz version = "1.6", AMPL version = "1.6"
-
-
-.. parsed-literal::
-
-    
-    Best valid r2 score:  0.5595899501867392
-    
-    Model Parameters:  {"rf_estimators": 129, "rf_max_depth": 32, "rf_max_features": 95} 
-    
-
-
 
 .. image:: ../_static/img/07_compare_models_files/07_compare_models_40_2.png
 
 
-This ``RF`` model looks like it did better at training than the best
-``NN`` model, even though its performance validation score is slightly
-lower. The low :math:`pKi` values are learned more accurately in the
-training set, and the censored data at :math:`pKi`\ =5 is also predicted
-more accurately.
+This RF model looks like it did better at training than the best NN
+model, even though its performance validation score is slightly lower.
+The low :math:`pKi` values are learned more accurately in the training
+set, and the censored data at :math:`pKi`\ =5 is also predicted more
+accurately.
 
 .. code:: ipython3
 
@@ -660,30 +539,6 @@ more accurately.
     pp.plot_pred_vs_actual_from_file(model_path)
     print('\nBest valid r2 score: ',result_df[result_df.model_type==model_type].iloc[0].best_valid_r2_score)
     print('\nModel Parameters: ',result_df[result_df.model_type==model_type].iloc[0].model_parameters_dict,'\n')
-
-
-.. parsed-literal::
-
-    2024-05-28 16:38:31,608 dataset/SLC6A3_models/SLC6A3_Ki_curated_model_94458d7b-7f94-44c9-83c3-a35833e76c37.tar.gz, 1.6.0
-    2024-05-28 16:38:31,610 Version compatible check: dataset/SLC6A3_models/SLC6A3_Ki_curated_model_94458d7b-7f94-44c9-83c3-a35833e76c37.tar.gz version = "1.6", AMPL version = "1.6"
-    /opt/anaconda3/envs/atomsci-env/lib/python3.9/site-packages/xgboost/core.py:160: UserWarning: [16:38:31] WARNING: /Users/runner/work/xgboost/xgboost/src/gbm/../common/error_msg.h:80: If you are loading a serialized model (like pickle in Python, RDS in R) or
-    configuration generated by an older version of XGBoost, please export the model by calling
-    `Booster.save_model` from that version first, then load it back in current version. See:
-    
-        https://xgboost.readthedocs.io/en/stable/tutorials/saving_model.html
-    
-    for more details about differences between saving model and serializing.
-    
-      warnings.warn(smsg, UserWarning)
-
-
-.. parsed-literal::
-
-    
-    Best valid r2 score:  0.5031490908520113
-    
-    Model Parameters:  {"xgb_colsample_bytree": 1.0, "xgb_gamma": 0.0019288871251215423, "xgb_learning_rate": 0.2158168689218416, "xgb_max_depth": 6, "xgb_min_child_weight": 1.0, "xgb_n_estimators": 100, "xgb_subsample": 1.0} 
-    
 
 
 
@@ -696,6 +551,8 @@ with predicting the censored data.
 
 Moving forward, we would select the ``RF`` model as the best performer.
 
-In **tutorial 8, "Train a Production Model"**, we will use the
+In **Tutorial 8, "Train a Production Model"**, we will use the
 best-performing parameters to create a production model for the entire
 dataset.
+
+If you have specific feedback about a tutorial, please complete the `AMPL Tutorial Evaluation <https://forms.gle/pa9sHj4MHbS5zG7A6>`_.

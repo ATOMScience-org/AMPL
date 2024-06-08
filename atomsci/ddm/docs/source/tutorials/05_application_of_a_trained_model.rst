@@ -2,7 +2,7 @@
 05 Application of a Trained Model
 #################################
 
-*Published: May, 2024, ATOM DDM Team*
+*Published: June, 2024, ATOM DDM Team*
 
 ------------
 
@@ -12,10 +12,11 @@ on the test set created based on the data split file from "**Tutorial 3:
 Splitting Datasets for Validation and Testing**", and the curated
 dataset from "**Tutorial 2: Data Curation**\ ”.
 
-This tutorial focuses on these `AMPL <https://github.com/ATOMScience-org/AMPL>`_ functions:
+This tutorial focuses on the
+`AMPL <https://github.com/ATOMScience-org/AMPL>`_ functions:
 
--  `predict\_from\_model\_file <https://ampl.readthedocs.io/en/latest/pipeline.html#pipeline.predict_from_model.predict_from_model_file>`_
--  `plot\_pred\_vs\_actual\_from\_df <https://ampl.readthedocs.io/en/latest/pipeline.html#pipeline.perf_plots.plot_pred_vs_actual_from_df>`_
+-  `predict\_from_model_file <https://ampl.readthedocs.io/en/latest/pipeline.html#pipeline.predict_from_model.predict_from_model_file>`_
+-  `plot_pred_vs_actual_from_df <https://ampl.readthedocs.io/en/latest/pipeline.html#pipeline.perf_plots.plot_pred_vs_actual_from_df>`_
 
 .. code:: ipython3
 
@@ -30,13 +31,6 @@ This tutorial focuses on these `AMPL <https://github.com/ATOMScience-org/AMPL>`_
     
     from atomsci.ddm.pipeline import predict_from_model as pfm
     from sklearn.metrics import r2_score
-
-
-.. parsed-literal::
-
-    Skipped loading some Jax models, missing a dependency. No module named 'haiku'
-    /opt/anaconda3/envs/atomsci-env/lib/python3.9/site-packages/tqdm/auto.py:21: TqdmWarning: IProgress not found. Please update jupyter and ipywidgets. See https://ipywidgets.readthedocs.io/en/stable/user_install.html
-      from .autonotebook import tqdm as notebook_tqdm
 
 
 First, create a test set by selecting the test data from the curated
@@ -54,10 +48,6 @@ dataset. Here we are using the pre-featurized dataset to save time.
     
     test_data = split_file[split_file['subset'] == 'test'].merge(curated_data, on='compound_id', how='left')
     test_data.head()
-
-
-
-
 
 
 .. list-table:: 
@@ -138,14 +128,11 @@ dataset. Here we are using the pre-featurized dataset to save time.
      - ...
 
 
-.. parsed-literal::
-    
-    5 rows × 205 columns
 
 
 Next, load a pretrained model from a model tarball file and run
 predictions on compounds in the test set. If the original model
-response\_col was ``avg_pKi``, the returned data frame will contain
+``response_col`` was ``avg_pKi``, the returned data frame will contain
 columns ``avg_pKi_actual``, ``avg_pKi_pred``, and ``avg_pKi_std``. The
 predictions of :math:`pK_i` is in the column, ``avg_pKi_pred``.
 
@@ -153,13 +140,12 @@ Here we set the ``is_featurized`` parameter to true, since we're using
 the pre-featurized dataset.
 
 .. note::
-  
+   
     *For the purposes of this tutorial, the following model
     has been altered to work on every file system. In general, to run a
     model that was trained on a different machine, you need to provide
     the path to the local copy of the training dataset as an additional
-    parameter called ``external_training_data``.*
-
+    parameter called "external_training_data"
 
 .. code:: ipython3
 
@@ -179,20 +165,6 @@ the pre-featurized dataset.
                                           is_featurized=True)
                                           
     pred_df.head()
-
-
-.. parsed-literal::
-
-    Standardizing SMILES strings for 273 compounds.
-
-
-.. parsed-literal::
-
-    INFO:atomsci.ddm.utils.model_version_utils:dataset/SLC6A3_models/SLC6A3_Ki_curated_model_9ff5a924-ef49-407c-a4d4-868a1288a67e.tar.gz, 1.6.1
-    INFO:atomsci.ddm.utils.model_version_utils:Version compatible check: dataset/SLC6A3_models/SLC6A3_Ki_curated_model_9ff5a924-ef49-407c-a4d4-868a1288a67e.tar.gz version = "1.6", AMPL version = "1.6"
-    /Users/rwilfong/Downloads/2024_LLNL/computing/AMPL/atomsci/ddm/pipeline/transformations.py:250: RuntimeWarning: invalid value encountered in divide
-      X = np.nan_to_num((X - self.X_means) * X_weight / self.X_stds)
-
 
 
 
@@ -274,15 +246,9 @@ the pre-featurized dataset.
      - 0.734541
      - ...
 
-
-.. parsed-literal::
-
-    5 rows × 209 columns
-
-
 Then, calculate the :math:`R^2` score and compare it with the expected
-test :math:`R^2` score of ``0.426594``, reported in **Tutorial 4, "Train
-a Simple Regression Model"**.
+test :math:`R^2` score of 0.426594, reported in **Tutorial 4, "Train a
+Simple Regression Model"**.
 
 .. code:: ipython3
 
@@ -290,14 +256,6 @@ a Simple Regression Model"**.
     predicted_value = pred_df['avg_pKi_pred']
     r2 = np.round(r2_score(actual_value, predicted_value), 6)
     r2
-
-
-
-
-.. parsed-literal::
-
-    0.426594
-
 
 
 Last, visualize the results in a scatter plot of predicted values.
@@ -317,13 +275,12 @@ Last, visualize the results in a scatter plot of predicted values.
 
 
 
-.. image::  ../_static/img/05_application_trained_model_files/05_application_trained_model_10_0.png
+.. image:: ../_static/img/5_application_trained_model_files/05_application_trained_model_10_0.png
 
 
-In **Tutorial 6, "Hyperparameter Optimization"** we will move beyond a
+In **Tutorial 6, "Hyperparameter Optimization"**, we will move beyond a
 single model and learn to optimize model hyperparameters by training
 many models.
 
-.. `AMPL <https://github.com/ATOMScience-org/AMPL>`_ raw:: html
 
-   <b><a href="https://github.com/ATOMScience-org/AMPL">AMPL</a></b>
+If you have specific feedback about a tutorial, please complete the `AMPL Tutorial Evaluation <https://forms.gle/pa9sHj4MHbS5zG7A6>`_.
