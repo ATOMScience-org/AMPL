@@ -229,3 +229,6 @@ And copy the string after "token=" and  paste the token to log in
 Welcome to the ATOM Modeling PipeLine now that you have installed Docker! You are ready to use the **[AMPL](https://github.com/ATOMScience-org/AMPL)** Tutorials on your journey to build a machine learning model. 
 
 To kick-start the Tutorial series, check out **Tutorial 2, "Data Curation"**, to learn how to curate a dataset that will be used throughout the Tutorial series.
+
+ If you have specific feedback about a tutorial, please complete the [AMPL Tutorial Evaluation](https://forms.gle/pa9sHj4MHbS5zG7A6).
+
