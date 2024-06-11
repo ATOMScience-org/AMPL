@@ -89,11 +89,11 @@ following columns:
    * - `standard_type`
      - The type of measurement, e.g., :math:`IC_{50}`, :math:`K_i`, :math:`K_d`, etc. This dataset only contains :math:`K_i` data points. 
    * - `standard_relation`
-     - The relational operator for a measurement reported as "< :math:`X`" or "> :math:`X`", indicating the true value is below or above some limit :math:`X`(e.g., the lowest or highest concentration tested). When this occurs we say the measurement is "left-" or "right-censored".
+     - The relational operator for a measurement reported as "< :math:`X`" or "> :math:`X`", indicating the true value is below or above some limit :math:`X` (e.g., the lowest or highest concentration tested). When this occurs we say the measurement is "left-" or "right-censored".
    * - `standard_value`
      - The measured value (or the limit value for a censored measurement).
    * - `standard_units`
-     - The units of the measurement. $K_i$ values may be recorded in different units which will need to be converted to a common unit. The `SLC6A3 <https://www.ebi.ac.uk/chembl/target_report_card/CHEMBL238/>`_ dataset contains a mixture of nanomolar (nM) and micromolar (µM) units.
+     - The units of the measurement. :math:`K_i` values may be recorded in different units which will need to be converted to a common unit. The `SLC6A3 <https://www.ebi.ac.uk/chembl/target_report_card/CHEMBL238/>`_ dataset contains a mixture of nanomolar (nM) and micromolar (µM) units.
 
 
 Standardize SMILES
