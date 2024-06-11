@@ -59,7 +59,7 @@ extensive featurization module that can generate a variety of molecular
 feature types, given
 `SMILES <https://en.wikipedia.org/wiki/Simplified_molecular-input_line-entry_system>`_
 strings as input. For demonstration purposes, we choose to use
-`RDKit <https://github.com/rdkit/rdkit>`_ ** features in this
+`RDKit <https://github.com/rdkit/rdkit>`_ features in this
 tutorial.
 
 When the featurized dataset is not previously saved for SLC6A3\_Ki,
@@ -174,6 +174,9 @@ The best model will have the highest :math:`R^2` score.
 
     # Model Performance
     from atomsci.ddm.pipeline import compare_models as cm
+
+.. code:: ipython3
+
     pred_df = cm.get_filesystem_perf_results(odir, pred_type='regression')
 
 

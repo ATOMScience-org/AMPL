@@ -38,8 +38,7 @@ We will focus on these functions in this tutorial:
 
     *1. "train_model_from_tar" and other functions in the
     "model_retrain" module can be used to update a previously trained
-    model when there is a new
-    AMPL release that
+    model when there is a new AMPL release that
     is not compatible with previous versions. This is not covered in
     this tutorial.*
 
@@ -506,10 +505,10 @@ in the `AMPL <https://github.com/ATOMScience-org/AMPL>`_
 will be trained in production mode, using the entire dataset for
 training. Note that for **neural network models**, the model will be
 trained for the number of epochs corresponding to the best epoch from
-the original model training run. -
-`train\_model <https://ampl.readthedocs.io/en/latest/utils.html#utils.model_retrain.train_model>`_
--
-`train\_models\_from\_dataset\_keys <https://ampl.readthedocs.io/en/latest/utils.html#utils.model_retrain.train_models_from_dataset_keys>`_
+the original model training run. 
+
+-  `train\_model <https://ampl.readthedocs.io/en/latest/utils.html#utils.model_retrain.train_model>`_
+-  `train\_models\_from\_dataset\_keys <https://ampl.readthedocs.io/en/latest/utils.html#utils.model_retrain.train_models_from_dataset_keys>`_
 
 In **Tutorial 9, "Visualizations of Model Performances"**, we'll explore
 a wide range of methods for visualizing and evaluating the performance

@@ -14,8 +14,10 @@ compounds. To avoid overfitting and provide a way to test a model's
 ability to generalize to new molecules, ML researchers have developed a
 variety of data splitting and training schemes.
 `AMPL <https://github.com/ATOMScience-org/AMPL>`_ supports two of
-the most popular strategies: - 3-way training/validation/test splits -
-*k*-fold cross-validation (CV).
+the most popular strategies: 
+
+-  3-way training/validation/test splits 
+-  *k*-fold cross-validation (CV).
 
 In this tutorial we will perform a 3-way split of the curated dataset we
 prepared in **Tutorial 2, "Data Curation"**, using the
@@ -38,11 +40,11 @@ subsets:
 
    * - Subset
      - Description
-   * - Training set
+   * - **Training set**
      - Usually the largest subset. `AMPL <https://github.com/ATOMScience-org/AMPL>`_ feeds the training set compound features and response values in batches to the model fitting algorithm. The fitting algorithm iteratively adjusts the model parameters after each batch so that the predicted responses are close (on average) to the actual response values.
-   * - Validation set
+   * - **Validation set**
      - Used after training a collection of models to see how well each one performs on "new" compounds that weren't used directly to fit the model parameters, so you can choose the best model. The validation set is also used by AMPL during **neural network model** training to implement "early stopping", a trick to avoid overfitting the training set.
-   * - Test set
+   * - **Test set**
      - After training is completed, `AMPL <https://github.com/ATOMScience-org/AMPL>`_ scores the predictions on the test set compounds to provide a measure of the final model's performance.
 
 .. image:: ../_static/img/03_perform_a_split_files/03_split_example_figure.png
@@ -128,10 +130,10 @@ method to do the actual split.
 .. note::
   
     *When we wish to only split the data and not train, we set
-    the split\_only parameter to "True".* *``split_dataset()`` can also
+    the split\_only parameter to "True". `split_dataset()` can also
     featurize the dataset; we will explore featurization in a later
     tutorial. For now, we provide prefeaturized data in the
-    ``./dataset/scaled_descriptors`` folder.*
+    `./dataset/scaled_descriptors` folder.*
 
 .. code:: ipython3
 
@@ -166,7 +168,7 @@ Format of the Split File
 The split file consists of three columns: ``cmpd_id`` is the compound
 ID; ``subset`` tells you if the compound is in the train, validation, or
 test set and ``fold`` contains the fold index, which is used only by
-k-fold cross-validation splits.
+*k*-fold cross-validation splits.
 
 .. code:: ipython3
 

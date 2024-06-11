@@ -8,8 +8,10 @@
 
 In this tutorial we demonstrate the following: - Build a parameter
 dictionary to perform a hyperparameter search for a **random forest**
-using Bayesian optimization. - Perform the optimization process. -
-Review the results
+using Bayesian optimization. 
+
+-  Perform the optimization process. 
+-  Review the results
 
 We will use these `AMPL <https://github.com/ATOMScience-org/AMPL>`_
 functions:
@@ -93,17 +95,17 @@ Parameter Dictionary Settings
 
    * - Parameter
      - Description
-   * - 'hyperparam':True
+   * - `'hyperparam':'True'`
      - This setting indicates that we are performing a hyperparameter search instead of just training one model.
-   * - 'previously_featurized':True'
+   * - `'previously_featurized':True'``
      - This tells AMPL to search for previously generated features in ../dataset/scaled_descriptors instead of regenerating them on the fly.
-   * - 'search_type':'hyperopt'
+   * - `'search_type':'hyperopt'``
      - This specifies the hyperparameter search method. Other options include grid, random, and geometric. Specifications for each hyperparameter search method is different, please refer to the full documentation. Here we are using the Bayesian optimization method.
-   * - 'model_type':'RF\|10'
+   * - `'model_type':'RF\|10'``
      - This means AMPL will try 10 times to find the best set of hyperparameters using random forests. In practice, this parameter could be set to 100 or more.
-   * - 'rfe':'uniformint\|8,512'
+   * - `'rfe':'uniformint\|8,512'``
      - The Bayesian optimizer will uniformly search between 8 and 512 for the best number of random forest estimators. Similarly rfd stands for random forest depth and rff stands for random forest features.
-   * - `result_dir`
+   * - ```result_dir```
      - Now expects two parameters. The first directory will contain the best trained models while the second directory will contain all models trained in the search.
 
 
@@ -199,27 +201,27 @@ models to select the best hyperparameters"**.
      - model_parameters_dict
      - best_valid_r2_score
      - best_test_r2_score
-   * - 4
+   * - **4**
      - dbd1d89c-05f5-4224-bce4-7dbeafaba313
      - {"rf_estimators": 262, "rf_max_depth": 16, "rf...",...}
      - 0.488461
      - 0.424234
-   * - 8
+   * - **8**
      - 601ae89f-a8bb-4da2-b7a7-b434a2bdcbbe
      - {"rf_estimators": 190, "rf_max_depth": 15, "rf...",...}
      - 0.483822
      - 0.448591
-   * - 9
+   * - **9**
      - 0967e5ea-64a1-4509-80da-176bd8773775
      - {"rf_estimators": 146, "rf_max_depth": 27, "rf...",...}
      - 0.483401
      - 0.436227
-   * - 2
+   * - **2**
      - 9da5fa7a-610f-469a-9562-b760c03581bc
      - {"rf_estimators": 60, "rf_max_depth": 28, "rf_...",...}
      - 0.480939
      - 0.450400
-   * - 1
+   * - **1**
      - 2b63bedb-7983-49cd-8d9b-b2039439ae98
      - {"rf_estimators": 233, "rf_max_depth": 28, "rf...",...}
      - 0.480583
@@ -240,7 +242,6 @@ Neural Network Hyperopt Search
 ------------------------------
 
 .. list-table::
-   :widths: 3 10 10 5 5
    :header-rows: 1
    :class: tight-table
   

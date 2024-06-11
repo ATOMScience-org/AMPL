@@ -149,11 +149,11 @@ as the one that minimizes **RMSE**.
 
 .. note::
  
-    *The ``pipe`` argument to ``plot_perf_vs_epoch`` is a
-    ``ModelPipeline`` object for a model you have trained in your
+    *The "pipe" argument to "plot_perf_vs_epoch" is a
+    "ModelPipeline" object for a model you have trained in your
     current Python session; it doesn't work with a previously saved
     model that you've loaded using a function like
-    ``create_prediction_pipeline_from_file``*.
+    "create_prediction_pipeline_from_file"*.
 
 Comparing Predicted with Actual Values by Split Subset
 ******************************************************
@@ -376,7 +376,7 @@ each subset:
 .. image:: ../_static/img/09_visualization_files/09_visualization_26_0.png
 
 
-The confusion matrices show that the model is behaving not much
+The ``confusion matrices`` show that the model is behaving not much
 differently from a dumb classifier. In the validation set, it predicts
 the inactive class 97% of the time, even though inactives are only 88%
 of the compounds.

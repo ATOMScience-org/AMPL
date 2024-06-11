@@ -32,7 +32,7 @@ Import Standard Data Science Packages
 To use `AMPL <https://github.com/ATOMScience-org/AMPL>`_ , or to do
 almost anything else with data, you'll need to become familiar with the
 popular packages `pandas <https://pandas.pydata.org/>`_,
-`numpy <https://numpy.org/>`_*,
+`numpy <https://numpy.org/>`_,
 `matplotlib <https://matplotlib.org/>`_ and
 `seaborn <https://seaborn.pydata.org/>`_. When you installed
 `AMPL <https://github.com/ATOMScience-org/AMPL>`_ you will have
@@ -51,7 +51,7 @@ Read the Data
 *************
 
 We've prepared an example dataset containing
- `ki <https://en.wikipedia.org/wiki/Ligand_(biochemistry)#Receptor/ligand_binding_affinity>`_
+ `ki <https://en.wikipedia.org/wiki/Ligand_(biochemistry)#Receptor/ligand_binding_affinity>`_ 
 values for inhibitors of the
 `SLC6A3 <https://www.ebi.ac.uk/chembl/target_report_card/CHEMBL238/>`_
 dopamine transporter collected from
@@ -66,8 +66,12 @@ into a Pandas data frame.
     # Read in data
     raw_df = pd.read_csv('dataset/SLC6A3_Ki.csv')
 
+.. code:: ipython3
+
     # Check the number of rows and columns in the dataset
     raw_df.shape
+
+.. code:: ipython3
 
     # List the column names
     raw_df.columns.values
@@ -86,7 +90,7 @@ following columns:
    * - `molecule_chembl_id`
      - The ChEMBL ID for the molecule.
    * - `smiles`
-     - The `SMILES <https://en.wikipedia.org/wiki/Simplified_molecular-input_line-entry_system>`_ string that represents the molecule's structure. This is the main input used to derive features for AMPL <https://github.com/ATOMScience-org/AMPL>`_  models.
+     - The `SMILES <https://en.wikipedia.org/wiki/Simplified_molecular-input_line-entry_system>`_ string that represents the molecule's structure. This is the main input used to derive features for `AMPL <https://github.com/ATOMScience-org/AMPL>`_  models.
    * - `standard_type`
      - The type of measurement, e.g., $IC_{50}$, $K_i$, $K_d$, etc. This dataset only contains $K_i$ data points.
    * - `standard_relation`
@@ -119,7 +123,7 @@ the same set of features and multiple measurements on the same compound
 can be grouped together.
 
 
-.. note: 
+.. note:: 
 
     *The input to "base_smiles_from_smiles" must be a list;
     numpy arrays and pandas Series objects must be converted with the
@@ -161,7 +165,7 @@ like :math:`IC_{50}`'s, :math:`K_d`'s and :math:`EC_{50}`'s, yielding
 
 .. image:: ../_static/img/02_data_curation_files/02_data_curation_pki_mean.png
 
-.. note:
+.. note::
 
     *For those who want more details: It's hard to fit machine
     learning (ML) models to raw :math:`K_i`'s because typical training
@@ -233,8 +237,12 @@ quotes around operators).
                         rel_col='standard_relation', db='ChEMBL',
                         output_rel_col='fixed_relation')
 
+.. code:: ipython3
+
     # Look at the operator counts before and after standardization
     raw_df.standard_relation.value_counts()
+
+.. code:: ipython3
 
     raw_df.fixed_relation.value_counts()
 

@@ -145,7 +145,7 @@ the pre-featurized dataset.
     has been altered to work on every file system. In general, to run a
     model that was trained on a different machine, you need to provide
     the path to the local copy of the training dataset as an additional
-    parameter called "external_training_data"
+    parameter called "external_training_data".*
 
 .. code:: ipython3
 
@@ -275,7 +275,7 @@ Last, visualize the results in a scatter plot of predicted values.
 
 
 
-.. image:: ../_static/img/5_application_trained_model_files/05_application_trained_model_10_0.png
+.. image:: ../_static/img/05_application_trained_model_files/05_application_trained_model_10_0.png
 
 
 In **Tutorial 6, "Hyperparameter Optimization"**, we will move beyond a

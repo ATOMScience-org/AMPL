@@ -74,7 +74,8 @@ This normally takes about 15-20 minutes to build. The image can be reused.
     
     *To build without cache, add "--no-cache" flag after "docker build". For example, "docker build --no-cache -t atomsci-ampl ."*
 
-Once it's built, follow the :ref:`Start container` step to run the `AMPL <https://github.com/ATOMScience-org/AMPL>`_ docker container.
+
+Once it's built, follow the ":ref:`Start container`" step to run the `AMPL <https://github.com/ATOMScience-org/AMPL>`_ docker container.
 
 .. _Option 2:
 
@@ -171,8 +172,7 @@ There are two ways to set a kernel:
 
 .. image:: ../_static/img/01_install_from_docker_files/docker-kernel-inside-nb.png
 
-* Outside of a notebook, click "New" dropdown from upper right corner, 
-   and select **atomsci-env** as the run kernel
+* Outside of a notebook, click "New" dropdown from upper right corner, and select **atomsci-env** as the run kernel
 
 .. image:: ../_static/img/01_install_from_docker_files/docker-kernel-outside-nb.png
 
@@ -222,7 +222,7 @@ For example:
 Code Examples
 ==============
 
-The `AMPL <https://github.com/ATOMScience-org/AMPL>`_code is in:
+The `AMPL <https://github.com/ATOMScience-org/AMPL>`_ code is in:
 
 .. code-block::
 
@@ -286,6 +286,6 @@ And copy the string after "token=" and  paste the token to log in
 
 Welcome to the ATOM Modeling PipeLine now that you have installed Docker! You are ready to use the `AMPL <https://github.com/ATOMScience-org/AMPL>`_ Tutorials on your journey to build a machine learning model. 
 
-To kick-start the Tutorial series, check out **Tutorial 2, "Data Curation"** , to learn how to curate a dataset that will be used throughout the Tutorial series.
+To kick-start the Tutorial series, check out **Tutorial 2, "Data Curation"** , to learn how to curate a dataset that will be used throughout the series.
 
 If you have specific feedback about a tutorial, please complete the `AMPL Tutorial Evaluation <https://forms.gle/pa9sHj4MHbS5zG7A6>`_.

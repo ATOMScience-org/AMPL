@@ -147,17 +147,17 @@ type.
      -      
      -      
      -      
-   * - NN
+   * - **NN**
      - 26
      - 29
      - 25
      - 96
-   * - RF
+   * - **RF**
      - 30
      - 30
      - 30
      - 32
-   * - xgboost
+   * - **xgboost**
      - 47
      - 26
      - 20
@@ -223,17 +223,17 @@ very poorly to predict on fingerprint-split models.
      -      
      -      
      -      
-   * - NN
+   * - **NN**
      - 8.0		
      - 23.0
      - 11.0
      - 86.0
-   * - RF
+   * - **RF**
      - NaN
      - 30.0
      - NaN
      - 32.0
-   * - xgboost
+   * - **xgboost**
      - 3.0			
      - 21.0
      - NaN
@@ -441,8 +441,8 @@ best model. We can visualize this model using
 
 .. note::
     
-    *not all scores should be maximized. For example,
-    ``mae_score`` or ``rms_score`` should be minimized instead.*
+    *Not all scores should be maximized. For example,
+    "mae_score" or "rms_score" should be minimized instead.*
 
 .. code:: ipython3
 
@@ -484,8 +484,8 @@ prediction accuracy for the train, validation and test sets.
     *For the purposes of this tutorial, the following models have been
     altered to work on every file system. In general, this function is meant
     for quick analysis of models you've trained on your own machine. To use
-    an external model and predict on external data, see **Tutorial 5,
-    "Application of a Trained Model"**.*
+    an external model and predict on external data, see Tutorial 5,
+    "Application of a Trained Model".*
 
 .. code:: ipython3
 
@@ -549,7 +549,7 @@ This `XGBoost <https://en.wikipedia.org/wiki/XGBoost>`_ model
 learns the low :math:`pKi` values better but still suffers from problems
 with predicting the censored data.
 
-Moving forward, we would select the ``RF`` model as the best performer.
+Moving forward, we would select the **RF** model as the best performer.
 
 In **Tutorial 8, "Train a Production Model"**, we will use the
 best-performing parameters to create a production model for the entire
