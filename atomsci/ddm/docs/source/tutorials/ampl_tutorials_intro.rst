@@ -24,7 +24,7 @@ We have created easy to follow tutorials to walk through the steps necessary to 
 End-to-End Modeling Pipeline Tutorials
 **************************************
 
-* Tutorial 1: Install AMPL From Docker   # An option to set up a run environment.
+* Tutorial 1: Install AMPL From Docker   // This is an option to set up a run environment.
 * Tutorial 2: Data Curation
 * Tutorial 3: Splitting Datasets for Validation and Testing
 * Tutorial 4: Train a Simple Regression Model

@@ -149,11 +149,11 @@ as the one that minimizes **RMSE**.
 
 .. note::
  
-    *The ``pipe`` argument to ``plot_perf_vs_epoch`` is a
-    ``ModelPipeline`` object for a model you have trained in your
+    *The "pipe" argument to "plot_perf_vs_epoch" is a
+    "ModelPipeline" object for a model you have trained in your
     current Python session; it doesn't work with a previously saved
     model that you've loaded using a function like
-    ``create_prediction_pipeline_from_file``*.
+    "create_prediction_pipeline_from_file"*.
 
 Comparing Predicted with Actual Values by Split Subset
 ******************************************************

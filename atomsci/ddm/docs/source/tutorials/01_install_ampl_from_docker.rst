@@ -86,6 +86,8 @@ Option 2: Pull an Existing AMPL Image From a Docker Repo
 
     docker pull atomsci/atomsci-ampl:latest
 
+.. _Start container:
+
 Start a Docker Container
 ************************
 
@@ -127,6 +129,7 @@ To get more info for the "docker run" command options, type "docker run --help".
     -p, --publish port(s) list           Publish a container's port(s) to the host
     -v, --volume list                    Bind mount a volume </pre>
 
+.. _Start Jupyter notebook:
 
 Start the Jupyter Notebook From a Container
 *******************************************

@@ -6,10 +6,9 @@
 
 ------------
 
-In this tutorial we demonstrate the following: - Build a parameter
-dictionary to perform a hyperparameter search for a **random forest**
-using Bayesian optimization. 
+In this tutorial we demonstrate the following: 
 
+-  Build a parameter dictionary to perform a hyperparameter search for a **random forest** using Bayesian optimization. 
 -  Perform the optimization process. 
 -  Review the results
 
@@ -98,14 +97,14 @@ Parameter Dictionary Settings
    * - `'hyperparam':'True'`
      - This setting indicates that we are performing a hyperparameter search instead of just training one model.
    * - `'previously_featurized':True'``
-     - This tells AMPL to search for previously generated features in ../dataset/scaled_descriptors instead of regenerating them on the fly.
+     - This tells `AMPL <https://github.com/ATOMScience-org/AMPL>`_ to search for previously generated features in ../dataset/scaled_descriptors instead of regenerating them on the fly.
    * - `'search_type':'hyperopt'``
      - This specifies the hyperparameter search method. Other options include grid, random, and geometric. Specifications for each hyperparameter search method is different, please refer to the full documentation. Here we are using the Bayesian optimization method.
-   * - `'model_type':'RF\|10'``
-     - This means AMPL will try 10 times to find the best set of hyperparameters using random forests. In practice, this parameter could be set to 100 or more.
-   * - `'rfe':'uniformint\|8,512'``
+   * - `'model_type':'RF|10'``
+     - This means `AMPL <https://github.com/ATOMScience-org/AMPL>`_ will try 10 times to find the best set of hyperparameters using random forests. In practice, this parameter could be set to 100 or more.
+   * - `'rfe':'uniformint|8,512'``
      - The Bayesian optimizer will uniformly search between 8 and 512 for the best number of random forest estimators. Similarly rfd stands for random forest depth and rff stands for random forest features.
-   * - ```result_dir```
+   * - `'result_dir'`
      - Now expects two parameters. The first directory will contain the best trained models while the second directory will contain all models trained in the search.
 
 
@@ -229,7 +228,7 @@ models to select the best hyperparameters"**.
 
 
 Examples for Other Parameters
-=============================
+*****************************
 
 Below are some parameters that can be used for **neural networks**,
 `XGBoost <https://en.wikipedia.org/wiki/XGBoost>`_ models,
@@ -252,7 +251,7 @@ Neural Network Hyperopt Search
    * - `ls`
      - This controls layer sizes. 3|8,512 means 3 layers with sizes ranging between 8 and 512 neurons. A good strategy is to start with a fewer layers and slowly increase the number until performance plateaus.
    * - `dp`
-     - This controls dropout. 3|0,0.4 means 3 dropout layers with probability of zeroing a weight between 0 and 40%. This needs to match the number of layers specified with ls and should range between 0% and 50%.
+     - This controls dropout. 3|0,0.4 means 3 dropout layers with probability of zeroing a weight between 0 and 40%. This needs to match the number of layers specified with `ls` and should range between 0% and 50%.
    * - `max_epochs`
      - This controls how long to train each model. Training for more epochs increases runtime, but allows models more time to optimize.
 

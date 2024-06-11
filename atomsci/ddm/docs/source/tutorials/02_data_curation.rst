@@ -50,15 +50,10 @@ here.
 Read the Data
 *************
 
-We've prepared an example dataset containing
- `ki <https://en.wikipedia.org/wiki/Ligand_(biochemistry)#Receptor/ligand_binding_affinity>`_ 
-values for inhibitors of the
-`SLC6A3 <https://www.ebi.ac.uk/chembl/target_report_card/CHEMBL238/>`_
-dopamine transporter collected from
-`ChEMBL <https://www.ebi.ac.uk/chembl/>`_. This dataset is simpler
+We've prepared an example dataset containing `ki <https://en.wikipedia.org/wiki/Ligand_(biochemistry)#Receptor/ligand_binding_affinity>`_ 
+values for inhibitors of the `SLC6A3 <https://www.ebi.ac.uk/chembl/target_report_card/CHEMBL238/>`_ dopamine transporter collected from `ChEMBL <https://www.ebi.ac.uk/chembl/>`_. This dataset is simpler
 than most that we find in the wild, but it will let us concisely
-demonstrate some `AMPL <https://github.com/ATOMScience-org/AMPL>`_
-curation tools. The first step of data curation is to read the raw data
+demonstrate some `AMPL <https://github.com/ATOMScience-org/AMPL>`_ curation tools. The first step of data curation is to read the raw data
 into a Pandas data frame.
 
 .. code:: ipython3
@@ -92,9 +87,9 @@ following columns:
    * - `smiles`
      - The `SMILES <https://en.wikipedia.org/wiki/Simplified_molecular-input_line-entry_system>`_ string that represents the molecule's structure. This is the main input used to derive features for `AMPL <https://github.com/ATOMScience-org/AMPL>`_  models.
    * - `standard_type`
-     - The type of measurement, e.g., $IC_{50}$, $K_i$, $K_d$, etc. This dataset only contains $K_i$ data points.
+     - The type of measurement, e.g., :math:`IC_{50}`, :math:`K_i`, :math:`K_d`, etc. This dataset only contains :math:`K_i` data points. 
    * - `standard_relation`
-     - The relational operator for a measurement reported as "< $X$" or "> $X$", indicating the true value is below or above some limit $X$ (e.g., the lowest or highest concentration tested). When this occurs we say the measurement is "left-" or "right-censored".
+     - The relational operator for a measurement reported as "< :math:`X`" or "> :math:`X`", indicating the true value is below or above some limit :math:`X`(e.g., the lowest or highest concentration tested). When this occurs we say the measurement is "left-" or "right-censored".
    * - `standard_value`
      - The measured value (or the limit value for a censored measurement).
    * - `standard_units`
@@ -135,6 +130,9 @@ can be grouped together.
     # Since the base_smiles_from_smiles function can be slow, we specify the workers=8 argument
     # to divide the work across 8 threads.
     raw_df['base_rdkit_smiles'] = base_smiles_from_smiles(raw_df.smiles.tolist(), workers=8)
+
+.. code:: ipython3
+
     raw_df.smiles.nunique(), raw_df.base_rdkit_smiles.nunique()
 
 For this dataset there are 1830 unique
@@ -168,12 +166,12 @@ like :math:`IC_{50}`'s, :math:`K_d`'s and :math:`EC_{50}`'s, yielding
 .. note::
 
     *For those who want more details: It's hard to fit machine
-    learning (ML) models to raw :math:`K_i`'s because typical training
+    learning (ML) models to raw Ki's because typical training
     methods seek to minimize a squared-error loss function (the error
     being the difference between the actual and predicted values).
     Squared errors tend to scale with the variance among replicates, so
     the loss function is dominated by the compounds with the largest
-    variance, i.e. those with the largest :math:`K_i`'s. This leads to
+    variance, i.e. those with the largest Ki's. This leads to
     models that perform OK on the least potent compounds and terribly on
     the most potent.*
 

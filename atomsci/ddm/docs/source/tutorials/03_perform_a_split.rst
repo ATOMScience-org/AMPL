@@ -130,10 +130,10 @@ method to do the actual split.
 .. note::
   
     *When we wish to only split the data and not train, we set
-    the split\_only parameter to "True". `split_dataset()` can also
+    the split_only parameter to "True". "split_dataset()" can also
     featurize the dataset; we will explore featurization in a later
     tutorial. For now, we provide prefeaturized data in the
-    `./dataset/scaled_descriptors` folder.*
+    "./dataset/scaled_descriptors" folder.*
 
 .. code:: ipython3
 
@@ -148,7 +148,7 @@ method to do the actual split.
 The dataset split table is saved as a .csv in the same directory as the
 ``dataset_key``. The name of the split file starts with the
 ``dataset_key`` and is followed by the ``split  strategy``
-(train\_valid\_test), ``split type`` (scaffold), and the ``split_uuid``
+(train_valid_test), ``split type`` (scaffold), and the ``split_uuid``
 (a unique identifier of the split).
 
 .. code:: ipython3

@@ -78,16 +78,16 @@ We're using the best performing model by validation set :math:`R^2` from
 This was a **random forest** model. The model path, validation set
 :math:`R^2` and RF-specific parameters were as follows:
 
-    dataset/SLC6A3\_models/SLC6A3\_Ki\_curated\_model\_9b6c9332-15f3-4f96-9579-bf407d0b69a8.tar.gz
+    dataset/SLC6A3_models/SLC6A3_Ki_curated_model_9b6c9332-15f3-4f96-9579-bf407d0b69a8.tar.gz
 
     Best valid r2 score: 0.5595899501867392
 
-    Model Parameters: {"rf\_estimators": 129, "rf\_max\_depth": 32,
-    "rf\_max\_features": 95}
+    Model Parameters: {"rf_estimators": 129, "rf_max_depth": 32,
+    "rf_max_features": 95}
 
 When you load a previously trained model, either for running predictions
 or retraining, the parameters used to train the model are obtained from
-a file called 'model\_metadata.json' that is stored in the model's
+a file called 'model_metadata.json' that is stored in the model's
 .tar.gz file. The ``production`` parameter controls whether the data is
 split into training, validation and test sets. During normal training
 and hyperparameter optimization, the ``production`` parameter is set
@@ -507,8 +507,8 @@ training. Note that for **neural network models**, the model will be
 trained for the number of epochs corresponding to the best epoch from
 the original model training run. 
 
--  `train\_model <https://ampl.readthedocs.io/en/latest/utils.html#utils.model_retrain.train_model>`_
--  `train\_models\_from\_dataset\_keys <https://ampl.readthedocs.io/en/latest/utils.html#utils.model_retrain.train_models_from_dataset_keys>`_
+-  `train_model <https://ampl.readthedocs.io/en/latest/utils.html#utils.model_retrain.train_model>`_
+-  `train_models_from_dataset_keys <https://ampl.readthedocs.io/en/latest/utils.html#utils.model_retrain.train_models_from_dataset_keys>`_
 
 In **Tutorial 9, "Visualizations of Model Performances"**, we'll explore
 a wide range of methods for visualizing and evaluating the performance

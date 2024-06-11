@@ -327,7 +327,7 @@ and **XGBoost** model performance.
 
 
 RF-specific Hyperparameters
---------------------------
+---------------------------
 
 We can also use ``plot_hyper_perf()`` to visualize model-specific
 hyperparameters. In this case we examine random forest models because
@@ -508,7 +508,7 @@ were not tested). This data is poorly predicted by the NN model.
 .. note::
 
     *Be wary of selecting models only based on their performance
-    metrics! As we can see, this NN has problems even though the r2\_score
+    metrics! As we can see, this NN has problems even though the r2_score
     is fairly high.*
 
 .. code:: ipython3

@@ -15,7 +15,7 @@ dataset from "**Tutorial 2: Data Curation**\ ”.
 This tutorial focuses on the
 `AMPL <https://github.com/ATOMScience-org/AMPL>`_ functions:
 
--  `predict\_from_model_file <https://ampl.readthedocs.io/en/latest/pipeline.html#pipeline.predict_from_model.predict_from_model_file>`_
+-  `predict_from_model_file <https://ampl.readthedocs.io/en/latest/pipeline.html#pipeline.predict_from_model.predict_from_model_file>`_
 -  `plot_pred_vs_actual_from_df <https://ampl.readthedocs.io/en/latest/pipeline.html#pipeline.perf_plots.plot_pred_vs_actual_from_df>`_
 
 .. code:: ipython3
