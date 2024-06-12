@@ -1,224 +1,324 @@
-##################
-03 Perform a Split
-##################
+################################################
+03 Splitting Datasets for Validation and Testing
+################################################
 
-*Published: Nov, 2023, ATOM DDM Team*
+*Published: June, 2024, ATOM DDM Team*
 
 ------------
 
-One of the goals of machine learning is to build a model that can
-generalize and perform well on new data. The problem is that you may not
-have new data, but you can simulate this experience by splitting the
-dataset into train, validation and test sets.
+A common problem with machine learning (ML) models is that they can very
+easily "overfit" the training data. This means that the model predicts
+the response values for training set compounds with perfect accuracy,
+but fails miserably on molecules that differ from the training
+compounds. To avoid overfitting and provide a way to test a model's
+ability to generalize to new molecules, ML researchers have developed a
+variety of data splitting and training schemes.
+`AMPL <https://github.com/ATOMScience-org/AMPL>`_ supports two of
+the most popular strategies: 
 
-**Training set**: A subset of the main dataset will feed into the model
-so that that model can learn the data patterns.
+-  3-way training/validation/test splits 
+-  *k*-fold cross-validation (CV).
 
-**Validation Set**: This subset helps evaluate if the model has trained
-optimally. It also helps to set the parameters of the model.For
-example:in neural networks (NN), we use the validation set to find the
-number of epochs for training; NN's weights etc.
+In this tutorial we will perform a 3-way split of the curated dataset we
+prepared in **Tutorial 2, "Data Curation"**, using the
+`AMPL <https://github.com/ATOMScience-org/AMPL>`_ modules, classes
+and functions listed below. *k*-fold cross-validation will be addressed
+in a future tutorial.
 
-**Test set**: This set checks the final model’s accuracy.
+-  `parameter_parser <https://ampl.readthedocs.io/en/latest/pipeline.html#pipeline-parameter-parser-module>`_
+-  `ModelPipeline <https://ampl.readthedocs.io/en/latest/pipeline.html#pipeline.model_pipeline.ModelPipeline>`_
+-  `split_dataset <https://ampl.readthedocs.io/en/latest/pipeline.html#pipeline.model_pipeline.ModelPipeline.split_dataset>`_
+-  `compare_splits_plots <https://ampl.readthedocs.io/en/latest/utils.html#module-utils.compare_splits_plots>`_
+-  `split_response_dist_plots <https://ampl.readthedocs.io/en/latest/utils.html#module-utils.split_response_dist_plots>`_
 
-Performing a split helps the model validation process to simulate how
-your model perform with new data. This tutorial will cover some tools in
-AMPL to perform a split.
+With 3-way data splitting, you divide your curated dataset into three
+subsets:
+
+.. list-table::
+   :header-rows: 1
+   :class: tight-table
+
+   * - Subset
+     - Description
+   * - **Training set**
+     - Usually the largest subset. `AMPL <https://github.com/ATOMScience-org/AMPL>`_ feeds the training set compound features and response values in batches to the model fitting algorithm. The fitting algorithm iteratively adjusts the model parameters after each batch so that the predicted responses are close (on average) to the actual response values.
+   * - **Validation set**
+     - Used after training a collection of models to see how well each one performs on "new" compounds that weren't used directly to fit the model parameters, so you can choose the best model. The validation set is also used by AMPL during **neural network model** training to implement "early stopping", a trick to avoid overfitting the training set.
+   * - **Test set**
+     - After training is completed, `AMPL <https://github.com/ATOMScience-org/AMPL>`_ scores the predictions on the test set compounds to provide a measure of the final model's performance.
 
 .. image:: ../_static/img/03_perform_a_split_files/03_split_example_figure.png
-  :align: center
-  :width: 700px  
 
-.. code:: ipython
+.. code:: ipython3
 
-    '''We will use the curated dataset that we created in tutorial 2 
-    and learn how to split it into train,validation and test sets.'''
-    
     import pandas as pd
     
     # Set up
-    dataset_file = 'dataset/curated_kcna5_ic50.csv'
-    odir='dataset'
-
-Machine learning (ML) models learn the relationship between molecules
-and molecular properties. These models can dramatically accelerate the
-screening process by giving researchers information on which molecules
-are most and least likely to have the desired properties.
-
-ML models, however, are only as good as the data they were trained on.
-In the chemical space, this problem manifests itself when a model is
-queried with molecules from an unfamiliar chemical space.
-
-Perform a Scaffold split
-========================
-
-Scaffolds' represent core structures of small molecules. Scaffold splits
-group molecules with different scaffold structures into the training,
-validation and test tests so that molecules with the same scaffold are
-grouped together in the same subset.This ensures that the
-train/validation/test sets are structurally different.
-
-A scaffold split is more challenging than a random split where the data
-are split into train/validation/test at random. If a model is trained on
-molecules that belong to only a handful of scaffold classes, its ability
-to predict a molecule in an unfamiliar scaffold is unknown.
-
-.. code:: ipython
-
-    split_type=['scaffold','random']
-    param_lst=[]
-    for split_val in split_type :
-        params = {
-            "verbose": "True",
-            "system": "LC",
+    dataset_file = 'dataset/SLC6A3_Ki_curated.csv'
+    odir = 'dataset'
     
-            # dataset info
-            "dataset_key" : dataset_file,
-            "datastore": "False",
-            "response_cols" : "avg_pIC50",
-            "id_col": "compound_id",
-            "smiles_col" : "base_rdkit_smiles",
-            "result_dir": odir,
-    
-            # splitting
-            "split_only": "True",
-            "previously_split": "False",
-            "splitter": split_val,
-            "split_valid_frac": "0.15",
-            "split_test_frac": "0.15",
-    
-            # featurization & training params
-            "featurizer": "ecfp",
-        }
-        param_lst.append(params)
+    # Set for less chatty log messages
+    import logging
+    logger = logging.getLogger('ATOM')
+    logger.setLevel(logging.INFO)
 
-The dataset split table is saved as a .csv in the same directory as the
-``dataset_key``. The name of the split file starts with the
-``dataset_key`` and is followed by the split type (scaffold/random),
-split strategy, and the split\_uuid; an unique identifier of the split.
+Splitting Methods
+*****************
 
-.. code:: ipython
+`AMPL <https://github.com/ATOMScience-org/AMPL>`_ supports a
+variety of splitting algorithms, including **random** and **scaffold
+splits**. A **scaffold** is the core structure of a molecule, with its
+side chains removed. **Scaffold splits** assign molecules to the
+training, validation and test sets, so that molecules with the same
+scaffold group together in the same subset. This ensures that compounds
+in the validation and test sets have different scaffolds from those in
+the training set, and are thus more likely to be structurally different.
+By contrast, a random split assigns molecules to subsets randomly.
+
+Rationale for Using Scaffold vs Random Splits
+=============================================
+
+A **scaffold split** is more challenging for model fitting than a
+**random split**. With a random split, many test set compounds may be
+similar to molecules in the training set, so a model may *appear* to
+perform well when it is simply "memorizing" training compound structures
+associated with different response levels. Such a model will perform
+badly on molecules that truly are different from the training compounds.
+However, a model trained on molecules that belong to a limited set of
+scaffold classes has to learn combinations of features that generalize
+across many chemical families to make accurate predictions on compounds
+with novel scaffolds. A scaffold split provides a way to select models
+with greater generalization ability and assess their performance
+realistically.
+
+Performing a Split
+******************
+
+We start by constructing a dictionary of parameter values:
+
+.. code:: ipython3
+
+    params = {
+        # dataset info
+        "dataset_key" : dataset_file,
+        "response_cols" : "avg_pKi",
+        "id_col": "compound_id",
+        "smiles_col" : "base_rdkit_smiles",
+        "result_dir": odir,
+    
+        # splitting
+        "split_only": "True",
+        "previously_split": "False",
+        "splitter": 'scaffold',
+        "split_valid_frac": "0.15",
+        "split_test_frac": "0.15",
+    
+        # featurization & training params
+        "featurizer": "computed_descriptors",
+        "descriptor_type" : "rdkit_raw",
+        "previously_featurized": "True",
+    }
+
+
+We parse the ``params`` dict with the ``parameter_parser`` module to
+create a parameter object for input to
+`AMPL <https://github.com/ATOMScience-org/AMPL>`_ functions.
+
+We then create a ``ModelPipeline`` object and call its ``split_dataset``
+method to do the actual split.
+
+.. note::
+  
+    *When we wish to only split the data and not train, we set
+    the split_only parameter to "True". "split_dataset()" can also
+    featurize the dataset; we will explore featurization in a later
+    tutorial. For now, we provide prefeaturized data in the
+    "./dataset/scaled_descriptors" folder.*
+
+.. code:: ipython3
 
     from atomsci.ddm.pipeline import model_pipeline as mp
     from atomsci.ddm.pipeline import parameter_parser as parse
     
-    split_lst=[]
-    for params in param_lst :
-        pparams = parse.wrapper(params)
-        MP = mp.ModelPipeline(pparams)
-        split_uuid = MP.split_dataset()
-        split_lst.append((params,split_uuid))
+    pparams = parse.wrapper(params)
+    MP = mp.ModelPipeline(pparams)
+    split_uuid = MP.split_dataset()
 
 
-Rationale between using scaffold split and random split
-=======================================================
+The dataset split table is saved as a .csv in the same directory as the
+``dataset_key``. The name of the split file starts with the
+``dataset_key`` and is followed by the ``split  strategy``
+(train_valid_test), ``split type`` (scaffold), and the ``split_uuid``
+(a unique identifier of the split).
 
-A generalizable model will be able to accurately predict the properties
-of molecules it has never seen before, reducing the need to perform
-extensive manual assays each time a new chemical class is to be tested.
-Generalizable models can predict across multiple different scaffolds and
-molecule types, while a non-generalizable model cannot.
+.. code:: ipython3
 
-A scaffold split tests model generalizability better than a random
-split. When using a random split, there is no guarantee that the test
-set will be structurally different than the training sets.
-
-.. code:: ipython
-
-    # display the split file location and names
+    # display the split file location
+    import glob
     import os
-    file_lst=[]
-    for params, sid in split_lst :
-        fname=params['dataset_key']
-        dirname=os.path.dirname(fname)
-        split_val=params['splitter']
-    
-        # find the file that contains the correct uuid
-        all_files = os.listdir(dirname)
-        for file in all_files:
-            if sid in file:
-                nfile = os.path.join(dirname, file)
-                file_lst.append((nfile,sid,split_val))
-                break
-    print(file_lst)
+    dirname = os.path.dirname(params['dataset_key'])
+    split_file = glob.glob(f"{dirname}/*{split_uuid}*")[0]
+    split_file
 
 
-.. parsed-literal::
 
-    [('dataset/curated_kcna5_ic50_train_valid_test_scaffold_bcd96299-6d61-4467-9e6b-814dcf8cde16.csv', 'bcd96299-6d61-4467-9e6b-814dcf8cde16', 'scaffold'), ('dataset/curated_kcna5_ic50_train_valid_test_random_80f0616b-b3d6-46f2-abc1-23a55ccaed99.csv', '80f0616b-b3d6-46f2-abc1-23a55ccaed99', 'random')]
+Format of the Split File
+************************
 
+The split file consists of three columns: ``cmpd_id`` is the compound
+ID; ``subset`` tells you if the compound is in the train, validation, or
+test set and ``fold`` contains the fold index, which is used only by
+*k*-fold cross-validation splits.
 
-Format of the split file
-========================
-
-The split file consits of three columns: cmpd\_id is the compound id;
-subset tells you if the compound is in the train/validation/ test set
-and fold tell you which fold (Folds and split stratergies will be
-explained in a later tutorial)
-
-.. code:: ipython
+.. code:: ipython3
 
     # Explore contents of the split file
-    file,sid,split_val = file_lst[0]
-    df=pd.read_csv(file)
-    df.head(3)
-
-
+    split_df = pd.read_csv(split_file)
+    split_df
 
 
 .. list-table:: 
-   :widths: 3 10 5 5 
    :header-rows: 1
    :class: tight-table 
  
    * -  
-     - compound_id
+     - cmpd_id
      - subset
      - fold
    * - 0
-     - CHEMBL326282
+     - CHEMBL498564
      - train
      - 0
    * - 1
-     - CHEMBL475630
+     - CHEMBL1085567
      - train
      - 0
    * - 2
-     - CHEMBL388538
+     - CHEMBL236473
      - train
+     - 0
+   * - 3
+     - CHEMBL464422
+     - train
+     - 0
+   * - 4
+     - CHEMBL611677
+     - train
+     - 0
+   * - ...
+     - ...
+     - ...
+     - ...
+   * - 1814
+     - CHEMBL1940403
+     - test
+     - 0
+   * - 1815
+     - CHEMBL451500
+     - test
+     - 0
+   * - 1816
+     - CHEMBL1173607
+     - test
+     - 0
+   * - 1817
+     - CHEMBL1818443
+     - test
+     - 0
+   * - 1818
+     - CHEMBL3323184
+     - test
      - 0
 
 
-.. raw:: html
+.. code:: ipython3
 
-  <p>
+    # Show the numbers of compounds in each split subset
+    split_df.subset.value_counts()
 
-Show difference in Tanimoto distance between training and test comparison between random and scaffold split
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. code:: ipython
 
+Visualizing Scaffold Splits
+***************************
+
+`Tanimoto
+distance <https://en.wikipedia.org/wiki/Jaccard_index#Tanimoto_similarity_and_distance>`_
+is a handy way to measure structural dissimilarity between compounds
+represented using `ECFP
+fingerprints <https://pubs.acs.org/doi/10.1021/ci100050t>`_.
+
+We can use functions in the ``compare_splits_plots`` module to compute
+`Tanimoto
+distance <https://en.wikipedia.org/wiki/Jaccard_index#Tanimoto_similarity_and_distance>`_
+between each validation and test set compound and its nearest neighbor
+in the training set, and then plot the distribution of distances for
+each subset.
+
+.. code:: ipython3
+
+    import seaborn as sns
+    import matplotlib.pyplot as plt
     import atomsci.ddm.utils.compare_splits_plots as csp
-    from atomsci.ddm.pipeline import chem_diversity as cd
     
     # read the dataset
-    df = pd.read_csv('dataset/curated_kcna5_ic50.csv')
+    df = pd.read_csv('dataset/SLC6A3_Ki_curated.csv')
     
-    for file, uuid, split_type in file_lst:
-        # read the split file
-        split = pd.read_csv(file)
+    # read the split file
+    split = pd.read_csv(split_file)
+    split_type = params['splitter']
     
-        # create SplitStats
-        ss = csp.SplitStats(df, split, smiles_col='base_rdkit_smiles', id_col='compound_id', response_cols=['avg_pIC50'])
+    # create SplitStats
+    ss = csp.SplitStats(df, split, smiles_col='base_rdkit_smiles', id_col='compound_id', response_cols=['avg_pKi'])
     
-        g = ss.dist_hist_train_v_test_plot()
-        g.fig.suptitle(f"Train vs Test pairwise Tanimoto Distance using {split_type} split")
+    # plot
+    fig, ax = plt.subplots(1,2, sharey=True, figsize=(10,5))
+    ss.dist_hist_train_v_valid_plot(ax=ax[0])
+    ax[0].set_title(f"Train vs Valid Tanimoto Dist using {split_type} split")
+    ss.dist_hist_train_v_test_plot(ax=ax[1])
+    ax[1].set_title(f"Train vs Test Tanimoto Dist using {split_type} split");
 
 
 
-.. image:: ../_static/img/03_perform_a_split_files/03_perform_a_split_12_0.png
+.. image:: ../_static/img/03_perform_a_split_files/03_perform_a_split_14_0.png
+
+
+The majority of compounds have `Tanimoto
+distances <https://en.wikipedia.org/wiki/Jaccard_index#Tanimoto_similarity_and_distance>`_
+between 0.2 and 0.8 from the training set, indicating that they are
+structurally different from the training compounds. The distance
+distributions are similar between the test and validation sets. This
+indicates that a model selected based on its validation set performance
+will likely have similar performance when evaluated on the test set.
+
+We can also plot the distributions of the response values - the
+:math:`pK_i`'s - in each subset. These plots can be useful in diagnosing
+model performance problems; if the response distributions in the
+training and test sets are dramatically different, it may be hard to
+train a model that performs well on the test set.
+
+.. code:: ipython3
+
+    import atomsci.ddm.utils.split_response_dist_plots as srdp
+    split_params = {
+        "dataset_key" : dataset_file,
+        "smiles_col" : "base_rdkit_smiles",
+        "response_cols" : "avg_pKi",
+        "split_uuid": split_uuid,
+        "splitter": 'scaffold',
+    }
+    srdp.plot_split_subset_response_distrs(split_params)
 
 
 
-.. image:: ../_static/img/03_perform_a_split_files//03_perform_a_split_12_1.png
+.. image:: ../_static/img/03_perform_a_split_files/03_perform_a_split_17_0.png
 
+
+For this dataset, the :math:`pK_i`'s have roughly similar distributions
+across the **scaffold split** subsets, except that the training set has
+slightly more compounds with large values.
+
+In  **Tutorial 4, "Train a Simple Regression Model"**, we will use this
+dataset and **scaffold split** to train a model to predict the
+:math:`pK_i`'s.
+
+If you have specific feedback about a tutorial, please complete the `AMPL Tutorial Evaluation <https://forms.gle/pa9sHj4MHbS5zG7A6>`_.

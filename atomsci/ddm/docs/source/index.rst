@@ -4,11 +4,11 @@
    contain the root `toctree` directive.
 
 ATOM Modeling PipeLine (AMPL) for Drug Discovery
-==============================================================
+=================================================
 
 .. include:: /_static/shared/links.rst
 
-**AMPL** is an open-source, modular, extensible software pipeline for building and sharing models to advance in silico drug discovery.
+`AMPL <https://github.com/ATOMScience-org/AMPL>`_ is an open-source, modular, extensible software pipeline for building and sharing models to advance in silico drug discovery.
 
 The ATOM Modeling PipeLine (AMPL) extends the functionality of DeepChem and supports an array of machine learning and molecular featurization tools. AMPL is an end-to-end data-driven modeling pipeline to generate machine learning models that can predict key safety and pharmacokinetic-relevant parameters. AMPL has been benchmarked on a large collection of pharmaceutical datasets covering a wide range of parameters.
 
@@ -45,15 +45,16 @@ Built with
    :maxdepth: 2
    :caption: Tutorials
 
-   tutorials/01_install_from_docker
+   tutorials/ampl_tutorials_intro
+   tutorials/01_install_ampl_from_docker
    tutorials/02_data_curation
    tutorials/03_perform_a_split
-   tutorials/apply_trained_model
-   tutorials/compare_models
-   tutorials/hyperparameter_search
-   tutorials/production_model
-   tutorials/train_simple_model
-   tutorials/visualization
+   tutorials/04_train_regression_model
+   tutorials/05_application_of_a_trained_model
+   tutorials/06_hyperopt
+   tutorials/07_compare_models
+   tutorials/08_train_a_production_model
+   tutorials/09_visualizations_of_model_performance
 
 .. toctree::
    :maxdepth: 2

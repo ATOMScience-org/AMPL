@@ -2,456 +2,364 @@
 02 Data Curation
 ################
 
-*Published: Nov, 2023, ATOM DDM Team*
+*Published: June, 2024, ATOM DDM Team*
 
 ------------
 
-Curating raw data is a long, detailed process that takes several steps.
-SMILES strings need to be standardized, meaurements in different units
-need to be converted to a common unit, outliers need to be removed, and
-duplicates need to be combined. These steps are vital to good data
-science. Here we will cover some tools in AMPL that are used to perform
-these steps.
+To train a machine learning model from data, that data must first be
+"curated" to ensure that chemical structures and properties are
+represented consistently. Curating raw data is a long, detailed process
+that takes several steps.
+`SMILES <https://en.wikipedia.org/wiki/Simplified_molecular-input_line-entry_system>`_
+strings need to be standardized, measurements need to be converted to
+common units, outliers need to be removed or corrected, and replicates
+need to be combined. These steps are vital to create datasets that can
+be used to train useful predictive models. Here we will cover some
+functions in `AMPL <https://github.com/ATOMScience-org/AMPL>`_ that
+will help you to perform these steps.
 
--  ``base_smiles_from_smiles``
--  ``standardize_relations``
--  ``convert_IC50_to_pIC50``
--  ``remove_outlier_replicates``
--  ``aggregate_assay_data``
+-  `base_smiles_from_smiles <https://ampl.readthedocs.io/en/latest/utils.html#utils.struct_utils.base_smiles_from_smiles>`_
+-  `standardize_relations <https://ampl.readthedocs.io/en/latest/utils.html#utils.data_curation_functions.standardize_relations>`_
+-  `compute_negative_log_responses <https://ampl.readthedocs.io/en/latest/utils.html#utils.data_curation_functions.compute_negative_log_responses>`_
+-  `remove_outlier_replicates <https://ampl.readthedocs.io/en/latest/utils.html#utils.curate_data.remove_outlier_replicates>`_
+-  `aggregate_assay_data <https://ampl.readthedocs.io/en/latest/utils.html#utils.curate_data.aggregate_assay_data>`_
 
-These are just a few of the steps needed to curate a dataset; another
-tutorial will cover data curation in more detail.
+These are just a few of the steps needed to curate a dataset.
 
-Read the data
-=============
+Import Standard Data Science Packages
+*************************************
 
-We've prepared an example dataset containing IC50 values for the KCNA5
-target collected from `ChEMBL <https://www.ebi.ac.uk/chembl/>`_. This
-dataset is simpler than what is commonly found in the wild, but will
-concisely demonstrate AMPL tools.
+To use `AMPL <https://github.com/ATOMScience-org/AMPL>`_ , or to do
+almost anything else with data, you'll need to become familiar with the
+popular packages `pandas <https://pandas.pydata.org/>`_,
+`numpy <https://numpy.org/>`_,
+`matplotlib <https://matplotlib.org/>`_ and
+`seaborn <https://seaborn.pydata.org/>`_. When you installed
+`AMPL <https://github.com/ATOMScience-org/AMPL>`_ you will have
+installed these packages as well, so you simply need to import them
+here.
 
-.. code:: ipython
+.. code:: ipython3
 
+    import os
     import pandas as pd
     import numpy as np
-    import sklearn as sns
-    
-    # read in data
-    kcna5=pd.read_csv('dataset/kcna5_ic50.csv')
+    import matplotlib.pyplot as plt
+    import seaborn as sns
 
-Columns
-=======
+Read the Data
+*************
 
-This dataset is drawn from the ChEMBL database and contains the
-following columns - ``molecule_chembl_id``: The ChEMBL id for the
-molecule. - ``smiles``: The SMILES string that represents the molecule.
-This is the main input taken by AMPL models. - ``standard_type``: This
-column records the type of endpoint e.g., IC50, Ki, Kd, etc. This
-dataset only contains IC50 data points. - ``standard_relation``: Data
-points might be censored. This column records if the datapoint is
-censored or not. - ``standard_value``: The IC50 value is recorded here.
-- ``standard_units``: IC50 values can be recorded in different units
-which are recorded here. Fortunately, all of this data uses nM.
+We've prepared an example dataset containing `ki <https://en.wikipedia.org/wiki/Ligand_(biochemistry)#Receptor/ligand_binding_affinity>`_ 
+values for inhibitors of the `SLC6A3 <https://www.ebi.ac.uk/chembl/target_report_card/CHEMBL238/>`_ dopamine transporter collected from `ChEMBL <https://www.ebi.ac.uk/chembl/>`_. This dataset is simpler
+than most that we find in the wild, but it will let us concisely
+demonstrate some `AMPL <https://github.com/ATOMScience-org/AMPL>`_ curation tools. The first step of data curation is to read the raw data
+into a Pandas data frame.
 
-.. code:: ipython
+.. code:: ipython3
 
-    kcna5.shape
+    # Read in data
+    raw_df = pd.read_csv('dataset/SLC6A3_Ki.csv')
 
+.. code:: ipython3
 
+    # Check the number of rows and columns in the dataset
+    raw_df.shape
 
+.. code:: ipython3
 
-.. parsed-literal::
-
-    (880, 6)
+    # List the column names
+    raw_df.columns.values
 
 
+This dataset is drawn from the
+`ChEMBL <https://www.ebi.ac.uk/chembl/>`_ database and contains the
+following columns:
 
-.. code:: ipython
+.. list-table:: 
+   :header-rows: 1
+   :class: tight-table 
 
-    kcna5.columns
-
-
-
-
-.. parsed-literal::
-
-    Index(['molecule_chembl_id', 'smiles', 'standard_type', 'standard_relation',
-           'standard_value', 'standard_units'],
-          dtype='object')
-
+   * - Column
+     - Description
+   * - `molecule_chembl_id`
+     - The ChEMBL ID for the molecule.
+   * - `smiles`
+     - The `SMILES <https://en.wikipedia.org/wiki/Simplified_molecular-input_line-entry_system>`_ string that represents the molecule's structure. This is the main input used to derive features for `AMPL <https://github.com/ATOMScience-org/AMPL>`_  models.
+   * - `standard_type`
+     - The type of measurement, e.g., :math:`IC_{50}`, :math:`K_i`, :math:`K_d`, etc. This dataset only contains :math:`K_i` data points. 
+   * - `standard_relation`
+     - The relational operator for a measurement reported as "< :math:`X`" or "> :math:`X`", indicating the true value is below or above some limit :math:`X` (e.g., the lowest or highest concentration tested). When this occurs we say the measurement is "left-" or "right-censored".
+   * - `standard_value`
+     - The measured value (or the limit value for a censored measurement).
+   * - `standard_units`
+     - The units of the measurement. :math:`K_i` values may be recorded in different units which will need to be converted to a common unit. The `SLC6A3 <https://www.ebi.ac.uk/chembl/target_report_card/CHEMBL238/>`_ dataset contains a mixture of nanomolar (nM) and micromolar (µM) units.
 
 
 Standardize SMILES
-==================
+******************
 
-SMILES strings are not unique and the same compound can be represented
-by different, not so equivalent, SMILES. This step simplifies the
-machine learning problem by ensuring each compound is represented the
-same way. 
+The
+`SMILES <https://en.wikipedia.org/wiki/Simplified_molecular-input_line-entry_system>`_
+grammar allows the same chemical structure to be represented by many
+different
+`SMILES <https://en.wikipedia.org/wiki/Simplified_molecular-input_line-entry_system>`_
+strings. In addition, measurements may be performed on compounds with
+different salt groups or with radioisotope labels, which we treat as
+equivalent to the base compounds.
+`AMPL <https://github.com/ATOMScience-org/AMPL>`_ provides a
+`SMILES <https://en.wikipedia.org/wiki/Simplified_molecular-input_line-entry_system>`_
+standardization function, ``base_smiles_from_smiles``, that removes salt
+groups and isotopes and returns a unique
+`SMILES <https://en.wikipedia.org/wiki/Simplified_molecular-input_line-entry_system>`_
+string for each base compound structure. This step simplifies the
+machine learning problem by ensuring each compound is represented with
+the same set of features and multiple measurements on the same compound
+can be grouped together.
 
-.. note::
 
-   **Beware!** The input to base\_smiles\_from\_smiles must be a ``list``.
+.. note:: 
 
-.. code:: ipython
+    *The input to "base_smiles_from_smiles" must be a list;
+    numpy arrays and pandas Series objects must be converted with the
+    tolist function.*
+
+.. code:: ipython3
 
     from atomsci.ddm.utils.struct_utils import base_smiles_from_smiles
-    kcna5['base_rdkit_smiles'] = base_smiles_from_smiles(kcna5.smiles.tolist())
-    
-    kcna5.smiles.nunique(), kcna5.base_rdkit_smiles.nunique()
+    # Since the base_smiles_from_smiles function can be slow, we specify the workers=8 argument
+    # to divide the work across 8 threads.
+    raw_df['base_rdkit_smiles'] = base_smiles_from_smiles(raw_df.smiles.tolist(), workers=8)
 
+.. code:: ipython3
 
+    raw_df.smiles.nunique(), raw_df.base_rdkit_smiles.nunique()
 
+For this dataset there are 1830 unique
+`SMILES <https://en.wikipedia.org/wiki/Simplified_molecular-input_line-entry_system>`_
+that are standardized to 1823 unique base
+`SMILES <https://en.wikipedia.org/wiki/Simplified_molecular-input_line-entry_system>`_.
+It is common for two different
+`SMILES <https://en.wikipedia.org/wiki/Simplified_molecular-input_line-entry_system>`_
+strings to be standardized to the same value. From now on we will use
+``base_rdkit_smiles`` to represent compound structures.
 
-.. parsed-literal::
+Calculate :math:`pK_i`'s
+------------------------
 
-    (802, 802)
+A :math:`K_i` is an equilibrium constant for the reaction of an
+inhibitor with a target protein; it is measured in concentration units.
+Like many other chemical properties, :math:`K_i` values may span several
+orders of magnitude, from picomolar to millimolar (a billion-fold
+range). This makes it difficult to fit machine learning models to them
+because the variance of repeat measurements grows with the measured
+value, as illustrated in the left hand plot below. We prefer instead to
+work with :math:`pK_i` values, where
+:math:`pK_i = -\mathrm{log}_{10} (K_i)` with :math:`K_i` in molar units,
+because the log transformed measurements have more stable variances, as
+shown at right. Similar transformations are often applied to properties
+like :math:`IC_{50}`'s, :math:`K_d`'s and :math:`EC_{50}`'s, yielding
+:math:`pIC_{50}`'s, :math:`pK_d`'s, and :math:`pEC_{50}`'s.
 
+.. image:: ../_static/img/02_data_curation_files/02_data_curation_pki_mean.png
 
 .. note::
 
-   There are 802 unique SMILES from Chembl that are standardized
-   to 802 unique smiles; sometimes two SMILES are standardized to the same
-   thing. From now on we will use ``base_rdkit_smiles``.
+    *For those who want more details: It's hard to fit machine
+    learning (ML) models to raw Ki's because typical training
+    methods seek to minimize a squared-error loss function (the error
+    being the difference between the actual and predicted values).
+    Squared errors tend to scale with the variance among replicates, so
+    the loss function is dominated by the compounds with the largest
+    variance, i.e. those with the largest Ki's. This leads to
+    models that perform OK on the least potent compounds and terribly on
+    the most potent.*
 
-Standardize Relations
-=====================
+The `AMPL <https://github.com/ATOMScience-org/AMPL>`_ function
+``compute_negative_log_responses`` performs these variance stabilizing
+transformations, converting :math:`K_i`'s to :math:`pK_i`'s and so on.
+The code below uses the units in the ``standard_units`` column and the
+conversion functions specified in the ``unit_conv`` argument to convert
+the :math:`K_i`'s in the ``standard_value`` column to molar units before
+applying the log transformation. It also inverts the ":math:`<`" and
+":math:`>`" operators in ``relation_col`` so that they correctly
+describe the :math:`pK_i` values, which *decrease* as :math:`K_i` values
+*increase* (e.g., ":math:`K_i > 100 \mathrm{µ}M`" means
+":math:`K_i > 10^{-4} \mathrm{M}`" which implies ":math:`pK_i < 4`").
 
-Relations can also differ from database to database. This function will
-standardize the relation column for use with AMPL. Since this data is
-from ChEMBL, we will call the function with ``db='ChEMBL'``
+.. code:: ipython3
 
-.. code:: ipython
-
-    from atomsci.ddm.utils.data_curation_functions import standardize_relations
-    kcna5 = standardize_relations(kcna5, db='ChEMBL', 
-                        rel_col='standard_relation',
-                        output_rel_col='fixed_relation')
-
-    kcna5.standard_relation.value_counts()
-
-
-
-
-.. parsed-literal::
-
-    standard_relation
-    '='    804
-    '>'     74
-    '~'      2
-    Name: count, dtype: int64
-
-
-
-.. code:: ipython
-
-    kcna5.fixed_relation.value_counts()
-
-
-
-
-.. parsed-literal::
-
-    fixed_relation
-    =    806
-    >     74
-    Name: count, dtype: int64
-
-
-
-Calculate pIC50s
-================
-
-We will convert the IC50s to pIC50s before performing machine learning.
-This function will use ``standard_units`` and ``standard_value``
-columns. This function converts IC50s in nM to pIC50s.
-
-.. code:: ipython
-
-    from atomsci.ddm.utils.data_curation_functions import convert_IC50_to_pIC50
-    kcna5 = convert_IC50_to_pIC50(kcna5, 
+    from atomsci.ddm.utils.data_curation_functions import compute_negative_log_responses 
+    raw_df = compute_negative_log_responses(raw_df, 
                                   unit_col='standard_units',
                                   value_col='standard_value',
-                                  new_value_col='pIC50',
+                                  new_value_col='pKi',
+                                  relation_col='standard_relation',
                                   unit_conv={'µM':lambda x: x*1e-6, 'nM':lambda x: x*1e-9},
                                   inplace=False)
-    
-    kcna5[['standard_value', 'pIC50']].hist()
+
+We then plot histograms to compare the distributions of the raw and
+transformed :math:`K_i`'s:
+
+.. code:: ipython3
+
+    _ = raw_df[['standard_value', 'pKi']].hist()
 
 
 
-
-.. parsed-literal::
-
-    array([[<Axes: title={'center': 'standard_value'}>,
-            <Axes: title={'center': 'pIC50'}>]], dtype=object)
+.. image:: ../_static/img/02_data_curation_files/02_data_curation_18_0.png
 
 
+Standardize Relations
+*********************
 
+Some databases may contain measurements reported with a variety of
+relational operators such as ":math:`>=`", ":math:`<=`", ":math:`~`" and
+so on. In datasets used to train models,
+`AMPL <https://github.com/ATOMScience-org/AMPL>`_ expects the
+relation column to contain one of the three standard operators
+":math:`>`", ":math:`<`" or ":math:`=`", or an empty field representing
+equality. `AMPL <https://github.com/ATOMScience-org/AMPL>`_
+provides a ``standardize_relations`` function to coerce nonstandard
+relations to one of the standard values. We use the ``rel_col`` and
+``output_rel_col`` arguments to indicate that the input relations are in
+the ``standard_relation`` column, and to specify a new column to receive
+the standardized relations. The ``db=ChEMBL`` argument tells the
+function to apply ChEMBL-specific formatting changes (such as removing
+quotes around operators).
 
-.. image:: ../_static/img/02_data_curation_files/02_data_curation_14_1.png
+.. code:: ipython3
 
+    from atomsci.ddm.utils.data_curation_functions import standardize_relations
+    raw_df = standardize_relations(raw_df, 
+                        rel_col='standard_relation', db='ChEMBL',
+                        output_rel_col='fixed_relation')
 
-Remove outliers and aggregate
-=============================
+.. code:: ipython3
 
-The final step is to remove outliers and aggregate duplicate
-measurements.
+    # Look at the operator counts before and after standardization
+    raw_df.standard_relation.value_counts()
 
-.. code:: ipython
+.. code:: ipython3
+
+    raw_df.fixed_relation.value_counts()
+
+For this dataset, we see that the nonstandard operator ":math:`<=`" was
+changed to ":math:`<`", and the single quotes around some operators were
+removed, as we requested.
+
+Remove Outliers and Aggregate Replicate Measurements
+****************************************************
+
+The final step is to remove outliers and aggregate (average) replicate
+measurements on the same compounds. The function
+``remove_outlier_replicates`` is a simple filter that groups
+measurements by compound, computes the median of each group, and removes
+values that differ more than ``max_diff_from_median`` units from the
+median. When the measurements are very spread out relative to
+``max_diff_from_median``, *all* the rows for a compound may be deleted
+from the dataset. The default setting (:math:`1.0`) generally works well
+for :math:`pK_i` values.
+
+The function ``aggregate_assay_data`` replaces multiple replicate
+measurements for each compound with a single aggregate value. Usually
+this is simply the average over the replicates, but if the dataset
+contains both censored and uncensored values for a compound, the
+function computes a maximum likelihood estimate that takes the censoring
+into account.
+
+.. code:: ipython3
 
     from atomsci.ddm.utils.curate_data import remove_outlier_replicates, aggregate_assay_data
     
-    kcna5_cur = remove_outlier_replicates(kcna5, id_col='molecule_chembl_id',
-                                    response_col='pIC50')
+    curated_df = remove_outlier_replicates(raw_df, id_col='molecule_chembl_id',
+                                    response_col='pKi',
+                                    max_diff_from_median=1.0)
     
-    kcna5_cur = aggregate_assay_data(kcna5_cur, 
-                                 value_col='pIC50',
-                                 output_value_col='avg_pIC50',
+    curated_df = aggregate_assay_data(curated_df, 
+                                 value_col='pKi',
+                                 output_value_col='avg_pKi',
                                  id_col='molecule_chembl_id',
                                  smiles_col='base_rdkit_smiles',
                                  relation_col='fixed_relation',
                                  label_actives=False,
                                  verbose=True
                             )
-    
-    kcna5_cur.to_csv('dataset/curated_kcna5_ic50.csv', index=False)
-
-
-.. parsed-literal::
-
-    Removed 1 pIC50 replicate measurements that were > 1.0 from median
-    0 entries in input table are missing SMILES strings
-    802 unique SMILES strings are reduced to 802 unique base SMILES strings
-
-
-.. note::
-
-    **Beware!** ``aggregate_assay_data`` changes ``molecule_chembl_id`` to
-    ``compound_id``, ``fixed_relation`` to ``relation``, and will create the
-    value column ``avg_pIC50``. The column ``active`` is added but is not
-    used in this tutorial. It will be covered in a classification tutorial.
-
-.. code:: ipython
-
-    kcna5.shape, kcna5_cur.shape
-
-
-
-
-.. parsed-literal::
-
-    ((880, 9), (802, 4))
-
-
-
-.. code:: ipython
-
-    kcna5.columns
-
-
-
-
-.. parsed-literal::
-
-    Index(['molecule_chembl_id', 'smiles', 'standard_type', 'standard_relation',
-           'standard_value', 'standard_units', 'base_rdkit_smiles',
-           'fixed_relation', 'pIC50'],
-          dtype='object')
-
-
-
-.. code:: ipython
-
-    kcna5_cur.columns
-
-
-
-
-.. parsed-literal::
-
-    Index(['compound_id', 'base_rdkit_smiles', 'relation', 'avg_pIC50'], dtype='object')
-
-
-
-All together, the curation process looks like this. We use this function
-to curate two more datasets for related targets.
-
-.. code:: ipython
-
-    import os
-    
-    def curate(df):
-         df['base_rdkit_smiles'] = base_smiles_from_smiles(df.smiles.tolist())
-    
-         df = standardize_relations(df, db='ChEMBL', 
-                        rel_col='standard_relation',
-                        output_rel_col='fixed_relation')
-    
-         df = convert_IC50_to_pIC50(df, 
-                                  unit_col='standard_units',
-                                  value_col='standard_value',
-                                  new_value_col='pIC50',
-                                  unit_conv={'µM':lambda x: x*1e-6, 'nM':lambda x: x*1e-9},
-                                  inplace=False)
-    
-         df = remove_outlier_replicates(df, id_col='molecule_chembl_id',
-                                       response_col='pIC50')
-    
-         df = aggregate_assay_data(df, 
-                                  value_col='pIC50',
-                                  output_value_col='avg_pIC50',
-                                  id_col='molecule_chembl_id',
-                                  smiles_col='base_rdkit_smiles',
-                                  relation_col='fixed_relation',
-                                  label_actives=False
-                             )
-         return df
-    
-    for f in ['kcna3_ic50.csv', 'scn5a_ic50.csv']:
-         print(f'{f}\n')
-         df = pd.read_csv(os.path.join('dataset', f))
-         print("Original data shape: ", df.shape)
-         df = curate(df)
-         print("Curated data shape: ", df.shape)
-         print(df.columns, '\n')
-         df.to_csv('dataset/curated_'+f, index=False)
-
-
-.. parsed-literal::
-
-    kcna3_ic50.csv
-    
-    Original data shape:  (891, 6)
-    Removed 19 pIC50 replicate measurements that were > 1.0 from median
-    Curated data shape:  (514, 4)
-    Index(['compound_id', 'base_rdkit_smiles', 'relation', 'avg_pIC50'], dtype='object') 
-    
-    scn5a_ic50.csv
-    
-    Original data shape:  (2368, 6)
-    Removed 20 pIC50 replicate measurements that were > 1.0 from median
-    Curated data shape:  (2036, 4)
-    Index(['compound_id', 'base_rdkit_smiles', 'relation', 'avg_pIC50'], dtype='object') 
-    
-
-
-Multi-task data
-===============
-
-Now that the data is curated we can combine it with 2 other datasets
-that are already curated.
-
-.. code:: ipython
-
-    kcna5 = pd.read_csv('dataset/curated_kcna5_ic50.csv')
-    kcna3 = pd.read_csv('dataset/curated_kcna3_ic50.csv')
-    scn5a = pd.read_csv('dataset/curated_scn5a_ic50.csv')
-    
-    df=kcna5.merge(kcna3, how='outer', on=['compound_id', 'base_rdkit_smiles',], suffixes=['_kcna5','_kcna3'])
-    scn5a.columns=['compound_id', 'base_rdkit_smiles', 'relation_scn5a', 'avg_pIC50_scn5a']
-    df = df.merge(scn5a, how='outer', on=['compound_id', 'base_rdkit_smiles'])
-    print(df.columns)
-    df.to_csv('dataset/kcna5_kcna3_scna5a.csv', index=False)
-
-
-.. parsed-literal::
-
-    Index(['compound_id', 'base_rdkit_smiles', 'relation_kcna5', 'avg_pIC50_kcna5',
-           'relation_kcna3', 'avg_pIC50_kcna3', 'relation_scn5a',
-           'avg_pIC50_scn5a'],
-          dtype='object')
-
-
-.. code:: ipython
-
-    df.head()
-
+    print("Original data shape: ", raw_df.shape)
+    print("Curated data shape: ", curated_df.shape)
+    curated_df.head()
 
 
 .. list-table:: 
-   :widths: 3 5 20 5 5 5 5 5 5
    :header-rows: 1
    :class: tight-table 
  
    * -  
      - compound_id
      - base_rdkit_smiles
-     - relation_kcna5
-     - avg_pIC50_kcna5
-     - relation_kcna3
-     - avg_pIC50_kcna3
-     - relation_scn5a
-     - avg_pIC50_scn5a
+     - relation
+     - avg_pKi
    * - 0
-     - CHEMBL3127405
-     - NC(=O)c1ccc(N(Cc2ccc(F)cc2)S(=O)(=O)c2ccccc2F)cc1
-     - NaN
-     - 5.657577
-     - NaN
-     - NaN
-     - NaN
-     - NaN
+     - CHEMBL2113217
+     - C#CCC(C(=O)c1ccc(C)cc1)N1CCCC1
+     - 
+     - 5.636388     
    * - 1
-     - CHEMBL1289071
-     - CC(C)(CNC(=O)c1cc[nH]c1)CN(C1=NS(=O)(=O)c2cc(F...
-     - NaN
-     - 5.879426
-     - NaN
-     - 5.939302
-     - NaN
-     - NaN
+     - CHEMBL220765
+     - C#CCN1CC[C@@H](Cc2ccc(F)cc2)C[C@@H]1CCCNC(=O)N...
+     - 
+     - 6.206908
    * - 2
-     - CHEMBL2312933
-     - CCCN(c1cccnc1)P(=O)(c1ccccc1)c1ccccc1
-     - NaN
-     - 6.920819
-     - NaN
-     - NaN
-     - NaN
-     - NaN
+     - CHEMBL1945248
+     - C#CCN1[C@H]2CC[C@@H]1[C@@H](C(=O)OC)[C@@H](c1c...
+     - 
+     - 7.849858
    * - 3
-     - CHEMBL4100226
-     - CN(C)C(=O)c1cccc(-c2ccccc2CC(c2cccnc2)c2cccnc2)c1
-     - NaN
-     - 7.193820
-     - NaN
-     - NaN
-     - NaN
-     - NaN
+     - CHEMBL1479
+     - C#C[C@]1(O)CC[C@H]2[C@@H]3CCC4=Cc5oncc5C[C@]4(...
+     -
+     - 5.264721
    * - 4
-     - CHEMBL1090794
-     - OC(c1cccnc1)(c1cccnc1)C(c1ccccc1)N1CCOCC1
-     - NaN
-     - 6.591760
-     - NaN
-     - NaN
-     - NaN
-     - NaN
-
-|
-
-This plot shows there are not many SMILES that overlap between the three
-targets.
-
-.. code:: ipython
-
-    import matplotlib_venn as mpv
-    mpv.venn3([set(df.loc[~df.avg_pIC50_kcna5.isna(), 'base_rdkit_smiles']),
-               set(df.loc[~df.avg_pIC50_kcna3.isna(), 'base_rdkit_smiles']),
-               set(df.loc[~df.avg_pIC50_scn5a.isna(), 'base_rdkit_smiles']),],
-              set_labels=['KCNA5','KCNA3','SCN5A'])
+     - CHEMBL691
+     - C#C[C@]1(O)CC[C@H]2[C@@H]3CCc4cc(O)ccc4[C@H]3C...
+     - 
+     - 6.352617
 
 
+The data frame returned by ``aggregate_assay_data`` contains only four
+columns:
 
 
-.. parsed-literal::
+.. list-table::
+   :header-rows: 1
+   :class: tight-table
 
-    <matplotlib_venn._common.VennDiagram at 0xffff143769d0>
+   * - Column
+     - Description
+   * - `compound_id`
+     - a unique ID for each base `SMILES <https://en.wikipedia.org/wiki/Simplified_molecular-input_line-entry_system>`_  string. When multiple values are found in id_col for the same `SMILES <https://en.wikipedia.org/wiki/Simplified_molecular-input_line-entry_system>`_  string, the function assigns it the first one in lexicographic order.
+   * - `base_rdkit_smiles`
+     - he standardized `SMILES <https://en.wikipedia.org/wiki/Simplified_molecular-input_line-entry_system>`_  string.
+   * - `relation`
+     - an aggregate relation for the set of replicates
+   * - `avg_pK`
+     - or whatever you specified in the output_value_col argument, containing the aggregate/average value.
 
+.. note::
+    
+    *When the "label_actives" argument is True (the
+    default), an additional column "active" is added for use in
+    training classification models. We will cover classification models
+    in a future tutorial*.
 
+Finally, we save the curated dataset to a CSV file.
 
+.. code:: ipython3
 
-.. image:: ../_static/img/02_data_curation_files/02_data_curation_27_1.png
+    curated_df.to_csv('dataset/SLC6A3_Ki_curated.csv', index=False)
 
+In **Tutorial 3, "Splitting Datasets for Validation and Testing"**,
+we'll show how to split this dataset into training, validation and test
+sets for model training.
 
+If you have specific feedback about a tutorial, please complete the `AMPL Tutorial Evaluation <https://forms.gle/pa9sHj4MHbS5zG7A6>`_.

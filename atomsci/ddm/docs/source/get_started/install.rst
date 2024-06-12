@@ -5,7 +5,7 @@ Installation
 
 Prerequisites
 -------------
-**AMPL** is a Python 3 package that has been developed and run in a specific pip environment.
+`AMPL <https://github.com/ATOMScience-org/AMPL>`_  is a Python 3 package that has been developed and run in a specific pip environment.
  
 Basic Install
 -------------

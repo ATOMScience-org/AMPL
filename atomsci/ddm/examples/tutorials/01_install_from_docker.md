@@ -86,12 +86,13 @@ docker run -it -p 8888:8888 -v ${PWD}:/home atomsci-ampl
 docker run -it -p 8888:8888 -v ${PWD}:/home atomsci/atomsci-ampl
 ```
 
-> #### To get more info for the "docker run" command options, type "docker run --help". For example: 
-> 
->  <pre> -i, --interactive                    Keep STDIN open even if not attached
->  -t, --tty                            Create a pseudo terminal
->  -p, --publish port(s) list           Publish a container's port(s) to the host
->  -v, --volume list                    Bind mount a volume </pre>
+To get more info for the "docker run" command options, type "docker run --help". For example: 
+ 
+  <pre> 
+  -i, --interactive                    Keep STDIN open even if not attached
+  -t, --tty                            Create a pseudo terminal
+  -p, --publish port(s) list           Publish a container's port(s) to the host
+  -v, --volume list                    Bind mount a volume </pre>
 
 ## Start the Jupyter Notebook From a Container
 
@@ -131,8 +132,7 @@ There are two ways to set a kernel:
 
 ![Select a kernel from a notebook](../../docs/source/_static/img/01_install_from_docker_files/docker-kernel-inside-nb.png)
 
-* Outside of a notebook, click "New" dropdown from upper right corner, 
-and select **atomsci-env** as the run kernel
+- Outside of a notebook, click "New" dropdown from upper right corner, and select **atomsci-env** as the run kernel
 
 ![Select a kernel outside of a notebook](../../docs/source/_static/img/01_install_from_docker_files/docker-kernel-outside-nb.png)
 
@@ -147,7 +147,7 @@ A Docker container is stateless. Once you exit, the work will not persist. There
 
 1) Use the browser Jupyter. Use "File" -> "Download" to download the file(s).
 
-1) Use mount. When you start the Docker with "-v" option:
+2) Use mount. When you start the Docker with "-v" option:
 
 ```
 docker run -it -p <port>:<port> -v <local_folder>:<directory_in_docker> <IMAGE>
@@ -228,4 +228,7 @@ And copy the string after "token=" and  paste the token to log in
 
 Welcome to the ATOM Modeling PipeLine now that you have installed Docker! You are ready to use the **[AMPL](https://github.com/ATOMScience-org/AMPL)** Tutorials on your journey to build a machine learning model. 
 
-To kick-start the Tutorial series, check out **Tutorial 2, "Data Curation"**, to learn how to curate a dataset that will be used throughout the Tutorial series.
+To kick-start the Tutorial series, check out **Tutorial 2, "Data Curation"**, to learn how to curate a dataset that will be used throughout the series.
+
+ If you have specific feedback about a tutorial, please complete the [AMPL Tutorial Evaluation](https://forms.gle/pa9sHj4MHbS5zG7A6).
+
