@@ -159,55 +159,6 @@ def dist_smiles_from_ecfp(ecfp1: List[rdkit.DataStructs.cDataStructs.ExplicitBit
     return cd.calc_summary(dist_metrics.tanimoto(ecfp1, ecfp2), calc_type='nearest', 
                         num_nearest=1, within_dset=False)
 
-def _generate_scaffold_dist_matrix(scaffold_lists: List[np.ndarray],
-                                ecfp_features: List[rdkit.DataStructs.cDataStructs.ExplicitBitVect]) -> np.ndarray:
-        """Returns a nearest neighbors distance matrix between each scaffold.
-
-        The distance between two scaffolds is defined as the
-        the distance between the two closest compounds between the two
-        scaffolds.
-
-        TODO: Ask Stewart: Why did he change to using the median instead of the min?
-
-        Parameters
-        ----------
-        scaffold_lists: List[np.ndarray]
-            List of scaffolds. A scaffold is a set of indices into ecfp_features
-        ecfp_features: List[rdkit.DataStructs.cDataStructs.ExplicitBitVect]
-            List of ecfp features, one for each compound in the dataset
-
-        Returns
-        -------
-        dist_mat: np.ndarray
-            Distance matrix, symmetric.
-        """
-        print('start generating big dist mat')
-        start = timeit.default_timer()
-        # First compute the full matrix of distances between all pairs of ECFPs
-        dmat = dist_metrics.tanimoto(ecfp_features)
-
-        mat_shape = (len(scaffold_lists), len(scaffold_lists))
-        scaff_dist_mat = np.zeros(mat_shape)
-        for i, scaff1 in tqdm(enumerate(scaffold_lists)):
-            scaff1_rows = scaff1.reshape((-1,1))
-            for j, scaff2 in enumerate(scaffold_lists[:i]):
-                if i == j:
-                    continue
-
-                dists = dmat[scaff1_rows, scaff2].flatten()
-                min_dist = np.median(dists)
-
-                if min_dist==0:
-                    print("two scaffolds match exactly?!?", i, j)
-                    print(len(set(scaff2).intersection(set(scaff1))))
-
-                scaff_dist_mat[i,j] = min_dist
-                scaff_dist_mat[j,i] = min_dist
-
-        print("finished scaff dist mat: %0.2f min"%((timeit.default_timer()-start)/60))
-        return scaff_dist_mat
-
-
 class MultitaskScaffoldSplitter(Splitter):
     """MultitaskScaffoldSplitter Splitter class.
 
@@ -258,6 +209,66 @@ class MultitaskScaffoldSplitter(Splitter):
         ]
 
         return scaffold_sets
+
+    def _generate_scaffold_dist_matrix(self):
+        """Computes matrices used by fitness functions that score splits according
+        to the dissimilarity between training and test compound structures. One is 
+        a symmetric matrix of nearest neighbor Tanimoto distances between pairs of 
+        scaffolds (i.e., between the most similar compounds in the two scaffolds).
+        This matrix is used to compute the `scaffold_diff_fitness` function.
+        
+        The other is a nonsymmetric matrix of boolean vectors `has_nn[i,j]`, of length
+        equal to the number of compounds in scaffold `i`, indicating whether each
+        compound has a neighbor in scaffold `j` nearer than some threshold Tanimoto 
+        distance `dist_thresh`. dist_thresh defaults to 0.3, but could be parameterized.
+        The has_nn matrix is used to compute the `far_frac_fitness` function, which is
+        a more robust measurement of the train/test set dissimilarity.
+        """
+        scaffold_lists = self.ss
+        ecfp_features = self.ecfp_features
+
+        # First compute the full matrix of distances between all pairs of ECFPs
+        dmat = dist_metrics.tanimoto(ecfp_features)
+
+        mat_shape = (len(scaffold_lists), len(scaffold_lists))
+        scaff_dist_mat = np.zeros(mat_shape)
+        has_near_neighbor_mat = np.empty(mat_shape, dtype=object)
+
+        for i, scaff1 in enumerate(scaffold_lists):
+            scaff1_rows = scaff1.reshape((-1,1))
+            for j, scaff2 in enumerate(scaffold_lists[:i]):
+                if i == j:
+                    continue
+
+                scaff1_dists = dmat[scaff1_rows, scaff2]
+                min_dist = np.min(scaff1_dists.flatten())
+
+                if min_dist==0:
+                    #print("two scaffolds match exactly?!?", i, j)
+                    print(f"Scaffolds {i} and {j} have at least one ECFP in common")
+                    for k in scaff1:
+                        for l in scaff2:
+                            if dmat[k,l] == 0:
+                                print(f"\tcompound {k} in scaffold {i}, compound {l} in scaffold {j}")
+                                print(f"\tSMILES {k}: {self.smiles[k]}")
+                                print(f"\tSMILES {l}: {self.smiles[l]}\n")
+
+
+                scaff_dist_mat[i,j] = min_dist
+                scaff_dist_mat[j,i] = min_dist
+
+                # Identify the compounds in scaff1 with a neighbor in scaff2 closer than dist_thresh
+                has_near_neighbor_mat[i,j] = np.array(np.min(scaff1_dists, axis=1) < self.dist_thresh)
+
+                # Identify the compounds in scaff2 with a neighbor in scaff1 closer than dist_thresh
+                scaff2_rows = scaff2.reshape((-1,1))
+                scaff2_dists = dmat[scaff2_rows, scaff1]
+                has_near_neighbor_mat[j,i] = np.array(np.min(scaff2_dists, axis=1) < self.dist_thresh)
+
+
+        self.scaff_scaff_distmat = scaff_dist_mat
+        self.has_near_neighbor_mat = has_near_neighbor_mat
+
 
     def expand_scaffolds(self,
                         scaffold_list: List[int]) -> List[int]:
@@ -348,51 +359,74 @@ class MultitaskScaffoldSplitter(Splitter):
 
         return min_dist
 
-    def ratio_fitness_old(self, split_chromosome: List[str]) -> float:
-        """Calculates a fitness score based on how accurately divided training/test/validation.
+    def far_frac_fitness(self, 
+                            split_chromosome: List[str],
+                            train_part: str,
+                            test_part: str) -> float:
+        """Grades a split according to the fraction of valid/test compounds with
+        nearest training set compounds further than some threshold.
+
+        Grades the quality of the split based on which scaffolds were alloted to
+        which partitions. The score is measured as the fraction of compounds in
+        `test_part` with nearest neighbors in `train_part` at Tanimoto distance
+        `self.dist_thresh` or greater.
+
         Parameters
         ----------
-        List[str]: split_chromosome
-            A list of strings, index i contains a string, 'train', 'valid', 'test'
-            which determines the partition that scaffold belongs to
+        split_chromosome: List[str]
+            A split represented as a list of partition names. Index i in the
+            chromosome contains the partition for scaffold i.
+        train_part: str
+            The name of the partition to be treated as the training subset
+        test_part: str
+            The name of the partition to be treated as the test subset
+
         Returns
         -------
-        List[str]
-            A list of strings, index i contains a string, 'train', 'valid', 'test'
-            which determines the partition that scaffold belongs to
+        score: float
+            Floating point value beteween 0-1. 1 is the best score and 0 is the worst
         """
-        start = timeit.default_timer()
-        total_counts = np.sum(self.dataset.w, axis=0)
-        subset_counts = [np.sum(self.dataset.w[subset], axis=0) for subset in \
-                            self.split_chromosome_to_compound_split(split_chromosome)]
+        # TODO: Eventually, replace strings in chromosome with integers indicating the partition
+        # for each scaffold.
 
-        # subset order goes train, valid, test. just consider train for the moment
-        subset_ratios = [subset_count/total_counts for subset_count in subset_counts]
-        #print("mean: %0.2f, median: %0.2f, std: %0.2f"%(np.mean(subset_ratios[0]), np.median(subset_ratios[0]), np.std(subset_ratios[0])))
+        train_scaffolds = [i for i, part in enumerate(split_chromosome) if part==train_part]
+        test_scaffolds = [i for i, part in enumerate(split_chromosome) if part==test_part]
 
-        # fitness of split is the size of the smallest training dataset
-        # ratio_fit = min(subset_ratios[0]) # this resulted in a split with 0 test. shoulda seen that coming
-        num_tasks = self.dataset.w.shape[1]
-        # imagine the perfect split is a point in 3*num_tasks space.
-        target_split = np.concatenate([[self.frac_train]*num_tasks,
-                                       [self.frac_valid]*num_tasks])
-        # this is the current split also on 3*num_tasks space
-        current_split = np.concatenate(subset_ratios[:2])
-        # if any partition is 0, then this split fails
-        if min(current_split) == 0:
+        # if a partition is completely empty, return 0
+        if len(train_scaffolds) == 0 or len(test_scaffolds) == 0:
             return 0
-        # worst possible distance to normalize this between 0 and 1
-        worst_distance = np.linalg.norm(np.ones(num_tasks*2))
-        ratio_fit = 1 - np.linalg.norm(target_split-current_split)/worst_distance
-        #print("\tratio_fitness: %0.2f min"%((timeit.default_timer()-start)/60))
 
-        return ratio_fit
+        # Compute the "far fraction": For each test scaffold S, OR together the boolean vectors
+        # from has_near_neighbor_mat for the training scaffolds indicating whether each compound in
+        # S has a neighbor in the train scaffold closer than Tanimoto distance dist_thresh. Sum
+        # the results over compounds and test scaffolds and divide by the test set size to get the
+        # "near fraction"; the far fraction is 1 minus the near fraction.
+
+        near_count = 0
+        total_count = 0
+        for test_ind in test_scaffolds:
+            has_nn = None
+            for train_ind in train_scaffolds:
+                assert(not (train_ind == test_ind))
+                if has_nn is None:
+                    has_nn = self.has_near_neighbor_mat[test_ind, train_ind]
+                else:
+                    has_nn |= self.has_near_neighbor_mat[test_ind, train_ind]
+            near_count += sum(has_nn)
+            total_count += len(has_nn)
+
+        far_frac = 1 - near_count/total_count
+        #print(f"far_frac_fitness: near_count {near_count}, total_count {total_count}, far_frac {far_frac}")
+        return far_frac
+
 
     def ratio_fitness(self, split_chromosome: List[str]) -> float:
-        """Calculates a fitness score based on how accurately divided training/test/validation.
+        """Calculates a fitness score based on how well the subset proportions for each task, taking
+        only labeled compounds into account, match the proportions requested by the user.
 
-        Treats the min,median,max of each of the three partitions as a 9D point and uses
-        euclidean distance to measure the distance to that point
+        The score is determined by combining the min, median and max over tasks of the subset fractions
+        into a 9-dimensional vector and computing its Euclidean distance from an ideal vector having
+        all the fractions as requested.
 
         Parameters
         ----------
@@ -405,15 +439,15 @@ class MultitaskScaffoldSplitter(Splitter):
         float
             A float between 0 and 1. 1 best 0 is worst
         """
-        start = timeit.default_timer()
+        #start = timeit.default_timer()
         # total_counts is the number of labels per task
         total_counts = np.sum(self.dataset.w, axis=0)
 
-        # subset_counts is number of labels per task per subset
+        # subset_counts is number of labels per task per subset.
         subset_counts = [np.sum(self.dataset.w[subset], axis=0) for subset in \
                             self.split_chromosome_to_compound_split(split_chromosome)]
 
-        # subset order goes train, valid, test. just consider train for the moment
+        # subset order goes train, valid, test
         subset_ratios = [subset_count/total_counts for subset_count in subset_counts]
 
         # imagine the perfect split is a point in 9D space. For each subset we measure
@@ -431,6 +465,7 @@ class MultitaskScaffoldSplitter(Splitter):
             return 0
         # worst possible distance to normalize this between 0 and 1
         worst_distance = np.linalg.norm(np.ones(len(target_split)))
+        worst_distance = np.sqrt(len(target_split))
         ratio_fit = 1 - np.linalg.norm(target_split-current_split)/worst_distance
         #print("\tratio_fitness: %0.2f min"%((timeit.default_timer()-start)/60))
 
@@ -454,7 +489,7 @@ class MultitaskScaffoldSplitter(Splitter):
             the train subset response value distributions, averaged over tasks. One means
             the distributions perfectly match.
         """
-        start = timeit.default_timer()
+        #start = timeit.default_timer()
         dist_sum = 0.0
         ntasks = self.dataset.y.shape[1]
         train_ind, valid_ind, test_ind = self.split_chromosome_to_compound_split(split_chromosome)
@@ -496,15 +531,36 @@ class MultitaskScaffoldSplitter(Splitter):
         fitness = 0.0
         # Only call the functions for each fitness term if their weight is nonzero
         if self.diff_fitness_weight_tvt != 0.0:
-            fitness += self.diff_fitness_weight_tvt*self.scaffold_diff_fitness(split_chromosome, 'train', 'test')
+            #score = self.scaffold_diff_fitness(split_chromosome, 'train', 'test')
+            score = self.far_frac_fitness(split_chromosome, 'train', 'test')
+            fitness += self.diff_fitness_weight_tvt*score
         if self.diff_fitness_weight_tvv != 0.0:
-            fitness += self.diff_fitness_weight_tvv*self.scaffold_diff_fitness(split_chromosome, 'train', 'valid')
+            #score = self.scaffold_diff_fitness(split_chromosome, 'train', 'valid')
+            score = self.far_frac_fitness(split_chromosome, 'train', 'valid')
+            fitness += self.diff_fitness_weight_tvv*score
         if self.ratio_fitness_weight != 0.0:
-            fitness += self.ratio_fitness_weight*self.ratio_fitness(split_chromosome)
+            score = self.ratio_fitness(split_chromosome)
+            fitness += self.ratio_fitness_weight*score
         if self.response_distr_fitness_weight != 0.0:
-            fitness += self.response_distr_fitness_weight*self.response_distr_fitness(split_chromosome)
+            score = self.response_distr_fitness(split_chromosome)
+            fitness += self.response_distr_fitness_weight*score
 
         return fitness
+
+    def get_fitness_scores(self, split_chromosome):
+        fitness_scores = {}
+        # Only call the functions for each fitness term if their weight is nonzero
+        if self.diff_fitness_weight_tvt != 0.0:
+            #fitness_scores['test_scaf_dist'] = self.scaffold_diff_fitness(split_chromosome, 'train', 'test')
+            fitness_scores['test_scaf_dist'] = self.far_frac_fitness(split_chromosome, 'train', 'test')
+        if self.diff_fitness_weight_tvv != 0.0:
+            #fitness_scores['valid_scaf_dist'] = self.scaffold_diff_fitness(split_chromosome, 'train', 'valid')
+            fitness_scores['valid_scaf_dist'] = self.far_frac_fitness(split_chromosome, 'train', 'valid')
+        if self.ratio_fitness_weight != 0.0:
+            fitness_scores['ratio'] = self.ratio_fitness(split_chromosome)
+        if self.response_distr_fitness_weight != 0.0:
+            fitness_scores['response_distr'] = self.response_distr_fitness(split_chromosome)
+        return fitness_scores
 
     def init_scaffolds(self,
              dataset: Dataset) -> None:
@@ -548,6 +604,7 @@ class MultitaskScaffoldSplitter(Splitter):
             num_super_scaffolds: int = 20,
             num_pop: int = 100,
             num_generations: int=30,
+            dist_thresh: float = 0.3,
             print_timings: bool = False,
             log_every_n: int = 1000) -> Tuple:
         """Creates a split for the given datset
@@ -607,6 +664,7 @@ class MultitaskScaffoldSplitter(Splitter):
         self.num_super_scaffolds = num_super_scaffolds
         self.num_pop = num_pop
         self.num_generations = num_generations
+        self.dist_thresh = dist_thresh
 
         self.frac_train = frac_train
         self.frac_valid = frac_valid
@@ -616,38 +674,43 @@ class MultitaskScaffoldSplitter(Splitter):
         self.init_scaffolds(self.dataset)
 
         # ecpf features
+        self.smiles = dataset.ids
         self.ecfp_features = calc_ecfp(dataset.ids)
 
         # calculate ScaffoldxScaffold distance matrix
-        start = timeit.default_timer()
+        #start = timeit.default_timer()
         if (self.diff_fitness_weight_tvv > 0.0) or (self.diff_fitness_weight_tvt > 0.0):
-            self.scaff_scaff_distmat = _generate_scaffold_dist_matrix(self.ss, self.ecfp_features)
+            self._generate_scaffold_dist_matrix()
         #print('scaffold dist mat %0.2f min'%((timeit.default_timer()-start)/60))
 
         # initial population
         population = []
         for i in range(self.num_pop):
-            start = timeit.default_timer()
+            #start = timeit.default_timer()
             split_chromosome = self._split(frac_train=frac_train, frac_valid=frac_valid, 
                                 frac_test=frac_test)
             #print("per_loop: %0.2f min"%((timeit.default_timer()-start)/60))
 
             population.append(split_chromosome)
 
+        self.fitness_terms = {}
         gene_alg = ga.GeneticAlgorithm(population, self.grade, ga_crossover,
                         ga_mutate)
         #gene_alg.iterate(num_generations)
+        best_ever = None
+        best_ever_fit = -np.inf
         for i in range(self.num_generations):
             gene_alg.step(print_timings=print_timings)
             best_fitness = gene_alg.pop_scores[0]
-            print("step %d: best_fitness %0.2f"%(i, best_fitness))
-            #print("%d: %0.2f"%(i, gene_alg.grade_population()[0][0]))
+            if best_fitness > best_ever_fit:
+                best_ever = gene_alg.pop[0]
+                best_ever_fit = best_fitness
+            score_dict = self.get_fitness_scores(best_ever)
+            for term, score in score_dict.items():
+                self.fitness_terms.setdefault(term, []).append(score)
+            print(f"generation {i}: Best fitness {best_fitness:.2f}, best ever {best_ever_fit:.2f}")
 
-        best_fit = gene_alg.pop_scores[0]
-        best = gene_alg.pop[0]
-
-        #print('best ever fitness %0.2f'%best_ever_fit)
-        result = self.split_chromosome_to_compound_split(best)
+        result = self.split_chromosome_to_compound_split(best_ever)
         return result
 
     def _split(self,
@@ -736,6 +799,7 @@ class MultitaskScaffoldSplitter(Splitter):
             train_dir: Optional[str] = None,
             valid_dir: Optional[str] = None,
             test_dir: Optional[str] = None,
+            dist_thresh: float = 0.3,
             log_every_n: int = 1000) -> Tuple[Dataset, Dataset, Dataset]:
         """Creates a split for the given datset
 
@@ -803,6 +867,7 @@ class MultitaskScaffoldSplitter(Splitter):
             diff_fitness_weight_tvv=diff_fitness_weight_tvv, ratio_fitness_weight=ratio_fitness_weight,
             response_distr_fitness_weight=response_distr_fitness_weight,
             num_super_scaffolds=num_super_scaffolds, num_pop=num_pop, num_generations=num_generations,
+            dist_thresh=0.3,
             print_timings=False)
 
         if train_dir is None:
