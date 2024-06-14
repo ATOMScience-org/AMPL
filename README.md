@@ -1,5 +1,5 @@
 # ATOM Modeling PipeLine (AMPL) for Drug Discovery
-[![License](http://img.shields.io/:license-mit-blue.svg)](https://github.com/ATOMScience-org/AMPL/blob/master/LICENSE) 
+[![License](http://img.shields.io/:license-mit-blue.svg)](https://github.com/ATOMScience-org/AMPL/blob/master/LICENSE) [![LinkedIn](https://img.shields.io/badge/linkedin-%230077B5.svg?logo=linkedin&logoColor=white)](https://www.linkedin.com/company/atomscience)
 
 | [Install](#install) | [Docker](#install-with-docker) | [Tutorials](#ampl-tutorials) |  [Features](#ampl-features) | [Pipeline parameters](atomsci/ddm/docs/PARAMETERS.md) | [Docs](https://ampl.readthedocs.io/en/latest/pipeline.html) |
 
@@ -14,6 +14,10 @@
 AMPL has been benchmarked on a large collection of pharmaceutical datasets covering a wide range of parameters. This is a living software project with active development. Check back for continued updates. Feedback is welcomed and appreciated, and the project is open to contributions! 
 
 An [article describing the AMPL project](https://pubs.acs.org/doi/abs/10.1021/acs.jcim.9b01053) was published in JCIM. For those without access to JCIM, a preprint of the article is available on [ArXiv](http://arxiv.org/abs/1911.05211). [Documentation is available here.](https://ampl.readthedocs.io/en/latest/pipeline.html)
+
+![Static Badge](https://img.shields.io/badge/Announcement-1.6.1-blue)
+
+We created a core tutorial series that represents the end-to-end modeling pipeline to build a machine learning model. Please check them out in our [docs](https://ampl.readthedocs.io/en/latest/pipeline.html).
 
 ---
 ## Table of contents
@@ -464,5 +468,3 @@ See [MIT license](LICENSE) and [NOTICE](NOTICE) for more details.
 
 - LLNL-CODE-795635
 - CRADA TC02264
-&nbsp;  
-&nbsp;  
