@@ -37,7 +37,7 @@ The tutorial will present the following functions:
 We will explain the use of descriptors, how to evaluate model
 performance, and where the model is saved as a .tar.gz file.
 
- .. note::   
+.. note::   
     
     *Training a random forest model and splitting the dataset
     are non-deterministic. You will obtain a slightly different random
