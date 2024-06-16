@@ -78,12 +78,18 @@ We're using the best performing model by validation set :math:`R^2` from
 This was a **random forest** model. The model path, validation set
 :math:`R^2` and RF-specific parameters were as follows:
 
-    dataset/SLC6A3_models/SLC6A3_Ki_curated_model_9b6c9332-15f3-4f96-9579-bf407d0b69a8.tar.gz
-
-    Best valid r2 score: 0.5595899501867392
-
-    Model Parameters: {"rf_estimators": 129, "rf_max_depth": 32,
-    "rf_max_features": 95}
+.. list-table::
+   :header-rows: 1
+   :class: tight-table 
+ 
+   * - Parameter
+     - Value
+   * - Model path
+     - dataset/SLC6A3_models/SLC6A3_Ki_curated_model_9b6c9332-15f3-4f96-9579-bf407d0b69a8.tar.gz
+   * - Best valid r2 score
+     - 0.5595899501867392
+   * - Model Parameters
+     - {"rf_estimators": 129, "rf_max_depth": 32, "rf_max_features": 95}
 
 When you load a previously trained model, either for running predictions
 or retraining, the parameters used to train the model are obtained from
@@ -177,8 +183,7 @@ descriptors:
     test_data.head()
 
 
-.. list-table:: 
-   :widths: 3 5 5 5 5 5 5 5 5 5 5 5 
+.. list-table::
    :header-rows: 1
    :class: tight-table 
  
@@ -188,11 +193,6 @@ descriptors:
      - avg_pKi
      - MaxEStateIndex
      - MinEStateIndex
-     - MaxAbsEStateIndex     
-     - MinAbsEStateIndex
-     - qed
-     - MolWt
-     - HeavyAtomMolWt
      - ...
    * - 0
      - compound_346
@@ -200,11 +200,6 @@ descriptors:
      - 7.958607
      - 8.970106
      - -4.751902
-     - 8.970106
-     - 0.825260
-     - 0.861181
-     - 315.264
-     - 293.088
      - ...
    * - 1
      - compound_225
@@ -212,11 +207,6 @@ descriptors:
      - 6.587660
      - 8.993202
      - -4.010824
-     - 8.993202
-     - 0.226986
-     - 0.739733
-     - 277.371
-     - 258.219
      - ...
    * - 2
      - compound_166
@@ -224,11 +214,6 @@ descriptors:
      - 5.430275
      - 13.525088
      - -5.060732
-     - 13.525088
-     - 1.095764
-     - 0.412331
-     - 455.598
-     - 422.334
      - ...
    * - 3
      - compound_310
@@ -236,11 +221,6 @@ descriptors:
      - 6.000000
      - 9.204719
      - -4.140132
-     - 9.204719
-     - 0.018450
-     - 0.581059
-     - 354.457
-     - 332.281
      - ...
    * - 4
      - compound_284
@@ -248,11 +228,6 @@ descriptors:
      - 6.587660
      - 17.710445
      - -4.117619
-     - 17.710445
-     - 0.229708
-     - 0.636234
-     - 297.398
-     - 281.270
      - ...
 
 
@@ -276,7 +251,6 @@ We now predict :math:`pK_i` values with the original best model:
 
 
 .. list-table:: 
-   :widths: 3 5 5 5 5 5 5 5 5 5 5 5 
    :header-rows: 1
    :class: tight-table 
  
@@ -286,11 +260,6 @@ We now predict :math:`pK_i` values with the original best model:
      - avg_pKi
      - MaxEStateIndex
      - MinEStateIndex
-     - MaxAbsEStateIndex
-     - MinAbsEStateIndex
-     - qed
-     - MolWt
-     - HeavyAtomMolWt
      - ...
    * - 0
      - compound_346
@@ -298,11 +267,6 @@ We now predict :math:`pK_i` values with the original best model:
      - 7.958607
      - 8.970106
      - -4.751902
-     - 8.970106
-     - 0.825260
-     - 0.861181
-     - 315.264
-     - 293.088
      - ...
    * - 1
      - compound_225
@@ -310,11 +274,6 @@ We now predict :math:`pK_i` values with the original best model:
      - 6.587660
      - 8.993202
      - -4.010824
-     - 8.993202
-     - 0.226986
-     - 0.739733
-     - 277.371
-     - 258.219
      - ...
    * - 2
      - compound_166
@@ -322,11 +281,6 @@ We now predict :math:`pK_i` values with the original best model:
      - 5.430275
      - 13.525088
      - -5.060732
-     - 13.525088
-     - 1.095764
-     - 0.412331
-     - 455.598
-     - 422.334
      - ...
    * - 3
      - compound_310
@@ -334,11 +288,6 @@ We now predict :math:`pK_i` values with the original best model:
      - 6.000000
      - 9.204719
      - -4.140132
-     - 9.204719
-     - 0.018450
-     - 0.581059
-     - 354.457
-     - 332.281
      - ...
    * - 4
      - compound_284
@@ -346,11 +295,6 @@ We now predict :math:`pK_i` values with the original best model:
      - 6.587660
      - 17.710445
      - -4.117619
-     - 17.710445
-     - 0.229708
-     - 0.636234
-     - 297.398
-     - 281.270
      - ...
 
 
@@ -370,7 +314,6 @@ Now we'll run predictions on the same dataset with the production model:
 
 
 .. list-table:: 
-   :widths: 3 5 5 5 5 5 5 5 5 5 5 5 
    :header-rows: 1
    :class: tight-table
  
@@ -380,11 +323,6 @@ Now we'll run predictions on the same dataset with the production model:
      - avg_pKi
      - MaxEStateIndex
      - MinEStateIndex
-     - MaxAbsEStateIndex
-     - MinAbsEStateIndex
-     - qed
-     - MolWt
-     - HeavyAtomMolWt
      - ...
    * -  0
      - compound_346
@@ -392,11 +330,6 @@ Now we'll run predictions on the same dataset with the production model:
      - 7.958607
      - 8.970106
      - -4.751902
-     - 8.970106
-     - 0.825260
-     - 0.861181
-     - 315.264
-     - 293.088
      - ...
    * -  1
      - compound_225
@@ -404,11 +337,6 @@ Now we'll run predictions on the same dataset with the production model:
      - 6.587660
      - 8.993202
      - -4.010824
-     - 8.993202
-     - 0.226986
-     - 0.739733
-     - 277.371
-     - 258.219
      - ...
    * - 2
      - compound_166
@@ -416,11 +344,6 @@ Now we'll run predictions on the same dataset with the production model:
      - 5.430275
      - 13.525088
      - -5.060732
-     - 13.525088
-     - 1.095764
-     - 0.412331
-     - 455.598
-     - 422.334
      - ...
    * - 3
      - compound_310
@@ -428,11 +351,6 @@ Now we'll run predictions on the same dataset with the production model:
      - 6.000000
      - 9.204719
      - -4.140132
-     - 9.204719
-     - 0.018450
-     - 0.581059
-     - 354.457
-     - 332.281
      - ...
    * - 4
      - compound_284
@@ -440,11 +358,6 @@ Now we'll run predictions on the same dataset with the production model:
      - 6.587660
      - 17.710445
      - -4.117619
-     - 17.710445
-     - 0.229708
-     - 0.636234
-     - 297.398
-     - 281.270
      - ...
 
 

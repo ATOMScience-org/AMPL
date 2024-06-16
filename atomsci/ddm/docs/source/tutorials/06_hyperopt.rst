@@ -96,13 +96,13 @@ Parameter Dictionary Settings
      - Description
    * - `'hyperparam':'True'`
      - This setting indicates that we are performing a hyperparameter search instead of just training one model.
-   * - `'previously_featurized':True'``
+   * - `'previously_featurized':True'`
      - This tells `AMPL <https://github.com/ATOMScience-org/AMPL>`_ to search for previously generated features in ../dataset/scaled_descriptors instead of regenerating them on the fly.
-   * - `'search_type':'hyperopt'``
+   * - `'search_type':'hyperopt'`
      - This specifies the hyperparameter search method. Other options include grid, random, and geometric. Specifications for each hyperparameter search method is different, please refer to the full documentation. Here we are using the Bayesian optimization method.
-   * - `'model_type':'RF|10'``
+   * - `'model_type':'RF|10'`
      - This means `AMPL <https://github.com/ATOMScience-org/AMPL>`_ will try 10 times to find the best set of hyperparameters using random forests. In practice, this parameter could be set to 100 or more.
-   * - `'rfe':'uniformint|8,512'``
+   * - `'rfe':'uniformint|8,512'`
      - The Bayesian optimizer will uniformly search between 8 and 512 for the best number of random forest estimators. Similarly rfd stands for random forest depth and rff stands for random forest features.
    * - `'result_dir'`
      - Now expects two parameters. The first directory will contain the best trained models while the second directory will contain all models trained in the search.
@@ -191,7 +191,6 @@ models to select the best hyperparameters"**.
 
 
 .. list-table::
-   :widths: 3 10 10 5 5
    :header-rows: 1
    :class: tight-table
   

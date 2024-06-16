@@ -203,33 +203,18 @@ performance. Let us view the contents of the ``pred_df`` dataframe.
      - model_path
      - ampl_version
      - model_type
-     - dataset_key
-     - features
-     - splitter
-     - split_strategy
-     - split_uuid
-     - ...   
+     - ...
    * - 0
      - 9ff5a924-ef49-407c-a4d4-868a1288a67e
      - dataset/SLC6A3_models/SLC6A3_Ki_curated_model_...
      - 1.6.1
      - RF
-     - /Users/rwilfong/Downloads/2024_LLNL/fork_ampl/...
-     - rdkit_raw
-     - scaffold
-     - train_valid_test
-     - c35aeaab-910c-4dcf-8f9f-04b55179aa1a
      - ...
    * - 1
      - f69409b0-33ce-404f-b1e5-0e9f5128ebc7
      - dataset/SLC6A3_models/SLC6A3_Ki_curated_model_...
      - 1.6.1
      - RF
-     - /Users/rwilfong/Downloads/2024_LLNL/fork_ampl/...
-     - rdkit_raw
-     - scaffold
-     - train_valid_test
-     - f6351696-363f-411a-8720-4892bc4f700e
      - ...
 
 
