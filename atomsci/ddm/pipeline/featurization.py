@@ -64,22 +64,21 @@ def make_weights(vals, is_class=False):
     it with 0 if there is not value or 1 if there is.
 
     Args:
-        vals: numpy array containing nans where there are not labels
+        vals: numpy array containing nans or empty strings where there are not labels
 
     Returns:
-        out_vals: numpy array same as input vals, but nans are replaced with 0
-        w: numpy array same shape as vals, where w[i,j] = 1 if vals[i,j] is nan else w[i,j] = 0
+        vals: numpy array same as input vals, but strings are replaced with 0 (for classification models) or nans (for regression models)
+        w: numpy array same shape as out_vals, where w[i,j] = 1 if vals[i,j] is nan else w[i,j] = 0
     """
     # sometimes instead of nan, '' is used for missing values
-    out_vals = np.copy(vals)
-    if not np.issubdtype(out_vals.dtype, np.number):
+    if not np.issubdtype(vals.dtype, np.number):
         # there might be strings or other objects in this array
-        out_vals[out_vals==''] = np.nan
-    out_vals = out_vals.astype(float)
-    w = np.where(np.isnan(out_vals), 0., 1).astype(float)
-    out_vals = np.where(np.isnan(out_vals), 0., out_vals)
+        vals[vals==''] = np.nan
+    vals = vals.astype(float)
+    w = np.where(np.isnan(vals), 0., 1).astype(float)
     if is_class:
-        return out_vals, w
+        vals = np.where(np.isnan(vals), 0., vals)
+        return vals, w
     else:
         return vals, w
 
