@@ -1,6 +1,6 @@
 FROM ubuntu:20.04
 
-ENV DEBIAN_FRONTEND=nonintercative #
+ENV DEBIAN_FRONTEND=nonintercative
 RUN apt-get update && apt-get install -y curl
 RUN apt-get update && apt-get install -y python3.8 python3.8-dev python3-venv
 
