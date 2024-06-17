@@ -70,17 +70,18 @@ def make_weights(vals, is_class=False):
         vals: numpy array same as input vals, but strings are replaced with 0 (for classification models) or nans (for regression models)
         w: numpy array same shape as out_vals, where w[i,j] = 1 if vals[i,j] is nan else w[i,j] = 0
     """
+    out_vals = np.copy(vals)
     # sometimes instead of nan, '' is used for missing values
-    if not np.issubdtype(vals.dtype, np.number):
+    if not np.issubdtype(out_vals.dtype, np.number):
         # there might be strings or other objects in this array
-        vals[vals==''] = np.nan
-    vals = vals.astype(float)
-    w = np.where(np.isnan(vals), 0., 1).astype(float)
+        out_vals[out_vals==''] = np.nan
+    out_vals = out_vals.astype(float)
+    w = np.where(np.isnan(out_vals), 0., 1).astype(float)
     if is_class:
-        vals = np.where(np.isnan(vals), 0., vals)
-        return vals, w
+        out_vals = np.where(np.isnan(out_vals), 0., out_vals)
+        return out_vals, w
     else:
-        return vals, w
+        return out_vals, w
 
 
 # ****************************************************************************************
