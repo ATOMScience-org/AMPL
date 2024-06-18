@@ -44,7 +44,7 @@ AMPL 1.6 is supports Python 3.9 CPU or CUDA-enabled machines using CUDA 11.8 on 
 #### 1. Create a virtual env with Python 3.9 
 Make sure to create your virtual env in a convenient directory that has at least 12Gb space.
 
-Go to the directory where the new environment directory be installed in. Define an environment variable - `ENVROOT`. 
+Go to the directory where the new environment directory be installed in. Define an environment variable - "ENVROOT".
 
 ```bash
 export ENVROOT=~/workspace # for LLNL LC users, use your workspace
@@ -53,7 +53,7 @@ export ENVROOT=~ # or the directory as your environment root
 cd $ENVROOT
 ```
 
-> *We use `workspace` and `atomsci-env` as an example here.*
+> *We use "workspace" and "atomsci-env" as an example here.*
 
 ```bash
 # LLNL only: 
@@ -114,7 +114,7 @@ pip install -r clients_requirements.txt
 ```
 
 ### Install AMPL
-Run the following to build the `atomsci` modules. This is required.
+Run the following to build the "atomsci" modules. This is required.
 
 ```bash
 # return to AMPL parent directory
@@ -171,9 +171,9 @@ python -m ipykernel install --user --name atomsci-env
   ```
 - Visit the provided URL in your browser, ie
   - http://d33b0faf6bc9:8888/?token=656b8597498b18db2213b1ec9a00e9d738dfe112bbe7566d
-  - Replace the `d33b0faf6bc9` with `localhost`
+  - Replace the "d33b0faf6bc9" with "localhost"
   - If this doesn't work, exit the container and change port from 8888 to some other number such as 7777 or 8899 (in all 3 places it's written), then rerun both commands
-- From the notebook, you may need to set the kernel that atomsci is installed (`atomsci-venv`) in order to acccess the `atomsci` package.
+- From the notebook, you may need to set the kernel that atomsci is installed ("atomsci-venv") in order to acccess the `atomsci` package.
 
 > ***Note***: *Be sure to save any work you want to be permanent in your workspace folder. If the container is shut down, you'll lose anything not in that folder.*  
 ---
@@ -184,7 +184,7 @@ To remove AMPL from a pip environment use:
 pip uninstall atomsci-ampl
 ```
 
-To remove an entire virtual environment named `atomsci-env`:
+To remove an entire virtual environment named "atomsci-env":
 ```bash
 rm -rf $ENVROOT/atomsci-env
 ```
@@ -280,13 +280,11 @@ To get more info on an AMPL config file, please refer to:
   - [AMPL Features](https://github.com/ATOMScience-org/AMPL#ampl-features)
   - [Running AMPL](https://github.com/ATOMScience-org/AMPL#running-ampl)
   - [AMPL Tutorials](atomsci/ddm/examples/tutorials)
-     - [10_Delaney_Solubility_Prediction.ipynb](atomsci/ddm/examples/tutorials/10_Delaney_Solubility_Prediction.ipynb)
-     - [11_CHEMBL26_SCN5A_IC50_prediction.ipynb](atomsci/ddm/examples/tutorials/11_CHEMBL26_SCN5A_IC50_prediction.ipynb)
 
 ### Hyperparameter optimization
 <details><summary>Hyperparameter optimization for AMPL model fitting is available to run on SLURM clusters or with [HyperOpt](https://hyperopt.github.io/hyperopt/) (Bayesian Optimization). To run Bayesian Optimization, the following steps can be followed.</summary>
 
-1. (Optional) Install HyperOpt with `pip install hyperopt`
+1. (Optional) Install HyperOpt with "pip install hyperopt"
 2. Pre-split your dataset with computed_descriptors if you want to use Mordred/MOE/RDKit descriptors.
 3. In the config JSON file, set the following parameters.
    
@@ -348,7 +346,7 @@ To get more info on an AMPL config file, please refer to:
 ### Running all tests
 To run the full set of tests, use Pytest from the test directory:
 ```bash
-source $ENVROOT/atomsci-env/bin/activate # activate your pip environment. `atomsci` is an example here.
+source $ENVROOT/atomsci-env/bin/activate # activate your pip environment. "atomsci" is an example here.
 cd atomsci/ddm/test
 pytest
 ```
@@ -357,7 +355,7 @@ pytest
 <details><summary>Several of the tests take some time to fit. These tests can be submitted to a SLURM cluster as a batch job.</summary> Example general SLURM submit scripts are included as `pytest_slurm.sh`.
 
 ```bash
-source $ENVROOT/atomsci-env/bin/activate # activate your pip environment. `atomsci-env` is an example here.
+source $ENVROOT/atomsci-env/bin/activate # activate your pip environment. "atomsci-env" is an example here.
 cd atomsci/ddm/test/integrative/delaney_NN
 sbatch pytest_slurm.sh
 cd ../../../..
@@ -383,26 +381,26 @@ cd ../../..
 
 ---
 ## AMPL tutorials
-Please follow link, [`atomsci/ddm/examples/tutorials`](https://github.com/ATOMScience-org/AMPL/tree/master/atomsci/ddm/examples/tutorials), to access a collection of AMPL tutorial notebooks. The tutorial notebooks give an exhaustive coverage of AMPL features. The AMPL team has prepared the tutorials to help beginners understand the basics to advanced AMPL features, and a reference for advanced AMPL users. 
+Please follow link, ["atomsci/ddm/examples/tutorials"](https://github.com/ATOMScience-org/AMPL/tree/master/atomsci/ddm/examples/tutorials), to access a collection of AMPL tutorial notebooks. The tutorial notebooks give an exhaustive coverage of AMPL features. The AMPL team has prepared the tutorials to help beginners understand the basics to advanced AMPL features, and a reference for advanced AMPL users. 
 
 ---
 ## Development
 ### Installing the AMPL for development
-Using `pip install -e .` will create a namespace package in your environment directory that points back to your git working directory, so every time you reimport a module you'll be in sync with your working code. Since site-packages is already in your sys.path, you won't have to fuss with PYTHONPATH or setting sys.path in your notebooks.  
+Using "pip install -e ." will create a namespace package in your environment directory that points back to your git working directory, so every time you reimport a module you'll be in sync with your working code. Since site-packages is already in your sys.path, you won't have to fuss with PYTHONPATH or setting sys.path in your notebooks.  
 
 ### Code Push Policy
 It's recommended to use a development branch to do the work. After each release, there will be a branch opened for development.
 
 The policy is 
 
-1. Create a branch based off a development (`1.6.0 `for example) or `master` branch
+1. Create a branch based off a development ("1.6.0 "for example) or "master" branch
 2. Create a pull request. Assign a reviewer to approve the code changes 
 
 > ***Note***:
-> Step 2 is required for pushing directly to `master`. For a development branch, this step is recommended but not required.
+> Step 2 is required for pushing directly to "master". For a development branch, this step is recommended but not required.
 
 ### Docstring format
-The [`Google docstring`](https://github.com/google/styleguide/blob/gh-pages/pyguide.md#38-comments-and-docstrings) format is used in the AMPL code. When writing new code, please use the same Docstring style. Refer [here](https://www.sphinx-doc.org/en/master/usage/extensions/example_google.html#example-google) and [here](https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html) for examples.
+The ["Google docstring"](https://github.com/google/styleguide/blob/gh-pages/pyguide.md#38-comments-and-docstrings) format is used in the AMPL code. When writing new code, please use the same Docstring style. Refer [here](https://www.sphinx-doc.org/en/master/usage/extensions/example_google.html#example-google) and [here](https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html) for examples.
 
 ### Versioning
 Versions are managed through GitHub tags on this repository.  
