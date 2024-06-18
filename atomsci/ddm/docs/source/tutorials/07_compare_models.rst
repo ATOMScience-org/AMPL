@@ -92,7 +92,6 @@ entire directory if a parent folder is passed.
      - ampl_version
      - model_type
      - dataset_key
-     - features
      - ...
    * - 310
      - b24a2887-8eca-43e2-8fc2-3642189d2c94
@@ -100,7 +99,6 @@ entire directory if a parent folder is passed.
      - 1.6.0
      - NN
      - /home/apaulson/repos/AMPL_umbrella/AMPL/atomsc...
-     - ecfp
      - ...
    * - 306
      - 9b6c9332-15f3-4f96-9579-bf407d0b69a8
@@ -108,7 +106,6 @@ entire directory if a parent folder is passed.
      - 1.6.0
      - RF
      - /home/apaulson/repos/AMPL_umbrella/AMPL/atomsc...
-     - ecfp
      - ...
 
 

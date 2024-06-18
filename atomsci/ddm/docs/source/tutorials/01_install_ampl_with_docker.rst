@@ -99,7 +99,7 @@ Use an Existing Image to Start a Container
 If you have an image built/downloaded, type "docker images" to see what images are currently available. 
 Pick one and run it using the "docker run" command. For example:
 
-.. image:: ../_static/img/01_install_from_docker_files/docker_run.png
+.. image:: ../_static/img/01_install_with_docker_files/docker_run.png
 
 * The "docker run" command syntax:
 
@@ -144,7 +144,7 @@ Start the Jupyter Notebook From a Container
 
 This will output a message with similar URLs to this:
 
-.. image:: ../_static/img/01_install_from_docker_files/jupyter_token.png
+.. image:: ../_static/img/01_install_with_docker_files/jupyter_token.png
 
 .. _Connect Jupyter notebook:
 
@@ -153,7 +153,7 @@ To Connect the Jupyter Notebook From a Browser
 
 Copy and paste the URL from the output message to the browser on your computer. For example:
 
-.. image:: ../_static/img/01_install_from_docker_files/browser_url.png
+.. image:: ../_static/img/01_install_with_docker_files/browser_url.png
 
 .. note::
 
@@ -173,16 +173,16 @@ There are two ways to set a kernel:
 
 * From a notebook, top menu bar "Kernel" > "Change Kernel" > "atomsci-env"
 
-.. image:: ../_static/img/01_install_from_docker_files/docker-kernel-inside-nb.png
+.. image:: ../_static/img/01_install_with_docker_files/docker-kernel-inside-nb.png
 
 * Outside of a notebook, click "New" dropdown from upper right corner, and select **atomsci-env** as the run kernel
 
-.. image:: ../_static/img/01_install_from_docker_files/docker-kernel-outside-nb.png
+.. image:: ../_static/img/01_install_with_docker_files/docker-kernel-outside-nb.png
 
 
 * The notebook would look like this:
 
-.. image:: ../_static/img/01_install_from_docker_files/notebook-env.png
+.. image:: ../_static/img/01_install_with_docker_files/notebook-env.png
 
 .. _Save work:
 
@@ -216,7 +216,7 @@ For example:
 
     root@d8ae116b2a83:/AMPL# pwd
     /AMPL
-    root@d8ae116b2a83:/AMPL# cp atomsci/ddm/examples/01_install_from_docker.md /home
+    root@d8ae116b2a83:/AMPL# cp atomsci/ddm/examples/01_install_with_docker.md /home
 
 * The file(s) will be in <local_folder>
 
@@ -280,12 +280,12 @@ If you try to connect the Jupyter Notebook URL, but got a prompt for password or
 
     jupyter server list
 
-.. image:: ../_static/img/01_install_from_docker_files/jupyter_server_list.png
+.. image:: ../_static/img/01_install_with_docker_files/jupyter_server_list.png
 
 And copy the string after "token=" and  paste the token to log in
 
 
-.. image:: ../_static/img/01_install_from_docker_files/localhost_token.png
+.. image:: ../_static/img/01_install_with_docker_files/localhost_token.png
 
 Welcome to the ATOM Modeling PipeLine now that you have installed Docker! You are ready to use the `AMPL <https://github.com/ATOMScience-org/AMPL>`_ Tutorials on your journey to build a machine learning model. 
 
