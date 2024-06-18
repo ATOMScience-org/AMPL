@@ -14,6 +14,7 @@ lightning
 dgl==1.1.2
 dgllife
 
+networkx==2.8.8
 scikit-learn==1.2.2
 hyperopt
 
