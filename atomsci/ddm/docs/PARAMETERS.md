@@ -569,6 +569,14 @@ the model will train for max_epochs regardless of validation error.|
 |*Default:*|1.0|
 |*Type:*|float|
 
+- **mtss\_response\_distr\_weight**  
+  
+|||
+|-|-|
+|*Description:*|How much weight to give to matching the response value distributions between split subsets.|
+|*Default:*|1.0|
+|*Type:*|float|
+
 - **mtss\_split\_fraction\_weight**  
   
 |||
@@ -669,7 +677,7 @@ the model will train for max_epochs regardless of validation error.|
 
 <a name="XGBoost"></a>
 ## XGBoost  
-- Currently, only `xgb_gamma` and `xgb_learning_rate` are supported for hyperparameter optimization.
+
 - **xgb\_colsample\_bytree**  
   
 |||
@@ -1024,73 +1032,113 @@ in the same way as model parameters.
   
 <a name="bayesian-optimization"></a>
 ## Bayesian Optimization  
+### Search Domain Specifications
+The following parameters are used to specify the search domains for certain model parameters in a Bayesian hyperparameter optimization. Each search domain parameter is
+tied to a specific model parameter. Only a subset of model parameters may be optimized in this way, but more will be supported in future releases. See the hyperopt package documentation at https://github.com/hyperopt/hyperopt/wiki/FMin#2-defining-a-search-space to learn more about the search domain format.
 
 - **lr**  
   
 |||
 |-|-|
-|*Description:*|Learning rate searching domain in Bayesian Optimization. The format is `scheme\|parameters`, e.g. `choice\|0.0001,0.0005,0.0002,0.001`. See https://github.com/ATOMScience-org/AMPL#hyperparameter-optimization|
+|*Description:*|Search domain for NN model `learning_rate` parameter in Bayesian Optimization. The format is `scheme\|parameters`, e.g. `choice\|0.0001,0.0005,0.0002,0.001`. See https://github.com/ATOMScience-org/AMPL#hyperparameter-optimization|
 |*Default:*|None|
 
 - **dp**  
   
 |||
 |-|-|
-|*Description:*|Dropouts searching domain in Bayesian Optimization. The format is `scheme\|num_layers\|parameters`, e.g. `uniform\|3\|0,0.4`, Note that the number of layers (number between two \|) can not be changed during optimization, if you want to try different number of layers, just run several optimizations.
+|*Description:*|Search domain for NN model `dropouts` parameter in Bayesian Optimization. The format is `scheme\|num_layers\|parameters`, e.g. `uniform\|3\|0,0.4`, Note that the number of layers (number between two \|) can not be changed during optimization, if you want to try different number of layers, just run several optimizations.
 |*Default:*|None|
 
 - **ls**  
   
 |||
 |-|-|
-|*Description:*|Layer sizes searching domain in Bayesian Optimization. The format is `scheme\|num_layers\|parameters`, e.g. `uniformint\|3\|8,512`, Note that the number of layers (number between two \|) can not be changed during optimization, if you want to try different number of layers, just run several optimizations.
+|*Description:*|Search domain for NN model `layer_sizes` parameter in Bayesian Optimization. The format is `scheme\|num_layers\|parameters`, e.g. `uniformint\|3\|8,512`, Note that the number of layers (number between two \|) can not be changed during optimization, if you want to try different number of layers, just run several optimizations.
 |*Default:*|None|
 
 - **rfe**  
   
 |||
 |-|-|
-|*Description:*|Number of estimators searching domain of RF models in Bayesian Optimization. The format is `scheme\|parameters`, e.g. `uniformint\|8,512`.
+|*Description:*|Search domain for RF model `rf_num_estimators` parameter in Bayesian Optimization. The format is `scheme\|parameters`, e.g. `uniformint\|8,512`.
 |*Default:*|None|
 
 - **rfd**  
   
 |||
 |-|-|
-|*Description:*|Max depth of the decision tree searching domain of RF models in Bayesian Optimization. The format is `scheme\|parameters`, e.g. `uniformint\|8,512`.
+|*Description:*|Search domain for RF model `rf_max_depth` parameter in Bayesian Optimization. The format is `scheme\|parameters`, e.g. `uniformint\|8,512`.
 |*Default:*|None|
 
 - **rff**  
   
 |||
 |-|-|
-|*Description:*|Max number of features searching domain of RF models in Bayesian Optimization. The format is `scheme\|parameters`, e.g. `uniformint\|8,200`.
+|*Description:*|Search domain for RF model `rf_max_features` parameter in Bayesian Optimization. The format is `scheme\|parameters`, e.g. `uniformint\|8,200`.
 |*Default:*|None|
 
 - **xgbg**  
   
 |||
 |-|-|
-|*Description:*|xgb_gamma (Minimum loss reduction required to make a further partition on a leaf node of the tree) searching domain of XGBoost models in Bayesian Optimization. The format is `scheme\|parameters`, e.g. `uniform\|0,0.4`.
+|*Description:*|Search domain for XGBoost model `xgb_gamma` parameter in Bayesian Optimization. The format is `scheme\|parameters`, e.g. `loguniform\|-9.2,-4.6`.
 |*Default:*|None|
 
 - **xgbl**  
   
 |||
 |-|-|
-|*Description:*|xgb_learning_rate (Boosting learning rate) searching domain of XGBoost models in Bayesian Optimization. The format is `scheme\|parameters`, e.g. `loguniform\|-6.9,-2.3`.
+|*Description:*|Search domain for XGBoost model `xgb_learning_rate` parameter in Bayesian Optimization. The format is `scheme\|parameters`, e.g. `loguniform\|-4.6,-2.3`.
 |*Default:*|None|
+
+- **xgbd**  
+  
+|||
+|-|-|
+|*Description:*|Search domain for XGBoost model `xgb_max_depth` parameter in Bayesian Optimization. The format is `scheme\|parameters`, e.g. `uniformint\|3,10`.
+|*Default:*|None|
+
+- **xgbc**  
+  
+|||
+|-|-|
+|*Description:*|Search domain for XGBoost model `xgb_colsample_bytree` parameter in Bayesian Optimization. The format is `scheme\|parameters`, e.g. `uniform\|0.1,1.0`.
+|*Default:*|None|
+
+- **xgbs**  
+  
+|||
+|-|-|
+|*Description:*|Search domain for XGBoost model `xgb_subsample` parameter in Bayesian Optimization. The format is `scheme\|parameters`, e.g. `uniform\|0.1,1.0`.
+|*Default:*|None|
+
+- **xgbn**  
+  
+|||
+|-|-|
+|*Description:*|Search domain for XGBoost model `xgb_n_estimators` parameter in Bayesian Optimization. The format is `scheme\|parameters`, e.g. `uniformint\|200,1000`.
+|*Default:*|None|
+
+- **xgbw**  
+  
+|||
+|-|-|
+|*Description:*|Search domain for XGBoost model `xgb_min_child_weight` parameter in Bayesian Optimization. The format is `scheme\|parameters`, e.g. `uniform\|0.5,2.0`.
+|*Default:*|None|
+
+### Checkpointing parameters
 
 - **hp_checkpoint_save**  
   
 |||
 |-|-|
-|*Description:*|binary file to save a checkpoint of the HPO trial project, which can be use to continue the HPO serach later.
+|*Description:*|binary file to save a checkpoint of the HPO trial project, which can be use to continue the HPO search later.
 |*Default:*|None|c
 
 - **hp_checkpoint_load**  
   
 |||
 |-|-|
-|*Description:*|binary file to load a checkpoint of a previous HPO trial project, to continue the HPO serach.
+|*Description:*|binary file to load a checkpoint of a previous HPO trial project, to continue the HPO search.
 |*Default:*|None|
