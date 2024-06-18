@@ -1,6 +1,8 @@
 FROM ubuntu:20.04
+
+ENV DEBIAN_FRONTEND=nonintercative
 RUN apt-get update && apt-get install -y curl
-RUN apt-get update && apt-get install -y python3.9 python3.9-dev python3-venv
+RUN apt-get update && apt-get install -y python3.8 python3.8-dev python3-venv
 
 ENV VIRTUAL_ENV=/opt/atomsci-env
 RUN python3 -m venv $VIRTUAL_ENV
