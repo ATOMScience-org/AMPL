@@ -37,7 +37,9 @@ Built with
    :maxdepth: 2
    :caption: Getting Started
 
+   get_started/introduction
    get_started/install
+   get_started/install_with_docker
    get_started/running_ampl
    get_started/tests
 
@@ -46,7 +48,7 @@ Built with
    :caption: Tutorials
 
    tutorials/ampl_tutorials_intro
-   tutorials/01_install_ampl_from_docker
+   tutorials/01_install_ampl_with_docker
    tutorials/02_data_curation
    tutorials/03_perform_a_split
    tutorials/04_train_regression_model

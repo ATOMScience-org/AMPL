@@ -17,7 +17,7 @@ variety of data splitting and training schemes.
 the most popular strategies: 
 
 -  3-way training/validation/test splits 
--  *k*-fold cross-validation (CV).
+-  *k*-fold cross-validation (CV)
 
 In this tutorial we will perform a 3-way split of the curated dataset we
 prepared in **Tutorial 2, "Data Curation"**, using the

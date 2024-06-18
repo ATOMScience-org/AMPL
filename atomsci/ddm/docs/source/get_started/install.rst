@@ -3,25 +3,20 @@
 Installation
 ============
 
-Prerequisites
--------------
-`AMPL <https://github.com/ATOMScience-org/AMPL>`_  is a Python 3 package that has been developed and run in a specific pip environment.
- 
-Basic Install
--------------
-Clone the git repository
-^^^^^^^^^^^^^^^^^^^^^^^^
-::
+Setup Repo, Pip Environment
+---------------------------
+
+Clone git repository::
 
     git clone https://github.com/ATOMScience-org/AMPL.git
  
-Please refer to this link, https://github.com/ATOMScience-org/AMPL#Install, for details.
+Please refer to this `install link <https://github.com/ATOMScience-org/AMPL#Install>`_, for details.
 
 Create pip environment::
 
     module load python/3.9.12 # use python 3.9.12
-    python3 -m venv atomsci # create a new pip env
-    source atomsci/bin/activate # activate the environemt
+    python3 -m venv atomsci-env # create a new pip env
+    source atomsci-env/bin/activate # activate the environemt
 
     python3 -m pip install pip --upgrade
     cd $AMPL_HOME/pip # cd to AMPL repo's pip directory
@@ -34,20 +29,13 @@ Create pip environment::
 
 Build and Install AMPL
 ----------------------
-Go to the AMPL root directory and install the AMPL package::
+Go to the AMPL root directory and install the `AMPL <https://github.com/ATOMScience-org/AMPL>`_  package::
 
-    source atomsci/bin/activate # activate the environemt
+    source atomsci-env/bin/activate # activate the environemt
     cd ..
     ./build.sh
     pip3 install -e .
 
 * The `install.sh` system command installs AMPL directly in the pip environment. If `install.sh` alone is used, then AMPL is installed in the `$HOME/.local` directory.
 
-* After this process, you will have an `atomsci` pip environment with all dependencies installed. The name of the AMPL package is `atomsci-ampl` and is installed in the `install.sh` script to the environment with pip.  
-
-Install with Docker
--------------------
-
-Please refer to `Tutorials > 01 Install AMPL From Docker`_ for instructions.
-
-.. _Tutorials > 01 Install AMPL From Docker: ../tutorials/01_install_from_docker.html
+* After this process, you will have an `atomsci-env` pip environment with all dependencies installed. The name of the AMPL package is `atomsci-ampl` and is installed in the `install.sh` script to the environment with pip.  
