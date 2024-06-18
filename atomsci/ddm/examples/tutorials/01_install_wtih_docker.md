@@ -65,7 +65,7 @@ This normally takes about 15-20 minutes to build. Once it's built on your machin
 
 To see what images are running on your machine, type "docker images". 
 
-![Docker Run](../../docs/source/_static/img/01_install_from_docker_files/docker_run.png)
+![Docker Run](../../docs/source/_static/img/01_install_with_docker_files/docker_run.png)
 
 Use "docker run ... <IMAGE>" command to start the container. The command syntax is:
 
@@ -101,13 +101,13 @@ jupyter-notebook --ip=0.0.0.0 --allow-root --port=8888 &
 ```
 This will output a message with similar URLs to this:
 
-![Jupyter Notebook Token](../../docs/source/_static/img/01_install_from_docker_files/jupyter_token.png)
+![Jupyter Notebook Token](../../docs/source/_static/img/01_install_with_docker_files/jupyter_token.png)
 
 ### To Connect to the Jupyter Notebook UI From a Browser
 
 Copy and paste the URL from the output message (highlighted in yellow from above) to the browser on your computer. Like this one:
 
-![Notebook URL](../../docs/source/_static/img/01_install_from_docker_files/browser_url.png)
+![Notebook URL](../../docs/source/_static/img/01_install_with_docker_files/browser_url.png)
 
 > **NOTE:**
 > *If this doesn't work, exit the container and choose a different port
@@ -120,7 +120,7 @@ Copy and paste the URL from the output message (highlighted in yellow from above
 
 Once connected, you will see a screen like this:
 
-![Notebook Screen](../../docs/source/_static/img/01_install_from_docker_files/docker_container_nb.png)
+![Notebook Screen](../../docs/source/_static/img/01_install_with_docker_files/docker_container_nb.png)
 
 ### Code Examples
 
@@ -139,7 +139,7 @@ http://127.0.0.1:<port_number>/tree/AMPL/atomsci/ddm/examples/tutorials
 
 Here's a screenshot of the AMPL tutorials directory:
 
-![directory_tree](../../docs/source/_static/img/01_install_from_docker_files/tutorial_tree.png)
+![directory_tree](../../docs/source/_static/img/01_install_with_docker_files/tutorial_tree.png)
 
 ### Use **atomsci-env** as the Run Kernel
 
@@ -147,11 +147,11 @@ In order to use AMPL Framework, select "atomsci-env" as the run kernel for the n
 
 * From an existing notebook, top menu bar "Kernel" > "Change Kernel" > "atomsci-env"
 
-![Select a kernel from a notebook](../../docs/source/_static/img/01_install_from_docker_files/docker-kernel-inside-nb.png)
+![Select a kernel from a notebook](../../docs/source/_static/img/01_install_with_docker_files/docker-kernel-inside-nb.png)
 
 * From a new notebook, click "File" > "New" > "Notebook" menu, and select **atomsci-env** as the run kernel
 
-![Select a kernel outside of a notebook](../../docs/source/_static/img/01_install_from_docker_files/docker-kernel-outside-nb.png)
+![Select a kernel outside of a notebook](../../docs/source/_static/img/01_install_with_docker_files/docker-kernel-outside-nb.png)
 
 ### Save Work From Docker
 
@@ -180,7 +180,7 @@ docker run -it -p 8888:8888 -v ~:/home atomsci-ampl # <local_folder> -> "~", <di
 ```
 root@d8ae116b2a83:/AMPL# pwd
 /AMPL
-root@d8ae116b2a83:/AMPL# cp atomsci/ddm/examples/01_install_from_docker.md /home
+root@d8ae116b2a83:/AMPL# cp atomsci/ddm/examples/01_install_with_docker.md /home
 ```
 
 * The file(s) will be in <local_folder>
@@ -208,11 +208,11 @@ If you try to connect the Jupyter Notebook URL, but got a prompt for password or
 jupyter server list
 ```
 
-![jupyter server list](../../docs/source/_static/img/01_install_from_docker_files/jupyter_server_list.png)
+![jupyter server list](../../docs/source/_static/img/01_install_with_docker_files/jupyter_server_list.png)
 
 And copy the string after "token=" and  paste that, then click "Log in"
 
-![Localhost Token](../../docs/source/_static/img/01_install_from_docker_files/localhost_token.png)
+![Localhost Token](../../docs/source/_static/img/01_install_with_docker_files/localhost_token.png)
 
 Welcome to the ATOM Modeling PipeLine now that you have installed Docker! You are ready to use the **[AMPL](https://github.com/ATOMScience-org/AMPL)** Tutorials on your journey to build a machine learning model. 
 
