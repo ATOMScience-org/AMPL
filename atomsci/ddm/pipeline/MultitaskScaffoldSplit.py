@@ -133,7 +133,7 @@ def calc_ecfp(smiles: List[str],
         fprints = [y for x in ecfps for y in x] #Flatten results
     else:
         mols = [Chem.MolFromSmiles(s) for s in smiles]
-        fprints = [AllChem.GetMorganFingerprintAsBitVect(mol, 2, 1024) for mol in mols]
+        fprints = [AllChem.GetMorganFingerprintAsBitVect(mol, 3, 1024) for mol in mols]
 
     return fprints
 
@@ -528,6 +528,8 @@ class MultitaskScaffoldSplitter(Splitter):
         float
             A float between 0 and 1. 1 best 0 is worst
         """
+        
+        """
         fitness = 0.0
         # Only call the functions for each fitness term if their weight is nonzero
         if self.diff_fitness_weight_tvt != 0.0:
@@ -545,21 +547,36 @@ class MultitaskScaffoldSplitter(Splitter):
             score = self.response_distr_fitness(split_chromosome)
             fitness += self.response_distr_fitness_weight*score
 
+        # Normalize the score to the range [0,1]
+        fitness /= (self.diff_fitness_weight_tvt + self.diff_fitness_weight_tvv + self.ratio_fitness_weight +
+                    self.response_distr_fitness_weight)
         return fitness
+        """
+        fitness_scores = self.get_fitness_scores(split_chromosome)
+        return fitness_scores['total_fitness']
 
     def get_fitness_scores(self, split_chromosome):
         fitness_scores = {}
+        total_fitness = 0.0
         # Only call the functions for each fitness term if their weight is nonzero
         if self.diff_fitness_weight_tvt != 0.0:
             #fitness_scores['test_scaf_dist'] = self.scaffold_diff_fitness(split_chromosome, 'train', 'test')
             fitness_scores['test_scaf_dist'] = self.far_frac_fitness(split_chromosome, 'train', 'test')
+            total_fitness += self.diff_fitness_weight_tvt * fitness_scores['test_scaf_dist']
         if self.diff_fitness_weight_tvv != 0.0:
             #fitness_scores['valid_scaf_dist'] = self.scaffold_diff_fitness(split_chromosome, 'train', 'valid')
             fitness_scores['valid_scaf_dist'] = self.far_frac_fitness(split_chromosome, 'train', 'valid')
+            total_fitness += self.diff_fitness_weight_tvv * fitness_scores['valid_scaf_dist']
         if self.ratio_fitness_weight != 0.0:
             fitness_scores['ratio'] = self.ratio_fitness(split_chromosome)
+            total_fitness += self.ratio_fitness_weight * fitness_scores['ratio']
         if self.response_distr_fitness_weight != 0.0:
             fitness_scores['response_distr'] = self.response_distr_fitness(split_chromosome)
+            total_fitness += self.response_distr_fitness_weight * fitness_scores['response_distr']
+        # Normalize the score to the range [0,1]
+        total_fitness /= (self.diff_fitness_weight_tvt + self.diff_fitness_weight_tvv + self.ratio_fitness_weight +
+                    self.response_distr_fitness_weight)
+        fitness_scores['total_fitness'] = total_fitness
         return fitness_scores
 
     def init_scaffolds(self,
