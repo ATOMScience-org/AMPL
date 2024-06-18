@@ -5,9 +5,9 @@
 # for LC developers: comment out pypi index url and use t$
 # --extra-index-url https://wci-repo.llnl.gov/repository/$
 
-tensorflow==2.13.1
+tensorflow==2.14.0
 
-# jax[cpu]==0.4.13
+jax[cpu]==0.4.16
 
 torch==2.0.1
 torch_geometric
@@ -15,6 +15,9 @@ lightning
 
 dgl==1.1.2
 dgllife
+
+scikit-learn==1.2.2
+hyperopt
 
 xgboost
 
@@ -36,11 +39,9 @@ bravado
 maestrowf
 MolVS
 mordred
-networkx==2.8.8
+
 pytest
 ipykernel
-jupyter
-jupyterlab
 
 deepchem==2.7.1
 
