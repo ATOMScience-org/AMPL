@@ -1,6 +1,6 @@
 # Install AMPL From Docker
 
-This tutorial provides an option to use Docker to install **[AMPL](https://github.com/ATOMScience-org/AMPL)**. For an alternate way, please see AMPL Readthedocs Getting Started **[Install](https://ampl.readthedocs.io/en/latest/getting_started/install.html)** page .
+This tutorial provides an option to use Docker to install **[AMPL](https://github.com/ATOMScience-org/AMPL)**. For an alternate way, please see AMPL Readthedocs Getting Started **[Install](https://ampl.readthedocs.io/en/latest/getting_started/install.html)** page.
 
 To install **[AMPL](https://github.com/ATOMScience-org/AMPL)** software using Docker, the major steps are:
 
@@ -17,7 +17,7 @@ Once it's installed, click on the Docker icon to start. Leave it running when us
 
 # Create or Pull a Docker Image
 
-You can either pull a prebuilt AMPL image (option 1) or build one (option 2).
+You can either pull a prebuilt AMPL image (option 1) or build one yourself (option 2).
 
 ## Option 1: Pull a Prebuilt AMPL Image from Docker Repo
 
@@ -35,8 +35,8 @@ After that, please follow the instruction from [Run a Docker Container](#run-a-d
 
 There may be a few reasons why you want to build your own AMPL Image using a Dockerfile.  These can include:
 
-    * You want to customize the install options for your environment,
-    * You want to test a development version/branch to try new features or bugfixes
+  * You want to customize the install options for your environment,
+  * You want to test a development version/branch to try new features or bugfixes
 
 First clone **[AMPL](https://github.com/ATOMScience-org/AMPL)**  github repo, then find the Dockerfile:
 
@@ -143,7 +143,7 @@ Here's a screenshot of the AMPL tutorials directory:
 
 ### Use **atomsci-env** as the Run Kernel
 
-In order to use AMPL Framework, select "atomsci-env" as the run kernel for the notebook. This should be set during image creation. In case it's not set, or if you want to verify:
+In order to use AMPL Framework, select "atomsci-env" as the run kernel for the notebook. This should be set during image creation. In case it's not set, or if you want to verify. Try one of the following:
 
 * From an existing notebook, top menu bar "Kernel" > "Change Kernel" > "atomsci-env"
 
