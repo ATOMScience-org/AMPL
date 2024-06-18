@@ -7,8 +7,6 @@
 
 tensorflow==2.14.0
 
-jax[cpu]==0.4.16
-
 torch==2.0.1
 torch_geometric
 lightning
@@ -39,9 +37,10 @@ bravado
 maestrowf
 MolVS
 mordred
-
 pytest
 ipykernel
+jupyter
+jupyterlab
 
 deepchem==2.7.1
 
