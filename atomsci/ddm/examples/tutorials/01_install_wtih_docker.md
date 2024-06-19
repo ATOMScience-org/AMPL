@@ -1,6 +1,6 @@
 # Install AMPL From Docker
 
-This tutorial provides an option to use Docker to install **[AMPL](https://github.com/ATOMScience-org/AMPL)**. For an alternate way, please see AMPL Readthedocs Getting Started **[Install](https://ampl.readthedocs.io/en/latest/getting_started/install.html)** page.
+This page provides an option to use Docker to install **[AMPL](https://github.com/ATOMScience-org/AMPL)**. For an alternate way, please see AMPL Readthedocs Getting Started **[Install](https://ampl.readthedocs.io/en/latest/getting_started/install.html)** page.
 
 To install **[AMPL](https://github.com/ATOMScience-org/AMPL)** software using Docker, the major steps are:
 
@@ -9,7 +9,7 @@ To install **[AMPL](https://github.com/ATOMScience-org/AMPL)** software using Do
 * [Start the Notebook Server From a Container](#start-the-notebook-server-from-a-container)
 
 # System Requirements
-The Docker image will run on Linux, MacOS and Windows.
+The Docker image will run on Linux / WSL / macOS (Intel only).
 
 If you don't have Docker Desktop installed, please follow instructions [here]( https://www.docker.com/get-started).
 
@@ -214,8 +214,4 @@ And copy the string after "token=" and  paste that, then click "Log in"
 
 ![Localhost Token](../../docs/source/_static/img/01_install_with_docker_files/localhost_token.png)
 
-Welcome to the ATOM Modeling PipeLine now that you have installed Docker! You are ready to use the **[AMPL](https://github.com/ATOMScience-org/AMPL)** Tutorials on your journey to build a machine learning model. 
-
-To kick-start the Tutorial series, check out **Tutorial 2, "Data Curation"**, to learn how to curate a dataset that will be used throughout the series.
-
- If you have specific feedback about a tutorial, please complete the [AMPL Tutorial Evaluation](https://forms.gle/pa9sHj4MHbS5zG7A6).
+Please check out **Tutorial 1, "Data Curation"**, to learn how to curate a dataset to kick start our Tutorials series.
