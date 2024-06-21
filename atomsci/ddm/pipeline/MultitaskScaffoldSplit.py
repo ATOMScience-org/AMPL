@@ -1,4 +1,5 @@
 import pdb
+import logging
 import argparse
 import random
 import timeit
@@ -23,6 +24,9 @@ from rdkit.Chem import AllChem
 from atomsci.ddm.pipeline import chem_diversity as cd
 from atomsci.ddm.pipeline import dist_metrics
 from atomsci.ddm.pipeline import GeneticAlgorithm as ga
+
+logging.basicConfig(format='%(asctime)-15s %(message)s')
+logger = logging.getLogger('ATOM')
 
 def _generate_scaffold_hists(scaffold_sets: List[np.ndarray], 
                                 w: np.array) -> np.array:
@@ -96,8 +100,8 @@ def smush_small_scaffolds(scaffolds: List[Set[int]],
         else:
             new_scaffolds.append(scaffold)
 
-    print('new scaffold lengths')
-    print([len(s) for s in new_scaffolds])
+    logger.debug('new scaffold lengths')
+    logger.debug([len(s) for s in new_scaffolds])
     new_scaffolds = [np.array(list(s)) for s in new_scaffolds]
     return new_scaffolds
 
@@ -144,9 +148,9 @@ def dist_smiles_from_ecfp(ecfp1: List[rdkit.DataStructs.cDataStructs.ExplicitBit
     Parameters
     ----------
     ecfp1: List[rdkit.DataStructs.cDataStructs.ExplicitBitVect],
-        A list of ECFP finger prints
+        A list of ECFP fingerprints
     ecfp2: List[rdkit.DataStructs.cDataStructs.ExplicitBitVect]
-        A list of ECFP finger prints
+        A list of ECFP fingerprints
 
     Returns
     -------
@@ -244,14 +248,13 @@ class MultitaskScaffoldSplitter(Splitter):
                 min_dist = np.min(scaff1_dists.flatten())
 
                 if min_dist==0:
-                    #print("two scaffolds match exactly?!?", i, j)
-                    print(f"Scaffolds {i} and {j} have at least one ECFP in common")
+                    logger.info(f"Scaffolds {i} and {j} have at least one ECFP in common")
                     for k in scaff1:
                         for l in scaff2:
                             if dmat[k,l] == 0:
-                                print(f"\tcompound {k} in scaffold {i}, compound {l} in scaffold {j}")
-                                print(f"\tSMILES {k}: {self.smiles[k]}")
-                                print(f"\tSMILES {l}: {self.smiles[l]}\n")
+                                logger.debug(f"\tcompound {k} in scaffold {i}, compound {l} in scaffold {j}")
+                                logger.debug(f"\tSMILES {k}: {self.smiles[k]}")
+                                logger.debug(f"\tSMILES {l}: {self.smiles[l]}\n")
 
 
                 scaff_dist_mat[i,j] = min_dist
@@ -599,10 +602,10 @@ class MultitaskScaffoldSplitter(Splitter):
         # list of lists. one list per scaffold
         big_ss = self.generate_scaffolds(dataset)
 
-        # using the same stragetgy as scaffold split, combine the scaffolds
+        # using the same strategy as scaffold split, combine the scaffolds
         # together until you have roughly 100 scaffold sets
         self.ss = smush_small_scaffolds(big_ss, num_super_scaffolds=self.num_super_scaffolds)
-        print(f'num_super_scaffolds: {len(self.ss)}, {self.num_super_scaffolds}')
+        logger.info(f"Requested {self.num_super_scaffolds} super scaffolds, produced {len(self.ss)} from {len(big_ss)} original scaffolds")
 
         # rows is the number of scaffolds
         # columns is number of tasks
@@ -623,7 +626,8 @@ class MultitaskScaffoldSplitter(Splitter):
             num_generations: int=30,
             dist_thresh: float = 0.3,
             print_timings: bool = False,
-            log_every_n: int = 1000) -> Tuple:
+            early_stopping_generations = 25,
+            log_every_n: int = 10) -> Tuple:
         """Creates a split for the given datset
 
         This split splits the dataset into a list of super scaffolds then
@@ -695,10 +699,8 @@ class MultitaskScaffoldSplitter(Splitter):
         self.ecfp_features = calc_ecfp(dataset.ids)
 
         # calculate ScaffoldxScaffold distance matrix
-        #start = timeit.default_timer()
         if (self.diff_fitness_weight_tvv > 0.0) or (self.diff_fitness_weight_tvt > 0.0):
             self._generate_scaffold_dist_matrix()
-        #print('scaffold dist mat %0.2f min'%((timeit.default_timer()-start)/60))
 
         # initial population
         population = []
@@ -706,7 +708,6 @@ class MultitaskScaffoldSplitter(Splitter):
             #start = timeit.default_timer()
             split_chromosome = self._split(frac_train=frac_train, frac_valid=frac_valid, 
                                 frac_test=frac_test)
-            #print("per_loop: %0.2f min"%((timeit.default_timer()-start)/60))
 
             population.append(split_chromosome)
 
@@ -716,17 +717,24 @@ class MultitaskScaffoldSplitter(Splitter):
         #gene_alg.iterate(num_generations)
         best_ever = None
         best_ever_fit = -np.inf
+        best_gen = 0
         for i in range(self.num_generations):
             gene_alg.step(print_timings=print_timings)
             best_fitness = gene_alg.pop_scores[0]
             if best_fitness > best_ever_fit:
                 best_ever = gene_alg.pop[0]
                 best_ever_fit = best_fitness
+                best_gen = i
             score_dict = self.get_fitness_scores(best_ever)
             for term, score in score_dict.items():
                 self.fitness_terms.setdefault(term, []).append(score)
-            print(f"generation {i}: Best fitness {best_fitness:.2f}, best ever {best_ever_fit:.2f}")
+            if i % log_every_n == 0:
+                logger.info(f"generation {i}: Best fitness {best_fitness:.3f}, best ever {best_ever_fit:.3f} at generation {best_gen}")
+            if (best_fitness <= best_ever_fit) and (i - best_gen >= early_stopping_generations):
+                logger.info(f"No fitness improvement after {early_stopping_generations} generations")
+                break
 
+        logger.info(f"Final best fitness score: {best_ever_fit:.3f} at generation {best_gen}")
         result = self.split_chromosome_to_compound_split(best_ever)
         return result
 
@@ -817,7 +825,7 @@ class MultitaskScaffoldSplitter(Splitter):
             valid_dir: Optional[str] = None,
             test_dir: Optional[str] = None,
             dist_thresh: float = 0.3,
-            log_every_n: int = 1000) -> Tuple[Dataset, Dataset, Dataset]:
+            log_every_n: int = 10) -> Tuple[Dataset, Dataset, Dataset]:
         """Creates a split for the given datset
 
         This split splits the dataset into a list of super scaffolds then
