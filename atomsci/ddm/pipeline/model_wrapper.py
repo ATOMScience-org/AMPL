@@ -49,6 +49,7 @@ from packaging import version
 
 from atomsci.ddm.utils import datastore_functions as dsf
 from atomsci.ddm.utils import llnl_utils
+from atomsci.ddm.pipeline import model_datasets as md
 from atomsci.ddm.pipeline import transformations as trans
 from atomsci.ddm.pipeline import perf_data as perf
 import atomsci.ddm.pipeline.parameter_parser as pp
@@ -1850,9 +1851,14 @@ class DCRFModelWrapper(ForestModelWrapper):
                                              max_depth=self.params.rf_max_depth,
                                              n_jobs=-1)
         else:
+            if self.params.weight_transform_type == 'balancing':
+                class_weights = 'balanced'
+            else:
+                class_weights = None
             rf_model = RandomForestClassifier(n_estimators=self.params.rf_estimators,
                                               max_features=self.params.rf_max_features,
                                               max_depth=self.params.rf_max_depth,
+                                              class_weight=class_weights,
                                               n_jobs=-1)
 
         return dc.models.sklearn_models.SklearnModel(rf_model, model_dir=model_dir)
@@ -2021,6 +2027,16 @@ class DCxgboostModelWrapper(ForestModelWrapper):
                                          max_bin = 16,
                                          )
         else:
+            if self.params.weight_transform_type == 'balancing':
+                # Compute a class weight for positive class samples to help deal with imblanced datasets
+                class_freqs = md.get_class_freqs(self.params)
+                if len(class_freqs) > 1:
+                    raise ValueError("xgboost models don't currently support multitask data")
+                if len(class_freqs[0]) > 2:
+                    raise ValueError("xgboost models don't currently support multiclass data")
+                pos_class_weight = class_freqs[0][0]/class_freqs[0][1]
+            else:
+                pos_class_weight = 1
             xgb_model = xgb.XGBClassifier(max_depth=self.params.xgb_max_depth,
                                          learning_rate=self.params.xgb_learning_rate,
                                          n_estimators=self.params.xgb_n_estimators,
@@ -2035,7 +2051,7 @@ class DCxgboostModelWrapper(ForestModelWrapper):
                                           colsample_bylevel=1,
                                           reg_alpha=self.params.xgb_alpha,
                                           reg_lambda=self.params.xgb_lambda,
-                                          scale_pos_weight=1,
+                                          scale_pos_weight=pos_class_weight,
                                           base_score=0.5,
                                           random_state=0,
                                           importance_type='gain',
