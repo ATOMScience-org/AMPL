@@ -21,20 +21,20 @@ def clean():
             os.remove("./result/"+f)
 
 def test_create_checksum():
-    csv_file = os.path.abspath('../../../examples/tutorials/datasets/HTR3A_ChEMBL.csv')
+    csv_file = os.path.abspath('../../../examples/archive/tutorials2021/datasets/HTR3A_ChEMBL.csv')
     hash_value = '491463a16315d70ee973c9eb699f36f9'
 
     assert cu.create_checksum(csv_file) == hash_value
 
 def test_uses_same_training_data_by_datasets():
-    file1 = os.path.abspath('../../../examples/tutorials/datasets/HTR3A_ChEMBL.csv')
-    file2 = os.path.abspath('../../../examples/tutorials/datasets/HTR3A_ChEMBL.csv')
+    file1 = os.path.abspath('../../../examples/archive/tutorials2021/datasets/HTR3A_ChEMBL.csv')
+    file2 = os.path.abspath('../../../examples/archive/tutorials2021/datasets/HTR3A_ChEMBL.csv')
 
     assert cu.uses_same_training_data_by_datasets(file1, file2) == True
 
 def test_uses_same_training_data_not_equals_by_datasets():
-    file1 = os.path.abspath('../../../examples/tutorials/datasets/HTR3A_ChEMBL.csv')
-    file2 = os.path.abspath('../../../examples/tutorials/datasets/DTC_HTR3A.csv')
+    file1 = os.path.abspath('../../../examples/archive/tutorials2021/datasets/HTR3A_ChEMBL.csv')
+    file2 = os.path.abspath('../../../examples/archive/tutorials2021/datasets/DTC_HTR3A.csv')
 
     assert cu.uses_same_training_data_by_datasets(file1, file2) == False
 
