@@ -60,11 +60,6 @@ dataset. Here we are using the pre-featurized dataset to save time.
      - fold
      - base_rdkit_smiles
      - avg_pKi
-     - MaxEStateIndex
-     - MinEStateIndex
-     - MinAbsEStateIndex
-     - MaxAbsEStateIndex
-     - qed
      - ...
    * - 0
      - CHEMBL66112
@@ -72,11 +67,6 @@ dataset. Here we are using the pre-featurized dataset to save time.
      - 0
      - Fc1ccc(CCN2CCCC(CNCCOC(c3ccccc3)c3ccccc3)C2)cc1
      - 7.000000
-     - 14.525427
-     - -5.202279
-     - 14.525427
-     - 1.190974
-     - 0.395086
      - ...
    * - 1
      - CHEMBL633
@@ -84,11 +74,6 @@ dataset. Here we are using the pre-featurized dataset to save time.
      - 0
      - CCCCc1oc2ccccc2c1C(=O)c1cc(I)c(OCCN(CC)CC)c(I)c1
      - 5.701147
-     - 14.597360
-     - -4.424745
-     - 14.597360
-     - 0.755957
-     - 0.167647
      - ...
    * - 2
      - CHEMBL394755
@@ -96,11 +81,6 @@ dataset. Here we are using the pre-featurized dataset to save time.
      - 0
      - O=C(CCCc1ccccc1)N1c2ccccc2Sc2ccccc21
      - 5.481486
-     - 14.179167
-     - -4.094387
-     - 14.179167
-     - 0.159457
-     - 0.591963
      - ...
    * - 3
      - CHEMBL9514
@@ -108,11 +88,6 @@ dataset. Here we are using the pre-featurized dataset to save time.
      - 0
      - COC(=O)Nc1nc2cc(C(=O)c3cccs3)ccc2[nH]1
      - 5.305746
-     - 12.895676
-     - -3.188057
-     - 12.895676
-     - 0.191192
-     - 0.728228
      - ...
    * - 4
      - CHEMBL4564992
@@ -120,11 +95,6 @@ dataset. Here we are using the pre-featurized dataset to save time.
      - 0
      - CN(CCOc1cc(COc2ccccc2)on1)C1CCCCC1
      - 5.000000
-     - 8.755686
-     - -4.710192
-     - 8.755686
-     - 0.873262
-     - 0.734541
      - ...
 
 
@@ -169,7 +139,6 @@ the pre-featurized dataset.
 
 
 .. list-table:: 
-   :widths: 3 5 5 5 5 5 5 5 5 5 5 5
    :header-rows: 1
    :class: tight-table 
  
@@ -179,11 +148,6 @@ the pre-featurized dataset.
      - fold
      - base_rdkit_smiles
      - avg_pKi
-     - MaxEStateIndex
-     - MinEStateIndex
-     - MinAbsEStateIndex
-     - MaxAbsEStateIndex
-     - qed
      - ...
    * - 0
      - CHEMBL66112
@@ -191,11 +155,6 @@ the pre-featurized dataset.
      - 0
      - Fc1ccc(CCN2CCCC(CNCCOC(c3ccccc3)c3ccccc3)C2)cc1
      - 7.000000
-     - 14.525427
-     - -5.202279
-     - 14.525427
-     - 1.190974
-     - 0.395086
      - ...
    * - 1
      - CHEMBL633
@@ -203,11 +162,6 @@ the pre-featurized dataset.
      - 0
      - CCCCc1oc2ccccc2c1C(=O)c1cc(I)c(OCCN(CC)CC)c(I)c1
      - 5.701147
-     - 14.597360
-     - -4.424745
-     - 14.597360
-     - 0.755957
-     - 0.167647
      - ...
    * - 2
      - CHEMBL394755
@@ -215,11 +169,6 @@ the pre-featurized dataset.
      - 0
      - O=C(CCCc1ccccc1)N1c2ccccc2Sc2ccccc21
      - 5.481486
-     - 14.179167
-     - -4.094387
-     - 14.179167
-     - 0.159457
-     - 0.591963
      - ...
    * - 3
      - CHEMBL9514
@@ -227,11 +176,6 @@ the pre-featurized dataset.
      - 0
      - COC(=O)Nc1nc2cc(C(=O)c3cccs3)ccc2[nH]1
      - 5.305746
-     - 12.895676
-     - -3.188057
-     - 12.895676
-     - 0.191192
-     - 0.728228
      - ...
    * - 4
      - CHEMBL4564992
@@ -239,11 +183,6 @@ the pre-featurized dataset.
      - 0
      - CN(CCOc1cc(COc2ccccc2)on1)C1CCCCC1
      - 5.000000
-     - 8.755686
-     - -4.710192
-     - 8.755686
-     - 0.873262
-     - 0.734541
      - ...
 
 Then, calculate the :math:`R^2` score and compare it with the expected

@@ -50,7 +50,7 @@ here.
 Read the Data
 *************
 
-We've prepared an example dataset containing `ki <https://en.wikipedia.org/wiki/Ligand_(biochemistry)#Receptor/ligand_binding_affinity>`_ 
+We've prepared an example dataset containing `Ki <https://en.wikipedia.org/wiki/Ligand_(biochemistry)#Receptor/ligand_binding_affinity>`_ 
 values for inhibitors of the `SLC6A3 <https://www.ebi.ac.uk/chembl/target_report_card/CHEMBL238/>`_ dopamine transporter collected from `ChEMBL <https://www.ebi.ac.uk/chembl/>`_. This dataset is simpler
 than most that we find in the wild, but it will let us concisely
 demonstrate some `AMPL <https://github.com/ATOMScience-org/AMPL>`_ curation tools. The first step of data curation is to read the raw data
@@ -339,7 +339,7 @@ columns:
    * - `compound_id`
      - a unique ID for each base `SMILES <https://en.wikipedia.org/wiki/Simplified_molecular-input_line-entry_system>`_  string. When multiple values are found in id_col for the same `SMILES <https://en.wikipedia.org/wiki/Simplified_molecular-input_line-entry_system>`_  string, the function assigns it the first one in lexicographic order.
    * - `base_rdkit_smiles`
-     - he standardized `SMILES <https://en.wikipedia.org/wiki/Simplified_molecular-input_line-entry_system>`_  string.
+     - the standardized `SMILES <https://en.wikipedia.org/wiki/Simplified_molecular-input_line-entry_system>`_  string.
    * - `relation`
      - an aggregate relation for the set of replicates
    * - `avg_pK`
