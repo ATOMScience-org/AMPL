@@ -1,6 +1,6 @@
 # Install AMPL From Docker
 
-This page provides an option to use Docker to install **[AMPL](https://github.com/ATOMScience-org/AMPL)**. For an alternate way, please see AMPL Readthedocs Getting Started **[Install](https://ampl.readthedocs.io/en/latest/getting_started/install.html)** page.
+This page provides an option to use Docker to install **[AMPL](https://github.com/ATOMScience-org/AMPL)**. For an alternate way, please see "AMPL Readthedocs Getting Started" **[Install](https://ampl.readthedocs.io/en/latest/getting_started/install.html)** page.
 
 To install **[AMPL](https://github.com/ATOMScience-org/AMPL)** software using Docker, the major steps are:
 
@@ -17,13 +17,13 @@ Once it's installed, click on the Docker icon to start. Leave it running when us
 
 # Create or Pull a Docker Image
 
-You can either pull a prebuilt AMPL image (option 1) or build one yourself (option 2).
+You can either pull a prebuilt **[AMPL](https://github.com/ATOMScience-org/AMPL)** image (option 1) or build one yourself (option 2).
 
 ## Option 1: Pull a Prebuilt AMPL Image from Docker Repo
 
 The simplest method is to download a prebuilt Docker image from DockerHub. For every official AMPL release, a docker image will be pushed to its [Docker Hub](https://hub.docker.com/r/atomsci/atomsci-ampl). 
 
-To pull a prebuilt AMPL image:
+To pull a prebuilt **[AMPL](https://github.com/ATOMScience-org/AMPL)** image:
 
 ```
 docker pull atomsci/atomsci-ampl:latest
@@ -33,7 +33,7 @@ After that, please follow the instruction from [Run a Docker Container](#run-a-d
 
 ## Option 2: Build an Image Using **Dockerfile**
 
-There may be a few reasons why you want to build your own AMPL Image using a Dockerfile.  These can include:
+There may be a few reasons why you want to build your own **[AMPL](https://github.com/ATOMScience-org/AMPL)** Image using a Dockerfile.  These can include:
 
   * You want to customize the install options for your environment,
   * You want to test a development version/branch to try new features or bugfixes
@@ -143,7 +143,7 @@ Here's a screenshot of the AMPL tutorials directory:
 
 ### Use **atomsci-env** as the Run Kernel
 
-In order to use AMPL Framework, select "atomsci-env" as the run kernel for the notebook. This should be set during image creation. In case it's not set, or if you want to verify. Try one of the following:
+In order to use **[AMPL](https://github.com/ATOMScience-org/AMPL)** Framework, select "atomsci-env" as the run kernel for the notebook. This should be set during image creation. In case it's not set, or if you want to verify. Try one of the following:
 
 * From an existing notebook, top menu bar "Kernel" > "Change Kernel" > "atomsci-env"
 
@@ -213,5 +213,3 @@ jupyter server list
 And copy the string after "token=" and  paste that, then click "Log in"
 
 ![Localhost Token](../../docs/source/_static/img/01_install_with_docker_files/localhost_token.png)
-
-Please check out **Tutorial 1, "Data Curation"**, to learn how to curate a dataset to kick start our Tutorials series.
