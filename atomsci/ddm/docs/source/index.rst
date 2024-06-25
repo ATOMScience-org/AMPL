@@ -48,15 +48,14 @@ Built with
    :caption: Tutorials
 
    tutorials/ampl_tutorials_intro
-   tutorials/01_install_ampl_with_docker
-   tutorials/02_data_curation
-   tutorials/03_perform_a_split
-   tutorials/04_train_regression_model
-   tutorials/05_application_of_a_trained_model
-   tutorials/06_hyperopt
-   tutorials/07_compare_models
-   tutorials/08_train_a_production_model
-   tutorials/09_visualizations_of_model_performance
+   tutorials/01_data_curation
+   tutorials/02_perform_a_split
+   tutorials/03_train_regression_model
+   tutorials/04_application_of_a_trained_model
+   tutorials/05_hyperopt
+   tutorials/06_compare_models
+   tutorials/07_train_a_production_model
+   tutorials/08_visualizations_of_model_performance
 
 .. toctree::
    :maxdepth: 2

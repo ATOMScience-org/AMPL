@@ -1,0 +1,603 @@
+Splitting Datasets for Validation and Testing
+=============================================
+
+A common problem with machine learning (ML) models is that they can very
+easily "overfit" the training data. This means that the model predicts
+the response values for training set compounds with perfect accuracy,
+but fails miserably on molecules that differ from the training
+compounds. To avoid overfitting and provide a way to test a model's
+ability to generalize to new molecules, ML researchers have developed a
+variety of data splitting and training schemes.
+**`AMPL <https://github.com/ATOMScience-org/AMPL>`__** supports two of
+the most popular strategies: - 3-way training/validation/test splits -
+*k*-fold cross-validation
+
+In this tutorial we will perform a 3-way split of the curated dataset we
+prepared in **Tutorial 1, "Data Curation"**, using the
+**`AMPL <https://github.com/ATOMScience-org/AMPL>`__** modules, classes
+and functions listed below. *k*-fold cross-validation will be addressed
+in a future tutorial.
+
+-  `parameter\_parser <https://ampl.readthedocs.io/en/latest/pipeline.html#pipeline-parameter-parser-module>`__
+-  `ModelPipeline <https://ampl.readthedocs.io/en/latest/pipeline.html#pipeline.model_pipeline.ModelPipeline>`__
+-  `split\_dataset <https://ampl.readthedocs.io/en/latest/pipeline.html#pipeline.model_pipeline.ModelPipeline.split_dataset>`__
+-  `compare\_splits\_plots <https://ampl.readthedocs.io/en/latest/utils.html#module-utils.compare_splits_plots>`__
+-  `split\_response\_dist\_plots <https://ampl.readthedocs.io/en/latest/utils.html#module-utils.split_response_dist_plots>`__
+
+With 3-way data splitting, you divide your curated dataset into three
+subsets:
+
++------+------+
+| Subs | Desc |
+| et   | ript |
+|      | ion  |
++======+======+
+| **Tr | Usua |
+| aini | lly  |
+| ng   | the  |
+| set* | larg |
+| *    | est  |
+|      | subs |
+|      | et.  |
+|      | **`A |
+|      | MPL  |
+|      | <htt |
+|      | ps:/ |
+|      | /git |
+|      | hub. |
+|      | com/ |
+|      | ATOM |
+|      | Scie |
+|      | nce- |
+|      | org/ |
+|      | AMPL |
+|      | >`__ |
+|      | **   |
+|      | feed |
+|      | s    |
+|      | the  |
+|      | trai |
+|      | ning |
+|      | set  |
+|      | comp |
+|      | ound |
+|      | feat |
+|      | ures |
+|      | and  |
+|      | resp |
+|      | onse |
+|      | valu |
+|      | es   |
+|      | in   |
+|      | batc |
+|      | hes  |
+|      | to   |
+|      | the  |
+|      | mode |
+|      | l    |
+|      | fitt |
+|      | ing  |
+|      | algo |
+|      | rith |
+|      | m.   |
+|      | The  |
+|      | fitt |
+|      | ing  |
+|      | algo |
+|      | rith |
+|      | m    |
+|      | iter |
+|      | ativ |
+|      | ely  |
+|      | adju |
+|      | sts  |
+|      | the  |
+|      | mode |
+|      | l    |
+|      | para |
+|      | mete |
+|      | rs   |
+|      | afte |
+|      | r    |
+|      | each |
+|      | batc |
+|      | h    |
+|      | so   |
+|      | that |
+|      | the  |
+|      | pred |
+|      | icte |
+|      | d    |
+|      | resp |
+|      | onse |
+|      | s    |
+|      | are  |
+|      | clos |
+|      | e    |
+|      | (on  |
+|      | aver |
+|      | age) |
+|      | to   |
+|      | the  |
+|      | actu |
+|      | al   |
+|      | resp |
+|      | onse |
+|      | valu |
+|      | es.  |
++------+------+
+| **Va | Used |
+| lida | afte |
+| tion | r    |
+| set* | trai |
+| *    | ning |
+|      | a    |
+|      | coll |
+|      | ecti |
+|      | on   |
+|      | of   |
+|      | mode |
+|      | ls   |
+|      | to   |
+|      | see  |
+|      | how  |
+|      | well |
+|      | each |
+|      | one  |
+|      | perf |
+|      | orms |
+|      | on   |
+|      | "new |
+|      | "    |
+|      | comp |
+|      | ound |
+|      | s    |
+|      | that |
+|      | were |
+|      | n't  |
+|      | used |
+|      | dire |
+|      | ctly |
+|      | to   |
+|      | fit  |
+|      | the  |
+|      | mode |
+|      | l    |
+|      | para |
+|      | mete |
+|      | rs,  |
+|      | so   |
+|      | you  |
+|      | can  |
+|      | choo |
+|      | se   |
+|      | the  |
+|      | best |
+|      | mode |
+|      | l.   |
+|      | The  |
+|      | vali |
+|      | dati |
+|      | on   |
+|      | set  |
+|      | is   |
+|      | also |
+|      | used |
+|      | by   |
+|      | **`A |
+|      | MPL  |
+|      | <htt |
+|      | ps:/ |
+|      | /git |
+|      | hub. |
+|      | com/ |
+|      | ATOM |
+|      | Scie |
+|      | nce- |
+|      | org/ |
+|      | AMPL |
+|      | >`__ |
+|      | **   |
+|      | duri |
+|      | ng   |
+|      | **ne |
+|      | ural |
+|      | netw |
+|      | ork  |
+|      | mode |
+|      | l**  |
+|      | trai |
+|      | ning |
+|      | to   |
+|      | impl |
+|      | emen |
+|      | t    |
+|      | "ear |
+|      | ly   |
+|      | stop |
+|      | ping |
+|      | ",   |
+|      | a    |
+|      | tric |
+|      | k    |
+|      | to   |
+|      | avoi |
+|      | d    |
+|      | over |
+|      | fitt |
+|      | ing  |
+|      | the  |
+|      | trai |
+|      | ning |
+|      | set. |
++------+------+
+| **Te | Afte |
+| st   | r    |
+| set* | trai |
+| *    | ning |
+|      | is   |
+|      | comp |
+|      | lete |
+|      | d,   |
+|      | **`A |
+|      | MPL  |
+|      | <htt |
+|      | ps:/ |
+|      | /git |
+|      | hub. |
+|      | com/ |
+|      | ATOM |
+|      | Scie |
+|      | nce- |
+|      | org/ |
+|      | AMPL |
+|      | >`__ |
+|      | **   |
+|      | scor |
+|      | es   |
+|      | the  |
+|      | pred |
+|      | icti |
+|      | ons  |
+|      | on   |
+|      | the  |
+|      | test |
+|      | set  |
+|      | comp |
+|      | ound |
+|      | s    |
+|      | to   |
+|      | prov |
+|      | ide  |
+|      | a    |
+|      | meas |
+|      | ure  |
+|      | of   |
+|      | the  |
+|      | fina |
+|      | l    |
+|      | mode |
+|      | l's  |
+|      | perf |
+|      | orma |
+|      | nce. |
++------+------+
+
+.. figure:: attachment:Screenshot%202023-11-15%20at%204.58.39%20PM.png
+   :alt: Screenshot%202023-11-15%20at%204.58.39%20PM.png
+
+   Screenshot%202023-11-15%20at%204.58.39%20PM.png
+
+.. code:: ipython3
+
+    import pandas as pd
+    
+    # Set up
+    dataset_file = 'dataset/SLC6A3_Ki_curated.csv'
+    odir = 'dataset'
+    
+    # Set for less chatty log messages
+    import logging
+    logger = logging.getLogger('ATOM')
+    logger.setLevel(logging.INFO)
+
+Splitting Methods
+-----------------
+
+**`AMPL <https://github.com/ATOMScience-org/AMPL>`__** supports a
+variety of splitting algorithms, including **random** and **scaffold
+splits**. A **scaffold** is the core structure of a molecule, with its
+side chains removed. **Scaffold splits** assign molecules to the
+training, validation and test sets, so that molecules with the same
+scaffold group together in the same subset. This ensures that compounds
+in the validation and test sets have different scaffolds from those in
+the training set, and are thus more likely to be structurally different.
+By contrast, a random split assigns molecules to subsets randomly.
+
+Rationale for Using Scaffold vs Random Splits
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A **scaffold split** is more challenging for model fitting than a
+**random split**. With a random split, many test set compounds may be
+similar to molecules in the training set, so a model may *appear* to
+perform well when it is simply "memorizing" training compound structures
+associated with different response levels. Such a model will perform
+badly on molecules that truly are different from the training compounds.
+However, a model trained on molecules that belong to a limited set of
+scaffold classes has to learn combinations of features that generalize
+across many chemical families to make accurate predictions on compounds
+with novel scaffolds. A scaffold split provides a way to select models
+with greater generalization ability and assess their performance
+realistically.
+
+Performing a Split
+------------------
+
+We start by constructing a dictionary of parameter values:
+
+.. code:: ipython3
+
+    params = {
+        # dataset info
+        "dataset_key" : dataset_file,
+        "response_cols" : "avg_pKi",
+        "id_col": "compound_id",
+        "smiles_col" : "base_rdkit_smiles",
+        "result_dir": odir,
+    
+        # splitting
+        "previously_split": "False",
+        "splitter": 'scaffold',
+        "split_valid_frac": "0.15",
+        "split_test_frac": "0.15",
+    
+        # featurization & training params
+        "featurizer": "computed_descriptors",
+        "descriptor_type" : "rdkit_raw",
+        "previously_featurized": "True",
+    }
+
+
+We parse the ``params`` dict with the ``parameter_parser`` module to
+create a parameter object for input to
+**`AMPL <https://github.com/ATOMScience-org/AMPL>`__** functions.
+
+We then create a ``ModelPipeline`` object and call its ``split_dataset``
+method to do the actual split.
+
+    **Note**: ``split_dataset()`` can also featurize the dataset; we
+    will explore featurization in a later tutorial. For now, we provide
+    prefeaturized data in the ``./dataset/scaled_descriptors`` folder.\*
+
+.. code:: ipython3
+
+    from atomsci.ddm.pipeline import model_pipeline as mp
+    from atomsci.ddm.pipeline import parameter_parser as parse
+    
+    pparams = parse.wrapper(params)
+    MP = mp.ModelPipeline(pparams)
+    split_uuid = MP.split_dataset()
+
+
+.. parsed-literal::
+
+    2024-06-25 08:49:14.724215: E tensorflow/compiler/xla/stream_executor/cuda/cuda_dnn.cc:9342] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered
+    2024-06-25 08:49:14.724277: E tensorflow/compiler/xla/stream_executor/cuda/cuda_fft.cc:609] Unable to register cuFFT factory: Attempting to register factory for plugin cuFFT when one has already been registered
+    2024-06-25 08:49:14.736868: E tensorflow/compiler/xla/stream_executor/cuda/cuda_blas.cc:1518] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
+    2024-06-25 08:49:16.903196: I tensorflow/core/platform/cpu_feature_guard.cc:182] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+    To enable the following instructions: AVX2 FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+    2024-06-25 08:49:37.972723: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Could not find TensorRT
+    Skipped loading some Jax models, missing a dependency. No module named 'haiku'
+    /usr/WS2/wilfong2/my_envs/atomsci-env/lib/python3.9/site-packages/tqdm/auto.py:21: TqdmWarning: IProgress not found. Please update jupyter and ipywidgets. See https://ipywidgets.readthedocs.io/en/stable/user_install.html
+      from .autonotebook import tqdm as notebook_tqdm
+    INFO:ATOM:Using prefeaturized data; number of features = 200
+    INFO:ATOM:Splitting data by scaffold
+    INFO:ATOM:Dataset split table saved to /usr/WS2/wilfong2/my_ampl/AMPL/atomsci/ddm/examples/tutorials/dataset/SLC6A3_Ki_curated_train_valid_test_scaffold_640d807b-f58a-47f3-913d-4a60db0a9dbd.csv
+
+
+The dataset split table is saved as a .csv in the same directory as the
+``dataset_key``. The name of the split file starts with the
+``dataset_key`` and is followed by the ``split  strategy``
+(train\_valid\_test), ``split type`` (scaffold), and the ``split_uuid``
+(a unique identifier of the split).
+
+.. code:: ipython3
+
+    # display the split file location
+    import glob
+    import os
+    dirname = os.path.dirname(params['dataset_key'])
+    split_file = glob.glob(f"{dirname}/*{split_uuid}*")[0]
+    split_file
+
+
+
+
+.. parsed-literal::
+
+    'dataset/SLC6A3_Ki_curated_train_valid_test_scaffold_640d807b-f58a-47f3-913d-4a60db0a9dbd.csv'
+
+
+
+Format of the Split File
+------------------------
+
+The split file consists of three columns: ``cmpd_id`` is the compound
+ID; ``subset`` tells you if the compound is in the train, validation, or
+test set and ``fold`` contains the fold index, which is used only by
+*k*-fold cross-validation splits.
+
+.. code:: ipython3
+
+    # Explore contents of the split file
+    split_df = pd.read_csv(split_file)
+    split_df.head()
+
+
+
+
+.. raw:: html
+
+    <div>
+    <style scoped>
+        .dataframe tbody tr th:only-of-type {
+            vertical-align: middle;
+        }
+    
+        .dataframe tbody tr th {
+            vertical-align: top;
+        }
+    
+        .dataframe thead th {
+            text-align: right;
+        }
+    </style>
+    <table border="1" class="dataframe">
+      <thead>
+        <tr style="text-align: right;">
+          <th></th>
+          <th>cmpd_id</th>
+          <th>subset</th>
+          <th>fold</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th>0</th>
+          <td>CHEMBL498564</td>
+          <td>train</td>
+          <td>0</td>
+        </tr>
+        <tr>
+          <th>1</th>
+          <td>CHEMBL1085567</td>
+          <td>train</td>
+          <td>0</td>
+        </tr>
+        <tr>
+          <th>2</th>
+          <td>CHEMBL236473</td>
+          <td>train</td>
+          <td>0</td>
+        </tr>
+        <tr>
+          <th>3</th>
+          <td>CHEMBL464422</td>
+          <td>train</td>
+          <td>0</td>
+        </tr>
+        <tr>
+          <th>4</th>
+          <td>CHEMBL611677</td>
+          <td>train</td>
+          <td>0</td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+
+
+
+.. code:: ipython3
+
+    # Show the numbers of compounds in each split subset
+    split_df.subset.value_counts()
+
+
+
+
+.. parsed-literal::
+
+    subset
+    train    1273
+    valid     273
+    test      273
+    Name: count, dtype: int64
+
+
+
+Visualizing Scaffold Splits
+---------------------------
+
+**`Tanimoto
+distance <https://en.wikipedia.org/wiki/Jaccard_index#Tanimoto_similarity_and_distance>`__**
+is a handy way to measure structural dissimilarity between compounds
+represented using **`ECFP
+fingerprints <https://pubs.acs.org/doi/10.1021/ci100050t>`__**.
+
+We can use functions in the ``compare_splits_plots`` module to compute
+**`Tanimoto
+distance <https://en.wikipedia.org/wiki/Jaccard_index#Tanimoto_similarity_and_distance>`__**
+between each validation and test set compound and its nearest neighbor
+in the training set, and then plot the distribution of distances for
+each subset.
+
+.. code:: ipython3
+
+    import seaborn as sns
+    import matplotlib.pyplot as plt
+    import atomsci.ddm.utils.compare_splits_plots as csp
+    
+    # read the dataset
+    df = pd.read_csv('dataset/SLC6A3_Ki_curated.csv')
+    
+    # read the split file
+    split = pd.read_csv(split_file)
+    split_type = params['splitter']
+    
+    # create SplitStats
+    ss = csp.SplitStats(df, split, smiles_col='base_rdkit_smiles', id_col='compound_id', response_cols=['avg_pKi'])
+    
+    # plot
+    fig, ax = plt.subplots(1,2, sharey=True, figsize=(10,5))
+    ss.dist_hist_train_v_valid_plot(ax=ax[0])
+    ax[0].set_title(f"Train vs Valid Tanimoto Dist using {split_type} split")
+    ss.dist_hist_train_v_test_plot(ax=ax[1])
+    ax[1].set_title(f"Train vs Test Tanimoto Dist using {split_type} split");
+
+
+
+.. image:: 02_perform_a_split_files/02_perform_a_split_14_0.png
+
+
+The majority of compounds have **`Tanimoto
+distances <https://en.wikipedia.org/wiki/Jaccard_index#Tanimoto_similarity_and_distance>`__**
+between 0.2 and 0.8 from the training set, indicating that they are
+structurally different from the training compounds. The distance
+distributions are similar between the test and validation sets. This
+indicates that a model selected based on its validation set performance
+will likely have similar performance when evaluated on the test set.
+
+We can also plot the distributions of the response values - the
+:math:`pK_i`'s - in each subset. These plots can be useful in diagnosing
+model performance problems; if the response distributions in the
+training and test sets are dramatically different, it may be hard to
+train a model that performs well on the test set.
+
+.. code:: ipython3
+
+    import atomsci.ddm.utils.split_response_dist_plots as srdp
+    split_params = {
+        "dataset_key" : dataset_file,
+        "smiles_col" : "base_rdkit_smiles",
+        "response_cols" : "avg_pKi",
+        "split_uuid": split_uuid,
+        "splitter": 'scaffold',
+    }
+    srdp.plot_split_subset_response_distrs(split_params)
+
+
+
+.. image:: 02_perform_a_split_files/02_perform_a_split_17_0.png
+
+
+For this dataset, the :math:`pK_i`'s have roughly similar distributions
+across the **scaffold split** subsets, except that the training set has
+slightly more compounds with large values.
+
+In \ **Tutorial 3, "Train a Simple Regression Model"**, we will use this
+dataset and **scaffold split** to train a model to predict the
+:math:`pK_i`'s.
+
+If you have specific feedback about a tutorial, please complete the
+**`AMPL Tutorial Evaluation <https://forms.gle/pa9sHj4MHbS5zG7A6>`__**.

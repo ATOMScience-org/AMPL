@@ -6,39 +6,48 @@ ATOM Tutorial Introduction
 
 ------------
 
-Welcome to the `ATOM Modeling PipeLine (AMPL) <https://github.com/ATOMScience-org/AMPL>`_ tutorial series. Our tutorial series is set up for 
-our user community to take a hands-on approach to employing `AMPL <https://github.com/ATOMScience-org/AMPL>`_ in a step-by-step guide. We will start 
-from the basics, with the assumption you are an intermediate Python user or new to machine learning, to use `AMPL <https://github.com/ATOMScience-org/AMPL>`_  
-to build a foundational framework that you can then use to do meaningful work.
-
-****
-Goal
-****
-
-Our goal is for the user community to employ the core nine tutorials that represents the end-to-end modeling pipeline to build **QSAR** machine learning models and then be able to screen a virtual library to predict the property of your choice. 
+Welcome to the `ATOM Modeling PipeLine (AMPL) <https://github.com/ATOMScience-org/AMPL>`_ tutorial series. Our tutorial series is set up for our user 
+community to take a hands-on approach to employing `AMPL <https://github.com/ATOMScience-org/AMPL>`_ in a step-by-step guide. These tutorials assume 
+that you are an intermediate Python user or new to machine learning to build a foundational framework that 
+you can use to do meaningful work.
  
-We have created easy to follow tutorials to walk through the steps necessary to install `AMPL <https://github.com/ATOMScience-org/AMPL>`_, curate a dataset, effectively train and evaluate a machine learning model, and use that model to make predictions.
+The tutorials present an end-to-end pipeline that builds machine learning models for predicting chemical 
+properties. We have created easy to follow tutorials that walk through the steps necessary to install 
+`AMPL <https://github.com/ATOMScience-org/AMPL>`_, curate a dataset, effectively train and evaluate a machine 
+learning model, and use that model to make predictions.
 
+End-to-End Modeling Pipeline Tutorial Series
+********************************************
 
-************************************** 
-End-to-End Modeling Pipeline Tutorials
-**************************************
+* Tutorial 1: Data Curation
+* Tutorial 2: Splitting Datasets for Validation and Testing
+* Tutorial 3: Train a Simple Regression Model
+* Tutorial 4: Application of a Trained Model
+* Tutorial 5: Hyperparameter Optimization 
+* Tutorial 6: Comparing models to select the best hyperparameters
+* Tutorial 7: Train a Production Model
+* Tutorial 8: Visualizations of Model Performance
 
-* Tutorial 1: Install AMPL From Docker   // This is an option to set up a run environment.
-* Tutorial 2: Data Curation
-* Tutorial 3: Splitting Datasets for Validation and Testing
-* Tutorial 4: Train a Simple Regression Model
-* Tutorial 5: Application of a Trained Model
-* Tutorial 6: Hyperparamter Optimization 
-* Tutorial 7: Comparing Models to Select the Best Hyperparameters
-* Tutorial 8: Train a Production Model
-* Tutorial 9: Visualizations of Model Performance
+How to Use These Tutorials
+**************************
 
-.. note:: 
-   
-    *Throughout the tutorials, we employ an example dataset (small molecule inhibition of the dopamine transporter SLC6A3) with the intent for our users to follow 
-    the step-by-step guide with each tutorial. While the tutorials are meant to be followed in order, the necessary files to run each one 
-    independently are included in the AMPL GitHub repo. If a user wants to recreate our results, please be aware that dependencies are created 
-    as you progress through each tutorial.*
+We have provided the AMPL tutorials in the readthedocs and as Jupyter notebooks available on our GitHub. 
+Depending on your knowledge level and preferred learning style, you can use these tutorials in any of several 
+ways:
 
-Also, if you have questions about the Tutorials, please create an issue `here <https://github.com/ATOMScience-org/AMPL/issues>`_.
+*	Run the Jupyter notebooks after installing AMPL on your local system. You will find the notebooks under "atomsci/ddm/examples/tutorials". If you use the Docker installation option described in our Docker installation instructions, you will find tutorials under "/AMPL/atomsci/ddm/examples/tutorials".
+*	Create a new notebook and type in (or copy and paste) the Python code from the tutorials yourself. Some people prefer this method because it helps them learn better. If you take this route,  create your notebook in the `tutorials` directory, or start it with a pair of commands like the following , so that the tutorial code can find the data files we’ve provided under the "tutorials" directory:
+
+  .. code::
+
+      import os
+      os.chdir(“my_ampl_root/atomsci/ddm/examples/tutorials”)
+
+*	Read the tutorial pages here, then go straight to writing your own `AMPL <https://github.com/ATOMScience-org/AMPL>`_ application  to create models from your own data. We won’t hold you back!
+*	You are also free to modify the tutorials as you wish to try out different model parameters or apply the techniques to your own data. Just be aware that, if you are running the tutorials in a Docker container, any changes you make in the `tutorials` directory will be lost when you shut down the container. The installation instructions offer some suggestions for saving your work in this scenario.
+ 
+Although the tutorials are designed to be run in sequence, using an example dataset (SLC6A3: small molecule inhibition of the dopamine transporter) 
+provided within `AMPL <https://github.com/ATOMScience-org/AMPL>`_, we have also provided copies of the intermediate files generated by each tutorial that are 
+required by subsequent tutorials, so that you can run them in any order.
+ 
+Also, if you have issues or questions about the tutorials, please create an issue `here <https://github.com/ATOMScience-org/AMPL/issues>`_.
