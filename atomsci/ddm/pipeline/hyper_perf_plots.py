@@ -28,7 +28,7 @@ for word in keywords:
     elif word=='xgb_':word='xgboost'
     plot_dict[word]=tmplist
 plot_dict['general']=['model_type','features','splitter']#'ecfp_radius',
-plot_dict['NN']=['avg_dropout','learning_rate','num_nodes','num_layers','best_epoch','max_epochs']
+plot_dict['NN']=['avg_dropout','learning_rate','num_weights','num_layers','best_epoch','max_epochs']
 
 # list score types
 regselmets=[
@@ -89,13 +89,13 @@ def _prep_perf_df(df):
         perf_track_df[cols[0:n]]=tmp
         perf_track_df['num_layers'] = n-perf_track_df[cols[0:n]].isna().sum(axis=1)
         perf_track_df[cols[0:n]]=perf_track_df[cols[0:n]].fillna(value=1).astype(int)
-        perf_track_df['num_nodes']=perf_track_df[cols[0:n]].product(axis=1)
-        perf_track_df.num_nodes=perf_track_df.num_nodes.astype(float)
+        perf_track_df['num_weights']=perf_track_df[cols[0:n]].product(axis=1)
+        perf_track_df.num_weights=perf_track_df.num_weights.astype(float)
         # perf_track_df=perf_track_df.drop(columns=cols[0:n])
         
         perf_track_df.loc[perf_track_df.model_type != "NN", 'layer_sizes']=np.nan
         perf_track_df.loc[perf_track_df.model_type != "NN", 'num_layers']=np.nan
-        perf_track_df.loc[perf_track_df.model_type != "NN", 'num_nodes']=np.nan
+        perf_track_df.loc[perf_track_df.model_type != "NN", 'num_weights']=np.nan
         perf_track_df.loc[perf_track_df.model_type != "NN", 'avg_dropout']=np.nan
     
     return perf_track_df
@@ -128,7 +128,7 @@ def plot_train_valid_test_scores(df, prediction_type='regression'):
                     plot_df=plot_df[[f"best_train_{scoretype}",f"best_valid_{scoretype}",f"best_test_{scoretype}"]]
                     plot_df=plot_df.sort_values(f"best_valid_{scoretype}")
                     ax[i,j].plot(plot_df.T);
-                    ax[i,j].set_ylim(plot_df.min().min()-.1,1)
+                    ax[i,j].set_ylim(plot_df.min().min()-.1,1.25)
                     ax[i,j].tick_params(rotation=15)
                     ax[i,j].set_title(f'{splitter} {scoretype}')
         else:
@@ -138,7 +138,7 @@ def plot_train_valid_test_scores(df, prediction_type='regression'):
                 plot_df=plot_df[[f"best_train_{scoretype}",f"best_valid_{scoretype}",f"best_test_{scoretype}"]]
                 plot_df=plot_df.sort_values(f"best_valid_{scoretype}")
                 ax[j].plot(plot_df.T);
-                ax[j].set_ylim(plot_df.min().min()-.1,1)
+                ax[j].set_ylim(plot_df.min().min()-.1,1.25)
                 ax[j].tick_params(rotation=15)
                 ax[j].set_title(f'{splitter} {scoretype}')
             
@@ -238,8 +238,9 @@ def plot_hyper_perf(df, scoretype='r2_score', subset='valid', model_type='genera
                 sns.boxplot(x=feat,y=winnertype,hue=feat,palette=sns.cubehelix_palette(perf_track_df[feat].nunique(), rot=rot,start=start,), data=perf_track_df, ax=ax[i],legend=False)
                 ticks=ax[i].get_xticks()
                 labs=ax[i].get_xticklabels()
-            ax[i].set_xticks(ticks) # avoid warning by including this line
-            ax[i].set_xticklabels(labs, rotation=30, ha='right', rotation_mode='anchor' )
+            if feat != 'num_weights':
+                ax[i].set_xticks(ticks) # avoid warning by including this line
+                ax[i].set_xticklabels(labs, rotation=30, ha='right', rotation_mode='anchor' )
         ax[i].set_xlabel(feat)
     fig.suptitle(f'{model_type} hyperparameter performance')
     plt.tight_layout()
@@ -296,7 +297,7 @@ def plot_nn_perf(df, scoretype='r2_score',subset='valid'):
     winnertype= f'best_{subset}_{scoretype}'
     
     if len(plot_df)>0:
-        feat1 = 'num_nodes'; feat2 = 'learning_rate'; feat3 = 'avg_dropout'
+        feat1 = 'num_weights'; feat2 = 'learning_rate'; feat3 = 'avg_dropout'
         plot_df[f'{feat1}_cut']=pd.qcut(plot_df[feat1],5)
         plot_df[f'{feat2}_cut']=pd.qcut(plot_df[feat2],5)
         plot_df = plot_df.sort_values([f'{feat1}_cut', f'{feat2}_cut',feat3], ascending=True)
