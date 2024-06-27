@@ -1,10 +1,11 @@
 ######################################
-09 Visualizations of Model Performance
+08 Visualizations of Model Performance
 ######################################
 
 *Published: June, 2024, ATOM DDM Team*
 
 ------------
+
 
 In this tutorial, we will use some of the tools provided by
 `AMPL <https://github.com/ATOMScience-org/AMPL>`_ to visualize the
@@ -24,7 +25,7 @@ The tutorial will present the following functions, all from the
 -  `plot_prec_recall_curve <https://ampl.readthedocs.io/en/latest/pipeline.html#pipeline.perf_plots.plot_prec_recall_curve>`_
 
 We will use the same training dataset and **scaffold split** as in
-**Tutorial 4, "Train a Simple Regression Model**", to create some
+**Tutorial 3, "Train a Simple Regression Model**", to create some
 **neural network models** and visualize their iterative training
 process. Later, we'll generate a binary classification dataset based on
 the same data, so we can train **classification models** and show the
@@ -47,9 +48,9 @@ import some standard packages and modules:
     from atomsci.ddm.pipeline import perf_plots as pp
 
 
-
 Visualizing the Training Process for a Neural Network Regression Model
 **********************************************************************
+
 
 When you train a **neural network model**,
 `AMPL <https://github.com/ATOMScience-org/AMPL>`_ makes a series of
@@ -125,6 +126,11 @@ for 20 epochs after reaching a minimum.
     regr_pipe.train_model()
 
 
+.. parsed-literal::
+
+    ['dataset/SLC6A3_models/SLC6A3_Ki_curated/NN_computed_descriptors_scaffold_regression/362b134a-924b-4549-a341-cffb5ba36757/model/checkpoint1.pt', 'dataset/SLC6A3_models/SLC6A3_Ki_curated/NN_computed_descriptors_scaffold_regression/362b134a-924b-4549-a341-cffb5ba36757/model/checkpoint2.pt', 'dataset/SLC6A3_models/SLC6A3_Ki_curated/NN_computed_descriptors_scaffold_regression/362b134a-924b-4549-a341-cffb5ba36757/model/checkpoint3.pt', 'dataset/SLC6A3_models/SLC6A3_Ki_curated/NN_computed_descriptors_scaffold_regression/362b134a-924b-4549-a341-cffb5ba36757/model/checkpoint4.pt', 'dataset/SLC6A3_models/SLC6A3_Ki_curated/NN_computed_descriptors_scaffold_regression/362b134a-924b-4549-a341-cffb5ba36757/model/checkpoint5.pt']
+    dataset/SLC6A3_models/SLC6A3_Ki_curated/NN_computed_descriptors_scaffold_regression/362b134a-924b-4549-a341-cffb5ba36757/model/checkpoint1.pt
+
 
 We now use the ``plot_perf_vs_epoch`` function to show how the
 performance metrics change during training:
@@ -135,7 +141,7 @@ performance metrics change during training:
 
 
 
-.. image:: ../_static/img/09_visualization_files/09_visualization_7_0.png
+.. image:: ../_static/img/08_visualization_files/08_visualization_7_0.png
 
 
 The vertical dashed lines indicate the epoch at which the validation set
@@ -148,7 +154,7 @@ that the epoch with the maximum :math:`R^2` may or may not be the same
 as the one that minimizes **RMSE**.
 
 .. note::
- 
+
     *The "pipe" argument to "plot_perf_vs_epoch" is a
     "ModelPipeline" object for a model you have trained in your
     current Python session; it doesn't work with a previously saved
@@ -171,7 +177,7 @@ split subset, as shown below.
 
 
 
-.. image:: ../_static/img/09_visualization_files/09_visualization_11_0.png
+.. image:: ../_static/img/08_visualization_files/08_visualization_11_0.png
 
 
 The plots highlight a couple of interesting features of the training
@@ -189,14 +195,14 @@ only works with "live" ``ModelPipeline`` objects trained in the current
 Python session. However, there is an alternative version of this
 function specifically for saved models. We'll try out this function on
 the best **random forest** model from the hyperparameter searches
-performed in **Tutorial 6, "Hyperparameter Optimization"**:
+performed in **Tutorial 5, "Hyperparameter Optimization"**:
 
 .. code:: ipython3
 
     pp.plot_pred_vs_actual_from_file('dataset/SLC6A3_models/SLC6A3_Ki_curated_model_9b6c9332-15f3-4f96-9579-bf407d0b69a8.tar.gz')
 
 
-.. image:: ../_static/img/09_visualization_files/09_visualization_13_1.png
+.. image:: ../_static/img/08_visualization_files/08_visualization_13_1.png
 
 
 The points predicted by the optimized RF model are indeed closer to the
@@ -226,12 +232,22 @@ and "0" for all others:
 
 .. code:: ipython3
 
-    
     dset_df = pd.read_csv('dataset/SLC6A3_Ki_curated.csv')
     dset_df['active'] = [int(Ki >= 8) for Ki in dset_df.avg_pKi.values]
     classif_dset_file = 'dataset/SLC6A3_classif_pKi_ge_8.csv'
     dset_df.to_csv(classif_dset_file, index=False)
     dset_df.active.value_counts()
+
+
+
+
+.. parsed-literal::
+
+    active
+    0    1597
+    1     222
+    Name: count, dtype: int64
+
 
 
 Note that we have purposely created an imbalanced dataset, with many
@@ -270,7 +286,7 @@ Next we will split the dataset by scaffold:
 It is often a good idea, especially with imbalanced datasets, to check
 that the class proportions are similar between the split subsets. The
 function ``plot_split_subset_response_distrs``, which we encountered in
-**Tutorial 3, "Splitting Datasets for Validation and Testing"**,
+**Tutorial 2, "Splitting Datasets for Validation and Testing"**,
 provides a way to do this. Note that when the ``prediction_type``
 parameter is set to ``classification``, the function produces a bar
 graph rather than a density plot:
@@ -290,7 +306,7 @@ graph rather than a density plot:
 
 
 
-.. image:: ../_static/img/09_visualization_files/09_visualization_20_0.png
+.. image:: ../_static/img/08_visualization_files/08_visualization_20_0.png
 
 
 The proportion of actives is fairly even across the split subsets. We
@@ -334,6 +350,11 @@ as features:
     classif_pipe.train_model()
 
 
+.. parsed-literal::
+
+    ['dataset/SLC6A3_models/SLC6A3_classif_pKi_ge_8/NN_ecfp_scaffold_classification/5aae26e9-1bbd-4f6c-8662-c7baae078bee/model/checkpoint1.pt', 'dataset/SLC6A3_models/SLC6A3_classif_pKi_ge_8/NN_ecfp_scaffold_classification/5aae26e9-1bbd-4f6c-8662-c7baae078bee/model/checkpoint2.pt', 'dataset/SLC6A3_models/SLC6A3_classif_pKi_ge_8/NN_ecfp_scaffold_classification/5aae26e9-1bbd-4f6c-8662-c7baae078bee/model/checkpoint3.pt', 'dataset/SLC6A3_models/SLC6A3_classif_pKi_ge_8/NN_ecfp_scaffold_classification/5aae26e9-1bbd-4f6c-8662-c7baae078bee/model/checkpoint4.pt', 'dataset/SLC6A3_models/SLC6A3_classif_pKi_ge_8/NN_ecfp_scaffold_classification/5aae26e9-1bbd-4f6c-8662-c7baae078bee/model/checkpoint5.pt']
+    dataset/SLC6A3_models/SLC6A3_classif_pKi_ge_8/NN_ecfp_scaffold_classification/5aae26e9-1bbd-4f6c-8662-c7baae078bee/model/checkpoint1.pt
+
 
 As we did before for a regression model, we use the function
 ``plot_perf_vs_epoch`` to display the changes in the default performance
@@ -347,7 +368,7 @@ the validation set to decide when to stop training.
 
 
 
-.. image:: ../_static/img/09_visualization_files/09_visualization_24_0.png
+.. image:: ../_static/img/08_visualization_files/08_visualization_24_0.png
 
 
 Note that the validation set **ROC AUC** peaked at only 13 epochs, at
@@ -373,10 +394,10 @@ each subset:
 
 
 
-.. image:: ../_static/img/09_visualization_files/09_visualization_26_0.png
+.. image:: ../_static/img/08_visualization_files/08_visualization_26_0.png
 
 
-The confusion matrices show that the model is behaving not much
+The ``confusion matrices`` show that the model is behaving not much
 differently from a dumb classifier. In the validation set, it predicts
 the inactive class 97% of the time, even though inactives are only 88%
 of the compounds.
@@ -390,9 +411,9 @@ recall <https://en.wikipedia.org/wiki/Precision_and_recall>`_ metrics
 are far more sensitive indicators of performance than accuracy or **ROC
 AUC**. Here the accuracy is about 0.9, about what would be expected from
 a dumb classifier, for all 3 subsets; while the validation set precision
-and recall are 78% and 25% respectively. We can also see this from the
-confusion matrix: 7/9 of the predicted actives are indeed active; but
-only 7/28 of the true actives are predicted to be active.
+and recall are 100% and 21% respectively. We can also see this from the
+confusion matrix: all of the predicted actives are indeed active; but
+only 6/28 of the true actives are predicted to be active.
 
 .. code:: ipython3
 
@@ -400,7 +421,7 @@ only 7/28 of the true actives are predicted to be active.
 
 
 
-.. image:: ../_static/img/09_visualization_files/09_visualization_28_0.png
+.. image:: ../_static/img/08_visualization_files/08_visualization_28_0.png
 
 
 Given the rather mediocre recall performance of our model, we would like
@@ -408,7 +429,7 @@ to try training a new model that has better recall without sacrificing
 too much precision. One way to do this is to change the
 ``model_choice_score_type`` parameter to optimize the number of training
 epochs for a metric that balances precision and recall. `Balanced
-accuracy <https://scikit-learn.org/stable/modules/model_evaluation.html#balanced-accuracy-score>`_
+accuracy <https://scikit-learn.org/stable/modules/model_evaluation.html#balanced-accuracy-score>`_ 
 and the `Matthews correlation coefficient
 (MCC) <https://en.wikipedia.org/wiki/Phi_coefficient>`_ are two such
 metrics often used for this purpose. We'll try out using the ``MCC``,
@@ -449,12 +470,18 @@ with all other parameters left the same.
     pp.plot_perf_vs_epoch(mcc_pipe)
 
 
+.. parsed-literal::
 
-.. image:: ../_static/img/09_visualization_files/09_visualization_30_1.png
+    ['dataset/SLC6A3_models/SLC6A3_classif_pKi_ge_8/NN_ecfp_scaffold_classification/ee6a8fbb-c3f3-4a17-84c1-ffa0ad75a703/model/checkpoint1.pt', 'dataset/SLC6A3_models/SLC6A3_classif_pKi_ge_8/NN_ecfp_scaffold_classification/ee6a8fbb-c3f3-4a17-84c1-ffa0ad75a703/model/checkpoint2.pt', 'dataset/SLC6A3_models/SLC6A3_classif_pKi_ge_8/NN_ecfp_scaffold_classification/ee6a8fbb-c3f3-4a17-84c1-ffa0ad75a703/model/checkpoint3.pt', 'dataset/SLC6A3_models/SLC6A3_classif_pKi_ge_8/NN_ecfp_scaffold_classification/ee6a8fbb-c3f3-4a17-84c1-ffa0ad75a703/model/checkpoint4.pt', 'dataset/SLC6A3_models/SLC6A3_classif_pKi_ge_8/NN_ecfp_scaffold_classification/ee6a8fbb-c3f3-4a17-84c1-ffa0ad75a703/model/checkpoint5.pt']
+    dataset/SLC6A3_models/SLC6A3_classif_pKi_ge_8/NN_ecfp_scaffold_classification/ee6a8fbb-c3f3-4a17-84c1-ffa0ad75a703/model/checkpoint1.pt
 
 
-Note that the maximum validation set MCC is achieved at epoch 30, while
-the **ROC AUC** is maximized much earlier at epoch 13. In general, the
+
+.. image:: ../_static/img/08_visualization_files/08_visualization_30_1.png
+
+
+Note that the maximum validation set MCC is achieved at epoch 11, while
+the **ROC AUC** is maximized much later at epoch 15. In general, the
 metric selected for ``model_choice_score_type`` has a much greater
 impact for classification models than for regression models.
 
@@ -466,12 +493,12 @@ Now let's look at the performance metrics for the MCC-optimized model:
 
 
 
-.. image:: ../_static/img/09_visualization_files/09_visualization_32_0.png
+.. image:: ../_static/img/08_visualization_files/08_visualization_32_0.png
 
 
-We see that the recall is improved, from 0.25 to about 0.46; while the
-precision has dropped from 0.78 to 0.52. This may be acceptable or not,
-depending on your situation. Do you want to minimize the cost of
+We see that the recall is improved slightly, from 0.21 to about 0.30;
+while the precision has dropped from 1.0 to 0.6. This may be acceptable
+or not, depending on your situation. Do you want to minimize the cost of
 synthesizing and testing compounds that may turn out to be false
 positives? Or do you want to minimize the chance that your model will
 overlook a potential blockbuster drug? The numerous selection metrics
@@ -526,7 +553,14 @@ precision and recall metrics:
     pp.plot_model_metrics(mcc_wts_pipe, plot_size=8)
 
 
-.. image:: ../_static/img/09_visualization_files/09_visualization_34_1.png
+.. parsed-literal::
+
+    ['dataset/SLC6A3_models/SLC6A3_classif_pKi_ge_8/NN_ecfp_scaffold_classification/ffe7fda2-5c4e-4e7d-9fef-8bb3e4729f92/model/checkpoint1.pt', 'dataset/SLC6A3_models/SLC6A3_classif_pKi_ge_8/NN_ecfp_scaffold_classification/ffe7fda2-5c4e-4e7d-9fef-8bb3e4729f92/model/checkpoint2.pt', 'dataset/SLC6A3_models/SLC6A3_classif_pKi_ge_8/NN_ecfp_scaffold_classification/ffe7fda2-5c4e-4e7d-9fef-8bb3e4729f92/model/checkpoint3.pt', 'dataset/SLC6A3_models/SLC6A3_classif_pKi_ge_8/NN_ecfp_scaffold_classification/ffe7fda2-5c4e-4e7d-9fef-8bb3e4729f92/model/checkpoint4.pt', 'dataset/SLC6A3_models/SLC6A3_classif_pKi_ge_8/NN_ecfp_scaffold_classification/ffe7fda2-5c4e-4e7d-9fef-8bb3e4729f92/model/checkpoint5.pt']
+    dataset/SLC6A3_models/SLC6A3_classif_pKi_ge_8/NN_ecfp_scaffold_classification/ffe7fda2-5c4e-4e7d-9fef-8bb3e4729f92/model/checkpoint1.pt
+
+
+
+.. image:: ../_static/img/08_visualization_files/08_visualization_34_1.png
 
 
 The new model trained using both parameters has even better recall, at
@@ -541,6 +575,85 @@ obtained as a nested dictionary using the function
     metrics_dict = pp.get_metrics_from_model_pipeline(mcc_wts_pipe)
     print(json.dumps(metrics_dict, indent=4))
 
+
+.. parsed-literal::
+
+    {
+        "active": {
+            "train": {
+                "roc_auc": 0.9839738357222929,
+                "prc_auc": 0.8866116456224803,
+                "accuracy": 0.9269442262372348,
+                "precision": 0.6442687747035574,
+                "recall": 0.9819277108433735,
+                "bal_accuracy": 0.9503134489176217,
+                "npv": 0.9970588235294118,
+                "cross_entropy": 0.17187009506671735,
+                "kappa": 0.7365568068786424,
+                "MCC": 0.759997950847689,
+                "confusion_matrix": [
+                    [
+                        [
+                            1017,
+                            90
+                        ],
+                        [
+                            3,
+                            163
+                        ]
+                    ]
+                ]
+            },
+            "valid": {
+                "roc_auc": 0.8443148688046648,
+                "prc_auc": 0.48576226827635516,
+                "accuracy": 0.8827838827838828,
+                "precision": 0.4411764705882353,
+                "recall": 0.5357142857142857,
+                "bal_accuracy": 0.7290816326530611,
+                "npv": 0.9456066945606695,
+                "cross_entropy": 0.32558061545729045,
+                "kappa": 0.4184529356943151,
+                "MCC": 0.4209629887651163,
+                "confusion_matrix": [
+                    [
+                        [
+                            226,
+                            19
+                        ],
+                        [
+                            13,
+                            15
+                        ]
+                    ]
+                ]
+            },
+            "test": {
+                "roc_auc": 0.8563411078717201,
+                "prc_auc": 0.5286311317357362,
+                "accuracy": 0.8717948717948718,
+                "precision": 0.41025641025641024,
+                "recall": 0.5714285714285714,
+                "bal_accuracy": 0.7387755102040816,
+                "npv": 0.9487179487179487,
+                "cross_entropy": 0.2981516587921453,
+                "kappa": 0.4067796610169492,
+                "MCC": 0.41403933560541256,
+                "confusion_matrix": [
+                    [
+                        [
+                            222,
+                            23
+                        ],
+                        [
+                            12,
+                            16
+                        ]
+                    ]
+                ]
+            }
+        }
+    }
 
 
 Plotting ROC and Precision-Recall Curves
@@ -572,7 +685,7 @@ and test sets on the same axes.
 
 
 
-.. image:: ../_static/img/09_visualization_files/09_visualization_38_0.png
+.. image:: ../_static/img/08_visualization_files/08_visualization_38_0.png
 
 
 A `precision-recall
@@ -596,7 +709,7 @@ well and shown in the figure legend.
 
 
 
-.. image::../_static/img/ 09_visualization_files/09_visualization_40_0.png
+.. image:: ../_static/img/08_visualization_files/08_visualization_40_0.png
 
 
 Conclusion
@@ -613,4 +726,5 @@ specialized tutorials covering some of
 capabilities, such as multitask modeling, transfer learning, feature
 importance analysis and more.
 
-If you have specific feedback about a tutorial, please complete the `AMPL Tutorial Evaluation <https://forms.gle/pa9sHj4MHbS5zG7A6>`_.
+If you have specific feedback about a tutorial, please complete the
+`AMPL Tutorial Evaluation <https://forms.gle/pa9sHj4MHbS5zG7A6>`_.

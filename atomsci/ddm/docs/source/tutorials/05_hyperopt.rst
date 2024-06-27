@@ -1,5 +1,10 @@
-Hyperparameter Optimization
-===========================
+##############################
+05 Hyperparameter Optimization
+##############################
+
+*Published: June, 2024, ATOM DDM Team*
+
+------------
 
 Hyperparameters dictate the parameters of the training process and the
 architecture of the model itself. For example, the number of random
@@ -8,139 +13,58 @@ learned parameter for a **random forest** is the set of features that is
 contained in a single node (in a single tree) and the cutoff values for
 each of those features that determines how the data is split at that
 node. A full discussion of hyperparameter optimization can be found on
-**`Wikipedia <https://en.wikipedia.org/wiki/Hyperparameter_optimization>`__**.
+`Wikipedia <https://en.wikipedia.org/wiki/Hyperparameter_optimization>`_.
 
 The choice of hyperparameters strongly influences model performance, so
 it is important to be able to optimize them as well.
-**`AMPL <https://github.com/ATOMScience-org/AMPL>`__** offers a variety
+`AMPL <https://github.com/ATOMScience-org/AMPL>`_ offers a variety
 of hyperparameter optimization methods including random sampling, grid
 search, and Bayesian optimization. Please refer to the parameter
 documentation
-**`page <https://github.com/ATOMScience-org/AMPL#hyperparameter-optimization>`__**
+`page <https://github.com/ATOMScience-org/AMPL#hyperparameter-optimization>`_
 for further information.
 
-In this tutorial we demonstrate the following: - Build a parameter
-dictionary to perform a hyperparameter search for a **random forest**
-using Bayesian optimization. - Perform the optimization process. -
-Review the results
+In this tutorial we demonstrate the following: 
 
-We will use these **`AMPL <https://github.com/ATOMScience-org/AMPL>`__**
-functions: -
-`parse\_params <https://ampl.readthedocs.io/en/latest/utils.html#utils.hyperparam_search_wrapper.parse_params>`__
--
-`build\_search <https://ampl.readthedocs.io/en/latest/utils.html#utils.hyperparam_search_wrapper.build_search>`__
--
-`run\_search <https://ampl.readthedocs.io/en/latest/utils.html#utils.hyperparam_search_wrapper.HyperOptSearch.run_search>`__
--
-`get\_filesystem\_perf\_results <https://ampl.readthedocs.io/en/latest/pipeline.html#pipeline.compare_models.get_filesystem_perf_results>`__
+-  Build a parameter dictionary to perform a hyperparameter search for a **random forest** using Bayesian optimization. 
+-  Perform the optimization process. 
+-  Review the results
+
+We will use these `AMPL <https://github.com/ATOMScience-org/AMPL>`_
+functions: 
+
+-  `parse_params <https://ampl.readthedocs.io/en/latest/utils.html#utils.hyperparam_search_wrapper.parse_params>`_
+-  `build_search <https://ampl.readthedocs.io/en/latest/utils.html#utils.hyperparam_search_wrapper.build_search>`_
+-  `run_search <https://ampl.readthedocs.io/en/latest/utils.html#utils.hyperparam_search_wrapper.HyperOptSearch.run_search>`_
+-  `get_filesystem_perf_results <https://ampl.readthedocs.io/en/latest/pipeline.html#pipeline.compare_models.get_filesystem_perf_results>`_
 
 The first three functions in the above list come from the
 ``hyperparameter_search_wrapper`` module.
 
 Set Up Directories
-------------------
+******************
 
 Here we set up a few important variables corresponding to required
 directories and specific features for the **hyperparameter optimization
 (HPO)** process. Then, we ensure that the directories are created before
 saving models into them.
 
-+------+------+
-| Vari | Desc |
-| able | ript |
-|      | ion  |
-+======+======+
-| ``da | The  |
-| tase | rela |
-| t_ke | tive |
-| y``  | path |
-|      | to   |
-|      | the  |
-|      | data |
-|      | set  |
-|      | you  |
-|      | want |
-|      | to   |
-|      | use  |
-|      | for  |
-|      | HPO  |
-+------+------+
-| ``de | The  |
-| scri | type |
-| ptor | of   |
-| _typ | feat |
-| e``  | ures |
-|      | you  |
-|      | want |
-|      | to   |
-|      | use  |
-|      | duri |
-|      | ng   |
-|      | HPO  |
-+------+------+
-| ``mo | The  |
-| del_ | dire |
-| dir` | ctor |
-| `    | y    |
-|      | wher |
-|      | e    |
-|      | you  |
-|      | want |
-|      | to   |
-|      | save |
-|      | all  |
-|      | of   |
-|      | the  |
-|      | mode |
-|      | ls   |
-+------+------+
-| ``be | For  |
-| st_m | Baye |
-| odel | sian |
-| _dir | opti |
-| ``   | miza |
-|      | tion |
-|      | ,    |
-|      | the  |
-|      | winn |
-|      | ing  |
-|      | mode |
-|      | l    |
-|      | is   |
-|      | save |
-|      | d    |
-|      | in   |
-|      | this |
-|      | sepa |
-|      | rate |
-|      | fold |
-|      | er   |
-+------+------+
-| ``sp | The  |
-| lit_ | pres |
-| uuid | aved |
-| ``   | spli |
-|      | t    |
-|      | uuid |
-|      | from |
-|      | **Tu |
-|      | tori |
-|      | al   |
-|      | 2,   |
-|      | "Spl |
-|      | itti |
-|      | ng   |
-|      | Data |
-|      | sets |
-|      | for  |
-|      | Vali |
-|      | dati |
-|      | on   |
-|      | and  |
-|      | Test |
-|      | ing" |
-|      | **   |
-+------+------+
+.. list-table::
+   :header-rows: 1
+   :class: tight-table
+
+   * - Variable
+     - Description
+   * - `dataset_key`
+     - The relative path to the dataset you want to use for HPO
+   * - `descriptor_type`  
+     - The type of features you want to use during HPO
+   * - `model_dir`
+     - The directory where you want to save all of the models
+   * - `best_model_dir`
+     - For Bayesian optimization, the winning model is saved in this separate folder
+   * - `split_uuid`
+     - The presaved split uuid from **Tutorial 3, "Splitting Datasets for Validation and Testing"**
 
 .. code:: ipython3
 
@@ -170,329 +94,32 @@ parameters will be varied and how. The table below describes the special
 parameter settings for our random forest search.
 
 Parameter Dictionary Settings
------------------------------
+*****************************
 
-+------+------+
-| Para | Desc |
-| mete | ript |
-| r    | ion  |
-+======+======+
-| ``'h | This |
-| yper | sett |
-| para | ing  |
-| m':' | indi |
-| True | cate |
-| '``  | s    |
-|      | that |
-|      | we   |
-|      | are  |
-|      | perf |
-|      | ormi |
-|      | ng   |
-|      | a    |
-|      | hype |
-|      | rpar |
-|      | amet |
-|      | er   |
-|      | sear |
-|      | ch   |
-|      | inst |
-|      | ead  |
-|      | of   |
-|      | just |
-|      | trai |
-|      | ning |
-|      | one  |
-|      | mode |
-|      | l.   |
-+------+------+
-| ``'p | This |
-| revi | tell |
-| ousl | s    |
-| y_fe | **`A |
-| atur | MPL  |
-| ized | <htt |
-| ':'T | ps:/ |
-| rue' | /git |
-| ``   | hub. |
-|      | com/ |
-|      | ATOM |
-|      | Scie |
-|      | nce- |
-|      | org/ |
-|      | AMPL |
-|      | >`__ |
-|      | **   |
-|      | to   |
-|      | sear |
-|      | ch   |
-|      | for  |
-|      | prev |
-|      | ious |
-|      | ly   |
-|      | gene |
-|      | rate |
-|      | d    |
-|      | feat |
-|      | ures |
-|      | in   |
-|      | ``.. |
-|      | /dat |
-|      | aset |
-|      | /sca |
-|      | led_ |
-|      | desc |
-|      | ript |
-|      | ors` |
-|      | `    |
-|      | inst |
-|      | ead  |
-|      | of   |
-|      | rege |
-|      | nera |
-|      | ting |
-|      | them |
-|      | on   |
-|      | the  |
-|      | fly. |
-+------+------+
-| ``'s | This |
-| earc | spec |
-| h_ty | ifie |
-| pe': | s    |
-| 'hyp | the  |
-| erop | hype |
-| t'`` | rpar |
-|      | amet |
-|      | er   |
-|      | sear |
-|      | ch   |
-|      | meth |
-|      | od.  |
-|      | Othe |
-|      | r    |
-|      | opti |
-|      | ons  |
-|      | incl |
-|      | ude  |
-|      | ``gr |
-|      | id`` |
-|      | ,    |
-|      | ``ra |
-|      | ndom |
-|      | ``,  |
-|      | and  |
-|      | ``ge |
-|      | omet |
-|      | ric` |
-|      | `.   |
-|      | Spec |
-|      | ific |
-|      | atio |
-|      | ns   |
-|      | for  |
-|      | each |
-|      | hype |
-|      | rpar |
-|      | amet |
-|      | er   |
-|      | sear |
-|      | ch   |
-|      | meth |
-|      | od   |
-|      | is   |
-|      | diff |
-|      | eren |
-|      | t,   |
-|      | plea |
-|      | se   |
-|      | refe |
-|      | r    |
-|      | to   |
-|      | the  |
-|      | full |
-|      | docu |
-|      | ment |
-|      | atio |
-|      | n.   |
-|      | Here |
-|      | we   |
-|      | are  |
-|      | usin |
-|      | g    |
-|      | the  |
-|      | Baye |
-|      | sian |
-|      | opti |
-|      | miza |
-|      | tion |
-|      | meth |
-|      | od.  |
-+------+------+
-| ``'m | This |
-| odel | mean |
-| _typ | s    |
-| e':' | **`A |
-| RF\| | MPL  |
-| 10'` | <htt |
-| `    | ps:/ |
-|      | /git |
-|      | hub. |
-|      | com/ |
-|      | ATOM |
-|      | Scie |
-|      | nce- |
-|      | org/ |
-|      | AMPL |
-|      | >`__ |
-|      | **   |
-|      | will |
-|      | try  |
-|      | 10   |
-|      | time |
-|      | s    |
-|      | to   |
-|      | find |
-|      | the  |
-|      | best |
-|      | set  |
-|      | of   |
-|      | hype |
-|      | rpar |
-|      | amet |
-|      | ers  |
-|      | usin |
-|      | g    |
-|      | **ra |
-|      | ndom |
-|      | fore |
-|      | sts* |
-|      | *.   |
-|      | In   |
-|      | prac |
-|      | tice |
-|      | ,    |
-|      | this |
-|      | para |
-|      | mete |
-|      | r    |
-|      | coul |
-|      | d    |
-|      | be   |
-|      | set  |
-|      | to   |
-|      | 100  |
-|      | or   |
-|      | more |
-|      | .    |
-+------+------+
-| ``'r | The  |
-| fe': | Baye |
-| 'uni | sian |
-| form | opti |
-| int\ | mize |
-| |8,5 | r    |
-| 12'` | will |
-| `    | unif |
-|      | orml |
-|      | y    |
-|      | sear |
-|      | ch   |
-|      | betw |
-|      | een  |
-|      | 8    |
-|      | and  |
-|      | 512  |
-|      | for  |
-|      | the  |
-|      | best |
-|      | numb |
-|      | er   |
-|      | of   |
-|      | rand |
-|      | om   |
-|      | fore |
-|      | st   |
-|      | esti |
-|      | mato |
-|      | rs.  |
-|      | Simi |
-|      | larl |
-|      | y    |
-|      | ``rf |
-|      | d``  |
-|      | stan |
-|      | ds   |
-|      | for  |
-|      | **ra |
-|      | ndom |
-|      | fore |
-|      | st   |
-|      | dept |
-|      | h**  |
-|      | and  |
-|      | ``rf |
-|      | f``  |
-|      | stan |
-|      | ds   |
-|      | for  |
-|      | **ra |
-|      | ndom |
-|      | fore |
-|      | st   |
-|      | feat |
-|      | ures |
-|      | **.  |
-+------+------+
-| ``re | Now  |
-| sult | expe |
-| _dir | cts  |
-| ``   | two  |
-|      | para |
-|      | mete |
-|      | rs.  |
-|      | The  |
-|      | firs |
-|      | t    |
-|      | dire |
-|      | ctor |
-|      | y    |
-|      | will |
-|      | cont |
-|      | ain  |
-|      | the  |
-|      | best |
-|      | trai |
-|      | ned  |
-|      | mode |
-|      | ls   |
-|      | whil |
-|      | e    |
-|      | the  |
-|      | seco |
-|      | nd   |
-|      | dire |
-|      | ctor |
-|      | y    |
-|      | will |
-|      | cont |
-|      | ain  |
-|      | all  |
-|      | mode |
-|      | ls   |
-|      | trai |
-|      | ned  |
-|      | in   |
-|      | the  |
-|      | sear |
-|      | ch.  |
-+------+------+
+.. list-table::
+   :header-rows: 1
+   :class: tight-table
+
+   * - Parameter
+     - Description
+   * - `'hyperparam':'True'`
+     - This setting indicates that we are performing a hyperparameter search instead of just training one model.
+   * - `'previously_featurized':True'`
+     - This tells `AMPL <https://github.com/ATOMScience-org/AMPL>`_ to search for previously generated features in ../dataset/scaled_descriptors instead of regenerating them on the fly.
+   * - `'search_type':'hyperopt'`
+     - This specifies the hyperparameter search method. Other options include grid, random, and geometric. Specifications for each hyperparameter search method is different, please refer to the full documentation. Here we are using the Bayesian optimization method.
+   * - `'model_type':'RF|10'`
+     - This means `AMPL <https://github.com/ATOMScience-org/AMPL>`_ will try 10 times to find the best set of hyperparameters using **random forests**. In practice, this parameter could be set to 100 or more.
+   * - `'rfe':'uniformint|8,512'`
+     - The Bayesian optimizer will uniformly search between 8 and 512 for the best number of random forest estimators. Similarly rfd stands for **random forest depth** and ``rff`` stands for **random forest features**.
+   * - `'result_dir'`
+     - Now expects two parameters. The first directory will contain the best trained models while the second directory will contain all models trained in the search.
 
 Regression models are optimized to maximize the :math:`R^2` and
 classification models are optimized using area under the receiver
 operating characteristic curve. A full list of parameters can be found
 on our
-**`github <https://github.com/ATOMScience-org/AMPL/blob/master/atomsci/ddm/docs/PARAMETERS.md>`__**.
+`github <https://github.com/ATOMScience-org/AMPL/blob/master/atomsci/ddm/docs/PARAMETERS.md>`_.
 
 .. code:: ipython3
 
@@ -523,7 +150,7 @@ on our
     }
 
 Run Hyperparameter Search
--------------------------
+*************************
 
 In **Tutorial 3, "Train a Simple Regression Model"**, we directly
 imported the ``parameter_parser`` and ``model_pipeline`` objects to
@@ -540,145 +167,6 @@ run the search.
     ampl_param = hsw.parse_params(params)
     hs = hsw.build_search(ampl_param)
     hs.run_search()
-
-
-.. parsed-literal::
-
-    model_performance|train_r2|train_rms|valid_r2|valid_rms|test_r2|test_rms|model_params|model
-    
-    rf_estimators: 65, rf_max_depth: 22, rf_max_feature: 33
-    RF model with computed_descriptors and rdkit_raw      
-      0%|          | 0/10 [00:00<?, ?trial/s, best loss=?]
-
-.. parsed-literal::
-
-    2024-04-16 11:19:29,471 Previous dataset split restored
-
-
-.. parsed-literal::
-
-    model_performance|0.948|0.284|0.463|0.885|0.385|0.955|65_22_33|./dataset/SLC6A3_models/SLC6A3_Ki_curated_model_65d93c86-11e8-4f79-a6be-384db6956d26.tar.gz
-    
-    rf_estimators: 233, rf_max_depth: 28, rf_max_feature: 12                        
-    RF model with computed_descriptors and rdkit_raw                                
-     10%|█         | 1/10 [00:00<00:06,  1.44trial/s, best loss: 0.5365818670592989]
-
-.. parsed-literal::
-
-    2024-04-16 11:19:30,177 Previous dataset split restored
-
-
-.. parsed-literal::
-
-    model_performance|0.948|0.284|0.481|0.871|0.400|0.944|233_28_12|./dataset/SLC6A3_models/SLC6A3_Ki_curated_model_2b63bedb-7983-49cd-8d9b-b2039439ae98.tar.gz
-    
-    rf_estimators: 60, rf_max_depth: 28, rf_max_feature: 73                         
-    RF model with computed_descriptors and rdkit_raw                                
-     20%|██        | 2/10 [00:02<00:09,  1.25s/trial, best loss: 0.5194165178690741]
-
-.. parsed-literal::
-
-    2024-04-16 11:19:31,809 Previous dataset split restored
-
-
-.. parsed-literal::
-
-    model_performance|0.947|0.287|0.481|0.871|0.450|0.903|60_28_73|./dataset/SLC6A3_models/SLC6A3_Ki_curated_model_9da5fa7a-610f-469a-9562-b760c03581bc.tar.gz
-    
-    rf_estimators: 158, rf_max_depth: 7, rf_max_feature: 92                         
-    RF model with computed_descriptors and rdkit_raw                                
-     30%|███       | 3/10 [00:03<00:06,  1.00trial/s, best loss: 0.5190614320716579]
-
-.. parsed-literal::
-
-    2024-04-16 11:19:32,512 Previous dataset split restored
-
-
-.. parsed-literal::
-
-    model_performance|0.836|0.503|0.471|0.879|0.418|0.929|158_7_92|./dataset/SLC6A3_models/SLC6A3_Ki_curated_model_4f36098e-a8fe-4469-922e-5dca432f355b.tar.gz
-    
-    rf_estimators: 262, rf_max_depth: 16, rf_max_feature: 40                        
-    RF model with computed_descriptors and rdkit_raw                                
-     40%|████      | 4/10 [00:04<00:06,  1.04s/trial, best loss: 0.5190614320716579]
-
-.. parsed-literal::
-
-    2024-04-16 11:19:33,614 Previous dataset split restored
-
-
-.. parsed-literal::
-
-    model_performance|0.948|0.285|0.488|0.864|0.424|0.924|262_16_40|./dataset/SLC6A3_models/SLC6A3_Ki_curated_model_dbd1d89c-05f5-4224-bce4-7dbeafaba313.tar.gz
-    
-    rf_estimators: 393, rf_max_depth: 28, rf_max_feature: 190                       
-    RF model with computed_descriptors and rdkit_raw                                
-     50%|█████     | 5/10 [00:05<00:06,  1.28s/trial, best loss: 0.5115391017103005]
-
-.. parsed-literal::
-
-    2024-04-16 11:19:35,308 Previous dataset split restored
-
-
-.. parsed-literal::
-
-    model_performance|0.950|0.277|0.476|0.875|0.428|0.921|393_28_190|./dataset/SLC6A3_models/SLC6A3_Ki_curated_model_8e7bb4a7-40ef-4400-8c9d-c07dbf496e56.tar.gz
-    
-    rf_estimators: 29, rf_max_depth: 23, rf_max_feature: 177                        
-    RF model with computed_descriptors and rdkit_raw                                
-     60%|██████    | 6/10 [00:08<00:07,  1.83s/trial, best loss: 0.5115391017103005]
-
-.. parsed-literal::
-
-    2024-04-16 11:19:38,210 Previous dataset split restored
-
-
-.. parsed-literal::
-
-    model_performance|0.946|0.288|0.471|0.879|0.427|0.922|29_23_177|./dataset/SLC6A3_models/SLC6A3_Ki_curated_model_4596c9af-f98c-4ce4-bb79-91fedb4c0ea6.tar.gz
-    
-    rf_estimators: 106, rf_max_depth: 10, rf_max_feature: 112                       
-    RF model with computed_descriptors and rdkit_raw                                
-     70%|███████   | 7/10 [00:09<00:04,  1.40s/trial, best loss: 0.5115391017103005]
-
-.. parsed-literal::
-
-    2024-04-16 11:19:38,736 Previous dataset split restored
-
-
-.. parsed-literal::
-
-    model_performance|0.914|0.366|0.474|0.876|0.414|0.932|106_10_112|./dataset/SLC6A3_models/SLC6A3_Ki_curated_model_67b2be27-3a1f-4e16-9d0a-2337e431907c.tar.gz
-    
-    rf_estimators: 190, rf_max_depth: 15, rf_max_feature: 135                       
-    RF model with computed_descriptors and rdkit_raw                                
-     80%|████████  | 8/10 [00:10<00:02,  1.21s/trial, best loss: 0.5115391017103005]
-
-.. parsed-literal::
-
-    2024-04-16 11:19:39,511 Previous dataset split restored
-
-
-.. parsed-literal::
-
-    model_performance|0.947|0.286|0.484|0.868|0.449|0.905|190_15_135|./dataset/SLC6A3_models/SLC6A3_Ki_curated_model_601ae89f-a8bb-4da2-b7a7-b434a2bdcbbe.tar.gz
-    
-    rf_estimators: 146, rf_max_depth: 27, rf_max_feature: 112                       
-    RF model with computed_descriptors and rdkit_raw                                
-     90%|█████████ | 9/10 [00:11<00:01,  1.28s/trial, best loss: 0.5115391017103005]
-
-.. parsed-literal::
-
-    2024-04-16 11:19:40,938 Previous dataset split restored
-
-
-.. parsed-literal::
-
-    model_performance|0.949|0.280|0.483|0.869|0.436|0.915|146_27_112|./dataset/SLC6A3_models/SLC6A3_Ki_curated_model_0967e5ea-64a1-4509-80da-176bd8773775.tar.gz
-    
-    100%|██████████| 10/10 [00:12<00:00,  1.27s/trial, best loss: 0.5115391017103005]
-    Generating the performance -- iteration table and Copy the best model tarball.
-    Best model: ./dataset/SLC6A3_models/SLC6A3_Ki_curated_model_dbd1d89c-05f5-4224-bce4-7dbeafaba313.tar.gz, valid R2: 0.4884608982896995
 
 
 The top scoring model will be saved in
@@ -709,281 +197,70 @@ models to select the best hyperparameters"**.
     Found data for 10 models under dataset/SLC6A3_models
 
 
-
-
-.. raw:: html
-
-    <div>
-    <style scoped>
-        .dataframe tbody tr th:only-of-type {
-            vertical-align: middle;
-        }
-    
-        .dataframe tbody tr th {
-            vertical-align: top;
-        }
-    
-        .dataframe thead th {
-            text-align: right;
-        }
-    </style>
-    <table border="1" class="dataframe">
-      <thead>
-        <tr style="text-align: right;">
-          <th></th>
-          <th>model_uuid</th>
-          <th>model_parameters_dict</th>
-          <th>best_valid_r2_score</th>
-          <th>best_test_r2_score</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <th>4</th>
-          <td>dbd1d89c-05f5-4224-bce4-7dbeafaba313</td>
-          <td>{"rf_estimators": 262, "rf_max_depth": 16, "rf...</td>
-          <td>0.488461</td>
-          <td>0.424234</td>
-        </tr>
-        <tr>
-          <th>8</th>
-          <td>601ae89f-a8bb-4da2-b7a7-b434a2bdcbbe</td>
-          <td>{"rf_estimators": 190, "rf_max_depth": 15, "rf...</td>
-          <td>0.483822</td>
-          <td>0.448591</td>
-        </tr>
-        <tr>
-          <th>9</th>
-          <td>0967e5ea-64a1-4509-80da-176bd8773775</td>
-          <td>{"rf_estimators": 146, "rf_max_depth": 27, "rf...</td>
-          <td>0.483401</td>
-          <td>0.436227</td>
-        </tr>
-        <tr>
-          <th>2</th>
-          <td>9da5fa7a-610f-469a-9562-b760c03581bc</td>
-          <td>{"rf_estimators": 60, "rf_max_depth": 28, "rf_...</td>
-          <td>0.480939</td>
-          <td>0.450400</td>
-        </tr>
-        <tr>
-          <th>1</th>
-          <td>2b63bedb-7983-49cd-8d9b-b2039439ae98</td>
-          <td>{"rf_estimators": 233, "rf_max_depth": 28, "rf...</td>
-          <td>0.480583</td>
-          <td>0.399987</td>
-        </tr>
-      </tbody>
-    </table>
-    </div>
+.. list-table::
+   :header-rows: 1
+   :class: tight-table
+  
+   * -                                     
+     - model_uuid                      
+     - model_parameters_dict
+     - best_valid_r2_score
+     - best_test_r2_score
+   * - **4**
+     - dbd1d89c-05f5-4224-bce4-7dbeafaba313
+     - {"rf_estimators": 262, "rf_max_depth": 16, "rf...
+     - 0.488461
+     - 0.424234
+   * - 8
+     - 601ae89f-a8bb-4da2-b7a7-b434a2bdcbbe
+     - {"rf_estimators": 190, "rf_max_depth": 15, "rf...
+     - 0.483822
+     - 0.448591
+   * - 9
+     - 0967e5ea-64a1-4509-80da-176bd8773775
+     - {"rf_estimators": 146, "rf_max_depth": 27, "rf...
+     - 0.483401
+     - 0.436227
+   * - 2
+     - 9da5fa7a-610f-469a-9562-b760c03581bc
+     - {"rf_estimators": 60, "rf_max_depth": 28, "rf_...
+     - 0.480939
+     - 0.450400
+   * - 1
+     - 2b63bedb-7983-49cd-8d9b-b2039439ae98
+     - {"rf_estimators": 233, "rf_max_depth": 28, "rf...
+     - 0.480583
+     - 0.399987
 
 
 
 Examples of Other Parameter Sets
---------------------------------
+*****************************
 
 Below are some parameters that can be used for **neural networks**,
-**`XGBoost <https://en.wikipedia.org/wiki/XGBoost>`__** models,
+`XGBoost <https://en.wikipedia.org/wiki/XGBoost>`_ models,
 **fingerprint splits** and
-**`ECFP <https://pubs.acs.org/doi/10.1021/ci100050t>`__** features. Each
+`ECFP <https://pubs.acs.org/doi/10.1021/ci100050t>`_ features. Each
 set of parameters can be used to replace the parameters above. Trying
 them out is left as an exercise for the reader.
 
 Neural Network Hyperopt Search
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+------------------------------
 
-+------+------+
-| Para | Desc |
-| mete | ript |
-| r    | ion  |
-+======+======+
-| ``lr | This |
-| ``   | cont |
-|      | rols |
-|      | the  |
-|      | lear |
-|      | ning |
-|      | rate |
-|      | .    |
-|      | logu |
-|      | nifo |
-|      | rm\| |
-|      | -13. |
-|      | 8,-3 |
-|      | mean |
-|      | s    |
-|      | the  |
-|      | loga |
-|      | rith |
-|      | m    |
-|      | of   |
-|      | the  |
-|      | lear |
-|      | ning |
-|      | rate |
-|      | is   |
-|      | unif |
-|      | orml |
-|      | y    |
-|      | dist |
-|      | ribu |
-|      | ted  |
-|      | betw |
-|      | een  |
-|      | -13. |
-|      | 8    |
-|      | and  |
-|      | -3.  |
-+------+------+
-| ``ls | This |
-| ``   | cont |
-|      | rols |
-|      | laye |
-|      | r    |
-|      | size |
-|      | s.   |
-|      | 3\|8 |
-|      | ,512 |
-|      | mean |
-|      | s    |
-|      | 3    |
-|      | laye |
-|      | rs   |
-|      | with |
-|      | size |
-|      | s    |
-|      | rang |
-|      | ing  |
-|      | betw |
-|      | een  |
-|      | 8    |
-|      | and  |
-|      | 512  |
-|      | neur |
-|      | ons. |
-|      | A    |
-|      | good |
-|      | stra |
-|      | tegy |
-|      | is   |
-|      | to   |
-|      | star |
-|      | t    |
-|      | with |
-|      | a    |
-|      | fewe |
-|      | r    |
-|      | laye |
-|      | rs   |
-|      | and  |
-|      | slow |
-|      | ly   |
-|      | incr |
-|      | ease |
-|      | the  |
-|      | numb |
-|      | er   |
-|      | unti |
-|      | l    |
-|      | perf |
-|      | orma |
-|      | nce  |
-|      | plat |
-|      | eaus |
-|      | .    |
-+------+------+
-| ``dp | This |
-| ``   | cont |
-|      | rols |
-|      | drop |
-|      | out. |
-|      | 3\|0 |
-|      | ,0.4 |
-|      | mean |
-|      | s    |
-|      | 3    |
-|      | drop |
-|      | out  |
-|      | laye |
-|      | rs   |
-|      | with |
-|      | prob |
-|      | abil |
-|      | ity  |
-|      | of   |
-|      | zero |
-|      | ing  |
-|      | a    |
-|      | weig |
-|      | ht   |
-|      | betw |
-|      | een  |
-|      | 0    |
-|      | and  |
-|      | 40%. |
-|      | This |
-|      | need |
-|      | s    |
-|      | to   |
-|      | matc |
-|      | h    |
-|      | the  |
-|      | numb |
-|      | er   |
-|      | of   |
-|      | laye |
-|      | rs   |
-|      | spec |
-|      | ifie |
-|      | d    |
-|      | with |
-|      | ``ls |
-|      | ``   |
-|      | and  |
-|      | shou |
-|      | ld   |
-|      | rang |
-|      | e    |
-|      | betw |
-|      | een  |
-|      | 0%   |
-|      | and  |
-|      | 50%. |
-+------+------+
-| ``ma | This |
-| x_ep | cont |
-| ochs | rols |
-| ``   | how  |
-|      | long |
-|      | to   |
-|      | trai |
-|      | n    |
-|      | each |
-|      | mode |
-|      | l.   |
-|      | Trai |
-|      | ning |
-|      | for  |
-|      | more |
-|      | epoc |
-|      | hs   |
-|      | incr |
-|      | ease |
-|      | s    |
-|      | runt |
-|      | ime, |
-|      | but  |
-|      | allo |
-|      | ws   |
-|      | mode |
-|      | ls   |
-|      | more |
-|      | time |
-|      | to   |
-|      | opti |
-|      | mize |
-|      | .    |
-+------+------+
+.. list-table::
+   :header-rows: 1
+   :class: tight-table
+  
+   * - Parameter                                     
+     - Description   
+   * - `lr`
+     - This controls the learning rate. loguniform|-13.8,-3 means the logarithm of the learning rate is uniformly distributed between -13.8 and -3.
+   * - `ls`
+     - This controls layer sizes. 3|8,512 means 3 layers with sizes ranging between 8 and 512 neurons. A good strategy is to start with a fewer layers and slowly increase the number until performance plateaus.
+   * - `dp`
+     - This controls dropout. 3|0,0.4 means 3 dropout layers with probability of zeroing a weight between 0 and 40%. This needs to match the number of layers specified with `ls` and should range between 0% and 50%.
+   * - `max_epochs`
+     - This controls how long to train each model. Training for more epochs increases runtime, but allows models more time to optimize.
 
 .. code:: ipython3
 
@@ -1017,14 +294,14 @@ Neural Network Hyperopt Search
     }
 
 XGBoost
-^^^^^^^
+-------
 
 -  ``xgbg`` Stands for ``xgb_gamma`` and controls the minimum loss
    reduction required to make a further partition on a leaf node of the
    tree.
 -  ``xgbl`` Stands for ``xgb_learning_rate`` and controls the boosting
    learning rate searching domain of
-   **`XGBoost <https://en.wikipedia.org/wiki/XGBoost>`__** models.
+   `XGBoost <https://en.wikipedia.org/wiki/XGBoost>`_ models.
 
 .. code:: ipython3
 
@@ -1056,9 +333,9 @@ XGBoost
     }
 
 Fingerprint Split
-^^^^^^^^^^^^^^^^^
+-----------------
 
-This trains an **`XGBoost <https://en.wikipedia.org/wiki/XGBoost>`__**
+This trains an `XGBoost <https://en.wikipedia.org/wiki/XGBoost>`_
 model using a provided **fingerprint split**.
 
 .. code:: ipython3
@@ -1093,11 +370,11 @@ model using a provided **fingerprint split**.
     }
 
 ECFP Features
-^^^^^^^^^^^^^
+-------------
 
-This uses an **`XGBoost <https://en.wikipedia.org/wiki/XGBoost>`__**
-model with **`ECFP
-fingerprints <https://pubs.acs.org/doi/10.1021/ci100050t>`__** features
+This uses an `XGBoost <https://en.wikipedia.org/wiki/XGBoost>`_
+model with `ECFP
+fingerprints <https://pubs.acs.org/doi/10.1021/ci100050t>`_ features
 and a **scaffold split**.
 
 .. code:: ipython3
@@ -1135,4 +412,4 @@ we analyze the performance of these large sets of models to select the
 best hyperparameters for production models.
 
 If you have specific feedback about a tutorial, please complete the
-**`AMPL Tutorial Evaluation <https://forms.gle/pa9sHj4MHbS5zG7A6>`__**.
+`AMPL Tutorial Evaluation <https://forms.gle/pa9sHj4MHbS5zG7A6>`_.

@@ -1,5 +1,5 @@
 ################
-02 Data Curation
+01 Data Curation
 ################
 
 *Published: June, 2024, ATOM DDM Team*
@@ -55,7 +55,7 @@ We've prepared an example dataset containing
 values for inhibitors of the
 `SLC6A3 <https://www.ebi.ac.uk/chembl/target_report_card/CHEMBL238/>`_
 dopamine transporter collected from
-`ChEMBL <https://www.ebi.ac.uk/chembl/>`__**. This dataset is simpler
+`ChEMBL <https://www.ebi.ac.uk/chembl/>`_. This dataset is simpler
 than most that we find in the wild, but it will let us concisely
 demonstrate some `AMPL <https://github.com/ATOMScience-org/AMPL>`_
 curation tools. The first step of data curation is to read the raw data
@@ -186,26 +186,27 @@ like :math:`IC_{50}`'s, :math:`K_d`'s and :math:`EC_{50}`'s, yielding
 .. note::
 
     *For those who want more details: It's hard to fit machine
-    learning (ML) models to raw :math:`K_i`'s because typical training
+    learning (ML) models to raw Ki's because typical training
     methods seek to minimize a squared-error loss function (the error
     being the difference between the actual and predicted values).
     Squared errors tend to scale with the variance among replicates, so
     the loss function is dominated by the compounds with the largest
-    variance, i.e. those with the largest :math:`K_i`'s. This leads to
+    variance, i.e. those with the largest Ki's. This leads to
     models that perform OK on the least potent compounds and terribly on
     the most potent.*
 
-    The `AMPL <https://github.com/ATOMScience-org/AMPL>`_ function
-    "compute_negative_log_responses" performs these variance stabilizing
-    transformations, converting K_i's to pK_i's and so on.
-    The code below uses the units in the "standard_units" column and the
-    conversion functions specified in the "unit_conv" argument to convert
-    the K_i's in the "standard_value" column to molar units before
-    applying the log transformation. It also inverts the "<" and
-    ">" operators in "relation_col" so that they correctly
-    describe the pK_i values, which decrease as K_i values
-    increase (e.g., "K_i > 100 {µ}M" means
-    "K_i > 10^{-4} rm{M}" which implies "pK_i < 4")*.
+The `AMPL <https://github.com/ATOMScience-org/AMPL>`_ function
+``compute_negative_log_responses`` performs these variance stabilizing
+transformations, converting :math:`K_i`'s to :math:`pK_i`'s and so on.
+The code below uses the units in the ``standard_units`` column and the
+conversion functions specified in the ``unit_conv`` argument to convert
+the :math:`K_i`'s in the ``standard_value`` column to molar units before
+applying the log transformation. It also inverts the ":math:`<`" and
+":math:`>`" operators in ``relation_col`` so that they correctly
+describe the :math:`pK_i` values, which *decrease* as :math:`K_i` values
+*increase* (e.g., ":math:`K_i > 100 \mathrm{µ}M`" means
+":math:`K_i > 10^{-4} \mathrm{M}`" which implies ":math:`pK_i < 4`").
+
 
 .. code:: ipython3
 
@@ -227,7 +228,7 @@ transformed :math:`K_i`'s:
 
 
 
-.. image:: 01_data_curation_files/01_data_curation_19_0.png
+.. image:: ../_static/img/01_data_curation_files/01_data_curation_18_0.png
 
 
 Standardize Relations
@@ -399,8 +400,8 @@ columns:
      - the standardized `SMILES <https://en.wikipedia.org/wiki/Simplified_molecular-input_line-entry_system>`_  string.
    * - `relation`
      - an aggregate relation for the set of replicates
-   * - `avg_pK`
-     - or whatever you specified in the output_value_col argument, containing the aggregate/average value.
+   * - `avg_pKi`
+     - or whatever you specified in the output_value_col argument, containing the aggregate/average :math:`pK_i` value.
 
 .. note::
     

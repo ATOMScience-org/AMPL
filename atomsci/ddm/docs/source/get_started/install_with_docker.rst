@@ -106,7 +106,7 @@ To get more info for the "docker run" command options, type "docker run --help":
      -i, --interactive                    Keep STDIN open even if not attached
      -t, --tty                            Create a pseudo terminal
      -p, --publish port(s) list           Publish a container's port(s) to the host
-     -v, --volume list                    Bind mount a volume </pre>
+     -v, --volume list                    Bind mount a volume
 
 .. _Start Jupyter notebook:
 

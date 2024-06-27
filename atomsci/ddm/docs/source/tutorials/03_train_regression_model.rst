@@ -1,5 +1,11 @@
-Train a Simple Regression Model
-===============================
+##################################
+03 Train a Simple Regression Model
+##################################
+
+*Published: June, 2024, ATOM DDM Team*
+
+------------
+
 
 The process of training a machine learning (ML) model can be thought of
 as fitting a highly parameterized function to map inputs to outputs. An
@@ -9,35 +15,37 @@ training, the result is referred to as a trained ML model or an
 artifact.
 
 This tutorial will detail how we can use
-**`AMPL <https://github.com/ATOMScience-org/AMPL>`__** tools to train a
+`AMPL <https://github.com/ATOMScience-org/AMPL>`_ tools to train a
 regression model to predict how much a compound will inhibit the
-**`SLC6A3 <https://www.ebi.ac.uk/chembl/target_report_card/CHEMBL238/>`__**
+`SLC6A3 <https://www.ebi.ac.uk/chembl/target_report_card/CHEMBL238/>`_
 protein as measured by :math:`pK_i`. We will train a random forest model
 using the following inputs:
 
 1. The curated
-   **`SLC6A3 <https://www.ebi.ac.uk/chembl/target_report_card/CHEMBL238>`__**
+   `SLC6A3 <https://www.ebi.ac.uk/chembl/target_report_card/CHEMBL238>`_
    dataset from **Tutorial 1, "Data Curation"**.
 2. The split file generated in **Tutorial 2, "Splitting Datasets for
    Validation and Testing"**.
-3. **`RDKit <https://github.com/rdkit/rdkit>`__** features calculated by
-   the **`AMPL <https://github.com/ATOMScience-org/AMPL>`__** pipeline.
+3. `RDKit <https://github.com/rdkit/rdkit>`_ features calculated by
+   the `AMPL <https://github.com/ATOMScience-org/AMPL>`_ pipeline.
 
 The tutorial will present the following functions and classes:
 
--  `ModelPipeline <https://ampl.readthedocs.io/en/latest/pipeline.html#module-pipeline.model_pipeline>`__
--  `parameter\_parser.wrapper <https://ampl.readthedocs.io/en/latest/pipeline.html#module-pipeline.model_pipeline>`__
--  `compare\_models.get\_filesystem\_perf\_results <https://ampl.readthedocs.io/en/latest/pipeline.html#module-pipeline.model_pipeline>`__
+-  `ModelPipeline <https://ampl.readthedocs.io/en/latest/pipeline.html#module-pipeline.model_pipeline>`_
+-  `parameter_parser.wrapper <https://ampl.readthedocs.io/en/latest/pipeline.html#module-pipeline.model_pipeline>`_
+-  `compare_models.get_filesystem_perf_results <https://ampl.readthedocs.io/en/latest/pipeline.html#module-pipeline.model_pipeline>`_
 
 We will explain the use of descriptors, how to evaluate model
 performance, and where the model is saved as a .tar.gz file.
 
-    **Note**: *Training a random forest model and splitting the dataset
+.. note::   
+    
+    *Training a random forest model and splitting the dataset
     are non-deterministic. You will obtain a slightly different random
     forest model by running this tutorial each time.*
 
 Model Training (Using Previously Split Data)
---------------------------------------------
+********************************************
 
 In our first example, we train a model using a curated dataset (as
 described in **Tutorial 1, “Data Curation”**) that was already split
@@ -53,21 +61,21 @@ Here, we will use
 ``"split_uuid": "c35aeaab-910c-4dcf-8f9f-04b55179aa1a"`` which is saved
 in ``dataset/`` as a convenience for these tutorials.
 
-**`AMPL <https://github.com/ATOMScience-org/AMPL>`__** provides an
+`AMPL <https://github.com/ATOMScience-org/AMPL>`_ provides an
 extensive featurization module that can generate a variety of molecular
 feature types, given
-**`SMILES <https://en.wikipedia.org/wiki/Simplified_molecular-input_line-entry_system>`__**
+`SMILES <https://en.wikipedia.org/wiki/Simplified_molecular-input_line-entry_system>`_
 strings as input. For demonstration purposes, we choose to use
-**`RDKit <https://github.com/rdkit/rdkit>`__** features in this
+`RDKit <https://github.com/rdkit/rdkit>`_ features in this
 tutorial.
 
 When the featurized dataset is not previously saved for SLC6A3\_Ki,
-**`AMPL <https://github.com/ATOMScience-org/AMPL>`__** will create a
+`AMPL <https://github.com/ATOMScience-org/AMPL>`_ will create a
 featurized dataset and save it in a folder called ``scaled_descriptors``
 as a csv file e.g.
 ``dataset/scaled_descriptors/SLC6A3_Ki_curated_with_rdkit_raw_descriptors.csv``.
 
-After training, **`AMPL <https://github.com/ATOMScience-org/AMPL>`__**
+After training, `AMPL <https://github.com/ATOMScience-org/AMPL>`_
 saves the model and all of its parameters as a tarball in the directory
 given by ``result_dir``.
 
@@ -111,19 +119,13 @@ given by ``result_dir``.
     pl.train_model()
 
 
-
-.. parsed-literal::
-
-    Skipped loading some Jax models, missing a dependency. No module named 'haiku'
-
-
 Model Training (Split Data and Train)
--------------------------------------
+*************************************
 
-AMPL also provides an option to split a dataset and train a model in one
+`AMPL <https://github.com/ATOMScience-org/AMPL>`_ also provides an option to split a dataset and train a model in one
 step, by setting the ``previously_split`` parameter to False and
 omitting the ``split_uuid`` parameter.
-**`AMPL <https://github.com/ATOMScience-org/AMPL>`__** splits the data
+`AMPL <https://github.com/ATOMScience-org/AMPL>`_ splits the data
 by the type of split specified in the splitter parameter, scaffold in
 this example, and writes the split file in
 ``dataset/SLC6A3_Ki_curated_train_valid_test_scaffold_{split_uuid}.csv``
@@ -163,14 +165,14 @@ to the random variations between splits.
     pl.train_model()
 
 Performance of the Model
-------------------------
+************************
 
 We evaluate model performance by measuring how accurate models are on
 validation and test sets. The validation set is used while optimizing
 the model and choosing the best parameter settings. Finally, we use the
 model's performance on the test set to judge the model.
 
-**`AMPL <https://github.com/ATOMScience-org/AMPL>`__** has several
+`AMPL <https://github.com/ATOMScience-org/AMPL>`_ has several
 popular metrics to evaulate regression models; **Mean Absolute Error
 (MAE)**, **Root Mean Squared Error (RMSE)** and :math:`R^2` (R-Squared).
 In our tutorials, we will use :math:`R^2` metric to compare our models.
@@ -209,58 +211,34 @@ performance. Let us view the contents of the ``perf_df`` dataframe.
 
 
 
-.. raw:: html
+.. list-table:: 
+   :header-rows: 1
+   :class: tight-table 
+ 
+   * - 
+     - model_uuid
+     - split_uuid
+     - best_train_r2_score
+     - best_valid_r2_score
+     - best_test_r2_score
+   * - 0
+     - 9ff5a924-ef49-407c-a4d4-868a1288a67e
+     - c35aeaab-910c-4dcf-8f9f-04b55179aa1a
+     - 0.949835
+     - 0.500110
+     - 0.426594
+   * - 1
+     - f69409b0-33ce-404f-b1e5-0e9f5128ebc7
+     - f6351696-363f-411a-8720-4892bc4f700e
+     - 0.949919
+     - 0.472619
+     - 0.436174
 
-    <div>
-    <style scoped>
-        .dataframe tbody tr th:only-of-type {
-            vertical-align: middle;
-        }
-    
-        .dataframe tbody tr th {
-            vertical-align: top;
-        }
-    
-        .dataframe thead th {
-            text-align: right;
-        }
-    </style>
-    <table border="1" class="dataframe">
-      <thead>
-        <tr style="text-align: right;">
-          <th></th>
-          <th>model_uuid</th>
-          <th>split_uuid</th>
-          <th>best_train_r2_score</th>
-          <th>best_valid_r2_score</th>
-          <th>best_test_r2_score</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <th>0</th>
-          <td>9ff5a924-ef49-407c-a4d4-868a1288a67e</td>
-          <td>c35aeaab-910c-4dcf-8f9f-04b55179aa1a</td>
-          <td>0.949835</td>
-          <td>0.500110</td>
-          <td>0.426594</td>
-        </tr>
-        <tr>
-          <th>1</th>
-          <td>f69409b0-33ce-404f-b1e5-0e9f5128ebc7</td>
-          <td>f6351696-363f-411a-8720-4892bc4f700e</td>
-          <td>0.949919</td>
-          <td>0.472619</td>
-          <td>0.436174</td>
-        </tr>
-      </tbody>
-    </table>
-    </div>
 
 
 
 Finding the Top Performing Model
---------------------------------
+********************************
 
 To pick the top performing model, we sort the performance table by
 ``best_valid_r2_score`` in descending order and examine the top row.
@@ -345,4 +323,4 @@ to use a selected model to make predictions and evaluate those
 predictions
 
 If you have specific feedback about a tutorial, please complete the
-**`AMPL Tutorial Evaluation <https://forms.gle/pa9sHj4MHbS5zG7A6>`__**.
+`AMPL Tutorial Evaluation <https://forms.gle/pa9sHj4MHbS5zG7A6>`_.
