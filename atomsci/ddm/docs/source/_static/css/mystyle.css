@@ -1,6 +1,11 @@
 .center { text-align: center; }
 .right { text-align: right; }
 
+.bolditalic {
+    font-weight: bold;
+    font-style: italic;
+}
+
 .wy-nav-content {
     max-width: none;
 }

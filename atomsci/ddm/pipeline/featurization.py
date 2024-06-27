@@ -59,27 +59,29 @@ log = logging.getLogger('ATOM')
 
 
 # ****************************************************************************************
-def make_weights(vals):
+def make_weights(vals, is_class=False):
     """In the case of multitask learning, we must create weights for each sample labeling
     it with 0 if there is not value or 1 if there is.
 
     Args:
-        vals: numpy array containing nans where there are not labels
+        vals: numpy array containing nans or empty strings where there are not labels
 
     Returns:
-        vals: numpy array same as input vals, but nans are replaced with 0
-        w: numpy array same shape as vals, where w[i,j] = 1 if vals[i,j] is nan else w[i,j] = 0
+        vals: numpy array same as input vals, but strings are replaced with 0 (for classification models) or nans (for regression models)
+        w: numpy array same shape as out_vals, where w[i,j] = 1 if vals[i,j] is nan else w[i,j] = 0
     """
-    # sometimes instead of nan, '' is used for missing values
     out_vals = np.copy(vals)
+    # sometimes instead of nan, '' is used for missing values
     if not np.issubdtype(out_vals.dtype, np.number):
         # there might be strings or other objects in this array
         out_vals[out_vals==''] = np.nan
-    
     out_vals = out_vals.astype(float)
-    w = np.where(np.isnan(out_vals), 0, 1).astype(float)
-
-    return out_vals, w
+    w = np.where(np.isnan(out_vals), 0., 1).astype(float)
+    if is_class:
+        out_vals = np.where(np.isnan(out_vals), 0., out_vals)
+        return out_vals, w
+    else:
+        return out_vals, w
 
 
 # ****************************************************************************************
@@ -424,7 +426,7 @@ def compute_all_moe_descriptors(smiles_df, params):
     """
 
     # TODO: Get MOE_PATH from params
-    moe_path = os.environ.get('MOE_PATH', '/usr/workspace/atom/moe2020_site/moe2020_site/bin')
+    moe_path = os.environ.get('MOE_PATH', '/usr/workspace/atom/moe2022_site/bin')
     if not os.path.exists(moe_path):
         raise Exception("MOE is not available, or MOE_PATH environment variable needs to be set.")
     moe_root = os.path.abspath('%s/..' % moe_path)
@@ -747,8 +749,9 @@ class DynamicFeaturization(Featurization):
             feat_df = pd.DataFrame(dict(c0=features))
         featurized_dset_df = pd.concat([keep_df, feat_df], ignore_index=False, axis=1)
 
+        is_class=params.model_type=='classification'
         if contains_responses and (params.model_type != 'hybrid'):
-            vals, w = make_weights(featurized_dset_df[params.response_cols].values) #, self.id_field)
+            vals, w = make_weights(featurized_dset_df[params.response_cols].values, is_class=is_class) #, self.id_field)
         else:
             vals = np.zeros((nrows,ncols))
             w = np.ones((nrows,ncols)) ## JEA
@@ -1468,9 +1471,10 @@ class DescriptorFeaturization(PersistentFeaturization):
 
         nrows = len(ids)
         ncols = len(params.response_cols)
+        is_class= params.model_type=='classification'
         if contains_responses and (params.model_type != 'hybrid'):
             vals = featurized_dset_df[params.response_cols].values
-            vals, weights = make_weights(vals)
+            vals, weights = make_weights(vals, is_class=is_class)
         else:
             vals = np.zeros((nrows,ncols))
             weights = np.ones_like(vals, dtype=np.float32)
@@ -1710,9 +1714,11 @@ class ComputedDescriptorFeaturization(DescriptorFeaturization):
             calc_smiles_df = input_df[input_df[params.smiles_col].isin(calc_smiles)]
             calc_desc_df, is_valid = self.compute_descriptors(calc_smiles_df, params)
             calc_smiles_feat_df = calc_smiles_df[is_valid].reset_index(drop=True)[[params.smiles_col]]
-            for col in descr_cols:
-                calc_smiles_feat_df[col] = calc_desc_df[col]
-
+            # update descr_cols with smiles col to merge instead of concat data
+            df_cols=[self.desc_smiles_col]
+            df_cols.extend(descr_cols)
+            calc_smiles_feat_df=calc_smiles_feat_df.merge(calc_desc_df[df_cols], how='left', on=self.desc_smiles_col)
+            
             if len(precomp_smiles) == 0:
                 uniq_smiles_feat_df = calc_smiles_feat_df
 
@@ -1765,9 +1771,10 @@ class ComputedDescriptorFeaturization(DescriptorFeaturization):
         ids = featurized_dset_df[params.id_col]
         nrows = len(ids)
         ncols = len(params.response_cols)
+        is_class=params.model_type=='classification'
         if contains_responses and (params.model_type != 'hybrid'):
             vals = featurized_dset_df[params.response_cols].values
-            vals, weights = make_weights(vals)
+            vals, weights = make_weights(vals, is_class=is_class)
         else:
             vals = np.zeros((nrows,ncols))
             weights = np.ones_like(vals, dtype=np.float32)
@@ -1935,12 +1942,17 @@ class ComputedDescriptorFeaturization(DescriptorFeaturization):
         a_count = desc_df.a_count.values
         unscaled_moe_desc_cols = [col.replace('_per_atom', '') for col in descr_cols]
         nondesc_cols = list(set(desc_df.columns.values) - set(unscaled_moe_desc_cols))
-        scaled_df = desc_df[nondesc_cols].copy()
+        scaled_cols=[desc_df[nondesc_cols].copy()]
         for scaled_col, unscaled_col in zip(descr_cols, unscaled_moe_desc_cols):
             if scaled_col.endswith('_per_atom'):
-                scaled_df[scaled_col] = desc_df[unscaled_col].values / a_count
+                tmp_col=desc_df[unscaled_col] / a_count
+                tmp_col=tmp_col.rename(scaled_col)
+                scaled_cols.append(tmp_col)
             else:
-                scaled_df[scaled_col] = desc_df[unscaled_col].values
+                tmp_col=desc_df[unscaled_col]
+                tmp_col=tmp_col.rename(scaled_col)
+                scaled_cols.append(tmp_col)
+        scaled_df=pd.concat(scaled_cols, axis=1)
         return scaled_df.copy()
 
     # ****************************************************************************************

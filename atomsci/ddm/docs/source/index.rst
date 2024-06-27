@@ -4,9 +4,11 @@
    contain the root `toctree` directive.
 
 ATOM Modeling PipeLine (AMPL) for Drug Discovery
-==============================================================
+=================================================
 
-**AMPL** is an open-source, modular, extensible software pipeline for building and sharing models to advance in silico drug discovery.
+.. include:: /_static/shared/links.rst
+
+`AMPL <https://github.com/ATOMScience-org/AMPL>`_ is an open-source, modular, extensible software pipeline for building and sharing models to advance in silico drug discovery.
 
 The ATOM Modeling PipeLine (AMPL) extends the functionality of DeepChem and supports an array of machine learning and molecular featurization tools. AMPL is an end-to-end data-driven modeling pipeline to generate machine learning models that can predict key safety and pharmacokinetic-relevant parameters. AMPL has been benchmarked on a large collection of pharmaceutical datasets covering a wide range of parameters.
 
@@ -26,44 +28,51 @@ More detailed documentation is in the library documentation.
 Built with
 ----------
 
-- `DeepChem`_: The basis for the graph convolution models
-- `RDKit`_: Molecular informatics library
-- `Mordred`_: Chemical descriptors
+- `DeepChem <DeepChem_>`_: The basis for the graph convolution models
+- `RDKit <RDKit_>`_: Molecular informatics library
+- `Mordred <Mordred_>`_: Chemical descriptors
 - Other Python package dependencies
-
-User guide
-----------
-
-A step-by-step guide to getting started with MolVS.
-
-.. toctree::
-   :maxdepth: 1
-
-   guide/getting_started
-   guide/install
-   guide/tests
-   guide/running_ampl
-   guide/advanced_ampl_usage
-   guide/advanced_installation
-   guide/advanced_testing
-
-API documentation
------------------
 
 .. toctree::
    :maxdepth: 2
+   :caption: Getting Started
 
-   modules 
+   get_started/introduction
+   get_started/install
+   get_started/install_with_docker
+   get_started/running_ampl
+   get_started/tests
 
-Useful links
------------------
-- `ATOM Data-Driven Modeling Pipeline on GitHub`_
-- `Pipeline parameters (options)`_
-- `Library documentation`_
+.. toctree::
+   :maxdepth: 2
+   :caption: Tutorials
 
-.. _`DeepChem`: https://github.com/deepchem/deepchem
-.. _`RDKit`: http://www.rdkit.org
-.. _`Mordred`: https://github.com/mordred-descriptor/mordred
-.. _`ATOM Data-Driven Modeling Pipeline on GitHub`: https://github.com/ATOMScience-org/AMPL
-.. _`Pipeline parameters (options)`: https://github.com/ATOMScience-org/AMPL/blob/master/atomsci/ddm/docs/PARAMETERS.md
-.. _`Library documentation`: https://ampl.readthedocs.io/en/latest/index.html
+   tutorials/ampl_tutorials_intro
+   tutorials/01_data_curation
+   tutorials/02_perform_a_split
+   tutorials/03_train_regression_model
+   tutorials/04_application_of_a_trained_model
+   tutorials/05_hyperopt
+   tutorials/06_compare_models
+   tutorials/07_train_a_production_model
+   tutorials/08_visualizations_of_model_performance
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Advanced Concepts
+
+   advanced/advanced_ampl_usage
+   advanced/advanced_installation
+   advanced/advanced_testing
+
+.. toctree::
+   :maxdepth: 1
+   :caption: API Package Reference
+
+   modules
+
+.. toctree::
+   :maxdepth: 1
+   :caption: External Resources
+
+   external/resources

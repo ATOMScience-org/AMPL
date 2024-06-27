@@ -13,11 +13,14 @@ import numpy as np
 import seaborn as sns
 import umap
 import sklearn.metrics as metrics
+from sklearn.metrics import ConfusionMatrixDisplay, PrecisionRecallDisplay
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 from mpl_toolkits.mplot3d import Axes3D
 
 from atomsci.ddm.utils import file_utils as futils
+from atomsci.ddm.utils import model_file_reader as mfr
+from atomsci.ddm.pipeline import model_pipeline as mp
 from atomsci.ddm.pipeline import perf_data as perf
 from atomsci.ddm.pipeline import predict_from_model as pfm
 
@@ -26,85 +29,155 @@ matplotlib.rc('xtick', labelsize=12)
 matplotlib.rc('ytick', labelsize=12)
 matplotlib.rc('axes', labelsize=12)
 
+#------------------------------------------------------------------------------------------------------------------------
+# Labels used in plot titles and axis labels
+score_type_label = dict(r2 = '$R^2$', mae = 'MAE', rmse = 'RMSE',
+        roc_auc = 'ROC AUC', precision = 'Precision', ppv = 'Precision', recall = 'Recall',
+        npv = 'NPV', cross_entropy = 'Cross entropy', accuracy = 'Accuracy', bal_accuracy = 'Balanced accuracy',
+        avg_precision = 'Average precision', prc_auc = 'Average precision', 
+        MCC = 'Matthews corr coef', mcc = 'Matthews corr coef', kappa = "Cohen's kappa")
 
 #------------------------------------------------------------------------------------------------------------------------
-def plot_pred_vs_actual(MP, epoch_label='best', threshold=None, error_bars=False, pdf_dir=None):
+# CVD-friendly plot colors. Use the more saturated 'colorblind' palette for point and line plots and 'pastel' for shading.
+
+# Map train/valid/test categories to colors and shades
+sat_cols = sns.color_palette('colorblind').as_hex()
+train_col = sat_cols[0]
+valid_col = sat_cols[2]
+test_col = sat_cols[1]
+full_col = sat_cols[4]
+
+shade_cols = sns.color_palette('pastel').as_hex()
+train_shade = shade_cols[0]
+valid_shade = shade_cols[2]
+test_shade = shade_cols[1]
+
+# Map boolean distinctions (false/true, incorrect/correct, etc.) to colors from 'colorblind' palette
+binary_pal = {0 : sat_cols[3], 1 : sat_cols[0]}
+
+# Map combined split subset / activity categories to colors from 'colorblind' palette
+train_active_col = sat_cols[0]
+train_inactive_col = sat_cols[9]
+test_active_col = sat_cols[3]
+test_inactive_col = sat_cols[2]
+
+# Use sequential 'crest' palette, which runs from light green to dark blue, for continuous values
+continuous_pal = sns.color_palette('crest', as_cmap=True)
+
+#------------------------------------------------------------------------------------------------------------------------
+def plot_pred_vs_actual(model, epoch_label='best', threshold=None, error_bars=False, plot_size=7, 
+                       external_training_data=None, pdf_dir=None):
     """Plot predicted vs actual values from a trained regression model for each split subset (train,
     valid, and test).
 
     Args:
-        MP (`ModelPipeline`): Pipeline object for a model that was trained in the current Python session.
-
+        model (`ModelPipeline` or str): Either a ModelPipeline object for a model that was trained in the current Python session,
+        or a path to a saved model .tar.gz file or directory.
         epoch_label (str): Label for training epoch to draw predicted values from. Currently 'best' is the only allowed value.
-
         threshold (float): Threshold activity value to mark on plot with dashed lines.
-
         error_bars (bool): If true and if uncertainty estimates are included in the model predictions, draw error bars
             at +- 1 SD from the predicted y values.
-
+        plot_size (float): Height of each subplot
+        external_training_data (str): Path to copy of training dataset, if different from path used when model was trained. Only
+        used for saved models.
         pdf_dir (str): If given, output the plots to a PDF file in the given directory.
 
     Returns:
         None
 
     """
-    params = MP.params
+    if isinstance(model, str):
+        return plot_pred_vs_actual_from_file(model, plot_size=plot_size, external_training_data=external_training_data)
+    elif not isinstance(model, mp.ModelPipeline):
+        raise ValueError('model must be either a ModelPipeline or a path to a saved model')
+    params = model.params
     # For now restrict this to regression models. 
-    # TODO: Implement a version of plot_pred_vs_actual for classification models.
     if params.prediction_type != 'regression':
-        MP.log.error("plot_pred_vs_actual is currently for regression models only.")
+        model.log.error("plot_pred_vs_actual() should only be called for regression models. Please try plot_confusion_matrices() instead..")
         return
-    wrapper = MP.model_wrapper
+    wrapper = model.model_wrapper
     if pdf_dir is not None:
         pdf_path = os.path.join(pdf_dir, '%s_%s_%s_%s_pred_vs_actual.pdf' % (params.dataset_name, params.model_type,
                                 params.featurizer, params.splitter))
         pdf = PdfPages(pdf_path)
 
-    if MP.run_mode == 'training':
+    if model.run_mode == 'training':
         subsets = ['train', 'valid', 'test']
     else:
         subsets = ['full']
-    dataset_name = MP.data.dataset_name
-    splitter = MP.params.splitter
-    model_type = MP.params.model_type
-    featurizer = MP.params.featurizer
-    tasks = MP.params.response_cols
-    for subset in subsets:
-        perf_data = wrapper.get_perf_data(subset, epoch_label)
-        pred_results = perf_data.get_prediction_results()
-        y_actual = perf_data.get_real_values()
-        ids, y_pred, y_std = perf_data.get_pred_values()
-        r2 = pred_results['r2_score']
-        if perf_data.num_tasks > 1:
-            r2_scores = pred_results['task_r2_scores']
+    num_ss = len(subsets)
+    dataset_name = model.data.dataset_name
+    splitter = model.params.splitter
+    model_type = model.params.model_type
+    featurizer = model.params.featurizer
+    if featurizer in ('computed_descriptors', 'descriptors'):
+        featurizer = f"{model.params.descriptor_type} descriptors"
+    else:
+        featurizer = f"{featurizer} features"
+    tasks = model.params.response_cols
+    num_tasks = len(tasks)
+    if model.params.model_type != "hybrid":
+        fig, axes = plt.subplots(num_tasks, num_ss, figsize=(plot_size*num_ss, plot_size*num_tasks))
+        if num_ss > 1:
+            suptitle = f"{dataset_name}  {splitter} {params.split_strategy} split {model_type} model on {featurizer} features, predicted vs actual values by split subset"
         else:
-            r2_scores = [r2]
-        if MP.params.model_type != "hybrid":
-            for t in range(MP.params.num_model_tasks):
-                fig, ax = plt.subplots(figsize=(12.0,12.0))
-                title = '%s\n%s split %s model on %s features\n%s subset predicted vs actual %s, R^2 = %.3f' % (
-                        dataset_name, splitter, model_type, featurizer, subset, tasks[t], r2_scores[t])
-                # Force axes to have same scale
-                ymin = min(min(y_actual[:,t]), min(y_pred[:,t]))
-                ymax = max(max(y_actual[:,t]), max(y_pred[:,t]))
+            suptitle = f"{model_type} model on {featurizer} features, predicted vs actual values on dataset {dataset_name}"
+        fig.suptitle(suptitle, y=0.95)
+        axes = axes.flatten()
+        for t, resp in enumerate(tasks):
+            for s, subset in enumerate(subsets):
+                perf_data = wrapper.get_perf_data(subset, epoch_label)
+                pred_results = perf_data.get_prediction_results()
+                y_actual = perf_data.get_real_values()
+                y_weights = perf_data.get_weights()
+                y_actual=np.where(y_weights==0, np.nan, y_actual)
+                ids, y_pred, y_std = perf_data.get_pred_values()
+                r2 = pred_results['r2_score']
+                if perf_data.num_tasks > 1:
+                    r2_scores = pred_results['task_r2_scores']
+                else:
+                    r2_scores = [r2]
+                ax_ind = num_ss*t + s
+                ax = axes[ax_ind]
+                ymin = min(np.nanmin(y_actual[:,t]), np.nanmin(y_pred[:,t]))
+                ymax = max(np.nanmax(y_actual[:,t]), np.nanmax(y_pred[:,t]))
+                # Force axes to have same scale for all subsets
                 ax.set_xlim(ymin, ymax)
                 ax.set_ylim(ymin, ymax)
                 if error_bars and y_std is not None:
                     # Draw error bars
-                    ax.errorbar(y_actual[:,t], y_pred[:,t], y_std[:,t], c='blue', marker='o', alpha=0.4, linestyle='')
+                    ax.errorbar(y_actual[:,t], y_pred[:,t], y_std[:,t], c=train_col, marker='o', alpha=0.4, linestyle='')
                 else:
-                    plt.scatter(y_actual[:,t], y_pred[:,t], s=9, c='blue', marker='o', alpha=0.4)
-                ax.set_xlabel('Observed value')
-                ax.set_ylabel('Predicted value')
+                    ax.scatter(y_actual[:,t], y_pred[:,t], s=25, marker='o', alpha=0.4)
+                ax.set_xlabel(f"Actual {resp}")
+                ax.set_ylabel(f"Predicted {resp}")
                 # Draw an identity line
-                ax.plot([ymin,ymax], [ymin,ymax], c='forestgreen', linestyle='--')
+                ax.plot([ymin,ymax], [ymin,ymax], c=test_col, linestyle='--', alpha=0.75, zorder=0)
+                # Draw threshold lines if requested
                 if threshold is not None:
-                    plt.axvline(threshold, color='r', linestyle='--')
-                    plt.axhline(threshold, color='r', linestyle='--')
-                ax.set_title(title, fontdict={'fontsize' : 10})
+                    plt.axvline(threshold, color=test_col, linestyle='--')
+                    plt.axhline(threshold, color=test_col, linestyle='--')
+                # Set subplot title
+                if s == 0:
+                    subtitle = f"{resp} {subset}, {score_type_label['r2']} = {r2_scores[t]:.3f}"
+                else:
+                    subtitle = f"{subset} {score_type_label['r2']} = {r2_scores[t]:.3f}"
+                ax.set_title(subtitle, fontdict={'fontsize' : 10})
                 if pdf_dir is not None:
                     pdf.savefig(fig)
-        else:
+    else:
+        # As yet, hybrid models are singletask only. There are two plots per row, one for Ki/IC50 data and the other for
+        # % binding / inhibition data, with one row per subset.
+        for s, subset in enumerate(subsets):
+            perf_data = wrapper.get_perf_data(subset, epoch_label)
+            pred_results = perf_data.get_prediction_results()
+            y_actual = perf_data.get_real_values()
+            ids, y_pred, y_std = perf_data.get_pred_values()
+            r2 = pred_results['r2_score']
+            if perf_data.num_tasks > 1:
+                r2_scores = pred_results['task_r2_scores']
+            else:
+                r2_scores = [r2]
             fig, ax = plt.subplots(1,2, figsize=(20.0,10.0))
             title = '%s\n%s split %s model on %s features\n%s subset predicted vs actual %s, R^2 = %.3f' % (
                     dataset_name, splitter, model_type, featurizer, subset, "Ki/XC50", r2_scores[0])
@@ -118,13 +191,13 @@ def plot_pred_vs_actual(MP, epoch_label='best', threshold=None, error_bars=False
             ki_ymax = max(max(y_real_ki), max(y_pred_ki)) + 0.5
             ax[0].set_xlim(ki_ymin, ki_ymax)
             ax[0].set_ylim(ki_ymin, ki_ymax)
-            ax[0].scatter(y_real_ki, y_pred_ki, s=9, c='blue', marker='o', alpha=0.4)
+            ax[0].scatter(y_real_ki, y_pred_ki, s=9, c=train_col, marker='o', alpha=0.4)
             ax[0].set_xlabel('Observed value')
             ax[0].set_ylabel('Predicted value')
-            ax[0].plot([ki_ymin,ki_ymax], [ki_ymin,ki_ymax], c='forestgreen', linestyle='--')
+            ax[0].plot([ki_ymin,ki_ymax], [ki_ymin,ki_ymax], c=valid_col, linestyle='--')
             if threshold is not None:
-                ax[0].axvline(threshold, color='r', linestyle='--')
-                ax[0].axhline(threshold, color='r', linestyle='--')
+                ax[0].axvline(threshold, color=test_col, linestyle='--')
+                ax[0].axhline(threshold, color=test_col, linestyle='--')
             ax[0].set_title(title, fontdict={'fontsize' : 10})
             
             title = '%s\n%s split %s model on %s features\n%s subset predicted vs actual %s, R^2 = %.3f' % (
@@ -133,22 +206,22 @@ def plot_pred_vs_actual(MP, epoch_label='best', threshold=None, error_bars=False
             bind_ymax = max(max(y_real_bind), max(y_pred_bind)) + 0.1
             ax[1].set_xlim(bind_ymin, bind_ymax)
             ax[1].set_ylim(bind_ymin, bind_ymax)
-            ax[1].scatter(y_real_bind, y_pred_bind, s=9, c='blue', marker='o', alpha=0.4)
+            ax[1].scatter(y_real_bind, y_pred_bind, s=9, c=train_col, marker='o', alpha=0.4)
             ax[1].set_xlabel('Observed value')
             ax[1].set_ylabel('Predicted value')
-            ax[1].plot([bind_ymin,bind_ymax], [bind_ymin,bind_ymax], c='forestgreen', linestyle='--')
+            ax[1].plot([bind_ymin,bind_ymax], [bind_ymin,bind_ymax], c=valid_col, linestyle='--')
             if threshold is not None:
-                ax[1].axvline(threshold, color='r', linestyle='--')
-                ax[1].axhline(threshold, color='r', linestyle='--')
+                ax[1].axvline(threshold, color=test_col, linestyle='--')
+                ax[1].axhline(threshold, color=test_col, linestyle='--')
             ax[1].set_title(title, fontdict={'fontsize' : 10})
 
     if pdf_dir is not None:
         pdf.close()
-        MP.log.info("Wrote plot to %s" % pdf_path)
+        model.log.info("Wrote plot to %s" % pdf_path)
 
 
 #------------------------------------------------------------------------------------------------------------------------
-def plot_pred_vs_actual_from_df(pred_df, actual_col='avg_pIC50_actual', pred_col='avg_pIC50_pred', label='Prediction of Test Set', ax=None):
+def plot_pred_vs_actual_from_df(pred_df, actual_col='avg_pIC50_actual', pred_col='avg_pIC50_pred', std_col=None, label=None, ax=None):
     """Plot predicted vs actual values from a trained regression model for a given dataframe.
 
     Args:
@@ -166,28 +239,37 @@ def plot_pred_vs_actual_from_df(pred_df, actual_col='avg_pIC50_actual', pred_col
         g (matplotlib.axes.Axes): The axes object with data.
 
     """
-    g=sns.scatterplot(x='avg_pIC50_actual', y='avg_pIC50_pred', data=pred_df, ax=ax)
+    g=sns.scatterplot(x=actual_col, y=pred_col, data=pred_df, alpha=0.4, ax=ax)
     lims = [
         pred_df[[actual_col,pred_col]].min().min(),  # min of both axes
         pred_df[[actual_col,pred_col]].max().max(),  # max of both axes
     ]
     margin=(lims[1]-lims[0])*0.05
     lims=[lims[0]-margin,lims[1]+margin]
-    g.plot(lims, lims, 'r-', alpha=0.75, zorder=0)
+    #g.plot(lims, lims, 'r-', alpha=0.75, zorder=0)
+    # Draw an identity line
+    g.plot(lims, lims, c=test_col, linestyle='--', alpha=0.75, zorder=0)
     # plt.gca().set_aspect('equal', adjustable='box')
     g.set_aspect('equal')
     g.set_xlim(lims)
     g.set_ylim(lims)
     g.set_title(label)
+    if std_col is not None:
+        filldf=pred_df.copy()
+        filldf=filldf.sort_values([actual_col, pred_col])
+        g.fill_between(x=filldf[actual_col], y1=filldf[pred_col]-filldf[std_col].abs(), y2=filldf[pred_col]+filldf[std_col].abs(), alpha=0.3, step='mid')
     return g
 
 
 #------------------------------------------------------------------------------------------------------------------------
-def plot_pred_vs_actual_from_file(model_path):
-    """Plot predicted vs actual values from a trained regression model from a model tarball.
+def plot_pred_vs_actual_from_file(model_path, external_training_data=None, plot_size=7):
+    """Plot predicted vs actual values from a trained regression model from a model tarball. 
+    This function only works for locally trained models; otherwise see the `predict_from_model` module.
 
     Args:
         model_path (str): Path to an AMPL model tar.gz file.
+        external_training_data (str): Path to copy of training dataset, if different from path used when model was trained.
+        plot_size (float): Height of subplots
 
     Returns:
         None
@@ -204,25 +286,45 @@ def plot_pred_vs_actual_from_file(model_path):
     # reload metadata
     with open(os.path.join(reload_dir, 'model_metadata.json')) as f:
         config=json.loads(f.read())
+
+    if config['model_parameters']['prediction_type']=='classification':
+        raise ValueError("plot_pred_vs_actual_from_file() should only be called for regression models. Please try plot_confusion_matrices() instead.")
     
     # load (featurized) data
     dataset_dict=config['training_dataset']
+    if external_training_data is not None:
+        dataset_dict['dataset_key']=external_training_data
     dataset_key=dataset_dict['dataset_key']
+    dataset_name = os.path.splitext(os.path.basename(dataset_key))[0]
+
     is_featurized=False
     AD_method=None
-    if config['model_parameters']['featurizer'] in ['descriptors','computed_descriptors']:
+    uncertainty=config['model_parameters']['uncertainty']
+    model_type = config['model_parameters']['model_type']
+    featurizer = config['model_parameters']['featurizer']
+    if featurizer in ['descriptors','computed_descriptors']:
         desc=config['descriptor_specific']['descriptor_type']
         dataset_key=dataset_key.rsplit('/', maxsplit=1)
         dataset_key=os.path.join(dataset_key[0], 'scaled_descriptors', dataset_key[1].replace('.csv',f'_with_{desc}_descriptors.csv'))
         is_featurized=True
-    if config['model_parameters']['featurizer'] != 'graphconv':
-        AD_method='z_score'
+        features_label = f"{desc} descriptors"
+    else:
+        features_label = f"{featurizer} features"
+    # if config['model_parameters']['featurizer'] != 'graphconv':
+        # AD_method='z_score'
     df=pd.read_csv(dataset_key)
     
     # reload split file
     dataset_key=dataset_dict['dataset_key']
     split_dict=config['splitting_parameters']
-    split_file=dataset_key.replace('.csv',f"_{split_dict['split_strategy']}_{split_dict['splitter']}_{split_dict['split_uuid']}.csv")
+    splitter = split_dict['splitter']
+    split_strategy = split_dict['split_strategy']
+    if split_strategy == 'k_fold_cv':
+        split_file=dataset_key.replace('.csv',f"_{split_dict['num_folds']}_fold_cv_{splitter}_{split_dict['split_uuid']}.csv")
+        split_subsets = ['train_valid', 'test']
+    else:
+        split_file=dataset_key.replace('.csv',f"_{split_strategy}_{splitter}_{split_dict['split_uuid']}.csv")
+        split_subsets = ['train', 'valid', 'test']
     split=pd.read_csv(split_file)
     split=split.rename(columns={'cmpd_id':dataset_dict['id_col']})
     
@@ -234,26 +336,51 @@ def plot_pred_vs_actual_from_file(model_path):
     
     # run predictions
     pred_df=pfm.predict_from_model_file(model_path, df, id_col=dataset_dict['id_col'], smiles_col=dataset_dict['smiles_col'], 
-                                        response_col=response_cols, is_featurized=is_featurized, AD_method=AD_method, dont_standardize=True)                              
+                                        response_col=response_cols, is_featurized=is_featurized, AD_method=AD_method, dont_standardize=True)          
     
     # plot
     sns.set_context('notebook')
-    fig, ax = plt.subplots(len(response_cols),3,sharey=True,sharex=True,figsize=(10*len(response_cols),30))
-    if len(response_cols)>1:
-        for i,resp in enumerate(response_cols):
-            for j, subs in enumerate(['train','valid','test']):
-                tmp=pred_df[pred_df.subset==subs]
-                plot_pred_vs_actual_from_df(tmp, actual_col=f'{resp}_actual', pred_col=f'{resp}_pred', label=f'{resp} {subs}', ax=ax[i,j])
+    nss = len(split_subsets)
+    fig, axes = plt.subplots(len(response_cols), nss, figsize=(plot_size*nss, plot_size*len(response_cols)))
+    if uncertainty:
+        suptitle = f"{dataset_name}  {splitter} {split_strategy} split {model_type} model on {features_label}, predicted vs actual values with uncertainty"
     else:
-        resp=response_cols[0]
-        for j, subs in enumerate(['train','valid','test']):
-            tmp=pred_df[pred_df.subset==subs]
-            plot_pred_vs_actual_from_df(tmp, actual_col=f'{resp}_actual', pred_col=f'{resp}_pred', label=subs, ax=ax[j])
-    # fig.suptitle(f'Predicted vs Actual values for {resp} model', y=1.05)
+        suptitle = f"{dataset_name}  {splitter} {split_strategy} split {model_type} model on {features_label}, predicted vs actual values"
+    fig.suptitle(suptitle, y=0.95)
+    axes = axes.flatten()
+    for i,resp in enumerate(response_cols):
+        actual_col = f'{resp}_actual'
+        pred_col = f'{resp}_pred'
+        task_pred_df = pred_df[pred_df[actual_col].notna() & pred_df[pred_col].notna()]
+        y_actual = task_pred_df[actual_col].values
+        y_pred = task_pred_df[pred_col].values
+        if uncertainty:
+            std_col = f'{resp}_std'
+            y_std = task_pred_df[std_col].values
+        else:
+            std_col=None
+            y_std = 0
+        ymin = min(min(y_actual), min(y_pred), min(y_pred-y_std))
+        ymax = max(max(y_actual), max(y_pred), max(y_pred+y_std))
+        for j, subset in enumerate(split_subsets):
+            ax = axes[nss*i + j]
+            # Force axes to have same scale for all subsets for same task (but not different tasks!)
+            ax.set_xlim(ymin, ymax)
+            ax.set_ylim(ymin, ymax)
+            tmp = task_pred_df[task_pred_df.subset==subset]
+            r2 = metrics.r2_score(tmp[actual_col].values, tmp[pred_col].values)
+            ax.set_xlabel(f"Actual {resp}")
+            ax.set_ylabel(f"Predicted {resp}")
+            # Set subplot title
+            if j == 0:
+                subtitle = f"{resp} {subset}, {score_type_label['r2']} = {r2:.3f}"
+            else:
+                subtitle = f"{subset}, {score_type_label['r2']} = {r2:.3f}"
+            plot_pred_vs_actual_from_df(tmp, actual_col=actual_col, pred_col=pred_col, std_col = std_col, label=subtitle, ax=ax)
 
 
 #------------------------------------------------------------------------------------------------------------------------
-def plot_perf_vs_epoch(MP, pdf_dir=None):
+def plot_perf_vs_epoch(MP, plot_size=7, pdf_dir=None):
     """Plot the current NN model's standard performance metric (r2_score or roc_auc_score) vs epoch number for the training,
     validation and test subsets. If the model was trained with k-fold CV, plot shading for the validation set out to += 1 SD from the mean
     score metric values, and plot the training and test set metrics from the final model retraining rather than the cross-validation
@@ -262,6 +389,7 @@ def plot_perf_vs_epoch(MP, pdf_dir=None):
 
     Args:
         MP (`ModelPipeline`): Pipeline object for a model that was trained in the current Python session.
+        plot_size (float): Height of subplots
 
         pdf_dir (str): If given, output the plots to a PDF file in the given directory.
 
@@ -289,49 +417,74 @@ def plot_perf_vs_epoch(MP, pdf_dir=None):
     model_score_type = MP.params.model_choice_score_type
 
     if MP.params.prediction_type == 'regression':
-        perf_label = 'R-squared'
+        default_score_type = 'r2'
     else:
-        perf_label = 'ROC AUC'
+        default_score_type = 'roc_auc'
+    perf_label = score_type_label[default_score_type]
+    model_score_type_label = score_type_label[model_score_type]
+    num_subplots = 1 + int(model_score_type != default_score_type)
+
+    if MP.params.featurizer in ['descriptors', 'computed_descriptors']:
+        features_label = f"{MP.params.descriptor_type} descriptors"
+    else:
+        features_label = f"{MP.params.featurizer} features"
 
     if pdf_dir is not None:
         pdf_path = os.path.join(pdf_dir, '%s_perf_vs_epoch.pdf' % os.path.basename(MP.params.output_dir))
         pdf = PdfPages(pdf_path)
-    subset_colors = dict(training='blue', validation='forestgreen', test='red')
-    subset_shades = dict(training='deepskyblue', validation='lightgreen', test='hotpink')
-    fig, ax = plt.subplots(figsize=(10,10))
-    title = '%s dataset\n%s vs epoch for %s %s model on %s features with %s split\nBest validation set performance at epoch %d' % (
-            MP.params.dataset_name, perf_label, MP.params.model_type,  MP.params.prediction_type,
-            MP.params.featurizer,  MP.params.splitter,  best_epoch)
-    for subset in ['training', 'validation', 'test']:
-        epoch = list(range(len(subset_perf[subset])))
-        ax.plot(epoch, subset_perf[subset], color=subset_colors[subset], label=subset)
-        # Add shading to show variance across folds during cross-validation
-        if (num_folds > 1) and (subset == 'validation'):
-            ax.fill_between(epoch, subset_perf[subset] + subset_std[subset], subset_perf[subset] - subset_std[subset],
-                            alpha=0.3, facecolor=subset_shades[subset], linewidth=0)
-    plt.axvline(best_epoch, color='forestgreen', linestyle='--')
-    ax.set_xlabel('Epoch')
-    ax.set_ylabel(perf_label)
-    ax.set_title(title, fontdict={'fontsize' : 12})
-    legend = ax.legend(loc='lower right')
-    if pdf_dir is not None:
-        pdf.savefig(fig)
+    subset_colors = dict(training=train_col, validation=valid_col, test=test_col)
+    subset_shades = dict(training=train_shade, validation=valid_shade, test=test_shade)
 
-    # Now plot the score used for choosing the best epoch and model params
-    fig, ax = plt.subplots(figsize=(10,10))
-    title = '%s dataset\n%s vs epoch for %s %s model on %s features with %s split\nBest validation set performance at epoch %d' % (
-            MP.params.dataset_name, model_score_type, MP.params.model_type,  MP.params.prediction_type,
-            MP.params.featurizer,  MP.params.splitter,  best_epoch)
-    epoch = list(range(num_epochs))
-    ax.plot(epoch, model_scores, color=subset_colors['validation'])
-    plt.axvline(best_epoch, color='red', linestyle='--')
-    ax.set_xlabel('Epoch')
-    if model_score_type in perf.loss_funcs:
-        score_label = "negative %s" % model_score_type
-    else:
-        score_label = model_score_type
-    ax.set_ylabel(score_label)
-    ax.set_title(title, fontdict={'fontsize' : 12})
+    with sns.plotting_context("notebook"):
+    
+        fig, axes = plt.subplots(1, num_subplots, figsize=(plot_size*num_subplots, plot_size))
+        """
+        suptitle = '%s dataset\n%s vs epoch for %s %s model on %s features with %s split\nBest validation set performance at epoch %d' % (
+                MP.params.dataset_name, perf_label, MP.params.model_type,  MP.params.prediction_type,
+                MP.params.featurizer,  MP.params.splitter,  best_epoch)
+        """
+        suptitle = f"{MP.params.dataset_name} dataset, " \
+            f"{MP.params.model_type} {MP.params.prediction_type} model on {features_label} with {MP.params.splitter} split\n" \
+            f"Best validation set {model_score_type_label} at epoch {best_epoch}"
+        fig.suptitle(suptitle, y=0.99)
+        # Plot default score type vs epoch
+        ax = axes[0] if num_subplots > 1 else axes
+        for subset in ['training', 'validation', 'test']:
+            epoch = list(range(len(subset_perf[subset])))
+            ax.plot(epoch, subset_perf[subset], color=subset_colors[subset], label=subset)
+            # Add shading to show variance across folds during cross-validation
+            if (num_folds > 1) and (subset == 'validation'):
+                ax.fill_between(epoch, subset_perf[subset] + subset_std[subset], subset_perf[subset] - subset_std[subset],
+                                alpha=0.3, facecolor=subset_shades[subset], linewidth=0)
+        ax.axvline(best_epoch, color=test_col, linestyle='--')
+        ax.set_xlabel('Epoch')
+        ax.set_ylabel(perf_label)
+        title = f"{perf_label} vs epoch"
+        #if num_subplots == 1:
+        #    title += f", Best validation set {perf_label} at epoch {best_epoch)"
+        ax.set_title(title, fontdict={'fontsize' : 12})
+        legend = ax.legend(loc='lower right')
+    
+        # Now plot the score used for choosing the best epoch and model params, if different from the default R2 or ROC AUC
+        if num_subplots == 2:
+            ax = axes[1]
+            """
+            title = '%s dataset\n%s vs epoch for %s %s model on %s features with %s split\nBest validation set performance at epoch %d' % (
+                    MP.params.dataset_name, model_score_type, MP.params.model_type,  MP.params.prediction_type,
+                    MP.params.featurizer,  MP.params.splitter,  best_epoch)
+            """
+            epoch = list(range(num_epochs))
+            ax.plot(epoch, model_scores, color=subset_colors['validation'])
+            plt.axvline(best_epoch, color=test_col, linestyle='--')
+            ax.set_xlabel('Epoch')
+            if model_score_type in perf.loss_funcs:
+                score_label = f"Negative {model_score_type_label}"
+                title = f"Validation set negative {model_score_type_label} vs epoch"
+            else:
+                score_label = model_score_type_label
+                title = f"Validation set {model_score_type_label} vs epoch"
+            ax.set_ylabel(score_label)
+            ax.set_title(title, fontdict={'fontsize' : 12})
     if pdf_dir is not None:
         pdf.savefig(fig)
         pdf.close()
@@ -388,7 +541,217 @@ def _get_perf_curve_data(MP, epoch_label, curve_type='ROC'):
     return curve_data
 
 #------------------------------------------------------------------------------------------------------------------------
-def plot_ROC_curve(MP, epoch_label='best', pdf_dir=None):
+def get_classifier_perf_data_from_pipeline(MP, epoch_label='best'):
+    """Retrieve predicted and true classes, class probabilities and model metrics from a classification model trained
+    in the current Python session.
+
+    Args:
+        MP (`ModelPipeline`): Pipeline object for a model that was trained in the current Python session.
+        epoch_label (str): Label for training epoch to draw predicted values from. Currently 'best' is the only allowed value.
+    
+    Returns:
+        (dict): A dictionary of dictionaries, keyed by split subset, containing the true classes, predicted classes,
+        and predicted class probabilities for each compound in each subset, along with a subdictionary of metrics for each task/subset.
+    """
+    if MP.params.prediction_type != 'classification':
+        MP.log.error("get_classifier_perf_data_from_pipeline can only be called for classification models")
+        return {}
+
+    if MP.run_mode == 'training':
+        subsets = ['train', 'valid', 'test']
+    else:
+        subsets = ['full']
+    wrapper = MP.model_wrapper
+    classif_data = {}
+    tasks = MP.params.response_cols
+    ntasks = len(tasks)
+    for itask, task in enumerate(tasks):
+        classif_data[task] = {}
+    training_metrics = get_metrics_from_metadata(MP.model_metadata)
+    for subset in subsets:
+        perf_data = wrapper.get_perf_data(subset, epoch_label)
+        true_classes = perf_data.get_real_values()
+        ids, pred_classes, class_probs, prob_stds = perf_data.get_pred_values()
+        nclasses = class_probs.shape[-1]
+        for itask, task in enumerate(tasks):
+            if nclasses == 2:
+                # Only return class 1 probabilities for binary classifiers
+                task_class_probs = class_probs[:,itask,1]
+            else:
+                task_class_probs = class_probs[:,itask,:]
+            classif_data[task][subset] = dict(true_class=true_classes[:,itask], pred_class=pred_classes[:,itask], class_probs=task_class_probs,
+                                              metrics=training_metrics[task][subset])
+    return classif_data
+
+
+#------------------------------------------------------------------------------------------------------------------------
+def get_metrics_from_metadata(metadata_dict, epoch_label='best'):
+    """Retrieve model performance metrics from a model metadata dictionary.
+    
+    Args:
+        metadata_dict (dict): A model metadata structure, which can be either
+        from a saved model or a model trained in the current Python session.
+        epoch_label (str): Label for training epoch to draw predicted values from. Currently 'best' is the only allowed value.
+    
+    Returns:
+        (dict): A nested dictionary containing the metric values, keyed first by task, then by subset and finally by metric type.
+    """
+    training_metrics = metadata_dict['training_metrics']
+    prediction_type = metadata_dict['model_parameters']['prediction_type']
+    metric_keys = dict(
+        classification=dict(
+            singletask = ['roc_auc_score', 'prc_auc_score', 'accuracy_score', 'precision', 'recall_score', 'bal_accuracy',
+                          'npv', 'cross_entropy', 'kappa', 'matthews_cc', 'confusion_matrix'],
+            multitask = ['task_roc_auc_scores', 'task_prc_auc_scores', 'task_accuracies', 'task_precisions', 'task_recalls',
+                         'task_bal_accuracies', 'task_npvs', 'task_cross_entropies', 'task_kappas', 'task_matthews_ccs', 'confusion_matrix'],
+            names = ['roc_auc', 'prc_auc', 'accuracy', 'precision', 'recall', 'bal_accuracy', 'npv', 'cross_entropy', 'kappa', 'MCC',
+                     'confusion_matrix']
+        ),
+        regression=dict(
+            singletask = ['r2_score', 'mae_score', 'rms_score'],
+            multitask = ['task_r2_scores', 'task_mae_scores', 'task_rms_scores'],
+            names = ['r2', 'mae', 'rmse']
+        )
+    )
+    tasks = metadata_dict['training_dataset']['response_cols']
+    ntasks = len(tasks)
+    if ntasks == 1:
+        metric_dict = dict(zip(metric_keys[prediction_type]['names'], metric_keys[prediction_type]['singletask']))
+    else:
+        metric_dict = dict(zip(metric_keys[prediction_type]['names'], metric_keys[prediction_type]['multitask']))
+    perf_metrics = {}
+    for task in tasks:
+        perf_metrics[task] = {}
+    for ss_metrics in training_metrics:
+        if ss_metrics['label'] == epoch_label:
+            subset = ss_metrics['subset']
+            pred_results = ss_metrics['prediction_results']
+            # Iterate over tasks and metric types, get values from task_precisions etc. if ntasks > 1, otherwise from precision etc.
+            for itask, task in enumerate(tasks):
+                perf_metrics[task][subset] = {}
+                for metric_name, metric_key in metric_dict.items():
+                    if ntasks == 1:
+                        perf_metrics[task][subset][metric_name] = pred_results[metric_key]
+                    else:
+                        perf_metrics[task][subset][metric_name] = pred_results[metric_key][itask]
+    return perf_metrics
+
+#------------------------------------------------------------------------------------------------------------------------
+def get_metrics_from_model_pipeline(pipeline, epoch_label='best'):
+    """Retrieve model performance metrics from a ModelPipeline object.
+    
+    Args:
+        pipeline (ModelPipeline): A ModelPipeline for a model trained in the current Python session.
+        epoch_label (str): Label for training epoch to draw predicted values from. Currently 'best' is the only allowed value.
+    
+    Returns:
+        (dict): A nested dictionary containing the metric values, keyed first by task, then by subset and finally by metric type.
+    """
+    return get_metrics_from_metadata(pipeline.model_metadata, epoch_label=epoch_label)
+
+
+#------------------------------------------------------------------------------------------------------------------------
+def get_metrics_from_model_file(model_path, epoch_label='best'):
+    """Retrieve model performance metrics from a trained model saved in the local filesystem.
+    
+    Args:
+        model_path (str): Path to a saved model .tar.gz file or directory
+        epoch_label (str): Label for training epoch to draw predicted values from. Currently 'best' is the only allowed value.
+    
+    Returns:
+        (dict): A nested dictionary containing the metric values, keyed first by task, then by subset and finally by metric type.
+    """
+    model_reader = mfr.ModelFileReader(model_path)
+    return get_metrics_from_metadata(model_reader.metadata_dict, epoch_label=epoch_label)
+
+
+#------------------------------------------------------------------------------------------------------------------------
+def plot_confusion_matrices(model, epoch_label='best', plot_size=7):
+    """Displays the confusion matrix for each split subset for a classification model.
+
+    Args:
+        model (ModelPipeline or str): A classification model. The model may be represented by either a ModelPipeline object 
+        or a file path to a saved model .tar.gz file or directory.
+        epoch_label (str): Label for training epoch to draw predicted values from. Currently 'best' is the only allowed value.
+        plot_size (float): Height of subplots.
+    
+    Returns:
+        None
+    """
+    if isinstance(model, mp.ModelPipeline):
+        metrics_dict = get_metrics_from_model_pipeline(model, epoch_label)
+    elif isinstance(model, str):
+        metrics_dict = get_metrics_from_model_file(model, epoch_label)
+    else:
+        raise ValueError('model must be either a ModelPipeline or a path to a saved model')
+    tasks = list(metrics_dict.keys())
+    subsets = list(metrics_dict[tasks[0]].keys())
+    with sns.plotting_context('poster'):
+        fig, axes = plt.subplots(len(tasks), len(subsets), figsize=(plot_size*len(subsets), plot_size*len(tasks)))
+        axes = axes.flatten()
+        for it, task in enumerate(tasks):
+            for iss, subset in enumerate(subsets):
+                if len(tasks)>1:
+                    cmatrix = np.array(metrics_dict[task][subset]['confusion_matrix'])
+                else:
+                    cmatrix = np.array(metrics_dict[task][subset]['confusion_matrix'][0])
+                cmd = ConfusionMatrixDisplay(cmatrix)
+                ax = axes[len(subsets)*it + iss]
+                cmd.plot(ax=ax, colorbar=False)
+                ax.set_title(f"{task}, {subset} subset")
+                ax.set_ylabel("True class")
+                ax.set_xlabel("Predicted class")
+                plt.tight_layout()
+
+
+#------------------------------------------------------------------------------------------------------------------------
+def plot_model_metrics(model, epoch_label='best', plot_size=7):
+    """Displays a bar plot of metrics for each split subset for a classification or regression model, for each task.
+
+    Args:
+        model (ModelPipeline or str): A model. The model may be represented by either a ModelPipeline object 
+        or a file path to a saved model .tar.gz file or directory.
+        epoch_label (str): Label for training epoch to draw predicted values from. Currently 'best' is the only allowed value.
+        plot_size (float): Height of subplots.
+    
+    Returns:
+        None
+    """
+    # Save current color palette and restore it later
+    old_palette = sns.color_palette()
+    sns.set_palette('colorblind')
+
+    if isinstance(model, mp.ModelPipeline):
+        metrics_dict = get_metrics_from_model_pipeline(model, epoch_label)
+    elif isinstance(model, str):
+        metrics_dict = get_metrics_from_model_file(model, epoch_label)
+    else:
+        raise ValueError('model must be either a ModelPipeline or a path to a saved model')
+    tasks = list(metrics_dict.keys())
+    subsets = list(metrics_dict[tasks[0]].keys())
+    metric_vars = [key for key in metrics_dict[tasks[0]][subsets[0]].keys() if key != 'confusion_matrix']
+    task_list = []
+    subset_list = []
+    metric_list = []
+    value_list = []
+    for it, task in enumerate(tasks):
+        for iss, subset in enumerate(subsets):
+            tsm_dict = metrics_dict[task][subset]
+            for mvar in metric_vars:
+                task_list.append(task)
+                subset_list.append(subset)
+                metric_list.append(score_type_label[mvar])
+                value_list.append(tsm_dict[mvar])
+    metric_df = pd.DataFrame(dict(task=task_list, subset=subset_list, metric=metric_list, value=value_list))
+    with sns.plotting_context('poster'):
+        fgrid = sns.FacetGrid(data=metric_df, row='task', col='subset', height=plot_size, hue='metric', sharex=True, sharey=True)
+        fgrid.map_dataframe(sns.barplot, x='value', y='metric')
+
+    # Restore previous matplotlib color cycle
+    sns.set_palette(old_palette)
+
+#------------------------------------------------------------------------------------------------------------------------
+def plot_ROC_curve(MP, epoch_label='best', plot_size=7, pdf_dir=None):
     """Plot ROC curves for a classification model.
 
     Args:
@@ -415,34 +778,75 @@ def plot_ROC_curve(MP, epoch_label='best', pdf_dir=None):
         pdf_path = os.path.join(pdf_dir, '%s_%s_model_%s_features_%s_split_ROC_curves.pdf' % (
                                 params.dataset_name, params.model_type, params.featurizer, params.splitter))
         pdf = PdfPages(pdf_path)
-    subset_colors = dict(train='blue', valid='forestgreen', test='red', full='purple')
+    subset_colors = dict(train=train_col, valid=valid_col, test=test_col, full=full_col)
     # For multitask, do a separate figure for each task
     ntasks = curve_data[subsets[0]]['prob_active'].shape[1]
-    for i in range(ntasks):
-        fig, ax = plt.subplots(figsize=(10,10))
-        title = '%s dataset\nROC curve for %s %s classifier on %s features with %s split' % (
-                           params.dataset_name, params.response_cols[i], 
-                           params.model_type, params.featurizer, params.splitter)
-        for subset in subsets:
-            fpr, tpr, thresholds = metrics.roc_curve(curve_data[subset]['true_classes'][:,i],
-                                                     curve_data[subset]['prob_active'][:,i])
-      
-            roc_auc = curve_data[subset]['roc_aucs'][i]
-            ax.step(fpr, tpr, color=subset_colors[subset], label="%s: AUC = %.3f" % (subset, roc_auc))
-        ax.set_xlabel('False positive rate')
-        ax.set_ylabel('True positive rate')
-        ax.set_title(title, fontdict={'fontsize' : 12})
-        legend = ax.legend(loc='lower right')
-    
-        if pdf_dir is not None:
-            pdf.savefig(fig)
+    with sns.plotting_context('talk'):
+        for i in range(ntasks):
+            fig, ax = plt.subplots(figsize=(plot_size,plot_size))
+            title = '%s dataset\nROC curve for %s %s classifier on %s features with %s split' % (
+                               params.dataset_name, params.response_cols[i], 
+                               params.model_type, params.featurizer, params.splitter)
+            for subset in subsets:
+                fpr, tpr, thresholds = metrics.roc_curve(curve_data[subset]['true_classes'][:,i],
+                                                         curve_data[subset]['prob_active'][:,i])
+          
+                roc_auc = curve_data[subset]['roc_aucs'][i]
+                ax.step(fpr, tpr, color=subset_colors[subset], label="%s: AUC = %.3f" % (subset, roc_auc))
+            ax.set_xlabel('False positive rate')
+            ax.set_ylabel('True positive rate')
+            ax.set_title(title, fontdict={'fontsize' : 12})
+            legend = ax.legend(loc='lower right')
+        
+            if pdf_dir is not None:
+                pdf.savefig(fig)
     if pdf_dir is not None:
         pdf.close()
         MP.log.info("Wrote plot to %s" % pdf_path)
 
 
 #------------------------------------------------------------------------------------------------------------------------
-def plot_prec_recall_curve(MP, epoch_label='best', pdf_dir=None):
+def plot_prec_recall_curve(MP, epoch_label='best', plot_size=7, pdf_dir=None):
+    """Plot precision-recall curves for a classification model.
+
+    Args:
+        MP (`ModelPipeline`): Pipeline object for a model that was trained in the current Python session.
+        epoch_label (str): Label for training epoch to draw predicted values from. Currently 'best' is the only allowed value.
+        plot_size (float): Height of subplots
+        pdf_dir (str): If given, output the plots to a PDF file in the given directory.
+
+    Returns:
+        None
+
+    """
+    params = MP.params
+    curve_data = get_classifier_perf_data_from_pipeline(MP, epoch_label=epoch_label)
+    tasks = list(curve_data.keys())
+    ntasks = len(tasks)
+    with sns.plotting_context('notebook'):
+        fig, axes = plt.subplots(ntasks, 1, figsize=(plot_size, plot_size*ntasks))
+        subset_colors = dict(train=train_col, valid=valid_col, test=test_col, full=full_col)
+        for itt, task in enumerate(tasks):
+            if ntasks > 1:
+                ax = axes[itt]
+            else:
+                ax = axes
+            subsets = list(curve_data[task].keys())
+            for iss, subset in enumerate(subsets):
+                ss_data = curve_data[task][subset]
+                prd = PrecisionRecallDisplay.from_predictions(ss_data['true_class'], ss_data['class_probs'],
+                                                            ax=ax, drawstyle='default', c=subset_colors[subset], name=subset)
+                ax.set_title(f"Response column: '{task}'")    
+            legend = ax.legend(loc='lower left')
+
+    if pdf_dir is not None:
+        pdf.savefig(fig)
+    if pdf_dir is not None:
+        pdf.close()
+        MP.log.info("Wrote plot to %s" % pdf_path)
+
+#------------------------------------------------------------------------------------------------------------------------
+def old_plot_prec_recall_curve(MP, epoch_label='best', plot_size=7, pdf_dir=None):
     """Plot precision-recall curves for a classification model.
 
     Args:
@@ -469,11 +873,11 @@ def plot_prec_recall_curve(MP, epoch_label='best', pdf_dir=None):
         pdf_path = os.path.join(pdf_dir, '%s_%s_model_%s_features_%s_split_PRC_curves.pdf' % (
                                 params.dataset_name, params.model_type, params.featurizer, params.splitter))
         pdf = PdfPages(pdf_path)
-    subset_colors = dict(train='blue', valid='forestgreen', test='red', full='purple')
+    subset_colors = dict(train=train_col, valid=valid_col, test=test_col, full=full_col)
     # For multitask, do a separate figure for each task
     ntasks = curve_data[subsets[0]]['prob_active'].shape[1]
     for i in range(ntasks):
-        fig, ax = plt.subplots(figsize=(10,10))
+        fig, ax = plt.subplots(figsize=(plot_size,plot_size))
         title = '%s dataset\nPrecision-recall curve for %s %s classifier on %s features with %s split' % (
                            params.dataset_name, params.response_cols[i], 
                            params.model_type, params.featurizer, params.splitter)
@@ -648,7 +1052,6 @@ def plot_umap_feature_projections(MP, ndim=2, num_neighbors=20, min_dist=0.1,
             result = [('incorrect', 'correct')[i] for i in is_correct]
             # Mark predictions as correct or incorrect; check that class representations are the same.
             proj_df['subset'] = ['%s/%s' % vals for vals in zip(dset_subset,result)]
-            green_red_pal = {0 : 'forestgreen', 1 : 'red'}
             marker_map = {'training/correct' : 'o', 'training/incorrect' : 's', 
                         'valid/correct' : '^', 'valid/incorrect' : 'v', 
                         'test/correct' : 'P', 'test/incorrect' : '*'}
@@ -657,7 +1060,7 @@ def plot_umap_feature_projections(MP, ndim=2, num_neighbors=20, min_dist=0.1,
                         'test/correct' : 125, 'test/incorrect' : 225}
             if ndim == 2:
                 ax = fig.add_subplot(111)
-                sns.scatterplot(x='umap_X', y='umap_Y', hue='actual', palette=green_red_pal, 
+                sns.scatterplot(x='umap_X', y='umap_Y', hue='actual', palette=binary_pal, 
                         style='subset', markers=marker_map,
                         style_order=['training/correct', 'training/incorrect', 'valid/correct', 'valid/incorrect',
                                      'test/correct', 'test/incorrect' ],
@@ -665,7 +1068,7 @@ def plot_umap_feature_projections(MP, ndim=2, num_neighbors=20, min_dist=0.1,
                         data=proj_df, ax=ax)
             elif ndim == 3:
                 ax = fig.add_subplot(111, projection='3d')
-                colors = [green_red_pal[a] for a in proj_df.actual.values]
+                colors = [binary_pal[a] for a in proj_df.actual.values]
                 markers = [marker_map[subset] for subset in proj_df.subset.values]
                 #ax.scatter(proj_df.umap_X.values, proj_df.umap_Y.values, proj_df.umap_Z.values, c=colors, m=markers, s=49)
                 ax.scatter(proj_df.umap_X.values, proj_df.umap_Y.values, proj_df.umap_Z.values, c=colors, s=49)
@@ -675,11 +1078,10 @@ def plot_umap_feature_projections(MP, ndim=2, num_neighbors=20, min_dist=0.1,
             proj_df['error'] = preds[:,i] - all_actual[:,i]
             marker_map = {'training' : 'o', 'valid' : 'v', 'test' : 'P'}
             ncol = 12
-            blue_red_pal = sns.blend_palette(['red', 'green', 'blue'], 12, as_cmap=True)
             if ndim == 2:
                 ax = fig.add_subplot(111)
                 #sns.scatterplot(x='umap_X', y='umap_Y', hue='error',
-                sns.scatterplot(x='umap_X', y='umap_Y', hue='error', palette=blue_red_pal, 
+                sns.scatterplot(x='umap_X', y='umap_Y', hue='error', palette=continuous_pal, 
                         size='actual', sizes=(49,144), alpha=0.95,
                         style='subset', markers=marker_map, style_order=['training', 'valid', 'test'],
                         data=proj_df, ax=ax)
@@ -689,7 +1091,7 @@ def plot_umap_feature_projections(MP, ndim=2, num_neighbors=20, min_dist=0.1,
                 errs = proj_df.error.values.astype(np.int32)
                 ind = 1 + errs - min(errs)
                 ind[ind >= ncol] = ncol-1
-                colors = [blue_red_pal[i] for i in ind]
+                colors = [continuous_pal[i] for i in ind]
                 markers = [marker_map[subset] for subset in proj_df.subset.values]
                 ax.scatter(proj_df.umap_X.values, proj_df.umap_Y.values, proj_df.umap_Z.values, c=colors, m=markers, s=49)
     
@@ -727,6 +1129,7 @@ def plot_umap_train_set_neighbors(MP, num_neighbors=20, min_dist=0.1,
         random_seed (int): Seed for random number generator.
 
         pdf_dir (str): If given, output the plot to a PDF file in the given directory.
+
 
     """
     ndim = 2
@@ -814,7 +1217,7 @@ def plot_umap_train_set_neighbors(MP, num_neighbors=20, min_dist=0.1,
         else:
             feat_type = params.featurizer
             
-    
+
         classif = np.array(['inactive']*proj_df.shape[0])
         classif[proj_df.actual == 1] = 'active'
         proj_df['classif'] = classif
@@ -823,16 +1226,16 @@ def plot_umap_train_set_neighbors(MP, num_neighbors=20, min_dist=0.1,
             fig, ax = plt.subplots(figsize=(15,15))
             proj_plt_df = proj_df[(proj_df.dset_subset == 'train') | (proj_df.dset_subset == subset)]
             if subset == 'valid':
-                pal = {'train/active' : 'forestgreen', 'train/inactive' : 'red', 
-                            'valid/active' : 'blue', 'valid/inactive' : 'magenta'}
+                pal = {'train/active' : train_active_col, 'train/inactive' : train_inactive_col, 
+                            'valid/active' : test_active_col, 'valid/inactive' : test_inactive_col}
                 marker_map = {'train/active' : 'o', 'train/inactive' : 's', 
                             'valid/active' : '*', 'valid/inactive' : 'v'}
                 size_map = {'train/active' : 64, 'train/inactive' : 49, 
                             'valid/active' : 192, 'valid/inactive' : 81}
                 style_order=['train/inactive', 'valid/inactive', 'train/active', 'valid/active' ]
             else:
-                pal = {'train/active' : 'forestgreen', 'train/inactive' : 'red', 
-                            'test/active' : 'blue', 'test/inactive' : 'magenta'}
+                pal = {'train/active' : train_active_col, 'train/inactive' : train_inactive_col, 
+                            'test/active' : test_active_col, 'test/inactive' : test_inactive_col}
                 marker_map = {'train/active' : 'o', 'train/inactive' : 's', 
                             'test/active' : '*', 'test/inactive' : 'v'}
                 size_map = {'train/active' : 64, 'train/inactive' : 49, 
@@ -851,4 +1254,3 @@ def plot_umap_train_set_neighbors(MP, num_neighbors=20, min_dist=0.1,
     if pdf_dir is not None:
         pdf.close()
         MP.log.info("Wrote plot to %s" % pdf_path)
-

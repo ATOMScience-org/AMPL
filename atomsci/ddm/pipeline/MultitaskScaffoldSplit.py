@@ -9,6 +9,7 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 from functools import partial
+from scipy import stats
 
 import deepchem as dc
 from deepchem.data import Dataset, NumpyDataset
@@ -23,7 +24,7 @@ from atomsci.ddm.pipeline import chem_diversity as cd
 from atomsci.ddm.pipeline import dist_metrics
 from atomsci.ddm.pipeline import GeneticAlgorithm as ga
 
-def _generate_scaffold_hists(scaffold_sets: List[Set[int]], 
+def _generate_scaffold_hists(scaffold_sets: List[np.ndarray], 
                                 w: np.array) -> np.array:
     """Counts the number of labelled samples per task per scaffold
 
@@ -33,8 +34,8 @@ def _generate_scaffold_hists(scaffold_sets: List[Set[int]],
 
     Parameters
     ----------
-    scaffold_sets: List[Set[int]]
-        A list of scaffolds. Each scaffold is a set of indexes.
+    scaffold_sets: List[np.ndarray]
+        A list of scaffolds. Each scaffold is an array of compound indices.
 
     w: np.array
         This is the w member of a Dataset. It is a binary matrix
@@ -55,7 +56,7 @@ def _generate_scaffold_hists(scaffold_sets: List[Set[int]],
     return scaffold_hists
 
 def smush_small_scaffolds(scaffolds: List[Set[int]], 
-                            num_super_scaffolds: int = 100) -> List[Set[int]]:
+                            num_super_scaffolds: int = 100) -> List[np.ndarray]:
     """Combines small scaffolds into super scaffolds
 
     Since using Murcko scaffolds
@@ -74,14 +75,15 @@ def smush_small_scaffolds(scaffolds: List[Set[int]],
 
     Returns
     -------
-    new_scaffolds: List[Set[int]]
+    new_scaffolds: List[np.ndarray]
         A list of super scaffolds. All roughly the same size. Unless the original
         list of scaffolds is shorter than the desired number of scaffolds
 
     """
 
     if len(scaffolds) <= num_super_scaffolds:
-        return scaffolds
+        # Nothing to do, except change the sets to numpy arrays
+        return [np.array(list(s)) for s in scaffolds]
 
     total_length = np.sum([len(s) for s in scaffolds])
     size_per_scaffold = int(total_length)/(num_super_scaffolds-1)
@@ -96,6 +98,7 @@ def smush_small_scaffolds(scaffolds: List[Set[int]],
 
     print('new scaffold lengths')
     print([len(s) for s in new_scaffolds])
+    new_scaffolds = [np.array(list(s)) for s in new_scaffolds]
     return new_scaffolds
 
 def calc_ecfp(smiles: List[str],
@@ -141,9 +144,9 @@ def dist_smiles_from_ecfp(ecfp1: List[rdkit.DataStructs.cDataStructs.ExplicitBit
     Parameters
     ----------
     ecfp1: List[rdkit.DataStructs.cDataStructs.ExplicitBitVect],
-        A list of ECPF finger prints
+        A list of ECFP finger prints
     ecfp2: List[rdkit.DataStructs.cDataStructs.ExplicitBitVect]
-        A list of ECPF finger prints
+        A list of ECFP finger prints
 
     Returns
     -------
@@ -156,7 +159,7 @@ def dist_smiles_from_ecfp(ecfp1: List[rdkit.DataStructs.cDataStructs.ExplicitBit
     return cd.calc_summary(dist_metrics.tanimoto(ecfp1, ecfp2), calc_type='nearest', 
                         num_nearest=1, within_dset=False)
 
-def _generate_scaffold_dist_matrix(scaffold_lists: List[Set[int]],
+def _generate_scaffold_dist_matrix(scaffold_lists: List[np.ndarray],
                                 ecfp_features: List[rdkit.DataStructs.cDataStructs.ExplicitBitVect]) -> np.ndarray:
         """Returns a nearest neighbors distance matrix between each scaffold.
 
@@ -164,10 +167,12 @@ def _generate_scaffold_dist_matrix(scaffold_lists: List[Set[int]],
         the distance between the two closest compounds between the two
         scaffolds.
 
+        TODO: Ask Stewart: Why did he change to using the median instead of the min?
+
         Parameters
         ----------
-        scaffold_lists: List[Set[int]]
-            List of scaffolds. A scaffold is a set of indicies into ecfp_features
+        scaffold_lists: List[np.ndarray]
+            List of scaffolds. A scaffold is a set of indices into ecfp_features
         ecfp_features: List[rdkit.DataStructs.cDataStructs.ExplicitBitVect]
             List of ecfp features, one for each compound in the dataset
 
@@ -178,17 +183,21 @@ def _generate_scaffold_dist_matrix(scaffold_lists: List[Set[int]],
         """
         print('start generating big dist mat')
         start = timeit.default_timer()
+        # First compute the full matrix of distances between all pairs of ECFPs
+        dmat = dist_metrics.tanimoto(ecfp_features)
+
         mat_shape = (len(scaffold_lists), len(scaffold_lists))
         scaff_dist_mat = np.zeros(mat_shape)
         for i, scaff1 in tqdm(enumerate(scaffold_lists)):
-            ecfp1 = [ecfp_features[s] for s in scaff1]
+            scaff1_rows = scaff1.reshape((-1,1))
             for j, scaff2 in enumerate(scaffold_lists[:i]):
                 if i == j:
                     continue
-                ecfp2 = [ecfp_features[s] for s in scaff2]
 
-                dists = dist_smiles_from_ecfp(ecfp1, ecfp2)
-                min_dist = np.median(dists)
+                dists = dmat[scaff1_rows, scaff2].flatten()
+                #min_dist = np.median(dists)
+                # ksm: Change back to min and see what happens
+                min_dist = np.min(dists)
 
                 if min_dist==0:
                     print("two scaffolds match exactly?!?", i, j)
@@ -200,14 +209,15 @@ def _generate_scaffold_dist_matrix(scaffold_lists: List[Set[int]],
         print("finished scaff dist mat: %0.2f min"%((timeit.default_timer()-start)/60))
         return scaff_dist_mat
 
+
 class MultitaskScaffoldSplitter(Splitter):
     """MultitaskScaffoldSplitter Splitter class.
 
     Tries to perform scaffold split across multiple tasks while maintianing
     training, validation, and test fractions for each class using a GeneticAlgorithm
 
-    self.ss: List[Set[int]]
-        Contains a list of sets of compound indexes. Since using Murcko scaffolds
+    self.ss: List[np.ndarray]
+        Contains a list of arrays of compound indices. Since using Murcko scaffolds
         usually results in mostly scaffolds with 1 compound, these are 'super scaffolds'.
         Each of these scaffolds are made up of Murcko scaffolds. Murcko scaffolds
         are combined using the same method as ScaffoldSplitter, just extended to make
@@ -253,20 +263,20 @@ class MultitaskScaffoldSplitter(Splitter):
 
     def expand_scaffolds(self,
                         scaffold_list: List[int]) -> List[int]:
-        """Turns a list of scaffold indicies into a list of compound indicies
+        """Turns a list of scaffold indices into a list of compound indices
 
         Given a list of scaffold indices in self.ss return a list of compound
-        indicies into self.dataset
+        indices into self.dataset
 
         Parameters
         ----------
         scaffold_list List[int]:
-            A list of indicies into self.ss.
+            A list of indices into self.ss.
 
         Returns
         -------
         compound_list List[int]:
-            A list of compound indicies into dataset
+            A list of compound indices into dataset
         """
         compound_list = [i for scaffold in scaffold_list for i in self.ss[scaffold]]
 
@@ -289,7 +299,7 @@ class MultitaskScaffoldSplitter(Splitter):
         -------
         split: Tuple[int]
             A tuple of length 3. Each element of this tuple contains a list of
-        indexes into self.dataset. You can use these indexes to pick out compounds
+        indices into self.dataset. You can use these indices to pick out compounds
         that belong to each partition
         """
 
@@ -428,6 +438,46 @@ class MultitaskScaffoldSplitter(Splitter):
 
         return ratio_fit
 
+    def response_distr_fitness(self, split_chromosome: List[str]) -> float:
+        """Calculates a fitness score based on how well the validation and test set response
+        value distributions match that of the train subset. We measure the degree of 
+        matching using the Wasserstein distance.
+
+        Parameters
+        ----------
+        List[str]: split_chromosome
+            A list of strings, index i contains a string, 'train', 'valid', 'test'
+            which determines the partition that scaffold belongs
+
+        Returns
+        -------
+        float
+            One minus the sum of the Wasserstein distances between the valid and test subset and
+            the train subset response value distributions, averaged over tasks. One means
+            the distributions perfectly match.
+        """
+        start = timeit.default_timer()
+        dist_sum = 0.0
+        ntasks = self.dataset.y.shape[1]
+        train_ind, valid_ind, test_ind = self.split_chromosome_to_compound_split(split_chromosome)
+        for task in range(ntasks):
+            train_y = self.dataset.y[train_ind, task]
+            train_y = train_y[~np.isnan(train_y)]
+            #print(f"task {task} train: mean = {np.mean(train_y)}, SD = {np.std(train_y)}")
+            valid_y = self.dataset.y[valid_ind, task]
+            valid_y = valid_y[~np.isnan(valid_y)]
+            valid_dist = stats.wasserstein_distance(train_y, valid_y)
+            #print(f"        valid: mean = {np.mean(valid_y)}, SD = {np.std(valid_y)}, Wasserstein dist = {valid_dist}")
+            test_y = self.dataset.y[test_ind, task]
+            test_y = test_y[~np.isnan(test_y)]
+            test_dist = stats.wasserstein_distance(train_y, test_y)
+            #print(f"        test: mean = {np.mean(test_y)}, SD = {np.std(test_y)}, Wasserstein dist = {test_dist}")
+
+            dist_sum += valid_dist + test_dist
+
+        avg_dist = dist_sum/(ntasks*2)
+        return 1 - avg_dist
+
     def grade(self, split_chromosome: List[str]) -> float:
         """Assigns a score to a given chromosome
 
@@ -445,9 +495,16 @@ class MultitaskScaffoldSplitter(Splitter):
         float
             A float between 0 and 1. 1 best 0 is worst
         """
-        fitness = self.diff_fitness_weight_tvt*self.scaffold_diff_fitness(split_chromosome, 'train', 'test') \
-                + self.diff_fitness_weight_tvv*self.scaffold_diff_fitness(split_chromosome, 'train', 'valid') \
-                + self.ratio_fitness_weight*self.ratio_fitness(split_chromosome)
+        fitness = 0.0
+        # Only call the functions for each fitness term if their weight is nonzero
+        if self.diff_fitness_weight_tvt != 0.0:
+            fitness += self.diff_fitness_weight_tvt*self.scaffold_diff_fitness(split_chromosome, 'train', 'test')
+        if self.diff_fitness_weight_tvv != 0.0:
+            fitness += self.diff_fitness_weight_tvv*self.scaffold_diff_fitness(split_chromosome, 'train', 'valid')
+        if self.ratio_fitness_weight != 0.0:
+            fitness += self.ratio_fitness_weight*self.ratio_fitness(split_chromosome)
+        if self.response_distr_fitness_weight != 0.0:
+            fitness += self.response_distr_fitness_weight*self.response_distr_fitness(split_chromosome)
 
         return fitness
 
@@ -488,6 +545,7 @@ class MultitaskScaffoldSplitter(Splitter):
             seed: Optional[int] = None,
             diff_fitness_weight_tvt: float = 0,
             diff_fitness_weight_tvv: float = 0,
+            response_distr_fitness_weight: float = 0,
             ratio_fitness_weight: float = 1,
             num_super_scaffolds: int = 20,
             num_pop: int = 100,
@@ -524,6 +582,9 @@ class MultitaskScaffoldSplitter(Splitter):
         ratio_fitness_feight: float
             Weight for the importance of ensuring each task has the appropriate
             number of samples in training/validation/test
+        response_distr_fitness_weight: float
+            Weight for the importance of matching the response value distributions in
+            the validation and test sets to that of the training set
         num_super_scaffolds: int
             The number of super scaffolds.
         num_pop: int
@@ -536,7 +597,7 @@ class MultitaskScaffoldSplitter(Splitter):
         -------
         Tuple
             A tuple with 3 elements that are training, validation, and test compound
-            indexes into dataset, respectively
+            indices into dataset, respectively
         """
         if seed is not None:
             np.random.seed(seed)
@@ -544,6 +605,7 @@ class MultitaskScaffoldSplitter(Splitter):
         self.diff_fitness_weight_tvt = diff_fitness_weight_tvt
         self.diff_fitness_weight_tvv = diff_fitness_weight_tvv
         self.ratio_fitness_weight = ratio_fitness_weight
+        self.response_distr_fitness_weight = response_distr_fitness_weight
         self.num_super_scaffolds = num_super_scaffolds
         self.num_pop = num_pop
         self.num_generations = num_generations
@@ -560,7 +622,8 @@ class MultitaskScaffoldSplitter(Splitter):
 
         # calculate ScaffoldxScaffold distance matrix
         start = timeit.default_timer()
-        self.scaff_scaff_distmat = _generate_scaffold_dist_matrix(self.ss, self.ecfp_features)
+        if (self.diff_fitness_weight_tvv > 0.0) or (self.diff_fitness_weight_tvt > 0.0):
+            self.scaff_scaff_distmat = _generate_scaffold_dist_matrix(self.ss, self.ecfp_features)
         #print('scaffold dist mat %0.2f min'%((timeit.default_timer()-start)/60))
 
         # initial population
@@ -668,6 +731,7 @@ class MultitaskScaffoldSplitter(Splitter):
             diff_fitness_weight_tvt: float = 0,
             diff_fitness_weight_tvv: float = 0,
             ratio_fitness_weight: float = 1,
+            response_distr_fitness_weight: float = 0,
             num_super_scaffolds: int = 20,
             num_pop: int = 100,
             num_generations: int=30,
@@ -732,13 +796,14 @@ class MultitaskScaffoldSplitter(Splitter):
         -------
         Tuple
             A tuple with 3 elements that are training, validation, and test compound
-            indexes into dataset, respectively
+            indices into dataset, respectively
         """
         train_inds, valid_inds, test_inds = self.split(
             dataset=dataset, frac_train=frac_train,
             frac_valid=frac_valid, frac_test=frac_test, 
             seed=seed, diff_fitness_weight_tvt=diff_fitness_weight_tvt,
             diff_fitness_weight_tvv=diff_fitness_weight_tvv, ratio_fitness_weight=ratio_fitness_weight,
+            response_distr_fitness_weight=response_distr_fitness_weight,
             num_super_scaffolds=num_super_scaffolds, num_pop=num_pop, num_generations=num_generations,
             print_timings=False)
 

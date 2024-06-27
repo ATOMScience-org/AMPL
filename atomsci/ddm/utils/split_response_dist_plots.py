@@ -7,10 +7,11 @@ from atomsci.ddm.pipeline import parameter_parser as parse
 
 import matplotlib.pyplot as plt
 import seaborn as sns
+from scipy import stats
 
 
 # ---------------------------------------------------------------------------------------------------------------------------------
-def plot_split_subset_response_distrs(params):
+def plot_split_subset_response_distrs(params, axes=None, plot_size=7):
     """Plot the distributions of the response variable(s) in each split subset of a dataset.
     
     Args:
@@ -27,8 +28,73 @@ def plot_split_subset_response_distrs(params):
         | - smiles_col
         | - response_cols
 
+        axes (matplotlib.Axes): Axes to draw plots in, if provided
+        plot_size (float): Height of plots; ignored if axes is provided
     Returns:
         None
+    """
+
+    # Save current matplotlib color cycle and switch to 'colorblind' palette
+    old_palette = sns.color_palette()
+    sns.set_palette('colorblind')
+
+    if isinstance(params, dict):
+        params = parse.wrapper(params)
+    dset_df, split_label = get_split_labeled_dataset(params)
+    if params.split_strategy == 'k_fold_cv':
+        subset_order = sorted(set(dset_df.split_subset.values))
+    else:
+        subset_order = ['train', 'valid', 'test']
+
+    if axes is None:
+        fig, axes = plt.subplots(1, len(params.response_cols), figsize=(plot_size*len(params.response_cols), plot_size))
+    if len(params.response_cols) == 1:
+        axes = [axes]
+    else:
+        axes = axes.flatten()
+    for colnum, col in enumerate(params.response_cols):
+        ax = axes[colnum]
+        if params.prediction_type == 'regression':
+            ax = sns.kdeplot(data=dset_df, x=col, hue='split_subset', hue_order=subset_order, 
+                             bw_adjust=0.7, fill=True, common_norm=False, ax=ax)
+            ax.set_title(f"{col} distribution by subset under {split_label}")
+        else:
+            pct_active = []
+            for ss in subset_order:
+                ss_df = dset_df[dset_df.split_subset == ss]
+                nactive = np.nansum(ss_df[col].values)
+                pct_active.append(100*nactive/sum(ss_df[col].notna()))
+            active_df = pd.DataFrame(dict(subset=subset_order, percent_active=pct_active))
+            ax = sns.barplot(data=active_df, x='subset', y='percent_active', hue='subset', ax=ax)
+            ax.set_title(f"Percent of {col} = 1 by subset under {split_label}")
+            ax.set_xlabel('')
+
+    # Restore previous matplotlib color cycle
+    sns.set_palette(old_palette)
+
+# ---------------------------------------------------------------------------------------------------------------------------------
+def compute_split_subset_wasserstein_distances(params):
+    """Compute the Wasserstein ("earth-moving") distance between the distributions of the response variable(s) in the validation
+    and test sets to that of the training set. In the case of a k-fold CV split, compare the distributions of folds 1 through k-1
+    and the test set to that of fold 0.
+    
+    Args:
+        params (argparse.Namespace or dict): Structure containing dataset and split parameters.
+        The following parameters are required, if not set to default values:
+        
+        | - dataset_key
+        | - split_uuid
+        | - split_strategy
+        | - splitter
+        | - split_valid_frac
+        | - split_test_frac
+        | - num_folds
+        | - smiles_col
+        | - response_cols
+
+    Returns:
+        (DataFrame): A table of Wasserstein distances relative to the training set or fold 0 for each other split subset, for each
+        response variable.
     """
 
     if isinstance(params, dict):
@@ -39,26 +105,22 @@ def plot_split_subset_response_distrs(params):
     else:
         subset_order = ['train', 'valid', 'test']
 
+    response_vars = []
+    subsets = []
+    distances = []
+    train_set = subset_order[0]
     for col in params.response_cols:
-        if params.prediction_type == 'regression':
-            fig, ax = plt.subplots(figsize=(9,7))
-            ax = sns.kdeplot(data=dset_df, x=col, hue='split_subset', hue_order=subset_order, 
-                             bw_adjust=0.7, fill=True, common_norm=False, ax=ax)
-            ax.set_title(f"{col} distribution by subset under {split_label}")
-        else:
-            pct_active = []
-            for ss in subset_order:
-                ss_df = dset_df[dset_df.split_subset == ss]
-                nactive = sum(ss_df[col].values)
-                pct_active.append(100*nactive/len(ss_df))
-            active_df = pd.DataFrame(dict(subset=subset_order, percent_active=pct_active))
-            if params.split_strategy == 'k_fold_cv':
-                fig, ax = plt.subplots(figsize=(9,7))
-            else:
-                fig, ax = plt.subplots(figsize=(5,5))
-            ax = sns.barplot(data=active_df, x='subset', y='percent_active', hue='subset')
-            ax.set_title(f"Percent of {col} = 1 by subset under {split_label}")
-            ax.set_xlabel('')
+        train_vals = dset_df[dset_df.split_subset == train_set][col].values
+        train_vals = train_vals[~np.isnan(train_vals)]
+        for subset in subset_order[1:]:
+            subset_vals = dset_df[dset_df.split_subset == subset][col].values
+            subset_vals = subset_vals[~np.isnan(subset_vals)]
+            dist = stats.wasserstein_distance(train_vals, subset_vals)
+            response_vars.append(col)
+            subsets.append(subset)
+            distances.append(dist)
+    dist_df = pd.DataFrame(dict(response_col=response_vars, split_subset=subsets, distance=distances))
+    return dist_df
 
 
 # ---------------------------------------------------------------------------------------------------------------------------------
@@ -96,7 +158,7 @@ def get_split_labeled_dataset(params):
         split_file = f"{os.path.splitext(params.dataset_key)[0]}_{params.num_folds}_fold_cv_{params.splitter}_{params.split_uuid}.csv"
     else:
         split_file = f"{os.path.splitext(params.dataset_key)[0]}_{params.split_strategy}_{params.splitter}_{params.split_uuid}.csv"
-    split_df = pd.read_csv(split_file).rename(columns={'cmpd_id': 'compound_id'})
+    split_df = pd.read_csv(split_file, dtype={'cmpd_id': str}).rename(columns={'cmpd_id': 'compound_id'})
     dset_df = dset_df.merge(split_df, how='left', on='compound_id')
     if params.split_strategy == 'k_fold_cv':
         dset_df['split_subset'] = [f"fold_{f}" for f in dset_df.fold.values]
