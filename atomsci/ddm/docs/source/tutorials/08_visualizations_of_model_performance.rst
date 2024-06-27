@@ -18,8 +18,8 @@ The tutorial will present the following functions, all from the
 ``perf_plots`` module: 
 
 -  `plot_perf_vs_epoch <https://ampl.readthedocs.io/en/latest/pipeline.html#pipeline.perf_plots.plot_perf_vs_epoch>`_
--  `plot_pred_vs_actual <https://ampl.readthedocs.io/en/latest/pipeline.html#pipeline.perf_plots.pred_vs_actual>`_
--  `plot_confusion_matrices <https://ampl.readthedocs.io/en/latest/pipeline.html#pipeline.perf_plots.confusion_matrices>`_
+-  `plot_pred_vs_actual <https://ampl.readthedocs.io/en/latest/pipeline.html#pipeline.perf_plots.plot_pred_vs_actual>`_
+-  `plot_confusion_matrices <https://ampl.readthedocs.io/en/latest/pipeline.html#pipeline.perf_plots.plot_confusion_matrices>`_
 -  `plot_model_metrics <https://ampl.readthedocs.io/en/latest/pipeline.html#pipeline.perf_plots.plot_model_metrics>`_
 -  `plot_ROC_curve <https://ampl.readthedocs.io/en/latest/pipeline.html#pipeline.perf_plots.plot_ROC_curve>`_
 -  `plot_prec_recall_curve <https://ampl.readthedocs.io/en/latest/pipeline.html#pipeline.perf_plots.plot_prec_recall_curve>`_
