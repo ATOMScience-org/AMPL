@@ -1,5 +1,5 @@
 ################################################
-03 Splitting Datasets for Validation and Testing
+02 Splitting Datasets for Validation and Testing
 ################################################
 
 *Published: June, 2024, ATOM DDM Team*
@@ -17,10 +17,10 @@ variety of data splitting and training schemes.
 the most popular strategies: 
 
 -  3-way training/validation/test splits 
--  *k*-fold cross-validation (CV)
+-  *k*-fold cross-validation
 
 In this tutorial we will perform a 3-way split of the curated dataset we
-prepared in **Tutorial 2, "Data Curation"**, using the
+prepared in **Tutorial 1, "Data Curation"**, using the
 `AMPL <https://github.com/ATOMScience-org/AMPL>`_ modules, classes
 and functions listed below. *k*-fold cross-validation will be addressed
 in a future tutorial.
@@ -47,7 +47,8 @@ subsets:
    * - **Test set**
      - After training is completed, `AMPL <https://github.com/ATOMScience-org/AMPL>`_ scores the predictions on the test set compounds to provide a measure of the final model's performance.
 
-.. image:: ../_static/img/03_perform_a_split_files/03_split_example_figure.png
+
+.. image:: ../_static/img/02_perform_a_split_files/02_split_example_figure.png
 
 .. code:: ipython3
 
@@ -66,8 +67,8 @@ Splitting Methods
 *****************
 
 `AMPL <https://github.com/ATOMScience-org/AMPL>`_ supports a
-variety of splitting algorithms, including **random** and **scaffold
-splits**. A **scaffold** is the core structure of a molecule, with its
+variety of splitting algorithms, including **random** and **scaffold splits**. 
+A **scaffold** is the core structure of a molecule, with its
 side chains removed. **Scaffold splits** assign molecules to the
 training, validation and test sets, so that molecules with the same
 scaffold group together in the same subset. This ensures that compounds
@@ -107,7 +108,6 @@ We start by constructing a dictionary of parameter values:
         "result_dir": odir,
     
         # splitting
-        "split_only": "True",
         "previously_split": "False",
         "splitter": 'scaffold',
         "split_valid_frac": "0.15",
@@ -129,11 +129,8 @@ method to do the actual split.
 
 .. note::
   
-    *When we wish to only split the data and not train, we set
-    the split_only parameter to "True". "split_dataset()" can also
-    featurize the dataset; we will explore featurization in a later
-    tutorial. For now, we provide prefeaturized data in the
-    "./dataset/scaled_descriptors" folder.*
+    *"split_dataset()" can also featurize the dataset; we will explore featurization in a later tutorial. 
+    For now, we provide prefeaturized data in the "./dataset/scaled_descriptors" folder*
 
 .. code:: ipython3
 
@@ -147,8 +144,8 @@ method to do the actual split.
 
 The dataset split table is saved as a .csv in the same directory as the
 ``dataset_key``. The name of the split file starts with the
-``dataset_key`` and is followed by the ``split  strategy``
-(train_valid_test), ``split type`` (scaffold), and the ``split_uuid``
+``dataset_key`` and is followed by the ``split_strategy``
+(train\_valid\_test), ``split type`` (scaffold), and the ``split_uuid``
 (a unique identifier of the split).
 
 .. code:: ipython3
@@ -159,6 +156,13 @@ The dataset split table is saved as a .csv in the same directory as the
     dirname = os.path.dirname(params['dataset_key'])
     split_file = glob.glob(f"{dirname}/*{split_uuid}*")[0]
     split_file
+
+
+
+
+.. parsed-literal::
+
+    'dataset/SLC6A3_Ki_curated_train_valid_test_scaffold_640d807b-f58a-47f3-913d-4a60db0a9dbd.csv'
 
 
 
@@ -174,7 +178,8 @@ test set and ``fold`` contains the fold index, which is used only by
 
     # Explore contents of the split file
     split_df = pd.read_csv(split_file)
-    split_df
+    split_df.head()
+
 
 
 .. list-table:: 
@@ -205,36 +210,23 @@ test set and ``fold`` contains the fold index, which is used only by
      - CHEMBL611677
      - train
      - 0
-   * - ...
-     - ...
-     - ...
-     - ...
-   * - 1814
-     - CHEMBL1940403
-     - test
-     - 0
-   * - 1815
-     - CHEMBL451500
-     - test
-     - 0
-   * - 1816
-     - CHEMBL1173607
-     - test
-     - 0
-   * - 1817
-     - CHEMBL1818443
-     - test
-     - 0
-   * - 1818
-     - CHEMBL3323184
-     - test
-     - 0
 
 
 .. code:: ipython3
 
     # Show the numbers of compounds in each split subset
     split_df.subset.value_counts()
+
+
+
+
+.. parsed-literal::
+
+    subset
+    train    1273
+    valid     273
+    test      273
+    Name: count, dtype: int64
 
 
 
@@ -279,7 +271,7 @@ each subset.
 
 
 
-.. image:: ../_static/img/03_perform_a_split_files/03_perform_a_split_14_0.png
+.. image:: ../_static/img/02_perform_a_split_files/02_perform_a_split_14_0.png
 
 
 The majority of compounds have `Tanimoto
@@ -310,15 +302,16 @@ train a model that performs well on the test set.
 
 
 
-.. image:: ../_static/img/03_perform_a_split_files/03_perform_a_split_17_0.png
+.. image:: ../_static/img/02_perform_a_split_files/02_perform_a_split_17_0.png
 
 
 For this dataset, the :math:`pK_i`'s have roughly similar distributions
 across the **scaffold split** subsets, except that the training set has
 slightly more compounds with large values.
 
-In  **Tutorial 4, "Train a Simple Regression Model"**, we will use this
+In  **Tutorial 3, "Train a Simple Regression Model"**, we will use this
 dataset and **scaffold split** to train a model to predict the
 :math:`pK_i`'s.
 
-If you have specific feedback about a tutorial, please complete the `AMPL Tutorial Evaluation <https://forms.gle/pa9sHj4MHbS5zG7A6>`_.
+If you have specific feedback about a tutorial, please complete the
+`AMPL Tutorial Evaluation <https://forms.gle/pa9sHj4MHbS5zG7A6>`_.

@@ -1,14 +1,13 @@
 ###########################
-08 Train a Production Model
+07 Train a Production Model
 ###########################
 
 *Published: June, 2024, ATOM DDM Team*
 
 ------------
 
-
 In this tutorial, you will use the existing hyperparameters that yielded
-the best performing model in the previous **Tutorial 7, "Compare models
+the best performing model in the previous **Tutorial 6, "Compare models
 to select the best hyperparameters"** to train a production model on the
 full dataset, rather than just the training subset from a **scaffold
 split**. Training a model on the full dataset is one approach for
@@ -25,7 +24,7 @@ production and compare the production model with the original model.
 on the same hyperparameters; retraining doesn't replace the existing
 model.**
 
-We will use functions covered in **Tutorial 5, "Train a Simple
+We will use functions covered in **Tutorial 3, "Train a Simple
 Regression Model"** to evaluate the original and production models on an
 external test dataset.
 
@@ -33,6 +32,7 @@ We will focus on these functions in this tutorial:
 
 -  `create_prediction_pipeline_from_file <https://ampl.readthedocs.io/en/latest/pipeline.html#pipeline.model_pipeline.create_prediction_pipeline_from_file>`_
 -  `train_model_from_tar <https://ampl.readthedocs.io/en/latest/utils.html#utils.model_retrain.train_model_from_tar>`_
+
 
 .. note::
 
@@ -49,8 +49,6 @@ We will focus on these functions in this tutorial:
 
 Import Packages
 ***************
-
-
 
 .. code:: ipython3
 
@@ -69,12 +67,11 @@ Import Packages
     warnings.filterwarnings('ignore', category=FutureWarning)
 
 
-
 Start From Saved Best Model
 ***************************
 
 We're using the best performing model by validation set :math:`R^2` from
-**Tutorial 7, "Compare models to select the best hyperparameters"**.
+**Tutorial 6, "Compare models to select the best hyperparameters"**.
 This was a **random forest** model. The model path, validation set
 :math:`R^2` and RF-specific parameters were as follows:
 
@@ -93,7 +90,7 @@ This was a **random forest** model. The model path, validation set
 
 When you load a previously trained model, either for running predictions
 or retraining, the parameters used to train the model are obtained from
-a file called 'model_metadata.json' that is stored in the model's
+a file called 'model\_metadata.json' that is stored in the model's
 .tar.gz file. The ``production`` parameter controls whether the data is
 split into training, validation and test sets. During normal training
 and hyperparameter optimization, the ``production`` parameter is set
@@ -135,6 +132,12 @@ we will be calling later to run predictions from the saved model.
     print("orig_params.production: " + str(best_model_pipe.orig_params.production))
 
 
+.. parsed-literal::
+
+    installed AMPL version: 1.6.1
+    best model AMPL version: 1.6.0
+    orig_params.production: False
+
 
 Retrain Best Model as Production Model
 **************************************
@@ -158,11 +161,17 @@ production model's model parameter ``production`` is set to ``True``.
     print("production model AMPL version: " + str(mv.get_ampl_version_from_model(production_model.params.model_tarball_path)))
 
 
+.. parsed-literal::
+
+    production_model.params.production: True
+    production_model.params.model_tarball_path: dataset/SLC6A3_models/SLC6A3_Ki_curated_model_4f266a2a-64ce-46fd-9c43-d2f14720f788.tar.gz
+    production model AMPL version: 1.6.1
+
 
 Compare Performance on a Separate External Test Dataset
 *******************************************************
 
-Here we will apply **Tutorial 5, "Application of a Trained Model"**'s
+Here we will apply **Tutorial 4, "Application of a Trained Model"**'s
 steps to run predictions with the original best model and the production
 model, using an independent dataset of compounds that are structurally
 different (with Tanimoto distance > 0.4) from all compounds in the
@@ -180,55 +189,40 @@ descriptors:
     test_file_path = 'dataset/scaled_descriptors/SLC6A3_Ki_ext_test_data_with_rdkit_raw_descriptors.csv'
     test_data = pd.read_csv(test_file_path)
     
-    test_data.head()
+    # show most important columns
+    test_data[['compound_id', 'base_rdkit_smiles', 'avg_pKi']].head()
+
+
 
 
 .. list-table::
    :header-rows: 1
    :class: tight-table 
  
-   * -  
+   * - 
      - compound_id
      - base_rdkit_smiles
      - avg_pKi
-     - MaxEStateIndex
-     - MinEStateIndex
-     - ...
    * - 0
      - compound_346
      - OC(C[NH2+]C1CCC1)C1(c2ccc(Cl)c(Cl)c2)CCC1
      - 7.958607
-     - 8.970106
-     - -4.751902
-     - ...
    * - 1
      - compound_225
      - CN1Cc2ccccc2C(C)(c2ccc3[nH]ncc3c2)C1
      - 6.587660
-     - 8.993202
-     - -4.010824
-     - ...
    * - 2
      - compound_166
      - O=C(O)C(/C=C/c1ccccc1)C1CCN(CCOC(c2ccccc2)c2cc...
      - 5.430275
-     - 13.525088
-     - -5.060732
-     - ...
    * - 3
      - compound_310
      - CN1Cc2cc(-c3cccnn3)ccc2C(C)(c2cc3ccccc3[nH]2)C1
      - 6.000000
-     - 9.204719
-     - -4.140132
-     - ...
    * - 4
      - compound_284
      - CN1Cc2ccccc2C(F)(c2ccc3sccc3c2)C1
      - 6.587660
-     - 17.710445
-     - -4.117619
-     - ...
 
 
 
@@ -247,10 +241,17 @@ We now predict :math:`pK_i` values with the original best model:
                                           response_col = response_col,
                                           is_featurized=False) #throws error if is_featurized=True
                                           
-    best_pred_df.head()
+    # show most important columns
+    best_pred_df[['compound_id', 'base_rdkit_smiles', 'avg_pKi', 'avg_pKi_actual', 'avg_pKi_pred', 'avg_pKi_std']].head()
 
 
-.. list-table:: 
+.. parsed-literal::
+
+    Standardizing SMILES strings for 533 compounds.
+
+
+
+.. list-table::
    :header-rows: 1
    :class: tight-table 
  
@@ -258,45 +259,45 @@ We now predict :math:`pK_i` values with the original best model:
      - compound_id
      - base_rdkit_smiles
      - avg_pKi
-     - MaxEStateIndex
-     - MinEStateIndex
-     - ...
+     - avg_pKi_actual
+     - avg_pKi_pred
+     - avg_pKi_std
    * - 0
      - compound_346
      - OC(C[NH2+]C1CCC1)C1(c2ccc(Cl)c(Cl)c2)CCC1
      - 7.958607
-     - 8.970106
-     - -4.751902
-     - ...
+     - 7.958607
+     - 7.284956
+     - 0.955853
    * - 1
      - compound_225
      - CN1Cc2ccccc2C(C)(c2ccc3[nH]ncc3c2)C1
      - 6.587660
-     - 8.993202
-     - -4.010824
-     - ...
+     - 6.587660
+     - 7.143886
+     - 0.801133
    * - 2
      - compound_166
      - O=C(O)C(/C=C/c1ccccc1)C1CCN(CCOC(c2ccccc2)c2cc...
      - 5.430275
-     - 13.525088
-     - -5.060732
-     - ...
+     - 5.430275
+     - 7.676473
+     - 0.947577
    * - 3
      - compound_310
      - CN1Cc2cc(-c3cccnn3)ccc2C(C)(c2cc3ccccc3[nH]2)C1
      - 6.000000
-     - 9.204719
-     - -4.140132
-     - ...
+     - 6.000000
+     - 6.379872
+     - 1.014355
    * - 4
      - compound_284
      - CN1Cc2ccccc2C(F)(c2ccc3sccc3c2)C1
      - 6.587660
-     - 17.710445
-     - -4.117619
-     - ...
-
+     - 6.587660
+     - 6.949374
+     - 0.964244
+   
 
 Now we'll run predictions on the same dataset with the production model:
 
@@ -309,56 +310,61 @@ Now we'll run predictions on the same dataset with the production model:
                                           response_col = response_col,
                                           is_featurized=False)
                                           
-    prod_pred_df.head()
+    # show most important columns
+    prod_pred_df[['compound_id', 'base_rdkit_smiles', 'avg_pKi', 'avg_pKi_actual', 'avg_pKi_pred', 'avg_pKi_std']].head()
 
 
+.. parsed-literal::
 
-.. list-table:: 
+    Standardizing SMILES strings for 533 compounds.
+
+
+.. list-table::
    :header-rows: 1
-   :class: tight-table
+   :class: tight-table 
  
-   * - 
+   * -  
      - compound_id
      - base_rdkit_smiles
      - avg_pKi
-     - MaxEStateIndex
-     - MinEStateIndex
-     - ...
-   * -  0
+     - avg_pKi_actual
+     - avg_pKi_pred
+     - avg_pKi_std
+   * - 0
      - compound_346
      - OC(C[NH2+]C1CCC1)C1(c2ccc(Cl)c(Cl)c2)CCC1
      - 7.958607
-     - 8.970106
-     - -4.751902
-     - ...
-   * -  1
+     - 7.958607
+     - 7.273634
+     - 0.846191
+   * - 1
      - compound_225
      - CN1Cc2ccccc2C(C)(c2ccc3[nH]ncc3c2)C1
      - 6.587660
-     - 8.993202
-     - -4.010824
-     - ...
+     - 6.587660
+     - 6.546206
+     - 1.096473
    * - 2
      - compound_166
      - O=C(O)C(/C=C/c1ccccc1)C1CCN(CCOC(c2ccccc2)c2cc...
      - 5.430275
-     - 13.525088
-     - -5.060732
-     - ...
+     - 5.430275
+     - 7.063624
+     - 0.735218
    * - 3
      - compound_310
      - CN1Cc2cc(-c3cccnn3)ccc2C(C)(c2cc3ccccc3[nH]2)C1
      - 6.000000
-     - 9.204719
-     - -4.140132
-     - ...
+     - 6.000000
+     - 6.230782	
+     - 1.045009
    * - 4
      - compound_284
      - CN1Cc2ccccc2C(F)(c2ccc3sccc3c2)C1
      - 6.587660
-     - 17.710445
-     - -4.117619
-     - ...
+     - 6.587660
+     - 6.676182	
+     - 1.178339
 
 
 To compare the performance of the production model with the original
@@ -373,6 +379,12 @@ from each model and then plot the predicted vs actual values:
     print("Production model r2_score: " + str(prod_r2))
 
 
+.. parsed-literal::
+
+    Best model r2_score: 0.156877
+    Production model r2_score: 0.271881
+
+
 .. code:: ipython3
 
     fig, ax = plt.subplots(1,2, figsize=(12,6))
@@ -384,8 +396,7 @@ from each model and then plot the predicted vs actual values:
     fig.show()
 
 
-
-.. image:: ../_static/img/08_train_production_model_files/08_train_production_model_18_0.png
+.. image:: ../_static/img/07_train_production_model_files/07_train_production_model_16_1.png
 
 
 Although neither model has a great :math:`R^2` score, the production
@@ -423,8 +434,9 @@ the original model training run.
 -  `train_model <https://ampl.readthedocs.io/en/latest/utils.html#utils.model_retrain.train_model>`_
 -  `train_models_from_dataset_keys <https://ampl.readthedocs.io/en/latest/utils.html#utils.model_retrain.train_models_from_dataset_keys>`_
 
-In **Tutorial 9, "Visualizations of Model Performances"**, we'll explore
+In **Tutorial 8, "Visualizations of Model Performances"**, we'll explore
 a wide range of methods for visualizing and evaluating the performance
 of `AMPL <https://github.com/ATOMScience-org/AMPL>`_ models.
 
-If you have specific feedback about a tutorial, please complete the `AMPL Tutorial Evaluation <https://forms.gle/pa9sHj4MHbS5zG7A6>`_.
+If you have specific feedback about a tutorial, please complete the
+`AMPL Tutorial Evaluation <https://forms.gle/pa9sHj4MHbS5zG7A6>`_.

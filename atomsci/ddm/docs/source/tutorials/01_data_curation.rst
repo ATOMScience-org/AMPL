@@ -1,5 +1,5 @@
 ################
-02 Data Curation
+01 Data Curation
 ################
 
 *Published: June, 2024, ATOM DDM Team*
@@ -29,7 +29,7 @@ These are just a few of the steps needed to curate a dataset.
 Import Standard Data Science Packages
 *************************************
 
-To use `AMPL <https://github.com/ATOMScience-org/AMPL>`_ , or to do
+To use `AMPL <https://github.com/ATOMScience-org/AMPL>`_, or to do
 almost anything else with data, you'll need to become familiar with the
 popular packages `pandas <https://pandas.pydata.org/>`_,
 `numpy <https://numpy.org/>`_,
@@ -50,10 +50,15 @@ here.
 Read the Data
 *************
 
-We've prepared an example dataset containing `Ki <https://en.wikipedia.org/wiki/Ligand_(biochemistry)#Receptor/ligand_binding_affinity>`_ 
-values for inhibitors of the `SLC6A3 <https://www.ebi.ac.uk/chembl/target_report_card/CHEMBL238/>`_ dopamine transporter collected from `ChEMBL <https://www.ebi.ac.uk/chembl/>`_. This dataset is simpler
+We've prepared an example dataset containing
+`Ki <https://en.wikipedia.org/wiki/Ligand_(biochemistry)#Receptor/ligand_binding_affinity>`_
+values for inhibitors of the
+`SLC6A3 <https://www.ebi.ac.uk/chembl/target_report_card/CHEMBL238/>`_
+dopamine transporter collected from
+`ChEMBL <https://www.ebi.ac.uk/chembl/>`_. This dataset is simpler
 than most that we find in the wild, but it will let us concisely
-demonstrate some `AMPL <https://github.com/ATOMScience-org/AMPL>`_ curation tools. The first step of data curation is to read the raw data
+demonstrate some `AMPL <https://github.com/ATOMScience-org/AMPL>`_
+curation tools. The first step of data curation is to read the raw data
 into a Pandas data frame.
 
 .. code:: ipython3
@@ -66,10 +71,23 @@ into a Pandas data frame.
     # Check the number of rows and columns in the dataset
     raw_df.shape
 
+
+.. parsed-literal::
+
+    (2236, 6)
+
+
 .. code:: ipython3
 
     # List the column names
     raw_df.columns.values
+
+
+.. parsed-literal::
+
+    array(['molecule_chembl_id', 'smiles', 'standard_type',
+           'standard_relation', 'standard_value', 'standard_units'],
+          dtype=object)
 
 
 This dataset is drawn from the
@@ -95,15 +113,12 @@ following columns:
    * - `standard_units`
      - The units of the measurement. :math:`K_i` values may be recorded in different units which will need to be converted to a common unit. The `SLC6A3 <https://www.ebi.ac.uk/chembl/target_report_card/CHEMBL238/>`_ dataset contains a mixture of nanomolar (nM) and micromolar (µM) units.
 
-
 Standardize SMILES
 ******************
 
-The
-`SMILES <https://en.wikipedia.org/wiki/Simplified_molecular-input_line-entry_system>`_
+The `SMILES <https://en.wikipedia.org/wiki/Simplified_molecular-input_line-entry_system>`_
 grammar allows the same chemical structure to be represented by many
-different
-`SMILES <https://en.wikipedia.org/wiki/Simplified_molecular-input_line-entry_system>`_
+different `SMILES <https://en.wikipedia.org/wiki/Simplified_molecular-input_line-entry_system>`_
 strings. In addition, measurements may be performed on compounds with
 different salt groups or with radioisotope labels, which we treat as
 equivalent to the base compounds.
@@ -116,7 +131,6 @@ string for each base compound structure. This step simplifies the
 machine learning problem by ensuring each compound is represented with
 the same set of features and multiple measurements on the same compound
 can be grouped together.
-
 
 .. note:: 
 
@@ -134,6 +148,12 @@ can be grouped together.
 .. code:: ipython3
 
     raw_df.smiles.nunique(), raw_df.base_rdkit_smiles.nunique()
+
+.. parsed-literal::
+
+    (1830, 1823)
+
+
 
 For this dataset there are 1830 unique
 `SMILES <https://en.wikipedia.org/wiki/Simplified_molecular-input_line-entry_system>`_
@@ -161,7 +181,7 @@ shown at right. Similar transformations are often applied to properties
 like :math:`IC_{50}`'s, :math:`K_d`'s and :math:`EC_{50}`'s, yielding
 :math:`pIC_{50}`'s, :math:`pK_d`'s, and :math:`pEC_{50}`'s.
 
-.. image:: ../_static/img/02_data_curation_files/02_data_curation_pki_mean.png
+.. image:: ../_static/img/01_data_curation_files/01_data_curation_pki_mean.png
 
 .. note::
 
@@ -187,6 +207,7 @@ describe the :math:`pK_i` values, which *decrease* as :math:`K_i` values
 *increase* (e.g., ":math:`K_i > 100 \mathrm{µ}M`" means
 ":math:`K_i > 10^{-4} \mathrm{M}`" which implies ":math:`pK_i < 4`").
 
+
 .. code:: ipython3
 
     from atomsci.ddm.utils.data_curation_functions import compute_negative_log_responses 
@@ -207,7 +228,7 @@ transformed :math:`K_i`'s:
 
 
 
-.. image:: ../_static/img/02_data_curation_files/02_data_curation_18_0.png
+.. image:: ../_static/img/01_data_curation_files/01_data_curation_18_0.png
 
 
 Standardize Relations
@@ -240,9 +261,37 @@ quotes around operators).
     # Look at the operator counts before and after standardization
     raw_df.standard_relation.value_counts()
 
+
+
+
+.. parsed-literal::
+
+    standard_relation
+    '='     1868
+    '<'      319
+    =         39
+    '>'        8
+    '<='       2
+    Name: count, dtype: int64
+
+
+
 .. code:: ipython3
 
     raw_df.fixed_relation.value_counts()
+
+
+
+
+.. parsed-literal::
+
+    fixed_relation
+    =    1907
+    <     321
+    >       8
+    Name: count, dtype: int64
+
+
 
 For this dataset, we see that the nonstandard operator ":math:`<=`" was
 changed to ":math:`<`", and the single quotes around some operators were
@@ -290,6 +339,16 @@ into account.
     curated_df.head()
 
 
+.. parsed-literal::
+
+    Removed 17 pKi replicate measurements that were > 1.0 from median
+    9 entries in input table are missing SMILES strings
+    1819 unique SMILES strings are reduced to 1819 unique base SMILES strings
+    Original data shape:  (2236, 9)
+    Curated data shape:  (1819, 4)
+
+
+
 .. list-table:: 
    :header-rows: 1
    :class: tight-table 
@@ -329,7 +388,6 @@ into account.
 The data frame returned by ``aggregate_assay_data`` contains only four
 columns:
 
-
 .. list-table::
    :header-rows: 1
    :class: tight-table
@@ -342,8 +400,8 @@ columns:
      - the standardized `SMILES <https://en.wikipedia.org/wiki/Simplified_molecular-input_line-entry_system>`_  string.
    * - `relation`
      - an aggregate relation for the set of replicates
-   * - `avg_pK`
-     - or whatever you specified in the output_value_col argument, containing the aggregate/average value.
+   * - `avg_pKi`
+     - or whatever you specified in the output_value_col argument, containing the aggregate/average :math:`pK_i` value.
 
 .. note::
     
@@ -352,14 +410,16 @@ columns:
     training classification models. We will cover classification models
     in a future tutorial*.
 
+
 Finally, we save the curated dataset to a CSV file.
 
 .. code:: ipython3
 
     curated_df.to_csv('dataset/SLC6A3_Ki_curated.csv', index=False)
 
-In **Tutorial 3, "Splitting Datasets for Validation and Testing"**,
+In **Tutorial 2, "Splitting Datasets for Validation and Testing"**,
 we'll show how to split this dataset into training, validation and test
 sets for model training.
 
-If you have specific feedback about a tutorial, please complete the `AMPL Tutorial Evaluation <https://forms.gle/pa9sHj4MHbS5zG7A6>`_.
+If you have specific feedback about a tutorial, please complete the
+`AMPL Tutorial Evaluation <https://forms.gle/pa9sHj4MHbS5zG7A6>`_.
