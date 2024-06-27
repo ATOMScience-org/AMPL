@@ -10,7 +10,7 @@ An open-source, end-to-end software pipeline for data curation, model building, 
 <img src="atomsci/ddm/docs/ATOM_cymatics_black_wordmark.jpg" width="370" height="100" class="center"></img>
 
 
-![Static Badge](https://img.shields.io/badge/Announcement-1.6.1-blue)![Static Badge](https://img.shields.io/badge/Announcement-1.6.1-blue)![Static Badge](https://img.shields.io/badge/Announcement-1.6.1-blue)![Static Badge](https://img.shields.io/badge/Announcement-1.6.1-blue)![Static Badge](https://img.shields.io/badge/Announcement-1.6.1-blue)![Static Badge](https://img.shields.io/badge/Announcement-1.6.1-blue)![Static Badge](https://img.shields.io/badge/Announcement-1.6.1-blue)
+![Static Badge](https://img.shields.io/badge/Announcement-1.6.1-blue)![Static Badge](https://img.shields.io/badge/Announcement-1.6.1-blue)![Static Badge](https://img.shields.io/badge/Announcement-1.6.1-blue)![Static Badge](https://img.shields.io/badge/Announcement-1.6.1-blue)![Static Badge](https://img.shields.io/badge/Announcement-1.6.1-blue)![Static Badge](https://img.shields.io/badge/Announcement-1.6.1-blue)
 
 ## Check out our new tutorial series that walks through AMPL's end-to-end modeling pipeline to build a machine learning model! View them in our [docs](https://ampl.readthedocs.io/en/latest/) or as Jupyter notebooks in our [repo](https://github.com/ATOMScience-org/AMPL/tree/master/atomsci/ddm/examples/tutorials).
 
