@@ -7,6 +7,6 @@ The ATOM Modeling PipeLine `AMPL <https://github.com/ATOMScience-org/AMPL>`_ is 
 
 There are two alternative paths for installing `AMPL <https://github.com/ATOMScience-org/AMPL>`_: 
 
-1. Cloning the git repo, setting up the pip environment and running the AMPL install command. Please refer to `Installation <https://ampl.readthedocs.io/en/latest/getting_started/install.html>`_.
+1. Cloning the git repo, setting up the pip environment and running the AMPL install command. Please refer to `Installation <https://ampl.readthedocs.io/en/latest/get_started/install.html>`_.
 
 2. `Install With Docker <https://ampl.readthedocs.io/en/latest/get_started/install_with_docker.html>`_. 

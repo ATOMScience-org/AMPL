@@ -2,7 +2,7 @@
 Install AMPL With Docker
 ########################
 
-This page provides an option to use Docker to install `AMPL <https://github.com/ATOMScience-org/AMPL>`_. For an alternate way, please see the "Getting Started" `Install <https://ampl.readthedocs.io/en/latest/getting_started/install.html>`_ page.
+This page provides an option to use Docker to install `AMPL <https://github.com/ATOMScience-org/AMPL>`_. For an alternate way, please see the "Getting Started" `Install <https://ampl.readthedocs.io/en/latest/get_started/install.html>`_ page.
 
 To install `AMPL <https://github.com/ATOMScience-org/AMPL>`_ software using Docker, the major steps are:
 

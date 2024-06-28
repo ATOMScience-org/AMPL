@@ -32,8 +32,8 @@ using the following inputs:
 The tutorial will present the following functions and classes:
 
 -  `ModelPipeline <https://ampl.readthedocs.io/en/latest/pipeline.html#module-pipeline.model_pipeline>`_
--  `parameter_parser.wrapper <https://ampl.readthedocs.io/en/latest/pipeline.html#module-pipeline.model_pipeline>`_
--  `compare_models.get_filesystem_perf_results <https://ampl.readthedocs.io/en/latest/pipeline.html#module-pipeline.model_pipeline>`_
+-  `parameter_parser.wrapper <https://ampl.readthedocs.io/en/latest/pipeline.html#pipeline.parameter_parser.wrapper>`_
+-  `compare_models.get_filesystem_perf_results <https://ampl.readthedocs.io/en/latest/pipeline.html#pipeline.compare_models.get_filesystem_perf_results>`_
 
 We will explain the use of descriptors, how to evaluate model
 performance, and where the model is saved as a .tar.gz file.
