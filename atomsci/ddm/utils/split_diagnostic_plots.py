@@ -166,9 +166,9 @@ def plot_split_fractions(params, axes):
         ss_counts = ss_df.subset.value_counts()
         total_count = sum(ss_counts)
         ss_fracs = ss_counts / total_count
-        actual_df = pd.DataFrame(dict(counts=ss_counts, fracs=ss_fracs))
+        actual_df = pd.DataFrame(dict(counts=ss_counts, fracs=ss_fracs)).reindex(['train', 'valid', 'test'])
         req_fracs = dict(train=1-params.split_valid_frac-params.split_test_frac, valid=params.split_valid_frac, test=params.split_test_frac)
-        req_df = pd.DataFrame(dict(fracs=req_fracs))
+        req_df = pd.DataFrame(dict(fracs=req_fracs)).reindex(['train', 'valid', 'test'])
         req_df['counts'] = np.round(total_count * req_df.fracs).astype(int)
 
         bar_width = 0.35
