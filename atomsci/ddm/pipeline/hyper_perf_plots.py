@@ -19,7 +19,7 @@ from atomsci.ddm.pipeline import parameter_parser as pp
 
 # get all possible things to plot from parameter parser
 parser=pp.get_parser()
-d=vars(pp.get_parser().parse_args())
+d=vars(pp.get_parser().parse_args([]))
 keywords=['AttentiveFPModel','GCNModel','GraphConvModel','MPNNModel','PytorchMPNNModel','rf_','xgb_']
 plot_dict={}
 for word in keywords:
@@ -28,7 +28,7 @@ for word in keywords:
     elif word=='xgb_':word='xgboost'
     plot_dict[word]=tmplist
 plot_dict['general']=['model_type','features','splitter']#'ecfp_radius',
-plot_dict['NN']=['avg_dropout','learning_rate','num_nodes','num_layers','best_epoch','max_epochs']
+plot_dict['NN']=['avg_dropout','learning_rate','num_weights','num_layers','best_epoch','max_epochs']
 
 # list score types
 regselmets=[
@@ -67,8 +67,10 @@ def _prep_perf_df(df):
     """
     perf_track_df=df.copy()
 
-    if 'model_params' in perf_track_df:
-        exp=pd.DataFrame(perf_track_df.model_params.tolist())
+    if 'model_parameters_dict' in perf_track_df:
+        # reset the index of perf_track_df so the dataframes merge correctly
+        perf_track_df.reset_index(drop=True, inplace=True)
+        exp=pd.DataFrame(perf_track_df.model_parameters_dict.tolist())
         exp['model_uuid']=perf_track_df.model_uuid
         perf_track_df=perf_track_df.merge(exp)
     
@@ -87,13 +89,13 @@ def _prep_perf_df(df):
         perf_track_df[cols[0:n]]=tmp
         perf_track_df['num_layers'] = n-perf_track_df[cols[0:n]].isna().sum(axis=1)
         perf_track_df[cols[0:n]]=perf_track_df[cols[0:n]].fillna(value=1).astype(int)
-        perf_track_df['num_nodes']=perf_track_df[cols[0:n]].product(axis=1)
-        perf_track_df.num_nodes=perf_track_df.num_nodes.astype(float)
+        perf_track_df['num_weights']=perf_track_df[cols[0:n]].product(axis=1)
+        perf_track_df.num_weights=perf_track_df.num_weights.astype(float)
         # perf_track_df=perf_track_df.drop(columns=cols[0:n])
         
         perf_track_df.loc[perf_track_df.model_type != "NN", 'layer_sizes']=np.nan
         perf_track_df.loc[perf_track_df.model_type != "NN", 'num_layers']=np.nan
-        perf_track_df.loc[perf_track_df.model_type != "NN", 'num_nodes']=np.nan
+        perf_track_df.loc[perf_track_df.model_type != "NN", 'num_weights']=np.nan
         perf_track_df.loc[perf_track_df.model_type != "NN", 'avg_dropout']=np.nan
     
     return perf_track_df
@@ -126,7 +128,7 @@ def plot_train_valid_test_scores(df, prediction_type='regression'):
                     plot_df=plot_df[[f"best_train_{scoretype}",f"best_valid_{scoretype}",f"best_test_{scoretype}"]]
                     plot_df=plot_df.sort_values(f"best_valid_{scoretype}")
                     ax[i,j].plot(plot_df.T);
-                    ax[i,j].set_ylim(plot_df.min().min()-.1,1)
+                    ax[i,j].set_ylim(plot_df.min().min()-.1,1.25)
                     ax[i,j].tick_params(rotation=15)
                     ax[i,j].set_title(f'{splitter} {scoretype}')
         else:
@@ -136,7 +138,7 @@ def plot_train_valid_test_scores(df, prediction_type='regression'):
                 plot_df=plot_df[[f"best_train_{scoretype}",f"best_valid_{scoretype}",f"best_test_{scoretype}"]]
                 plot_df=plot_df.sort_values(f"best_valid_{scoretype}")
                 ax[j].plot(plot_df.T);
-                ax[j].set_ylim(plot_df.min().min()-.1,1)
+                ax[j].set_ylim(plot_df.min().min()-.1,1.25)
                 ax[j].tick_params(rotation=15)
                 ax[j].set_title(f'{splitter} {scoretype}')
             
@@ -173,7 +175,7 @@ def plot_split_perf(df, prediction_type='regression', subset='valid'):
                 legend=False
             selection_metric = f'best_{subset}_{selmets[i]}'
             sns.boxplot(x="features", y=selection_metric, # x="txptr_features" x="model_type"
-                        hue='splitter', palette = sns.color_palette(colors[0:plot_df.features.nunique()]), #showfliers=False, 
+                        hue='splitter', palette = sns.color_palette(colors[0:plot_df.splitter.nunique()]), #showfliers=False, 
                           legend=legend,
                         data=plot_df, ax=ax);
             ax.set_xlabel('')
@@ -224,16 +226,21 @@ def plot_hyper_perf(df, scoretype='r2_score', subset='valid', model_type='genera
         if feat in perf_track_df.columns:    
             if perf_track_df[feat].nunique()>12:
                 sns.scatterplot(x=feat, y=winnertype, data=perf_track_df, ax=ax[i])
-                ticks=ax[i].get_xticks()
-                ticks=ticks[ticks>=0]
-                labs=ax[i].get_xticklabels()
-                labs=[lab for lab in labs if lab.get_position()[0]>=0]
+                old_ticks=ax[i].get_xticks()
+                old_labs=ax[i].get_xticklabels()
+                ticks=[]
+                labs=[]
+                for tick, lab in zip(old_ticks, old_labs):
+                    if tick>=0:
+                        ticks.append(tick)
+                        labs.append(lab)
             else:       
                 sns.boxplot(x=feat,y=winnertype,hue=feat,palette=sns.cubehelix_palette(perf_track_df[feat].nunique(), rot=rot,start=start,), data=perf_track_df, ax=ax[i],legend=False)
                 ticks=ax[i].get_xticks()
                 labs=ax[i].get_xticklabels()
-            ax[i].set_xticks(ticks) # avoid warning by including this line
-            ax[i].set_xticklabels(labs, rotation=30, ha='right', rotation_mode='anchor' )
+            if feat != 'num_weights':
+                ax[i].set_xticks(ticks) # avoid warning by including this line
+                ax[i].set_xticklabels(labs, rotation=30, ha='right', rotation_mode='anchor' )
         ax[i].set_xlabel(feat)
     fig.suptitle(f'{model_type} hyperparameter performance')
     plt.tight_layout()
@@ -290,7 +297,7 @@ def plot_nn_perf(df, scoretype='r2_score',subset='valid'):
     winnertype= f'best_{subset}_{scoretype}'
     
     if len(plot_df)>0:
-        feat1 = 'num_nodes'; feat2 = 'learning_rate'; feat3 = 'avg_dropout'
+        feat1 = 'num_weights'; feat2 = 'learning_rate'; feat3 = 'avg_dropout'
         plot_df[f'{feat1}_cut']=pd.qcut(plot_df[feat1],5)
         plot_df[f'{feat2}_cut']=pd.qcut(plot_df[feat2],5)
         plot_df = plot_df.sort_values([f'{feat1}_cut', f'{feat2}_cut',feat3], ascending=True)

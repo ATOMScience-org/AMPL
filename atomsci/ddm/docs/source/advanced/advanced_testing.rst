@@ -29,7 +29,7 @@ Several of the tests take some time to fit. These tests can be submitted to a SL
 
 Running tests without internet access
 -------------------------------------
-**AMPL** works without internet access. Curation, fitting, and prediction do not require internet access.
+`AMPL <https://github.com/ATOMScience-org/AMPL>`_  works without internet access. Curation, fitting, and prediction do not require internet access.
 
 However, the public datasets used in tests and examples are not included in the repo due to licensing concerns. These are automatically downloaded when the tests are run.
 

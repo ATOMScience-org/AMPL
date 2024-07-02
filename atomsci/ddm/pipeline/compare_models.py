@@ -1957,10 +1957,10 @@ def get_multitask_perf_from_files_new(result_dir, pred_type='regression', datase
 
     # deal with info left in dicts
     models=models.merge(keep_dicts)
-    models['model_params']=np.nan
-    models['model_params']=models.filter(items=['xgb_specific','nn_specific','rf_specific','model_params']).ffill(axis=1).model_params
-    models['feat_params']=np.nan
-    models['feat_params']=models.filter(items=['ecfp_specific','auto_featurizer_specific','autoencoder_specific','feat_params']).ffill(axis=1).feat_params     
+    models['model_parameters_dict']=np.nan
+    models['model_parameters_dict']=models.filter(items=['xgb_specific','nn_specific','rf_specific','model_parameters_dict']).ffill(axis=1).model_parameters_dict
+    models['feat_parameters_dict']=np.nan
+    models['feat_parameters_dict']=models.filter(items=['ecfp_specific','auto_featurizer_specific','autoencoder_specific','feat_parameters_dict']).ffill(axis=1).feat_parameters_dict     
     for col in ['xgb_specific','nn_specific','rf_specific','ecfp_specific','auto_featurizer_specific','autoencoder_specific']:
         try: models=models.drop(columns=col)
         except: pass

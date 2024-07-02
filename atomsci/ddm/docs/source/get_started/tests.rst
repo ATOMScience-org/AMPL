@@ -3,7 +3,7 @@
 Tests
 =====
 
-**AMPL** includes a suite of software tests. This section explains how to run a very simple test that is fast to run. The Python` test fits a random forest model using Mordred descriptors on a set of compounds from `Delaney, et al` with solubility data. A molecular scaffold-based split is used to create the training and test sets. In addition, an external holdout set is used to demonstrate how to make predictions on new compounds.
+`AMPL <https://github.com/ATOMScience-org/AMPL>`_ includes a suite of software tests. This section explains how to run a very simple test that is fast to run. The Python` test fits a random forest model using Mordred descriptors on a set of compounds from `Delaney, et al` with solubility data. A molecular scaffold-based split is used to create the training and test sets. In addition, an external holdout set is used to demonstrate how to make predictions on new compounds.
 
 To run the `Delaney` Python script that curates a dataset, fits a model, and makes predictions, run the following commands:
 ::

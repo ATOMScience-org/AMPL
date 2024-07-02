@@ -7,14 +7,16 @@
 
 tensorflow==2.13.1
 
-jax[cpu]==0.4.13
-
 torch==2.0.1
 torch_geometric
 lightning
 
 dgl==1.1.2
 dgllife
+
+networkx==2.8.8
+scikit-learn==1.2.2
+hyperopt
 
 xgboost
 
@@ -36,7 +38,6 @@ bravado
 maestrowf
 MolVS
 mordred
-networkx==2.8.8
 pytest
 ipykernel
 jupyter
