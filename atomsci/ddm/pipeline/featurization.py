@@ -931,6 +931,8 @@ class EmbeddingFeaturization(DynamicFeaturization):
         self.input_featurization = self.embedding_pipeline.model_wrapper.featurization
         self.embedding_pipeline.featurization = self.input_featurization
 
+        self.embedding_and_features = params.embedding_and_features and not self.input_data_params.featurizer=='graphconv'
+
     # ****************************************************************************************
     def __str__(self):
         """Returns a human-readable description of this Featurization object.
@@ -1001,6 +1003,12 @@ class EmbeddingFeaturization(DynamicFeaturization):
         nrows = input_features.shape[0]
         embedding = embedding[:nrows,:]
 
+        # include input dataset features as an option
+        if self.embedding_and_features:
+            embedding = np.hstack((embedding, input_dataset.X))
+            # input_features sometimes contains nan values
+            #embedding[np.isnan(embedding)] = 0
+
         # Select columns to include from the input dataset in the featurized dataset data frame
         dset_cols = [params.id_col, params.smiles_col]
         if contains_responses:
@@ -1027,9 +1035,14 @@ class EmbeddingFeaturization(DynamicFeaturization):
         # of nodes in the final Dense layer, which is given by the last element of params.layer_sizes.
         # For other NN models, the embedding layer has the number of nodes specified by that last element.
         if self.embedding_pipeline.params.featurizer == 'graphconv':
-            return 2*self.embedding_pipeline.params.layer_sizes[-1]
+            result = 2*self.embedding_pipeline.params.layer_sizes[-1]
         else:
-            return self.embedding_pipeline.params.layer_sizes[-1]
+            result = self.embedding_pipeline.params.layer_sizes[-1]
+
+        if self.embedding_and_features:
+            result = result + self.input_featurization.get_feature_count()
+
+        return result
 
     # ****************************************************************************************
     def get_feature_specific_metadata(self, params):
