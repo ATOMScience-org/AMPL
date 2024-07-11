@@ -132,6 +132,30 @@ def remove_duplicate_smiles(dset_df, smiles_col='rdkit_smiles'):
     return dset_df
 
 # ****************************************************************************************
+def check_feature_collisions(feat_array, smiles):
+    """Check for feature uniqueness
+    Check to see if unique smiles result in unique features. Sometimes isn't the case
+    for ECFP features. A set of features should be the same size as a set of SMILES
+
+    Args:
+        feat_array (numpy array): 2d Feature array. Aligned with smiles
+
+        smiles (iterable of str): List of SMILES strings.
+
+    Returns:
+        collisions (bool):
+            True if there are collisions
+    """
+
+    num_unique_feats = len(np.unique(feat_array, axis=0))
+    num_unique_smiles = len(set(smiles))
+
+    if num_unique_feats == num_unique_smiles and num_unique_smiles == 0:
+        log.warning("Checking feature collisions empty features and smiles.")
+
+    return num_unique_feats != num_unique_smiles
+
+# ****************************************************************************************
 def get_dataset_attributes(dset_df, params):
     """Construct a table mapping compound IDs to SMILES strings and possibly other attributes
     (e.g., dates) specified in params.
@@ -729,6 +753,14 @@ class DynamicFeaturization(Featurization):
         """
         attr = get_dataset_attributes(dset_df, params)
         features, is_valid = featurize_smiles(dset_df, featurizer=self.featurizer_obj, smiles_col=params.smiles_col)
+
+        if params.featurizer == 'ecfp':
+            valid_smiles = dset_df[is_valid][params.smiles_col]
+            has_collisions = check_feature_collisions(features, valid_smiles)
+
+            if has_collisions:
+                log.warning("Multiple SMILES mapped have the same ECFP features.")
+
         if features is None:
             raise Exception("Featurization failed for dataset")
         # Some SMILES strings may not be featurizable. This filters for only valid IDs.
