@@ -66,7 +66,6 @@ def curate():
 
 def download():
     """Separate download function so that download can be run separately if there is no internet."""
-    pdb.set_trace()
     if (not os.path.isfile('delaney-processed.csv')):
         integrative_utilities.download_save(
             'https://deepchemdata.s3-us-west-1.amazonaws.com/datasets/delaney-processed.csv',
