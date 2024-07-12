@@ -846,59 +846,6 @@ def plot_prec_recall_curve(MP, epoch_label='best', plot_size=7, pdf_dir=None):
         MP.log.info("Wrote plot to %s" % pdf_path)
 
 #------------------------------------------------------------------------------------------------------------------------
-def old_plot_prec_recall_curve(MP, epoch_label='best', plot_size=7, pdf_dir=None):
-    """Plot precision-recall curves for a classification model.
-
-    Args:
-        MP (`ModelPipeline`): Pipeline object for a model that was trained in the current Python session.
-
-        epoch_label (str): Label for training epoch to draw predicted values from. Currently 'best' is the only allowed value.
-
-        pdf_dir (str): If given, output the plots to a PDF file in the given directory.
-
-    Returns:
-        None
-
-    """
-    params = MP.params
-    curve_data = _get_perf_curve_data(MP, epoch_label, 'precision-recall')
-    if len(curve_data) == 0:
-        return
-    if MP.run_mode == 'training':
-        # Draw overlapping PR curves for train, valid and test sets
-        subsets = ['train', 'valid', 'test']
-    else:
-        subsets = ['full']
-    if pdf_dir is not None:
-        pdf_path = os.path.join(pdf_dir, '%s_%s_model_%s_features_%s_split_PRC_curves.pdf' % (
-                                params.dataset_name, params.model_type, params.featurizer, params.splitter))
-        pdf = PdfPages(pdf_path)
-    subset_colors = dict(train=train_col, valid=valid_col, test=test_col, full=full_col)
-    # For multitask, do a separate figure for each task
-    ntasks = curve_data[subsets[0]]['prob_active'].shape[1]
-    for i in range(ntasks):
-        fig, ax = plt.subplots(figsize=(plot_size,plot_size))
-        title = '%s dataset\nPrecision-recall curve for %s %s classifier on %s features with %s split' % (
-                           params.dataset_name, params.response_cols[i], 
-                           params.model_type, params.featurizer, params.splitter)
-        for subset in subsets:
-            precision, recall, thresholds = metrics.precision_recall_curve(curve_data[subset]['true_classes'][:,i],
-                                                     curve_data[subset]['prob_active'][:,i])
-      
-            prc_auc = curve_data[subset]['prc_aucs'][i]
-            ax.step(recall, precision, color=subset_colors[subset], label="%s: AUC = %.3f" % (subset, prc_auc))
-        ax.set_xlabel('Recall')
-        ax.set_ylabel('Precision')
-        ax.set_title(title, fontdict={'fontsize' : 12})
-        legend = ax.legend(loc='lower right')
-    
-        if pdf_dir is not None:
-            pdf.savefig(fig)
-    if pdf_dir is not None:
-        pdf.close()
-        MP.log.info("Wrote plot to %s" % pdf_path)
-
-#------------------------------------------------------------------------------------------------------------------------
 def plot_umap_feature_projections(MP, ndim=2, num_neighbors=20, min_dist=0.1, 
                                   fit_to_train=True,
                                   dist_metric='euclidean', dist_metric_kwds={}, 
