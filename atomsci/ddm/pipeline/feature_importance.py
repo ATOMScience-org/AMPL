@@ -525,3 +525,33 @@ def _calc_cluster_permutation_scores(estimator, X, y, col_indices, random_state,
 
 
 
+# ===================================================================================================
+def plot_nn_feature_weights_vs_epoch(pipeline, axes=None, plot_width=20, plot_height=15):
+    """Plot a line graph of summed weight absolute values from neural network feature nodes to first hidden layer vs 
+    training epoch. This plot is intended to show which features have the most influence on the final
+    prediction output. It is also used to show the effect of increasing the weight_decay_penalty
+    parameter, which _should_ result in decreasing the weights on less important features.
+    
+    Args:
+        pipeline (ModelPipeline): The pipeline object from a neural network model that was trained in the
+        current Python session.
+        axes (matplotlib.Axes): An Axes object to draw the plot in. If none is provided, the function will
+        create one in a figure with the specified width and height.
+        plot_width (float): Figure width
+        plot_height (float): Figure height
+    
+    Returns:
+        None
+    """
+    if axes is None:
+        fig, axes = plt.subplots(figsize=(plot_width, plot_height))
+        fig.suptitle("Sums of feature node : hidden layer absolute weights vs epoch")
+    
+    wt_df = pipeline.model_wrapper.feature_weights_df
+    max_epoch = len(wt_df)
+    best_epoch = pipeline.model_wrapper.best_epoch
+    for feat in pipeline.data.featurization.get_feature_columns():
+        sns.lineplot(data=wt_df, x='epoch', y=feat, ax=axes)
+        axes.text(max_epoch + 4, wt_df[feat].values[max_epoch-1], feat)
+    axes.set_ylabel("Sum over 1st hidden layer nodes of feature weight absolute values")
+    axes.axvline(best_epoch, linestyle='--', color='blue')
