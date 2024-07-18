@@ -19,16 +19,12 @@ summarize_data(column, num_bins, title, units, filepath, data)..............prin
 """
 
 import os
-import pdb
 import pandas as pd
 import numpy as np
 from scipy.stats import norm
 from scipy.optimize import minimize_scalar
-from sklearn import metrics
 
-import logging
-import urllib3
-from atomsci.ddm.utils.struct_utils import get_rdkit_smiles, base_smiles_from_smiles
+from atomsci.ddm.utils.struct_utils import base_smiles_from_smiles
 
 feather_supported = True
 try:
@@ -36,11 +32,7 @@ try:
 except (ImportError, AttributeError, ModuleNotFoundError):
     feather_supported = False
 
-from rdkit import Chem
-from rdkit.Chem.Descriptors import MolWt
 
-import seaborn as sns
-import matplotlib
 import matplotlib.pyplot as plt
 
 # ******************************************************************************************************************************************

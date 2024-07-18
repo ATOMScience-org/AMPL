@@ -1,7 +1,6 @@
 """Plotting routines for visualizing chemical diversity of datasets"""
 
 import os
-import sys
 import pandas as pd
 import numpy as np
 import seaborn as sns
@@ -15,7 +14,6 @@ import logging
 import argparse
 from rdkit import Chem
 from rdkit.Chem import AllChem, Draw
-from rdkit.DataManip.Metric.rdMetricMatrixCalc import GetTanimotoDistMat
 
 from atomsci.ddm.utils import struct_utils
 from atomsci.ddm.pipeline import dist_metrics as dm

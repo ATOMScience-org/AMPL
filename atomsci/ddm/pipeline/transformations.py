@@ -3,19 +3,13 @@ provided by DeepChem.
 """
 
 import logging
-import os
-import sys
 
 import numpy as np
-import pandas as pd
 import umap
 
-import pdb
 
-import deepchem as dc
 from deepchem.trans.transformers import Transformer, NormalizationTransformer, BalancingTransformer
 from sklearn.preprocessing import RobustScaler
-from sklearn.impute import SimpleImputer
 
 logging.basicConfig(format='%(asctime)-15s %(message)s')
 log = logging.getLogger('ATOM')

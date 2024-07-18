@@ -2,16 +2,12 @@
 
 import logging
 import os
-import sys
 import tempfile
-import pdb
 import time
 
 import numpy as np
 import deepchem as dc
 import pandas as pd
-import deepchem.data.data_loader as dl
-from deepchem.data import NumpyDataset
 
 from atomsci.ddm.utils import datastore_functions as dsf
 from atomsci.ddm.pipeline import transformations as trans
@@ -393,7 +389,7 @@ def get_mordred_calculator(exclude=subclassed_mordred_classes, ignore_3D=False):
     calc = Calculator(ignore_3D=ignore_3D)
     exclude = ['mordred.%s' % mod for mod in exclude]
     for desc_mod in descriptors.all:
-        if not desc_mod.__name__ in exclude:
+        if desc_mod.__name__ not in exclude:
             calc.register(desc_mod, ignore_3D=ignore_3D)
     calc.register(ATOMAtomTypeEState)
     calc.register(ATOMMolecularDistanceEdge)
@@ -1185,7 +1181,7 @@ class DescriptorFeaturization(PersistentFeaturization):
         else:
             try:
                 ds_client = dsf.config_client()
-            except Exception as e:
+            except Exception:
                 ds_client = None
         cls.desc_type_cols = {}
         cls.desc_type_scaled = {}
@@ -1256,7 +1252,7 @@ class DescriptorFeaturization(PersistentFeaturization):
         if len(cls.supported_descriptor_types) == 0:
             cls.load_descriptor_spec(params.descriptor_spec_bucket, params.descriptor_spec_key)
 
-        if not params.descriptor_type in cls.supported_descriptor_types:
+        if params.descriptor_type not in cls.supported_descriptor_types:
             raise ValueError("Unsupported descriptor type %s" % params.descriptor_type)
         self.descriptor_type = params.descriptor_type
         self.descriptor_key = params.descriptor_key
@@ -1612,7 +1608,7 @@ class ComputedDescriptorFeaturization(DescriptorFeaturization):
         """
         super().__init__(params)
         cls = self.__class__
-        if not params.descriptor_type in cls.supported_descriptor_types:
+        if params.descriptor_type not in cls.supported_descriptor_types:
             raise ValueError("Descriptor type %s is not in the supported descriptor_type list" % params.descriptor_type)
 
 

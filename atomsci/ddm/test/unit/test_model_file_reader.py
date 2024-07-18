@@ -1,18 +1,11 @@
-import argparse
-import json
-import logging
 import os
-import shutil
-import sys
 
 import pytest
 import inspect
-import warnings
 
 from atomsci.ddm.utils.model_file_reader import ModelFileReader
 from atomsci.ddm.utils import model_file_reader as mfr
 
-from pathlib import Path
 
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 

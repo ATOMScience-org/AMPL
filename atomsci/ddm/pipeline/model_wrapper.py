@@ -6,7 +6,6 @@ import logging
 import os
 import shutil
 import joblib
-import pdb
 
 import deepchem as dc
 import numpy as np
@@ -41,9 +40,7 @@ except ImportError:
 import pickle
 import yaml
 import glob
-from datetime import datetime
 import time
-import socket
 from packaging import version
 
 from atomsci.ddm.utils import datastore_functions as dsf
@@ -204,7 +201,7 @@ def create_model_wrapper(params, featurizer, ds_client=None):
                              twintron-blue (TTB): /opt/conda/bin/pip install xgboost==0.90 --user "
                             )
         elif version.parse(xgb.__version__) < version.parse('0.9'):
-            raise Exception(f"xgboost required to be = 0.9 for GPU support. \
+            raise Exception("xgboost required to be = 0.9 for GPU support. \
                              current version = xgb.__version__ \
                              installation: \
                              from pip: pip install xgboost==0.90")
@@ -621,7 +618,7 @@ class ModelWrapper(object):
         """
         try:
             self.model.save()
-        except Exception as error:
+        except Exception:
           try:
             self.model.save_checkpoint()
           except Exception as e:
