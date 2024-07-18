@@ -7,9 +7,9 @@ import logging
 import numpy as np
 import umap
 
-
-from deepchem.trans.transformers import Transformer, NormalizationTransformer, BalancingTransformer
-from sklearn.preprocessing import RobustScaler, Imputer
+from deepchem.trans.transformers import get_grad_statistics, Transformer, NormalizationTransformer, BalancingTransformer
+from sklearn.impute import SimpleImputer
+from sklearn.preprocessing import RobustScaler
 
 logging.basicConfig(format='%(asctime)-15s %(message)s')
 log = logging.getLogger('ATOM')
