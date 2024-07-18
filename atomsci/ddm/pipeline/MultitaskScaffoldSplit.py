@@ -1,9 +1,8 @@
-import pdb
 import argparse
 import random
 import timeit
 import tempfile
-from typing import Any, Dict, List, Iterator, Optional, Sequence, Set, Tuple
+from typing import List, Optional, Set, Tuple
 
 import numpy as np
 import pandas as pd
@@ -12,7 +11,7 @@ from functools import partial
 from scipy import stats
 
 import deepchem as dc
-from deepchem.data import Dataset, NumpyDataset
+from deepchem.data import Dataset
 from deepchem.splits import Splitter
 from deepchem.splits.splitters import _generate_scaffold
 
@@ -122,7 +121,6 @@ def calc_ecfp(smiles: List[str],
         UIntSparseIntVect. This datatype is used specifically with
         dist_smiles_from_ecfp
     """
-    from functools import partial
     func = partial(calc_ecfp,workers=1)
     if workers > 1:
       from multiprocessing import pool

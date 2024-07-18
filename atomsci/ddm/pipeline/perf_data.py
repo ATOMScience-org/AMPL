@@ -4,19 +4,15 @@
 and predictions
 """
 
-from textwrap import wrap
-import sklearn.metrics
 
 import deepchem as dc
 import numpy as np
-import tensorflow as tf
 from sklearn.metrics import roc_auc_score, confusion_matrix, average_precision_score, precision_score, recall_score
 from sklearn.metrics import accuracy_score, matthews_corrcoef, cohen_kappa_score, log_loss, balanced_accuracy_score
 from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
 
 from atomsci.ddm.pipeline import transformations as trans
 
-import pdb
 
 
 # ******************************************************************************************************************************
@@ -2199,7 +2195,7 @@ class EpochManager:
         valid_perf = self.update(ei, 'valid', valid_dset)
         test_perf = self.update(ei, 'test', test_dset)
 
-        return [p for p in [train_perf, valid_perf, test_perf] if not(p is None)]
+        return [p for p in [train_perf, valid_perf, test_perf] if p is not None]
 
     # ****************************************************************************************
     # class EpochManager

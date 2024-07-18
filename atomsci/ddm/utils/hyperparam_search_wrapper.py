@@ -8,14 +8,13 @@ Author: Amanda Minnich
 # from __future__ import unicode_literals
 
 import argparse
-import collections
-import os, os.path
+import os
+import os.path
 import sys
 import numpy as np
 import logging
 import itertools
-from numpy.core.numeric import NaN
-from collections.abc import Iterable, Iterator
+from collections.abc import Iterable
 import pandas as pd
 import uuid
 
@@ -34,11 +33,9 @@ from atomsci.ddm.pipeline import model_tracker as trkr
 logging.basicConfig(format='%(asctime)-15s %(message)s')
 
 import logging
-import socket
 import traceback
 import copy
 import pickle
-import pdb
 
 
 def run_command(shell_script, python_path, script_dir, params):
@@ -1602,9 +1599,9 @@ class HyperOptSearch():
             return res_dict
 
         if self.params.prediction_type == "regression":
-            print(f'model_performance|train_r2|train_rms|valid_r2|valid_rms|test_r2|test_rms|model_params|model\n')
+            print('model_performance|train_r2|train_rms|valid_r2|valid_rms|test_r2|test_rms|model_params|model\n')
         else:
-            print(f'model_performance|train_roc_auc|train_acc|valid_roc_auc|valid_acc|test_roc_auc|test_acc|model_params|model\n')
+            print('model_performance|train_roc_auc|train_acc|valid_roc_auc|valid_acc|test_roc_auc|test_acc|model_params|model\n')
 
         if self.params.hp_checkpoint_load is not None and os.path.isfile(self.params.hp_checkpoint_load):
             print(f"load hpo trial object from {self.params.hp_checkpoint_load}")
@@ -1614,7 +1611,7 @@ class HyperOptSearch():
             trials = Trials()
 
         if self.params.hp_checkpoint_save is not None:
-            print(f"hp_checkpoint_save provided, save a checkpoint file every 5 trials.")
+            print("hp_checkpoint_save provided, save a checkpoint file every 5 trials.")
             max_evals = 5
             while True:
                 if os.path.isfile(self.params.hp_checkpoint_save):
@@ -1636,7 +1633,7 @@ class HyperOptSearch():
         else:
             best = fmin(lossfn, self.space, algo=tpe.suggest, max_evals=self.max_eval, trials=trials)
 
-        print(f"Generating the performance -- iteration table and Copy the best model tarball.")
+        print("Generating the performance -- iteration table and Copy the best model tarball.")
 
         feat_list = [trials.trials[i]["result"]["featurizer"] for i in range(len(trials.trials))]
         desc_list = [trials.trials[i]["result"]["desc"] for i in range(len(trials.trials))]

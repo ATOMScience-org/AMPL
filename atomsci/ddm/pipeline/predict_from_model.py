@@ -1,7 +1,6 @@
 """Functions to run predictions from a pre-trained model against user-provided data."""
 
 import tempfile
-import numpy as np
 from atomsci.ddm.pipeline import model_pipeline as mp
 from atomsci.ddm.pipeline import parameter_parser as parse
 from atomsci.ddm.utils.struct_utils import base_smiles_from_smiles

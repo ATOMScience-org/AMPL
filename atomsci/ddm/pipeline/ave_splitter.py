@@ -24,14 +24,11 @@ setting `splitter` to 'ave_min' in the model parameters when you train a model.
 
 from deepchem.splits.splitters import Splitter
 from scipy.spatial.distance import cdist, pdist, squareform
-import sys
-import os
 import numpy as np
 import pandas as pd
 from numpy.random import shuffle, permutation
 import random
 from multiprocessing import Pool
-from time import time, asctime
 
 from atomsci.ddm.utils import datastore_functions as dsf
 from atomsci.ddm.pipeline import featurization as feat

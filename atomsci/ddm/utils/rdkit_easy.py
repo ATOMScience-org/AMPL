@@ -2,16 +2,14 @@
 # Mostly written by Logan Van Ravenswaay, with additions and edits by Ben Madej and Kevin McLoughlin.
 
 import os
-import pdb
 
-from IPython.display import SVG, HTML, display
+from IPython.display import HTML, display
 from base64 import b64encode
 import io
 
 import logging
 
 import pandas as pd
-from rdkit import Chem
 from rdkit import DataStructs
 from rdkit.Chem import AllChem
 from rdkit.Chem import Descriptors
@@ -180,10 +178,10 @@ def mol_to_html(mol, highlight=None, name='', type='svg', directory='rdkit_svg',
             imgByteArr = io.BytesIO()
             img.save(imgByteArr, format=img.format)
             imgByteArr = imgByteArr.getvalue()
-            data_url = f'data:image/png;base64,' + b64encode(imgByteArr).decode()
+            data_url = 'data:image/png;base64,' + b64encode(imgByteArr).decode()
         elif type.lower() == 'svg':
             img=mol_to_svg(mol, size=(width,height), highlight=highlight).encode('utf-8')
-            data_url = f'data:image/svg+xml;base64,' + b64encode(img).decode()
+            data_url = 'data:image/svg+xml;base64,' + b64encode(img).decode()
         return f"<img src='{data_url}' style='width:{width}px;'>" 
     
     else:

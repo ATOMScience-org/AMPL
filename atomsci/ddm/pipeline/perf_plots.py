@@ -4,7 +4,6 @@ import os
 
 import matplotlib
 
-import sys
 import tempfile
 import tarfile
 import json
@@ -16,7 +15,6 @@ import sklearn.metrics as metrics
 from sklearn.metrics import ConfusionMatrixDisplay, PrecisionRecallDisplay
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
-from mpl_toolkits.mplot3d import Axes3D
 
 from atomsci.ddm.utils import file_utils as futils
 from atomsci.ddm.utils import model_file_reader as mfr

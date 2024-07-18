@@ -15,11 +15,9 @@ import tempfile
 import tarfile
 import deepchem as dc
 import numpy as np
-import time
 import pandas as pd
 import scipy as sp
 from sklearn.metrics import pairwise_distances
-import pdb
 import copy
 
 from atomsci.ddm.utils import datastore_functions as dsf

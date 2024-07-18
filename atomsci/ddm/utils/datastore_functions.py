@@ -7,7 +7,8 @@
 import sys
 import io
 import json
-import urllib3,bravado
+import urllib3
+import bravado
 import os
 import pandas as pd
 import numpy as np
@@ -115,7 +116,7 @@ def initialize_model_tracker(new_instance=False):
     if not clients_supported:
         raise Exception("Model tracker client not supported in current environment.")
 
-    if not 'MLMT_REST_API_URL' in os.environ:
+    if 'MLMT_REST_API_URL' not in os.environ:
         os.environ['MLMT_REST_API_URL'] = 'https://twintron-blue.llnl.gov/atom/mlmt/api/v1.0/swagger.json'
 
     # MLMT service uses same API token as datastore. Make sure it gets set in the environment.
@@ -262,7 +263,7 @@ def retrieve_values_for_key(key, bucket='all', client=None):
     if bucket == 'all':
         # evaluate if key is valid
         all_keys = retrieve_keys()
-        if not key in all_keys:
+        if key not in all_keys:
             raise ValueError('specified key does not exist')
 
         values = client.ds_metadef.get_metadata_key_values(key=key).result()
@@ -277,12 +278,12 @@ def retrieve_values_for_key(key, bucket='all', client=None):
         for i in bucket:
             bucket_name = i
             all_buckets = retrieve_bucket_names(client)
-            if not bucket_name in all_buckets:
+            if bucket_name not in all_buckets:
                 raise ValueError('bucket does not exist')
 
         # evaluate if key is valid
         all_keys = retrieve_keys(bucket=bucket)
-        if not key in all_keys:
+        if key not in all_keys:
             raise ValueError('specified key does not exist in bucket(s) specified')
 
         values = client.ds_metadef.get_metadata_key_values(key=key, bucket_names = bucket).result()
@@ -318,7 +319,7 @@ def dataset_key_exists(dataset_key, bucket, client=None):
 
     # check that bucket exists
     all_buckets = retrieve_bucket_names(client)
-    if not bucket in all_buckets:
+    if bucket not in all_buckets:
         raise ValueError('bucket does not exist')
 
     # check that dataset_key exists in bucket
@@ -363,7 +364,7 @@ def retrieve_dataset_by_datasetkey(dataset_key, bucket, client=None, return_meta
 
     # check that bucket exists
     all_buckets = retrieve_bucket_names(client)
-    if not bucket in all_buckets:
+    if bucket not in all_buckets:
         raise ValueError('bucket does not exist')
 
     # check that dataset_key exists in bucket
@@ -616,7 +617,7 @@ def search_datasets_by_key_value(key, value, client=None, operator='in', bucket=
     if bucket == 'all':
         # evaluate if key is valid
         all_keys = retrieve_keys()
-        if not key in all_keys:
+        if key not in all_keys:
             raise ValueError('specified key does not exist')
 
         datasets = client.ds_datasets.get_datasets(metadata=metadata).result()
@@ -628,12 +629,12 @@ def search_datasets_by_key_value(key, value, client=None, operator='in', bucket=
         all_buckets = retrieve_bucket_names(client)
         for i in bucket:
             bucket_name = i
-            if not bucket_name in all_buckets:
+            if bucket_name not in all_buckets:
                 raise ValueError('bucket does not exist')
 
         # evaluate if key is valid
         all_keys = retrieve_keys(bucket=bucket)
-        if not key in all_keys:
+        if key not in all_keys:
             raise ValueError('specified key does not exist in bucket(s) specified')
 
 
