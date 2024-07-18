@@ -728,9 +728,11 @@ class ModelPipeline:
             the featurizer may not be able to featurize all of them.
         """
 
+        logger = logging.getLogger('ATOM')
+        orig_log_level = logger.getEffectiveLevel()
+        logger.setLevel(orig_log_level)
         if not verbose:
             os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1'
-            logger = logging.getLogger('ATOM')
             logger.setLevel(logging.CRITICAL)
             sys.stdout = io.StringIO()
             import warnings
@@ -747,6 +749,7 @@ class ModelPipeline:
         res = self.predict_on_dataframe(df, AD_method=AD_method, k=k, dist_metric=dist_metric)
 
         sys.stdout = sys.__stdout__
+        logger.setLevel(orig_log_level)
 
         return res
 
@@ -1258,6 +1261,7 @@ def create_prediction_pipeline(params, model_uuid, collection_name=None, featuri
     pipeline.model_wrapper = model_wrapper.create_model_wrapper(pipeline.params, featurization,
                                                                 pipeline.ds_client)
 
+    orig_log_level = pipeline.log.getEffectiveLevel()
     if params.verbose:
         pipeline.log.setLevel(logging.DEBUG)
     else:
@@ -1275,6 +1279,7 @@ def create_prediction_pipeline(params, model_uuid, collection_name=None, featuri
     # Reload the saved model training state
     pipeline.model_wrapper.reload_model(pipeline.model_wrapper.model_dir)
 
+    pipeline.log.setLevel(orig_log_level)
     return pipeline
 
 
@@ -1371,6 +1376,7 @@ def create_prediction_pipeline_from_file(params, reload_dir, model_path=None, mo
     # Create the ModelWrapper object.
     pipeline.model_wrapper = model_wrapper.create_model_wrapper(pipeline.params, featurization)
 
+    orig_log_level = pipeline.log.getEffectiveLevel()
     if verbose:
         pipeline.log.setLevel(logging.DEBUG)
     else:
@@ -1382,6 +1388,7 @@ def create_prediction_pipeline_from_file(params, reload_dir, model_path=None, mo
     # If that worked, reload the saved model training state
     pipeline.model_wrapper.reload_model(model_dir)
 
+    pipeline.log.setLevel(orig_log_level)
     return pipeline
 
 

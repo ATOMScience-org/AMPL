@@ -9,7 +9,7 @@ from atomsci.ddm.utils.struct_utils import base_smiles_from_smiles
 # =====================================================================================================
 def predict_from_tracker_model(model_uuid, collection, input_df, id_col='compound_id', smiles_col='rdkit_smiles',
                      response_col=None, conc_col=None, is_featurized=False, dont_standardize=False, AD_method=None, k=5, 
-                     dist_metric="euclidean", max_train_records_for_AD=1000):
+                     dist_metric="euclidean", max_train_records_for_AD=1000, verbose=None):
     """Loads a pretrained model from the model tracker database and runs predictions on compounds in an input
     data frame.
 
@@ -54,6 +54,9 @@ def predict_from_tracker_model(model_uuid, collection, input_df, id_col='compoun
         If the training dataset is larger than `max_train_records_for_AD`, a random sample of rows with
         this size is used instead for the AD calculations.
 
+        verbose (bool or None): If True, set logging level to show all messages; if False, show only critical error
+        messages; if None, leave logging level as is.
+
     Returns:
         A data frame with compound IDs, SMILES strings, predicted response values, and (optionally) uncertainties
         and/or AD indices. In addition, actual response values will be included if `response_col` is specified.
@@ -65,7 +68,7 @@ def predict_from_tracker_model(model_uuid, collection, input_df, id_col='compoun
 
         For proper AD index calculation, the original data column names must be the same for the new data.
     """
-    input_df, pred_params = _prepare_input_data(input_df, id_col, smiles_col, response_col, conc_col, dont_standardize)
+    input_df, pred_params = _prepare_input_data(input_df, id_col, smiles_col, response_col, conc_col, dont_standardize, verbose)
     has_responses = ('response_cols' in pred_params)
     pred_params = parse.wrapper(pred_params)
     pipe = mp.create_prediction_pipeline(pred_params, model_uuid, collection)
@@ -77,7 +80,7 @@ def predict_from_tracker_model(model_uuid, collection, input_df, id_col='compoun
 # =====================================================================================================
 def predict_from_model_file(model_path, input_df, id_col='compound_id', smiles_col='rdkit_smiles',
                      response_col=None, conc_col=None, is_featurized=False, dont_standardize=False, AD_method=None, k=5, dist_metric="euclidean",
-                     external_training_data=None, max_train_records_for_AD=1000):
+                     external_training_data=None, max_train_records_for_AD=1000, verbose=None):
     """Loads a pretrained model from a model tarball file and runs predictions on compounds in an input
     data frame.
 
@@ -91,8 +94,10 @@ def predict_from_model_file(model_path, input_df, id_col='compound_id', smiles_c
 
         smiles_col (str): Name of the column containing SMILES strings; required.
 
-        response_col (str): Name of an optional column containing actual response values; if it is provided,
+        response_col (str or List(str)): Names of optional columns containing actual response values; if provided,
         the actual values will be included in the returned data frame to make it easier for you to assess performance.
+        If the column names differ from the response_cols in the original model, they will be mapped to the original
+        column names in the same order.
 
         conc_col (str): Name of an optional column containing the concentration for single concentration activity (% binding)
         prediction in hybrid models.
@@ -124,6 +129,9 @@ def predict_from_model_file(model_path, input_df, id_col='compound_id', smiles_c
         If the training dataset is larger than `max_train_records_for_AD`, a random sample of rows with
         this size is used instead for the AD calculations.
 
+        verbose (bool or None): If True, set logging level to show all messages; if False, show only critical error
+        messages; if None, leave logging level as is.
+
     Returns:
         A data frame with compound IDs, SMILES strings, predicted response values, and (optionally) uncertainties
         and/or AD indices. In addition, actual response values will be included if `response_col` is specified.
@@ -136,10 +144,7 @@ def predict_from_model_file(model_path, input_df, id_col='compound_id', smiles_c
         For proper AD index calculation, the original data column names must be the same for the new data.
     """
 
-    # TODO (ksm): How to deal with response_col in the case of multitask models? User would have to provide a map
-    # from the original response column names to the column names in the provided data frame.
-
-    input_df, pred_params = _prepare_input_data(input_df, id_col, smiles_col, response_col, conc_col, dont_standardize)
+    input_df, pred_params = _prepare_input_data(input_df, id_col, smiles_col, response_col, conc_col, dont_standardize, verbose)
 
     has_responses = ('response_cols' in pred_params)
     pred_params = parse.wrapper(pred_params)
@@ -154,7 +159,7 @@ def predict_from_model_file(model_path, input_df, id_col='compound_id', smiles_c
     return pred_df
 
 # =====================================================================================================
-def _prepare_input_data(input_df, id_col, smiles_col, response_col, conc_col, dont_standardize):
+def _prepare_input_data(input_df, id_col, smiles_col, response_col, conc_col, dont_standardize, verbose):
     """Prepare input data frame for running predictions"""
     colnames = set(input_df.columns.values)
     if (id_col is None) or (id_col not in colnames):
@@ -183,8 +188,13 @@ def _prepare_input_data(input_df, id_col, smiles_col, response_col, conc_col, do
         'id_col': id_col,
         'smiles_col': smiles_col
     }
-    if (response_col is not None) and (response_col in input_df.columns.values):
-        pred_params['response_cols'] = response_col
+    if verbose is not None:
+        pred_params['verbose'] = verbose
+    if response_col is not None:
+        if isinstance(response_col, str):
+            response_col = [response_col]
+        if np.all([col in input_df.columns.values for col in response_col]):
+            pred_params['response_cols'] = response_col
         if conc_col is not None and conc_col in input_df.columns.values:
             pred_params['response_cols'] += "," + conc_col
     elif conc_col is not None and conc_col in input_df.columns.values:
