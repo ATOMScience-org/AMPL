@@ -5,9 +5,7 @@ the calculation is parallelized across multiple threads; this can save significa
 molecules.
 """
 
-import os
 import re
-import pdb
 import numpy as np
 import molvs
 

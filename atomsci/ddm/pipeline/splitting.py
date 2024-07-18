@@ -2,15 +2,12 @@
 testing, generation of predicted values and performance metrics.
 """
 
-import pdb
 import logging
-import os
-import sys
 import copy
 import deepchem as dc
 import numpy as np
 import pandas as pd
-from deepchem.data import NumpyDataset, Dataset
+from deepchem.data import NumpyDataset
 from atomsci.ddm.pipeline.ave_splitter import AVEMinSplitter
 from atomsci.ddm.pipeline.temporal_splitter import TemporalSplitter
 from atomsci.ddm.pipeline.MultitaskScaffoldSplit import MultitaskScaffoldSplitter

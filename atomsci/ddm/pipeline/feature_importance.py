@@ -1,26 +1,17 @@
 """Functions to assess feature importance in AMPL models"""
 
-import os
-import sys
-import argparse
 import numpy as np
 import pandas as pd
-import pdb
-import json
 from collections import defaultdict
 
 
 from atomsci.ddm.pipeline import model_pipeline as mp
-from atomsci.ddm.pipeline import model_datasets
-from atomsci.ddm.pipeline import compare_models as cmp
 from atomsci.ddm.pipeline import parameter_parser as parse
-from atomsci.ddm.utils import datastore_functions as dsf
 from atomsci.ddm.pipeline.perf_data import negative_predictive_value
 
 from deepchem.data.datasets import NumpyDataset
 
 from sklearn import metrics
-from sklearn.ensemble import RandomForestClassifier
 from scipy import stats
 from scipy.stats import spearmanr
 from scipy.cluster import hierarchy

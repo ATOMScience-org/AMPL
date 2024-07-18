@@ -2,7 +2,6 @@
 
 import os
 import tempfile
-import sys
 import pandas as pd
 import json
 import tarfile

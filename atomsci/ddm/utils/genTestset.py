@@ -8,15 +8,12 @@
 #
 import matplotlib
 matplotlib.use('Agg')
-import pandas as pd, os, csv
+import pandas as pd
 import numpy as np
 
 import atomsci.ddm.pipeline.chem_diversity as cd
 import atomsci.ddm.utils.curate_data as curate_data
 
-import seaborn as sns
-import matplotlib.pyplot as plt
-from matplotlib_venn import venn3
 
 #=====================================
 # Union of three lists 
@@ -304,7 +301,7 @@ def genUnionSet(dtc_df,ex_df,ch_df):
     print('Total number of base smiles strings in combined data: ', combine_df.shape)
 
     tolerance=10
-    column='pIC50'; #'standard_value'
+    column='pIC50' #'standard_value'
     list_bad_duplicates='No'
     max_std=1
 

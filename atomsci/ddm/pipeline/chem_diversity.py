@@ -1,6 +1,6 @@
 """Functions to generate matrices or vectors of distances between compounds"""
 
-import os, sys
+import sys
 import numpy as np
 from rdkit import Chem
 from rdkit.Chem import AllChem
@@ -8,7 +8,6 @@ from scipy.spatial.distance import pdist
 from scipy.spatial.distance import cdist
 from scipy.spatial.distance import squareform
 import pandas as pd
-import inspect
 
 from atomsci.ddm.pipeline import dist_metrics
 

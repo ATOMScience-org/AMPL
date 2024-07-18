@@ -1,8 +1,4 @@
-import os
-import sys
 import pytest
-import inspect
-import numpy as np
 import atomsci.ddm.pipeline.featurization as feat
 import deepchem as dc
 from atomsci.ddm.pipeline import model_datasets as md

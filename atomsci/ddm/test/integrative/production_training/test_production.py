@@ -5,9 +5,7 @@ import atomsci.ddm.utils.test_utils as tu
 import atomsci.ddm.utils.model_retrain as mr
 import os
 import shutil
-import glob
 import pandas as pd
-import pdb
 
 def clean(result_dir):
     if os.path.exists(result_dir):

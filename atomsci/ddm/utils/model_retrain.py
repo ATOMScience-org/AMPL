@@ -15,8 +15,6 @@
 
 import argparse
 from datetime import timedelta
-from datetime import datetime
-import glob
 import json
 from pathlib import Path
 import os
@@ -250,7 +248,7 @@ def train_models_from_dataset_keys(input, output, pred_type='regression', produc
                 Exception(f'Error for model_uuid {model_uuid}')
                 pass
     except Exception as e:
-        Exception(f'Error: %s' % str(e) )
+        Exception('Error: %s' % str(e) )
 
 #----------------
 # main
