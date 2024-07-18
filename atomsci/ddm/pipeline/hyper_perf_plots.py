@@ -4,7 +4,6 @@ compare_models.py. For models on the tracker, use get_multitask_perf_from_tracke
 For models in the file system, use get_filesystem_perf_results().
 """
 import pandas as pd
-from pandas.api.types import CategoricalDtype
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -127,7 +126,7 @@ def plot_train_valid_test_scores(df, prediction_type='regression'):
                     plot_df=perf_track_df[perf_track_df.splitter==splitter]
                     plot_df=plot_df[[f"best_train_{scoretype}",f"best_valid_{scoretype}",f"best_test_{scoretype}"]]
                     plot_df=plot_df.sort_values(f"best_valid_{scoretype}")
-                    ax[i,j].plot(plot_df.T);
+                    ax[i,j].plot(plot_df.T)
                     ax[i,j].set_ylim(plot_df.min().min()-.1,1.25)
                     ax[i,j].tick_params(rotation=15)
                     ax[i,j].set_title(f'{splitter} {scoretype}')
@@ -137,12 +136,12 @@ def plot_train_valid_test_scores(df, prediction_type='regression'):
                 plot_df=perf_track_df[perf_track_df.splitter==splitter]
                 plot_df=plot_df[[f"best_train_{scoretype}",f"best_valid_{scoretype}",f"best_test_{scoretype}"]]
                 plot_df=plot_df.sort_values(f"best_valid_{scoretype}")
-                ax[j].plot(plot_df.T);
+                ax[j].plot(plot_df.T)
                 ax[j].set_ylim(plot_df.min().min()-.1,1.25)
                 ax[j].tick_params(rotation=15)
                 ax[j].set_title(f'{splitter} {scoretype}')
             
-        fig.suptitle(f"Model performance by partition");
+        fig.suptitle("Model performance by partition")
         plt.tight_layout()
 
     
@@ -177,7 +176,7 @@ def plot_split_perf(df, prediction_type='regression', subset='valid'):
             sns.boxplot(x="features", y=selection_metric, # x="txptr_features" x="model_type"
                         hue='splitter', palette = sns.color_palette(colors[0:plot_df.splitter.nunique()]), #showfliers=False, 
                           legend=legend,
-                        data=plot_df, ax=ax);
+                        data=plot_df, ax=ax)
             ax.set_xlabel('')
             ax.set_ylabel(selection_metric.replace(f'best_{subset}_',''))
             ax.set_xticks(ax.get_xticks()) # avoid warning by including this line
@@ -277,7 +276,7 @@ def plot_rf_perf(df, scoretype='r2_score',subset='valid'):
             sns.scatterplot(x=f'{feat1}/{feat2}', y=winnertype, hue=hue, palette=palette, data=plot_df, ax=ax)
             sns.move_legend(ax, "upper left", bbox_to_anchor=(1, 1))
             plt.xticks(rotation=30, ha='right')
-            ax.set_title(f'RF model performance');
+            ax.set_title('RF model performance')
     else: print("There are no RF models in this set.")
 
         
@@ -326,7 +325,7 @@ def plot_nn_perf(df, scoretype='r2_score',subset='valid'):
                             data=plot_df, ax=ax)
             sns.move_legend(ax, "upper left", bbox_to_anchor=(1, 1))
             plt.xticks(rotation=30, ha='right')
-            ax.set_title(f'NN model performance');
+            ax.set_title('NN model performance')
     else: print("There are no NN models in this set.")
 
 
@@ -362,5 +361,5 @@ def plot_xg_perf(df, scoretype='r2_score',subset='valid'):
                                 data=plot_df, ax=ax)
             sns.move_legend(ax, "upper left", bbox_to_anchor=(1, 1))
             plt.xticks(rotation=30, ha='right')
-            ax.set_title(f'XGboost model performance');
+            ax.set_title('XGboost model performance')
     else: print('There are no XGBoost models in this set.')

@@ -70,7 +70,7 @@ def patch_model_dataset_key(model_path, new_model_path, dataset_path, require_ha
     # Compute a checksum for the new dataset.
     try:
         new_hash = cu.create_checksum(dataset_path)
-    except Exception as e:
+    except Exception:
         print(f"Error reading dataset {dataset_path}")
         raise
 
@@ -79,7 +79,7 @@ def patch_model_dataset_key(model_path, new_model_path, dataset_path, require_ha
         with open(model_path, 'rb') as tarfile_fp:
             with tarfile.open(fileobj=tarfile_fp, mode='r:gz') as tfile:
                 tar_contents = tfile.getnames()
-                if not './model_metadata.json' in tar_contents:
+                if './model_metadata.json' not in tar_contents:
                     raise ValueError(f"{model_path} is not an AMPL model tarball")
                 futils.safe_extract(tfile, path=tmp_dir)
         meta_path = os.path.join(tmp_dir, 'model_metadata.json')

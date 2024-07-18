@@ -5,19 +5,15 @@ Modify them to match Jonathan's curation methods in notebook
 01/30/2020
 """
 
-import os
-import sys
 import numpy as np
 import pandas as pd
-import pdb
 
-from rdkit import Chem
 
-from atomsci.ddm.utils.struct_utils import base_smiles_from_smiles, mols_from_smiles
+from atomsci.ddm.utils.struct_utils import mols_from_smiles
 import atomsci.ddm.utils.datastore_functions as dsf
-from atomsci.ddm.utils import curate_data as curate
 import atomsci.ddm.utils.struct_utils as struct_utils
-import atomsci.ddm.utils.curate_data as curate_data, imp
+import atomsci.ddm.utils.curate_data as curate_data
+import imp
 
 def set_data_root(dir):
     """Set global variables for data directories
@@ -73,7 +69,7 @@ def is_organometallic(mol):
     if mol is None:
         return True
     for at in mol.GetAtoms():
-        if not (at.GetAtomicNum() in organic_atomic_nums):
+        if at.GetAtomicNum() not in organic_atomic_nums:
             return True
     return False
 
@@ -631,7 +627,7 @@ def atom_curation(targ_lst, smiles_lst, shared_inchi_keys):
     """
     imp.reload(curate_data)
     tolerance=10
-    column='PIC50'; #'standard_value'
+    column='PIC50' #'standard_value'
     list_bad_duplicates='No'
     max_std=1
     curated_lst=[]
@@ -1336,7 +1332,7 @@ def atom_curation_excape(targ_lst, smiles_lst, shared_inchi_keys):
     """
     imp.reload(curate_data)
     tolerance=10
-    column='pXC50'; #'standard_value'
+    column='pXC50' #'standard_value'
     list_bad_duplicates='No'
     max_std=1
     curated_lst=[]

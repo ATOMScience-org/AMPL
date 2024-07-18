@@ -4,8 +4,6 @@ models saved as local files.
 """
 
 import os
-import sys
-import pdb
 import pandas as pd
 import numpy as np
 import matplotlib
@@ -21,8 +19,6 @@ from atomsci.ddm.utils import datastore_functions as dsf
 from atomsci.ddm.pipeline import model_tracker as trkr
 import atomsci.ddm.pipeline.model_pipeline as mp
 import atomsci.ddm.pipeline.parameter_parser as parse
-import atomsci.ddm.pipeline.model_wrapper as mw
-import atomsci.ddm.pipeline.featurization as feat
 from atomsci.ddm.utils import file_utils as futils
 
 logger = logging.getLogger('ATOM')
@@ -1237,7 +1233,7 @@ def get_summary_perf_tables(collection_names=None, filter_dict={}, result_dir=No
             if (i % 10 == 0) and verbose:
                 print('Processing collection %s model %d' % (ss, i))
             # Check that model has metrics before we go on
-            if not 'training_metrics' in metadata_dict:
+            if 'training_metrics' not in metadata_dict:
                 continue
             collection_list.append(ss)
             model_uuid = metadata_dict['model_uuid']
@@ -2039,12 +2035,12 @@ def get_multitask_perf_from_tracker(collection_name, response_cols=None, expand_
         nonas=metrics[~metrics[column].isna()]
         tempdf=pd.DataFrame.from_records(nonas[column].tolist(), index=nonas.index)
         tempdf=pd.concat([tempdf, pd.DataFrame(np.nan, index=nai, columns=tempdf.columns)])
-        label=tempdf[f'label'][nonas.index[0]]
-        metrics_type=tempdf[f'metrics_type'][nonas.index[0]]
-        subset=tempdf[f'subset'][nonas.index[0]]
-        nai=tempdf[tempdf[f'prediction_results'].isna()].index
-        nonas=tempdf[~tempdf[f'prediction_results'].isna()]
-        tempdf=pd.DataFrame.from_records(nonas[f'prediction_results'].tolist(), index=nonas.index)
+        label=tempdf['label'][nonas.index[0]]
+        metrics_type=tempdf['metrics_type'][nonas.index[0]]
+        subset=tempdf['subset'][nonas.index[0]]
+        nai=tempdf[tempdf['prediction_results'].isna()].index
+        nonas=tempdf[~tempdf['prediction_results'].isna()]
+        tempdf=pd.DataFrame.from_records(nonas['prediction_results'].tolist(), index=nonas.index)
         tempdf=pd.concat([tempdf, pd.DataFrame(np.nan, index=nai, columns=tempdf.columns)])
         tempdf=tempdf.add_prefix(f'{label}_{subset}_')
         allmet=allmet.join(tempdf, lsuffix='', rsuffix="_2")
