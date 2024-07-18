@@ -289,6 +289,7 @@ def plot_rf_perf(df, scoretype='r2_score',subset='valid'):
     else:
         print("There are no RF models in this set.")
 
+
         
 def plot_nn_perf(df, scoretype='r2_score',subset='valid'):
     """This function plots scatterplots of performance scores based on their NN hyperparameters.

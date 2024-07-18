@@ -1372,7 +1372,7 @@ def get_summary_metadata_table(uuids, collections=None):
         collections = [collections] * len(uuids)
 
     mlist = []
-     _mlmt_client = dsf.initialize_model_tracker()
+    # _mlmt_client = dsf.initialize_model_tracker()
     for idx,uuid in enumerate(uuids):
         if collections is not None:
             collection_name = collections[idx]
