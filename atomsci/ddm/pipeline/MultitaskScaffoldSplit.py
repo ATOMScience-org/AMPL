@@ -404,7 +404,7 @@ class MultitaskScaffoldSplitter(Splitter):
         float
             A float between 0 and 1. 1 best 0 is worst
         """
-        
+        _start = timeit.default_timer()
         # total_counts is the number of labels per task
         total_counts = np.sum(self.dataset.w, axis=0)
 
