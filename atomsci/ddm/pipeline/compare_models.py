@@ -1233,7 +1233,7 @@ def get_summary_perf_tables(collection_names=None, filter_dict={}, result_dir=No
             if (i % 10 == 0) and verbose:
                 print('Processing collection %s model %d' % (ss, i))
             # Check that model has metrics before we go on
-            if 'training_metrics' is not in metadata_dict:
+            if 'training_metrics' not in metadata_dict:
                 continue
             collection_list.append(ss)
             model_uuid = metadata_dict['model_uuid']
