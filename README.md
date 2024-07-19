@@ -297,6 +297,11 @@ To run AMPL from Jupyter Notebook, with your environment activated. To setup a n
 ```
 python -m ipykernel install --user --name atomsci-env
 ```
+If Jupyter Lab/Notebook is not installed in new environment
+```bash
+pip install jupyterlab
+python -m ipykernel install --user --name atomsci-env
+```
 ---
 ## Install with Docker
 - Download and install Docker Desktop.
