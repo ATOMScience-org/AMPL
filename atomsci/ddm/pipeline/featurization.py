@@ -33,6 +33,8 @@ try:
 except ImportError:
     mordred_supported = False
 
+import collections
+
 feather_supported = True
 try:
     import pyarrow.feather as feather
@@ -47,7 +49,7 @@ except (ImportError, AttributeError, ModuleNotFoundError):
 #except ImportError:
 #    pass
 
-import collections
+
 
 logging.basicConfig(format='%(asctime)-15s %(message)s')
 log = logging.getLogger('ATOM')
@@ -1204,7 +1206,7 @@ class DescriptorFeaturization(PersistentFeaturization):
             # Try the descriptor_spec_key parameter first, then fall back to package file
             try:
                 desc_spec_df = dsf.retrieve_dataset_by_datasetkey(desc_spec_key, desc_spec_bucket, ds_client)
-            except:
+            except Exception:
                 desc_spec_df = pd.read_csv(desc_spec_key_fallback, index_col=False)
 
         for desc_type, source, scaled, descriptors in zip(desc_spec_df.descr_type.values,
@@ -1342,7 +1344,7 @@ class DescriptorFeaturization(PersistentFeaturization):
             ds_client = None
         file_type = ''
         local_path = self.descriptor_key
-        if ds_client != None :
+        if ds_client is not None :
             # First get the datastore metadata for the descriptor table. Ideally this will exist even if the table
             # itself lives in the filesystem.
             desc_metadata = dsf.retrieve_dataset_by_datasetkey(self.descriptor_key, bucket=params.descriptor_bucket,
