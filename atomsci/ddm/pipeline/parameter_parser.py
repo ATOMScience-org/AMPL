@@ -673,7 +673,7 @@ def parse_config_file(config_file_path):
             flat_dict[vals] = flat_dict.pop(key)
 
     #dictionary comprehension that retains only the keys that are in the accepted list of parameters
-    hyperparam = 'hyperparam' in orig_keys and flat_dict['hyperparam'] 
+    hyperparam = 'hyperparam' in orig_keys and flat_dict['hyperparam'] is True
     newdict = remove_unrecognized_arguments(flat_dict, hyperparam)
 
     newdict['config_file'] = config_file_path
