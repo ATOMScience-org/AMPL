@@ -80,7 +80,7 @@ def create_feature_transformers(params, model_dataset):
             log.warning("Warning: UMAP transformation may produce misleading results when used with K-fold split strategy.")
         train_dset = model_dataset.train_valid_dsets[0][0]
         transformers_x = [UMAPTransformer(params, train_dset)]
-    elif params.transformers:
+    elif params.transformers is True:
         # TODO: Transformers on responses and features should be controlled only by parameters
         # response_transform_type and feature_transform_type, rather than params.transformers.
 
