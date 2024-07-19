@@ -386,7 +386,6 @@ class HybridPerfData(PerfData):
         self.weights = None
 
     # ****************************************************************************************
-
     # class HybridPerfData
     def model_choice_score(self, score_type='r2'):
         """Computes a score function based on the accumulated predicted values, to be used for selecting
@@ -588,7 +587,8 @@ class ClassificationPerfData(PerfData):
         self.perf_metrics = []
         self.model_score = None
         self.weights = None
-
+        
+    # ****************************************************************************************
     # class ClassificationPerfData
     def model_choice_score(self, score_type='roc_auc'):
         """Computes a score function based on the accumulated predicted values, to be used for selecting
@@ -606,7 +606,6 @@ class ClassificationPerfData(PerfData):
                            over tasks.
 
         """
-
         ids, pred_classes, class_probs, prob_stds = self.get_pred_values()
         real_vals = self.get_real_values(ids=ids)
         weights = self.get_weights(ids=ids)
