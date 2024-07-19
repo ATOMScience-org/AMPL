@@ -21,6 +21,8 @@ The ATOM Modeling PipeLine (AMPL) extends the functionality of DeepChem and supp
 ## Table of contents
 - [Install](#install)
    - [Quick Install](#installation-quick-summary)
+   - [Install with M1 - M3 Chips](#install-with-m1---m3-chips)
+      - [Quick Install for M1 - M3 Chips](#installation-quick-summary-for-m1---m3-chips)
    - [Jupyter kernel](#create-jupyter-notebook-kernel-optional)
    - [Docker](#install-with-docker)
    - [Uninstall](#uninstall)
@@ -36,7 +38,120 @@ The ATOM Modeling PipeLine (AMPL) extends the functionality of DeepChem and supp
 
 ## Useful links
 - [Pipeline parameters (options)](atomsci/ddm/docs/PARAMETERS.md)
-- [Library documentation](https://ampl.readthedocs.io/en/latest/index.html)  
+- [Library documentation](https://ampl.readthedocs.io/en/latest/index.html)
+---
+## Install
+AMPL 1.6 supports Python 3.9 CPU or CUDA-enabled machines using CUDA 11.8 on Linux. All other systems are experimental. For a quick install summary, see [here](#install-summary). We do not support other CUDA versions because there are multiple ML package dependency conflicts that can occur. For more information you can look at [DeepChem](https://deepchem.readthedocs.io/en/latest/get_started/installation.html), [TensorFlow](https://www.tensorflow.org/install/pip), [PyTorch](https://pytorch.org/get-started/locally/), [DGL](https://www.dgl.ai/pages/start.html) or [Jax](https://github.com/google/jax#installation).
+
+### Create pip environment
+
+#### 1. Create a virtual env with Python 3.9 
+Make sure to create your virtual env in a convenient directory that has at least 12Gb space.
+
+Go to the directory where the new environment directory be installed in. Define an environment variable - "ENVROOT".
+
+```bash
+export ENVROOT=~/workspace # for LLNL LC users, use your workspace
+or
+export ENVROOT=~ # or the directory as your environment root
+cd $ENVROOT
+```
+
+> *We use "workspace" and "atomsci-env" as an example here.*
+
+```bash
+# LLNL only: 
+# module load python/3.9.12
+cd $ENVROOT
+python3.9 -m venv atomsci-env
+```
+
+#### 2. Activate the environment
+```bash
+source $ENVROOT/atomsci-env/bin/activate
+```
+
+#### 3. Update pip
+```bash
+pip install pip --upgrade
+```
+
+#### 4. Clone AMPL repository
+```bash
+git clone https://github.com/ATOMScience-org/AMPL.git 
+```
+
+#### 5. Install pip requirements
+Depending on system performance, creating the environment can take some time.
+> ***Note:*** *Based on which environment (CPU or CUDA) to run on, only run one of the following:*
+
+- CPU-only installation:
+```bash
+cd AMPL/pip
+pip install -r cpu_requirements.txt
+```
+
+- CUDA installation:
+
+First load the CUDA module. Then run cuda specific package install.
+
+```bash
+cd AMPL/pip
+# LLNL only: 
+# module load cuda/11.8
+pip install -r cuda_requirements.txt
+```
+If you get `out of memory` errors, try setting these environment variables:
+```
+export LD_LIBRARY_PATH=<your_env>/lib:$LD_LIBRARY_PATH
+export PYTHONUSERBASE=<your_env>
+export OPENBLAS_NUM_THREADS=1
+export OMP_NUM_THREADS=48
+export PYTORCH_HIP_ALLOC_CONF=gargage_collection_threshold:0.9,max_split_size_mb:128
+export TF_FORCE_GPU_ALLOW_GROWTH=true
+```
+
+#### 6. *(Optional) LLNL LC only*: if you use [model_tracker](https://ampl.readthedocs.io/en/latest/pipeline.html#module-pipeline.model_tracker), install atomsci.clients
+```bash
+# LLNL only: required for ATOM model_tracker
+pip install -r clients_requirements.txt
+```
+
+### Install AMPL
+Run the following to build the "atomsci" modules. This is required.
+
+```bash
+# return to AMPL parent directory
+cd ..
+./build.sh
+pip install -e .
+```
+---
+## Installation Quick Summary
+```bash
+export ENVROOT=~/workspace           # set ENVROOT example
+cd $ENVROOT                          # go to a convenient home directory
+# LLNL only:
+# module load python/3.9.12
+
+python3.9 -m venv atomsci-env        # create environment with Python 3.9
+source $ENVROOT/atomsci-env/bin/activate 
+pip install pip --upgrade               
+
+git clone https://github.com/ATOMScience-org/AMPL.git # clone AMPL
+cd AMPL/pip    
+# LLNL only:
+# If use CUDA: 
+# module load cuda/11.8                         
+pip install -r cpu_requirements.txt    # install cpu_requirements.txt OR cuda_requirements.txt  
+
+# LLNL only: required for ATOM model_tracker
+# pip install -r clients_requirements.txt
+
+cd ..                                   
+./build.sh                            
+pip install -e .                        
+```
 ---
 ## Install with M1 - M3 chips
 AMPL 1.6 supports Python 3.9 CPU or CUDA-enabled machines using CUDA 11.8 on Linux. All other systems are experimental. For a quick install summary, see [here](#install-summary). We do not support other CUDA versions because there are multiple ML package dependency conflicts that can occur. For more information you can look at [DeepChem](https://deepchem.readthedocs.io/en/latest/get_started/installation.html), [TensorFlow](https://www.tensorflow.org/install/pip), [PyTorch](https://pytorch.org/get-started/locally/), [DGL](https://www.dgl.ai/pages/start.html) or [Jax](https://github.com/google/jax#installation).
@@ -131,7 +246,7 @@ pip install -r cpu_requirements.txt
 
 ### Install AMPL
 Run the following to build the "atomsci" modules. This is required.
-> ***Note:*** *Should be in the AMPL directory
+> ***Note:*** *Should be in the AMPL directory*
 ```bash
 # return to AMPL parent directory
 cd ..
@@ -140,31 +255,37 @@ pip install -e .
 ```
 
 ---
-## Installation Quick Summary
+## Installation Quick Summary for M1 - M3 chips
+> ***Note:*** *Should run these commands on Ubuntu terminal through Orbstack*
 ```bash
 sudo apt update
 sudo apt install wget                                   # install wget to Linux terminal
 sudo apt update
+
 wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-aarch64.sh    # install Miniconda3 to Linux terminal
 chmod +x Miniconda3-latest-Linux-aarch64.sh
 ./Miniconda3-latest-Linux-aarch64.sh         
 ~/miniconda3/bin/conda init                             # initialize Miniconda3
+
 export ENVROOT=~/workspace                              # set ENVROOT example
 cd $ENVROOT                                             # go to a convenient home directory             
 conda create -n atomsci-env python=3.9.12               # create environment with Python 3.9.12
 conda init                                              # initialize conda 
-conda activate atomsci-env                              # activate atomsci-env environment  
-pip install pip --upgrade               
+conda activate atomsci-env                              # activate atomsci-env environment 
+pip install pip --upgrade
+              
 sudo apt update
 sudo apt install git                                    # install git to Linux terminal
 sudo apt update
 git clone https://github.com/ATOMScience-org/AMPL.git   # clones AMPL repository
+
 cd AMPL/pip    
 sudo apt install pkg-config
 sudo apt-get install libxrender1
 sudo apt-get install  libhdf5-dev                       # fixes h5py errors when installing cpu_requirements.txt
 sudo apt-get -y install gcc                             # fixes gcc errors when installing cpu_requirements.txt
-pip install -r cpu_requirements.txt                     # install cpu_requirements.txt 
+pip install -r cpu_requirements.txt                     # install cpu_requirements.txt
+
 cd ..                                                   # return to AMPL parent directory
 ./build.sh                            
 pip install -e .                        
