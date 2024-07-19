@@ -46,6 +46,6 @@ mordred
 pytest
 ipykernel
 
-deepchem==2.7.1
+deepchem==2.8.0
 
 pyyaml==5.4.1
