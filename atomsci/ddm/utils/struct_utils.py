@@ -217,7 +217,7 @@ def base_mol_from_smiles(orig_smiles, useIsomericSmiles=True, removeCharges=Fals
         str: Standardized salt-stripped SMILES string.
 
     """
-    if type(orig_smiles) != str:
+    if type(orig_smiles) is not str:
         return None
     if len(orig_smiles) == 0:
         return None
@@ -286,7 +286,7 @@ def base_mol_from_inchi(inchi_str, useIsomericSmiles=True, removeCharges=False):
         str: Standardized salt-stripped SMILES string.
 
     """
-    if type(inchi_str) != str:
+    if type(inchi_str) is not str:
         return None
     if len(inchi_str) == 0:
         return None
@@ -318,7 +318,7 @@ def draw_structure(smiles_str, image_path, image_size=500):
     """
     mol = Chem.MolFromSmiles(smiles_str)
     if mol is None:
-        print(("Unable to read original SMILES for %s" % cmpd_num))
+        print(("Unable to read original SMILES for %s" % mol))
     else:
         _discard = AllChem.Compute2DCoords(mol)
         Draw.MolToFile(mol, image_path, size=(image_size, image_size), fitImage=False)
@@ -340,9 +340,9 @@ def _standardize_chemistry(df, standard='rdkit', smiles_col='rdkit_smiles', work
             try:
                 mol = Chem.MolFromSmiles(smi)
                 out.append(Chem.inchi.MolToInchi(mol))
-            except:
+            except Exception:
                 out.append('Invalid SMILES: %s' % (smi))
-    elif std == 'name':
+    elif standard.lower() == 'name':
         print('Name technique currently not implemented')
     else:
         raise Exception('Unrecognized standardization type: %s' % (standard))
@@ -357,7 +357,7 @@ def _merge_values(values, strategy='list'):
     """
     try:
         values.remove('')
-    except:
+    except ValueError:
         values = values
 
     if values is None:
@@ -379,7 +379,7 @@ def _merge_values(values, strategy='list'):
     elif strategy == 'min':
         val = min(values)
     else:
-        raise Exception('Unknown column merge strategy: %s', columnmerge)
+        raise Exception('Unknown column merge strategy: %s' %strategy )
 
     if type(val) is list and len(val) == 1:
         val = val[0]
@@ -508,7 +508,7 @@ def canonical_tautomers_from_smiles(smiles):
         (list of str) : List of SMILES strings for the canonical tautomers.
     """
     taut_enum = rdMolStandardize.TautomerEnumerator()
-    if type(smiles) == str:
+    if type(smiles) is str:
         smiles = [smiles]
     mols = [Chem.MolFromSmiles(smi) for smi in smiles]
     canon_tautomers = [taut_enum.Canonicalize(m) if m is not None else None for m in mols]
