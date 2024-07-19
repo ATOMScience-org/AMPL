@@ -360,7 +360,7 @@ class MultitaskScaffoldSplitter(Splitter):
             A list of strings, index i contains a string, 'train', 'valid', 'test'
             which determines the partition that scaffold belongs to
         """
-        
+        _start = timeit.default_timer()
         total_counts = np.sum(self.dataset.w, axis=0)
         subset_counts = [np.sum(self.dataset.w[subset], axis=0) for subset in \
                             self.split_chromosome_to_compound_split(split_chromosome)]
