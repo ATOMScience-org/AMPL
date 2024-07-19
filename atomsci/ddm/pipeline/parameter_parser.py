@@ -800,7 +800,7 @@ def dict_to_list(inp_dictionary,replace_spaces=False):
                     temp_list_to_command_line.append(newval)
             else:
                 newval = str(value)
-                if replace_spaces:
+                if replace_spaces is True:
                     temp_list_to_command_line.append(newval.replace(" ",replace_spaces_str))
                 else:
                     temp_list_to_command_line.append(newval)
