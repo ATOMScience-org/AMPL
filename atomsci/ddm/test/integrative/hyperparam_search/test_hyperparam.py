@@ -88,12 +88,12 @@ def test():
     # ------------
     if llnl_utils.is_lc_system():
         result_df = wait_to_finish("nn_ecfp.json", max_time=-1)
-        assert not result_df is None # Timed out
+        assert result_df is not None # Timed out
         assert max(result_df.loc[:,result_df.columns.str.contains("test_r2_score")].values) > 0.6 # should do at least this well. I saw values like 0.687
     
         # Run graphconv NN hyperparam search
         result_df = wait_to_finish("nn_graphconv.json", max_time=-1)
-        assert not result_df is None # Timed out
+        assert result_df is not None # Timed out
         assert max(result_df.loc[:,result_df.columns.str.contains("test_r2_score")].values) > 0.6 # should do at least this well. I saw values like 0.62
     else:
         assert True

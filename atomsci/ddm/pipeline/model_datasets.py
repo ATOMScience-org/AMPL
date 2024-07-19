@@ -13,7 +13,6 @@ from atomsci.ddm.pipeline import splitting as split
 from atomsci.ddm.utils import datastore_functions as dsf
 from pathlib import Path
 import getpass
-import traceback
 import sys
 
 feather_supported = True

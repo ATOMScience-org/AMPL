@@ -1,12 +1,7 @@
 import matplotlib
 matplotlib.use('Agg')
 import pandas as pd
-import os,sys,math
 
-import tempfile
-import tarfile
-import json
-import pprint
 
 #import custom_config
 from atomsci.ddm.utils import struct_utils as su
@@ -19,7 +14,6 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 import numpy as np
-from tqdm import tqdm
 import argparse
 
 import configparser
@@ -39,7 +33,7 @@ class CustomConfigParser(configparser.ConfigParser) :
               rval = super().get(self.def_sec,keyval)
           except :
               rval = None
-      return rval;
+      return rval
 
 def parse_args():
     """Parse commandline arguments and return a Namespace.
@@ -320,7 +314,7 @@ class CombineAMPLDataset:
         ## add lead dataframe to list
         rl_df=lead_ds.df[ save_cols ] 
         df_lst.append(rl_df)
-        self.combine_df = pd.concat(df_lst);
+        self.combine_df = pd.concat(df_lst)
          
                       
 if __name__ == '__main__':
@@ -435,13 +429,13 @@ if __name__ == '__main__':
                  pdf.savefig(fig)
 
             ## save curated form of each dataset
-            if not target_name in comb :
+            if target_name not in comb :
                comb[target_name]=[]
             ndata = CustomActivityDump(dataset=act_data,df=sub_df)
             comb[target_name].append(ndata)
 
             ## save raw form gives option to combine data from all sources together
-            if not target_name in raw_comb :
+            if target_name not in raw_comb :
                raw_comb[target_name]=[]
             raw_ndata = CustomActivityDump(dataset=act_data,df=raw_sub_df)
             raw_comb[target_name].append(ndata)

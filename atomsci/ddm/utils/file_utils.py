@@ -2,9 +2,7 @@
 Utilities for file related functions
 """
 
-import tarfile
 import os 
-import glob
 
 def is_within_directory(directory, target):
    """Check if the member target is within the directory"""
