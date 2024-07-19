@@ -22,6 +22,10 @@ import subprocess
 import shutil
 import time
 
+import traceback
+import copy
+import pickle
+
 from hyperopt import fmin, tpe, hp, Trials, STATUS_OK
 
 from atomsci.ddm.pipeline import featurization as feat
@@ -32,10 +36,6 @@ from atomsci.ddm.utils import datastore_functions as dsf
 from atomsci.ddm.pipeline import model_tracker as trkr
 logging.basicConfig(format='%(asctime)-15s %(message)s')
 
-import logging
-import traceback
-import copy
-import pickle
 
 
 def run_command(shell_script, python_path, script_dir, params):
@@ -158,15 +158,15 @@ def reformat_filter_dict(filter_dict):
         for value in values:
             if value in filter_dict:
                 filter_val = filter_dict[value]
-                if type(filter_val) == np.int64:
+                if type(filter_val) is np.int64:
                     filter_dict[value] = int(filter_val)
-                elif type(filter_val) == np.float64:
+                elif type(filter_val) is np.float64:
                     filter_dict[value] = float(filter_val)
-                elif type(filter_val) == list:
+                elif type(filter_val) is list:
                     for i, item in enumerate(filter_val):
-                        if type(item) == np.int64:
+                        if type(item) is np.int64:
                             filter_dict[value][i] = int(item)
-                        elif type(filter_val) == np.float64:
+                        elif type(filter_val) is np.float64:
                             filter_dict[value][i] = float(item)
                 new_filter_dict['%s.%s' % (key, value)] = filter_dict[value]
     return new_filter_dict
@@ -282,7 +282,7 @@ class HyperparameterSearch(object):
         self.convert_to_int = parse.convert_to_int_list
         self.params = params
         # simplify NN layer construction
-        if (params.layer_nums != None) and (params.node_nums != None) and (params.dropout_list != None):
+        if (params.layer_nums is not None) and (params.node_nums is not None) and (params.dropout_list is not None):
 
             self.params.layer_sizes, self.params.dropouts = permutate_NNlayer_combo_params(params.layer_nums,
                                                                                            params.node_nums,
@@ -363,11 +363,11 @@ class HyperparameterSearch(object):
             elif key == 'result_dir' or key == 'output_dir':
                 self.new_params[key] = os.path.join(value, self.hyperparam_uuid)
             # Need to zip together layers in special way
-            elif key in self.hyperparam_layers and type(value[0]) == list:
+            elif key in self.hyperparam_layers and type(value[0]) is list:
                 self.layers[key] = value
             # Parses the hyperparameter keys depending on the size of the key list
             elif key in self.hyperparam_keys:
-                if type(value) != list:
+                if type(value) is not list:
                     self.new_params[key] = value
                     self.hyperparam_keys.remove(key)
                 elif len(value) == 1:
@@ -381,11 +381,11 @@ class HyperparameterSearch(object):
         if self.layers:
             self.assemble_layers()
         # setting up the various hyperparameter combos for each model type.
-        if type(self.params.model_type) == str:
+        if type(self.params.model_type) is str:
             self.params.model_type = [self.params.model_type]
-        if type(self.params.featurizer) == str:
+        if type(self.params.featurizer) is str:
             self.params.featurizer = [self.params.featurizer]
-        if type(self.params.descriptor_type) == str:
+        if type(self.params.descriptor_type) is str:
             self.params.descriptor_type = [self.params.descriptor_type]
 
         for model_type in self.params.model_type:
@@ -492,7 +492,7 @@ class HyperparameterSearch(object):
             x = [len(y) for y in tmp_dict.values()]
             try:
                 assert x.count(x[0]) == len(x)
-            except:
+            except Exception:
                 continue
             tmp_list.append(tmp_dict)
         self.hyperparams['layers'] = tmp_list
@@ -507,7 +507,7 @@ class HyperparameterSearch(object):
         """
         # Creates the assay list with additional options for use_shortlist
         if not self.params.use_shortlist:
-            if type(self.params.splitter) == str:
+            if type(self.params.splitter) is str:
                 splitters = [self.params.splitter]
             else:
                 splitters = self.params.splitter
@@ -644,7 +644,7 @@ class HyperparameterSearch(object):
         assay_params = {'dataset_key': dataset_key, 'bucket': bucket, 'splitter': splitter,
                         'split_valid_frac': split_valid_frac, 'split_test_frac': split_test_frac}
         #Need a featurizer type to split dataset, but since we only care about getting the split_uuid, does not matter which featurizer you use
-        if type(self.params.featurizer) == list:
+        if type(self.params.featurizer) is list:
             assay_params['featurizer'] = self.params.featurizer[0]
         else:
             assay_params['featurizer'] = self.params.featurizer
@@ -669,7 +669,7 @@ class HyperparameterSearch(object):
         try:
             assay_params['descriptor_key'] = self.params.descriptor_key
             assay_params['descriptor_bucket'] = self.params.descriptor_bucket
-        except:
+        except Exception:
             print("")
         #TODO: check usage with defaults
         namespace_params = parse.wrapper(assay_params)
@@ -904,7 +904,7 @@ class HyperparameterSearch(object):
             
         if not split_uuids:
             return datasets
-        if type(self.params.splitter) == str:
+        if type(self.params.splitter) is str:
             splitters = [self.params.splitter]
         else:
             splitters = self.params.splitter
@@ -915,7 +915,7 @@ class HyperparameterSearch(object):
                 for i, row in df.iterrows():
                     try:
                         assays.append((datasets[i][0], datasets[i][1], datasets[i][2], datasets[i][3], splitter, row[split_name]))
-                    except:
+                    except Exception:
                         print("dataset_key, bucket, response_cols, & collecion_name must be specified in shortlist or config file, not neither.")
             else:
                 print(f"Warning: {split_name} not found in shortlist. Creating default split scaffold_10_10 now.")
@@ -1152,7 +1152,7 @@ class GridSearch(HyperparameterSearch):
             assert isinstance(value, Iterable)
             if key == 'layers':
                 new_dict[key] = value
-            elif type(value[0]) != str:
+            elif type(value[0]) is not str:
                 tmp_list = list(np.linspace(value[0], value[1], value[2]))
                 if key in self.convert_to_int:
                     new_dict[key] = [int(x) for x in tmp_list]
@@ -1195,7 +1195,7 @@ class RandomSearch(HyperparameterSearch):
             assert isinstance(value, Iterable)
             if key == 'layers':
                 new_dict[key] = value
-            elif type(value[0]) != str:
+            elif type(value[0]) is not str:
                 tmp_list = list(np.random.uniform(value[0], value[1], value[2]))
                 if key in self.convert_to_int:
                     new_dict[key] = [int(x) for x in tmp_list]
@@ -1239,7 +1239,7 @@ class GeometricSearch(HyperparameterSearch):
             assert isinstance(value, Iterable)
             if key == 'layers':
                 new_dict[key] = value
-            elif type(value[0]) != str:
+            elif type(value[0]) is not  str:
                 tmp_list = list(np.geomspace(value[0], value[1], int(value[2])))
                 if key in self.convert_to_int:
                     new_dict[key] = [int(x) for x in tmp_list]
@@ -1556,7 +1556,7 @@ class HyperOptSearch():
             model_failed = False
             try:
                 pl.train_model()
-            except:
+            except Exception:
                 model_failed = True
 
             subsets = ["train", "valid", "test"]
@@ -1622,7 +1622,7 @@ class HyperOptSearch():
                 else:
                     max_evals = min(max_evals, self.max_eval)
 
-                best = fmin(lossfn, self.space, algo=tpe.suggest, max_evals=max_evals, trials=trials)
+                _best = fmin(lossfn, self.space, algo=tpe.suggest, max_evals=max_evals, trials=trials)
 
                 print(f"Save HPO trial object to {self.params.hp_checkpoint_save}")
                 with open(self.params.hp_checkpoint_save, "wb") as f:
@@ -1631,7 +1631,7 @@ class HyperOptSearch():
                 if max_evals == self.max_eval:
                     break
         else:
-            best = fmin(lossfn, self.space, algo=tpe.suggest, max_evals=self.max_eval, trials=trials)
+            _best = fmin(lossfn, self.space, algo=tpe.suggest, max_evals=self.max_eval, trials=trials)
 
         print("Generating the performance -- iteration table and Copy the best model tarball.")
 
