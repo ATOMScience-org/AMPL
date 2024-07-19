@@ -238,7 +238,7 @@ class MultitaskScaffoldSplitter(Splitter):
           List of indices of each scaffold in the dataset.
         """
         scaffolds = {}
-        #data_len = len(dataset)
+        _data_len = len(dataset)
 
         for ind, smiles in enumerate(dataset.ids):
             scaffold = _generate_scaffold(smiles)
