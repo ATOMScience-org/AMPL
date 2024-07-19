@@ -239,7 +239,7 @@ class MultitaskScaffoldSplitter(Splitter):
           List of indices of each scaffold in the dataset.
         """
         scaffolds = {}
-        data_len = len(dataset)
+        _data_len = len(dataset)
 
         for ind, smiles in enumerate(dataset.ids):
             scaffold = _generate_scaffold(smiles)
@@ -361,7 +361,7 @@ class MultitaskScaffoldSplitter(Splitter):
             A list of strings, index i contains a string, 'train', 'valid', 'test'
             which determines the partition that scaffold belongs to
         """
-        start = timeit.default_timer()
+        _start = timeit.default_timer()
         total_counts = np.sum(self.dataset.w, axis=0)
         subset_counts = [np.sum(self.dataset.w[subset], axis=0) for subset in \
                             self.split_chromosome_to_compound_split(split_chromosome)]
@@ -405,7 +405,7 @@ class MultitaskScaffoldSplitter(Splitter):
         float
             A float between 0 and 1. 1 best 0 is worst
         """
-        start = timeit.default_timer()
+        _start = timeit.default_timer()
         # total_counts is the number of labels per task
         total_counts = np.sum(self.dataset.w, axis=0)
 
@@ -454,7 +454,7 @@ class MultitaskScaffoldSplitter(Splitter):
             the train subset response value distributions, averaged over tasks. One means
             the distributions perfectly match.
         """
-        start = timeit.default_timer()
+        _start = timeit.default_timer()
         dist_sum = 0.0
         ntasks = self.dataset.y.shape[1]
         train_ind, valid_ind, test_ind = self.split_chromosome_to_compound_split(split_chromosome)
@@ -627,7 +627,7 @@ class MultitaskScaffoldSplitter(Splitter):
         # initial population
         population = []
         for i in range(self.num_pop):
-            start = timeit.default_timer()
+            _start = timeit.default_timer()
             split_chromosome = self._split(frac_train=frac_train, frac_valid=frac_valid, 
                                 frac_test=frac_test)
             #print("per_loop: %0.2f min"%((timeit.default_timer()-start)/60))
@@ -643,7 +643,7 @@ class MultitaskScaffoldSplitter(Splitter):
             print("step %d: best_fitness %0.2f"%(i, best_fitness))
             #print("%d: %0.2f"%(i, gene_alg.grade_population()[0][0]))
 
-        best_fit = gene_alg.pop_scores[0]
+        _best_fit = gene_alg.pop_scores[0]
         best = gene_alg.pop[0]
 
         #print('best ever fitness %0.2f'%best_ever_fit)
