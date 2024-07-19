@@ -1177,7 +1177,9 @@ class KFoldClassificationPerfData(ClassificationPerfData):
 
         self.subset = subset
         if self.subset in ('train', 'valid', 'train_valid'):
-            dataset = model_dataset.combined_training_data()
+            for fold, (train, valid) in enumerate(model_dataset.train_valid_dsets):
+                print('iterating through fold:', fold)
+                dataset = model_dataset.combined_training_data()
         elif self.subset == 'test':
             dataset = model_dataset.test_dset
         else:
@@ -1239,7 +1241,9 @@ class KFoldClassificationPerfData(ClassificationPerfData):
             Increments folds by 1
 
         """
-        class_probs = self._reshape_preds(predicted_vals)
+        
+        class_probs = self._reshape_preds(predicted_vals)        
+
         for i, id in enumerate(ids):
             self.pred_vals[id] = np.concatenate([self.pred_vals[id], class_probs[i,:,:].reshape((1,self.num_tasks,-1))], axis=0)
         self.folds += 1
@@ -1300,6 +1304,8 @@ class KFoldClassificationPerfData(ClassificationPerfData):
             class_probs = np.concatenate([dc.trans.undo_transforms(self.pred_vals[id], self.transformers) for id in ids], axis=0)
             prob_stds = None
         pred_classes = np.argmax(class_probs, axis=2)
+
+        pdb.set_trace()
         return (ids, pred_classes, class_probs, prob_stds)
 
 
