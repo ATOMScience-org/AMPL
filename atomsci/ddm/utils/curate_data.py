@@ -1,3 +1,19 @@
+import os
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import shutil
+from scipy.stats import norm
+from scipy.optimize import minimize_scalar
+
+from atomsci.ddm.utils.struct_utils import base_smiles_from_smiles
+
+feather_supported = True
+try:
+    import pyarrow.feather as feather # noqa: F401
+except (ImportError, AttributeError, ModuleNotFoundError):
+    feather_supported = False
+
 """Utility functions used for AMPL dataset curation and creation."""
 
 """ TOC:
@@ -18,22 +34,6 @@ average_and_remove_duplicates (column, tolerance, list_bad_duplicates, data)
 summarize_data(column, num_bins, title, units, filepath, data)..............prints mix/max/avg/histogram
 """
 
-import os
-import pandas as pd
-import numpy as np
-from scipy.stats import norm
-from scipy.optimize import minimize_scalar
-
-from atomsci.ddm.utils.struct_utils import base_smiles_from_smiles
-
-feather_supported = True
-try:
-    import pyarrow.feather as feather
-except (ImportError, AttributeError, ModuleNotFoundError):
-    feather_supported = False
-
-
-import matplotlib.pyplot as plt
 
 # ******************************************************************************************************************************************
 def set_group_permissions(path, system='AD', owner='GSK'):
@@ -229,8 +229,8 @@ def aggregate_assay_data(assay_df, value_col='VALUE_NUM', output_value_col=None,
     smiles_map = dict([(smiles,i) for i, smiles in enumerate(uniq_smiles_strs)])
     smiles_indices = np.array([smiles_map.get(smiles, nuniq) for smiles in smiles_strs])
 
-    assay_vals = assay_df[value_col].values
-    value_flags = assay_df[relation_col].values
+    _assay_vals = assay_df[value_col].values
+    _value_flags = assay_df[relation_col].values
 
     # Compute a maximum likelihood estimate of the mean assay value for each compound, averaging over replicates
     # and factoring in censoring. Report the censoring/relation/value_flag only if the flags are consistent across
@@ -708,13 +708,13 @@ def summarize_data(column, num_bins, title, units, filepath, data, log_column = 
         fig, ax = plt.subplots(1,2,figsize=(14, 5))
 
         plt.subplot(121)
-        plot1=plt.hist(data[column], edgecolor='k',linewidth=1.0,color='blue')
+        _plot1=plt.hist(data[column], edgecolor='k',linewidth=1.0,color='blue')
         plt.title(column)
         plt.xlabel('Value')
         plt.ylabel('Count')
 
         plt.subplot(122)
-        plot2=plt.hist(logify_data[log_column], edgecolor='k',linewidth=1.0,color='green')
+        _plot2=plt.hist(logify_data[log_column], edgecolor='k',linewidth=1.0,color='green')
         plt.title(log_column)
         plt.xlabel('Value')
         plt.ylabel('Count')
@@ -782,7 +782,6 @@ def add_classification_column(thresholds, value_column, label_column, data, righ
         # raised if thresholds is scalar
         thresholds = [thresholds]
 
-    nclasses = len(thresholds)
     values = data[value_column].values
     labels = np.zeros(len(values))
     for i, thresh in enumerate(thresholds):
