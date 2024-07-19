@@ -24,7 +24,6 @@ from atomsci.ddm.utils import file_utils as futils
 logger = logging.getLogger('ATOM')
 mlmt_supported = True
 try:
-    from atomsci.clients import MLMTClient
 except (ModuleNotFoundError, ImportError):
     logger.debug("Model tracker client not supported in your environment; can look at models in filesystem only.")
     mlmt_supported = False
@@ -481,7 +480,7 @@ def get_best_perf_table(metric_type, col_name=None, result_dir=None, model_uuid=
         model_info['descriptor_type'] = 'NA'
     try:
         model_info['num_samples'] = dset_meta['num_row']
-    except:
+    except Exception:
         # KSM: Commented out because original dataset may no longer be accessible.
         #tmp_df = dsf.retrieve_dataset_by_datasetkey(model_info['dataset_key'], model_info['bucket'])
         #model_info['num_samples'] = tmp_df.shape[0]
@@ -562,7 +561,7 @@ def get_best_models_info(col_names=None, bucket='public', pred_type="regression"
     if input_dset_keys is not None and shortlist_key is not None:
         raise ValueError("You can specify either shortlist_key or input_dset_keys but not both.")
     elif input_dset_keys is not None and shortlist_key is None:
-        if type(input_dset_keys) == str:
+        if isinstance(input_dset_keys, str):
             dset_keys = [input_dset_keys]
         else:
             dset_keys = input_dset_keys
@@ -586,9 +585,9 @@ def get_best_models_info(col_names=None, bucket='public', pred_type="regression"
     
     if mlmt_supported and col_names is not None:
         mlmt_client = dsf.initialize_model_tracker()
-        if type(col_names) == str:
+        if type(col_names) is str:
             col_names = [col_names]
-        if type(bucket) == str:
+        if type(bucket) is str:
             bucket=[bucket]
         # Get the best model over all collections for each dataset
         for dset_key in dset_keys:
@@ -971,7 +970,7 @@ def get_filesystem_perf_results(result_dir, pred_type='classification', expand=T
                     with open(metrics_path, 'r') as metrics_fp:
                         metrics_dicts = json.load(metrics_fp)
                     metrics_list.append(metrics_dicts)
-            except:
+            except Exception:
                 print(f"Can't access model {dirpath}")
 
     print("Found data for %d models under %s" % (len(model_list), result_dir))
@@ -1021,7 +1020,7 @@ def get_filesystem_perf_results(result_dir, pred_type='classification', expand=T
         feature_transform_type_list.append(feature_transform_type)
         try:
             weight_transform_type_list.append(metadata_dict['training_dataset']['weight_transform_type'])
-        except:
+        except Exception:
             weight_transform_type_list.append(None)
 
         param_list.append(extract_model_and_feature_parameters(metadata_dict, keep_required=expand))
@@ -1030,7 +1029,7 @@ def get_filesystem_perf_results(result_dir, pred_type='classification', expand=T
             for metric in metrics:
                 try:
                     score_dict[subset][metric].append(subset_metrics[subset][metric])
-                except:
+                except Exception:
                     score_dict[subset][metric].append(np.nan)
         score_dict['valid']['model_choice_score'].append(subset_metrics['valid']['model_choice_score'])
 
@@ -1070,7 +1069,8 @@ def get_filesystem_models(result_dir, pred_type):
     if pred_type == 'regression':
         metric = 'valid_r2_score'
     else:
-        metric = 'valid_roc_auc_score'
+        _metric = 'valid_roc_auc_score'
+        
     #best_df = perf_df.sort_values(by=metric, ascending=False).drop_duplicates(subset='dataset_key').copy()
     perf_df['dataset_names'] = perf_df['dataset_key'].apply(lambda f: os.path.splitext(os.path.basename(f))[0])
     perf_df['tarball_names'] = perf_df.apply(lambda x: '%s_model_%s.tar.gz' % (x['dataset_names'], x['model_uuid']), axis=1)
@@ -1233,7 +1233,7 @@ def get_summary_perf_tables(collection_names=None, filter_dict={}, result_dir=No
             if (i % 10 == 0) and verbose:
                 print('Processing collection %s model %d' % (ss, i))
             # Check that model has metrics before we go on
-            if 'training_metrics' not in metadata_dict:
+            if 'training_metrics' is not in metadata_dict:
                 continue
             collection_list.append(ss)
             model_uuid = metadata_dict['model_uuid']
@@ -1259,7 +1259,7 @@ def get_summary_perf_tables(collection_names=None, filter_dict={}, result_dir=No
             bucket = metadata_dict['training_dataset']['bucket']
             dataset_key_list.append(dataset_key)
             bucket_list.append(bucket)
-            dset_metadata = metadata_dict['training_dataset']['dataset_metadata']
+            _dset_metadata = metadata_dict['training_dataset']['dataset_metadata']
             param = metadata_dict['training_dataset']['response_cols'][0]
             param_list.append(param)
             transform_type = metadata_dict['training_dataset']['feature_transform_type']
@@ -1371,7 +1371,7 @@ def get_summary_metadata_table(uuids, collections=None):
         collections = [collections] * len(uuids)
 
     mlist = []
-    mlmt_client = dsf.initialize_model_tracker()
+     _mlmt_client = dsf.initialize_model_tracker()
     for idx,uuid in enumerate(uuids):
         if collections is not None:
             collection_name = collections[idx]
@@ -1418,7 +1418,7 @@ def get_summary_metadata_table(uuids, collections=None):
 
         try:
             split_uuid = model_meta['splitting_parameters']['split_uuid']
-        except:
+        except Exception:
             split_uuid = 'Not Available'
 
         if mdl_params['prediction_type'] == 'regression':
@@ -1570,7 +1570,7 @@ def get_summary_metadata_table(uuids, collections=None):
                          'Split UUID':    split_uuid,
                          'Dataset Key':   data_params['dataset_key']}
             else:
-                architecture = 'unknown'
+                _architecture = 'unkown'
 
         mlist.append(OrderedDict(minfo))
     return pd.DataFrame(mlist).set_index('Name').transpose()
@@ -1622,7 +1622,7 @@ def get_dataset_models(collection_names, filter_dict={}):
     result_dict = {}
 
 
-    coll_dset_dict = get_training_dict(collection_names)
+    coll_dset_dict = get_training_datasets(collection_names)
 
     mlmt_client = dsf.initialize_model_tracker()
     for collection_name in collection_names:
@@ -1637,7 +1637,7 @@ def get_dataset_models(collection_names, filter_dict={}):
                 "match_metadata": query_filter
             }
 
-            print('Querying models in collection %s for dataset %s, %s' % (collection_name, bucket, dset_key))
+            print('Querying models in collection %s for dataset %s, %s' % (collection_name, dataset_bucket['bucket'], dset_dict['dataset_key']))
             metadata_list = mlmt_client.model.query_model_metadata(
                 collection_name=collection_name,
                 query_params=query_params,
@@ -1647,7 +1647,7 @@ def get_dataset_models(collection_names, filter_dict={}):
                 if i % 50 == 0:
                     print('Processing collection %s model %d' % (collection_name, i))
                 model_uuid = metadata_dict['model_uuid']
-                result_dict.setdefault((dset_key,bucket), []).append((collection_name, model_uuid))
+                result_dict.setdefault((dset_dict['dataset_key'],dataset_bucket['bucket']), []).append((collection_name, model_uuid))
 
     return result_dict
 
@@ -1926,8 +1926,10 @@ def get_multitask_perf_from_files_new(result_dir, pred_type='regression', datase
     models['feat_parameters_dict']=np.nan
     models['feat_parameters_dict']=models.filter(items=['ecfp_specific','auto_featurizer_specific','autoencoder_specific','feat_parameters_dict']).ffill(axis=1).feat_parameters_dict     
     for col in ['xgb_specific','nn_specific','rf_specific','ecfp_specific','auto_featurizer_specific','autoencoder_specific']:
-        try: models=models.drop(columns=col)
-        except: pass
+        try: 
+            models=models.drop(columns=col)
+        except Exception: 
+            pass
 
     return models
 
@@ -2036,7 +2038,7 @@ def get_multitask_perf_from_tracker(collection_name, response_cols=None, expand_
         tempdf=pd.DataFrame.from_records(nonas[column].tolist(), index=nonas.index)
         tempdf=pd.concat([tempdf, pd.DataFrame(np.nan, index=nai, columns=tempdf.columns)])
         label=tempdf['label'][nonas.index[0]]
-        metrics_type=tempdf['metrics_type'][nonas.index[0]]
+        _metrics_type=tempdf['metrics_type'][nonas.index[0]]
         subset=tempdf['subset'][nonas.index[0]]
         nai=tempdf[tempdf['prediction_results'].isna()].index
         nonas=tempdf[~tempdf['prediction_results'].isna()]
@@ -2127,7 +2129,7 @@ def _aggregate_predictions(datasets, bucket, col_names, result_dir):
         return
 
     results = []
-    mlmt_client = dsf.initialize_model_tracker()
+    _mlmt_client = dsf.initialize_model_tracker()
     for dset_key, bucket in datasets:
         for model_type in ['NN', 'RF']:
             for split_type in ['scaffold', 'random']:

@@ -9,7 +9,7 @@ import umap
 
 
 from deepchem.trans.transformers import Transformer, NormalizationTransformer, BalancingTransformer
-from sklearn.preprocessing import RobustScaler
+from sklearn.preprocessing import RobustScaler, Imputer
 
 logging.basicConfig(format='%(asctime)-15s %(message)s')
 log = logging.getLogger('ATOM')
@@ -80,7 +80,7 @@ def create_feature_transformers(params, model_dataset):
             log.warning("Warning: UMAP transformation may produce misleading results when used with K-fold split strategy.")
         train_dset = model_dataset.train_valid_dsets[0][0]
         transformers_x = [UMAPTransformer(params, train_dset)]
-    elif params.transformers==True:
+    elif params.transformers:
         # TODO: Transformers on responses and features should be controlled only by parameters
         # response_transform_type and feature_transform_type, rather than params.transformers.
 
@@ -278,7 +278,7 @@ class NormalizationTransformerMissingData(NormalizationTransformer):
             if len(self.y_stds.shape) == 0:
                 n_tasks = 1
             else:
-                n_tasks = self.y_stds.shape[0]
+                _n_tasks = self.y_stds.shape[0]
             z_shape = list(z.shape)
             # Get the reversed shape of z: (..., n_tasks, batch_size)
             z_shape.reverse()
