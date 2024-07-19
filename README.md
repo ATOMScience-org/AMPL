@@ -81,12 +81,25 @@ git clone https://github.com/ATOMScience-org/AMPL.git
 
 #### 5. Install pip requirements
 Depending on system performance, creating the environment can take some time.
-> ***Note:*** *Based on which environment (CPU or CUDA) to run on, only run one of the following:*
-
 - CPU-only installation:
 ```bash
 cd AMPL/pip
 pip install -r cpu_requirements.txt
+```
+>  ***Note:***
+> If you get folllowing errors after installing pip requirements 
+> 
+> *error: subprocess-exited-with-error*
+> 
+> *ERROR: Failed building wheel for h5py*
+> 
+> *Failed to build h5py*
+> 
+> *ERROR: ERROR: Failed to build installable wheels for some pyproject.toml based projects (h5py)*
+```
+sudo apt-get install libhdf5-dev
+sudo apt-get install pkg-config
+pip install h5py
 ```
 
 - CUDA installation:
@@ -154,7 +167,10 @@ pip install -e .
 ## Create jupyter notebook kernel (optional)
 To run AMPL from Jupyter Notebook, with your environment activated. To setup a new kernel:
 
+If Jupyter Lab/Notebook in not installed in the new envirnomnt 
+
 ```
+pip install jupyterlab/notebook
 python -m ipykernel install --user --name atomsci-env
 ```
 ---
