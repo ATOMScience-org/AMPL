@@ -4,8 +4,10 @@ import json
 import argparse
 import sys
 import numpy as np
+from bravado.exception import HTTPNotFound
 
 from atomsci.ddm.pipeline import parameter_parser as parse
+from atomsci.ddm.utils import datastore_functions as dsf
 
 def get_multiple_models_metadata(*args):
     """A function that takes model tar.gz file(s) and extract the metadata (and if applicable, model metrics)
@@ -25,7 +27,7 @@ def get_multiple_models_metadata(*args):
         try:
             metadata = ModelFileReader(arg).get_model_info()
             metadata_list.append(metadata)
-        except:
+        except Exception:
             raise IOError("Problem access the file(s) or not AMPL model tarball(s).")
             
     return metadata_list
@@ -66,7 +68,7 @@ class ModelFileReader:
                 try:
                     meta_info = tarball.getmember('./model_metadata.json')
                 except KeyError:
-                    print(f"{tarpath} is not an AMPL model tarball")
+                    print(f"{data_file_path} is not an AMPL model tarball")
                     return {}
                 with tarball.extractfile(meta_info) as meta_fd:
                     self.metadata_dict = json.loads(meta_fd.read())
@@ -220,9 +222,9 @@ class ModelFileReader:
             model_dict['bucket'] = self.pparams.bucket
             ds_client = dsf.config_client()
             try:
-                ds_dset = ds_client.ds_datasets.get_bucket_dataset(bucket_name=bucket, dataset_key=dskey).result()
+                _ds_dset = ds_client.ds_datasets.get_bucket_dataset(bucket_name=self.pparams.bucket, dataset_key=self.pparams.dataset_key).result()
                 model_dict['dataset_available'] = True
-            except bravado.exception.HTTPNotFound:
+            except HTTPNotFound:
                 model_dict['dataset_available'] = False
         else:
             model_dict['bucket'] = np.nan
