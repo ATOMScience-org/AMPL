@@ -137,7 +137,8 @@ def plot_tani_dist_distr(df, smiles_col, df_name, radius=2, subset_col='subset',
     elif subsets:
         dists=pd.DataFrame([], columns=['dist','subset'])
         for subs in df[subset_col].unique():
-            if subs==ref_subset: continue
+            if subs==ref_subset:
+                continue
             smiles_arr1 = df.loc[df[subset_col]==ref_subset, smiles_col].values
             smiles_arr2 = df.loc[df[subset_col]==subs, smiles_col].values
             diststmp = cd.calc_dist_smiles(feat_type, dist_metric, smiles_arr2, smiles_arr2=smiles_arr1, calc_type='nearest', num_nearest=1)
@@ -239,7 +240,6 @@ def diversity_plots(dset_key, datastore=True, bucket='public', title_prefix=None
                 response_type = 'categorical'
                 colorpal = sns.color_palette('husl', n_colors=len(uniq_responses))
             else:
-                response_type = 'continuous'
                 colorpal = sns.blend_palette(['red', 'green', 'blue'], 12, as_cmap=True)
 
 
@@ -362,7 +362,6 @@ def _sa200_diversity_plots(ecfp_radius=6):
     """Plot visualizations of diversity for the 208 compounds selected for phenotypic assays."""
     sa200_file = '/ds/projdata/gsk_data/ExperimentalDesign/AS200_TS_12Oct18.csv'
     out_dir = '/usr/local/data/sa200'
-    file_prefix = 'sa200'
     title_prefix = 'Phenotypic assay compound set'
     diversity_plots(sa200_file, datastore=False, bucket=None, title_prefix=title_prefix, out_dir=out_dir, ecfp_radius=ecfp_radius, 
                     smiles_col='canonical_smiles')
@@ -394,7 +393,6 @@ def _obach_diversity_plots(ecfp_radius=6):
     cmpd_df = pd.read_csv(cmpd_file, index_col=False)
     compound_ids = cmpd_df[id_col].values
     smiles_strs = cmpd_df[smiles_col].values
-    ncmpds = len(smiles_strs)
 
     # Strip salts, canonicalize SMILES strings and create RDKit Mol objects
     print("Canonicalizing molecules...")
@@ -482,7 +480,6 @@ def _compare_solubility_datasets(ecfp_radius=6):
     for i, mol in enumerate(base_mols):
         if mol is None:
             print('Unable to get base molecule for compound %d = %s' % (i, del_compound_ids[i]))
-    base_smiles = [Chem.MolToSmiles(mol) for mol in base_mols]
     del_fps = [AllChem.GetMorganFingerprintAsBitVect(mol, ecfp_radius, 1024) for mol in base_mols if mol is not None]
 
 
@@ -501,7 +498,6 @@ def _compare_solubility_datasets(ecfp_radius=6):
     for i, mol in enumerate(base_mols):
         if mol is None:
             print('Unable to get base molecule for compound %d = %s' % (i, del_compound_ids[i]))
-    base_smiles = [Chem.MolToSmiles(mol) for mol in base_mols]
     gsk_fps = [AllChem.GetMorganFingerprintAsBitVect(mol, ecfp_radius, 1024) for mol in base_mols if mol is not None]
 
     # Train a UMAP projector with Delaney set, then use it to project both data sets
@@ -534,12 +530,11 @@ def _compare_solubility_datasets(ecfp_radius=6):
     gsk_rep_df = pd.DataFrame.from_records(gsk_reps, columns=['x', 'y'])
     gsk_rep_df['compound_id'] = gsk_compound_ids
     gsk_rep_df['dataset'] = 'GSK Aq Sol'
-    rep_df = pd.concat((gsk_rep_df, del_rep_df), ignore_index=True)
-    dataset_pal = {'Delaney' : 'forestgreen', 'GSK Aq Sol' : 'orange'}
+    #rep_df = pd.concat((gsk_rep_df, del_rep_df), ignore_index=True)
+    #dataset_pal = {'Delaney' : 'forestgreen', 'GSK Aq Sol' : 'orange'}
     pdf_path = '%s/gsk_aq_sol_delaney_umap_proj.pdf' % out_dir
     pdf = PdfPages(pdf_path)
     fig, ax = plt.subplots(figsize=(12,12))
-    g = sns.scatterplot(x='x', y='y', ax=ax, hue='dataset', style='dataset', palette=dataset_pal, data=rep_df)
     ax.set_title("Solubility dataset fingerprints, UMAP projection trained on GSK aqueous solubility data", fontdict={'fontsize' : 12})
     pdf.savefig(fig)
     pdf.close()
@@ -586,7 +581,6 @@ def _compare_obach_gsk_aq_sol(ecfp_radius=6):
     for i, mol in enumerate(base_mols):
         if mol is None:
             print('Unable to get base molecule for compound %d = %s' % (i, obach_compound_ids[i]))
-    base_smiles = [Chem.MolToSmiles(mol) for mol in base_mols]
     gsk_fps = [AllChem.GetMorganFingerprintAsBitVect(mol, ecfp_radius, 1024) for mol in base_mols if mol is not None]
 
     # Train a UMAP projector with Obach set, then use it to project both data sets
@@ -599,13 +593,12 @@ def _compare_obach_gsk_aq_sol(ecfp_radius=6):
     gsk_rep_df = pd.DataFrame.from_records(gsk_reps, columns=['x', 'y'])
     gsk_rep_df['compound_id'] = gsk_compound_ids
     gsk_rep_df['dataset'] = 'GSK Aq Sol'
-    rep_df = pd.concat((obach_rep_df, gsk_rep_df), ignore_index=True)
+    #rep_df = pd.concat((obach_rep_df, gsk_rep_df), ignore_index=True)
     #main_rep_df = rep_df[(rep_df.x > -20) & (rep_df.y > -20)]
-    dataset_pal = {'Obach' : 'blue', 'GSK Aq Sol' : 'orange'}
+    #dataset_pal = {'Obach' : 'blue', 'GSK Aq Sol' : 'orange'}
     pdf_path = '%s/obach_gsk_aq_sol_umap_proj.pdf' % out_dir
     pdf = PdfPages(pdf_path)
     fig, ax = plt.subplots(figsize=(12,12))
-    g = sns.scatterplot(x='x', y='y', ax=ax, hue='dataset', style='dataset', palette=dataset_pal, data=rep_df)
     ax.set_title("Obach and GSK solubility dataset fingerprints, UMAP projection trained on Obach data", fontdict={'fontsize' : 12})
     pdf.savefig(fig)
     pdf.close()
@@ -622,7 +615,6 @@ def _liability_dset_diversity(bucket='public', feat_type='descriptors', dist_met
     dset_keys = ds_table.dataset_key.values
     metadata = ds_table.metadata.values
     split = 'random'
-    task_names = []
     num_cmpds = []
     for i, dset_key in enumerate(dset_keys):
         md_dict = dsf.metadata_to_dict(metadata[i])
