@@ -1549,7 +1549,7 @@ def get_keyval(dataset_oid=None, dataset_key=None, bucket=None, client=None):
     return new_dict
 
 #------------
-def upload_pickle_to_DS(data, bucket, filename, title, description, tags, key_values,client=None,df=None, dataset_key=None, override_check=True, return_metadata=False):
+def upload_pickle_to_DS(data, bucket, filename, title, description, tags, key_values,client=None, dataset_key=None, override_check=True, return_metadata=False):
     """This function will upload a file to the Datastore along with the associated metadata.
 
     Args:
@@ -1588,7 +1588,7 @@ def upload_pickle_to_DS(data, bucket, filename, title, description, tags, key_va
         raise ValueError('key_values must be a dictionary')
 
     if not override_check:
-        check_key_val(key_values=key_values, df=df, client=client)
+        check_key_val(key_values=key_values, df=data, client=client)
 
     try:
         user = getpass.getuser()
