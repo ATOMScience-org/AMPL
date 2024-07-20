@@ -1571,7 +1571,7 @@ def get_summary_metadata_table(uuids, collections=None):
                          'Split UUID':    split_uuid,
                          'Dataset Key':   data_params['dataset_key']}
             else:
-                _architecture = 'unkown'
+                _architecture = 'unknown'
 
         mlist.append(OrderedDict(minfo))
     return pd.DataFrame(mlist).set_index('Name').transpose()
