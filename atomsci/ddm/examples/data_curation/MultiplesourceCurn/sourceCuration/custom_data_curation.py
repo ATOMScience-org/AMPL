@@ -171,9 +171,8 @@ class DrugTargetCommonsActivityDump(AMPLDataset):
       targ_name='_'.join(targLst)
       if len(targ_name) >= 25 :
          targ_name='target'
-         fileNameTooLong=True
-      else :
-         fileNameTooLong=False
+
+
       myList=self.df[self.id_col].unique().tolist()
       #
       #TODO: Need to make this caching scheme user defined

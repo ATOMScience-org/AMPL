@@ -194,7 +194,7 @@ def base_feature_importance(model_pipeline=None, params=None):
 
     # Get the training, validation and test sets (we assume we're not using K-fold CV). These are DeepChem Dataset objects.
     (train_dset, valid_dset) = model_data.train_valid_dsets[0]
-    test_dset = model_data.test_dset
+    _test_dset = model_data.test_dset
 
     imp_df['mean_value'] = train_dset.X.mean(axis=0)
     imp_df['std_value'] = train_dset.X.std(axis=0)
@@ -306,7 +306,7 @@ def plot_feature_importances(imp_df, importance_col='valid_perm_importance_mean'
         feat_col = 'features'
     else:
         feat_col = 'feature'
-    ax = sns.barplot(x=importance_col, y=feat_col, data=fi_df.head(max_feat))
+    _ax = sns.barplot(x=importance_col, y=feat_col, data=fi_df.head(max_feat))
 
 # ===================================================================================================
 def display_feature_clusters(model_pipeline=None, params=None, clust_height=1, 
@@ -375,7 +375,7 @@ def display_feature_clusters(model_pipeline=None, params=None, clust_height=1,
         dendro = hierarchy.dendrogram(corr_linkage, labels=var_features.tolist(), ax=ax, leaf_rotation=90)
         fig.tight_layout()
         # Plot horizontal dashed line at clust_height
-        line = ax.axhline(clust_height, c='b', linestyle='--')
+        _line = ax.axhline(clust_height, c='b', linestyle='--')
 
         plt.show()
 

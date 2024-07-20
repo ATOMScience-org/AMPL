@@ -641,6 +641,7 @@ class MultitaskScaffoldSplitter(Splitter):
             best_fitness = gene_alg.pop_scores[0]
             print("step %d: best_fitness %0.2f"%(i, best_fitness))
             #print("%d: %0.2f"%(i, gene_alg.grade_population()[0][0]))
+
         _best_fit = gene_alg.pop_scores[0]
         best = gene_alg.pop[0]
 

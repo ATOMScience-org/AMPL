@@ -7,6 +7,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+from atomsci.ddm.pipeline import parameter_parser as pp
 # Create an array with the colors you want to use
 colors = ["#7682A4","#A7DDD8","#373C50","#694691","#BE2369","#EB1E23","#6EC8BE","#FFC30F",]
 # Set your custom color palette
@@ -14,7 +15,7 @@ pal=sns.color_palette(colors)
 sns.set_palette(pal)
 plt.rcParams.update({"figure.dpi": 96})
 
-from atomsci.ddm.pipeline import parameter_parser as pp
+
 
 # get all possible things to plot from parameter parser
 parser=pp.get_parser()
@@ -23,8 +24,10 @@ keywords=['AttentiveFPModel','GCNModel','GraphConvModel','MPNNModel','PytorchMPN
 plot_dict={}
 for word in keywords:
     tmplist=[x for x in d.keys() if x.startswith(word)]
-    if word=='rf_': word='RF'
-    elif word=='xgb_':word='xgboost'
+    if word=='rf_':
+        word='RF'
+    elif word=='xgb_':
+        word='xgboost'
     plot_dict[word]=tmplist
 plot_dict['general']=['model_type','features','splitter']#'ecfp_radius',
 plot_dict['NN']=['avg_dropout','learning_rate','num_weights','num_layers','best_epoch','max_epochs']
@@ -214,14 +217,18 @@ def plot_hyper_perf(df, scoretype='r2_score', subset='valid', model_type='genera
 
     if model_type=='xgboost':
         for feat in feats:
-            try: perf_track_df[feat]=perf_track_df[feat].round(3)
-            except: continue
+            try:
+                perf_track_df[feat]=perf_track_df[feat].round(3)
+            except Exception:
+                continue
                 
     fig, ax = plt.subplots(nrows,ncols,figsize=(ncols*4,nrows*4))
     ax=ax.ravel()
     for i, feat in enumerate(feats):
-        try: rot,start=helix_dict[model_type]
-        except: rot,start=(-0.2,0)
+        try:
+            rot,start=helix_dict[model_type]
+        except Exception:
+            rot,start=(-0.2,0)
         if feat in perf_track_df.columns:    
             if perf_track_df[feat].nunique()>12:
                 sns.scatterplot(x=feat, y=winnertype, data=perf_track_df, ax=ax[i])
@@ -261,7 +268,9 @@ def plot_rf_perf(df, scoretype='r2_score',subset='valid'):
     winnertype= f'best_{subset}_{scoretype}'
     
     if len(plot_df)>0:
-        feat1 = 'rf_estimators'; feat2 = 'rf_max_features'; feat3 = 'rf_max_depth'
+        feat1 = 'rf_estimators'
+        feat2 = 'rf_max_features'
+        feat3 = 'rf_max_depth'
         plot_df[f'{feat1}_cut']=pd.qcut(plot_df[feat1], 5, precision=0)
         plot_df[f'{feat2}_cut']=pd.qcut(plot_df[feat2], 5, precision=0)
         hue=feat3
@@ -277,7 +286,8 @@ def plot_rf_perf(df, scoretype='r2_score',subset='valid'):
             sns.move_legend(ax, "upper left", bbox_to_anchor=(1, 1))
             plt.xticks(rotation=30, ha='right')
             ax.set_title('RF model performance')
-    else: print("There are no RF models in this set.")
+    else:
+        print("There are no RF models in this set.")
 
         
 def plot_nn_perf(df, scoretype='r2_score',subset='valid'):
@@ -296,7 +306,9 @@ def plot_nn_perf(df, scoretype='r2_score',subset='valid'):
     winnertype= f'best_{subset}_{scoretype}'
     
     if len(plot_df)>0:
-        feat1 = 'num_weights'; feat2 = 'learning_rate'; feat3 = 'avg_dropout'
+        feat1 = 'num_weights'
+        feat2 = 'learning_rate'
+        feat3 = 'avg_dropout'
         plot_df[f'{feat1}_cut']=pd.qcut(plot_df[feat1],5)
         plot_df[f'{feat2}_cut']=pd.qcut(plot_df[feat2],5)
         plot_df = plot_df.sort_values([f'{feat1}_cut', f'{feat2}_cut',feat3], ascending=True)
@@ -308,8 +320,10 @@ def plot_nn_perf(df, scoretype='r2_score',subset='valid'):
         for bins, feat in zip([bins1,bins2],[feat1,feat2]):
             binstrings=[]
             for i,bin in enumerate(bins):
-                try:binstrings.append(f'({bin}, {bins[i+1]}]')
-                except:pass
+                try:
+                    binstrings.append(f'({bin}, {bins[i+1]}]')
+                except Exception:
+                    pass
             nncmap=dict(zip(plot_df[f'{feat}_cut'].dtype.categories.tolist(),binstrings))
             plot_df[f'{feat}_cut']=plot_df[f'{feat}_cut'].map(nncmap)
         hue=feat3
@@ -326,7 +340,8 @@ def plot_nn_perf(df, scoretype='r2_score',subset='valid'):
             sns.move_legend(ax, "upper left", bbox_to_anchor=(1, 1))
             plt.xticks(rotation=30, ha='right')
             ax.set_title('NN model performance')
-    else: print("There are no NN models in this set.")
+    else:
+        print("There are no NN models in this set.")
 
 
 def plot_xg_perf(df, scoretype='r2_score',subset='valid'):
@@ -362,4 +377,5 @@ def plot_xg_perf(df, scoretype='r2_score',subset='valid'):
             sns.move_legend(ax, "upper left", bbox_to_anchor=(1, 1))
             plt.xticks(rotation=30, ha='right')
             ax.set_title('XGboost model performance')
-    else: print('There are no XGBoost models in this set.')
+    else:
+        print('There are no XGBoost models in this set.')
