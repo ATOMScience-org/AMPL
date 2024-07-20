@@ -24,10 +24,10 @@ from rdkit.ML.Descriptors import MoleculeDescriptors
 
 subclassed_mordred_classes = ['EState', 'MolecularDistanceEdge']
 try:
-    from mordred import Calculator, descriptors
+    from mordred import Calculator, descriptors,get_descriptors_from_module # noqa: F401
     from mordred.EState import AtomTypeEState, AggrType
     from mordred.MolecularDistanceEdge import MolecularDistanceEdge
-    #from mordred import BalabanJ, BertzCT, HydrogenBond, MoeType, RotatableBond, SLogP, TopoPSA
+    from mordred import BalabanJ, BertzCT, HydrogenBond, MoeType, RotatableBond, SLogP, TopoPSA # noqa: F401
     #rdkit_desc_mods = [BalabanJ, BertzCT, HydrogenBond, MoeType, RotatableBond, SLogP, TopoPSA]
     mordred_supported = True
 except ImportError:
