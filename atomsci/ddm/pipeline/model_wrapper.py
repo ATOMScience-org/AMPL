@@ -335,7 +335,7 @@ class ModelWrapper(object):
                 transformers: A list of deepchem transformation objects on response_col, only if conditions are met
         """
         # TODO: Just a warning, we may have response transformers for classification datasets in the future
-        if self.params.prediction_type=='regression' and self.params.transformers:
+        if self.params.prediction_type=='regression' and self.params.transformers is True:
             self.transformers = [trans.NormalizationTransformerMissingData(transform_y=True, dataset=model_dataset.dataset)]
 
         # ****************************************************************************************
@@ -1569,7 +1569,7 @@ class HybridModelWrapper(NNModelWrapper):
                 transformers: A list of deepchem transformation objects on response_col, only if conditions are met
         """
         # TODO: Just a warning, we may have response transformers for classification datasets in the future
-        if self.params.prediction_type=='regression' and self.params.transformers:
+        if self.params.prediction_type=='regression' and self.params.transformers is True:
             self.transformers = [trans.NormalizationTransformerHybrid(transform_y=True, dataset=model_dataset.dataset)]
 
 # ****************************************************************************************
