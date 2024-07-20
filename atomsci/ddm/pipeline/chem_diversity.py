@@ -290,11 +290,11 @@ def upload_distmatrix_to_DS(
         None
     """
     from atomsci.ddm.utils import datastore_functions as dsf
-
+    fnm = "distmatrix_nm"
     dist_df = pd.DataFrame(dist_matrix)
     dist_df.index = compound_ids
     dist_df.columns = compound_ids
-    filename = fn.replace("nm",feature_type) # fn is not defined anywhere. need to address this
-
+    filename = fnm.replace("nm",feature_type) # fn is not defined anywhere. need to address this
+    _dist_pkl = dist_df.to_pickle(filepath + filename)
     dsf.upload_file_to_DS(bucket, title, description, tags, key_values, filepath, filename, dataset_key, client=None)
 
