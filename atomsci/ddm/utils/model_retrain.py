@@ -25,12 +25,6 @@ import time
 import tarfile
 import logging
 import pandas as pd
-
-logging.basicConfig()
-
-logger = logging.getLogger(__name__)
-#logger.setLevel(logging.DEBUG)
-
 import atomsci.ddm.pipeline.model_pipeline as mp
 import atomsci.ddm.pipeline.parameter_parser as parse
 import atomsci.ddm.pipeline.model_tracker as mt
@@ -39,6 +33,12 @@ from atomsci.ddm.pipeline import compare_models as cmp
 import atomsci.ddm.utils.file_utils as futils
 
 import resource
+logging.basicConfig()
+
+logger = logging.getLogger(__name__)
+#logger.setLevel(logging.DEBUG)
+
+
 resource.setrlimit(resource.RLIMIT_NOFILE, (65536, 65536))
 
 mlmt_supported = True
@@ -152,7 +152,7 @@ def train_model_from_tracker(model_uuid, output_dir, production=False):
         result = dsf.retrieve_dataset_by_datasetkey(config['training_dataset']['dataset_key'], bucket=config['training_dataset']['bucket'])
         if result is not None:
             config['datastore']=True
-    except:
+    except Exception:
         pass
     # fix weird old parameters
     #if config[]
@@ -200,10 +200,10 @@ def train_models_from_dataset_keys(input, output, pred_type='regression', produc
 
     try:
         df = pd.read_excel(input)
-    except:
+    except Exception:
         try:
             df = pd.read_csv(input)
-        except:
+        except Exception:
             Exception('Unable to parse input %s. Only Excel or csv file is accepted.' % input)
 
     # extract the public bucket, then dataset keys
@@ -244,7 +244,7 @@ def train_models_from_dataset_keys(input, output, pred_type='regression', produc
             try:
                 logger.debug('Training %s in %s' % (model_uuid, output))
                 train_model_from_tracker(model_uuid, output, production=production)
-            except:
+            except Exception:
                 Exception(f'Error for model_uuid {model_uuid}')
                 pass
     except Exception as e:
@@ -290,7 +290,7 @@ def main(argv):
         try:
             # 3 try to process 'input' as uuid
             train_model_from_tracker(input, output, production=args.production)
-        except:
+        except Exception:
             Exception('Unrecognized input %s'%input)
 
     elapsed_time_secs = time.time() - start_time

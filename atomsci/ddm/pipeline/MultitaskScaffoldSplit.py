@@ -7,7 +7,6 @@ from typing import List, Optional, Set, Tuple
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
-from functools import partial
 from scipy import stats
 
 import deepchem as dc
