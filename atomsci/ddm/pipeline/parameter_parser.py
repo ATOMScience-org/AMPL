@@ -1786,7 +1786,7 @@ def remove_unrecognized_arguments(params, hyperparam=False):
     Returns:
         dict of parameters
     """
-    if not type(params) is dict:
+    if type(params) is not dict:
         params = vars(params)
 
     #dictionary comprehension that retains only the keys that are in the accepted list of parameters

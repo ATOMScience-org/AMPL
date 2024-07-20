@@ -3,7 +3,7 @@ import random
 import timeit
 import tempfile
 from typing import List, Optional, Set, Tuple
-
+from functools import partial
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
@@ -618,7 +618,7 @@ class MultitaskScaffoldSplitter(Splitter):
         self.ecfp_features = calc_ecfp(dataset.ids)
 
         # calculate ScaffoldxScaffold distance matrix
-        start = timeit.default_timer()
+        _start = timeit.default_timer()
         if (self.diff_fitness_weight_tvv > 0.0) or (self.diff_fitness_weight_tvt > 0.0):
             self.scaff_scaff_distmat = _generate_scaffold_dist_matrix(self.ss, self.ecfp_features)
         #print('scaffold dist mat %0.2f min'%((timeit.default_timer()-start)/60))

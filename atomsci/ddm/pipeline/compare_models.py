@@ -1068,7 +1068,7 @@ def get_filesystem_models(result_dir, pred_type):
     """
     perf_df = get_filesystem_perf_results(result_dir, pred_type)
     if pred_type == 'regression':
-        metric = 'valid_r2_score'
+        _metric = 'valid_r2_score'
     else:
         _metric = 'valid_roc_auc_score'
         
@@ -1372,7 +1372,7 @@ def get_summary_metadata_table(uuids, collections=None):
         collections = [collections] * len(uuids)
 
     mlist = []
-     _mlmt_client = dsf.initialize_model_tracker()
+    _mlmt_client = dsf.initialize_model_tracker()
     for idx,uuid in enumerate(uuids):
         if collections is not None:
             collection_name = collections[idx]
@@ -1484,7 +1484,7 @@ def get_summary_metadata_table(uuids, collections=None):
                          'Split UUID':    split_uuid,
                          'Dataset Key':   data_params['dataset_key']}
             else:
-                architecture = 'unknown'
+                _architecture = 'unknown'
         elif mdl_params['prediction_type'] == 'classification':
             if mdl_params['model_type'] == 'NN':
                 nn_params = model_meta['nn_specific']
@@ -1638,7 +1638,7 @@ def get_dataset_models(collection_names, filter_dict={}):
                 "match_metadata": query_filter
             }
 
-            print('Querying models in collection %s for dataset %s, %s' % (collection_name, dataset_bucket['bucket'], dset_dict['dataset_key']))
+            print('Querying models in collection %s for dataset %s, %s' % (collection_name, dset_dict['bucket'], dset_dict['dataset_key']))
             metadata_list = mlmt_client.model.query_model_metadata(
                 collection_name=collection_name,
                 query_params=query_params,
@@ -1648,7 +1648,7 @@ def get_dataset_models(collection_names, filter_dict={}):
                 if i % 50 == 0:
                     print('Processing collection %s model %d' % (collection_name, i))
                 model_uuid = metadata_dict['model_uuid']
-                result_dict.setdefault((dset_dict['dataset_key'],dataset_bucket['bucket']), []).append((collection_name, model_uuid))
+                result_dict.setdefault((dset_dict['dataset_key'],dset_dict['bucket']), []).append((collection_name, model_uuid))
 
     return result_dict
 

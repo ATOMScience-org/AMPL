@@ -185,7 +185,8 @@ def plot_split_perf(df, prediction_type='regression', subset='valid'):
             ax.set_xticks(ax.get_xticks()) # avoid warning by including this line
             ax.set_xticklabels(ax.get_xticklabels(), rotation=30, ha='right', rotation_mode='anchor' )
             ax.set_title(selection_metric.replace(f'best_{subset}_',''))
-            if legend: sns.move_legend(ax, loc=(1.01,0.5))
+            if legend:
+                sns.move_legend(ax, loc=(1.01,0.5))
         plt.tight_layout()
         fig.suptitle('Effect of splitter on model performance', y=1.01)
 
@@ -359,7 +360,8 @@ def plot_xg_perf(df, scoretype='r2_score',subset='valid'):
     plot_df=perf_track_df[perf_track_df.model_type=='xgboost'].copy()
     winnertype= f'best_{subset}_{scoretype}'
     if len(plot_df)>0:
-        feat1 = 'xgb_learning_rate'; feat2 = 'xgb_gamma'
+        feat1 = 'xgb_learning_rate'
+        feat2 = 'xgb_gamma'
         for feat in [feat1,feat2]:
             plot_df[feat]=plot_df[feat].round(3)
         hue=feat2

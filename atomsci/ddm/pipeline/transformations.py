@@ -220,7 +220,8 @@ class NormalizationTransformerMissingData(NormalizationTransformer):
             self.transform_gradients = transform_gradients
             self.move_mean = move_mean
             if self.transform_gradients:
-                true_grad, ydely_means = get_grad_statistics(dataset)
+                # TODO: Figure out where get_grad_statistics is defined
+                true_grad, ydely_means = get_grad_statistics(dataset) # noqa: F821
                 self.grad = np.reshape(true_grad, (true_grad.shape[0], -1, 3))
                 self.ydely_means = ydely_means
 
@@ -276,7 +277,7 @@ class NormalizationTransformerMissingData(NormalizationTransformer):
             y_means = self.y_means
             # Handle case with 1 task correctly
             if len(self.y_stds.shape) == 0:
-                n_tasks = 1
+                _n_tasks = 1
             else:
                 _n_tasks = self.y_stds.shape[0]
             z_shape = list(z.shape)
