@@ -43,10 +43,10 @@ def download_smiles(myList,intv=1) :
             continue
         f=io.BytesIO(html)
         cnt=0
-        for list in f :
-            list=list.decode("utf-8") 
-            list=list.rstrip()
-            vals=list.split(',')
+        for bytes_line in f :
+            bytes_line=bytes_line.decode("utf-8") 
+            bytes_line=bytes_line.rstrip()
+            vals=bytes_line.split(',')
             if vals[0] == '"CID"' :
                 continue
             if cnt > 0:

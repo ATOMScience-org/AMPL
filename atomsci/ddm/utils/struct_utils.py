@@ -318,7 +318,7 @@ def draw_structure(smiles_str, image_path, image_size=500):
     """
     mol = Chem.MolFromSmiles(smiles_str)
     if mol is None:
-        print(("Unable to read original SMILES for %s" % mol))
+        print(("Unable to read original SMILES for %s" % smiles_str))
     else:
         _discard = AllChem.Compute2DCoords(mol)
         Draw.MolToFile(mol, image_path, size=(image_size, image_size), fitImage=False)
@@ -379,7 +379,7 @@ def _merge_values(values, strategy='list'):
     elif strategy == 'min':
         val = min(values)
     else:
-        raise Exception('Unknown column merge strategy: %s' %strategy )
+        raise Exception('Unknown column merge strategy: %s' % (strategy) )
 
     if type(val) is list and len(val) == 1:
         val = val[0]
