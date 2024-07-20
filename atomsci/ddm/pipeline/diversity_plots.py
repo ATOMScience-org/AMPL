@@ -240,7 +240,7 @@ def diversity_plots(dset_key, datastore=True, bucket='public', title_prefix=None
                 response_type = 'categorical'
                 colorpal = sns.color_palette('husl', n_colors=len(uniq_responses))
             else:
-                #response_type = 'continuous'
+                _response_type = 'continuous'
                 colorpal = sns.blend_palette(['red', 'green', 'blue'], 12, as_cmap=True)
 
 
