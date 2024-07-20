@@ -23,6 +23,7 @@ logging.basicConfig(format='%(asctime)-15s %(message)s')
 def setup_notebook():
     """Set up current notebook for displaying plots and Bokeh output using full width of window"""
     from bokeh.plotting import output_notebook
+    from IPython import get_ipython
 
     get_ipython().run_line_magic('matplotlib', 'inline')
     # Bokeh option
