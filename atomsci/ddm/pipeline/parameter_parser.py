@@ -183,7 +183,7 @@ def is_primative_type(t):
     Returns:
         bool. True if type is int, str, or float
     """
-    return t == int or t == str or t == float
+    return t is int or t is str or t is float
 
 def primative_type_only(type_annotation):
     """Given annotation, return only primative types that can be read in
@@ -571,7 +571,7 @@ def to_str(params_obj):
     """
     # This command converts the namespace_obj to a dict, with the spaces replaced with
     # a temporary string.
-    if type(params_obj) == dict:
+    if type(params_obj) is dict:
         strobj = dict_to_list(params_obj,replace_spaces=True)
     else:
         strobj = dict_to_list(vars(params_obj),replace_spaces=True)
@@ -673,7 +673,7 @@ def parse_config_file(config_file_path):
             flat_dict[vals] = flat_dict.pop(key)
 
     #dictionary comprehension that retains only the keys that are in the accepted list of parameters
-    hyperparam = 'hyperparam' in orig_keys and flat_dict['hyperparam'] == True
+    hyperparam = 'hyperparam' in orig_keys and flat_dict['hyperparam'] is True
     newdict = remove_unrecognized_arguments(flat_dict, hyperparam)
 
     newdict['config_file'] = config_file_path
@@ -794,13 +794,13 @@ def dict_to_list(inp_dictionary,replace_spaces=False):
             elif isinstance(value, list):
                 sep = ","
                 newval = sep.join([str(item) for item in value])
-                if replace_spaces == True:
+                if replace_spaces is True:
                     temp_list_to_command_line.append(newval.replace(" ",replace_spaces_str))
                 else:
                     temp_list_to_command_line.append(newval)
             else:
                 newval = str(value)
-                if replace_spaces == True:
+                if replace_spaces is True:
                     temp_list_to_command_line.append(newval.replace(" ",replace_spaces_str))
                 else:
                     temp_list_to_command_line.append(newval)
@@ -1718,9 +1718,9 @@ def postprocess_args(parsed_args):
     # this ignores the current value of num_model_tasks
     if parsed_args.num_model_tasks is not None:
         log.debug("num_model_tasks is deprecated and its value is ignored.")
-    if parsed_args.response_cols is None or type(parsed_args.response_cols) == str:
+    if parsed_args.response_cols is None or type(parsed_args.response_cols) is str:
         parsed_args.num_model_tasks = 1
-    elif type(parsed_args.response_cols) == list:
+    elif type(parsed_args.response_cols) is list:
         parsed_args.num_model_tasks = len(parsed_args.response_cols)
     else:
         raise Exception(f'Unexpected type for response_cols {type(parsed_args.response_cols)}')
@@ -1786,7 +1786,7 @@ def remove_unrecognized_arguments(params, hyperparam=False):
     Returns:
         dict of parameters
     """
-    if not type(params) == dict:
+    if not type(params) is dict:
         params = vars(params)
 
     #dictionary comprehension that retains only the keys that are in the accepted list of parameters

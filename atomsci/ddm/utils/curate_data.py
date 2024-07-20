@@ -34,7 +34,6 @@ average_and_remove_duplicates (column, tolerance, list_bad_duplicates, data)
 summarize_data(column, num_bins, title, units, filepath, data)..............prints mix/max/avg/histogram
 """
 
-
 # ******************************************************************************************************************************************
 def set_group_permissions(path, system='AD', owner='GSK'):
     """Sets file and group permissions to standard values for a dataset containing proprietary
