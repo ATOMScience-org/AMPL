@@ -413,7 +413,7 @@ def _plot_bias(params, niter):
     ax.fill_between(thresholds, aTest_iTrain_func, aTest_aTrain_func, facecolor='blue', alpha=0.3, linewidth=0)
     ax.set_xlabel('Distance')
     ax.set_ylabel('NN Function')
-    legend = ax.legend()
+    _legend = ax.legend()
     title = "AA - AI = %.3f\nIteration: %d" % (aBias, niter)
     ax.set_title(title)
 

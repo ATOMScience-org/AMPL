@@ -223,7 +223,7 @@ class Splitting(object):
             else:
                 metric = None
             if params.base_splitter in smiles_splits:
-                id_col = params.smiles_col
+                _id_col = params.smiles_col
             else:
                 _id_col = params.id_col
             self.splitter = TemporalSplitter(cutoff_date=params.cutoff_date,
