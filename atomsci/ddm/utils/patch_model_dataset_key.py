@@ -45,7 +45,7 @@ def check_data_accessibility(model_path, verbose=True):
                     dset_fp = open(dataset_path, 'r')
                     dset_fp.close()
                     dataset_info[path] = (dataset_path, True)
-                except:
+                except Exception:
                     dataset_info[path] = (dataset_path, False)
                     if verbose:
                         print(f"{os.path.basename(path)} trained on unreadable file:\n\t{dataset_path}")
