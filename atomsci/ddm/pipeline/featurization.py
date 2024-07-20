@@ -1,5 +1,5 @@
 """Classes providing different methods of featurizing compounds and other data entities"""
-
+import collections
 import logging
 import os
 import tempfile
@@ -32,8 +32,6 @@ try:
     mordred_supported = True
 except ImportError:
     mordred_supported = False
-
-import collections
 
 feather_supported = True
 try:

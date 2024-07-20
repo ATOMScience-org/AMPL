@@ -234,10 +234,10 @@ def diversity_plots(dset_key, datastore=True, bucket='public', title_prefix=None
         uniq_responses = set(responses)
         if colorpal is None:
             if uniq_responses == set([0,1]):
-                response_type = 'binary'
+                _response_type = 'binary'
                 colorpal =  {0 : 'forestgreen', 1 : 'red'}
             elif len(uniq_responses) <= 10:
-                response_type = 'categorical'
+                _response_type = 'categorical'
                 colorpal = sns.color_palette('husl', n_colors=len(uniq_responses))
             else:
                 _response_type = 'continuous'
@@ -483,7 +483,7 @@ def _compare_solubility_datasets(ecfp_radius=6):
     for i, mol in enumerate(base_mols):
         if mol is None:
             print('Unable to get base molecule for compound %d = %s' % (i, del_compound_ids[i]))
-    base_smiles = [Chem.MolToSmiles(mol) for mol in base_mols]
+    _base_smiles = [Chem.MolToSmiles(mol) for mol in base_mols]
     del_fps = [AllChem.GetMorganFingerprintAsBitVect(mol, ecfp_radius, 1024) for mol in base_mols if mol is not None]
 
 
@@ -520,7 +520,7 @@ def _compare_solubility_datasets(ecfp_radius=6):
     pdf_path = '%s/delaney_gsk_aq_sol_umap_proj.pdf' % out_dir
     pdf = PdfPages(pdf_path)
     fig, ax = plt.subplots(figsize=(12,12))
-    g = sns.scatterplot(x='x', y='y', ax=ax, hue='dataset', style='dataset', palette=dataset_pal, data=rep_df)
+    _g = sns.scatterplot(x='x', y='y', ax=ax, hue='dataset', style='dataset', palette=dataset_pal, data=rep_df)
     ax.set_title("Solubility dataset fingerprints, UMAP projection trained on Delaney data", fontdict={'fontsize' : 12})
     pdf.savefig(fig)
     pdf.close()
@@ -567,7 +567,7 @@ def _compare_obach_gsk_aq_sol(ecfp_radius=6):
     for i, mol in enumerate(base_mols):
         if mol is None:
             print('Unable to get base molecule for compound %d = %s' % (i, obach_compound_ids[i]))
-    base_smiles = [Chem.MolToSmiles(mol) for mol in base_mols]
+    _base_smiles = [Chem.MolToSmiles(mol) for mol in base_mols]
     obach_fps = [AllChem.GetMorganFingerprintAsBitVect(mol, ecfp_radius, 1024) for mol in base_mols if mol is not None]
 
     # Load the GSK dataset
