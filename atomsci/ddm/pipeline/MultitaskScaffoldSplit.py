@@ -626,10 +626,10 @@ class MultitaskScaffoldSplitter(Splitter):
         # initial population
         population = []
         for i in range(self.num_pop):
-            _start = timeit.default_timer()
+            start_loop = timeit.default_timer()
             split_chromosome = self._split(frac_train=frac_train, frac_valid=frac_valid, 
                                 frac_test=frac_test)
-            #print("per_loop: %0.2f min"%((timeit.default_timer()-start)/60))
+            logging.info("per_loop: %0.2f min"%((timeit.default_timer()-start_loop)/60))
 
             population.append(split_chromosome)
 

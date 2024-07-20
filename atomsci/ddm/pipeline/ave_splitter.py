@@ -163,6 +163,8 @@ def analyze_split(params, id_col='compound_id', smiles_col='rdkit_smiles', activ
     inactive_ind = np.where(y == 0)[0]
     active_feat = feat_arr[active_ind,:]
     inactive_feat = feat_arr[inactive_ind,:]
+    _num_active = len(active_ind)
+    _num_inactive = len(inactive_ind)
     active_ids = ids[active_ind]
     inactive_ids = ids[inactive_ind]
     active_id_ind = dict(zip(active_ids, range(len(active_ids))))
@@ -421,6 +423,7 @@ def _plot_bias(params, niter):
     ax.fill_between(thresholds, iTest_iTrain_func, iTest_aTrain_func, facecolor='hotpink', alpha=0.3, linewidth=0)
     ax.set_xlabel('Distance')
     ax.set_ylabel('NN Function')
+    _legend = ax.legend()
     title = "II - IA = %.3f\nTotal bias = %.3f" % (iBias, bias)
     ax.set_title(title)
 
@@ -705,6 +708,7 @@ class AVEMinSplitter(Splitter):
         # End of genetic optimization loop
         if self.debug_mode:
             _plot_nn_dist_distr((best_split[1], aa_dist, ii_dist, ai_dist, ia_dist, self.dist_thresh))
+            _final_bias = _plot_bias((best_split[1], aa_dist, ii_dist, ai_dist, ia_dist, self.dist_thresh), iter_count)
         active_valid, inactive_valid, active_train, inactive_train = best_split[1]
         # Map indices within active/inactive sets back to indices in original dataset
         train_inds = permutation(np.concatenate((active_ind[active_train], inactive_ind[inactive_train])))
