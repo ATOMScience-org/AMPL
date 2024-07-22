@@ -66,12 +66,13 @@ def test_predict_full_dataset():
     AD_method=None
     k=5
     dist_metric="euclidean"
+    verbose = False
 
     df = pd.read_csv(csv_path, dtype={id_col:str})
     shuffled_df = df.sample(frac=1)
 
     input_df, pred_params = pfm._prepare_input_data(shuffled_df, id_col, smiles_col, response_col, 
-        conc_col, dont_standardize)
+        conc_col, dont_standardize, verbose)
 
     has_responses = ('response_cols' in pred_params)
     pred_params = parse.wrapper(pred_params)
