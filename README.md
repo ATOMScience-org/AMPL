@@ -203,7 +203,6 @@ git clone https://github.com/ATOMScience-org/AMPL.git   # clones AMPL repository
 
 #### 5. Install pip requirements
 Depending on system performance, creating the environment can take some time.
-> ***Note:*** *you may have to edit or comment out jaxlib*
 
 - Install these packages onto your Ubuntu machine so that you don't receive h5py wheel build error or gcc error
 ```bash
