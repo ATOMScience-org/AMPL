@@ -2775,7 +2775,7 @@ class GraphConvDCModelWrapper(KerasDeepChemModelWrapper):
         return model_spec_metadata
 
 class GPyTorchModelWrapper(ModelWrapper):
-    """Wrapper class for DCRFModelWrapper and DCxgboostModelWrapper
+    """MODIFY ALL DOCSTRINGS: Wrapper class for DCRFModelWrapper and DCxgboostModelWrapper
 
     contains code that is similar between the two tree based classes
     """
@@ -2792,18 +2792,22 @@ class GPyTorchModelWrapper(ModelWrapper):
         self.best_model_dir = os.path.join(self.output_dir, 'best_model')
         self.model_dir = self.best_model_dir
         os.makedirs(self.best_model_dir, exist_ok=True)
-
+#ORIGINAL CODE
 #        self.model = self.make_dc_model(self.best_model_dir)
-        self.model = gpytorch.models.ExactGP(torch.empty(0), torch.empty(0), gpytorch.likelihoods.GaussianLikelihood())
+#END ORIGINAL CODE
+        
+        class ExactGPModel(gpytorch.models.ExactGP):
+          def __init__(self, train_x, train_y, likelihood):
+            super(ExactGPModel, self).__init__(train_x, train_y, likelihood)
+            self.mean_module = gpytorch.means.ConstantMean()
+            self.covar_module = gpytorch.kernels.ScaleKernel(gpytorch.kernels.RBFKernel())
+          def forward(self, x):
+            mean_x = self.mean_module(x)
+            covar_x = self.covar_module(x)
+            return gpytorch.distributions.MultivariateNormal(mean_x, covar_x)
 
-        def forward(self, x):
-          mean_x = self.mean_module(x)
-          covar_x = self.covar_module(x)
-          return gpytorch.distributions.MultivariateNormal(mean_x, covar_x)
-        self.model.forward = forward
-#        super(gpytorch.models.ExactGP, self).__init__(torch.empty(0), torch.empty(0), gpytorch.likelihoods.GaussianLikelihood())
-#        super(gpytorch.models.ExactGP, ExactGP).__init__(torch.empty     (0), torch.empty(0), gpytorch.likelihoods.GaussianLikelihood())
-#        self.model = ExactGPModel(torch.empty(0), torch.empty(0), gpytorch.likelihoods.GaussianLikelihood())
+        self.model = ExactGPModel(torch.empty(0), torch.empty(0), gpytorch.likelihoods.GaussianLikelihood())
+
 
     # ****************************************************************************************
     def train(self, pipeline):
@@ -2837,66 +2841,66 @@ class GPyTorchModelWrapper(ModelWrapper):
 
         test_dset = pipeline.data.test_dset
 
+#ORIGINAL CODE
 #        num_folds = len(pipeline.data.train_valid_dsets)
 #        for k in range(num_folds):
 #            train_dset, valid_dset = pipeline.data.train_valid_dsets[k]
+#END ORIGINAL CODE
         train_dset, valid_dset = pipeline.data.train_valid_dsets[0]
-#        self.model.__init__(train_x=torch.from_numpy(train_dset.X),
-#          train_y=torch.from_numpy(train_dset.y), likelihood=self.model.likelihood)
-        print("SPECIAL")
-#        print(type(train_dset.y))
-        self.model.__init__(train_inputs=torch.from_numpy(train_dset.X),
-          train_targets=torch.from_numpy(train_dset.y), likelihood=self.model.likelihood)
+        self.model.__init__(train_x=torch.from_numpy(train_dset.X),
+          train_y=torch.from_numpy(train_dset.y), likelihood=self.model.likelihood)
 
+#ORIGINAL CODE
 #        self.model.fit(train_dset)
-
 #        train_pred = self.model.predict(train_dset, [])
+#END ORIGINAL CODE
         self.model.train()
         self.model.likelihood.train()
-        print(type(self.model.train_inputs[0]))
-
         optimizer = torch.optim.Adam(self.model.parameters(), lr=0.1)
         mll = gpytorch.mlls.ExactMarginalLogLikelihood(self.model.likelihood, self.model)
         for i in range(50):
           optimizer.zero_grad()
           output = self.model(self.model.train_inputs[0])
           loss = -mll(output, self.model.train_targets)
-          loss.backward()
-          if(verbose == True):
-            print('Iter %d/%d - Loss: %.3f   lengthscale: %.3f   noise: %.3f' % (
-               i + 1, training_iter, loss.item(),
-               model.covar_module.base_kernel.lengthscale.item(),
-               model.likelihood.noise.item()
-              ))
-          optimizer.step()
 
-        train_perf = self.train_perf_data.accumulate_preds(train_pred, train_dset.ids)
+#######GPyTorch TUTORIAL CODE#######
+#error>    loss.backward()
+#          if(verbose == True):
+#            print('Iter %d/%d - Loss: %.3f   lengthscale: %.3f   noise: %.3f' % (
+#               i + 1, training_iter, loss.item(),
+#               model.covar_module.base_kernel.lengthscale.item(),
+#               model.likelihood.noise.item()
+#              ))
+#          optimizer.step()
+#######END GPyTorch TUTORIAL CODE#######
+#######ORIGINAL WRAPPER CODE BELOW######
+#        train_perf = self.train_perf_data.accumulate_preds(train_pred, train_dset.ids)
 
-        valid_pred = self.model.predict(valid_dset, [])
-        valid_perf = self.valid_perf_data.accumulate_preds(valid_pred, valid_dset.ids)
+#        valid_pred = self.model.predict(valid_dset, [])
+#        valid_perf = self.valid_perf_data.accumulate_preds(valid_pred, valid_dset.ids)
 
-        test_pred = self.model.predict(test_dset, [])
-        test_perf = self.test_perf_data.accumulate_preds(test_pred, test_dset.ids)
-        self.log.info("Fold %d: training %s = %.3f, validation %s = %.3f, test %s = %.3f" % (
-                          k, pipeline.metric_type, train_perf, pipeline.metric_type, valid_perf,
-                             pipeline.metric_type, test_perf))
+#        test_pred = self.model.predict(test_dset, [])
+#        test_perf = self.test_perf_data.accumulate_preds(test_pred, test_dset.ids)
+#        self.log.info("Fold %d: training %s = %.3f, validation %s = %.3f, test %s = %.3f" % (
+#                          k, pipeline.metric_type, train_perf, pipeline.metric_type, valid_perf,
+#                             pipeline.metric_type, test_perf))
 
 
         # Compute mean and SD of performance metrics across validation sets for all folds
-        self.train_perf, self.train_perf_std = self.train_perf_data.compute_perf_metrics()
-        self.valid_perf, self.valid_perf_std = self.valid_perf_data.compute_perf_metrics()
-        self.test_perf, self.test_perf_std = self.test_perf_data.compute_perf_metrics()
+#        self.train_perf, self.train_perf_std = self.train_perf_data.compute_perf_metrics()
+#        self.valid_perf, self.valid_perf_std = self.valid_perf_data.compute_perf_metrics()
+#        self.test_perf, self.test_perf_std = self.test_perf_data.compute_perf_metrics()
 
         # Compute score to be used for ranking model hyperparameter sets
-        self.model_choice_score = self.valid_perf_data.model_choice_score(self.params.model_choice_score_type)
+#        self.model_choice_score = self.valid_perf_data.model_choice_score(self.params.model_choice_score_type)
 
-        if num_folds > 1:
+#        if num_folds > 1:
             # For k-fold CV, retrain on the combined training and validation sets
-            fit_dataset = self.data.combined_training_data()
-            self.model.fit(fit_dataset)
-        self.model_save()
+#            fit_dataset = self.data.combined_training_data()
+#            self.model.fit(fit_dataset)
+#        self.model_save()
         # The best model is just the single RF training run.
-        self.best_epoch = 0
+#        self.best_epoch = 0
 
     # ****************************************************************************************
     def make_dc_model(self, model_dir):
