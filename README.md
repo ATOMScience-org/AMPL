@@ -54,7 +54,6 @@ Go to the directory where the new environment directory be installed in. Define 
 export ENVROOT=~/workspace # for LLNL LC users, use your workspace
 or
 export ENVROOT=~ # or the directory as your environment root
-cd $ENVROOT
 ```
 
 > *We use "workspace" and "atomsci-env" as an example here.*
@@ -130,7 +129,6 @@ pip install -e .
 ## Installation Quick Summary
 ```bash
 export ENVROOT=~/workspace           # set ENVROOT example
-cd $ENVROOT                          # go to a convenient home directory
 # LLNL only:
 # module load python/3.9.12
 
@@ -154,7 +152,7 @@ pip install -e .
 ```
 ---
 ## Install with M1 - M3 chips
-AMPL is built on Linux machines but the instructions below have been tested successfully on several M-chip Macs. This local installation requires a few different steps compared to a Linux installation, including using a Linux emulator (OrbStack is recommended), installing Linux packages and using conda instead of venv to manage the Python version. If you have run into errors or found an even easier method for M chips, please let us know!
+AMPL is built on Linux machines but the instructions below have been tested successfully on several M-chip Macs. This local installation requires a few different steps compared to a Linux installation, including using a Linux emulator ([OrbStack](https://orbstack.dev) is recommended), installing Linux packages and using conda instead of venv to manage the Python version. If you have run into errors or found an even easier method for M chips, please [let us know](https://github.com/ATOMScience-org/AMPL/issues)!
 
 ### Install Orbstack
 - Download and install Orbstack
@@ -173,10 +171,9 @@ sudo apt update
 sudo apt install wget
 ```
 - Install Miniconda3
-  - Make sure you are in the correct pathway when installing
     
 ```bash
-cd ~
+cd ~                         # install miniconda in your Ubuntu home directory
 wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-aarch64.sh
 chmod +x Miniconda3-latest-Linux-aarch64.sh
 ./Miniconda3-latest-Linux-aarch64.sh
