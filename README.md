@@ -186,7 +186,7 @@ source .bashrc               # reload the shell with conda activated
 ### Create conda environment with Miniconda3
 
 #### 1. Create a conda env with Python 3.9.12 and activate it
-Your conda env will need at least 12Gb space.
+Your conda env will need 2.8Gb space.
 
 ```bash
 conda create -n atomsci-env python=3.9.12
