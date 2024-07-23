@@ -46,3 +46,5 @@ notebook
 jupyterlab
 
 deepchem==2.7.1
+
+pyyaml==5.4.1
