@@ -335,7 +335,7 @@ Details of running specific features are within the [parameter (options) documen
 AMPL can be run from the command line or by importing into Python scripts and Jupyter notebooks.  
 
 ### Python scripts and Jupyter notebooks
-AMPL can be used to fit and predict molecular activities and properties by importing the appropriate modules. See the [examples](atomsci/ddm/examples/tutorials/14_BSEP_modeling.ipynb) for more descriptions on how to fit and make predictions using AMPL.
+AMPL can be used to fit and predict molecular activities and properties by importing the appropriate modules. See the [examples](atomsci/ddm/examples/) for more descriptions on how to fit and make predictions using AMPL.
 
 ### Pipeline parameters
 AMPL includes many parameters to run various model fitting and prediction tasks.
