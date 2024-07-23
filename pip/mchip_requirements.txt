@@ -7,8 +7,6 @@
 
 tensorflow==2.14.0
 
-jax==0.4.16
-
 torch==2.0.1
 torch_geometric
 lightning
