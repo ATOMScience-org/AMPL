@@ -262,14 +262,15 @@ def plot_pred_vs_actual_from_df(pred_df, actual_col='avg_pIC50_actual', pred_col
 
 
 #------------------------------------------------------------------------------------------------------------------------
-def plot_pred_vs_actual_from_file(model_path, external_training_data=None, plot_size=7):
+def plot_pred_vs_actual_from_file(model_path, external_training_data=None, plot_size=7, uncertainty=False):
     """Plot predicted vs actual values from a trained regression model from a model tarball. 
     This function only works for locally trained models; otherwise see the `predict_from_model` module.
 
     Args:
         model_path (str): Path to an AMPL model tar.gz file.
         external_training_data (str): Path to copy of training dataset, if different from path used when model was trained.
-        plot_size (float): Height of subplots
+        plot_size (float): Height of subplots.
+        uncertainty (bool): whether to plot uncertainty as shaded bars above and below the predicted values.
 
     Returns:
         None
@@ -299,7 +300,6 @@ def plot_pred_vs_actual_from_file(model_path, external_training_data=None, plot_
 
     is_featurized=False
     AD_method=None
-    uncertainty=config['model_parameters']['uncertainty']
     model_type = config['model_parameters']['model_type']
     featurizer = config['model_parameters']['featurizer']
     if featurizer in ['descriptors','computed_descriptors']:
@@ -342,9 +342,10 @@ def plot_pred_vs_actual_from_file(model_path, external_training_data=None, plot_
     sns.set_context('notebook')
     nss = len(split_subsets)
     fig, axes = plt.subplots(len(response_cols), nss, figsize=(plot_size*nss, plot_size*len(response_cols)))
-    if uncertainty:
+    if uncertainty and config['model_parameters']['uncertainty']:
         suptitle = f"{dataset_name}  {splitter} {split_strategy} split {model_type} model on {features_label}, predicted vs actual values with uncertainty"
     else:
+        uncertainty=False
         suptitle = f"{dataset_name}  {splitter} {split_strategy} split {model_type} model on {features_label}, predicted vs actual values"
     fig.suptitle(suptitle, y=0.95)
     axes = axes.flatten()
@@ -364,9 +365,6 @@ def plot_pred_vs_actual_from_file(model_path, external_training_data=None, plot_
         ymax = max(max(y_actual), max(y_pred), max(y_pred+y_std))
         for j, subset in enumerate(split_subsets):
             ax = axes[nss*i + j]
-            # Force axes to have same scale for all subsets for same task (but not different tasks!)
-            ax.set_xlim(ymin, ymax)
-            ax.set_ylim(ymin, ymax)
             tmp = task_pred_df[task_pred_df.subset==subset]
             r2 = metrics.r2_score(tmp[actual_col].values, tmp[pred_col].values)
             ax.set_xlabel(f"Actual {resp}")
@@ -376,7 +374,11 @@ def plot_pred_vs_actual_from_file(model_path, external_training_data=None, plot_
                 subtitle = f"{resp} {subset}, {score_type_label['r2']} = {r2:.3f}"
             else:
                 subtitle = f"{subset}, {score_type_label['r2']} = {r2:.3f}"
-            plot_pred_vs_actual_from_df(tmp, actual_col=actual_col, pred_col=pred_col, std_col = std_col, label=subtitle, ax=ax)
+            ax=plot_pred_vs_actual_from_df(tmp, actual_col=actual_col, pred_col=pred_col, std_col = std_col, label=subtitle, ax=ax)
+            # Force axes to have same scale for all subsets for same task (but not different tasks!)
+            # wont work unless applied after the graph is created
+            ax.set_xlim(ymin, ymax)
+            ax.set_ylim(ymin, ymax)
 
 
 #------------------------------------------------------------------------------------------------------------------------
