@@ -257,7 +257,7 @@ pip install -e .
 ```
 ---
 ## Create jupyter notebook kernel (optional)
-To run AMPL from Jupyter Notebook, with your environment activated. To setup a new kernel:
+To run AMPL from Jupyter Notebook. To setup a new kernel, first activate your environment and then run the following command:
 
 ```
 python -m ipykernel install --user --name atomsci-env
