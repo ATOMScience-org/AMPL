@@ -154,7 +154,7 @@ pip install -e .
 ```
 ---
 ## Install with M1 - M3 chips
-AMPL 1.6 supports Python 3.9 CPU or CUDA-enabled machines using CUDA 11.8 on Linux. All other systems are experimental. For a quick install summary, see [here](#install-summary). We do not support other CUDA versions because there are multiple ML package dependency conflicts that can occur. For more information you can look at [DeepChem](https://deepchem.readthedocs.io/en/latest/get_started/installation.html), [TensorFlow](https://www.tensorflow.org/install/pip), [PyTorch](https://pytorch.org/get-started/locally/), [DGL](https://www.dgl.ai/pages/start.html) or [Jax](https://github.com/google/jax#installation).
+AMPL is built on Linux machines but the instructions below have been tested successfully on several M-chip Macs. This local installation requires a few different steps compared to a Linux installation, including using a Linux emulator (OrbStack is recommended), installing Linux packages and using conda instead of venv to manage the Python version. If you have run into errors or found an even easier method for M chips, please let us know!
 
 ### Install Orbstack
 - Download and install Orbstack
@@ -171,81 +171,53 @@ AMPL 1.6 supports Python 3.9 CPU or CUDA-enabled machines using CUDA 11.8 on Lin
 ```bash
 sudo apt update
 sudo apt install wget
-sudo apt update
 ```
 - Install Miniconda3
   - Make sure you are in the correct pathway when installing
     
 ```bash
+cd ~
 wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-aarch64.sh
 chmod +x Miniconda3-latest-Linux-aarch64.sh
 ./Miniconda3-latest-Linux-aarch64.sh
-~/miniconda3/bin/conda init               # initialize the miniconda3
+source .bashrc               # reload the shell with conda activated
 ```
 
 ### Create conda environment with Miniconda3
 
-#### 1. Create a conda env with Python 3.9.12
-Make sure to create your conda env in a convenient directory that has at least 12Gb space.
-
-Go to the directory where the new environment directory be installed in. Define an environment variable - "ENVROOT".
+#### 1. Create a conda env with Python 3.9.12 and activate it
+Your conda env will need at least 12Gb space.
 
 ```bash
-export ENVROOT=~/workspace # for LLNL LC users, use your workspace
-or
-export ENVROOT=~ # or the directory as your environment root
-cd $ENVROOT
-```
-
-> *We use "workspace" and "atomsci-env" as an example here.*
-
-```bash
-cd $ENVROOT
-conda create -n atomsci-env python=3.9.12          # creates atomsci-env with python 3.9.12
-```
-
-#### 2. Activate the environment
-
-```bash
+conda create -n atomsci-env python=3.9.12
 conda activate atomsci-env
-```
-> ***Note:*** *If you are unable to activate your conda environment make sure you are in the 'base' conda environment when activating atomsci-env*
-```bash
-conda activate base          # to switch into the 'base' conda environment
-```
-
-#### 3. Update pip
-```bash
-pip install pip --upgrade
 ```
 
 #### 4. Clone AMPL repository
 ```bash
-sudo apt update
-sudo apt install git                                            # install git to Linux terminal
-sudo apt update
-git clone https://github.com/ATOMScience-org/AMPL.git           # clones AMPL repository
+sudo apt install git                                    # install git to Linux terminal
+mkdir repos                                             # optional - install repos in a new directory
+cd repos                                                # optional
+git clone https://github.com/ATOMScience-org/AMPL.git   # clones AMPL repository
 ```
 
 #### 5. Install pip requirements
 Depending on system performance, creating the environment can take some time.
-> ***Note:*** *Based on which environment (CPU) you may have to edit or comment out jaxlib*
+> ***Note:*** *you may have to edit or comment out jaxlib*
 
-- Run these commands so that you don't receive h5py wheel build error or gcc error
+- Install these packages onto your Ubuntu machine so that you don't receive h5py wheel build error or gcc error
 ```bash
-sudo apt install pkg-config
-sudo apt-get install  libhdf5-dev
-sudo apt-get install libxrender1
-sudo apt-get -y install gcc
+sudo apt install pkg-config libhdf5-dev libxrender1 gcc
 ```
-- CPU installation:
+- Use the MChip installation requirements file:
 ```bash
+pip install pip --upgrade
 cd AMPL/pip
-pip install -r cpu_requirements.txt
+pip install -r mchip_requirements.txt
 ```
 
 ### Install AMPL
-Run the following to build the "atomsci" modules. This is required.
+Run the following to build the AMPL modules. This is required.
 > ***Note:*** *Should be in the AMPL directory*
 ```bash
 # return to AMPL parent directory
@@ -260,31 +232,24 @@ pip install -e .
 ```bash
 sudo apt update
 sudo apt install wget                                   # install wget to Linux terminal
-sudo apt update
 
-wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-aarch64.sh    # install Miniconda3 to Linux terminal
+cd ~                                                    # install miniconda in Linux home directory
+wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-aarch64.sh
 chmod +x Miniconda3-latest-Linux-aarch64.sh
-./Miniconda3-latest-Linux-aarch64.sh         
-~/miniconda3/bin/conda init                             # initialize Miniconda3
-
-export ENVROOT=~/workspace                              # set ENVROOT example
-cd $ENVROOT                                             # go to a convenient home directory             
+./Miniconda3-latest-Linux-aarch64.sh
+source .bashrc                                          # reload the shell with conda activated
+       
 conda create -n atomsci-env python=3.9.12               # create environment with Python 3.9.12
-conda init                                              # initialize conda 
 conda activate atomsci-env                              # activate atomsci-env environment 
-pip install pip --upgrade
               
-sudo apt update
 sudo apt install git                                    # install git to Linux terminal
-sudo apt update
 git clone https://github.com/ATOMScience-org/AMPL.git   # clones AMPL repository
 
 cd AMPL/pip    
-sudo apt install pkg-config
-sudo apt-get install libxrender1
-sudo apt-get install  libhdf5-dev                       # fixes h5py errors when installing cpu_requirements.txt
-sudo apt-get -y install gcc                             # fixes gcc errors when installing cpu_requirements.txt
-pip install -r cpu_requirements.txt                     # install cpu_requirements.txt
+sudo apt install pkg-config lixrender1 libhdf5-dev gcc  # fix h5py and gcc install errors
+
+pip install pip --upgrade
+pip install -r mchip_requirements.txt                     # install mchip_requirements.txt
 
 cd ..                                                   # return to AMPL parent directory
 ./build.sh                            
@@ -297,11 +262,7 @@ To run AMPL from Jupyter Notebook, with your environment activated. To setup a n
 ```
 python -m ipykernel install --user --name atomsci-env
 ```
-If Jupyter Lab/Notebook is not installed in new environment
-```bash
-pip install jupyterlab
-python -m ipykernel install --user --name atomsci-env
-```
+
 ---
 ## Install with Docker
 - Download and install Docker Desktop.
