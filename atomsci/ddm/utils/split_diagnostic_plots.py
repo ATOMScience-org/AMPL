@@ -85,8 +85,12 @@ def plot_split_diagnostics(params_or_pl, axes=None, num_rows=None, num_cols=1, m
     # Draw split response distribution plots
     srdp.plot_split_subset_response_distrs(params, plot_size=plot_size, axes=axes)
 
-    # Draw NN Tanimoto distance distribution plots with titles showing fraction of compounds below min_tvt_dist
+    # Draw plots of actual and requested split proportions and counts for each response column after excluding missing values
     plot_num += nresp
+    plot_split_fractions(params, axes[plot_num:])
+    plot_num += nresp
+    
+    # Draw NN Tanimoto distance distribution plots with titles showing fraction of compounds below min_tvt_dist
     dset_path = params.dataset_key
     split_path = f"{os.path.splitext(dset_path)[0]}_{params.split_strategy}_{params.splitter}_{params.split_uuid}.csv"
     dset_df = pd.read_csv(dset_path, dtype={params.id_col: str})
@@ -106,12 +110,8 @@ def plot_split_diagnostics(params_or_pl, axes=None, num_rows=None, num_cols=1, m
     ax = split_stats.dist_hist_train_v_test_plot(ax=ax)
     ax.set_title(f"Test vs train Tanimoto NN distance distribution\nFraction <= {min_tvt_dist} = {tfrac:.3f}")
 
-    # Draw plots of actual and requested split proportions and counts for each response column after excluding missing values
-    plot_num += 1
-    plot_split_fractions(params, axes[plot_num:])
-    plot_num += nresp
-
     # Plot the evolution over generations of each term in the fitness function optimized by the multitask scaffold splitter.
+    plot_num += 1
     if nfitness > 0:
         plot_fitness_terms(params, axes[plot_num:])
 
