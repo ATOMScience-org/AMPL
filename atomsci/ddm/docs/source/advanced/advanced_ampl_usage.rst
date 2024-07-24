@@ -7,7 +7,7 @@ Advanced AMPL Usage
 
 Command line
 ------------
-**AMPL** can `fit` models from the command line with:
+`AMPL <https://github.com/ATOMScience-org/AMPL>`_ can `fit` models from the command line with:
 ::
 
     python model_pipeline.py --config_file test.json

@@ -5,7 +5,7 @@ Advanced Installation
 
 Deployment
 ----------
-**AMPL** has been developed and tested on the following Linux systems:
+`AMPL <https://github.com/ATOMScience-org/AMPL>`_ has been developed and tested on the following Linux systems:
 
 * Red Hat Enterprise Linux 7 with SLURM
 * Ubuntu 16.04

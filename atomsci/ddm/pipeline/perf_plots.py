@@ -221,7 +221,7 @@ def plot_pred_vs_actual(model, epoch_label='best', threshold=None, error_bars=Fa
 
 
 #------------------------------------------------------------------------------------------------------------------------
-def plot_pred_vs_actual_from_df(pred_df, actual_col='avg_pIC50_actual', pred_col='avg_pIC50_pred', label=None, ax=None):
+def plot_pred_vs_actual_from_df(pred_df, actual_col='avg_pIC50_actual', pred_col='avg_pIC50_pred', std_col=None, label=None, ax=None):
     """Plot predicted vs actual values from a trained regression model for a given dataframe.
 
     Args:
@@ -254,6 +254,10 @@ def plot_pred_vs_actual_from_df(pred_df, actual_col='avg_pIC50_actual', pred_col
     g.set_xlim(lims)
     g.set_ylim(lims)
     g.set_title(label)
+    if std_col is not None:
+        filldf=pred_df.copy()
+        filldf=filldf.sort_values([actual_col, pred_col])
+        g.fill_between(x=filldf[actual_col], y1=filldf[pred_col]-filldf[std_col].abs(), y2=filldf[pred_col]+filldf[std_col].abs(), alpha=0.3, step='mid')
     return g
 
 
@@ -295,6 +299,7 @@ def plot_pred_vs_actual_from_file(model_path, external_training_data=None, plot_
 
     is_featurized=False
     AD_method=None
+    uncertainty=config['model_parameters']['uncertainty']
     model_type = config['model_parameters']['model_type']
     featurizer = config['model_parameters']['featurizer']
     if featurizer in ['descriptors','computed_descriptors']:
@@ -305,8 +310,8 @@ def plot_pred_vs_actual_from_file(model_path, external_training_data=None, plot_
         features_label = f"{desc} descriptors"
     else:
         features_label = f"{featurizer} features"
-    if config['model_parameters']['featurizer'] != 'graphconv':
-        AD_method='z_score'
+    # if config['model_parameters']['featurizer'] != 'graphconv':
+        # AD_method='z_score'
     df=pd.read_csv(dataset_key)
     
     # reload split file
@@ -337,7 +342,10 @@ def plot_pred_vs_actual_from_file(model_path, external_training_data=None, plot_
     sns.set_context('notebook')
     nss = len(split_subsets)
     fig, axes = plt.subplots(len(response_cols), nss, figsize=(plot_size*nss, plot_size*len(response_cols)))
-    suptitle = f"{dataset_name}  {splitter} {split_strategy} split {model_type} model on {features_label}, predicted vs actual values"
+    if uncertainty:
+        suptitle = f"{dataset_name}  {splitter} {split_strategy} split {model_type} model on {features_label}, predicted vs actual values with uncertainty"
+    else:
+        suptitle = f"{dataset_name}  {splitter} {split_strategy} split {model_type} model on {features_label}, predicted vs actual values"
     fig.suptitle(suptitle, y=0.95)
     axes = axes.flatten()
     for i,resp in enumerate(response_cols):
@@ -346,8 +354,14 @@ def plot_pred_vs_actual_from_file(model_path, external_training_data=None, plot_
         task_pred_df = pred_df[pred_df[actual_col].notna() & pred_df[pred_col].notna()]
         y_actual = task_pred_df[actual_col].values
         y_pred = task_pred_df[pred_col].values
-        ymin = min(min(y_actual), min(y_pred))
-        ymax = max(max(y_actual), max(y_pred))
+        if uncertainty:
+            std_col = f'{resp}_std'
+            y_std = task_pred_df[std_col].values
+        else:
+            std_col=None
+            y_std = 0
+        ymin = min(min(y_actual), min(y_pred), min(y_pred-y_std))
+        ymax = max(max(y_actual), max(y_pred), max(y_pred+y_std))
         for j, subset in enumerate(split_subsets):
             ax = axes[nss*i + j]
             # Force axes to have same scale for all subsets for same task (but not different tasks!)
@@ -362,7 +376,7 @@ def plot_pred_vs_actual_from_file(model_path, external_training_data=None, plot_
                 subtitle = f"{resp} {subset}, {score_type_label['r2']} = {r2:.3f}"
             else:
                 subtitle = f"{subset}, {score_type_label['r2']} = {r2:.3f}"
-            plot_pred_vs_actual_from_df(tmp, actual_col=actual_col, pred_col=pred_col, label=subtitle, ax=ax)
+            plot_pred_vs_actual_from_df(tmp, actual_col=actual_col, pred_col=pred_col, std_col = std_col, label=subtitle, ax=ax)
 
 
 #------------------------------------------------------------------------------------------------------------------------
