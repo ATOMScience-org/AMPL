@@ -44,5 +44,6 @@ notebook
 jupyterlab
 
 deepchem==2.7.1
+rdkit==2024.03.3
 
 pyyaml==5.4.1
