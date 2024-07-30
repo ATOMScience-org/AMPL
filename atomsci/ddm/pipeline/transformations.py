@@ -165,7 +165,7 @@ class UMAPTransformer(Transformer):
             target_metric = 'l2'
         self.scaler = RobustScaler()
         # Use Imputer to replace missing values (NaNs) with means for each column
-        self.imputer = Imputer()
+        self.imputer = SimpleImputer()
         scaled_X = self.scaler.fit_transform(self.imputer.fit_transform(dataset.X))
         self.mapper = umap.UMAP(n_neighbors=params.umap_neighbors,
                                 n_components=params.umap_dim,
