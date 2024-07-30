@@ -760,7 +760,7 @@ class NNModelWrapper(ModelWrapper):
             return self.get_full_dataset_perf_data(self.data)
         if epoch_label == 'best':
             epoch = self.best_epoch
-            _model_dir = self.best_model_dir
+            #model_dir = self.best_model_dir
         else:
             raise ValueError("Unknown epoch_label '%s'" % epoch_label)
 
@@ -798,7 +798,7 @@ class NNModelWrapper(ModelWrapper):
             return self.get_full_dataset_pred_results(self.data)
         if epoch_label == 'best':
             epoch = self.best_epoch
-            _model_dir = self.best_model_dir
+            #model_dir = self.best_model_dir
         else:
             raise ValueError("Unknown epoch_label '%s'" % epoch_label)
         if subset == 'train':
