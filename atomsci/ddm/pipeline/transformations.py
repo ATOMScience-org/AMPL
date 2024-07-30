@@ -8,7 +8,8 @@ import numpy as np
 import umap
 
 from deepchem.trans.transformers import get_grad_statistics, Transformer, NormalizationTransformer, BalancingTransformer
-from sklearn.preprocessing import RobustScaler, Imputer
+from sklearn.impute import SimpleImputer
+from sklearn.preprocessing import RobustScaler
 
 logging.basicConfig(format='%(asctime)-15s %(message)s')
 log = logging.getLogger('ATOM')
@@ -165,7 +166,7 @@ class UMAPTransformer(Transformer):
             target_metric = 'l2'
         self.scaler = RobustScaler()
         # Use Imputer to replace missing values (NaNs) with means for each column
-        self.imputer = Imputer()
+        self.imputer = SimpleImputer()
         scaled_X = self.scaler.fit_transform(self.imputer.fit_transform(dataset.X))
         self.mapper = umap.UMAP(n_neighbors=params.umap_neighbors,
                                 n_components=params.umap_dim,
