@@ -16,7 +16,6 @@ log = logging.getLogger('ATOM')
 
 transformed_featurizers = ['descriptors', 'computed_descriptors']
 
-
 # ****************************************************************************************
 def transformers_needed(params):
     """Returns a boolean indicating whether response and/or feature transformers would be
