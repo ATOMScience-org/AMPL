@@ -586,9 +586,9 @@ def get_best_models_info(col_names=None, bucket='public', pred_type="regression"
     
     if mlmt_supported and col_names is not None:
         mlmt_client = dsf.initialize_model_tracker()
-        if type(col_names) is str:
+        if isinstance(col_names, str):
             col_names = [col_names]
-        if type(bucket) is str:
+        if isinstance(bucket, str):
             bucket=[bucket]
         # Get the best model over all collections for each dataset
         for dset_key in dset_keys:
@@ -1068,10 +1068,10 @@ def get_filesystem_models(result_dir, pred_type):
     """
     perf_df = get_filesystem_perf_results(result_dir, pred_type)
     if pred_type == 'regression':
-        _metric = 'valid_r2_score'
+        metric = 'valid_r2_score'
     else:
-        _metric = 'valid_roc_auc_score'
-        
+        metric = 'valid_roc_auc_score'
+    logging.debug(f"Metric: {metric}")
     #best_df = perf_df.sort_values(by=metric, ascending=False).drop_duplicates(subset='dataset_key').copy()
     perf_df['dataset_names'] = perf_df['dataset_key'].apply(lambda f: os.path.splitext(os.path.basename(f))[0])
     perf_df['tarball_names'] = perf_df.apply(lambda x: '%s_model_%s.tar.gz' % (x['dataset_names'], x['model_uuid']), axis=1)

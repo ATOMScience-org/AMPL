@@ -198,7 +198,7 @@ class ModelPipeline:
             else:
                 self.ds_client = ds_client
         # Check consistency of task parameters
-        if type(params.response_cols) is str:
+        if isinstance(params.response_cols, str):
             params.response_cols = [params.response_cols]
         if params.num_model_tasks != len(params.response_cols):
             raise ValueError("num_model_tasks parameter is inconsistent with response_cols")
@@ -489,7 +489,7 @@ class ModelPipeline:
             out.write("\n")
 
         if self.params.save_results:
-            if type(model_metrics) is not list:
+            if not isinstance(model_metrics, list):
                 model_metrics = [model_metrics]
             for metrics in model_metrics:
                 retry = True
@@ -1194,7 +1194,7 @@ def create_prediction_pipeline(params, model_uuid, collection_name=None, featuri
     if collection_name is None:
         collection_name = trkr.get_model_collection_by_uuid(model_uuid, mlmt_client)
 
-    if type(params) is dict:
+    if isinstance(params, dict):
         params = parse.wrapper(params)
 
     metadata_dict = trkr.get_metadata_by_uuid(model_uuid, collection_name=collection_name)
@@ -1487,7 +1487,7 @@ def ensemble_predict(model_uuids, collections, dset_df, labels=None, dset_params
 
     pred_df = None
 
-    if type(collections) is str:
+    if isinstance(collections, str):
         collections = [collections] * len(model_uuids)
 
     if labels is None:

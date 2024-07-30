@@ -245,7 +245,7 @@ def _get_descriptors(smiles_arr):
                               'subset_all_GSK_Compound_2D_3D_MOE_Descriptors_Scaled_With_Smiles_And_Inchi_HTR2A_5_' \
                               'HT2A_Human_Antagonist_HEK_Luminescence_f_PIC50.csv'
     full_feature_matrix = dsf.retrieve_dataset_by_datasetkey(full_feature_matrix_key, 'gskdata', ds_client)
-
+    #smiles_df = pd.DataFrame(smiles_arr)
     #df = full_feature_matrix.merge(
     #    smiles_df, how='inner', left_on='smiles', right_on=smiles_df.columns[0])
     df = full_feature_matrix.head(20)

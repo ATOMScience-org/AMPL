@@ -571,7 +571,7 @@ def to_str(params_obj):
     """
     # This command converts the namespace_obj to a dict, with the spaces replaced with
     # a temporary string.
-    if type(params_obj) is dict:
+    if isinstance(params_obj, dict):
         strobj = dict_to_list(params_obj,replace_spaces=True)
     else:
         strobj = dict_to_list(vars(params_obj),replace_spaces=True)
@@ -1718,9 +1718,9 @@ def postprocess_args(parsed_args):
     # this ignores the current value of num_model_tasks
     if parsed_args.num_model_tasks is not None:
         log.debug("num_model_tasks is deprecated and its value is ignored.")
-    if parsed_args.response_cols is None or type(parsed_args.response_cols) is str:
+    if parsed_args.response_cols is None or isinstance(parsed_args.response_cols, str):
         parsed_args.num_model_tasks = 1
-    elif type(parsed_args.response_cols) is list:
+    elif isinstance(parsed_args.response_cols, list):
         parsed_args.num_model_tasks = len(parsed_args.response_cols)
     else:
         raise Exception(f'Unexpected type for response_cols {type(parsed_args.response_cols)}')
@@ -1786,7 +1786,7 @@ def remove_unrecognized_arguments(params, hyperparam=False):
     Returns:
         dict of parameters
     """
-    if type(params) is not dict:
+    if not isinstance(params, dict):
         params = vars(params)
 
     #dictionary comprehension that retains only the keys that are in the accepted list of parameters
