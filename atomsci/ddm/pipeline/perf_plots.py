@@ -1,7 +1,7 @@
 """Plotting routines for visualizing performance of regression and classification models"""
 
 import os
-
+import glob
 import matplotlib
 
 import sys
@@ -22,6 +22,7 @@ from atomsci.ddm.utils import file_utils as futils
 from atomsci.ddm.utils import model_file_reader as mfr
 from atomsci.ddm.pipeline import model_pipeline as mp
 from atomsci.ddm.pipeline import perf_data as perf
+from atomsci.ddm.pipeline import parameter_parser as parse
 from atomsci.ddm.pipeline import predict_from_model as pfm
 
 #matplotlib.style.use('ggplot')
@@ -106,17 +107,19 @@ def plot_pred_vs_actual(model, epoch_label='best', threshold=None, error_bars=Fa
     else:
         subsets = ['full']
     num_ss = len(subsets)
-    dataset_name = model.data.dataset_name
-    splitter = model.params.splitter
-    model_type = model.params.model_type
-    featurizer = model.params.featurizer
+    dataset_name = params.dataset_name
+    splitter = params.splitter
+    model_type = params.model_type
+    featurizer = params.featurizer
     if featurizer in ('computed_descriptors', 'descriptors'):
-        featurizer = f"{model.params.descriptor_type} descriptors"
+        featurizer = f"{params.descriptor_type} descriptors"
+        is_featurized=True
     else:
         featurizer = f"{featurizer} features"
-    tasks = model.params.response_cols
+        is_featurized=False
+    tasks = params.response_cols
     num_tasks = len(tasks)
-    if model.params.model_type != "hybrid":
+    if params.model_type != "hybrid":
         fig, axes = plt.subplots(num_tasks, num_ss, figsize=(plot_size*num_ss, plot_size*num_tasks))
         if num_ss > 1:
             suptitle = f"{dataset_name} {splitter} {params.split_strategy} split {model_type} model on {featurizer}, predicted vs actual values by split subset"
@@ -124,23 +127,27 @@ def plot_pred_vs_actual(model, epoch_label='best', threshold=None, error_bars=Fa
             suptitle = f"{model_type} model on {featurizer}, predicted vs actual values on dataset {dataset_name}"
         fig.suptitle(suptitle, y=0.95)
         axes = axes.flatten()
-        for t, resp in enumerate(tasks):
+
+        input_df=pd.read_csv(model.data.dataset_key)
+        pred_df=pfm.predict_from_model_file(params.model_tarball_path, input_df, id_col=params.id_col, smiles_col=params.smiles_col,
+                     response_col=params.response_cols, conc_col=None, is_featurized=is_featurized, dont_standardize=True, AD_method=None)
+        dset_path=os.path.dirname(params.dataset_key)
+        split_file=glob.glob(os.path.join(dset_path, f"*{params.split_uuid}*.csv"))[0]
+        split_df=pd.read_csv(split_file)
+        pred_df=pred_df.merge(split_df, left_on=params.id_col, right_on='cmpd_id')
+        
+        for t, resp in enumerate(tasks):            
             for s, subset in enumerate(subsets):
+                subs_pred_df=pred_df[pred_df.subset==subset]
+                
                 perf_data = wrapper.get_perf_data(subset, epoch_label)
                 pred_results = perf_data.get_prediction_results()
-                y_actual = perf_data.get_real_values()
-                y_weights = perf_data.get_weights()
-                y_actual=np.where(y_weights==0, np.nan, y_actual)
-                ids, y_pred, y_std = perf_data.get_pred_values()
-                if y_std is not None:
-                    tmp_df=pd.DataFrame({'compound_id':ids, resp:y_actual.ravel(), f'{resp}_pred':y_pred.ravel(), f'{resp}_std':y_std.ravel()})
-                else:
-                    tmp_df=pd.DataFrame({'compound_id':ids, resp:y_actual.ravel(), f'{resp}_pred':y_pred.ravel()})
-                r2 = pred_results['r2_score']
+                # pred_df=pfm.predict_from_pipe(model)
+                std=len([x for x in pred_df.columns if 'std' in x]) > 0
                 if perf_data.num_tasks > 1:
                     r2_scores = pred_results['task_r2_scores']
                 else:
-                    r2_scores = [r2]
+                    r2_scores = [pred_results['r2_score']]
                 ax_ind = num_ss*t + s
                 ax = axes[ax_ind]
                 # Set subplot title
@@ -148,10 +155,10 @@ def plot_pred_vs_actual(model, epoch_label='best', threshold=None, error_bars=Fa
                     subtitle = f"{resp} {subset}, {score_type_label['r2']} = {r2_scores[t]:.3f}"
                 else:
                     subtitle = f"{subset} {score_type_label['r2']} = {r2_scores[t]:.3f}"
-                if error_bars and y_std is not None:
-                    plot_pred_vs_actual_from_df(tmp_df, actual_col=resp, pred_col=f'{resp}_pred', std_col=f'{resp}_std', label=subtitle, threshold=threshold, ax=ax) 
+                if error_bars and std:
+                    plot_pred_vs_actual_from_df(subs_pred_df, actual_col=resp, pred_col=f'{resp}_pred', std_col=f'{resp}_std', label=subtitle, threshold=threshold, ax=ax) 
                 else:
-                    plot_pred_vs_actual_from_df(tmp_df, actual_col=resp, pred_col=f'{resp}_pred', label=subtitle, threshold=threshold, ax=ax)
+                    plot_pred_vs_actual_from_df(subs_pred_df, actual_col=resp, pred_col=f'{resp}_pred', label=subtitle, threshold=threshold, ax=ax)
                     
                 if pdf_dir is not None:
                     pdf.savefig(fig)
@@ -268,7 +275,7 @@ def plot_pred_vs_actual_from_file(model_path, external_training_data=None, plot_
         model_path (str): Path to an AMPL model tar.gz file.
         external_training_data (str): Path to copy of training dataset, if different from path used when model was trained.
         plot_size (float): Height of subplots.
-        uncertainty (bool): whether to plot uncertainty as shaded bars above and below the predicted values.
+        error_bars (bool): whether to plot uncertainty as shaded region above and below the predicted values.
 
     Returns:
         None
