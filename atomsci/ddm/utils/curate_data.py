@@ -489,7 +489,7 @@ def get_rdkit_smiles_parent (data):
     rdkit_smiles_parent = []
     for i in range (i_max):
         smile = data['rdkit_smiles'].iloc[i]
-        if type (smile) is float:
+        if isinstance(smile, float):
             split = ''
         else:
             split = base_smiles_from_smiles (smile)

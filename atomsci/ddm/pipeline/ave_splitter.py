@@ -163,8 +163,8 @@ def analyze_split(params, id_col='compound_id', smiles_col='rdkit_smiles', activ
     inactive_ind = np.where(y == 0)[0]
     active_feat = feat_arr[active_ind,:]
     inactive_feat = feat_arr[inactive_ind,:]
-    _num_active = len(active_ind)
-    _num_inactive = len(inactive_ind)
+    #num_active = len(active_ind)
+    #num_inactive = len(inactive_ind)
     active_ids = ids[active_ind]
     inactive_ids = ids[inactive_ind]
     active_id_ind = dict(zip(active_ids, range(len(active_ids))))

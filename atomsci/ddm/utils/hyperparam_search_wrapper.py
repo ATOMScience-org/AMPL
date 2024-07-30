@@ -158,15 +158,15 @@ def reformat_filter_dict(filter_dict):
         for value in values:
             if value in filter_dict:
                 filter_val = filter_dict[value]
-                if type(filter_val) is np.int64:
+                if isinstance(filter_val, np.int64):
                     filter_dict[value] = int(filter_val)
-                elif type(filter_val) is np.float64:
+                elif isinstance(filter_val, np.float64):
                     filter_dict[value] = float(filter_val)
-                elif type(filter_val) is list:
+                elif isinstance(filter_val, list):
                     for i, item in enumerate(filter_val):
-                        if type(item) is np.int64:
+                        if isinstance(item, np.int64):
                             filter_dict[value][i] = int(item)
-                        elif type(filter_val) is np.float64:
+                        elif isinstance(filter_val, np.float64):
                             filter_dict[value][i] = float(item)
                 new_filter_dict['%s.%s' % (key, value)] = filter_dict[value]
     return new_filter_dict
@@ -363,11 +363,11 @@ class HyperparameterSearch(object):
             elif key == 'result_dir' or key == 'output_dir':
                 self.new_params[key] = os.path.join(value, self.hyperparam_uuid)
             # Need to zip together layers in special way
-            elif key in self.hyperparam_layers and type(value[0]) is list:
+            elif key in self.hyperparam_layers and isinstance(value[0], list):
                 self.layers[key] = value
             # Parses the hyperparameter keys depending on the size of the key list
             elif key in self.hyperparam_keys:
-                if type(value) is not list:
+                if not isinstance(value, list):
                     self.new_params[key] = value
                     self.hyperparam_keys.remove(key)
                 elif len(value) == 1:
@@ -381,11 +381,11 @@ class HyperparameterSearch(object):
         if self.layers:
             self.assemble_layers()
         # setting up the various hyperparameter combos for each model type.
-        if type(self.params.model_type) is str:
+        if isinstance(self.params.model_type, str):
             self.params.model_type = [self.params.model_type]
-        if type(self.params.featurizer) is str:
+        if isinstance(self.params.featurizer, str):
             self.params.featurizer = [self.params.featurizer]
-        if type(self.params.descriptor_type) is str:
+        if isinstance(self.params.descriptor_type, str):
             self.params.descriptor_type = [self.params.descriptor_type]
 
         for model_type in self.params.model_type:
@@ -507,7 +507,7 @@ class HyperparameterSearch(object):
         """
         # Creates the assay list with additional options for use_shortlist
         if not self.params.use_shortlist:
-            if type(self.params.splitter) is str:
+            if isinstance(self.params.splitter, str):
                 splitters = [self.params.splitter]
             else:
                 splitters = self.params.splitter
@@ -644,7 +644,7 @@ class HyperparameterSearch(object):
         assay_params = {'dataset_key': dataset_key, 'bucket': bucket, 'splitter': splitter,
                         'split_valid_frac': split_valid_frac, 'split_test_frac': split_test_frac}
         #Need a featurizer type to split dataset, but since we only care about getting the split_uuid, does not matter which featurizer you use
-        if type(self.params.featurizer) is list:
+        if isinstance(self.params.featurizer, list):
             assay_params['featurizer'] = self.params.featurizer[0]
         else:
             assay_params['featurizer'] = self.params.featurizer
@@ -904,7 +904,7 @@ class HyperparameterSearch(object):
             
         if not split_uuids:
             return datasets
-        if type(self.params.splitter) is str:
+        if isinstance(self.params.splitter, str):
             splitters = [self.params.splitter]
         else:
             splitters = self.params.splitter
@@ -1152,7 +1152,7 @@ class GridSearch(HyperparameterSearch):
             assert isinstance(value, Iterable)
             if key == 'layers':
                 new_dict[key] = value
-            elif type(value[0]) is not str:
+            elif not isinstance(value[0], str):
                 tmp_list = list(np.linspace(value[0], value[1], value[2]))
                 if key in self.convert_to_int:
                     new_dict[key] = [int(x) for x in tmp_list]
@@ -1195,7 +1195,7 @@ class RandomSearch(HyperparameterSearch):
             assert isinstance(value, Iterable)
             if key == 'layers':
                 new_dict[key] = value
-            elif type(value[0]) is not str:
+            elif not isinstance(value[0], str):
                 tmp_list = list(np.random.uniform(value[0], value[1], value[2]))
                 if key in self.convert_to_int:
                     new_dict[key] = [int(x) for x in tmp_list]
@@ -1239,7 +1239,7 @@ class GeometricSearch(HyperparameterSearch):
             assert isinstance(value, Iterable)
             if key == 'layers':
                 new_dict[key] = value
-            elif type(value[0]) is not  str:
+            elif not isinstance(value[0], str):
                 tmp_list = list(np.geomspace(value[0], value[1], int(value[2])))
                 if key in self.convert_to_int:
                     new_dict[key] = [int(x) for x in tmp_list]
