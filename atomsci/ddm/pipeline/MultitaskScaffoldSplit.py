@@ -1,4 +1,5 @@
 import argparse
+import logging
 import random
 import timeit
 import tempfile
@@ -360,7 +361,7 @@ class MultitaskScaffoldSplitter(Splitter):
             A list of strings, index i contains a string, 'train', 'valid', 'test'
             which determines the partition that scaffold belongs to
         """
-        _start = timeit.default_timer()
+        start = timeit.default_timer()
         total_counts = np.sum(self.dataset.w, axis=0)
         subset_counts = [np.sum(self.dataset.w[subset], axis=0) for subset in \
                             self.split_chromosome_to_compound_split(split_chromosome)]
@@ -383,8 +384,7 @@ class MultitaskScaffoldSplitter(Splitter):
         # worst possible distance to normalize this between 0 and 1
         worst_distance = np.linalg.norm(np.ones(num_tasks*2))
         ratio_fit = 1 - np.linalg.norm(target_split-current_split)/worst_distance
-        #print("\tratio_fitness: %0.2f min"%((timeit.default_timer()-start)/60))
-
+        logging.info("\tratio_fitness: %0.2f min"%((timeit.default_timer()-start)/60))
         return ratio_fit
 
     def ratio_fitness(self, split_chromosome: List[str]) -> float:
@@ -404,7 +404,8 @@ class MultitaskScaffoldSplitter(Splitter):
         float
             A float between 0 and 1. 1 best 0 is worst
         """
-        _start = timeit.default_timer()
+        start = timeit.default_timer()
+
         # total_counts is the number of labels per task
         total_counts = np.sum(self.dataset.w, axis=0)
 
@@ -431,7 +432,7 @@ class MultitaskScaffoldSplitter(Splitter):
         # worst possible distance to normalize this between 0 and 1
         worst_distance = np.linalg.norm(np.ones(len(target_split)))
         ratio_fit = 1 - np.linalg.norm(target_split-current_split)/worst_distance
-        #print("\tratio_fitness: %0.2f min"%((timeit.default_timer()-start)/60))
+        logging.info("\tratio_fitness: %0.2f min"%((timeit.default_timer()-start)/60))
 
         return ratio_fit
 
@@ -453,7 +454,7 @@ class MultitaskScaffoldSplitter(Splitter):
             the train subset response value distributions, averaged over tasks. One means
             the distributions perfectly match.
         """
-        _start = timeit.default_timer()
+        start = timeit.default_timer()
         dist_sum = 0.0
         ntasks = self.dataset.y.shape[1]
         train_ind, valid_ind, test_ind = self.split_chromosome_to_compound_split(split_chromosome)
@@ -473,6 +474,7 @@ class MultitaskScaffoldSplitter(Splitter):
             dist_sum += valid_dist + test_dist
 
         avg_dist = dist_sum/(ntasks*2)
+        logging.info("\tresponse_distr_fitness: %0.2f min"%((timeit.default_timer()-start)/60))
         return 1 - avg_dist
 
     def grade(self, split_chromosome: List[str]) -> float:
@@ -618,18 +620,18 @@ class MultitaskScaffoldSplitter(Splitter):
         self.ecfp_features = calc_ecfp(dataset.ids)
 
         # calculate ScaffoldxScaffold distance matrix
-        _start = timeit.default_timer()
+        start = timeit.default_timer()
         if (self.diff_fitness_weight_tvv > 0.0) or (self.diff_fitness_weight_tvt > 0.0):
             self.scaff_scaff_distmat = _generate_scaffold_dist_matrix(self.ss, self.ecfp_features)
-        #print('scaffold dist mat %0.2f min'%((timeit.default_timer()-start)/60))
+        logging.info('scaffold dist mat %0.2f min'%((timeit.default_timer()-start)/60))
 
         # initial population
         population = []
         for i in range(self.num_pop):
-            _start = timeit.default_timer()
+            start_loop = timeit.default_timer()
             split_chromosome = self._split(frac_train=frac_train, frac_valid=frac_valid, 
                                 frac_test=frac_test)
-            #print("per_loop: %0.2f min"%((timeit.default_timer()-start)/60))
+            logging.info("per_loop: %0.2f min"%((timeit.default_timer()-start_loop)/60))
 
             population.append(split_chromosome)
 

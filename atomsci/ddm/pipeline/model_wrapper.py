@@ -1103,7 +1103,7 @@ class NNModelWrapper(ModelWrapper):
             txform = [] if (not self.params.transformers or self.transformers is None) else self.transformers
             pred = self.model.predict(dataset, txform)
             if self.params.prediction_type == 'regression':
-                if type(pred) is list and len(pred) == 0:
+                if isinstance(pred, list) and len(pred) == 0:
                     # DeepChem models return empty list if no valid predictions
                     pred = np.array([]).reshape((0,0,1))
                 else:

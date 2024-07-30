@@ -208,7 +208,7 @@ class AMPLDataset:
         self.df['tmp_col1'] = self.df[self.base_smiles_col].apply(Chem.MolFromSmiles)
         mw_lst=[]
         for idx,row in self.df.iterrows() :
-            _sml=row[self.base_smiles_col]
+            # sml=row[self.base_smiles_col]
             mol=row['tmp_col1']
             mw = Descriptors.MolWt(mol)
             mw_lst.append(mw)
@@ -307,7 +307,7 @@ class CombineAMPLDataset:
         save_cols=[lead_ds.id_col, lead_ds.value_col, lead_ds.base_smiles_col , lead_ds.relation_col ]
         for it in range(1,len(ds_lst),1) :
             ds=ds_lst[it]
-            _orig_cols=[ds.id_col, ds.value_col, ds.base_smiles_col , ds.relation_col ]
+            #orig_cols=[ds.id_col, ds.value_col, ds.base_smiles_col , ds.relation_col ]
             rl_df=ds.df.rename( columns={ ds.id_col: lead_ds.id_col, ds.value_col : lead_ds.value_col, ds.base_smiles_col : lead_ds.base_smiles_col, ds.relation_col : lead_ds.relation_col, ds.smiles_col : lead_ds.smiles_col   }, inplace=False)
             rl_df=rl_df[ save_cols ] 
             df_lst.append(rl_df)
