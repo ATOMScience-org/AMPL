@@ -54,6 +54,8 @@ import atomsci.ddm.pipeline.parameter_parser as pp
 
 from tensorflow.python.keras.utils.layer_utils import count_params
 
+import gpytorch
+
 logging.basicConfig(format='%(asctime)-15s %(message)s')
 
 def get_latest_pytorch_checkpoint(model, model_dir=None):
@@ -2789,5 +2791,231 @@ class GraphConvDCModelWrapper(KerasDeepChemModelWrapper):
         )
         model_spec_metadata = dict(nn_specific = nn_metadata)
         return model_spec_metadata
+
+class GPyTorchModelWrapper(ModelWrapper):
+    """MODIFY ALL DOCSTRINGS: Wrapper class for DCRFModelWrapper and DCxgboostModelWrapper
+
+    contains code that is similar between the two tree based classes
+    """
+    def __init__(self, params, featurizer, ds_client):
+        """Initializes DCRFModelWrapper object.
+
+        Args:
+            params (Namespace object): contains all parameter information.
+
+            featurizer (Featurization): Object managing the featurization of compounds
+            ds_client: datastore client.
+        """
+        super().__init__(params, featurizer, ds_client)
+        self.best_model_dir = os.path.join(self.output_dir, 'best_model')
+        self.model_dir = self.best_model_dir
+        os.makedirs(self.best_model_dir, exist_ok=True)
+#ORIGINAL CODE
+#        self.model = self.make_dc_model(self.best_model_dir)
+#END ORIGINAL CODE
+        
+        class ExactGPModel(gpytorch.models.ExactGP):
+          def __init__(self, train_x, train_y, likelihood):
+            super(ExactGPModel, self).__init__(train_x, train_y, likelihood)
+            self.mean_module = gpytorch.means.ConstantMean()
+            self.covar_module = gpytorch.kernels.ScaleKernel(gpytorch.kernels.RBFKernel())
+          def forward(self, x):
+            mean_x = self.mean_module(x)
+            covar_x = self.covar_module(x)
+            return gpytorch.distributions.MultivariateNormal(mean_x, covar_x)
+
+        self.model = ExactGPModel(torch.empty(0), torch.empty(0), gpytorch.likelihoods.GaussianLikelihood())
+
+
+    # ****************************************************************************************
+    def train(self, pipeline):
+        """Trains a forest model and saves the trained model.
+
+        Args:
+            pipeline (ModelPipeline): The ModelPipeline instance for this model run.
+
+        Returns:
+            None
+
+        Side effects:
+            data (ModelDataset): contains the dataset, set in pipeline
+
+            best_epoch (int): Set to 0, not applicable to deepchem random forest models
+
+            train_perf_data (PerfData): Contains the predictions and performance of the training dataset
+
+            valid_perf_data (PerfData): Contains the predictions and performance of the validation dataset
+
+            train_perfs (dict): A dictionary of predicted values and metrics on the training dataset
+
+            valid_perfs (dict): A dictionary of predicted values and metrics on the training dataset
+        """
+
+        self.data = pipeline.data
+        self.best_epoch = None
+        self.train_perf_data = perf.create_perf_data(self.params.prediction_type, pipeline.data, self.transformers,'train')
+        self.valid_perf_data = perf.create_perf_data(self.params.prediction_type, pipeline.data, self.transformers, 'valid')
+        self.test_perf_data = perf.create_perf_data(self.params.prediction_type, pipeline.data, self.transformers, 'test')
+
+        test_dset = pipeline.data.test_dset
+
+#ORIGINAL CODE
+#        num_folds = len(pipeline.data.train_valid_dsets)
+#        for k in range(num_folds):
+#            train_dset, valid_dset = pipeline.data.train_valid_dsets[k]
+#END ORIGINAL CODE
+        train_dset, valid_dset = pipeline.data.train_valid_dsets[0]
+        self.model.__init__(train_x=torch.from_numpy(train_dset.X),
+          train_y=torch.from_numpy(train_dset.y), likelihood=self.model.likelihood)
+
+#ORIGINAL CODE
+#        self.model.fit(train_dset)
+#        train_pred = self.model.predict(train_dset, [])
+#END ORIGINAL CODE
+        self.model.train()
+        self.model.likelihood.train()
+        optimizer = torch.optim.Adam(self.model.parameters(), lr=0.1)
+        mll = gpytorch.mlls.ExactMarginalLogLikelihood(self.model.likelihood, self.model)
+        for i in range(50):
+          optimizer.zero_grad()
+          output = self.model(self.model.train_inputs[0])
+          loss = -mll(output, self.model.train_targets)
+
+#######GPyTorch TUTORIAL CODE#######
+#error>    loss.backward()
+#          if(verbose == True):
+#            print('Iter %d/%d - Loss: %.3f   lengthscale: %.3f   noise: %.3f' % (
+#               i + 1, training_iter, loss.item(),
+#               model.covar_module.base_kernel.lengthscale.item(),
+#               model.likelihood.noise.item()
+#              ))
+#          optimizer.step()
+#######END GPyTorch TUTORIAL CODE#######
+#######ORIGINAL WRAPPER CODE BELOW######
+#        train_perf = self.train_perf_data.accumulate_preds(train_pred, train_dset.ids)
+
+#        valid_pred = self.model.predict(valid_dset, [])
+#        valid_perf = self.valid_perf_data.accumulate_preds(valid_pred, valid_dset.ids)
+
+#        test_pred = self.model.predict(test_dset, [])
+#        test_perf = self.test_perf_data.accumulate_preds(test_pred, test_dset.ids)
+#        self.log.info("Fold %d: training %s = %.3f, validation %s = %.3f, test %s = %.3f" % (
+#                          k, pipeline.metric_type, train_perf, pipeline.metric_type, valid_perf,
+#                             pipeline.metric_type, test_perf))
+
+
+        # Compute mean and SD of performance metrics across validation sets for all folds
+#        self.train_perf, self.train_perf_std = self.train_perf_data.compute_perf_metrics()
+#        self.valid_perf, self.valid_perf_std = self.valid_perf_data.compute_perf_metrics()
+#        self.test_perf, self.test_perf_std = self.test_perf_data.compute_perf_metrics()
+
+        # Compute score to be used for ranking model hyperparameter sets
+#        self.model_choice_score = self.valid_perf_data.model_choice_score(self.params.model_choice_score_type)
+
+#        if num_folds > 1:
+            # For k-fold CV, retrain on the combined training and validation sets
+#            fit_dataset = self.data.combined_training_data()
+#            self.model.fit(fit_dataset)
+#        self.model_save()
+        # The best model is just the single RF training run.
+#        self.best_epoch = 0
+
+    # ****************************************************************************************
+    def make_dc_model(self, model_dir):
+        """Build a DeepChem model.
+
+        Builds a model, wraps it in DeepChem's wrapper and returns it
+
+        Args:
+            model_dir (str): Directory where saved model is located.
+
+        returns:
+            A DeepChem model
+        """
+        raise NotImplementedError
+
+    # ****************************************************************************************
+    def reload_model(self, reload_dir):
+        """Loads a saved random forest model from the specified directory. Also loads any transformers that
+        were saved with it.
+
+        Args:
+            reload_dir (str): Directory where saved model is located.
+
+            model_dataset (ModelDataset Object): contains the current full dataset
+
+        Side effects:
+            Resets the value of model, transformers, transformers_x and transformers_w
+
+        """
+        # Restore the transformers from the datastore or filesystem
+        self.reload_transformers()
+        self.model = self.make_dc_model(reload_dir)
+        self.model.reload()
+
+    # ****************************************************************************************
+    def get_pred_results(self, subset, epoch_label=None):
+        """Returns predicted values and metrics from a training, validation or test subset
+        of the current dataset, or the full dataset.
+
+        Args:
+            subset: 'train', 'valid', 'test' or 'full' accordingly.
+
+            epoch_label: ignored; this function always returns the results for the current model.
+
+        Returns:
+            A dictionary of parameter, value pairs, in the format expected by the
+            prediction_results element of the ModelMetrics data.
+
+        Raises:
+            ValueError: if subset not in ['train','valid','test','full']
+
+        """
+        if subset == 'train':
+            return self.get_train_valid_pred_results(self.train_perf_data)
+        elif subset == 'valid':
+            return self.get_train_valid_pred_results(self.valid_perf_data)
+        elif subset == 'test':
+            return self.get_train_valid_pred_results(self.test_perf_data)
+        elif subset == 'full':
+            return self.get_full_dataset_pred_results(self.data)
+        else:
+            raise ValueError("Unknown dataset subset '%s'" % subset)
+
+    # ****************************************************************************************
+    def get_perf_data(self, subset, epoch_label=None):
+        """Returns predicted values and metrics from a training, validation or test subset
+        of the current dataset, or the full dataset.
+
+        Args:
+            subset (str): may be 'train', 'valid', 'test' or 'full'
+
+            epoch_label (not used in random forest, but kept as part of the method structure)
+
+        Results:
+            PerfData object: Subclass of perfdata object associated with the appropriate subset's split strategy and prediction type.
+
+        Raises:
+            ValueError: if subset not in ['train','valid','test','full']
+        """
+
+        if subset == 'train':
+            return self.train_perf_data
+        elif subset == 'valid':
+            return self.valid_perf_data
+        elif subset == 'test':
+            #return self.get_test_perf_data(self.best_model_dir, self.data)
+            return self.test_perf_data
+        elif subset == 'full':
+            return self.get_full_dataset_perf_data(self.data)
+        else:
+            raise ValueError("Unknown dataset subset '%s'" % subset)
+
+    # ****************************************************************************************
+    def _clean_up_excess_files(self, dest_dir):
+        """Function to clean up extra model files left behind in the training process.
+        Does not apply to Forest models.
+        """
+        return
 
 
