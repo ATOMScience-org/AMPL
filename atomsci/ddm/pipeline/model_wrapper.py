@@ -23,10 +23,10 @@ from sklearn.ensemble import RandomForestRegressor
 
 
 try:
-    import dgl
-    import dgllife
-    import deepchem.models as dcm
-    from deepchem.models import AttentiveFPModel
+    import dgl    # noqa: F401
+    import dgllife   # noqa: F401
+    import deepchem.models as dcm  # noqa: F401
+    from deepchem.models import AttentiveFPModel  # noqa: F401
     afp_supported = True
 except (ImportError, OSError):
     afp_supported = False
@@ -335,7 +335,7 @@ class ModelWrapper(object):
                 transformers: A list of deepchem transformation objects on response_col, only if conditions are met
         """
         # TODO: Just a warning, we may have response transformers for classification datasets in the future
-        if self.params.prediction_type=='regression' and self.params.transformers==True:
+        if self.params.prediction_type=='regression' and self.params.transformers is True:
             self.transformers = [trans.NormalizationTransformerMissingData(transform_y=True, dataset=model_dataset.dataset)]
 
         # ****************************************************************************************
@@ -760,7 +760,7 @@ class NNModelWrapper(ModelWrapper):
             return self.get_full_dataset_perf_data(self.data)
         if epoch_label == 'best':
             epoch = self.best_epoch
-            model_dir = self.best_model_dir
+            #model_dir = self.best_model_dir
         else:
             raise ValueError("Unknown epoch_label '%s'" % epoch_label)
 
@@ -798,7 +798,7 @@ class NNModelWrapper(ModelWrapper):
             return self.get_full_dataset_pred_results(self.data)
         if epoch_label == 'best':
             epoch = self.best_epoch
-            model_dir = self.best_model_dir
+            #model_dir = self.best_model_dir
         else:
             raise ValueError("Unknown epoch_label '%s'" % epoch_label)
         if subset == 'train':
@@ -1120,7 +1120,7 @@ class NNModelWrapper(ModelWrapper):
             txform = [] if (not self.params.transformers or self.transformers is None) else self.transformers
             pred = self.model.predict(dataset, txform)
             if self.params.prediction_type == 'regression':
-                if type(pred) == list and len(pred) == 0:
+                if isinstance(pred, list) and len(pred) == 0:
                     # DeepChem models return empty list if no valid predictions
                     pred = np.array([]).reshape((0,0,1))
                 else:
@@ -1526,7 +1526,7 @@ class HybridModelWrapper(NNModelWrapper):
 
         data_ds = TensorDataset(x_data, y_data)
         data_dl = DataLoader(data_ds, batch_size=self.params.batch_size * 2, pin_memory=True)
-        data_data = self.SubsetData(data_ds, 
+        _data_data = self.SubsetData(data_ds, 
                                     data_dl, 
                                     len(data_ki_pos), 
                                     len(data_bind_pos))
@@ -1587,7 +1587,7 @@ class HybridModelWrapper(NNModelWrapper):
                 transformers: A list of deepchem transformation objects on response_col, only if conditions are met
         """
         # TODO: Just a warning, we may have response transformers for classification datasets in the future
-        if self.params.prediction_type=='regression' and self.params.transformers==True:
+        if self.params.prediction_type=='regression' and self.params.transformers is True:
             self.transformers = [trans.NormalizationTransformerHybrid(transform_y=True, dataset=model_dataset.dataset)]
 
 # ****************************************************************************************
@@ -2786,5 +2786,3 @@ class GraphConvDCModelWrapper(KerasDeepChemModelWrapper):
         )
         model_spec_metadata = dict(nn_specific = nn_metadata)
         return model_spec_metadata
-
-
