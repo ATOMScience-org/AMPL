@@ -261,8 +261,8 @@ class RegressionPerfData(PerfData):
 
         """
         ids, pred_vals, stds = self.get_pred_values()
-        real_vals = self.get_real_values(ids)
-        weights = self.get_weights(ids)
+        real_vals = self.get_real_values(ids=ids)
+        weights = self.get_weights(ids=ids)
         scores = []
         for i in range(self.num_tasks):
             nzrows = np.where(weights[:,i] != 0)[0]
@@ -1029,7 +1029,11 @@ class KFoldRegressionPerfData(RegressionPerfData):
             otherwise.
 
         """
-        ids = sorted(self.pred_vals.keys())
+        #ids = sorted(self.pred_vals.keys())
+        all_ids = sorted(self.pred_vals.keys())
+        # with kfold + SMOTE, not all ids have predictions 
+        ids = [id for id in all_ids if not (self.pred_vals[id].size == 0)]
+
         if self.subset in ['train', 'test', 'train_valid']:
             rawvals = np.concatenate([self.pred_vals[id].mean(axis=0, keepdims=True).reshape((1,-1)) for id in ids])
             vals = dc.trans.undo_transforms(rawvals, self.transformers)

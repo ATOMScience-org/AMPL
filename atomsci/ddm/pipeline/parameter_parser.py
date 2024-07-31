@@ -542,7 +542,7 @@ convert_to_float_list = {'dropouts','weight_init_stddevs','bias_init_consts','le
                          }
 convert_to_int_list = {'layer_sizes','rf_max_features','rf_estimators', 'rf_max_depth',
                        'umap_dim', 'umap_neighbors', 'layer_nums', 'node_nums',
-                       'xgb_max_depth',  'xgb_n_estimators'}.union(all_auto_int_lists())
+                       'xgb_max_depth',  'xgb_n_estimators', 'seed'}.union(all_auto_int_lists())
 convert_to_numeric_list = convert_to_float_list | convert_to_int_list
 keep_as_list = {'dropouts','weight_init_stddevs','bias_init_consts',
                 'layer_sizes','dropout_list','layer_nums'}.union(all_auto_lists())
@@ -1043,6 +1043,10 @@ def get_parser():
         '--verbose', dest='verbose', action='store_true',
         help='True/False flag for setting verbosity')
     parser.set_defaults(verbose=False)
+    parser.add_argument(
+        '--seed', dest='seed', default=None,
+        help='Random seed used for initializing the random number generator to ensure results are reproducible.'
+        'Default is None and a random seed will be generated.')
 
     # **********************************************************************************************************
     # model_building_parameters: graphconv
@@ -1229,6 +1233,18 @@ def get_parser():
         help='Type of splitter to use: index, random, scaffold, butina, ave_min, temporal, fingerprint, multitaskscaffold or stratified.'
              ' Used to set the splitting.py subclass. Can be input as a comma separated list for hyperparameter search'
              ' (e.g. \'scaffold\',\'random\')')
+    # sampling specific parameters (imbalance-learn)
+    parser.add_argument(
+        '--sampling_method', dest='sampling_method', type=str, default=None,
+        help='Method for sampling to address class imbalance (e.g., \'undersampling\', \'SMOTE\')')
+    
+    parser.add_argument(
+        '--sampling_ratio', dest='sampling_ratio', type=str, default='auto',
+        help='The desired ratio of the minority class to the majority class after sampling.')
+    parser.add_argument(
+        '--sampling_k_neighbors', dest='sampling_k_neighbors', type=int, default=5,
+        help='The nearest neighbors used to define the neighborhood of samples to use to generate the synthetic samples. Specifically used for SMOTE.')
+
 
     parser.add_argument(
         '--mtss_num_super_scaffolds', default=40, type=int,

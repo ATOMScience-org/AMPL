@@ -32,6 +32,8 @@ from atomsci.ddm.pipeline import featurization as feat
 from atomsci.ddm.pipeline import parameter_parser as parse
 from atomsci.ddm.pipeline import model_tracker as trkr
 from atomsci.ddm.pipeline import transformations as trans
+from atomsci.ddm.pipeline import random_seed as rs
+from atomsci.ddm.pipeline import sampling as sample
 
 logging.basicConfig(format='%(asctime)-15s %(message)s')
 
@@ -154,7 +156,7 @@ class ModelPipeline:
             data (ModelDataset object): A data object that featurizes and splits the dataset
     """
 
-    def __init__(self, params, ds_client=None, mlmt_client=None):
+    def __init__(self, params, ds_client=None, mlmt_client=None, random_state=None, seed=None):
         """Initializes ModelPipeline object.
 
         Args:
@@ -188,6 +190,23 @@ class ModelPipeline:
         self.log = logging.getLogger('ATOM')
         self.run_mode = 'training'  # default, can be overridden later
         self.start_time = time.time()
+        
+        # initialize seed
+        if seed is None:
+            seed = getattr(params, 'seed', None)
+            self.random_gen = rs.RandomStateGenerator(params, seed)
+            self.seed = self.random_gen.get_seed()
+        else:
+            # pass the seed into the RandomStateGenerator
+            self.random_gen = rs.RandomStateGenerator(seed)
+            self.seed = self.random_gen.get_seed()
+        
+        if random_state is None:
+            self.random_state = self.random_gen.get_random_state()
+        else:
+            self.random_state = random_state
+        # log the seed used 
+        self.log.info('Initiating ModelPipeline with seed {}'.format(self.seed))
 
         # Default dataset_name parameter from dataset_key
         if params.dataset_name is None:
@@ -237,7 +256,7 @@ class ModelPipeline:
 
         # ****************************************************************************************
 
-    def load_featurize_data(self, params=None):
+    def load_featurize_data(self, params=None, random_state=None, seed=None):
         """Loads the dataset from the datastore or the file system and featurizes it. If we are training
         a new model, split the dataset into training, validation and test sets.
 
@@ -248,6 +267,7 @@ class ModelPipeline:
         Args:
             params (Namespace): Optional set of parameters to be used for featurization; by default this function
             uses the parameters used when the pipeline was created.
+            seed (int): Optional seed for reproducibility
 
         Side effects:
             Sets the following attributes of the ModelPipeline
@@ -266,10 +286,13 @@ class ModelPipeline:
                 self.log.info('Training in production mode. Ignoring '
                     'previous split and creating production split. '
                     'Production split will not be saved.')
-                self.data.split_dataset()
-            elif not (params.previously_split and self.data.load_presplit_dataset()):
-                self.data.split_dataset()
+                self.data.split_dataset(random_state=self.random_state, seed=self.seed)
+            elif not (params.previously_split and self.data.load_presplit_dataset(random_state=self.random_state, seed=self.seed)):
+                self.data.split_dataset(random_state=self.random_state, seed=self.seed)
                 self.data.save_split_dataset()
+                # write split metadata
+                self.create_split_metadata()
+                self.save_split_metadata()
             if self.data.params.prediction_type == 'classification':
                 self.data._validate_classification_dataset()
         # We now create transformers after splitting, to allow for the case where the transformer
@@ -282,6 +305,8 @@ class ModelPipeline:
 
         if self.run_mode == 'training':
             for i, (train, valid) in enumerate(self.data.train_valid_dsets):
+                if self.data.params.prediction_type == 'classification' and self.params.sampling_method is not None:
+                    train = sample.apply_sampling_method(train, params, random_state=self.random_state, seed=self.seed)
                 train = self.model_wrapper.transform_dataset(train)
                 valid = self.model_wrapper.transform_dataset(valid)
                 self.data.train_valid_dsets[i] = (train, valid)
@@ -342,6 +367,13 @@ class ModelPipeline:
             hyperparam_uuid=self.params.hyperparam_uuid,
             ampl_version=mu.get_ampl_version()
         )
+        # add in sampling method parameters for documentation/reproducibility
+        if self.params.sampling_method is not None:
+            model_params['sampling_method'] = self.params.sampling_method
+        if self.params.sampling_ratio is not None:
+            model_params['sampling_ratio'] = self.params.sampling_ratio
+        if self.params.sampling_k_neighbors is not None:
+            model_params['sampling_k_neighbors'] = self.params.sampling_k_neighbors
 
         splitting_metadata = self.data.get_split_metadata()
         model_metadata = dict(
@@ -360,6 +392,8 @@ class ModelPipeline:
             model_metadata[key] = data
         for key, data in trans.get_transformer_specific_metadata(self.params).items():
             model_metadata[key] = data
+            
+        model_metadata['seed'] = self.seed
 
         self.model_metadata = model_metadata
 
@@ -412,6 +446,28 @@ class ModelPipeline:
             # If not using the model tracker, save the model state and metadata in a tarball in the filesystem
             trkr.save_model_tarball(self.output_dir, self.params.model_tarball_path)
         self.model_wrapper._clean_up_excess_files(self.model_wrapper.model_dir)
+
+   # ****************************************************************************************
+    def create_split_metadata(self):
+        """Creates metadata for each split dataset. 
+        It will save the seed used to create the split dataset and relevant parameters."""
+        self.split_data = dict(
+            dataset_key = self.params.dataset_key,
+            id_col = self.params.id_col, 
+            smiles_col = self.params.smiles_col, 
+            response_cols = self.params.response_cols,
+            seed = self.seed
+        )
+        self.splitting_metadata = self.data.get_split_metadata() 
+        self.split_data['splitting_metadata'] = self.splitting_metadata
+
+    # ****************************************************************************************
+    def save_split_metadata(self):
+        out_file = os.path.join(self.output_dir, 'split_metadata.json')
+ 
+        with open(out_file, 'w') as out:
+            json.dump(self.split_data, out, sort_keys=True, indent=4, separators=(',', ': '))
+            out.write("\n")
 
     # ****************************************************************************************
     def create_prediction_metadata(self, prediction_results):
@@ -540,7 +596,7 @@ class ModelPipeline:
 
     # ****************************************************************************************
 
-    def train_model(self, featurization=None):
+    def train_model(self, featurization=None, random_state=None, seed=None):
         """Build model described by self.params on the training dataset described by self.params.
 
         Generate predictions for the training, validation, and test datasets, and save the predictions and
@@ -574,7 +630,7 @@ class ModelPipeline:
 
         ## create model wrapper if not split_only
         if not self.params.split_only:
-            self.model_wrapper = model_wrapper.create_model_wrapper(self.params, self.featurization, self.ds_client)
+            self.model_wrapper = model_wrapper.create_model_wrapper(self.params, self.featurization, self.ds_client, random_state=self.random_state, seed=self.seed)
             self.model_wrapper.setup_model_dirs()
 
         self.load_featurize_data()
