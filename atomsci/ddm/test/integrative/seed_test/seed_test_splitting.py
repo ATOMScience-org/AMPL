@@ -109,6 +109,16 @@ def test_scaffold_train_valid_test_split_reproducibility():
 
     perform_splits_and_compare(pparams)
 
+def test_fingerprint_train_valid_test_split_reproducibility():
+    script_path = os.path.dirname(os.path.realpath(__file__))
+    json_file =  os.path.join(script_path, 'split_json/test_fingerprint_train_valid_test.json')
+
+    pparams = parse.wrapper(['--config_file', json_file])
+    pparams.dataset_key = os.path.join(script_path, '../../test_datasets/aurka_chembl_base_smiles_union.csv')
+    pparams.result_dir=script_path
+
+    perform_splits_and_compare(pparams)
+
 def test_kfold_random_split_reproducibility():
     script_path = os.path.dirname(os.path.realpath(__file__))
     json_file =  os.path.join(script_path, 'split_json/test_kfold_random_split.json')
@@ -129,19 +139,35 @@ def test_kfold_scaffold_split_reproducibility():
 
     perform_splits_and_compare(pparams)
 
+def test_kfold_fingerprint_split_reproducibility():
+    script_path = os.path.dirname(os.path.realpath(__file__))
+    json_file =  os.path.join(script_path, 'split_json/test_kfold_fingerprint_split.json')
+
+    pparams = parse.wrapper(['--config_file', json_file])
+    pparams.dataset_key = os.path.join(script_path, '../../test_datasets/aurka_chembl_base_smiles_union.csv')
+    pparams.result_dir=script_path
+
+    perform_splits_and_compare(pparams)
+
 #----------------------------------------------------------------------------------------------------------
 
 if __name__ == "__main__":
-    print("test_random_train_valid_test_split_reproducibility")
-    test_random_train_valid_test_split_reproducibility()
+    #print("test_random_train_valid_test_split_reproducibility")
+    #test_random_train_valid_test_split_reproducibility()
 
-    print("test_scaffold_train_valid_test_split_reproducibility")
-    test_scaffold_train_valid_test_split_reproducibility()
+    #print("test_scaffold_train_valid_test_split_reproducibility")
+    #test_scaffold_train_valid_test_split_reproducibility()
 
-    print("test_kfold_random_split_reproducibility")
-    test_kfold_random_split_reproducibility()
+    print("test_fingerprint_train_valid_test_split_reproducibility")
+    test_fingerprint_train_valid_test_split_reproducibility()
 
-    print("test_kfold_scaffold_split_reproducibility")
-    test_kfold_scaffold_split_reproducibility()
+    #print("test_kfold_random_split_reproducibility")
+    #test_kfold_random_split_reproducibility()
+
+    #print("test_kfold_scaffold_split_reproducibility")
+    #test_kfold_scaffold_split_reproducibility()
+
+    print("test_kfold_fingerprint_split_reproducibility")
+    test_kfold_fingerprint_split_reproducibility()
 
     print("Passed!")

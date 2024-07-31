@@ -699,7 +699,7 @@ class ModelDataset(object):
             combined_y = np.concatenate((train.y, valid.y), axis=0)
             combined_w = np.concatenate((train.w, valid.w), axis=0)
             combined_ids = np.concatenate((train.ids, valid.ids))
-            self.combined_train_valid_data = NumpyDataset(combined_X, combined_y, w=combined_w, ids=combined_ids)
+        self.combined_train_valid_data = NumpyDataset(combined_X, combined_y, w=combined_w, ids=combined_ids)
         return self.combined_train_valid_data
 
     # ****************************************************************************************
@@ -737,7 +737,6 @@ class ModelDataset(object):
         if subset not in self.subset_response_dict:
             if subset in ('train', 'valid', 'train_valid'):
                 for fold, (train, valid) in enumerate(self.train_valid_dsets):
-                    print('(get_subset_responses_and_weights) for fold', fold)
                     dataset = self.combined_training_data()
             elif subset == 'test':
                 dataset = self.test_dset
