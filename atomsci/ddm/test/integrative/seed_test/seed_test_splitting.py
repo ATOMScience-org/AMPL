@@ -152,20 +152,20 @@ def test_kfold_fingerprint_split_reproducibility():
 #----------------------------------------------------------------------------------------------------------
 
 if __name__ == "__main__":
-    #print("test_random_train_valid_test_split_reproducibility")
-    #test_random_train_valid_test_split_reproducibility()
+    print("test_random_train_valid_test_split_reproducibility")
+    test_random_train_valid_test_split_reproducibility()
 
-    #print("test_scaffold_train_valid_test_split_reproducibility")
-    #test_scaffold_train_valid_test_split_reproducibility()
+    print("test_scaffold_train_valid_test_split_reproducibility")
+    test_scaffold_train_valid_test_split_reproducibility()
 
     print("test_fingerprint_train_valid_test_split_reproducibility")
     test_fingerprint_train_valid_test_split_reproducibility()
 
-    #print("test_kfold_random_split_reproducibility")
-    #test_kfold_random_split_reproducibility()
+    print("test_kfold_random_split_reproducibility")
+    test_kfold_random_split_reproducibility()
 
-    #print("test_kfold_scaffold_split_reproducibility")
-    #test_kfold_scaffold_split_reproducibility()
+    print("test_kfold_scaffold_split_reproducibility")
+    test_kfold_scaffold_split_reproducibility()
 
     print("test_kfold_fingerprint_split_reproducibility")
     test_kfold_fingerprint_split_reproducibility()

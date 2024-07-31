@@ -88,13 +88,9 @@ def saved_model_identity(pparams):
     model_tar = model_pipe.params.model_tarball_path
     pred_df = pfm.predict_from_model_file(model_tar, test_df, id_col=id_col,
                 smiles_col=smiles_col, response_col=response_col)
-    pred_df2 = pfm.predict_from_model_file(model_tar, test_df, id_col=id_col,
-                smiles_col=smiles_col, response_col=response_col)
     
     X = pred_df[response_col+'_actual'].values
     y = pred_df[response_col+'_pred'].values
-    X2 = pred_df2[response_col+'_actual'].values
-    y2 = pred_df2[response_col+'_pred'].values
 
     accuracy = skmetrics.accuracy_score(X, y)
     precision = skmetrics.precision_score(X, y, average='weighted')
