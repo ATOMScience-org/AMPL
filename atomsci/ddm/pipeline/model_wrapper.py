@@ -1075,7 +1075,7 @@ class NNModelWrapper(ModelWrapper):
             # Fully connected NN models return predictions and uncertainties as arrays with shape (num_cmpds, num_tasks, num_classes), with
             # num_classes = 1 for regression models. GraphConv regression models omit the num_classes dimension.
             pred_std = self.model.predict_uncertainty(dataset)
-            if type(pred_std) == tuple:
+            if isinstance(pred_std, tuple):
                 pred, std = pred_std
                 ncmpds = pred.shape[0]
                 ntasks = pred.shape[1]
