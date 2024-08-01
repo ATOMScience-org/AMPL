@@ -10,12 +10,12 @@ An open-source, end-to-end software pipeline for data curation, model building, 
 <img src="atomsci/ddm/docs/ATOM_cymatics_black_wordmark.jpg" width="370" height="100" class="center"></img>
 
 
-![Static Badge](https://img.shields.io/badge/Announcement-1.6.1-blue)![Static Badge](https://img.shields.io/badge/Announcement-1.6.1-blue)![Static Badge](https://img.shields.io/badge/Announcement-1.6.1-blue)![Static Badge](https://img.shields.io/badge/Announcement-1.6.1-blue)![Static Badge](https://img.shields.io/badge/Announcement-1.6.1-blue)![Static Badge](https://img.shields.io/badge/Announcement-1.6.1-blue)
-
-## Check out our new tutorial series that walks through AMPL's end-to-end modeling pipeline to build a machine learning model! View them in our [docs](https://ampl.readthedocs.io/en/latest/) or as Jupyter notebooks in our [repo](https://github.com/ATOMScience-org/AMPL/tree/master/atomsci/ddm/examples/tutorials).
-
 The ATOM Modeling PipeLine (AMPL) extends the functionality of DeepChem and supports an array of machine learning and molecular featurization tools to predict key potency, safety and pharmacokinetic-relevant parameters. AMPL has been benchmarked on a large collection of pharmaceutical datasets covering a wide range of parameters. This is a living software project with active development. Check back for continued updates. Feedback is welcomed and appreciated, and the project is open to contributions! An [article describing the AMPL project](https://pubs.acs.org/doi/abs/10.1021/acs.jcim.9b01053) was published in JCIM. For those without access to JCIM, a preprint of the article is available on [ArXiv](http://arxiv.org/abs/1911.05211). [Documentation is available here.](https://ampl.readthedocs.io/en/latest/pipeline.html)
 
+
+![Static Badge](https://img.shields.io/badge/Announcement-1.6.1-blue)
+
+Check out our new tutorial series that walks through AMPL's end-to-end modeling pipeline to build a machine learning model! View them in our [docs](https://ampl.readthedocs.io/en/latest/) or as Jupyter notebooks in our [repo](https://github.com/ATOMScience-org/AMPL/tree/master/atomsci/ddm/examples/tutorials).
 
 ---
 ## Table of contents
