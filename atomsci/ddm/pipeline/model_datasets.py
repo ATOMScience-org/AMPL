@@ -16,7 +16,6 @@ import getpass
 import traceback
 import sys
 
-from atomsci.ddm.pipeline import random_seed as rs 
 from collections import defaultdict
 
 
@@ -438,7 +437,7 @@ class ModelDataset(object):
         return self.tasks is not None
 
     # ****************************************************************************************
-    def split_dataset(self):
+    def split_dataset(self, random_state=None, seed=None):
         """Splits the dataset into paired training/validation and test subsets, according to the split strategy
                 selected by the model params. For traditional train/valid/test splits, there is only one training/validation
                 pair. For k-fold cross-validation splits, there are k different train/valid pairs; the validation sets are
@@ -457,7 +456,7 @@ class ModelDataset(object):
 
         # Create object to delegate splitting to.
         if self.splitting is None:
-            self.splitting = split.create_splitting(self.params)
+            self.splitting = split.create_splitting(self.params, random_state=random_state, seed=seed)
         self.train_valid_dsets, self.test_dset, self.train_valid_attr, self.test_attr = \
             self.splitting.split_dataset(self.dataset, self.attr, self.params.smiles_col)
         if self.train_valid_dsets is None:
@@ -568,7 +567,7 @@ class ModelDataset(object):
         return split_df
 
     # ****************************************************************************************
-    def load_presplit_dataset(self, directory=None):
+    def load_presplit_dataset(self, directory=None, random_state=None, seed=None):
         """Loads a table of compound IDs assigned to split subsets, and uses them to split
         the currently loaded featurized dataset.
 
@@ -595,7 +594,7 @@ class ModelDataset(object):
         """
 
         # Load the split table from the datastore or filesystem
-        self.splitting = split.create_splitting(self.params)
+        self.splitting = split.create_splitting(self.params, random_state=random_state, seed=seed)
 
         try:
             split_df, split_kv = self.load_dataset_split_table(directory)
@@ -700,7 +699,7 @@ class ModelDataset(object):
             combined_y = np.concatenate((train.y, valid.y), axis=0)
             combined_w = np.concatenate((train.w, valid.w), axis=0)
             combined_ids = np.concatenate((train.ids, valid.ids))
-            self.combined_train_valid_data = NumpyDataset(combined_X, combined_y, w=combined_w, ids=combined_ids)
+        self.combined_train_valid_data = NumpyDataset(combined_X, combined_y, w=combined_w, ids=combined_ids)
         return self.combined_train_valid_data
 
     # ****************************************************************************************
@@ -738,7 +737,6 @@ class ModelDataset(object):
         if subset not in self.subset_response_dict:
             if subset in ('train', 'valid', 'train_valid'):
                 for fold, (train, valid) in enumerate(self.train_valid_dsets):
-                    print('(get_subset_responses_and_weights) for fold', fold)
                     dataset = self.combined_training_data()
             elif subset == 'test':
                 dataset = self.test_dset

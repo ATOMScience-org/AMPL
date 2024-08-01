@@ -276,6 +276,14 @@ The AMPL pipeline contains many parameters and options to fit models and make pr
 |*Description:*|True/False flag for setting verbosity|
 |*Default:*|FALSE|
 |*Type:*|Bool|
+
+- **seed**  
+  
+|||
+|-|-|
+|*Description:*|Seed used for initializing a random number generator to ensure results are reproducible. Default is None and a random seed will be generated.|
+|*Default:*|None|
+|*Type:*|int|
   
 - **production**  
   
@@ -529,6 +537,30 @@ the model will train for max_epochs regardless of validation error.|
 |*Default:*|scaffold|
 |*Type:*|str|
   
+- **sampling_method**  
+  
+|||
+|-|-|
+|*Description:*|The sampling method for addressing class imbalance in classification datasets. Options include 'undersampling' and 'SMOTE'.|
+|*Default:*|None|
+|*Type:*|str|
+
+- **sampling_ratio**  
+  
+|||
+|-|-|
+|*Description:*|The desired ratio of the minority class to the majority class after sampling (e.g., if str, 'minority', 'not minority'; if float, '0.2', '1.0'). |
+|*Default:*|auto|
+|*Type:*|str|
+
+- **sampling_k_neighbors**  
+  
+|||
+|-|-|
+|*Description:*|The number of nearest neighbors to consider when generating synthetic samples (e.g., 5, 7, 9). Specifically used for SMOTE sampling method.|
+|*Default:*|5|
+|*Type:*|int|
+
 - **mtss\_num\_super\_scaffolds**  
   
 |||
