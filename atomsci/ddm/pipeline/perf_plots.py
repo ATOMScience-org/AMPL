@@ -1,7 +1,7 @@
 """Plotting routines for visualizing performance of regression and classification models"""
 
 import os
-
+import glob
 import matplotlib
 
 import sys
@@ -22,6 +22,7 @@ from atomsci.ddm.utils import file_utils as futils
 from atomsci.ddm.utils import model_file_reader as mfr
 from atomsci.ddm.pipeline import model_pipeline as mp
 from atomsci.ddm.pipeline import perf_data as perf
+from atomsci.ddm.pipeline import parameter_parser as parse
 from atomsci.ddm.pipeline import predict_from_model as pfm
 
 #matplotlib.style.use('ggplot')
@@ -87,13 +88,13 @@ def plot_pred_vs_actual(model, epoch_label='best', threshold=None, error_bars=Fa
 
     """
     if isinstance(model, str):
-        return plot_pred_vs_actual_from_file(model, plot_size=plot_size, external_training_data=external_training_data)
+        return plot_pred_vs_actual_from_file(model, plot_size=plot_size, external_training_data=external_training_data, error_bars=error_bars)
     elif not isinstance(model, mp.ModelPipeline):
         raise ValueError('model must be either a ModelPipeline or a path to a saved model')
     params = model.params
     # For now restrict this to regression models. 
     if params.prediction_type != 'regression':
-        model.log.error("plot_pred_vs_actual() should only be called for regression models. Please try plot_confusion_matrices() instead..")
+        model.log.error("plot_pred_vs_actual() should only be called for regression models. Please try plot_confusion_matrices() instead.")
         return
     wrapper = model.model_wrapper
     if pdf_dir is not None:
@@ -106,63 +107,59 @@ def plot_pred_vs_actual(model, epoch_label='best', threshold=None, error_bars=Fa
     else:
         subsets = ['full']
     num_ss = len(subsets)
-    dataset_name = model.data.dataset_name
-    splitter = model.params.splitter
-    model_type = model.params.model_type
-    featurizer = model.params.featurizer
+    dataset_name = params.dataset_name
+    splitter = params.splitter
+    model_type = params.model_type
+    featurizer = params.featurizer
     if featurizer in ('computed_descriptors', 'descriptors'):
-        featurizer = f"{model.params.descriptor_type} descriptors"
+        featurizer = f"{params.descriptor_type} descriptors"
+        is_featurized=True
     else:
         featurizer = f"{featurizer} features"
-    tasks = model.params.response_cols
+        is_featurized=False
+    tasks = params.response_cols
     num_tasks = len(tasks)
-    if model.params.model_type != "hybrid":
+    if params.model_type != "hybrid":
         fig, axes = plt.subplots(num_tasks, num_ss, figsize=(plot_size*num_ss, plot_size*num_tasks))
         if num_ss > 1:
-            suptitle = f"{dataset_name}  {splitter} {params.split_strategy} split {model_type} model on {featurizer} features, predicted vs actual values by split subset"
+            suptitle = f"{dataset_name} {splitter} {params.split_strategy} split {model_type} model on {featurizer}, predicted vs actual values by split subset"
         else:
-            suptitle = f"{model_type} model on {featurizer} features, predicted vs actual values on dataset {dataset_name}"
+            suptitle = f"{model_type} model on {featurizer}, predicted vs actual values on dataset {dataset_name}"
         fig.suptitle(suptitle, y=0.95)
         axes = axes.flatten()
-        for t, resp in enumerate(tasks):
+
+        input_df=pd.read_csv(model.data.dataset_key)
+        pred_df=pfm.predict_from_model_file(params.model_tarball_path, input_df, id_col=params.id_col, smiles_col=params.smiles_col,
+                     response_col=params.response_cols, conc_col=None, is_featurized=is_featurized, dont_standardize=True, AD_method=None)
+        dset_path=os.path.dirname(params.dataset_key)
+        split_file=glob.glob(os.path.join(dset_path, f"*{params.split_uuid}*.csv"))[0]
+        split_df=pd.read_csv(split_file)
+        pred_df=pred_df.merge(split_df, left_on=params.id_col, right_on='cmpd_id')
+        
+        for t, resp in enumerate(tasks):            
             for s, subset in enumerate(subsets):
+                subs_pred_df=pred_df[pred_df.subset==subset]
+                
                 perf_data = wrapper.get_perf_data(subset, epoch_label)
                 pred_results = perf_data.get_prediction_results()
-                y_actual = perf_data.get_real_values()
-                y_weights = perf_data.get_weights()
-                y_actual=np.where(y_weights==0, np.nan, y_actual)
-                ids, y_pred, y_std = perf_data.get_pred_values()
-                r2 = pred_results['r2_score']
+                # pred_df=pfm.predict_from_pipe(model)
+                std=len([x for x in pred_df.columns if 'std' in x]) > 0
                 if perf_data.num_tasks > 1:
                     r2_scores = pred_results['task_r2_scores']
                 else:
-                    r2_scores = [r2]
+                    r2_scores = [pred_results['r2_score']]
                 ax_ind = num_ss*t + s
                 ax = axes[ax_ind]
-                ymin = min(np.nanmin(y_actual[:,t]), np.nanmin(y_pred[:,t]))
-                ymax = max(np.nanmax(y_actual[:,t]), np.nanmax(y_pred[:,t]))
-                # Force axes to have same scale for all subsets
-                ax.set_xlim(ymin, ymax)
-                ax.set_ylim(ymin, ymax)
-                if error_bars and y_std is not None:
-                    # Draw error bars
-                    ax.errorbar(y_actual[:,t], y_pred[:,t], y_std[:,t], c=train_col, marker='o', alpha=0.4, linestyle='')
-                else:
-                    ax.scatter(y_actual[:,t], y_pred[:,t], s=25, marker='o', alpha=0.4)
-                ax.set_xlabel(f"Actual {resp}")
-                ax.set_ylabel(f"Predicted {resp}")
-                # Draw an identity line
-                ax.plot([ymin,ymax], [ymin,ymax], c=test_col, linestyle='--', alpha=0.75, zorder=0)
-                # Draw threshold lines if requested
-                if threshold is not None:
-                    plt.axvline(threshold, color=test_col, linestyle='--')
-                    plt.axhline(threshold, color=test_col, linestyle='--')
                 # Set subplot title
                 if s == 0:
                     subtitle = f"{resp} {subset}, {score_type_label['r2']} = {r2_scores[t]:.3f}"
                 else:
                     subtitle = f"{subset} {score_type_label['r2']} = {r2_scores[t]:.3f}"
-                ax.set_title(subtitle, fontdict={'fontsize' : 10})
+                if error_bars and std:
+                    plot_pred_vs_actual_from_df(subs_pred_df, actual_col=resp, pred_col=f'{resp}_pred', std_col=f'{resp}_std', label=subtitle, threshold=threshold, ax=ax) 
+                else:
+                    plot_pred_vs_actual_from_df(subs_pred_df, actual_col=resp, pred_col=f'{resp}_pred', label=subtitle, threshold=threshold, ax=ax)
+                    
                 if pdf_dir is not None:
                     pdf.savefig(fig)
     else:
@@ -221,7 +218,7 @@ def plot_pred_vs_actual(model, epoch_label='best', threshold=None, error_bars=Fa
 
 
 #------------------------------------------------------------------------------------------------------------------------
-def plot_pred_vs_actual_from_df(pred_df, actual_col='avg_pIC50_actual', pred_col='avg_pIC50_pred', std_col=None, label=None, ax=None):
+def plot_pred_vs_actual_from_df(pred_df, actual_col='avg_pIC50_actual', pred_col='avg_pIC50_pred', std_col=None, label=None, threshold=None, ax=None):
     """Plot predicted vs actual values from a trained regression model for a given dataframe.
 
     Args:
@@ -231,7 +228,11 @@ def plot_pred_vs_actual_from_df(pred_df, actual_col='avg_pIC50_actual', pred_col
 
         pred_col (str): Column with predicted values.
 
-        label (str): Descriptive label for the plot.
+        std_col (str): Column with standard deviation values for plotting error bars; optional.
+        
+        label (str): Descriptive label for the plot such as 'avg_pIC50_actual test, R^2=0.49'
+
+        threshold (float): Threshold activity value to mark on plot with dashed lines.
 
         ax (matplotlib.axes.Axes): Optional, an axes object to plot onto. If None, one is created.
 
@@ -240,36 +241,41 @@ def plot_pred_vs_actual_from_df(pred_df, actual_col='avg_pIC50_actual', pred_col
 
     """
     g=sns.scatterplot(x=actual_col, y=pred_col, data=pred_df, alpha=0.4, ax=ax)
-    lims = [
-        pred_df[[actual_col,pred_col]].min().min(),  # min of both axes
-        pred_df[[actual_col,pred_col]].max().max(),  # max of both axes
-    ]
+    plot_df=pred_df.copy()
+    if std_col is not None:
+        plot_df['std_min']=plot_df[pred_col]-plot_df[std_col]
+        plot_df['std_max']=plot_df[pred_col]+plot_df[std_col]
+        plot_df=plot_df.sort_values(actual_col)
+        g.fill_between(x=plot_df[actual_col], y1=plot_df['std_min'], y2=plot_df['std_max'], alpha=0.3, step='mid',)
+        lims=[plot_df[[actual_col, pred_col, 'std_min']].min().min(),
+              plot_df[[actual_col, pred_col, 'std_max']].max().max(),]
+    else:
+        lims = [plot_df[[actual_col,pred_col]].min().min(),  
+                plot_df[[actual_col,pred_col]].max().max(),]  
     margin=(lims[1]-lims[0])*0.05
     lims=[lims[0]-margin,lims[1]+margin]
-    #g.plot(lims, lims, 'r-', alpha=0.75, zorder=0)
     # Draw an identity line
     g.plot(lims, lims, c=test_col, linestyle='--', alpha=0.75, zorder=0)
-    # plt.gca().set_aspect('equal', adjustable='box')
     g.set_aspect('equal')
     g.set_xlim(lims)
     g.set_ylim(lims)
     g.set_title(label)
-    if std_col is not None:
-        filldf=pred_df.copy()
-        filldf=filldf.sort_values([actual_col, pred_col])
-        g.fill_between(x=filldf[actual_col], y1=filldf[pred_col]-filldf[std_col].abs(), y2=filldf[pred_col]+filldf[std_col].abs(), alpha=0.3, step='mid')
+    if threshold is not None:
+        g.axvline(threshold, color=test_col, linestyle='--')
+        g.axhline(threshold, color=test_col, linestyle='--')
     return g
 
 
 #------------------------------------------------------------------------------------------------------------------------
-def plot_pred_vs_actual_from_file(model_path, external_training_data=None, plot_size=7):
+def plot_pred_vs_actual_from_file(model_path, external_training_data=None, plot_size=7, error_bars=False, threshold=None):
     """Plot predicted vs actual values from a trained regression model from a model tarball. 
     This function only works for locally trained models; otherwise see the `predict_from_model` module.
 
     Args:
         model_path (str): Path to an AMPL model tar.gz file.
         external_training_data (str): Path to copy of training dataset, if different from path used when model was trained.
-        plot_size (float): Height of subplots
+        plot_size (float): Height of subplots.
+        error_bars (bool): whether to plot uncertainty as shaded region above and below the predicted values.
 
     Returns:
         None
@@ -299,7 +305,6 @@ def plot_pred_vs_actual_from_file(model_path, external_training_data=None, plot_
 
     is_featurized=False
     AD_method=None
-    uncertainty=config['model_parameters']['uncertainty']
     model_type = config['model_parameters']['model_type']
     featurizer = config['model_parameters']['featurizer']
     if featurizer in ['descriptors','computed_descriptors']:
@@ -310,21 +315,18 @@ def plot_pred_vs_actual_from_file(model_path, external_training_data=None, plot_
         features_label = f"{desc} descriptors"
     else:
         features_label = f"{featurizer} features"
-    # if config['model_parameters']['featurizer'] != 'graphconv':
-        # AD_method='z_score'
     df=pd.read_csv(dataset_key)
     
     # reload split file
     dataset_key=dataset_dict['dataset_key']
     split_dict=config['splitting_parameters']
-    splitter = split_dict['splitter']
-    split_strategy = split_dict['split_strategy']
-    if split_strategy == 'k_fold_cv':
-        split_file=dataset_key.replace('.csv',f"_{split_dict['num_folds']}_fold_cv_{splitter}_{split_dict['split_uuid']}.csv")
-        split_subsets = ['train_valid', 'test']
-    else:
-        split_file=dataset_key.replace('.csv',f"_{split_strategy}_{splitter}_{split_dict['split_uuid']}.csv")
-        split_subsets = ['train', 'valid', 'test']
+    split_uuid = split_dict['split_uuid']
+    splitter=split_dict['splitter']
+    split_strategy=split_dict['split_strategy']
+    data_dir=os.path.dirname(os.path.realpath(dataset_key))
+    split=[file for file in os.listdir(data_dir) if split_uuid in file]
+    split_file=os.path.join(data_dir, split[0])
+    split_subsets = ['train', 'valid', 'test']
     split=pd.read_csv(split_file)
     split=split.rename(columns={'cmpd_id':dataset_dict['id_col']})
     
@@ -342,10 +344,11 @@ def plot_pred_vs_actual_from_file(model_path, external_training_data=None, plot_
     sns.set_context('notebook')
     nss = len(split_subsets)
     fig, axes = plt.subplots(len(response_cols), nss, figsize=(plot_size*nss, plot_size*len(response_cols)))
-    if uncertainty:
-        suptitle = f"{dataset_name}  {splitter} {split_strategy} split {model_type} model on {features_label}, predicted vs actual values with uncertainty"
+    if error_bars and config['model_parameters']['uncertainty']:
+        suptitle = f"{dataset_name} {splitter} {split_strategy} split {model_type} model on {features_label}, predicted vs actual values with uncertainty"
     else:
-        suptitle = f"{dataset_name}  {splitter} {split_strategy} split {model_type} model on {features_label}, predicted vs actual values"
+        error_bars=False
+        suptitle = f"{dataset_name} {splitter} {split_strategy} split {model_type} model on {features_label}, predicted vs actual values"
     fig.suptitle(suptitle, y=0.95)
     axes = axes.flatten()
     for i,resp in enumerate(response_cols):
@@ -354,7 +357,7 @@ def plot_pred_vs_actual_from_file(model_path, external_training_data=None, plot_
         task_pred_df = pred_df[pred_df[actual_col].notna() & pred_df[pred_col].notna()]
         y_actual = task_pred_df[actual_col].values
         y_pred = task_pred_df[pred_col].values
-        if uncertainty:
+        if error_bars:
             std_col = f'{resp}_std'
             y_std = task_pred_df[std_col].values
         else:
@@ -364,9 +367,6 @@ def plot_pred_vs_actual_from_file(model_path, external_training_data=None, plot_
         ymax = max(max(y_actual), max(y_pred), max(y_pred+y_std))
         for j, subset in enumerate(split_subsets):
             ax = axes[nss*i + j]
-            # Force axes to have same scale for all subsets for same task (but not different tasks!)
-            ax.set_xlim(ymin, ymax)
-            ax.set_ylim(ymin, ymax)
             tmp = task_pred_df[task_pred_df.subset==subset]
             r2 = metrics.r2_score(tmp[actual_col].values, tmp[pred_col].values)
             ax.set_xlabel(f"Actual {resp}")
@@ -376,7 +376,11 @@ def plot_pred_vs_actual_from_file(model_path, external_training_data=None, plot_
                 subtitle = f"{resp} {subset}, {score_type_label['r2']} = {r2:.3f}"
             else:
                 subtitle = f"{subset}, {score_type_label['r2']} = {r2:.3f}"
-            plot_pred_vs_actual_from_df(tmp, actual_col=actual_col, pred_col=pred_col, std_col = std_col, label=subtitle, ax=ax)
+            ax=plot_pred_vs_actual_from_df(tmp, actual_col=actual_col, pred_col=pred_col, std_col = std_col, label=subtitle, threshold=threshold, ax=ax)
+            # Force axes to have same scale for all subsets for same task (but not different tasks!)
+            # wont work unless applied after the graph is created
+            ax.set_xlim(ymin, ymax)
+            ax.set_ylim(ymin, ymax)
 
 
 #------------------------------------------------------------------------------------------------------------------------
