@@ -20,7 +20,6 @@ from atomsci.ddm.utils import file_utils as futils
 from atomsci.ddm.utils import model_file_reader as mfr
 from atomsci.ddm.pipeline import model_pipeline as mp
 from atomsci.ddm.pipeline import perf_data as perf
-from atomsci.ddm.pipeline import parameter_parser as parse
 from atomsci.ddm.pipeline import predict_from_model as pfm
 
 #matplotlib.style.use('ggplot')
