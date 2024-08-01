@@ -44,5 +44,5 @@ jupyter
 jupyterlab
 
 deepchem==2.7.1
-
+rdkit==2023.3.3
 pyyaml==5.4.1
