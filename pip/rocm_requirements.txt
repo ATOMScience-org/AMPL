@@ -32,6 +32,7 @@ mordred
 pytest
 ipykernel
 
+rdkit>=2024.3.3
 deepchem[tensorflow] # instructions unclear here - trouble on my home system
 deepchem[jax]        # instructions unclear here - trouble on my home system
 deepchem[torch]      # instructions unclear here - works fine on home system

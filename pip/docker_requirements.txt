@@ -43,6 +43,7 @@ ipykernel
 jupyter
 jupyterlab
 
+rdkit>=2024.3.3
 deepchem==2.7.1
 rdkit==2023.3.3
 pyyaml==5.4.1
