@@ -535,6 +535,7 @@ class ModelPipeline:
             featurization = feat.create_featurization(self.params)
         self.featurization = featurization
         self.load_featurize_data()
+        self.params.split_uuid = self.data.split_uuid
         return self.data.split_uuid
 
 
