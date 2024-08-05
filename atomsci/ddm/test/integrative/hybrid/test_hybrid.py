@@ -10,7 +10,6 @@ import atomsci.ddm.pipeline.parameter_parser as parse
 from atomsci.ddm.pipeline import model_pipeline as mp
 from atomsci.ddm.utils import llnl_utils
 
-from sklearn.metrics import r2_score
 
 def clean():
     """Clean test files"""
@@ -47,7 +46,7 @@ def test():
 
     train_df = pd.read_csv(params.dataset_key)
 
-    print(f"Train a hybrid models with MOE descriptors")
+    print("Train a hybrid models with MOE descriptors")
     pl = mp.ModelPipeline(params)
     pl.train_model()
 

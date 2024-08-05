@@ -11,17 +11,9 @@ parameters when you train a model.
 """
 
 from deepchem.splits.splitters import Splitter, RandomSplitter, ScaffoldSplitter
-import os
 import numpy as np
-import pandas as pd
-import random
-from time import asctime
 import tempfile
-import pdb
 
-from atomsci.ddm.utils import datastore_functions as dsf
-from atomsci.ddm.pipeline import featurization as feat
-from atomsci.ddm.pipeline import model_datasets as md
 from atomsci.ddm.pipeline.ave_splitter import AVEMinSplitter
 
 import logging
@@ -96,7 +88,7 @@ class TemporalSplitter(Splitter):
             tuple: Lists of indices for train, valid and test sets.
 
         """
-        if not (self.date_col in attr_df.columns.values):
+        if self.date_col not in attr_df.columns.values:
             raise ValueError("date_col missing from dataset attributes")
         cmpd_dates = attr_df[self.date_col].values
         test_ind = np.where(cmpd_dates > self.cutoff_date)[0]

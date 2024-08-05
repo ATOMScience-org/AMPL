@@ -15,16 +15,12 @@ To check the model version
 """
 
 import argparse
-import traceback
 import tarfile
 import json
 import os
 from pathlib import Path
 import sys
-import tarfile
 import logging
-import pandas as pd
-import pdb
 import re
 
 logging.basicConfig()

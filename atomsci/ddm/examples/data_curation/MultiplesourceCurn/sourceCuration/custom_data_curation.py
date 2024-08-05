@@ -1,27 +1,16 @@
 import matplotlib
 matplotlib.use('Agg')
 import pandas as pd
-import os,sys,math
+import os
 
-import tempfile
-import tarfile
 import json
-import pprint
 
 #import custom_config as cc
 import atomsci.ddm.utils.pubchem_utils as pu
 from os import path
 from target_data_curation import AMPLDataset
-from atomsci.ddm.utils import struct_utils as su
 from atomsci.ddm.utils import data_curation_functions as dcf
-from atomsci.ddm.utils import curate_data
-import atomsci.ddm.pipeline.diversity_plots as dp
-import atomsci.ddm.pipeline.chem_diversity as cd
-import seaborn as sns
-import matplotlib.pyplot as plt
-from matplotlib.backends.backend_pdf import PdfPages
 import numpy as np
-from tqdm import tqdm
 
 
 # Using data_curation_functions
@@ -182,9 +171,8 @@ class DrugTargetCommonsActivityDump(AMPLDataset):
       targ_name='_'.join(targLst)
       if len(targ_name) >= 25 :
          targ_name='target'
-         fileNameTooLong=True
-      else :
-         fileNameTooLong=False
+
+
       myList=self.df[self.id_col].unique().tolist()
       #
       #TODO: Need to make this caching scheme user defined
@@ -301,7 +289,7 @@ def convert_dtype(x):
         return 0.0
     try:
         return float(x)   
-    except:        
+    except Exception:        
         return 0.0
 
 class GPCRChEMBLActivityDump(AMPLDataset):

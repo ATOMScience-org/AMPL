@@ -3,25 +3,18 @@ provided by DeepChem.
 """
 
 import logging
-import os
-import sys
 
 import numpy as np
-import pandas as pd
 import umap
 
-import pdb
-
-import deepchem as dc
-from deepchem.trans.transformers import Transformer, NormalizationTransformer, BalancingTransformer
-from sklearn.preprocessing import RobustScaler
+from deepchem.trans.transformers import get_grad_statistics, Transformer, NormalizationTransformer, BalancingTransformer
 from sklearn.impute import SimpleImputer
+from sklearn.preprocessing import RobustScaler
 
 logging.basicConfig(format='%(asctime)-15s %(message)s')
 log = logging.getLogger('ATOM')
 
 transformed_featurizers = ['descriptors', 'computed_descriptors']
-
 
 # ****************************************************************************************
 def transformers_needed(params):
@@ -86,7 +79,7 @@ def create_feature_transformers(params, model_dataset):
             log.warning("Warning: UMAP transformation may produce misleading results when used with K-fold split strategy.")
         train_dset = model_dataset.train_valid_dsets[0][0]
         transformers_x = [UMAPTransformer(params, train_dset)]
-    elif params.transformers==True:
+    elif params.transformers is True:
         # TODO: Transformers on responses and features should be controlled only by parameters
         # response_transform_type and feature_transform_type, rather than params.transformers.
 
@@ -172,7 +165,7 @@ class UMAPTransformer(Transformer):
             target_metric = 'l2'
         self.scaler = RobustScaler()
         # Use Imputer to replace missing values (NaNs) with means for each column
-        self.imputer = Imputer()
+        self.imputer = SimpleImputer()
         scaled_X = self.scaler.fit_transform(self.imputer.fit_transform(dataset.X))
         self.mapper = umap.UMAP(n_neighbors=params.umap_neighbors,
                                 n_components=params.umap_dim,
@@ -226,7 +219,8 @@ class NormalizationTransformerMissingData(NormalizationTransformer):
             self.transform_gradients = transform_gradients
             self.move_mean = move_mean
             if self.transform_gradients:
-                true_grad, ydely_means = get_grad_statistics(dataset)
+                # TODO: Figure out where get_grad_statistics is defined
+                true_grad, ydely_means = get_grad_statistics(dataset) # noqa: F821
                 self.grad = np.reshape(true_grad, (true_grad.shape[0], -1, 3))
                 self.ydely_means = ydely_means
 
@@ -282,9 +276,9 @@ class NormalizationTransformerMissingData(NormalizationTransformer):
             y_means = self.y_means
             # Handle case with 1 task correctly
             if len(self.y_stds.shape) == 0:
-                n_tasks = 1
+                _n_tasks = 1
             else:
-                n_tasks = self.y_stds.shape[0]
+                _n_tasks = self.y_stds.shape[0]
             z_shape = list(z.shape)
             # Get the reversed shape of z: (..., n_tasks, batch_size)
             z_shape.reverse()

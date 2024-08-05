@@ -24,14 +24,11 @@ setting `splitter` to 'ave_min' in the model parameters when you train a model.
 
 from deepchem.splits.splitters import Splitter
 from scipy.spatial.distance import cdist, pdist, squareform
-import sys
-import os
 import numpy as np
 import pandas as pd
 from numpy.random import shuffle, permutation
 import random
 from multiprocessing import Pool
-from time import time, asctime
 
 from atomsci.ddm.utils import datastore_functions as dsf
 from atomsci.ddm.pipeline import featurization as feat
@@ -166,8 +163,8 @@ def analyze_split(params, id_col='compound_id', smiles_col='rdkit_smiles', activ
     inactive_ind = np.where(y == 0)[0]
     active_feat = feat_arr[active_ind,:]
     inactive_feat = feat_arr[inactive_ind,:]
-    num_active = len(active_ind)
-    num_inactive = len(inactive_ind)
+    #num_active = len(active_ind)
+    #num_inactive = len(inactive_ind)
     active_ids = ids[active_ind]
     inactive_ids = ids[inactive_ind]
     active_id_ind = dict(zip(active_ids, range(len(active_ids))))
@@ -416,7 +413,7 @@ def _plot_bias(params, niter):
     ax.fill_between(thresholds, aTest_iTrain_func, aTest_aTrain_func, facecolor='blue', alpha=0.3, linewidth=0)
     ax.set_xlabel('Distance')
     ax.set_ylabel('NN Function')
-    legend = ax.legend()
+    _legend = ax.legend()
     title = "AA - AI = %.3f\nIteration: %d" % (aBias, niter)
     ax.set_title(title)
 
@@ -426,7 +423,7 @@ def _plot_bias(params, niter):
     ax.fill_between(thresholds, iTest_iTrain_func, iTest_aTrain_func, facecolor='hotpink', alpha=0.3, linewidth=0)
     ax.set_xlabel('Distance')
     ax.set_ylabel('NN Function')
-    legend = ax.legend()
+    _legend = ax.legend()
     title = "II - IA = %.3f\nTotal bias = %.3f" % (iBias, bias)
     ax.set_title(title)
 
@@ -711,7 +708,7 @@ class AVEMinSplitter(Splitter):
         # End of genetic optimization loop
         if self.debug_mode:
             _plot_nn_dist_distr((best_split[1], aa_dist, ii_dist, ai_dist, ia_dist, self.dist_thresh))
-            final_bias = _plot_bias((best_split[1], aa_dist, ii_dist, ai_dist, ia_dist, self.dist_thresh), iter_count)
+            _final_bias = _plot_bias((best_split[1], aa_dist, ii_dist, ai_dist, ia_dist, self.dist_thresh), iter_count)
         active_valid, inactive_valid, active_train, inactive_train = best_split[1]
         # Map indices within active/inactive sets back to indices in original dataset
         train_inds = permutation(np.concatenate((active_ind[active_train], inactive_ind[inactive_train])))

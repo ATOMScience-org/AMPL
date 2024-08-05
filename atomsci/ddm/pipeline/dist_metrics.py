@@ -92,12 +92,12 @@ def _mcs_worker(k, mols, n_atms):
     """Get per-molecule MCS distance vector."""
     dists_k = []
     n_incomp = 0  # Number of searches terminated before timeout
-    for l in range(k + 1, len(mols)):
+    for idx in range(k + 1, len(mols)):
         # Set timeout to halt exhaustive search, which could take minutes
-        result = FindMCS([mols[k], mols[l]], completeRingsOnly=True,
+        result = FindMCS([mols[k], mols[idx]], completeRingsOnly=True,
                          ringMatchesRingOnly=True, timeout=10)
         dists_k.append(1. - result.numAtoms /
-                       ((n_atms[k] + n_atms[l]) / 2))
+                       ((n_atms[k] + n_atms[idx]) / 2))
         if result.canceled:
             n_incomp += 1
     return np.array(dists_k), n_incomp
@@ -107,12 +107,12 @@ def _mcs_single(mol, mols, n_atms):
     dists_k = []
     n_atm = float(mol.GetNumAtoms())
     n_incomp = 0  # Number of searches terminated before timeout
-    for l in range(0, len(mols)):
+    for idx in range(0, len(mols)):
         # Set timeout to halt exhaustive search, which could take minutes
-        result = FindMCS([mol, mols[l]], completeRingsOnly=True,
+        result = FindMCS([mol, mols[idx]], completeRingsOnly=True,
                          ringMatchesRingOnly=True, timeout=10)
         dists_k.append(1. - result.numAtoms /
-                       ((n_atm + n_atms[l]) / 2))
+                       ((n_atm + n_atms[idx]) / 2))
         if result.canceled:
             n_incomp += 1
     return np.array(dists_k), n_incomp

@@ -1,11 +1,9 @@
 #!/usr/bin/env python
 
 import json
-import numpy as np
 import pandas as pd
 import os
 import sys
-import glob
 
 import atomsci.ddm.pipeline.parameter_parser as parse
 from atomsci.ddm.pipeline import model_pipeline as mp
@@ -42,7 +40,7 @@ def test():
 
     train_df = pd.read_csv(params.dataset_key)
 
-    print(f"Train a RF models with ECFP")
+    print("Train a RF models with ECFP")
     pl = mp.ModelPipeline(params)
     pl.train_model()
 

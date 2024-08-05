@@ -1,7 +1,6 @@
 """Utility functions for running and managing jobs on LC machines."""
 
 import os
-import sys
 import subprocess
 import time
 

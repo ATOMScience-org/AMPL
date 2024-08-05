@@ -1,7 +1,6 @@
 import glob
 import os
 import shutil
-import sys
 import inspect
 import pandas as pd
 import requests
@@ -14,7 +13,6 @@ import atomsci.ddm.pipeline.featurization as feat
 import atomsci.ddm.pipeline.model_datasets as model_dataset
 import atomsci.ddm.utils.curate_data as curate_data
 import atomsci.ddm.utils.struct_utils as struct_utils
-from shutil import copyfile
 
 import logging
 logging.basicConfig(format='%(asctime)-15s %(message)s')

@@ -65,11 +65,11 @@ def uses_same_training_data_by_tarballs(tar1, tar2):
     
     log.info('Compare two tars hashes. ds_hash1 = %s ds_dash2 = %s', ds_hash1, ds_hash2)
 
-    if ds_hash1 == None:
+    if ds_hash1 is None:
         log.warning("%s does not have a dataset hash.", tar1)
         return False
     
-    if ds_hash2 == None:
+    if ds_hash2 is None:
         log.warning("%s does not have a dataset hash.", tar2)
         return False
 

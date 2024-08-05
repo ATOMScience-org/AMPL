@@ -168,7 +168,7 @@ def _prepare_input_data(input_df, id_col, smiles_col, response_col, conc_col, do
     if smiles_col not in colnames:
         raise ValueError('smiles_col parameter not specified or column not in input file.')
     if dont_standardize:
-        std_smiles_col = smiles_col
+        _std_smiles_col = smiles_col
     else:
         print("Standardizing SMILES strings for %d compounds." % input_df.shape[0])
         orig_ncmpds = input_df.shape[0]

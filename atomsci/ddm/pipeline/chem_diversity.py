@@ -1,6 +1,6 @@
 """Functions to generate matrices or vectors of distances between compounds"""
 
-import os, sys
+import sys
 import numpy as np
 from rdkit import Chem
 from rdkit.Chem import AllChem
@@ -8,7 +8,6 @@ from scipy.spatial.distance import pdist
 from scipy.spatial.distance import cdist
 from scipy.spatial.distance import squareform
 import pandas as pd
-import inspect
 
 from atomsci.ddm.pipeline import dist_metrics
 
@@ -143,7 +142,7 @@ def calc_dist_feat_array(feat_type, dist_met, feat1, feat2=None, calc_type='near
         dists: vector or array of distances
 
     """
-    within_dset = False
+
     if feat_type in ['ECFP', 'ecfp']:
         if dist_met == 'tanimoto':
             if feat2 is not None:
@@ -246,7 +245,7 @@ def _get_descriptors(smiles_arr):
                               'subset_all_GSK_Compound_2D_3D_MOE_Descriptors_Scaled_With_Smiles_And_Inchi_HTR2A_5_' \
                               'HT2A_Human_Antagonist_HEK_Luminescence_f_PIC50.csv'
     full_feature_matrix = dsf.retrieve_dataset_by_datasetkey(full_feature_matrix_key, 'gskdata', ds_client)
-    smiles_df = pd.DataFrame(smiles_arr)
+    #smiles_df = pd.DataFrame(smiles_arr)
     #df = full_feature_matrix.merge(
     #    smiles_df, how='inner', left_on='smiles', right_on=smiles_df.columns[0])
     df = full_feature_matrix.head(20)
@@ -291,12 +290,11 @@ def upload_distmatrix_to_DS(
         None
     """
     from atomsci.ddm.utils import datastore_functions as dsf
-
+    fnm = "distmatrix_nm"
     dist_df = pd.DataFrame(dist_matrix)
     dist_df.index = compound_ids
     dist_df.columns = compound_ids
-    fnm = "distmatrix_nm"
-    filename = fn.replace("nm",feature_type)
-    dist_pkl = dist_df.to_pickle(filepath+filename)
+    filename = fnm.replace("nm",feature_type) # fn is not defined anywhere. need to address this
+    _dist_pkl = dist_df.to_pickle(filepath + filename)
     dsf.upload_file_to_DS(bucket, title, description, tags, key_values, filepath, filename, dataset_key, client=None)
 

@@ -4,10 +4,10 @@ compare_models.py. For models on the tracker, use get_multitask_perf_from_tracke
 For models in the file system, use get_filesystem_perf_results().
 """
 import pandas as pd
-from pandas.api.types import CategoricalDtype
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+from atomsci.ddm.pipeline import parameter_parser as pp
 # Create an array with the colors you want to use
 colors = ["#7682A4","#A7DDD8","#373C50","#694691","#BE2369","#EB1E23","#6EC8BE","#FFC30F",]
 # Set your custom color palette
@@ -15,7 +15,7 @@ pal=sns.color_palette(colors)
 sns.set_palette(pal)
 plt.rcParams.update({"figure.dpi": 96})
 
-from atomsci.ddm.pipeline import parameter_parser as pp
+
 
 # get all possible things to plot from parameter parser
 parser=pp.get_parser()
@@ -24,8 +24,10 @@ keywords=['AttentiveFPModel','GCNModel','GraphConvModel','MPNNModel','PytorchMPN
 plot_dict={}
 for word in keywords:
     tmplist=[x for x in d.keys() if x.startswith(word)]
-    if word=='rf_': word='RF'
-    elif word=='xgb_':word='xgboost'
+    if word=='rf_':
+        word='RF'
+    elif word=='xgb_':
+        word='xgboost'
     plot_dict[word]=tmplist
 plot_dict['general']=['model_type','features','splitter']#'ecfp_radius',
 plot_dict['NN']=['avg_dropout','learning_rate','num_weights','num_layers','best_epoch','max_epochs']
@@ -127,7 +129,7 @@ def plot_train_valid_test_scores(df, prediction_type='regression'):
                     plot_df=perf_track_df[perf_track_df.splitter==splitter]
                     plot_df=plot_df[[f"best_train_{scoretype}",f"best_valid_{scoretype}",f"best_test_{scoretype}"]]
                     plot_df=plot_df.sort_values(f"best_valid_{scoretype}")
-                    ax[i,j].plot(plot_df.T);
+                    ax[i,j].plot(plot_df.T)
                     ax[i,j].set_ylim(plot_df.min().min()-.1,1.25)
                     ax[i,j].tick_params(rotation=15)
                     ax[i,j].set_title(f'{splitter} {scoretype}')
@@ -137,12 +139,12 @@ def plot_train_valid_test_scores(df, prediction_type='regression'):
                 plot_df=perf_track_df[perf_track_df.splitter==splitter]
                 plot_df=plot_df[[f"best_train_{scoretype}",f"best_valid_{scoretype}",f"best_test_{scoretype}"]]
                 plot_df=plot_df.sort_values(f"best_valid_{scoretype}")
-                ax[j].plot(plot_df.T);
+                ax[j].plot(plot_df.T)
                 ax[j].set_ylim(plot_df.min().min()-.1,1.25)
                 ax[j].tick_params(rotation=15)
                 ax[j].set_title(f'{splitter} {scoretype}')
             
-        fig.suptitle(f"Model performance by partition");
+        fig.suptitle("Model performance by partition")
         plt.tight_layout()
 
     
@@ -177,13 +179,14 @@ def plot_split_perf(df, prediction_type='regression', subset='valid'):
             sns.boxplot(x="features", y=selection_metric, # x="txptr_features" x="model_type"
                         hue='splitter', palette = sns.color_palette(colors[0:plot_df.splitter.nunique()]), #showfliers=False, 
                           legend=legend,
-                        data=plot_df, ax=ax);
+                        data=plot_df, ax=ax)
             ax.set_xlabel('')
             ax.set_ylabel(selection_metric.replace(f'best_{subset}_',''))
             ax.set_xticks(ax.get_xticks()) # avoid warning by including this line
             ax.set_xticklabels(ax.get_xticklabels(), rotation=30, ha='right', rotation_mode='anchor' )
             ax.set_title(selection_metric.replace(f'best_{subset}_',''))
-            if legend: sns.move_legend(ax, loc=(1.01,0.5))
+            if legend:
+                sns.move_legend(ax, loc=(1.01,0.5))
         plt.tight_layout()
         fig.suptitle('Effect of splitter on model performance', y=1.01)
 
@@ -215,14 +218,18 @@ def plot_hyper_perf(df, scoretype='r2_score', subset='valid', model_type='genera
 
     if model_type=='xgboost':
         for feat in feats:
-            try: perf_track_df[feat]=perf_track_df[feat].round(3)
-            except: continue
+            try:
+                perf_track_df[feat]=perf_track_df[feat].round(3)
+            except Exception:
+                continue
                 
     fig, ax = plt.subplots(nrows,ncols,figsize=(ncols*4,nrows*4))
     ax=ax.ravel()
     for i, feat in enumerate(feats):
-        try: rot,start=helix_dict[model_type]
-        except: rot,start=(-0.2,0)
+        try:
+            rot,start=helix_dict[model_type]
+        except Exception:
+            rot,start=(-0.2,0)
         if feat in perf_track_df.columns:    
             if perf_track_df[feat].nunique()>12:
                 sns.scatterplot(x=feat, y=winnertype, data=perf_track_df, ax=ax[i])
@@ -262,7 +269,9 @@ def plot_rf_perf(df, scoretype='r2_score',subset='valid'):
     winnertype= f'best_{subset}_{scoretype}'
     
     if len(plot_df)>0:
-        feat1 = 'rf_estimators'; feat2 = 'rf_max_features'; feat3 = 'rf_max_depth'
+        feat1 = 'rf_estimators'
+        feat2 = 'rf_max_features'
+        feat3 = 'rf_max_depth'
         plot_df[f'{feat1}_cut']=pd.qcut(plot_df[feat1], 5, precision=0)
         plot_df[f'{feat2}_cut']=pd.qcut(plot_df[feat2], 5, precision=0)
         hue=feat3
@@ -277,8 +286,10 @@ def plot_rf_perf(df, scoretype='r2_score',subset='valid'):
             sns.scatterplot(x=f'{feat1}/{feat2}', y=winnertype, hue=hue, palette=palette, data=plot_df, ax=ax)
             sns.move_legend(ax, "upper left", bbox_to_anchor=(1, 1))
             plt.xticks(rotation=30, ha='right')
-            ax.set_title(f'RF model performance');
-    else: print("There are no RF models in this set.")
+            ax.set_title('RF model performance')
+    else:
+        print("There are no RF models in this set.")
+
 
         
 def plot_nn_perf(df, scoretype='r2_score',subset='valid'):
@@ -297,7 +308,9 @@ def plot_nn_perf(df, scoretype='r2_score',subset='valid'):
     winnertype= f'best_{subset}_{scoretype}'
     
     if len(plot_df)>0:
-        feat1 = 'num_weights'; feat2 = 'learning_rate'; feat3 = 'avg_dropout'
+        feat1 = 'num_weights'
+        feat2 = 'learning_rate'
+        feat3 = 'avg_dropout'
         plot_df[f'{feat1}_cut']=pd.qcut(plot_df[feat1],5)
         plot_df[f'{feat2}_cut']=pd.qcut(plot_df[feat2],5)
         plot_df = plot_df.sort_values([f'{feat1}_cut', f'{feat2}_cut',feat3], ascending=True)
@@ -309,8 +322,10 @@ def plot_nn_perf(df, scoretype='r2_score',subset='valid'):
         for bins, feat in zip([bins1,bins2],[feat1,feat2]):
             binstrings=[]
             for i,bin in enumerate(bins):
-                try:binstrings.append(f'({bin}, {bins[i+1]}]')
-                except:pass
+                try:
+                    binstrings.append(f'({bin}, {bins[i+1]}]')
+                except Exception:
+                    pass
             nncmap=dict(zip(plot_df[f'{feat}_cut'].dtype.categories.tolist(),binstrings))
             plot_df[f'{feat}_cut']=plot_df[f'{feat}_cut'].map(nncmap)
         hue=feat3
@@ -326,8 +341,9 @@ def plot_nn_perf(df, scoretype='r2_score',subset='valid'):
                             data=plot_df, ax=ax)
             sns.move_legend(ax, "upper left", bbox_to_anchor=(1, 1))
             plt.xticks(rotation=30, ha='right')
-            ax.set_title(f'NN model performance');
-    else: print("There are no NN models in this set.")
+            ax.set_title('NN model performance')
+    else:
+        print("There are no NN models in this set.")
 
 
 def plot_xg_perf(df, scoretype='r2_score',subset='valid'):
@@ -345,7 +361,8 @@ def plot_xg_perf(df, scoretype='r2_score',subset='valid'):
     plot_df=perf_track_df[perf_track_df.model_type=='xgboost'].copy()
     winnertype= f'best_{subset}_{scoretype}'
     if len(plot_df)>0:
-        feat1 = 'xgb_learning_rate'; feat2 = 'xgb_gamma'
+        feat1 = 'xgb_learning_rate'
+        feat2 = 'xgb_gamma'
         for feat in [feat1,feat2]:
             plot_df[feat]=plot_df[feat].round(3)
         hue=feat2
@@ -362,5 +379,6 @@ def plot_xg_perf(df, scoretype='r2_score',subset='valid'):
                                 data=plot_df, ax=ax)
             sns.move_legend(ax, "upper left", bbox_to_anchor=(1, 1))
             plt.xticks(rotation=30, ha='right')
-            ax.set_title(f'XGboost model performance');
-    else: print('There are no XGBoost models in this set.')
+            ax.set_title('XGboost model performance')
+    else:
+        print('There are no XGBoost models in this set.')

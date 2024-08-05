@@ -1,18 +1,17 @@
-import pdb
 import argparse
+import logging
 import random
 import timeit
 import tempfile
-from typing import Any, Dict, List, Iterator, Optional, Sequence, Set, Tuple
-
+from typing import List, Optional, Set, Tuple
+from functools import partial
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
-from functools import partial
 from scipy import stats
 
 import deepchem as dc
-from deepchem.data import Dataset, NumpyDataset
+from deepchem.data import Dataset
 from deepchem.splits import Splitter
 from deepchem.splits.splitters import _generate_scaffold
 
@@ -122,7 +121,6 @@ def calc_ecfp(smiles: List[str],
         UIntSparseIntVect. This datatype is used specifically with
         dist_smiles_from_ecfp
     """
-    from functools import partial
     func = partial(calc_ecfp,workers=1)
     if workers > 1:
       from multiprocessing import pool
@@ -241,7 +239,7 @@ class MultitaskScaffoldSplitter(Splitter):
           List of indices of each scaffold in the dataset.
         """
         scaffolds = {}
-        data_len = len(dataset)
+        _data_len = len(dataset)
 
         for ind, smiles in enumerate(dataset.ids):
             scaffold = _generate_scaffold(smiles)
@@ -386,8 +384,7 @@ class MultitaskScaffoldSplitter(Splitter):
         # worst possible distance to normalize this between 0 and 1
         worst_distance = np.linalg.norm(np.ones(num_tasks*2))
         ratio_fit = 1 - np.linalg.norm(target_split-current_split)/worst_distance
-        #print("\tratio_fitness: %0.2f min"%((timeit.default_timer()-start)/60))
-
+        logging.info("\tratio_fitness: %0.2f min"%((timeit.default_timer()-start)/60))
         return ratio_fit
 
     def ratio_fitness(self, split_chromosome: List[str]) -> float:
@@ -408,6 +405,7 @@ class MultitaskScaffoldSplitter(Splitter):
             A float between 0 and 1. 1 best 0 is worst
         """
         start = timeit.default_timer()
+
         # total_counts is the number of labels per task
         total_counts = np.sum(self.dataset.w, axis=0)
 
@@ -434,7 +432,7 @@ class MultitaskScaffoldSplitter(Splitter):
         # worst possible distance to normalize this between 0 and 1
         worst_distance = np.linalg.norm(np.ones(len(target_split)))
         ratio_fit = 1 - np.linalg.norm(target_split-current_split)/worst_distance
-        #print("\tratio_fitness: %0.2f min"%((timeit.default_timer()-start)/60))
+        logging.info("\tratio_fitness: %0.2f min"%((timeit.default_timer()-start)/60))
 
         return ratio_fit
 
@@ -476,6 +474,7 @@ class MultitaskScaffoldSplitter(Splitter):
             dist_sum += valid_dist + test_dist
 
         avg_dist = dist_sum/(ntasks*2)
+        logging.info("\tresponse_distr_fitness: %0.2f min"%((timeit.default_timer()-start)/60))
         return 1 - avg_dist
 
     def grade(self, split_chromosome: List[str]) -> float:
@@ -624,15 +623,15 @@ class MultitaskScaffoldSplitter(Splitter):
         start = timeit.default_timer()
         if (self.diff_fitness_weight_tvv > 0.0) or (self.diff_fitness_weight_tvt > 0.0):
             self.scaff_scaff_distmat = _generate_scaffold_dist_matrix(self.ss, self.ecfp_features)
-        #print('scaffold dist mat %0.2f min'%((timeit.default_timer()-start)/60))
+        logging.info('scaffold dist mat %0.2f min'%((timeit.default_timer()-start)/60))
 
         # initial population
         population = []
         for i in range(self.num_pop):
-            start = timeit.default_timer()
+            start_loop = timeit.default_timer()
             split_chromosome = self._split(frac_train=frac_train, frac_valid=frac_valid, 
                                 frac_test=frac_test)
-            #print("per_loop: %0.2f min"%((timeit.default_timer()-start)/60))
+            logging.info("per_loop: %0.2f min"%((timeit.default_timer()-start_loop)/60))
 
             population.append(split_chromosome)
 
@@ -645,7 +644,7 @@ class MultitaskScaffoldSplitter(Splitter):
             print("step %d: best_fitness %0.2f"%(i, best_fitness))
             #print("%d: %0.2f"%(i, gene_alg.grade_population()[0][0]))
 
-        best_fit = gene_alg.pop_scores[0]
+        _best_fit = gene_alg.pop_scores[0]
         best = gene_alg.pop[0]
 
         #print('best ever fitness %0.2f'%best_ever_fit)
