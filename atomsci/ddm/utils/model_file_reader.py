@@ -27,7 +27,7 @@ def get_multiple_models_metadata(*args):
         try:
             metadata = ModelFileReader(arg).get_model_info()
             metadata_list.append(metadata)
-        except Exception:
+        except (IOError, KeyError):
             raise IOError("Problem access the file(s) or not AMPL model tarball(s).")
             
     return metadata_list
@@ -68,8 +68,7 @@ class ModelFileReader:
                 try:
                     meta_info = tarball.getmember('./model_metadata.json')
                 except KeyError:
-                    print(f"{data_file_path} is not an AMPL model tarball")
-                    return {}
+                    raise KeyError(f"{data_file_path} is not an AMPL model tarball")
                 with tarball.extractfile(meta_info) as meta_fd:
                     self.metadata_dict = json.loads(meta_fd.read())
                     self.pparams = parse.wrapper(self.metadata_dict)

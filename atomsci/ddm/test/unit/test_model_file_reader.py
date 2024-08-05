@@ -9,7 +9,7 @@ from atomsci.ddm.utils import model_file_reader as mfr
 
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 
-model_path = '../../examples/BSEP/models/bsep_classif_scaffold_split.tar.gz'
+model_path = os.path.join(currentdir, '../../examples/BSEP/models/bsep_classif_scaffold_split.tar.gz')
 tar_model = ModelFileReader(model_path)
 
 def test_model_split_uuid():
@@ -33,11 +33,25 @@ def test_no_medata_json_in_dir():
     assert e.type == IOError
 
 def test_multiple_models_metadata():
-    data_list =  mfr.get_multiple_models_metadata('../../examples/BSEP/models/bsep_classif_random_split.tar.gz', '../../examples/BSEP/models/bsep_classif_scaffold_split_graphconv.tar.gz', '../..//examples/BSEP/models/bsep_classif_scaffold_split.tar.gz')
+    data_list =  mfr.get_multiple_models_metadata(
+        os.path.join(currentdir, '../../examples/BSEP/models/bsep_classif_random_split.tar.gz'),
+        os.path.join(currentdir, '../../examples/BSEP/models/bsep_classif_scaffold_split_graphconv.tar.gz'),
+        os.path.join(currentdir, '../../examples/BSEP/models/bsep_classif_scaffold_split.tar.gz'))
     # should be parsed fine 
     assert len(data_list) == 3
     
 def test_incorrect_model_file():
-     with pytest.raises(Exception) as e:
-         data_list =  mfr.get_multiple_models_metadata('../../examples/BSEP/models/bsep_classif_random_split.tar')
-     assert e.type == IOError
+    with pytest.raises(Exception) as e:
+        _ =  mfr.get_multiple_models_metadata(
+            os.path.join(currentdir,'../../examples/BSEP/models/bsep_classif_random_split.tar'))
+    assert e.type == IOError
+
+def test_bad_tar_file():
+    with pytest.raises(Exception) as e:
+        _ =  ModelFileReader(
+            os.path.join(currentdir, '../test_datasets/bad_model_tar.tar.gz'))
+    assert e.type == KeyError
+
+if __name__ == '__main__':
+    test_bad_tar_file()
+    test_incorrect_model_file()
