@@ -2,8 +2,9 @@
 
 import json
 import numpy as np
-import pandas as pd
 import os
+import pandas as pd
+import pytest
 import shutil
 import sys
 import zipfile
@@ -24,7 +25,7 @@ def clean():
     if not llnl_utils.is_lc_system():
         assert True
         return
-        
+
     for f in ['hlm_clearance_curated_predict.csv',
               'hlm_clearance_curated_external.csv',
               'hlm_clearance_curated_fit.csv',
@@ -69,7 +70,7 @@ def curate():
     column='value'
     list_bad_duplicates='Yes'
     data=hlmc_df
-    max_std=20 
+    max_std=20
     curated_df=curate_data.average_and_remove_duplicates (column, tolerance,list_bad_duplicates, data, max_std, compound_id='compound_id',smiles_col='rdkit_smiles')
 
     data_filename="hlm_clearance_curated.csv"
@@ -93,6 +94,7 @@ def download():
     assert(os.path.isfile('ci8b00785_si_001.zip'))
 
 
+@pytest.mark.skipif(os.environ.get("ENABLE_LIVERMORE") is None, reason="Requires access to Livermore dataset")
 def test():
     """Test full model pipeline: Curate data, fit model, and predict property for new compounds"""
 
