@@ -16,10 +16,6 @@ import getpass
 import traceback
 import sys
 
-from atomsci.ddm.pipeline import random_seed as rs 
-from collections import defaultdict
-
-
 feather_supported = True
 try:
     import pyarrow.feather as feather
@@ -657,44 +653,9 @@ class ModelDataset(object):
         Side effects:
             Overwrites the combined_train_valid_data attribute of the ModelDataset with the combined data
         """
-        if len(self.train_valid_dsets)>1:
-            all_unique_ids = set()
-            df_list = []
-            X_list = []
-            y_list = []
-            w_list = []
-            for train, valid in self.train_valid_dsets:
-                train_indexes = list(range(len(train.X)))
-                train_df = pd.DataFrame(data={'X_index':train_indexes, 'ids':train.ids})
-                train_df.set_index('ids', drop=False, inplace=True)
-                valid_indexes = list(range(len(valid.X)))
-                valid_df = pd.DataFrame(data={'X_index':valid_indexes, 'ids':valid.ids})
-                valid_df.set_index('ids', drop=False, inplace=True)
-
-                new_ids = list(set(train_df.ids)-set(all_unique_ids))
-                new_train_df = train_df.loc[new_ids]
-                df_list.append(new_train_df)
-                X_list.append(train.X[new_train_df.X_index])
-                y_list.append(train.y[new_train_df.X_index])
-                w_list.append(train.w[new_train_df.X_index])
-                all_unique_ids.update(new_ids)
-
-                new_ids = list(set(valid_df.ids)-set(all_unique_ids))
-                new_valid_df = valid_df.loc[new_ids]
-                df_list.append(new_valid_df)
-                X_list.append(valid.X[new_valid_df.X_index])
-                y_list.append(valid.y[new_valid_df.X_index])
-                w_list.append(valid.w[new_valid_df.X_index])
-                all_unique_ids.update(new_ids)
-
-            combined_df = pd.concat(df_list)
-            combined_X = np.concatenate(X_list, axis=0)
-            combined_y = np.concatenate(y_list, axis=0)
-            combined_w = np.concatenate(w_list, axis=0)
-            combined_ids = combined_df.ids.values
-
-            assert len(all_unique_ids) == len(combined_df)
-        else:
+        # All of the splits have the same combined train/valid data, regardless of whether we're using
+        # k-fold or train/valid/test splitting.
+        if self.combined_train_valid_data is None:
             (train, valid) = self.train_valid_dsets[0]
             combined_X = np.concatenate((train.X, valid.X), axis=0)
             combined_y = np.concatenate((train.y, valid.y), axis=0)
@@ -737,9 +698,7 @@ class ModelDataset(object):
         """
         if subset not in self.subset_response_dict:
             if subset in ('train', 'valid', 'train_valid'):
-                for fold, (train, valid) in enumerate(self.train_valid_dsets):
-                    print('(get_subset_responses_and_weights) for fold', fold)
-                    dataset = self.combined_training_data()
+                dataset = self.combined_training_data()
             elif subset == 'test':
                 dataset = self.test_dset
             else:
