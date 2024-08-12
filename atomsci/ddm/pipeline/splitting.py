@@ -711,7 +711,7 @@ class DatasetManager:
             #      [1, 0, 0],
             #      [1, 0, 0]]
             def w_agg_func(x):
-                np.clip(np.sum(x, axis=0), a_min=0, a_max=1)
+                return np.clip(np.sum(x, axis=0), a_min=0, a_max=1)
             agg_dict = {col:w_agg_func for col in self.w_cols}
             agg_dict['indices'] = 'first'
             agg_dict['compound_id'] = 'first' # Either they're all the same or they're not used
