@@ -109,7 +109,7 @@ def patch_model_dataset_key(model_path, new_model_path, dataset_path, require_ha
             print(f"Wrote {new_model_path}")
         return 0
 
-if (__file__ == '__main__') and (len(sys.argv) > 3):
+if (__name__ == '__main__') and (len(sys.argv) > 3):
     model_path = sys.argv[1]
     new_model_path = sys.argv[2]
     dataset_path = sys.argv[3]
