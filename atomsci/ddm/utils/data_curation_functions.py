@@ -73,7 +73,7 @@ def is_organometallic(mol):
     if mol is None:
         return True
     for at in mol.GetAtoms():
-        if not (at.GetAtomicNum() in organic_atomic_nums):
+        if at.GetAtomicNum() not in organic_atomic_nums:
             return True
     return False
 
