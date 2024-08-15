@@ -35,8 +35,7 @@ def calc_dist_smiles(feat_type, dist_met, smiles_arr1, smiles_arr2=None, calc_ty
         dists: vector or array of distances
 
     Todo:
-        Fix the function _get_descriptors(), which is broken, and re-enable the 'descriptors' option for feat_type. Will need
-        to add a parameter to indicate what kind of descriptors should be computed.
+        Provide an option to compute distances based on descriptor values.
 
         Allow other metrics for ECFP features, as in calc_dist_diskdataset().
 
@@ -78,15 +77,6 @@ def calc_dist_smiles(feat_type, dist_met, smiles_arr1, smiles_arr2=None, calc_ty
     elif feat_type in ['descriptors', 'moe']:
         raise ValueError("Descriptor features are not currently supported by calc_dist_smiles().")
 
-        feats1 = _get_descriptors(smiles_arr1)
-        if feats1 is not None:
-            if smiles_arr2 is not None:
-                feats2 = _get_descriptors(smiles_arr2)
-                if feats2 is None:
-                    return
-                return calc_summary(cdist(feats1, feats2, dist_met), calc_type, num_nearest, within_dset)
-            else:
-                return calc_summary(pdist(feats1, dist_met, **metric_kwargs), calc_type, num_nearest, within_dset=True)
 
 
 def calc_dist_diskdataset(feat_type, dist_met, dataset1, dataset2=None, calc_type='nearest', num_nearest=1, **metric_kwargs):
@@ -297,4 +287,3 @@ def upload_distmatrix_to_DS(
     filename = fnm.replace("nm",feature_type) # fn is not defined anywhere. need to address this
     _dist_pkl = dist_df.to_pickle(filepath + filename)
     dsf.upload_file_to_DS(bucket, title, description, tags, key_values, filepath, filename, dataset_key, client=None)
-
