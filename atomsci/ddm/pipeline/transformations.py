@@ -82,11 +82,12 @@ def create_feature_transformers(params, model_dataset):
     """
     if params.feature_transform_type == 'umap':
         # Map feature vectors using UMAP for dimension reduction
-        if model_dataset.split_strategy == 'k_fold_cv':
+        log.warning("UMAP feature transformation is deprecated and will be removed in a future release.")
+        if params.split_strategy == 'k_fold_cv':
             log.warning("Warning: UMAP transformation may produce misleading results when used with K-fold split strategy.")
         train_dset = model_dataset.train_valid_dsets[0][0]
         transformers_x = [UMAPTransformer(params, train_dset)]
-    elif params.transformers==True:
+    elif params.transformers:
         # TODO: Transformers on responses and features should be controlled only by parameters
         # response_transform_type and feature_transform_type, rather than params.transformers.
 
@@ -147,6 +148,8 @@ def get_transformer_specific_metadata(params):
 
 class UMAPTransformer(Transformer):
     """Dimension reduction transformations using the UMAP algorithm.
+    
+    DEPRECATED: Will be removed in a future release.
 
     Attributes:
         mapper (UMAP) : UMAP transformer
@@ -171,8 +174,8 @@ class UMAPTransformer(Transformer):
         else:
             target_metric = 'l2'
         self.scaler = RobustScaler()
-        # Use Imputer to replace missing values (NaNs) with means for each column
-        self.imputer = Imputer()
+        # Use SimpleImputer to replace missing values (NaNs) with means for each column
+        self.imputer = SimpleImputer()
         scaled_X = self.scaler.fit_transform(self.imputer.fit_transform(dataset.X))
         self.mapper = umap.UMAP(n_neighbors=params.umap_neighbors,
                                 n_components=params.umap_dim,
@@ -209,7 +212,6 @@ class NormalizationTransformerMissingData(NormalizationTransformer):
                  transform_y=False,
                  transform_w=False,
                  dataset=None,
-                 transform_gradients=False,
                  move_mean=True) :
 
         if transform_X :
@@ -223,12 +225,7 @@ class NormalizationTransformerMissingData(NormalizationTransformer):
             y_stds = np.array(y_stds)
             y_stds[y_stds == 0] = 1.
             self.y_stds = y_stds
-            self.transform_gradients = transform_gradients
             self.move_mean = move_mean
-            if self.transform_gradients:
-                true_grad, ydely_means = get_grad_statistics(dataset)
-                self.grad = np.reshape(true_grad, (true_grad.shape[0], -1, 3))
-                self.ydely_means = ydely_means
 
        ## skip the NormalizationTransformer initialization and go to base class
         super(NormalizationTransformer, self).__init__(
