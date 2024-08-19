@@ -28,3 +28,4 @@ exclude = [
     "venv",
     "atomsci/ddm/test/*",
 ]
+extend-exclude = ["*.ipynb"]
