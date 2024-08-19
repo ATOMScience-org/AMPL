@@ -4,7 +4,7 @@ import multiprocessing
 import random
 from tqdm import tqdm
 import timeit
-from typing import Any, Callable, List
+from typing import Any, Callable, List, Tuple
 
 N_PROCS = multiprocessing.cpu_count()
 
@@ -50,6 +50,47 @@ class GeneticAlgorithm:
         self.crossover_func = crossover_func
         self.mutate_func = mutate_func
         self.parallel_grade_population()
+
+        self.best_fitness = -1e20
+        self.best_solution = None
+
+    def update_best_solution(self):
+        """ Grade the population and save the scores
+
+        Saves the best solution from self.pop and self.pop_scores
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        Nothing
+        """
+
+        if self.pop_scores[0]>self.best_fitness:
+            self.best_fitness = self.pop_scores[0]
+            self.best_solution = self.pop[0]
+
+    def get_best(self) -> Tuple[float,List[Any]]:
+        """ Grade the population and save the scores
+
+        Saves the best solution from self.pop and self.pop_scores
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        best_fitness: float
+            The best fitness ever scored from any generation.
+
+        best_solution: List[Any]
+            The best chromosome from any generation
+        """
+
+        return self.best_fitness, self.best_solution
 
     def parallel_grade_population(self):
         """ Grade the population and save the scores
@@ -146,6 +187,8 @@ class GeneticAlgorithm:
         if print_timings:
             print('\tmutate %0.2f min'%((timeit.default_timer()-i)/60))
             print('total %0.2f min'%((timeit.default_timer()-start)/60))
+
+        self.update_best_solution()
 
 if __name__ == '__main__':
     num_pop = 500

@@ -194,12 +194,12 @@ def _generate_scaffold_dist_matrix(scaffold_lists: List[np.ndarray],
 
                 dists = dmat[scaff1_rows, scaff2].flatten()
                 #min_dist = np.median(dists)
+                #if min_dist==0:
+                #    print("two scaffolds match exactly?!?", i, j)
+                #    print(len(set(scaff2).intersection(set(scaff1))))
+
                 # ksm: Change back to min and see what happens
                 min_dist = np.min(dists)
-
-                if min_dist==0:
-                    print("two scaffolds match exactly?!?", i, j)
-                    print(len(set(scaff2).intersection(set(scaff1))))
 
                 scaff_dist_mat[i,j] = min_dist
                 scaff_dist_mat[j,i] = min_dist
@@ -461,21 +461,55 @@ class MultitaskScaffoldSplitter(Splitter):
         for task in range(ntasks):
             train_y = self.dataset.y[train_ind, task]
             train_y = train_y[~np.isnan(train_y)]
-            #print(f"task {task} train: mean = {np.mean(train_y)}, SD = {np.std(train_y)}")
+
             valid_y = self.dataset.y[valid_ind, task]
             valid_y = valid_y[~np.isnan(valid_y)]
-            valid_dist = stats.wasserstein_distance(train_y, valid_y)
-            #print(f"        valid: mean = {np.mean(valid_y)}, SD = {np.std(valid_y)}, Wasserstein dist = {valid_dist}")
+
             test_y = self.dataset.y[test_ind, task]
             test_y = test_y[~np.isnan(test_y)]
+
             test_dist = stats.wasserstein_distance(train_y, test_y)
-            #print(f"        test: mean = {np.mean(test_y)}, SD = {np.std(test_y)}, Wasserstein dist = {test_dist}")
+            valid_dist = stats.wasserstein_distance(train_y, valid_y)
 
             dist_sum += valid_dist + test_dist
 
         avg_dist = dist_sum/(ntasks*2)
         logging.info("\tresponse_distr_fitness: %0.2f min"%((timeit.default_timer()-start)/60))
         return 1 - avg_dist
+
+    def sanity_check_chromosome(self, split_chromosome: List[str]) -> bool:
+        """Sanity checks a chromosome
+
+        Checks to see that each subset has at least 1 labelled compound
+
+        Parameters
+        ----------
+        List[str]: split_chromosome
+            A list of strings, index i contains a string, 'train', 'valid', 'test'
+            which determines the partition that scaffold belongs
+
+        Returns
+        -------
+        bool
+            A bool. True if the chromosome is sane.
+        """
+        ntasks = self.dataset.y.shape[1]
+        train_ind, valid_ind, test_ind = self.split_chromosome_to_compound_split(split_chromosome)
+        for task in range(ntasks):
+            train_y = self.dataset.y[train_ind, task]
+            train_y = train_y[~np.isnan(train_y)]
+
+            valid_y = self.dataset.y[valid_ind, task]
+            valid_y = valid_y[~np.isnan(valid_y)]
+
+            test_y = self.dataset.y[test_ind, task]
+            test_y = test_y[~np.isnan(test_y)]
+
+            # one task has 0 data points
+            if (len(train_y)==0) or (len(valid_y)==0) or (len(test_y)==0):
+                return False
+
+        return True
 
     def grade(self, split_chromosome: List[str]) -> float:
         """Assigns a score to a given chromosome
@@ -495,6 +529,10 @@ class MultitaskScaffoldSplitter(Splitter):
             A float between 0 and 1. 1 best 0 is worst
         """
         fitness = 0.0
+
+        if not self.sanity_check_chromosome(split_chromosome):
+            return fitness
+
         # Only call the functions for each fitness term if their weight is nonzero
         if self.diff_fitness_weight_tvt != 0.0:
             fitness += self.diff_fitness_weight_tvt*self.scaffold_diff_fitness(split_chromosome, 'train', 'test')
@@ -640,12 +678,11 @@ class MultitaskScaffoldSplitter(Splitter):
         #gene_alg.iterate(num_generations)
         for i in range(self.num_generations):
             gene_alg.step(print_timings=print_timings)
-            best_fitness = gene_alg.pop_scores[0]
+            best_fitness, _ = gene_alg.get_best()
             print("step %d: best_fitness %0.2f"%(i, best_fitness))
             #print("%d: %0.2f"%(i, gene_alg.grade_population()[0][0]))
 
-        _best_fit = gene_alg.pop_scores[0]
-        best = gene_alg.pop[0]
+        _, best = gene_alg.get_best()
 
         #print('best ever fitness %0.2f'%best_ever_fit)
         result = self.split_chromosome_to_compound_split(best)
