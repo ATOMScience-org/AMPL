@@ -1,4 +1,4 @@
-name: ampl
+name: ampl_lint
 
 on: [push]
 
