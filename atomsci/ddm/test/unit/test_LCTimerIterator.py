@@ -1,9 +1,11 @@
 import atomsci.ddm.pipeline.model_wrapper as mw
 import logging
-import time
+import os, time
 from argparse import Namespace
 from atomsci.ddm.utils import llnl_utils
+import pytest
 
+@pytest.mark.skipif(os.environ.get("ENABLE_LIVERMORE") is None, reason="Slurm required")
 def test_LCTimerIterator_too_long():
     if not llnl_utils.is_lc_system():
         assert True
@@ -46,6 +48,7 @@ def test_LCTimerIterator_finishes_all_epochs():
 
     assert params.max_epochs == 10
 
+@pytest.mark.skipif(os.environ.get("ENABLE_LIVERMORE") is None, reason="Slurm required")
 def test_LCTimerKFoldIterator_too_long():
     if not llnl_utils.is_lc_system():
         assert True

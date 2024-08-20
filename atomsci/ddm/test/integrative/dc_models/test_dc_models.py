@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import os
 import pytest
 
 from test_retrain_dc_models import *
@@ -6,6 +7,7 @@ from atomsci.ddm.utils import llnl_utils
 
 # Train and Predict
 # -----
+@pytest.mark.skipif(os.environ.get("ENABLE_LIVERMORE") is None, reason="GPU required")
 def test_reg_config_H1_fit_AttentiveFPModel():
     if not llnl_utils.is_lc_system():
         assert True

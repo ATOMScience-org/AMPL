@@ -6,11 +6,15 @@ import numpy as np
 import sklearn.metrics as skm
 from atomsci.ddm.utils import llnl_utils
 
+import os
+import pytest
+
 """
 make sure that the various ways of making predictions return
 predictions in the same order as the input
 """
 
+@pytest.mark.skipif(os.environ.get("ENABLE_LIVERMORE") is None, reason="GPU required")
 def test_predict_from_model():
     """test that predict_from_model makes predictions in the same
     order as the input
@@ -45,7 +49,7 @@ def test_predict_from_model():
     print('accuracy score', score)
     assert score > 0.5
 
-
+@pytest.mark.skipif(os.environ.get("ENABLE_LIVERMORE") is None, reason="GPU required")
 def test_predict_full_dataset():
     """test that predict_full_dataset makes predictions in the same
     order as the input

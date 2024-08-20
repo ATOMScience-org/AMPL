@@ -3,9 +3,12 @@ import os
 from atomsci.ddm.pipeline import compare_models as cm
 from atomsci.ddm.utils import llnl_utils
 
+import pytest
+
 def clean():
     pass
 
+@pytest.mark.skipif(os.environ.get("ENABLE_LIVERMORE") is None, reason="GPU required")
 def test():
     if not llnl_utils.is_lc_system():
         assert True

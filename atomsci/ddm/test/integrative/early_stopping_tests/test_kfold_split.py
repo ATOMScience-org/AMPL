@@ -1,10 +1,8 @@
 import copy
-import pdb
 import pandas as pd
 import numpy as np
 import json
 import os
-import sys
 
 import atomsci.ddm.pipeline.parameter_parser as parse
 import atomsci.ddm.pipeline.model_pipeline as mp
@@ -12,6 +10,8 @@ import atomsci.ddm.pipeline.predict_from_model as pfm
 from atomsci.ddm.utils import llnl_utils
 
 import sklearn.metrics as skmetrics
+
+import pytest
 
 def get_test_set(dskey, split_csv, id_col):
     """using model_metadata read dataset key and split uuid to split dataset into
@@ -55,7 +55,11 @@ def find_best_test_metric(model_metrics):
 
     return None
 
+@pytest.mark.skipif(os.environ.get("ENABLE_LIVERMORE") is None, reason="GPU required")
 def test_kfold():
+    if not llnl_utils.is_lc_system():
+        assert True
+        return
     script_path = os.path.dirname(os.path.realpath(__file__))
     json_file = os.path.join(script_path, 'nn_ecfp_kfold.json')
 
@@ -66,7 +70,11 @@ def test_kfold():
 
     saved_model_identity(pparams)
 
+@pytest.mark.skipif(os.environ.get("ENABLE_LIVERMORE") is None, reason="GPU required")
 def test_graphconv():
+    if not llnl_utils.is_lc_system():
+        assert True
+        return
     script_path = os.path.dirname(os.path.realpath(__file__))
     json_file = os.path.join(script_path, 'nn_graph.json')
 
@@ -78,7 +86,11 @@ def test_graphconv():
 
     saved_model_identity(pparams)
 
+@pytest.mark.skipif(os.environ.get("ENABLE_LIVERMORE") is None, reason="GPU required")
 def test_ecfp_nn():
+    if not llnl_utils.is_lc_system():
+        assert True
+        return
     script_path = os.path.dirname(os.path.realpath(__file__))
     json_file = os.path.join(script_path, 'nn_ecfp.json')
 
@@ -90,7 +102,11 @@ def test_ecfp_nn():
 
     saved_model_identity(pparams)
 
+@pytest.mark.skipif(os.environ.get("ENABLE_LIVERMORE") is None, reason="GPU required")
 def test_train_valid_test():
+    if not llnl_utils.is_lc_system():
+        assert True
+        return
     script_path = os.path.dirname(os.path.realpath(__file__))
     json_file = os.path.join(script_path, 'nn_ecfp_random.json')
 
@@ -101,7 +117,11 @@ def test_train_valid_test():
 
     saved_model_identity(pparams)
 
+@pytest.mark.skipif(os.environ.get("ENABLE_LIVERMORE") is None, reason="GPU required")
 def test_attentivefp():
+    if not llnl_utils.is_lc_system():
+        assert True
+        return
     script_path = os.path.dirname(os.path.realpath(__file__))
     json_file = os.path.join(script_path, 'attentivefp_random.json')
 
@@ -112,7 +132,11 @@ def test_attentivefp():
 
     saved_model_identity(pparams)
 
+@pytest.mark.skipif(os.environ.get("ENABLE_LIVERMORE") is None, reason="GPU required")
 def test_gcnmodel():
+    if not llnl_utils.is_lc_system():
+        assert True
+        return
     script_path = os.path.dirname(os.path.realpath(__file__))
     json_file = os.path.join(script_path, 'gcnmodel_random.json')
 
@@ -123,7 +147,11 @@ def test_gcnmodel():
 
     saved_model_identity(pparams)
 
+@pytest.mark.skipif(os.environ.get("ENABLE_LIVERMORE") is None, reason="GPU required")
 def test_graphconvmodel():
+    if not llnl_utils.is_lc_system():
+        assert True
+        return
     script_path = os.path.dirname(os.path.realpath(__file__))
     json_file = os.path.join(script_path, 'GraphConvModel_random.json')
 
@@ -134,7 +162,11 @@ def test_graphconvmodel():
 
     saved_model_identity(pparams)
 
+@pytest.mark.skipif(os.environ.get("ENABLE_LIVERMORE") is None, reason="GPU required")
 def test_mpnnmodel():
+    if not llnl_utils.is_lc_system():
+        assert True
+        return
     script_path = os.path.dirname(os.path.realpath(__file__))
     json_file = os.path.join(script_path, 'MPNNModel_random.json')
 
@@ -145,7 +177,11 @@ def test_mpnnmodel():
 
     saved_model_identity(pparams)
 
+@pytest.mark.skipif(os.environ.get("ENABLE_LIVERMORE") is None, reason="GPU required")
 def test_pytorchmpnnmodel():
+    if not llnl_utils.is_lc_system():
+        assert True
+        return
     script_path = os.path.dirname(os.path.realpath(__file__))
     json_file = os.path.join(script_path, 'PytorchMPNNModel_random.json')
 
@@ -157,10 +193,6 @@ def test_pytorchmpnnmodel():
     saved_model_identity(pparams)
 
 def saved_model_identity(pparams):
-    if not llnl_utils.is_lc_system():
-        assert True
-        return
-        
     script_path = os.path.dirname(os.path.realpath(__file__))
     if not pparams.previously_split:
         split_uuid = split(pparams)

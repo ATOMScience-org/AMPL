@@ -12,6 +12,7 @@ import atomsci.ddm.pipeline.parameter_parser as parse
 import atomsci.ddm.utils.curate_data as curate_data
 import atomsci.ddm.utils.struct_utils as struct_utils
 from atomsci.ddm.utils import llnl_utils
+import pytest
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 import integrative_utilities
@@ -327,26 +328,31 @@ def test_multi_reg_config_delaney_fit_NN_graphconv():
 # MOE doesn't seem to predict delaney very well
 # these are run using H1
 # -------
+@pytest.mark.skipif(os.environ.get("ENABLE_LIVERMORE") is None, reason="MOE required")
 def test_reg_config_H1_fit_XGB_moe():
     H1_init()
     if llnl_utils.is_lc_system():
         train_and_predict('jsons/reg_config_H1_fit_XGB_moe.json', prefix='H1')
 
+@pytest.mark.skipif(os.environ.get("ENABLE_LIVERMORE") is None, reason="MOE required")
 def test_reg_config_H1_fit_NN_moe():
     H1_init()
     if llnl_utils.is_lc_system():
         train_and_predict('jsons/reg_config_H1_fit_NN_moe.json', prefix='H1')
 
+@pytest.mark.skipif(os.environ.get("ENABLE_LIVERMORE") is None, reason="MOE required")
 def test_reg_config_H1_double_fit_NN_moe():
     H1_double_init()
     if llnl_utils.is_lc_system():
         train_and_predict('jsons/reg_config_H1_double_fit_NN_moe.json', prefix='H1_double')
 
+@pytest.mark.skipif(os.environ.get("ENABLE_LIVERMORE") is None, reason="MOE required")
 def test_multi_class_random_config_H1_fit_NN_moe():
     H1_init()
     if llnl_utils.is_lc_system():
         train_and_predict('jsons/multi_class_config_H1_fit_NN_moe.json', prefix='H1')
 
+@pytest.mark.skipif(os.environ.get("ENABLE_LIVERMORE") is None, reason="MOE required")
 def test_class_config_H1_fit_NN_moe():
     H1_init()
     if llnl_utils.is_lc_system():

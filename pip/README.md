@@ -2,17 +2,19 @@
 
 AMPL provides different pip installation files for different environments and usages:
 
-* clients_requirements.txt : this is used if using model_tracker on LLNL LC environment.
+* ci_requirements.txt : pytest related requirements
+
+* clients_requirements.txt : used if using model_tracker on LLNL LC environment.
 
 * cpu_requirements.txt : minimal installation to run AMPL with CPU-only support.
 
 * cuda_requirements.txt : minimal installation to run AMPL with CUDA-enabled GPUs.
 
-* docker_requirements.txt : is used for AMPL docker image build.
+* docker_requirements.txt : used for AMPL docker image build.
 
-* mchip_requirements.txt : is used for macOS with M chip.
+* mchip_requirements.txt : used for macOS with M chip.
 
-* readthedocs_requirements.txt : is used for readthedocs build.
+* readthedocs_requirements.txt : used for readthedocs build.
 
 * rocm_requirements.txt : minimal installation to run AMPL with AMD ROCm GPUs. (**work in progress**)
 

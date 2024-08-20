@@ -11,6 +11,8 @@ import atomsci.ddm.pipeline.compare_models as cm
 import glob
 from atomsci.ddm.utils import llnl_utils
 
+import pytest
+
 def clean():
     """Clean test files"""
     if "hyperparam_search" in os.listdir():
@@ -114,17 +116,18 @@ def wait_to_finish(maestro_run_command, max_time=600):
 
     return True
 
+@pytest.mark.skipif(os.environ.get("ENABLE_LIVERMORE") is None, reason="Slurm required")
 def test():
     """Test full model pipeline: Curate data, fit model, and predict property for new compounds"""
-
-    # Clean
-    # -----
-    clean()
 
     if not llnl_utils.is_lc_system():
         assert True
         return
-        
+    
+    # Clean
+    # -----
+    clean()
+    
     # Run ECFP NN hyperparam search
     # ------------
     json_file = "nn_ecfp.json"

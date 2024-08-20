@@ -17,6 +17,7 @@ import atomsci.ddm.pipeline.parameter_parser as parse
 import atomsci.ddm.utils.model_retrain as mr
 import atomsci.ddm.utils.file_utils as futils
 from atomsci.ddm.utils import llnl_utils
+import pytest
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 import integrative_utilities
@@ -212,6 +213,7 @@ def H1_init():
 
 # Train and Predict
 # -----
+@pytest.mark.skipif(os.environ.get("ENABLE_LIVERMORE") is None, reason="GPU required")
 def test_reg_config_H1_fit_AttentiveFPModel():
     if not llnl_utils.is_lc_system():
         assert True
@@ -228,6 +230,7 @@ def test_reg_config_H1_fit_AttentiveFPModel():
     verify_saved_params(json_f, re_tar_f)
 
 # -----
+@pytest.mark.skipif(os.environ.get("ENABLE_LIVERMORE") is None, reason="GPU required")
 def test_reg_config_H1_fit_GCNModel():
     if not llnl_utils.is_lc_system():
         assert True
@@ -244,6 +247,7 @@ def test_reg_config_H1_fit_GCNModel():
     verify_saved_params(json_f, re_tar_f)
 
 # -----
+@pytest.mark.skipif(os.environ.get("ENABLE_LIVERMORE") is None, reason="GPU required")
 def test_reg_config_H1_fit_MPNNModel():
     if not llnl_utils.is_lc_system():
         assert True
@@ -259,6 +263,7 @@ def test_reg_config_H1_fit_MPNNModel():
 
     verify_saved_params(json_f, re_tar_f)
 
+@pytest.mark.skipif(os.environ.get("ENABLE_LIVERMORE") is None, reason="GPU required")
 def test_reg_config_H1_fit_GraphConvModel():
     if not llnl_utils.is_lc_system():
         assert True
@@ -274,6 +279,7 @@ def test_reg_config_H1_fit_GraphConvModel():
 
     verify_saved_params(json_f, re_tar_f)
 
+@pytest.mark.skipif(os.environ.get("ENABLE_LIVERMORE") is None, reason="GPU required")
 def test_reg_config_H1_fit_PytorchMPNNModel():
     if not llnl_utils.is_lc_system():
         assert True

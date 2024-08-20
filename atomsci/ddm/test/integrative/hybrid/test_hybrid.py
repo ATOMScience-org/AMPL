@@ -11,6 +11,7 @@ from atomsci.ddm.pipeline import model_pipeline as mp
 from atomsci.ddm.utils import llnl_utils
 
 from sklearn.metrics import r2_score
+import pytest
 
 def clean():
     """Clean test files"""
@@ -20,16 +21,17 @@ def clean():
         if os.path.isfile("./output/"+f):
             os.remove("./output/"+f)
 
+@pytest.mark.skipif(os.environ.get("ENABLE_LIVERMORE") is None, reason="MOE required")
 def test():
     """Test full model pipeline: Curate data, fit model, and predict property for new compounds"""
-
-    # Clean
-    # -----
-    clean()
 
     if not llnl_utils.is_lc_system():
         assert True
         return
+    
+    # Clean
+    # -----
+    clean()
 
     # Run HyperOpt
     # ------------
