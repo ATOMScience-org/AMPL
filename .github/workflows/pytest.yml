@@ -4,6 +4,8 @@ on: [push]
 
 jobs:
   pytest-unit:
+    # TODO: Uncomment this when linter is in place
+    # needs: ruff
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -50,6 +52,7 @@ jobs:
       #   env:
       #     CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
   pytest-integrative-1:
+    needs: pytest-unit
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -97,6 +100,7 @@ jobs:
       #   env:
       #     CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
   pytest-integrative-2:
+    needs: pytest-unit
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -144,6 +148,7 @@ jobs:
       #   env:
       #     CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
   pytest-integrative-3:
+    needs: pytest-unit
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -191,6 +196,7 @@ jobs:
       #   env:
       #     CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
   pytest-integrative-4:
+    needs: pytest-unit
     runs-on: ubuntu-latest
     strategy:
       matrix:
