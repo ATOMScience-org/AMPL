@@ -2,7 +2,8 @@
 
 # set env
 export ENABLE_LIVERMORE=1
+BASEDIR=$(dirname $(realpath "$0"))
 
 # run unit tests
-cd unit
-pytest -s -v -m "skipif" 
+cd $BASEDIR/unit
+pytest -ra -v -m "skipif" 

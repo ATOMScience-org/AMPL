@@ -2,20 +2,23 @@
 
 # set env
 export ENABLE_LIVERMORE=1
+BASEDIR=$(dirname $(realpath "$0"))
 
 # run integrative
-cd integrative
+cd $BASEDIR/integrative
 
-# walk the directory tree and run pytest
-for f in *; do
-    if [ -d "$f" ] ; then
-         # look for the directories that contain test*.py. if found, cd into and run pytest
-         file=($f/test_*.py)
-         if [[ -f "$file" ]]; then
-            cd ${f}
-            echo "Testing $f"
-            pytest -s -v -m "skipif"
-            cd ..
-        fi
-    fi
+TEST_FILES="$(grep -l 'skipif' ./*/test*.py)"
+
+# split to array
+array=(${TEST_FILES//$'\n'/ })
+
+# iterate
+for i in "${!array[@]}"
+do
+    file="${array[i]}"
+    parentdir="$(dirname "$file")"
+    cd $parentdir
+    echo "Testing $file"
+    pytest -ra -v -m "skipif"
+    cd ..
 done
