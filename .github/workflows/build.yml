@@ -28,7 +28,6 @@ jobs:
         env:
           ENV: ${{ github.ref_name }}
           PLATFORM: gpu
-          IMAGE_REPO: kartstig/ampl
   build-cpu-image:
     runs-on: ubuntu-latest
     steps:
@@ -52,4 +51,3 @@ jobs:
         env:
           ENV: ${{ github.ref_name }}
           PLATFORM: cpu
-          IMAGE_REPO: kartstig/ampl
