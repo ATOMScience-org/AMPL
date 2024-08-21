@@ -1,0 +1,10 @@
+bokeh
+ipykernel
+jupyter
+maestrowf
+matplotlib
+matplotlib-venn
+pytest
+ruff
+seaborn>=0.13.0
+umap-learn

@@ -41,7 +41,7 @@ save-docker:
 # Build Docker image
 build-docker:
 	@echo "Building Docker image for $(PLATFORM)"
-	docker buildx build -t $(IMAGE_REPO):$(PLATFORM)-$(ENV) --build-arg ENV=$(ENV) --platform linux/amd64 -f Dockerfile.$(PLATFORM) .
+	docker buildx build -t $(IMAGE_REPO):$(PLATFORM)-$(ENV) --build-arg ENV=$(ENV) --platform linux/amd64,linux/arm64 -f Dockerfile.$(PLATFORM) .
 
 install: install-system
 
