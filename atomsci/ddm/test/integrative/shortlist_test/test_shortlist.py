@@ -10,6 +10,7 @@ import pandas as pd
 import tempfile
 import tarfile
 import json
+import pytest
 
 import atomsci.ddm.pipeline.parameter_parser as parse
 import atomsci.ddm.pipeline.compare_models as cm
@@ -167,29 +168,31 @@ def wait_to_finish(split_json, search_json, max_time=1200):
 
     return result_df
 
+@pytest.mark.skipif(os.environ.get("ENABLE_LIVERMORE") is None, reason="Slurm required")
 def test():
     """Test full model pipeline: Split data, featurize data, fit model, get results"""
-
+    if not llnl_utils.is_lc_system():
+        assert True
+        return
+    
     # Clean
     # -----
     clean()
-
+        
     # Init Data
     # -----
     init_data()
-
+        
     # Run shortlist hyperparam search
     # ------------
-    if llnl_utils.is_lc_system():
-        result_df = wait_to_finish("test_shortlist_split_config.json",
-            "test_shortlist_RF-NN-XG_hyperconfig.json", max_time=-1)
-        assert len(result_df) == 18 # Timed out
-    else:
-        assert True
-
+    result_df = wait_to_finish("test_shortlist_split_config.json",
+        "test_shortlist_RF-NN-XG_hyperconfig.json", max_time=-1)
+    assert len(result_df) == 18 # Timed out
+        
     # Clean
     # -----
     clean()
+
 
 def extract_split_uuid(tar_file):
     """Given a tar file, return split uuid used to train the model."""

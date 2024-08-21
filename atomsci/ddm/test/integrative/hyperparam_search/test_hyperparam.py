@@ -5,6 +5,7 @@ import json
 import subprocess
 import os
 import time
+import pytest
 
 import atomsci.ddm.pipeline.parameter_parser as parse
 import atomsci.ddm.pipeline.compare_models as cm
@@ -77,29 +78,33 @@ def wait_to_finish(json_file, max_time=600):
 
     return result_df
 
+@pytest.mark.skipif(os.environ.get("ENABLE_LIVERMORE") is None, reason="Slurm required")
 def test():
     """Test full model pipeline: Curate data, fit model, and predict property for new compounds"""
-
+    if not llnl_utils.is_lc_system():
+        assert True
+        return
+    
     # Clean
     # -----
     clean()
 
     # Run ECFP NN hyperparam search
     # ------------
-    if llnl_utils.is_lc_system():
-        result_df = wait_to_finish("nn_ecfp.json", max_time=-1)
-        assert not result_df is None # Timed out
-        assert max(result_df.loc[:,result_df.columns.str.contains("test_r2_score")].values) > 0.6 # should do at least this well. I saw values like 0.687
+
+    result_df = wait_to_finish("nn_ecfp.json", max_time=-1)
+    assert not result_df is None # Timed out
+    assert max(result_df.loc[:,result_df.columns.str.contains("test_r2_score")].values) > 0.6 # should do at least this well. I saw values like 0.687
     
-        # Run graphconv NN hyperparam search
-        result_df = wait_to_finish("nn_graphconv.json", max_time=-1)
-        assert not result_df is None # Timed out
-        assert max(result_df.loc[:,result_df.columns.str.contains("test_r2_score")].values) > 0.6 # should do at least this well. I saw values like 0.62
-    else:
-        assert True
+    # Run graphconv NN hyperparam search
+    result_df = wait_to_finish("nn_graphconv.json", max_time=-1)
+    assert not result_df is None # Timed out
+    assert max(result_df.loc[:,result_df.columns.str.contains("test_r2_score")].values) > 0.6 # should do at least this well. I saw values like 0.62
+    
     # Clean
     # -----
     clean()
+
 
 if __name__ == '__main__':
     test()

@@ -119,7 +119,6 @@ def wait_to_finish(maestro_run_command, max_time=600):
 @pytest.mark.skipif(os.environ.get("ENABLE_LIVERMORE") is None, reason="Slurm required")
 def test():
     """Test full model pipeline: Curate data, fit model, and predict property for new compounds"""
-
     if not llnl_utils.is_lc_system():
         assert True
         return
