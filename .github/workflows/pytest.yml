@@ -1,6 +1,6 @@
 name: ampl
 
-on: [push]
+on: [push, pull_request]
 
 jobs:
   pytest-unit:
