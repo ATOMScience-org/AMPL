@@ -1,3 +1,6 @@
+# Architecture
+ARCH ?= linux/amd64
+
 # Environment
 ENV ?= dev
 
@@ -32,7 +35,7 @@ pull-docker:
 
 # Push Docker image
 push-docker:
-	docker push $(IMAGE_REPO):$(PLATFORM)-$(ENV)
+	docker buildx build -t $(IMAGE_REPO):$(PLATFORM)-$(ENV) --build-arg ENV=$(ENV) --platform $(ARCH) --push -f Dockerfile.$(PLATFORM) .
 
 # Save Docker image
 save-docker:
@@ -41,7 +44,7 @@ save-docker:
 # Build Docker image
 build-docker:
 	@echo "Building Docker image for $(PLATFORM)"
-	docker buildx build -t $(IMAGE_REPO):$(PLATFORM)-$(ENV) --build-arg ENV=$(ENV) --platform linux/amd64,linux/arm64 -f Dockerfile.$(PLATFORM) .
+	docker buildx build -t $(IMAGE_REPO):$(PLATFORM)-$(ENV) --build-arg ENV=$(ENV) --platform $(ARCH) -f Dockerfile.$(PLATFORM) .
 
 install: install-system
 
