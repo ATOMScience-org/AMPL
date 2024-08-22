@@ -51,7 +51,9 @@ This Makefile is designed to manage Jupyter environments, Docker images, and the
 
 - **Testing and Linting:**
 
-  - `make pytest`: Run pytest within the Docker container.
+  - `make pytest`: Run all tests within the Docker container.
+  - `make pytest-unit`: Run unit tests within the Docker container.
+  - `make pytest-integrative`: Run integrative tests within the Docker container.
   - `make ruff`: Run the `ruff` linter.
   - `make ruff-fix`: Run the `ruff` linter and automatically fix issues.
 
