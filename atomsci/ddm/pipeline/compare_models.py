@@ -562,7 +562,7 @@ def get_best_models_info(col_names=None, bucket='public', pred_type="regression"
     if input_dset_keys is not None and shortlist_key is not None:
         raise ValueError("You can specify either shortlist_key or input_dset_keys but not both.")
     elif input_dset_keys is not None and shortlist_key is None:
-        if isinstance(input_dset_keys, str):
+        if type(input_dset_keys) is str:
             dset_keys = [input_dset_keys]
         else:
             dset_keys = input_dset_keys
@@ -583,12 +583,12 @@ def get_best_models_info(col_names=None, bucket='public', pred_type="regression"
                 col_names = shortlist['collection'].unique()
             if 'bucket' in shortlist.columns:
                 bucket = shortlist['bucket'].unique()
-    
+
     if mlmt_supported and col_names is not None:
         mlmt_client = dsf.initialize_model_tracker()
-        if isinstance(col_names, str):
+        if type(col_names) is str:
             col_names = [col_names]
-        if isinstance(bucket, str):
+        if type(bucket) is str:
             bucket=[bucket]
         # Get the best model over all collections for each dataset
         for dset_key in dset_keys:

@@ -217,7 +217,7 @@ def base_mol_from_smiles(orig_smiles, useIsomericSmiles=True, removeCharges=Fals
         str: Standardized salt-stripped SMILES string.
 
     """
-    if not isinstance(orig_smiles, str):
+    if type(orig_smiles) is not str:
         return None
     if len(orig_smiles) == 0:
         return None
@@ -286,7 +286,7 @@ def base_mol_from_inchi(inchi_str, useIsomericSmiles=True, removeCharges=False):
         str: Standardized salt-stripped SMILES string.
 
     """
-    if not isinstance(inchi_str, str):
+    if type(inchi_str) is not str:
         return None
     if len(inchi_str) == 0:
         return None
@@ -381,7 +381,7 @@ def _merge_values(values, strategy='list'):
     else:
         raise Exception('Unknown column merge strategy: %s' % (strategy) )
 
-    if isinstance(val, list) and len(val) == 1:
+    if type(val) is list and len(val) == 1:
         val = val[0]
     return val
 
@@ -453,7 +453,7 @@ def fix_moe_smiles(smiles):
     """
     protn_pat = re.compile(r'\[([cCBnNPS])([-\+])(@*)(H[1234]*)*\]')
     scalar = False
-    if isinstance(smiles, str):
+    if type(smiles) is str:
         smiles = [smiles]
         scalar = True
     fixed = []
@@ -508,7 +508,7 @@ def canonical_tautomers_from_smiles(smiles):
         (list of str) : List of SMILES strings for the canonical tautomers.
     """
     taut_enum = rdMolStandardize.TautomerEnumerator()
-    if isinstance(smiles, str):
+    if type(smiles) is str:
         smiles = [smiles]
     mols = [Chem.MolFromSmiles(smi) for smi in smiles]
     canon_tautomers = [taut_enum.Canonicalize(m) if m is not None else None for m in mols]
