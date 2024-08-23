@@ -24,7 +24,7 @@ from atomsci.ddm.utils import file_utils as futils
 logger = logging.getLogger('ATOM')
 mlmt_supported = True
 try:
-    from atomsci.clients import MLMTClient  # noqa: F401
+    from atomsci.clients import MLMTClient # noqa: F401
 except (ModuleNotFoundError, ImportError):
     logger.debug("Model tracker client not supported in your environment; can look at models in filesystem only.")
     mlmt_supported = False
