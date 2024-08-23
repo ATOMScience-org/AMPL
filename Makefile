@@ -17,7 +17,7 @@ JUPYTER_PORT ?= 8888
 PYTHON_BIN ?= $(shell which python)
 
 # Virtual Environment
-VENV ?= venv
+VENV ?= atomsci-env
 
 # Work Directory
 WORK_DIR ?= work
@@ -97,7 +97,7 @@ pytest-integrative:
 pytest-unit:
 	@echo "Running unit tests"
 	docker run -v $(shell pwd)/$(WORK_DIR):/$(WORK_DIR) $(IMAGE_REPO):$(PLATFORM)-$(ENV) \
-			/bin/bash -l -c "cd atomsci/ddm/test/unit && python3.9 -m pytest -n $(shell nproc) --capture=sys --capture=fd --cov=atomsci/ -vv"
+			/bin/bash -l -c "cd atomsci/ddm/test/unit && python3.9 -m pytest --capture=sys --capture=fd --cov=atomsci/ -vv"
 
 # Run ruff linter
 ruff:
@@ -108,6 +108,9 @@ ruff:
 ruff-fix:
 	@echo "Running ruff with fix"
 	docker run -it $(IMAGE_REPO):$(PLATFORM)-$(ENV) /bin/bash -l -c "ruff check . --fix"
+
+shell:
+	docker run -v $(shell pwd)/../$(WORK_DIR):/$(WORK_DIR) -it $(IMAGE_REPO):$(PLATFORM)-$(ENV) /bin/bash
 
 # Setup virtual environment and install dependencies
 setup:
