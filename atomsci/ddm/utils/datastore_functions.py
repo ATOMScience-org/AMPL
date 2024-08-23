@@ -754,7 +754,6 @@ def retrieve_columns_from_dataset (bucket, dataset_key, client=None, max_rows=0,
 
     return selected_columns
 
-
 #------------------------------------
 
 def filter_datasets_interactive (bucket='all', client=None, save_search=False, restrict_key=True, restrict_value=False, dataset_oid_only=False, display_all_columns=False, max_rows=10):
@@ -872,7 +871,6 @@ def filter_datasets_interactive (bucket='all', client=None, save_search=False, r
         print('Select a key from the following list:')
         if restrict_key:
             unique_keys = list(set(unique_keys) & set(approved_keys))
-        _labels = [('keys')]
         unique_keys = sorted(unique_keys, key = str.lower)
 
         example_val_list=[]
@@ -1048,7 +1046,7 @@ def summarize_datasets(dataset_keys, bucket, client=None, column=None, save_as=N
     ax = fig.add_subplot(111)
 
         # Create the boxplot
-    _bp = ax.boxplot(data_to_plot)
+    ax.boxplot(data_to_plot)
 
     if labels:
         # Set x-labels for boxplot

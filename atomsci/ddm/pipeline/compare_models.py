@@ -1260,7 +1260,6 @@ def get_summary_perf_tables(collection_names=None, filter_dict={}, result_dir=No
             bucket = metadata_dict['training_dataset']['bucket']
             dataset_key_list.append(dataset_key)
             bucket_list.append(bucket)
-            _dset_metadata = metadata_dict['training_dataset']['dataset_metadata']
             param = metadata_dict['training_dataset']['response_cols'][0]
             param_list.append(param)
             transform_type = metadata_dict['training_dataset']['feature_transform_type']
@@ -1372,7 +1371,6 @@ def get_summary_metadata_table(uuids, collections=None):
         collections = [collections] * len(uuids)
 
     mlist = []
-    # mlmt_client = dsf.initialize_model_tracker()
     for idx,uuid in enumerate(uuids):
         if collections is not None:
             collection_name = collections[idx]
@@ -2039,7 +2037,6 @@ def get_multitask_perf_from_tracker(collection_name, response_cols=None, expand_
         tempdf=pd.DataFrame.from_records(nonas[column].tolist(), index=nonas.index)
         tempdf=pd.concat([tempdf, pd.DataFrame(np.nan, index=nai, columns=tempdf.columns)])
         label=tempdf['label'][nonas.index[0]]
-        _metrics_type=tempdf['metrics_type'][nonas.index[0]]
         subset=tempdf['subset'][nonas.index[0]]
         nai=tempdf[tempdf['prediction_results'].isna()].index
         nonas=tempdf[~tempdf['prediction_results'].isna()]
@@ -2130,7 +2127,7 @@ def _aggregate_predictions(datasets, bucket, col_names, result_dir):
         return
 
     results = []
-    _mlmt_client = dsf.initialize_model_tracker()
+    dsf.initialize_model_tracker()
     for dset_key, bucket in datasets:
         for model_type in ['NN', 'RF']:
             for split_type in ['scaffold', 'random']:

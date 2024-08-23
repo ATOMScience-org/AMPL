@@ -270,11 +270,6 @@ class NormalizationTransformerMissingData(NormalizationTransformer):
         elif self.transform_y:
             y_stds = self.y_stds
             y_means = self.y_means
-            # Handle case with 1 task correctly
-            if len(self.y_stds.shape) == 0:
-                _n_tasks = 1
-            else:
-                _n_tasks = self.y_stds.shape[0]
             z_shape = list(z.shape)
             # Get the reversed shape of z: (..., n_tasks, batch_size)
             z_shape.reverse()
