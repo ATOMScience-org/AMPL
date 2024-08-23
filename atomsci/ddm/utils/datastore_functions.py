@@ -1736,7 +1736,7 @@ def search_files_interactive (bucket='all', client=None, to_return='df', display
 
     values_valid=False
     operator='in'
-    while values_valid is False:
+    while not values_valid:
         invalid_value = False
         value = input('Enter value(s) (comma separated for multiple values):  ')
 
@@ -1769,10 +1769,10 @@ def search_files_interactive (bucket='all', client=None, to_return='df', display
             if value not in values_for_key:
                 invalid_value = True
                 print('value %s is not valid ' %value)
-        if invalid_value is False:
+        if not invalid_value:
             values_valid = True
 
-    #save key and value(s) searched
+    # save key and value(s) searched
     search_criteria.append({'key': input_key, 'value': [value], 'operator': "in"})
 
     # return dataframe of datasets meeting user specified criteria
@@ -1837,7 +1837,7 @@ def search_files_interactive (bucket='all', client=None, to_return='df', display
         print("")
         ##
         values_valid=False
-        while values_valid is False:
+        while not values_valid:
             invalid_value = False
             new_value = input("Enter value(s) (comma separated for multiple values) or Enter 'change key' to change the key':  ")
             if new_value == "change key":
@@ -1882,7 +1882,7 @@ def search_files_interactive (bucket='all', client=None, to_return='df', display
                 if value not in values_for_key:
                     invalid_value = True
                     print('value %s is not valid ' %value)
-            if invalid_value is False:
+            if not invalid_value:
                 values_valid = True
         print('values selected =', new_value, type(new_value))
 

@@ -673,7 +673,7 @@ def parse_config_file(config_file_path):
             flat_dict[vals] = flat_dict.pop(key)
 
     #dictionary comprehension that retains only the keys that are in the accepted list of parameters
-    hyperparam = 'hyperparam' in orig_keys and flat_dict['hyperparam'] is True
+    hyperparam = 'hyperparam' in orig_keys and flat_dict['hyperparam']
     newdict = remove_unrecognized_arguments(flat_dict, hyperparam)
 
     newdict['config_file'] = config_file_path
@@ -794,13 +794,13 @@ def dict_to_list(inp_dictionary,replace_spaces=False):
             elif isinstance(value, list):
                 sep = ","
                 newval = sep.join([str(item) for item in value])
-                if replace_spaces is True:
+                if replace_spaces:
                     temp_list_to_command_line.append(newval.replace(" ",replace_spaces_str))
                 else:
                     temp_list_to_command_line.append(newval)
             else:
                 newval = str(value)
-                if replace_spaces is True:
+                if replace_spaces:
                     temp_list_to_command_line.append(newval.replace(" ",replace_spaces_str))
                 else:
                     temp_list_to_command_line.append(newval)
