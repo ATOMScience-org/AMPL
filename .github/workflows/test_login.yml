@@ -1,0 +1,16 @@
+name: ci
+
+on:
+  push:
+    branches: 1.6.3_prep
+
+jobs:
+  login:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_HUB_USER}}
+          password: ${{ secrets.DOCKER_HUB_TOKEN }}
