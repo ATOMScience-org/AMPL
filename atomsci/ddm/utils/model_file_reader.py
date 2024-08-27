@@ -221,7 +221,7 @@ class ModelFileReader:
             model_dict['bucket'] = self.pparams.bucket
             ds_client = dsf.config_client()
             try:
-                _ds_dset = ds_client.ds_datasets.get_bucket_dataset(bucket_name=self.pparams.bucket, dataset_key=self.pparams.dataset_key).result()
+                ds_client.ds_datasets.get_bucket_dataset(bucket_name=self.pparams.bucket, dataset_key=self.pparams.dataset_key).result()
                 model_dict['dataset_available'] = True
             except HTTPNotFound:
                 model_dict['dataset_available'] = False

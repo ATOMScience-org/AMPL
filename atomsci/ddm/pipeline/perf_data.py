@@ -680,7 +680,6 @@ class ClassificationPerfData(PerfData):
                 task_real_vals = real_vals[nzrows,i,:]
                 task_class_probs = class_probs[nzrows,i,:]
                 task_real_classes = np.argmax(task_real_vals, axis=1)
-                _task_pred_classes = np.argmax(task_class_probs, axis=1)
             else:
                 # sklearn metrics functions are expecting single array of 1s and 0s for task_real_vals
                 # and task_class_probs for class 1 only
@@ -726,13 +725,9 @@ class ClassificationPerfData(PerfData):
         real_vals = self.get_real_values(ids)
         weights = self.get_weights(ids)
         if self.num_classes > 2:
-            _real_val_list = [real_vals[:,i,:] for i in range(self.num_tasks)]
-            _class_prob_list = [class_probs[:,i,:] for i in range(self.num_tasks)]
             real_classes = np.argmax(real_vals, axis=2)
         else:
             real_classes = real_vals
-            _real_val_list = [real_vals[:,i] for i in range(self.num_tasks)]
-            _class_prob_list = [class_probs[:,i,1] for i in range(self.num_tasks)]
 
         # Get the mean and SD of ROC AUC scores over folds. If only single fold training was done, the SD will be None.
         roc_auc_means, roc_auc_stds = self.compute_perf_metrics(per_task=True)

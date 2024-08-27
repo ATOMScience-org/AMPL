@@ -178,7 +178,7 @@ def retrieve_keys(bucket='all', client=None, sort=True):
         logger.info('retrieving keys for all buckets...')
         keys = client.ds_metadef.get_metadata_keys().result()
     else:
-        if isinstance(bucket, str):
+        if type(bucket) is str:
             bucket = [bucket]
 
         # check if requested buckets are valid bucket names
@@ -217,14 +217,14 @@ def key_exists(key, bucket='all', client=None):
     if client is None:
         client = config_client()
 
-    if not isinstance(key, str):
+    if type(key) is not str:
         raise ValueError("'key' must be a string")
 
     if bucket == 'all':
         # generate list of valid keys for all buckets
         keys = client.ds_metadef.get_metadata_keys().result()
     else:
-        if isinstance(bucket, str):
+        if type(bucket) is str:
             bucket = [bucket]
 
          # check if requested buckets are valid bucket names
@@ -263,7 +263,7 @@ def retrieve_values_for_key(key, bucket='all', client=None):
     if client is None:
         client = config_client()
 
-    if not isinstance(key, str):
+    if type(key) is not str:
         raise ValueError('key must be a string')
 
     if bucket == 'all':
@@ -277,7 +277,7 @@ def retrieve_values_for_key(key, bucket='all', client=None):
         values = values['values']
 
     else:
-        if isinstance(bucket, str):
+        if type(bucket) is str:
             bucket = [bucket]
 
         # evaluate if bucket name is valid
@@ -415,7 +415,7 @@ def retrieve_dataset_by_datasetkey(dataset_key, bucket, client=None, return_meta
         # pickle file. Open in binary.
         fp = client.open_bucket_dataset (bucket, dataset_key, mode='b')
         dataset = pickle.load(fp)
-        if isinstance(dataset, bytes):
+        if type(dataset) is bytes:
             dataset = pickle.loads(dataset)
         fp.close()
 
@@ -548,7 +548,7 @@ def retrieve_dataset_by_dataset_oid(dataset_oid, client=None, return_metadata=Fa
         # pickle file. Open in binary
         fp = client.open_dataset (dataset_oid, mode='b')
         dataset = pickle.load(fp)
-        if isinstance(dataset, bytes):
+        if type(dataset) is bytes:
             dataset = pickle.loads(dataset)
         fp.close()
 
@@ -613,10 +613,10 @@ def search_datasets_by_key_value(key, value, client=None, operator='in', bucket=
     if client is None:
         client = config_client()
 
-    if not isinstance(key, str):
+    if type(key) is not str:
         raise ValueError('key must be a string')
 
-    if not isinstance(value, list):
+    if type(value) is not list:
         value = [value]
     metadata = json.dumps([ {'key': key, 'value': value, 'operator': operator} ])
 
@@ -628,7 +628,7 @@ def search_datasets_by_key_value(key, value, client=None, operator='in', bucket=
 
         datasets = client.ds_datasets.get_datasets(metadata=metadata).result()
     else:
-        if not isinstance(bucket, list):
+        if type(bucket) is not list:
             bucket = [bucket]
 
         # evaluate if bucket name is valid
@@ -754,7 +754,6 @@ def retrieve_columns_from_dataset (bucket, dataset_key, client=None, max_rows=0,
 
     return selected_columns
 
-
 #------------------------------------
 
 def filter_datasets_interactive (bucket='all', client=None, save_search=False, restrict_key=True, restrict_value=False, dataset_oid_only=False, display_all_columns=False, max_rows=10):
@@ -872,7 +871,6 @@ def filter_datasets_interactive (bucket='all', client=None, save_search=False, r
         print('Select a key from the following list:')
         if restrict_key:
             unique_keys = list(set(unique_keys) & set(approved_keys))
-        _labels = [('keys')]
         unique_keys = sorted(unique_keys, key = str.lower)
 
         example_val_list=[]
@@ -985,7 +983,7 @@ def summarize_datasets(dataset_keys, bucket, client=None, column=None, save_as=N
     if client is None:
         client = config_client()
 
-    if not isinstance(dataset_keys, list):
+    if type(dataset_keys) is not list:
         dataset_keys = [dataset_keys]
     i=0
 
@@ -1048,7 +1046,7 @@ def summarize_datasets(dataset_keys, bucket, client=None, column=None, save_as=N
     ax = fig.add_subplot(111)
 
         # Create the boxplot
-    _bp = ax.boxplot(data_to_plot)
+    ax.boxplot(data_to_plot)
 
     if labels:
         # Set x-labels for boxplot
@@ -1113,10 +1111,10 @@ def check_key_val(key_values, client=None, df=None, enforced=True):
         # check that specified values are valid for given key
         if len(kv_lookup[key].unique()) > 1 :
             values = key_values.get(key)
-            if not isinstance(values, list):
+            if type(values) is not list:
                 values = [values]
             for value in values:
-                if any(kv_lookup[key] == value) is not True:
+                if not(any(kv_lookup[key] == value)):
                     raise ValueError('value=%s invalid' %value,'valid values for key=%s include:' %key, list(kv_lookup[key].unique()))
 
         # when applicable, check that the values input for id_col, smiles_col, and response_col are all headings that exist
@@ -1191,7 +1189,7 @@ def upload_file_to_DS(bucket, title, description, tags, key_values, filepath, fi
 
     filepath = os.path.join(filepath,filename)
 
-    if not isinstance(key_values, dict):
+    if type(key_values) is not dict:
         raise ValueError('key_values must be a dictionary')
 
     if not override_check:
@@ -1282,7 +1280,7 @@ def upload_df_to_DS(df, bucket, filename, title, description, tags, key_values, 
     if client is None:
         client = config_client()
 
-    if not isinstance(key_values, dict):
+    if type(key_values) is not dict:
         raise ValueError('key_values must be a dictionary')
 
     if not override_check:
@@ -1361,7 +1359,7 @@ def update_kv(bucket, dataset_key, client=None, kv_add=None, kv_del=None, return
 
     # if kv_add is specified check to make sure format is right, then upload new keys:values
     if kv_add is not None:
-        if not isinstance(kv_add, dict):
+        if type(kv_add) is not dict:
             raise ValueError('kv_add must be a dictionary')
 
         modified_dataset = {
@@ -1372,10 +1370,10 @@ def update_kv(bucket, dataset_key, client=None, kv_add=None, kv_del=None, return
 
     # if kv_del is specified check to make sure format is right, then upload deletion of the keys specified
     if kv_del is not None:
-        if not isinstance(kv_del, str) and not isinstance(kv_del, list):
+        if type(kv_del) is not str and type(kv_del) is not list:
             raise ValueError('kv_del must be a string or list')
 
-        if not isinstance(kv_del, list):
+        if type(kv_del) is not list:
             kv_del = [kv_del]
 
         del_list = []
@@ -1424,7 +1422,7 @@ def update_distribution_kv(bucket, dataset_key, client=None, kv_add=None, kv_del
 
     # if kv_add is specified check to make sure format is right, then upload new keys:values
     if kv_add is not None:
-        if not isinstance(kv_add, dict):
+        if type(kv_add) is not dict:
             raise ValueError('kv_add must be a dictionary')
 
         modified_dataset = {
@@ -1435,10 +1433,10 @@ def update_distribution_kv(bucket, dataset_key, client=None, kv_add=None, kv_del
 
     # if kv_del is specified check to make sure format is right, then upload deletion of the keys specified
     if kv_del is not None:
-        if not isinstance(kv_del, str) and not isinstance(kv_del, list):
+        if type(kv_del) is not str and type(kv_del) is not list:
             raise ValueError('kv_del must be a string or list')
 
-        if not isinstance(kv_del, list):
+        if type(kv_del) is not list:
             kv_del = [kv_del]
 
         del_list = []
@@ -1584,7 +1582,7 @@ def upload_pickle_to_DS(data, bucket, filename, title, description, tags, key_va
     if client is None:
         client = config_client()
 
-    if not isinstance(key_values, dict):
+    if type(key_values) is not dict:
         raise ValueError('key_values must be a dictionary')
 
     if not override_check:
@@ -1602,7 +1600,7 @@ def upload_pickle_to_DS(data, bucket, filename, title, description, tags, key_va
     if dataset_key is None:
         dataset_key = bucket +'_'+ filename
 
-    if not isinstance(data, bytes):
+    if type(data) is not bytes:
         fileObj= pickle.dumps(data)
     else:
         fileObj = data
@@ -1738,7 +1736,7 @@ def search_files_interactive (bucket='all', client=None, to_return='df', display
 
     values_valid=False
     operator='in'
-    while values_valid is False:
+    while not values_valid:
         invalid_value = False
         value = input('Enter value(s) (comma separated for multiple values):  ')
 
@@ -1771,10 +1769,10 @@ def search_files_interactive (bucket='all', client=None, to_return='df', display
             if value not in values_for_key:
                 invalid_value = True
                 print('value %s is not valid ' %value)
-        if invalid_value is False:
+        if not invalid_value:
             values_valid = True
 
-    #save key and value(s) searched
+    # save key and value(s) searched
     search_criteria.append({'key': input_key, 'value': [value], 'operator': "in"})
 
     # return dataframe of datasets meeting user specified criteria
@@ -1839,7 +1837,7 @@ def search_files_interactive (bucket='all', client=None, to_return='df', display
         print("")
         ##
         values_valid=False
-        while values_valid is False:
+        while not values_valid:
             invalid_value = False
             new_value = input("Enter value(s) (comma separated for multiple values) or Enter 'change key' to change the key':  ")
             if new_value == "change key":
@@ -1884,7 +1882,7 @@ def search_files_interactive (bucket='all', client=None, to_return='df', display
                 if value not in values_for_key:
                     invalid_value = True
                     print('value %s is not valid ' %value)
-            if invalid_value is False:
+            if not invalid_value:
                 values_valid = True
         print('values selected =', new_value, type(new_value))
 
@@ -1963,13 +1961,13 @@ def bulk_export_kv_for_files(files, save_as, client=None):
     if client is None:
         client = config_client()
 
-    if not isinstance(files, list):
+    if type(files) is not list:
         raise ValueError(" 'files' must be a list")
 
     file_list = []
     summary = []
     for item in files:
-        if not isinstance(item, tuple):
+        if type(item) is not tuple:
             raise ValueError("each item in 'files' must be a tuple formatted (bucket, dataset_key)")
         bucket=item[0]
         dataset_key=item[1]
@@ -2025,13 +2023,13 @@ def bulk_update_kv(file, client=None, i=0):
         dataset_key=row[1]
         kv_add=row[2]
         print('i =', i, 'dataset_key = ', dataset_key)
-        if isinstance(kv_add, str):
+        if type(kv_add) is str:
             kv_add=string_to_dict(kv_add)
             len_add = len(kv_add)
         else:
             len_add = 0
         kv_del=row[3]
-        if isinstance(kv_del, str):
+        if type(kv_del) is str:
             kv_del=string_to_list(kv_del)
             len_del = len(kv_del)
         else:
@@ -2094,13 +2092,13 @@ def copy_datasets_to_bucket(dataset_keys, from_bucket, to_bucket, ds_client=None
     if ds_client is None:
         ds_client = config_client()
 
-    if isinstance(dataset_keys, str):
+    if type(dataset_keys) is str:
         dataset_keys = [dataset_keys]
 
     # Copy each dataset
     for dataset_key in dataset_keys:
         try:
-            _ds_meta = ds_client.ds_datasets.copy_dataset(bucket_name=from_bucket, dataset_key=dataset_key, to_bucket_name=to_bucket).result()
+            ds_client.ds_datasets.copy_dataset(bucket_name=from_bucket, dataset_key=dataset_key, to_bucket_name=to_bucket).result()
         except Exception as e:
             print('Error copying dataset %s\nfrom bucket %s to %s' % (dataset_key, from_bucket, to_bucket))
             print(e)
