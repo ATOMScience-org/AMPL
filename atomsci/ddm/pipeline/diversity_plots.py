@@ -11,16 +11,12 @@ import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 import logging
-import argparse
 from rdkit import Chem
 from rdkit.Chem import AllChem, Draw
 
 from atomsci.ddm.utils import struct_utils
 from atomsci.ddm.pipeline import dist_metrics as dm
 from atomsci.ddm.pipeline import  chem_diversity as cd
-from atomsci.ddm.pipeline import  parameter_parser as parse
-from atomsci.ddm.pipeline import  model_datasets as md
-from atomsci.ddm.pipeline import  featurization as feat
 from atomsci.ddm.utils import datastore_functions as dsf
 
 #matplotlib.style.use('ggplot')
