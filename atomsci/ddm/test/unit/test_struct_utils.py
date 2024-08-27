@@ -97,7 +97,17 @@ def test_base_mol_from_smiles():
 
     _ = su.base_mol_from_smiles(test_smiles[0], removeCharges=True)
 
-    _ = su.base_mol_from_smiles(['asdf'], removeCharges=True)
+    result = su.base_mol_from_smiles(['asdf'], removeCharges=True)
+    assert result is None
+
+    result = su.base_mol_from_smiles(True)
+    assert result is None
+
+    result = su.base_mol_from_smiles(True)
+    assert result is None
+
+    result = su.base_mol_from_smiles('')
+    assert result is None
 
 def test_base_mol_smiles_from_inchi():
     test_inchis = ['InChI=1S/C6H8O6/c7-1-2(8)5-3(9)4(10)6(11)12-5/h2,5,7-10H,1H2/t2-,5+/m0/s1',
@@ -113,6 +123,12 @@ def test_base_mol_smiles_from_inchi():
                 useIsomericSmiles=False,
                 removeCharges=True)
     assert results==['O=C1OC(C(O)CO)C(O)=C1O', 'CCO']
+
+    result = su.base_mol_from_inchi(True)
+    assert result is None
+
+    result = su.base_mol_from_inchi('')
+    assert result is None
 
 def test_draw_structure():
     test_png_path = 'draw_structure.png'

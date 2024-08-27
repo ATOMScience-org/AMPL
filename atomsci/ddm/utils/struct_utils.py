@@ -8,6 +8,7 @@ molecules.
 import re
 import numpy as np
 import molvs
+import logging
 
 from rdkit import Chem
 from rdkit.Chem import AllChem, Draw, Descriptors
@@ -318,7 +319,8 @@ def draw_structure(smiles_str, image_path, image_size=500):
     """
     mol = Chem.MolFromSmiles(smiles_str)
     if mol is None:
-        print(("Unable to read original SMILES for %s" % smiles_str))
+        log = logging.getLogger('ATOM')
+        log.warning(f"Unable to read original SMILES for {smiles_str}")
     else:
         _discard = AllChem.Compute2DCoords(mol)
         Draw.MolToFile(mol, image_path, size=(image_size, image_size), fitImage=False)
