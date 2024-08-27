@@ -145,7 +145,7 @@ def base_feature_importance(model_pipeline=None, params=None):
     the columns will include the mean decrease in impurity (MDI) of each feature, computed by the scikit-learn
     feature_importances_ function. See the scikit-learn documentation for warnings about interpreting the MDI
     importance. For all models, the returned data frame will include feature names, means and standard deviations
-    for each feature.
+    for each feature. The importances are calculated using only the training subset of the data.
 
     This function has been tested on RFs and NNs with rdkit descriptors. Other models and feature combinations
     may not be supported.
@@ -193,8 +193,7 @@ def base_feature_importance(model_pipeline=None, params=None):
     imp_df = pd.DataFrame({'feature': features})
 
     # Get the training, validation and test sets (we assume we're not using K-fold CV). These are DeepChem Dataset objects.
-    (train_dset, valid_dset) = model_data.train_valid_dsets[0]
-    _test_dset = model_data.test_dset
+    (train_dset, _valid_dset) = model_data.train_valid_dsets[0]
 
     imp_df['mean_value'] = train_dset.X.mean(axis=0)
     imp_df['std_value'] = train_dset.X.std(axis=0)
