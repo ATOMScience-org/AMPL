@@ -68,12 +68,14 @@ jupyter-notebook:
 	@echo "Starting Jupyter Notebook"
 ifdef host
 	docker run -p $(JUPYTER_PORT):$(JUPYTER_PORT) \
+	  --gpus all \
 		--hostname $(host) \
 		--privileged \
 		-v $(shell pwd)/../$(WORK_DIR):/$(WORK_DIR) $(IMAGE_REPO):$(PLATFORM)-$(ENV) \
 		/bin/bash -l -c "jupyter-notebook --ip=0.0.0.0 --no-browser --allow-root --port=$(JUPYTER_PORT)"
 else
 	docker run -p $(JUPYTER_PORT):$(JUPYTER_PORT) \
+		--gpus all \
 		-v $(shell pwd)/../$(WORK_DIR):/$(WORK_DIR) $(IMAGE_REPO):$(PLATFORM)-$(ENV) \
 		/bin/bash -l -c "jupyter-notebook --ip=0.0.0.0 --no-browser --allow-root --port=$(JUPYTER_PORT)"
 endif
