@@ -24,16 +24,21 @@ RUN pip install -U pip && \
   -r ./pip/cuda_requirements.txt
 
 COPY ./pip/dev_requirements.txt ./pip/dev_requirements.txt
-COPY install_dev_dependencies.sh .
-RUN chmod +x install_dev_dependencies.sh
-ARG ENV=dev
-RUN ./install_dev_dependencies.sh $ENV
+RUN pip install -U pip && \
+  pip install --no-cache-dir \
+  --trusted-host pypi.python.org \
+  --trusted-host files.pythonhosted.org \
+  --trusted-host pypi.org \
+  --trusted-host data.dgl.ai \
+  --trusted-host download.pytorch.org \
+  -r ./pip/dev_requirements.txt
 
 COPY setup.py .
 COPY VERSION .
 COPY build.sh .
 COPY ./atomsci atomsci/
 
+# Install atomsci-ampl
 RUN ./build.sh
 RUN pip install -e .
 
