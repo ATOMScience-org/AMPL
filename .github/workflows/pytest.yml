@@ -1,6 +1,6 @@
 name: ampl
 
-on: [push]
+on: [push, pull_request]
 
 jobs:
   pytest-unit:
@@ -36,7 +36,6 @@ jobs:
           pip install -e .
           if [ -f pip/cpu_requirements.txt ]; then pip install -r pip/cpu_requirements.txt; fi
           if [ -f pip/dev_requirements.txt ]; then pip install -r pip/dev_requirements.txt; fi
-          if [ -f pip/ci_requirements.txt ]; then pip install -r pip/ci_requirements.txt; fi
 
       - name: pytest
         run: |
@@ -82,7 +81,6 @@ jobs:
           pip install -e .
           if [ -f pip/cpu_requirements.txt ]; then pip install -r pip/cpu_requirements.txt; fi
           if [ -f pip/dev_requirements.txt ]; then pip install -r pip/dev_requirements.txt; fi
-          if [ -f pip/ci_requirements.txt ]; then pip install -r pip/ci_requirements.txt; fi
 
       - name: pytest
         run: |
@@ -129,7 +127,6 @@ jobs:
           pip install -e .
           if [ -f pip/cpu_requirements.txt ]; then pip install -r pip/cpu_requirements.txt; fi
           if [ -f pip/dev_requirements.txt ]; then pip install -r pip/dev_requirements.txt; fi
-          if [ -f pip/ci_requirements.txt ]; then pip install -r pip/ci_requirements.txt; fi
 
       - name: pytest
         run: |
@@ -176,7 +173,6 @@ jobs:
           pip install -e .
           if [ -f pip/cpu_requirements.txt ]; then pip install -r pip/cpu_requirements.txt; fi
           if [ -f pip/dev_requirements.txt ]; then pip install -r pip/dev_requirements.txt; fi
-          if [ -f pip/ci_requirements.txt ]; then pip install -r pip/ci_requirements.txt; fi
 
       - name: pytest
         run: |
@@ -223,7 +219,6 @@ jobs:
           pip install -e .
           if [ -f pip/cpu_requirements.txt ]; then pip install -r pip/cpu_requirements.txt; fi
           if [ -f pip/dev_requirements.txt ]; then pip install -r pip/dev_requirements.txt; fi
-          if [ -f pip/ci_requirements.txt ]; then pip install -r pip/ci_requirements.txt; fi
 
       - name: pytest
         run: |
