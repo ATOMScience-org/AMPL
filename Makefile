@@ -1,5 +1,9 @@
 # Architecture
-ARCH ?= linux/amd64
+ARCH ?=
+# Conditionally set PLATFORM_ARG if ARCH is provided
+ifneq ($(ARCH),)
+    PLATFORM_ARG = --platform $(ARCH)
+endif
 
 # Environment
 ENV ?= dev
@@ -35,7 +39,7 @@ pull-docker:
 
 # Push Docker image
 push-docker:
-	docker buildx build -t $(IMAGE_REPO):$(PLATFORM)-$(ENV) --build-arg ENV=$(ENV) --platform $(ARCH) --push -f Dockerfile.$(PLATFORM) .
+	docker buildx build -t $(IMAGE_REPO):$(PLATFORM)-$(ENV) --build-arg ENV=$(ENV) $(PLATFORM_ARG) --push -f Dockerfile.$(PLATFORM) .
 
 # Save Docker image
 save-docker:
@@ -44,7 +48,7 @@ save-docker:
 # Build Docker image
 build-docker:
 	@echo "Building Docker image for $(PLATFORM)"
-	docker buildx build -t $(IMAGE_REPO):$(PLATFORM)-$(ENV) --build-arg ENV=$(ENV) --platform $(ARCH) --load -f Dockerfile.$(PLATFORM) .
+	docker buildx build -t $(IMAGE_REPO):$(PLATFORM)-$(ENV) --build-arg ENV=$(ENV) $(PLATFORM_ARG) --load -f Dockerfile.$(PLATFORM) .
 
 install: install-system
 
