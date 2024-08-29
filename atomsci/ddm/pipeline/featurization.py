@@ -1,17 +1,13 @@
 """Classes providing different methods of featurizing compounds and other data entities"""
-
+import collections
 import logging
 import os
-import sys
 import tempfile
-import pdb
 import time
 
 import numpy as np
 import deepchem as dc
 import pandas as pd
-import deepchem.data.data_loader as dl
-from deepchem.data import NumpyDataset
 
 from atomsci.ddm.utils import datastore_functions as dsf
 from atomsci.ddm.pipeline import transformations as trans
@@ -28,11 +24,9 @@ from rdkit.ML.Descriptors import MoleculeDescriptors
 
 subclassed_mordred_classes = ['EState', 'MolecularDistanceEdge']
 try:
-    from mordred import Calculator, descriptors, get_descriptors_from_module
+    from mordred import Calculator, descriptors
     from mordred.EState import AtomTypeEState, AggrType
     from mordred.MolecularDistanceEdge import MolecularDistanceEdge
-    from mordred import BalabanJ, BertzCT, HydrogenBond, MoeType, RotatableBond, SLogP, TopoPSA
-    #rdkit_desc_mods = [BalabanJ, BertzCT, HydrogenBond, MoeType, RotatableBond, SLogP, TopoPSA]
     mordred_supported = True
 except ImportError:
     mordred_supported = False
@@ -51,7 +45,7 @@ except (ImportError, AttributeError, ModuleNotFoundError):
 #except ImportError:
 #    pass
 
-import collections
+
 
 logging.basicConfig(format='%(asctime)-15s %(message)s')
 log = logging.getLogger('ATOM')
@@ -393,7 +387,7 @@ def get_mordred_calculator(exclude=subclassed_mordred_classes, ignore_3D=False):
     calc = Calculator(ignore_3D=ignore_3D)
     exclude = ['mordred.%s' % mod for mod in exclude]
     for desc_mod in descriptors.all:
-        if not desc_mod.__name__ in exclude:
+        if desc_mod.__name__ not in exclude:
             calc.register(desc_mod, ignore_3D=ignore_3D)
     calc.register(ATOMAtomTypeEState)
     calc.register(ATOMMolecularDistanceEdge)
@@ -1185,7 +1179,7 @@ class DescriptorFeaturization(PersistentFeaturization):
         else:
             try:
                 ds_client = dsf.config_client()
-            except Exception as e:
+            except Exception:
                 ds_client = None
         cls.desc_type_cols = {}
         cls.desc_type_scaled = {}
@@ -1208,7 +1202,7 @@ class DescriptorFeaturization(PersistentFeaturization):
             # Try the descriptor_spec_key parameter first, then fall back to package file
             try:
                 desc_spec_df = dsf.retrieve_dataset_by_datasetkey(desc_spec_key, desc_spec_bucket, ds_client)
-            except:
+            except Exception:
                 desc_spec_df = pd.read_csv(desc_spec_key_fallback, index_col=False)
 
         for desc_type, source, scaled, descriptors in zip(desc_spec_df.descr_type.values,
@@ -1256,7 +1250,7 @@ class DescriptorFeaturization(PersistentFeaturization):
         if len(cls.supported_descriptor_types) == 0:
             cls.load_descriptor_spec(params.descriptor_spec_bucket, params.descriptor_spec_key)
 
-        if not params.descriptor_type in cls.supported_descriptor_types:
+        if params.descriptor_type not in cls.supported_descriptor_types:
             raise ValueError("Unsupported descriptor type %s" % params.descriptor_type)
         self.descriptor_type = params.descriptor_type
         self.descriptor_key = params.descriptor_key
@@ -1346,7 +1340,7 @@ class DescriptorFeaturization(PersistentFeaturization):
             ds_client = None
         file_type = ''
         local_path = self.descriptor_key
-        if ds_client != None :
+        if ds_client is not None :
             # First get the datastore metadata for the descriptor table. Ideally this will exist even if the table
             # itself lives in the filesystem.
             desc_metadata = dsf.retrieve_dataset_by_datasetkey(self.descriptor_key, bucket=params.descriptor_bucket,
@@ -1612,7 +1606,7 @@ class ComputedDescriptorFeaturization(DescriptorFeaturization):
         """
         super().__init__(params)
         cls = self.__class__
-        if not params.descriptor_type in cls.supported_descriptor_types:
+        if params.descriptor_type not in cls.supported_descriptor_types:
             raise ValueError("Descriptor type %s is not in the supported descriptor_type list" % params.descriptor_type)
 
 

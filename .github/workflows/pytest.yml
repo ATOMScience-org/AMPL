@@ -1,4 +1,4 @@
-name: ampl
+name: ampl_pytest
 
 on: [push, pull_request]
 

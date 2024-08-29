@@ -5,19 +5,14 @@ Modify them to match Jonathan's curation methods in notebook
 01/30/2020
 """
 
-import os
-import sys
 import numpy as np
 import pandas as pd
-import pdb
 
-from rdkit import Chem
 
 from atomsci.ddm.utils.struct_utils import base_smiles_from_smiles, mols_from_smiles
 import atomsci.ddm.utils.datastore_functions as dsf
-from atomsci.ddm.utils import curate_data as curate
-import atomsci.ddm.utils.struct_utils as struct_utils
-import atomsci.ddm.utils.curate_data as curate_data, imp
+import atomsci.ddm.utils.curate_data as curate_data
+import importlib
 
 def set_data_root(dir):
     """Set global variables for data directories
@@ -441,7 +436,7 @@ def get_smiles_dtc_data(nm_df,targ_lst,save_smiles_df):
         smiles_df=df.merge(save_smiles_df,on='standard_inchi_key',suffixes=('_'+targ,'_'))
         #the file puts the SMILES string in quotes, which need to be removed
         smiles_df['smiles']=smiles_df['smiles'].str.replace('"','')
-        smiles_df['rdkit_smiles']=smiles_df['smiles'].apply(struct_utils.base_smiles_from_smiles)
+        smiles_df['rdkit_smiles']=smiles_df['smiles'].apply(base_smiles_from_smiles)
         smiles_df['smiles']=smiles_df['smiles'].str.replace('"','')
         print(smiles_df.shape)
         print(smiles_df['standard_inchi_key'].nunique())
@@ -520,7 +515,7 @@ def get_smiles_4dtc_data(nm_df,targ_lst,save_smiles_df):
         smiles_df=df.merge(save_smiles_df,on='standard_inchi_key',suffixes=('_'+targ,'_'))
         #the file puts the SMILES string in quotes, which need to be removed
         smiles_df['smiles']=smiles_df['smiles'].str.replace('"','')
-        smiles_df['rdkit_smiles']=smiles_df['smiles'].apply(struct_utils.base_smiles_from_smiles)
+        smiles_df['rdkit_smiles']=smiles_df['smiles'].apply(base_smiles_from_smiles)
         smiles_df['smiles']=smiles_df['smiles'].str.replace('"','')
         print("Shape of dataframe:", smiles_df.shape)
         print("Number of unique standard_inchi_key:", smiles_df['standard_inchi_key'].nunique())
@@ -629,9 +624,9 @@ def atom_curation(targ_lst, smiles_lst, shared_inchi_keys):
             dropped during the curation process for each target.
 
     """
-    imp.reload(curate_data)
+    importlib.reload(curate_data)
     tolerance=10
-    column='PIC50'; #'standard_value'
+    column='PIC50' #'standard_value'
     list_bad_duplicates='No'
     max_std=1
     curated_lst=[]
@@ -1188,7 +1183,7 @@ def get_smiles_excape_data(nm_df,targ_lst):
 
     Rows with NaN pXC50 values are dropped. Base rdkit SMILES are calculated
     from the SMILES column using
-    atomsci.ddm.utils.struct_utils.base_rdkit_smiles_from_smiles. A new column,
+    atomsci.ddm.utils.struct_utils.base_smiles_from_smiles. A new column,
     'rdkit_smiles, is added to each output DataFrame.
 
     Args:
@@ -1226,7 +1221,7 @@ def get_smiles_excape_data(nm_df,targ_lst):
         #smiles_df=df.merge(save_smiles_df,on='standard_inchi_key',suffixes=('_'+targ,'_'))
         #the file puts the SMILES string in quotes, which need to be removed
         #smiles_df['smiles']=smiles_df['smiles'].str.replace('"','')
-        smiles_df['rdkit_smiles']=smiles_df['SMILES'].apply(struct_utils.base_smiles_from_smiles)
+        smiles_df['rdkit_smiles']=smiles_df['SMILES'].apply(base_smiles_from_smiles)
         #smiles_df['smiles']=smiles_df['smiles'].str.replace('"','')
         print(smiles_df.shape)
         print(smiles_df['Ambit_InchiKey'].nunique())
@@ -1334,9 +1329,9 @@ def atom_curation_excape(targ_lst, smiles_lst, shared_inchi_keys):
     Returns:
         list:A list of curated DataFrames
     """
-    imp.reload(curate_data)
+    importlib.reload(curate_data)
     tolerance=10
-    column='pXC50'; #'standard_value'
+    column='pXC50' #'standard_value'
     list_bad_duplicates='No'
     max_std=1
     curated_lst=[]

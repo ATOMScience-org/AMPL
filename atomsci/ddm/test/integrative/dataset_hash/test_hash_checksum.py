@@ -1,7 +1,5 @@
 import os
-import json 
 import glob
-import fnmatch
 
 import atomsci.ddm.utils.checksum_utils as cu
 import atomsci.ddm.pipeline.parameter_parser as parse

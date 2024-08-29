@@ -29,10 +29,10 @@ def test_add_arguments_to_parser():
 
     args = parser.parse_args('--b_a_int=3.0 --b_a_float=1 --b_a_list="[1,2,3]" --b_b_namespace="Test"'.split())
 
-    assert type(args.b_a_int)==float
-    assert type(args.b_a_float)==float
-    assert type(args.b_a_list)==str
-    assert type(args.b_b_namespace)==str
+    assert type(args.b_a_int) is float
+    assert type(args.b_a_float) is float
+    assert type(args.b_a_list) is str
+    assert type(args.b_b_namespace) is str
 
 def test_list_float_args():
     aaa = pp.AutoArgumentAdder(func=B,prefix='b')
