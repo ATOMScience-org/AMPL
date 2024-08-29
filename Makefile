@@ -11,6 +11,9 @@ ENV ?= dev
 # GPU / CPU
 PLATFORM ?= gpu
 
+# Release version
+VERSION=$(shell cat VERSION)
+
 # IMAGE REPOSITORY
 IMAGE_REPO ?= atomsci/atomsci-ampl
 
@@ -39,7 +42,7 @@ pull-docker:
 
 # Push Docker image
 push-docker:
-	docker buildx build -t $(IMAGE_REPO):$(PLATFORM)-$(ENV) --build-arg ENV=$(ENV) $(PLATFORM_ARG) --push -f Dockerfile.$(PLATFORM) .
+	docker buildx build -t $(IMAGE_REPO):$(VERSION)-$(ENV) --build-arg ENV=$(ENV) $(PLATFORM_ARG) --push -f Dockerfile.$(PLATFORM) .
 
 # Save Docker image
 save-docker:
