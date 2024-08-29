@@ -3,25 +3,18 @@ provided by DeepChem.
 """
 
 import logging
-import os
-import sys
 
 import numpy as np
-import pandas as pd
 import umap
 
-import pdb
-
-import deepchem as dc
 from deepchem.trans.transformers import Transformer, NormalizationTransformer, BalancingTransformer
-from sklearn.preprocessing import RobustScaler
 from sklearn.impute import SimpleImputer
+from sklearn.preprocessing import RobustScaler
 
 logging.basicConfig(format='%(asctime)-15s %(message)s')
 log = logging.getLogger('ATOM')
 
 transformed_featurizers = ['descriptors', 'computed_descriptors']
-
 
 # ****************************************************************************************
 def transformers_needed(params):
@@ -277,11 +270,6 @@ class NormalizationTransformerMissingData(NormalizationTransformer):
         elif self.transform_y:
             y_stds = self.y_stds
             y_means = self.y_means
-            # Handle case with 1 task correctly
-            if len(self.y_stds.shape) == 0:
-                n_tasks = 1
-            else:
-                n_tasks = self.y_stds.shape[0]
             z_shape = list(z.shape)
             # Get the reversed shape of z: (..., n_tasks, batch_size)
             z_shape.reverse()

@@ -1,22 +1,15 @@
-import argparse
-import json
-import logging
 import os
-import shutil
-import sys
 
 import pytest
 import inspect
-import warnings
 
 from atomsci.ddm.utils.model_file_reader import ModelFileReader
 from atomsci.ddm.utils import model_file_reader as mfr
 
-from pathlib import Path
 
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 
-model_path = '../../examples/BSEP/models/bsep_classif_scaffold_split.tar.gz'
+model_path = os.path.join(currentdir, '../../examples/BSEP/models/bsep_classif_scaffold_split.tar.gz')
 tar_model = ModelFileReader(model_path)
 
 def test_model_split_uuid():
@@ -40,11 +33,28 @@ def test_no_medata_json_in_dir():
     assert e.type == IOError
 
 def test_multiple_models_metadata():
-    data_list =  mfr.get_multiple_models_metadata('../../examples/BSEP/models/bsep_classif_random_split.tar.gz', '../../examples/BSEP/models/bsep_classif_scaffold_split_graphconv.tar.gz', '../..//examples/BSEP/models/bsep_classif_scaffold_split.tar.gz')
+    # these are correct tar.gz model files
+    data_list =  mfr.get_multiple_models_metadata(
+        os.path.join(currentdir, '../../examples/BSEP/models/bsep_classif_random_split.tar.gz'),
+        os.path.join(currentdir, '../../examples/BSEP/models/bsep_classif_scaffold_split_graphconv.tar.gz'),
+        os.path.join(currentdir, '../../examples/BSEP/models/bsep_classif_scaffold_split.tar.gz'))
     # should be parsed fine 
     assert len(data_list) == 3
     
 def test_incorrect_model_file():
-     with pytest.raises(Exception) as e:
-         data_list =  mfr.get_multiple_models_metadata('../../examples/BSEP/models/bsep_classif_random_split.tar')
-     assert e.type == IOError
+    # this file is not a tar.gz file
+    with pytest.raises(Exception) as e:
+        _ =  mfr.get_multiple_models_metadata(
+            os.path.join(currentdir,'../../examples/BSEP/models/bsep_classif_random_split.tar'))
+    assert e.type == IOError
+
+def test_bad_tar_file():
+    # this tar file contains scaled_descriptors. No model data at all.
+    with pytest.raises(Exception) as e:
+        _ =  ModelFileReader(
+            os.path.join(currentdir, '../test_datasets/bad_model_tar.tar.gz'))
+    assert e.type == KeyError
+
+if __name__ == '__main__':
+    test_bad_tar_file()
+    test_incorrect_model_file()

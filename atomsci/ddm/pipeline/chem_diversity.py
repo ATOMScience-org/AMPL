@@ -7,6 +7,7 @@ from rdkit.Chem import AllChem
 from scipy.spatial.distance import pdist
 from scipy.spatial.distance import cdist
 from scipy.spatial.distance import squareform
+import pandas as pd
 
 from atomsci.ddm.pipeline import dist_metrics
 
@@ -131,6 +132,7 @@ def calc_dist_feat_array(feat_type, dist_met, feat1, feat2=None, calc_type='near
         dists: vector or array of distances
 
     """
+
     if feat_type in ['ECFP', 'ecfp']:
         if dist_met == 'tanimoto':
             if feat2 is not None:
@@ -224,3 +226,64 @@ def calc_summary(dist_arr, calc_type, num_nearest=1, within_dset=False):
         print("calc_type %s is not valid" % calc_type)
         sys.exit(1)
         
+def _get_descriptors(smiles_arr):
+    """DEPRECATED. This function is guaranteed not to work, since it refers to datasets that no longer exist."""
+    from atomsci.ddm.utils import datastore_functions as dsf
+    ds_client = dsf.config_client()
+
+    full_feature_matrix_key = '/ds/projdata/gsk_data/GSK_datasets/eXP_Panel_Min_100_Cmpds/scaled_descriptors/' \
+                              'subset_all_GSK_Compound_2D_3D_MOE_Descriptors_Scaled_With_Smiles_And_Inchi_HTR2A_5_' \
+                              'HT2A_Human_Antagonist_HEK_Luminescence_f_PIC50.csv'
+    full_feature_matrix = dsf.retrieve_dataset_by_datasetkey(full_feature_matrix_key, 'gskdata', ds_client)
+    #smiles_df = pd.DataFrame(smiles_arr)
+    #df = full_feature_matrix.merge(
+    #    smiles_df, how='inner', left_on='smiles', right_on=smiles_df.columns[0])
+    df = full_feature_matrix.head(20)
+    del full_feature_matrix
+    descriptor_features = [x for x in df.columns.values.tolist() if x not in
+                               ['compound_id', 'inchi_key', 'smiles', 'smiles_out',
+                                'lost_frags', 'inchi_string', 'pxc50', 'rdkit_smiles',
+                                'HTR2A_5_HT2A_Human_Antagonist_HEK_Luminescence_f_PIC50']]
+    #TODO this probably doesn't work
+    return df[descriptor_features]
+
+def upload_distmatrix_to_DS(
+        dist_matrix,feature_type,compound_ids,bucket,title,description,tags,key_values,filepath="./",dataset_key=None):
+    """Uploads distance matrix in the data store with the appropriate tags
+
+    Args:
+       dist_matrix (np.ndarray): The distance matrix.
+
+       feature_type (str): How the data was featurized.
+
+       dist_met (str): What distance metric was used.
+
+       compound_ids (list): list of compound ids corresponding to the distance matrix (assumes that distance matrix is square
+       and is the distance between all compounds in a dataset)
+
+       bucket (str): bucket the file will be put in
+
+       title (str): title of the file in (human friendly format)
+
+       description (str): long text box to describe file (background/use notes)
+
+       tags (list): List of tags to assign to datastore object.
+
+       key_values (dict): Dictionary of key:value pairs to include in the datastore object's metadata.
+
+       filepath (str): local path where you want to store the pickled dataframe
+
+       dataset_key (str): If updating a file already in the datastore enter the corresponding dataset_key.
+                     If not, leave as 'none' and the dataset_key will be automatically generated.
+
+    Returns:
+        None
+    """
+    from atomsci.ddm.utils import datastore_functions as dsf
+    fnm = "distmatrix_nm"
+    dist_df = pd.DataFrame(dist_matrix)
+    dist_df.index = compound_ids
+    dist_df.columns = compound_ids
+    filename = fnm.replace("nm",feature_type) # fn is not defined anywhere. need to address this
+    _dist_pkl = dist_df.to_pickle(filepath + filename)
+    dsf.upload_file_to_DS(bucket, title, description, tags, key_values, filepath, filename, dataset_key, client=None)
