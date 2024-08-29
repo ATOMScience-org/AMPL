@@ -6,7 +6,7 @@
 -f https://storage.googleapis.com/jax-releases/jax_cuda_releases.html
 -f https://data.dgl.ai/wheels/cu118/repo.html
 
-tensorflow==2.14.0
+tensorflow[and-cuda]~=2.14.0
 
 tensorrt
 
@@ -14,7 +14,7 @@ torch==2.0.1
 torch_geometric
 lightning
 
-jax[cuda11_pip]==0.4.16
+jax~=0.4.16
 
 dgl==1.1.2
 dgllife
