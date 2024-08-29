@@ -381,3 +381,13 @@ def test_hierarchical_dict():
 def default_parameters():
     default_params = parse.list_defaults()
     return default_params
+
+
+#test utility functions
+
+def test_is_primitive():
+    assert parse.is_primative_type(1.0)
+    assert parse.is_primative_type('str')
+    assert parse.is_primative_type(1)
+    assert not parse.is_primative_type({'foo':1})
+    assert not parse.is_primative_type(['foo'])

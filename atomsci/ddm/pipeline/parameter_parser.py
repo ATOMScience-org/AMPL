@@ -183,7 +183,7 @@ def is_primative_type(t):
     Returns:
         bool. True if type is int, str, or float
     """
-    return t is int or t is str or t is float
+    return type(t) in (int, str, float)
 
 def primative_type_only(type_annotation):
     """Given annotation, return only primative types that can be read in
