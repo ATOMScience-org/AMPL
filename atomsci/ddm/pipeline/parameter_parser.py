@@ -174,7 +174,7 @@ def extract_featurizer_params(params, strip_prefix=True):
     aaa = AutoArgumentAdder(featurizer_wl[params.featurizer], params.featurizer)
     return aaa.extract_params(params, strip_prefix=strip_prefix)
 
-def is_primative_type(t):
+def is_primitive_type(t):
     """Returns true if t is of type int, str, or float
 
     Args:
@@ -183,10 +183,10 @@ def is_primative_type(t):
     Returns:
         bool. True if type is int, str, or float
     """
-    return type(t) in (int, str, float)
+    return t in (int, str, float)
 
-def primative_type_only(type_annotation):
-    """Given annotation, return only primative types that can be read in
+def primitive_type_only(type_annotation):
+    """Given annotation, return only primitive types that can be read in
     from commandline, int, float, and str.
 
     Default return value is str, which is default for type parameter in
@@ -198,13 +198,13 @@ def primative_type_only(type_annotation):
     Returns:
         type: One of 3 choices, int, float, str
     """
-    if is_primative_type(type_annotation):
+    if is_primitive_type(type_annotation):
         return type_annotation
 
     annots = strip_optional(type_annotation=type_annotation)
     if len(annots) > 1:
         for t in annots:
-            if is_primative_type(t):
+            if is_primitive_type(t):
                 return t
         return str
     else:
@@ -443,7 +443,7 @@ class AutoArgumentAdder:
         for p in self.args:
             p_name = f'--{self._make_param_name(p)}'
             t = self.types[p]
-            pt = primative_type_only(t)
+            pt = primitive_type_only(t)
 
             if p in parameter_synonyms:
                 # don't set default or type. e.g. learning_rate in AMPL is a str where as DeepChem

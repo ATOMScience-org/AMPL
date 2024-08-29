@@ -386,8 +386,8 @@ def default_parameters():
 #test utility functions
 
 def test_is_primitive():
-    assert parse.is_primative_type(1.0)
-    assert parse.is_primative_type('str')
-    assert parse.is_primative_type(1)
-    assert not parse.is_primative_type({'foo':1})
-    assert not parse.is_primative_type(['foo'])
+    assert parse.is_primitive_type(type(1.0))
+    assert parse.is_primitive_type(type('str'))
+    assert parse.is_primitive_type(type(1))
+    assert not parse.is_primitive_type(type({'foo':1}))
+    assert not parse.is_primitive_type(type(['foo']))
