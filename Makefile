@@ -10,6 +10,9 @@ ENV ?= dev
 
 # GPU / CPU
 PLATFORM ?= gpu
+ifeq ($(ARCH), gpu)
+    GPU_ARG = --gpus all
+endif
 
 # IMAGE REPOSITORY
 IMAGE_REPO ?= atomsci/atomsci-ampl
@@ -72,14 +75,14 @@ jupyter-notebook:
 	@echo "Starting Jupyter Notebook"
 ifdef host
 	docker run -p $(JUPYTER_PORT):$(JUPYTER_PORT) \
-	  --gpus all \
+	  $(GPU_ARG) \
 		--hostname $(host) \
 		--privileged \
 		-v $(shell pwd)/../$(WORK_DIR):/$(WORK_DIR) $(IMAGE_REPO):$(PLATFORM)-$(ENV) \
 		/bin/bash -l -c "jupyter-notebook --ip=0.0.0.0 --no-browser --allow-root --port=$(JUPYTER_PORT)"
 else
 	docker run -p $(JUPYTER_PORT):$(JUPYTER_PORT) \
-		--gpus all \
+		$(GPU_ARG) \
 		-v $(shell pwd)/../$(WORK_DIR):/$(WORK_DIR) $(IMAGE_REPO):$(PLATFORM)-$(ENV) \
 		/bin/bash -l -c "jupyter-notebook --ip=0.0.0.0 --no-browser --allow-root --port=$(JUPYTER_PORT)"
 endif
