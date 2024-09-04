@@ -1,4 +1,8 @@
-[![License](http://img.shields.io/:license-mit-blue.svg)](https://github.com/ATOMScience-org/AMPL/blob/master/LICENSE) [![LinkedIn](https://img.shields.io/badge/linkedin-%230077B5.svg?logo=linkedin&logoColor=white)](https://www.linkedin.com/company/atomscience) 
+[![Develop test](https://github.com/ATOMScience-org/AMPL/actions/workflows/pytest.yml/badge.svg)](https://github.com/ATOMScience-org/AMPL/actions/workflows/pytest.yml)
+   [![Documentation Status](https://readthedocs.org/projects/muygpys/badge/?version=stable)](https://ampl.readthedocs.io/en/latest/?badge=stable)
+
+![GitHub Release](https://img.shields.io/github/v/release/ATOMScience-org/AMPL)
+  [![License](http://img.shields.io/:license-mit-blue.svg)](https://github.com/ATOMScience-org/AMPL/blob/master/LICENSE)  [![LinkedIn](https://img.shields.io/badge/linkedin-%230077B5.svg?logo=linkedin&logoColor=white)](https://www.linkedin.com/company/atomscience)
 
 | [Install](#install) | [Docker](#install-with-docker) | [Tutorials](#ampl-tutorials) |  [Features](#ampl-features) | [Pipeline parameters](atomsci/ddm/docs/PARAMETERS.md) | [Docs](https://ampl.readthedocs.io/en/latest/) |
 
@@ -266,7 +270,7 @@ python -m ipykernel install --user --name atomsci-env
 - Create a workspace folder to mount with Docker environment and transfer files. 
 - Get the Docker image and run it.
   ```
-  docker pull atomsci/atomsci-ampl
+  docker pull atomsci/atomsci-ampl-<platform> # can be cpu, gpu, or linux/arm64
   docker run -it -p 8888:8888 -v </local_workspace_folder>:</directory_in_docker> atomsci/atomsci-ampl
   #inside docker environment
   jupyter-notebook --ip=0.0.0.0 --allow-root --port=8888 &
@@ -279,7 +283,8 @@ python -m ipykernel install --user --name atomsci-env
   - If this doesn't work, exit the container and change port from 8888 to some other number such as 7777 or 8899 (in all 3 places it's written), then rerun both commands
 - From the notebook, you may need to set the kernel that atomsci is installed ("atomsci-venv") in order to acccess the `atomsci` package.
 
-> ***Note***: *Be sure to save any work you want to be permanent in your workspace folder. If the container is shut down, you'll lose anything not in that folder.*  
+Refer to [Makefile.md](Makefile.md) for more options on Docker build, run, etc.
+
 ---
 
 ## Uninstall
