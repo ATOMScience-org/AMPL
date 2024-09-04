@@ -46,6 +46,9 @@ def plot_split_subset_response_distrs(params, axes=None, plot_size=7):
     else:
         subset_order = ['train', 'valid', 'test']
 
+    wdist_df = compute_split_subset_wasserstein_distances(params)
+
+
     if axes is None:
         fig, axes = plt.subplots(1, len(params.response_cols), figsize=(plot_size*len(params.response_cols), plot_size))
     if len(params.response_cols) == 1:
@@ -54,10 +57,18 @@ def plot_split_subset_response_distrs(params, axes=None, plot_size=7):
         axes = axes.flatten()
     for colnum, col in enumerate(params.response_cols):
         ax = axes[colnum]
+        if params.split_strategy == 'train_valid_test':
+            tvv_wdist = wdist_df[(wdist_df.split_subset == 'valid') & (wdist_df.response_col == col)].distance.values[0]
+            tvt_wdist = wdist_df[(wdist_df.split_subset == 'test') & (wdist_df.response_col == col)].distance.values[0]
         if params.prediction_type == 'regression':
             ax = sns.kdeplot(data=dset_df, x=col, hue='split_subset', hue_order=subset_order, 
                              bw_adjust=0.7, fill=True, common_norm=False, ax=ax)
             ax.set_title(f"{col} distribution by subset under {split_label}")
+            if params.split_strategy == 'train_valid_test':
+                ax.set_title(f"{col} distribution by subset under {split_label}\n" \
+                             f"Wasserstein distances: valid = {tvv_wdist:.3f}, test = {tvt_wdist:.3f}")
+            else:
+                ax.set_title(f"{col} distribution by subset under {split_label}")
         else:
             pct_active = []
             for ss in subset_order:
@@ -66,7 +77,12 @@ def plot_split_subset_response_distrs(params, axes=None, plot_size=7):
                 pct_active.append(100*nactive/sum(ss_df[col].notna()))
             active_df = pd.DataFrame(dict(subset=subset_order, percent_active=pct_active))
             ax = sns.barplot(data=active_df, x='subset', y='percent_active', hue='subset', ax=ax)
-            ax.set_title(f"Percent of {col} = 1 by subset under {split_label}")
+
+            if params.split_strategy == 'train_valid_test':
+                ax.set_title(f"Percent of {col} = 1 by subset under {split_label}" \
+                             f"Wasserstein distances: valid = {tvv_wdist:.3f}, test = {tvt_wdist:.3f}")
+            else:
+                ax.set_title(f"Percent of {col} = 1 by subset under {split_label}")
             ax.set_xlabel('')
 
     # Restore previous matplotlib color cycle
@@ -153,7 +169,7 @@ def get_split_labeled_dataset(params):
     """
     if isinstance(params, dict):
         params = parse.wrapper(params)
-    dset_df = pd.read_csv(params.dataset_key, dtype={'compound_id': str})
+    dset_df = pd.read_csv(params.dataset_key, dtype={params.id_col: str})
     if params.split_strategy == 'k_fold_cv':
         split_file = f"{os.path.splitext(params.dataset_key)[0]}_{params.num_folds}_fold_cv_{params.splitter}_{params.split_uuid}.csv"
     else:
@@ -167,6 +183,9 @@ def get_split_labeled_dataset(params):
         split_label = f"{nfolds}-fold {params.splitter} cross-validation split"
     else:
         dset_df['split_subset'] = dset_df.subset.values
-        split_label = f"{params.splitter} split"
+        if params.splitter == 'multitaskscaffold':
+            split_label = 'MTSS split'
+        else:
+            split_label = f"{params.splitter} split"
     return dset_df, split_label
 
