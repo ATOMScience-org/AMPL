@@ -9,7 +9,9 @@ This Makefile is designed to manage Jupyter environments, Docker images, and the
 - **Environment Configuration:**
 
   - `ENV`: Specifies the environment (`dev`, `prod`, etc.). Default is `dev`.
-  - `PLATFORM`: Specifies the platform (`gpu`, `cpu`). Default is `gpu`.
+  - `PLATFORM`: Specifies the platform (`gpu`, `cpu`). Default is `cpu`.
+  - `ARCH`: Specifies the platform architecture (`linux/amd64` or `linux/arm64`) to use.  Default to current platform.
+  - `VERSION`: The version to be used for the docker tag.
 
 - **Docker Configuration:**
 
@@ -22,7 +24,7 @@ This Makefile is designed to manage Jupyter environments, Docker images, and the
 - **Python Configuration:**
 
   - `PYTHON_BIN`: Specifies the Python executable to use.
-  - `VENV`: Specifies the virtual environment directory. Default is `venv`.
+  - `VENV`: Specifies the virtual environment directory. Default is `atomsci-env`.
 
 - **Work Directory:**
   - `WORK_DIR`: Specifies the working directory inside the Docker container where files will be stored. Default is `work`.
@@ -31,9 +33,9 @@ This Makefile is designed to manage Jupyter environments, Docker images, and the
 
 - **Docker Image Management:**
 
-  - `make load-docker`: Load a Docker image from a tarball (`ampl-$(PLATFORM)-$(ENV).tar.gz`).
   - `make pull-docker`: Pull the Docker image from the repository.
   - `make push-docker`: Push the Docker image to the repository.
+  - `make load-docker`: Load a Docker image from a tarball (`ampl-$(PLATFORM)-$(ENV).tar.gz`).
   - `make save-docker`: Save the Docker image to a tarball (`ampl-$(PLATFORM)-$(ENV).tar.gz`).
   - `make build-docker`: Build the Docker image for the specified platform and environment.
 
@@ -56,6 +58,10 @@ This Makefile is designed to manage Jupyter environments, Docker images, and the
   - `make pytest-integrative`: Run integrative tests within the Docker container.
   - `make ruff`: Run the `ruff` linter.
   - `make ruff-fix`: Run the `ruff` linter and automatically fix issues.
+
+- **Entrypoint**
+
+  - `make shell`: Go inside the container's shell.
 
 - **Setup and Uninstallation:**
   - `make setup`: Set up a virtual environment and install dependencies.

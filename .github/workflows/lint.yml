@@ -1,4 +1,4 @@
-name: ampl_lint
+name: linter
 
 on: [push]
 

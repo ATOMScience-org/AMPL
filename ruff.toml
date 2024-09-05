@@ -27,5 +27,6 @@ exclude = [
     "site-packages",
     "venv",
     "atomsci/ddm/test/*",
+    "atomsci/ddm/docs/*",
 ]
 extend-exclude = ["*.ipynb"]
