@@ -1,8 +1,5 @@
-[![Develop test](https://github.com/ATOMScience-org/AMPL/actions/workflows/pytest.yml/badge.svg)](https://github.com/ATOMScience-org/AMPL/actions/workflows/pytest.yml)
-   [![Documentation Status](https://readthedocs.org/projects/muygpys/badge/?version=stable)](https://ampl.readthedocs.io/en/latest/?badge=stable)
-
-![GitHub Release](https://img.shields.io/github/v/release/ATOMScience-org/AMPL)
-  [![License](http://img.shields.io/:license-mit-blue.svg)](https://github.com/ATOMScience-org/AMPL/blob/master/LICENSE)  [![LinkedIn](https://img.shields.io/badge/linkedin-%230077B5.svg?logo=linkedin&logoColor=white)](https://www.linkedin.com/company/atomscience)
+[![Develop test](https://github.com/ATOMScience-org/AMPL/actions/workflows/pytest.yml/badge.svg)](https://github.com/ATOMScience-org/AMPL/actions/workflows/pytest.yml)  [![Linter](https://github.com/ATOMScience-org/AMPL/actions/workflows/lint.yml/badge.svg)](https://github.com/ATOMScience-org/AMPL/actions/workflows/lint.yml)    [![Documentation Status](https://readthedocs.org/projects/ampl/badge/?version=stable)](https://ampl.readthedocs.io/en/latest/?badge=stable) 
+![GitHub Release](https://img.shields.io/github/v/release/ATOMScience-org/AMPL)   [![License](http://img.shields.io/:license-mit-blue.svg)](https://github.com/ATOMScience-org/AMPL/blob/master/LICENSE)  [![LinkedIn](https://img.shields.io/badge/linkedin-%230077B5.svg?logo=linkedin&logoColor=white)](https://www.linkedin.com/company/atomscience)
 
 | [Install](#install) | [Docker](#install-with-docker) | [Tutorials](#ampl-tutorials) |  [Features](#ampl-features) | [Pipeline parameters](atomsci/ddm/docs/PARAMETERS.md) | [Docs](https://ampl.readthedocs.io/en/latest/) |
 
@@ -45,7 +42,7 @@ Check out our new tutorial series that walks through AMPL's end-to-end modeling 
 - [Library documentation](https://ampl.readthedocs.io/en/latest/index.html)
 ---
 ## Install
-AMPL 1.6 supports Python 3.9 CPU or CUDA-enabled machines using CUDA 11.8 on Linux. All other systems are experimental. For a quick install summary, see [here](#install-summary). We do not support other CUDA versions because there are multiple ML package dependency conflicts that can occur. For more information you can look at [DeepChem](https://deepchem.readthedocs.io/en/latest/get_started/installation.html), [TensorFlow](https://www.tensorflow.org/install/pip), [PyTorch](https://pytorch.org/get-started/locally/), [DGL](https://www.dgl.ai/pages/start.html) or [Jax](https://github.com/google/jax#installation).
+AMPL 1.6 supports Python 3.9 CPU or CUDA-enabled machines using CUDA 11.8 on Linux. All other systems are experimental. For a quick install summary, see [here](#install-summary). We do not support other CUDA versions because there are multiple ML package dependency conflicts that can occur. For more information you can look at [DeepChem](https://deepchem.readthedocs.io/en/latest/get_started/installation.html), [TensorFlow](https://www.tensorflow.org/install/pip), [PyTorch](https://pytorch.org/get-started/locally/), [DGL](https://www.dgl.ai/pages/start.html).
 
 ### Create pip environment
 
@@ -268,10 +265,19 @@ python -m ipykernel install --user --name atomsci-env
 - Download and install Docker Desktop.
   - https://www.docker.com/get-started
 - Create a workspace folder to mount with Docker environment and transfer files. 
-- Get the Docker image and run it.
+- Get the Docker image and run it. Since 1.6.3, there are some changes with the AMPL Docker.
+
+To retrieve, run version 1.6.2 or earlier, please specify the desired version tag:
   ```
-  docker pull atomsci/atomsci-ampl-<platform> # can be cpu, gpu, or linux/arm64
-  docker run -it -p 8888:8888 -v </local_workspace_folder>:</directory_in_docker> atomsci/atomsci-ampl
+  docker pull atomsci/atomsci-ampl:v1.6.2
+  docker run -it -p 8888:8888 -v </local_workspace_folder>:</directory_in_docker> atomsci/atomsci-ampl:v1.6.2
+  ```
+
+For AMPL versions 1.6.3 and later, we offer downloadable images for various platforms (CPU, GPU or Linux/ARM64). To run a Docker container, be sure to append `bash` at the end of the command to open a bash session. 
+
+  ```
+  docker pull atomsci/atomsci-ampl:latest-<platform> # can be cpu, gpu, or linux/arm64
+  docker run -it -p 8888:8888 -v </local_workspace_folder>:</directory_in_docker> atomsci/atomsci-ampl:latest-<platform> bash
   #inside docker environment
   jupyter-notebook --ip=0.0.0.0 --allow-root --port=8888 &
   # -OR-
@@ -283,7 +289,7 @@ python -m ipykernel install --user --name atomsci-env
   - If this doesn't work, exit the container and change port from 8888 to some other number such as 7777 or 8899 (in all 3 places it's written), then rerun both commands
 - From the notebook, you may need to set the kernel that atomsci is installed ("atomsci-venv") in order to acccess the `atomsci` package.
 
-Refer to [Makefile.md](Makefile.md) for more options on Docker build, run, etc.
+For additional options related to building, running, and other Docker development tasks, please refer to [Makefile.md](Makefile.md).
 
 ---
 

@@ -1,4 +1,4 @@
-name: ampl_docker_publish
+name: docker publish
 
 on:
   release:

@@ -8,8 +8,8 @@ endif
 # Environment
 ENV ?= dev
 
-# GPU / CPU
-PLATFORM ?= gpu
+# GPU / CPU, default is CPU
+PLATFORM ?= cpu
 ifeq ($(ARCH), gpu)
     GPU_ARG = --gpus all
 endif
