@@ -43,7 +43,7 @@ For 1.6.3 and later, you can download the latest images for various platforms (C
 
 .. code-block::
 
-   docker pull atomsci/atomsci-ampl:latest-cpu   # Specify the latest image built for a platform (cpu, gpu, or linux/arm64) 
+   docker pull atomsci/atomsci-ampl:latest-cpu   # Specify the latest image built for a platform (use those for tags 'cpu', 'gpu', or 'arm') 
 
 After that, please follow the instruction from the ":ref:`Start container`" step.
 

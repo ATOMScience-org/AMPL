@@ -175,7 +175,7 @@ To retrieve, run version 1.6.2 or earlier, please specify the desired version ta
 For AMPL versions 1.6.3 and later, we offer downloadable images for various platforms (CPU, GPU or Linux/ARM64). To run a Docker container, be sure to append `bash` at the end of the command to open a bash session. 
 
   ```
-  docker pull atomsci/atomsci-ampl:latest-<platform> # can be cpu, gpu, or linux/arm64
+  docker pull atomsci/atomsci-ampl:latest-<platform> # can be cpu, gpu, or arm (for arm64 chip)
   docker run -it -p 8888:8888 -v </local_workspace_folder>:</directory_in_docker> atomsci/atomsci-ampl:latest-<platform> bash
   #inside docker environment
   jupyter-notebook --ip=0.0.0.0 --allow-root --port=8888 &

@@ -14,12 +14,19 @@ ifeq ($(ARCH), gpu)
     GPU_ARG = --gpus all
 endif
 
+# define subtag. used for push
+ifneq ($(ARCH),)
+    SUBTAG = arm
+else
+    SUBTAG = $(PLATFORM)
+endif
+
 # Release version
 VERSION=$(shell cat VERSION)
 
 # If ENV is from master branch, we use VERSION for the tag, otherwise use PLATFORM
 ifeq ($(ENV), master)
-    TAG = v$(VERSION)-$(PLATFORM)  # version used for AMPL official release, v1.6.3 for example
+    TAG = v$(VERSION)-$(SUBTAG)
 else
     TAG = $(PLATFORM)-$(ENV)
 endif
@@ -52,7 +59,7 @@ pull-docker:
 
 # Push Docker image
 push-docker:
-	docker buildx build --no-cache -t $(IMAGE_REPO):$(TAG) -t $(IMAGE_REPO):latest-$(PLATFORM) --build-arg ENV=$(ENV) $(PLATFORM_ARG) --push -f Dockerfile.$(PLATFORM) .
+	docker buildx build --no-cache -t $(IMAGE_REPO):$(TAG) -t $(IMAGE_REPO):latest-$(SUBTAG) --build-arg ENV=$(ENV) $(PLATFORM_ARG) --push -f Dockerfile.$(PLATFORM) .
 
 # Save Docker image
 save-docker:
