@@ -10,7 +10,6 @@ import atomsci.ddm.pipeline.model_pipeline as mp
 import atomsci.ddm.pipeline.parameter_parser as parse
 import atomsci.ddm.utils.curate_data as curate_data
 import atomsci.ddm.utils.struct_utils as struct_utils
-import pdb
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 import integrative_utilities
 
