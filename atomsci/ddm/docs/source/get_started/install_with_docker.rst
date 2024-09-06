@@ -18,7 +18,7 @@ Create or Pull a Docker Image
 System Requirements
 ===================
 
-The Docker image will run on Linux / WSL / macOS (Intel only).
+The Docker image will run on Linux / WSL / macOS.
 
 If you don't have Docker Desktop installed, please follow instructions `here <https://www.docker.com/get-started>`_.
 
@@ -31,11 +31,19 @@ Option 1: Pull a Prebuilt AMPL Image from Docker Repo
 
 The simplest method is to download a prebuilt Docker image from DockerHub. For every official `AMPL <https://github.com/ATOMScience-org/AMPL>`_ release, a docker image will be pushed to its `Docker Hub <https://hub.docker.com/r/atomsci/atomsci-ampl>`_. 
 
-To pull a prebuilt `AMPL <https://github.com/ATOMScience-org/AMPL>`_ image:
+To pull a prebuilt `AMPL <https://github.com/ATOMScience-org/AMPL>`_ image, the method varies based on its version.
+
+For a pre-1.6.3 release:
 
 .. code-block::
 
-   docker pull atomsci/atomsci-ampl:latest
+   docker pull atomsci/atomsci-ampl:v1.6.2   # Specify a version to pull, ie, v1.6.2.
+
+For 1.6.3 and later, you can download the latest images for various platforms (CPU, GPU, or Linux/ARM64), an example: 
+
+.. code-block::
+
+   docker pull atomsci/atomsci-ampl:latest-cpu   # Specify the latest image built for a platform (use those for tags 'cpu', 'gpu', or 'arm') 
 
 After that, please follow the instruction from the ":ref:`Start container`" step.
 
@@ -54,24 +62,20 @@ First clone `AMPL <https://github.com/ATOMScience-org/AMPL>`_  github repo, then
 
    git clone https://github.com/ATOMScience-org/AMPL.git  
    ### The following line is _optional_. If you want to check out a development branch instead of the default branch (master).
-   git checkout 1.6.1                    # (optional) checkout a dev branch, 1.6.1 for example
-   cd AMPL/docker                        # To get to the Dockerfile
+   git checkout 1.6.3                    # (optional) checkout a dev branch, 1.6.3 for example
+   cd AMPL
 
-Build an image using the Dockerfile:
+Starting from version 1.6.3, a 'Makefile' is available that offers various options for building, running, saving, and loading Docker images. Please refer to this `doc <https://github.com/ATOMScience-org/AMPL/Makefile.md>`_ for more infomation. Here is an example to build a local image:
 
 .. code-block::
 
-   # example 1
-   docker build -t atomsci-ampl .       # by default, "latest" will be the tag
-   # - or - 
-   # example 2
-   docker build -t atomsci-ampl:<tag> . # specify a name for <tag>
+   make build-docker           # The default platform is CPU. Use 'PLATFORM=gpu' for GPU or 'ARCH=linux/arm64' for ARM chip platform
 
 This normally takes about 15-20 minutes to build. Once it's built on your machine, it can be reused.
 
 .. note::
 
-    *To build without cache, add "--no-cache" flag after "docker build". For example, "docker build --no-cache -t atomsci-ampl ."*
+    *To build without cache, add "--no-cache" flag after "docker build". *
 
 .. _Start container:
 
@@ -87,17 +91,13 @@ Use "docker run ... `<IMAGE>`" command to start the container. The command synta
 
 .. code-block::
 
-   docker run -it -p <port>:<port> -v <local_folder>:<directory_in_docker> <IMAGE>
+   docker run -it -p <port>:<port> -v <local_folder>:<directory_in_docker> <IMAGE> bash
 
-Use either following example to start the container:
+Use the following example to start the container. For images created or downloaded from version 1.6.3 or later, append 'bash' to the end of the docker run command to open a bash session. By default, the container starts with a Python interpreter session. 
 
 .. code-block::
 
-   # example 1 # if built locally
-   docker run -it -p 8888:8888 -v ${PWD}:/home atomsci-ampl
-   # - or -
-   # example 2 # if pulled from atomsci's docker hub
-   docker run -it -p 8888:8888 -v ${PWD}:/home atomsci/atomsci-ampl
+    docker run -it -p 8888:8888 -v ${PWD}:/home atomsci/atomsci-ampl:latest:cpu bash   # replace with your <IMAGE>:<TAG>
 
 To get more info for the "docker run" command options, type "docker run --help": 
 
@@ -174,6 +174,8 @@ Here's a screenshot of the `AMPL <https://github.com/ATOMScience-org/AMPL>`_ tut
 
 Use **atomsci-env** as the Run Kernel
 =====================================
+
+**This section is required only for images created from version 1.6.2 or earlier.**
 
 In order to use `AMPL <https://github.com/ATOMScience-org/AMPL>`_ Framework, select "atomsci-env" as the run kernel for the notebook. This should be set during image creation. In case it's not set, or if you want to verify. Try one of the following:
 
