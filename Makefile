@@ -10,7 +10,7 @@ ENV ?= dev
 
 # GPU / CPU, default is CPU
 PLATFORM ?= cpu
-ifeq ($(ARCH), gpu)
+ifeq ($(PLATFORM), gpu)
     GPU_ARG = --gpus all
 endif
 
