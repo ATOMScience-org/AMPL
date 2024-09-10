@@ -13,7 +13,7 @@ RUN apt update -y && apt install -y \
     apt clean && \
     rm -rf /var/lib/apt/lists/*
 
-COPY ./pip/cpu_requirements.txt ./pip/mchip_requirements.txt
+COPY ./pip/mchip_requirements.txt ./pip/mchip_requirements.txt
 RUN pip install -U pip && \
     pip install --no-cache-dir \
     --trusted-host pypi.python.org \
@@ -21,7 +21,7 @@ RUN pip install -U pip && \
     --trusted-host pypi.org \
     --trusted-host data.dgl.ai \
     --trusted-host download.pytorch.org \
-    -r ./pip/cpu_requirements.txt
+    -r ./pip/mchip_requirements.txt
 
 COPY ./pip/dev_requirements.txt ./pip/dev_requirements.txt
 RUN pip install -U pip && \
