@@ -98,7 +98,7 @@ def test():
     integrative_utilities.clean_fit_predict()
     clean()
 
-    # Download
+    # Check for data
     # --------
     check_for_data_zip()
 

@@ -85,9 +85,9 @@ def init():
     # -----
     clean()
 
-    # Download
+    # Copy Data
     # --------
-    tdp.download()
+    integrative_utilities.copy_delaney()
 
     # Curate
     # ------
