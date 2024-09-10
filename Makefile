@@ -24,8 +24,8 @@ endif
 # Release version
 VERSION=$(shell cat VERSION)
 
-# If ENV is from master branch, we use VERSION for the tag, otherwise use PLATFORM
-ifeq ($(ENV), master)
+# If ENV is prod, we use VERSION for the tag, otherwise use PLATFORM
+ifeq ($(ENV), prod)
     TAG = v$(VERSION)-$(SUBTAG)
 else
     TAG = $(PLATFORM)-$(ENV)
