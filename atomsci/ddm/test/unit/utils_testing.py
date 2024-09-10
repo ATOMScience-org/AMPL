@@ -100,6 +100,19 @@ def moe_descriptors(datastore = False):
     return params_desc, dataset_obj_for_desc, df
 
 
+def copy_delaney(dest='.'):
+    """Copies the delaney-processed.csv file to destination
+
+    Copies the delaney-processed.csv file to the given destination.
+    """
+
+    delaney_source = os.path.abspath(
+        os.path.join(
+            os.path.dirname(__file__),
+            '../test_datasets/delaney-processed.csv'))
+
+    shutil.copy(delaney_source, dest)
+
 def curate_delaney():
 
     assert (os.path.isfile('delaney-processed.csv'))
@@ -142,4 +155,5 @@ def curate_delaney():
     assert (os.path.isfile('delaney-processed_curated_external.csv'))
 
 clean()
+copy_delaney()
 curate_delaney()
