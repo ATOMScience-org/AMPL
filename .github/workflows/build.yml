@@ -76,4 +76,4 @@ jobs:
         env:
           ARCH: linux/arm64
           ENV: prod
-          PLATFORM: cpu
+          PLATFORM: arm

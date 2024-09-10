@@ -1,11 +1,12 @@
-# Minimal pip requirement list for AMPL with CPU support only. This includes only the packages directly imported by AMPL code, plus a few others commonly used during development. 
+# Minimal pip requirement list for AMPL with CPU support only for MacOS ARM chip. This includes only the packages directly imported by AMPL code, plus a few others commonly used during development. 
 -i https://download.pytorch.org/whl/cpu
 --extra-index-url https://data.dgl.ai/wheels/repo.html
 --extra-index-url https://pypi.python.org/simple
 # for LC developers: comment out pypi index url and use t$
 # --extra-index-url https://wci-repo.llnl.gov/repository/$
 
-tensorflow-cpu~=2.14.0
+# use tensorflow not tensorflow-cpu for arm. see https://www.tensorflow.org/install/pip#linux
+tensorflow~=2.14.0
 
 torch==2.0.1
 torch_geometric
