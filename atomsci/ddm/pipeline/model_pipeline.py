@@ -1110,7 +1110,7 @@ def run_models(params, shared_featurization=None, generator=False):
         pipeline.model_wrapper = model_wrapper.create_model_wrapper(pipeline.params, featurization,
                                                                     pipeline.ds_client,
                                                                     random_state=pipeline.random_state,
-                                                                    random_seed=pipeline.seed)
+                                                                    seed=pipeline.seed)
 
         # Get the tarball containing the saved model from the datastore, and extract it into model_dir.
         model_dataset_oid = metadata_dict['model_parameters']['model_dataset_oid']
@@ -1434,7 +1434,7 @@ def create_prediction_pipeline_from_file(params, reload_dir, model_path=None, mo
     # Create the ModelWrapper object.
     pipeline.model_wrapper = model_wrapper.create_model_wrapper(pipeline.params, featurization,
                                                                 random_state=pipeline.random_state,
-                                                                random_seed=pipeline.seed)
+                                                                seed=pipeline.seed)
 
     orig_log_level = pipeline.log.getEffectiveLevel()
     if verbose:

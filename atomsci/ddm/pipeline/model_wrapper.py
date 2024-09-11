@@ -1614,7 +1614,7 @@ class ForestModelWrapper(ModelWrapper):
         self.model_dir = self.best_model_dir
         os.makedirs(self.best_model_dir, exist_ok=True)
 
-        self.model = self.make_dc_model(self.best_model_dir, random_state=random_state, seed=seed)
+        self.model = self.make_dc_model(self.best_model_dir)
 
     # ****************************************************************************************
     def train(self, pipeline):
@@ -1683,7 +1683,7 @@ class ForestModelWrapper(ModelWrapper):
         self.best_epoch = 0
 
     # ****************************************************************************************
-    def make_dc_model(self, model_dir, random_state=None, seed=None):
+    def make_dc_model(self, model_dir):
         """Build a DeepChem model.
 
         Builds a model, wraps it in DeepChem's wrapper and returns it
