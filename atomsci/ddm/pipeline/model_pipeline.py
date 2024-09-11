@@ -1316,7 +1316,7 @@ def create_prediction_pipeline(params, model_uuid, collection_name=None, featuri
     pipeline.orig_params = orig_params
 
     # Create the ModelWrapper object.
-    pipeline.model_wrapper = model_wrapper.(pipeline.params, featurization,
+    pipeline.model_wrapper = model_wrapper.create_model_wrapper(pipeline.params, featurization,
                                                                 pipeline.ds_client)
 
     orig_log_level = pipeline.log.getEffectiveLevel()
