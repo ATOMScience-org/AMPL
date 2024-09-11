@@ -10,7 +10,6 @@ import atomsci.ddm.pipeline.model_pipeline as mp
 import atomsci.ddm.pipeline.parameter_parser as parse
 import atomsci.ddm.utils.curate_data as curate_data
 import atomsci.ddm.utils.struct_utils as struct_utils
-import pdb
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 import integrative_utilities
 
@@ -66,7 +65,6 @@ def curate():
 
 def download():
     """Separate download function so that download can be run separately if there is no internet."""
-    pdb.set_trace()
     if (not os.path.isfile('delaney-processed.csv')):
         integrative_utilities.download_save(
             'https://deepchemdata.s3-us-west-1.amazonaws.com/datasets/delaney-processed.csv',

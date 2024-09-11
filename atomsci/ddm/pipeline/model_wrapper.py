@@ -6,7 +6,6 @@ import logging
 import os
 import shutil
 import joblib
-import pdb
 
 import deepchem as dc
 import numpy as np
@@ -24,10 +23,10 @@ from sklearn.ensemble import RandomForestRegressor
 
 
 try:
-    import dgl
-    import dgllife
-    import deepchem.models as dcm
-    from deepchem.models import AttentiveFPModel
+    import dgl    # noqa: F401
+    import dgllife   # noqa: F401
+    import deepchem.models as dcm  # noqa: F401
+    from deepchem.models import AttentiveFPModel  # noqa: F401
     afp_supported = True
 except (ImportError, OSError):
     afp_supported = False
@@ -41,9 +40,7 @@ except ImportError:
 import pickle
 import yaml
 import glob
-from datetime import datetime
 import time
-import socket
 from packaging import version
 
 from atomsci.ddm.utils import datastore_functions as dsf
@@ -204,7 +201,7 @@ def create_model_wrapper(params, featurizer, ds_client=None):
                              twintron-blue (TTB): /opt/conda/bin/pip install xgboost==0.90 --user "
                             )
         elif version.parse(xgb.__version__) < version.parse('0.9'):
-            raise Exception(f"xgboost required to be = 0.9 for GPU support. \
+            raise Exception("xgboost required to be = 0.9 for GPU support. \
                              current version = xgb.__version__ \
                              installation: \
                              from pip: pip install xgboost==0.90")
@@ -338,7 +335,7 @@ class ModelWrapper(object):
                 transformers: A list of deepchem transformation objects on response_col, only if conditions are met
         """
         # TODO: Just a warning, we may have response transformers for classification datasets in the future
-        if self.params.prediction_type=='regression' and self.params.transformers==True:
+        if self.params.prediction_type=='regression' and self.params.transformers is True:
             self.transformers = [trans.NormalizationTransformerMissingData(transform_y=True, dataset=model_dataset.dataset)]
 
         # ****************************************************************************************
@@ -621,7 +618,7 @@ class ModelWrapper(object):
         """
         try:
             self.model.save()
-        except Exception as error:
+        except Exception:
           try:
             self.model.save_checkpoint()
           except Exception as e:
@@ -763,7 +760,7 @@ class NNModelWrapper(ModelWrapper):
             return self.get_full_dataset_perf_data(self.data)
         if epoch_label == 'best':
             epoch = self.best_epoch
-            model_dir = self.best_model_dir
+            #model_dir = self.best_model_dir
         else:
             raise ValueError("Unknown epoch_label '%s'" % epoch_label)
 
@@ -801,7 +798,7 @@ class NNModelWrapper(ModelWrapper):
             return self.get_full_dataset_pred_results(self.data)
         if epoch_label == 'best':
             epoch = self.best_epoch
-            model_dir = self.best_model_dir
+            #model_dir = self.best_model_dir
         else:
             raise ValueError("Unknown epoch_label '%s'" % epoch_label)
         if subset == 'train':
@@ -1072,23 +1069,39 @@ class NNModelWrapper(ModelWrapper):
             self.log.warning("Warning: DeepChem neural net models support uncertainty for regression only.")
  
         if self.params.uncertainty and self.params.prediction_type == 'regression':
-            # For multitask, predict_uncertainty returns a list of (pred, std) tuples, one for each task.
-            # For singletask, it returns one tuple. Convert the result into a pair of ndarrays of shape (ncmpds, ntasks, nclasses).
+            # For the models we use, predict_uncertainty returns a tuple (not a list of tuples) for both singletask and multitask. 
+            # A list is only returned if we request multiple *outputs* (e.g., predictions and embeddings), which are not the same thing as tasks.
+
+            # Fully connected NN models return predictions and uncertainties as arrays with shape (num_cmpds, num_tasks, num_classes), with
+            # num_classes = 1 for regression models. GraphConv regression models omit the num_classes dimension.
             pred_std = self.model.predict_uncertainty(dataset)
-            if type(pred_std) == tuple:
-                #JEA
-                #ntasks = 1
-                ntasks = len(pred_std[0][0])
+            if isinstance(pred_std, tuple):
                 pred, std = pred_std
-                pred = pred.reshape((pred.shape[0], 1, pred.shape[1]))
+                ncmpds = pred.shape[0]
+                ntasks = pred.shape[1]
+                if len(pred.shape) > 2:
+                    nclasses = pred.shape[2]
+                else:
+                    nclasses = 1
+                self.log.debug(f"generate_predictions: input pred shape = {pred.shape}, std shape = {std.shape}")
+                # Reshape to 3 dimensions for consistency
+                pred = pred.reshape((ncmpds, ntasks, nclasses))
                 std = std.reshape(pred.shape)
+                self.log.debug(f"After reshaping: pred shape = {pred.shape}")
             else:
-                ntasks = len(pred_std)
-                pred0, std0 = pred_std[0]
-                ncmpds = pred0.shape[0]
-                nclasses = pred0.shape[1]
-                pred = np.concatenate([p.reshape((ncmpds, 1, nclasses)) for p, s in pred_std], axis=1)
-                std = np.concatenate([s.reshape((ncmpds, 1, nclasses)) for p, s in pred_std], axis=1)
+                # ksm: I don't think this code block will never get run, but just in case, take the first output
+                # as the actual predictions
+                num_outputs = len(pred_std)
+                pred, std = pred_std[0]
+                ncmpds = pred.shape[0]
+                ntasks = pred.shape[1]
+                if len(pred.shape) > 2:
+                    nclasses = pred.shape[2]
+                else:
+                    nclasses = 1
+                self.log.info(f"generate_predictions returned {num_outputs} outputs: ntasks={ntasks}, ncmpds={ncmpds}, nclasses={nclasses}")
+                pred = pred.reshape((ncmpds, ntasks, nclasses))
+                std = std.reshape(pred.shape)
 
             if self.params.transformers and self.transformers is not None:
                   # Transform the standard deviations, if we can. This is a bit of a hack, but it works for
@@ -1103,13 +1116,15 @@ class NNModelWrapper(ModelWrapper):
                     std = std / y_stds
                 pred = dc.trans.undo_transforms(pred, self.transformers)
         else:
+            # Classification models and regression models without uncertainty are handled here
             txform = [] if (not self.params.transformers or self.transformers is None) else self.transformers
             pred = self.model.predict(dataset, txform)
             if self.params.prediction_type == 'regression':
-                if type(pred) == list and len(pred) == 0:
+                if isinstance(pred, list) and len(pred) == 0:
                     # DeepChem models return empty list if no valid predictions
                     pred = np.array([]).reshape((0,0,1))
                 else:
+                    # Reshape graphconv predictions to 3D array; others already have this shape
                     pred = pred.reshape((pred.shape[0], pred.shape[1], 1))
         return pred, std
 
@@ -1511,7 +1526,7 @@ class HybridModelWrapper(NNModelWrapper):
 
         data_ds = TensorDataset(x_data, y_data)
         data_dl = DataLoader(data_ds, batch_size=self.params.batch_size * 2, pin_memory=True)
-        data_data = self.SubsetData(data_ds, 
+        _data_data = self.SubsetData(data_ds, 
                                     data_dl, 
                                     len(data_ki_pos), 
                                     len(data_bind_pos))
@@ -1572,7 +1587,7 @@ class HybridModelWrapper(NNModelWrapper):
                 transformers: A list of deepchem transformation objects on response_col, only if conditions are met
         """
         # TODO: Just a warning, we may have response transformers for classification datasets in the future
-        if self.params.prediction_type=='regression' and self.params.transformers==True:
+        if self.params.prediction_type=='regression' and self.params.transformers is True:
             self.transformers = [trans.NormalizationTransformerHybrid(transform_y=True, dataset=model_dataset.dataset)]
 
 # ****************************************************************************************
@@ -2771,5 +2786,3 @@ class GraphConvDCModelWrapper(KerasDeepChemModelWrapper):
         )
         model_spec_metadata = dict(nn_specific = nn_metadata)
         return model_spec_metadata
-
-

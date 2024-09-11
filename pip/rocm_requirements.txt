@@ -4,7 +4,6 @@
 tensorflow
 
 ### amd gpu: https://jax.readthedocs.io/en/latest/developer.html#additional-notes-for-building-a-rocm-jaxlib-for-amd-gpus
-jax
 
 -i https://download.pytorch.org/whl/rocm5.4.2
 torch
@@ -33,7 +32,6 @@ pytest
 ipykernel
 
 deepchem[tensorflow] # instructions unclear here - trouble on my home system
-deepchem[jax]        # instructions unclear here - trouble on my home system
 deepchem[torch]      # instructions unclear here - works fine on home system
 
 pyyaml==5.4.1

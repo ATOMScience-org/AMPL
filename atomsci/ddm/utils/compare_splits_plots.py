@@ -119,7 +119,7 @@ class SplitStats:
         """
         # plot compound distance histogram
         fig=pyplot.figure()
-        g = self._show_dist_hist_plot(dists)
+        _g = self._show_dist_hist_plot(dists)
         fig.suptitle(title)        
         if len(dist_path) > 0:
             save_figure(dist_path+'_dist_hist')
@@ -187,7 +187,7 @@ class SplitStats:
         frac_df = pd.DataFrame.from_dict(dicts)
 
         pyplot.figure()
-        g = sns.boxplot(x='subset', y='frac', data=frac_df)
+        _g = sns.boxplot(x='subset', y='frac', data=frac_df)
         if len(dist_path) > 0:
             save_figure(dist_path+'_frac_box')
 
