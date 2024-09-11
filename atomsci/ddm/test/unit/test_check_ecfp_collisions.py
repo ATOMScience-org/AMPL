@@ -17,8 +17,8 @@ def test_check_ecfp_collisions():
         'O=C(/C=N/O)NCCN1CCCCC1',
 
         # group 4
-        'COc1ccc(/C=C2\COc3cc(OCCCCCCCCNc4c5c(nc6ccccc46)CCCC5)ccc3C2=O)cc1',
-        'COc1ccc(/C=C2\COc3cc(OCCCCCCNc4c5c(nc6ccccc46)CCCC5)ccc3C2=O)cc1'
+        'COc1ccc(/C=C2\\COc3cc(OCCCCCCCCNc4c5c(nc6ccccc46)CCCC5)ccc3C2=O)cc1',
+        'COc1ccc(/C=C2\\COc3cc(OCCCCCCNc4c5c(nc6ccccc46)CCCC5)ccc3C2=O)cc1'
 
         # group 5
         'O=c1ccc2ccc(OCCCCCN3CCN(CCCNc4c5c(nc6ccccc46)CCCC5)CC3)cc2o1',
@@ -42,7 +42,7 @@ def test_check_ecfp_collisions():
         'O=C(/C=N/O)NCCN1CCCCCC1',
 
         # group 4
-        'COc1ccc(/C=C2\COc3cc(OCCCCCCCCNc4c5c(nc6ccccc46)CCCC5)ccc3C2=O)cc1',
+        'COc1ccc(/C=C2\\COc3cc(OCCCCCCCCNc4c5c(nc6ccccc46)CCCC5)ccc3C2=O)cc1',
 
         # group 5
         'O=c1ccc2ccc(OCCCCCN3CCN(CCCNc4c5c(nc6ccccc46)CCCC5)CC3)cc2o1',

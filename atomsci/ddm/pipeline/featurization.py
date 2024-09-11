@@ -126,7 +126,7 @@ def remove_duplicate_smiles(dset_df, smiles_col='rdkit_smiles'):
     return dset_df
 
 # ****************************************************************************************
-def check_feature_collisions(feat_array, smiles):
+def check_ecfp_feature_collisions(feat_array, smiles):
     """Check for feature uniqueness
     Check to see if unique smiles result in unique features. Sometimes isn't the case
     for ECFP features. A set of features should be the same size as a set of SMILES
@@ -145,7 +145,7 @@ def check_feature_collisions(feat_array, smiles):
     num_unique_smiles = len(set(smiles))
 
     if num_unique_feats == num_unique_smiles and num_unique_smiles == 0:
-        log.warning("Checking feature collisions empty features and smiles.")
+        log.warning("Received empty features and smiles when checking for ecfp feature collisions.")
 
     return num_unique_feats != num_unique_smiles
 
@@ -750,10 +750,11 @@ class DynamicFeaturization(Featurization):
 
         if params.featurizer == 'ecfp':
             valid_smiles = dset_df[is_valid][params.smiles_col]
-            has_collisions = check_feature_collisions(features, valid_smiles)
+            has_collisions = check_ecfp_feature_collisions(features, valid_smiles)
 
             if has_collisions:
-                log.warning("Multiple SMILES mapped have the same ECFP features.")
+                log.warning("Multiple SMILES mapped have the same ECFP features."
+                            "Increasing ecfp_radius or ecfp_size can reduce collisons.")
 
         if features is None:
             raise Exception("Featurization failed for dataset")

@@ -290,5 +290,5 @@ def check_ecfp_collisions(dset_df, smiles_col, size, radius):
 
     valid_smiles = dset_df[is_valid][smiles_col]
 
-    return feat.check_feature_collisions(features, valid_smiles)
+    return feat.check_ecfp_feature_collisions(features, valid_smiles)
 
