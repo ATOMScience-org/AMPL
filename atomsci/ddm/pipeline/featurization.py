@@ -754,7 +754,7 @@ class DynamicFeaturization(Featurization):
 
             if has_collisions:
                 log.warning("Multiple SMILES mapped have the same ECFP features."
-                            "Increasing ecfp_radius or ecfp_size can reduce collisons.")
+                            "Increasing ecfp_radius can reduce collisons.")
 
         if features is None:
             raise Exception("Featurization failed for dataset")
