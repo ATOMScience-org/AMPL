@@ -19,7 +19,7 @@ umap-learn
 
 pyarrow
 
-imblearn==0.12.3
+imblearn
 
 # requires pkg-config to build: sudo apt-get pkg-config
 # requires Cairo: sudo apt-get install libcairo2-dev
