@@ -298,8 +298,6 @@ class KFoldSplitting(Splitting):
         """
         super().__init__(params, random_state, seed)
         self.num_folds = params.num_folds
-        self.random_state = random_state
-        self.seed = seed
 
 
     # ****************************************************************************************
@@ -424,8 +422,6 @@ class TrainValidTestSplitting(Splitting):
         """
         super().__init__(params, random_state=random_state, seed=seed)
         self.num_folds = 1
-        self.random_state = random_state
-        self.seed = seed
 
     # ****************************************************************************************
     def get_split_prefix(self, parent=''):
@@ -571,8 +567,6 @@ class ProductionSplitting(Splitting):
         """This Splitting only does one thing and ignores all splitter parameters"""
         self.splitter = ProductionSplitter()
         self.split = 'production'
-        self.random_state = random_state
-        self.seed = seed
 
     # ****************************************************************************************
     def get_split_prefix(self, parent=''):
