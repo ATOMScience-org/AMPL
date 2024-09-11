@@ -1,4 +1,3 @@
-import atomsci.ddm.pipeline.chem_diversity as cd
 import atomsci.ddm.pipeline.featurization as featurization
 import atomsci.ddm.pipeline.parameter_parser as parser
 import pandas as pd
@@ -59,10 +58,10 @@ def test_check_ecfp_collisions():
     ]
     no_collision_df = pd.DataFrame(data={'smiles':no_collision_smiles})
 
-    collision = cd.check_ecfp_collisions(collision_df, 'smiles', size=1024, radius=2)
+    collision = featurization.check_ecfp_collisions(collision_df, 'smiles', size=1024, radius=2)
     assert collision, "Collisions should have been found."
 
-    no_collision = cd.check_ecfp_collisions(no_collision_df, 'smiles', size=1024, radius=2)
+    no_collision = featurization.check_ecfp_collisions(no_collision_df, 'smiles', size=1024, radius=2)
     assert not no_collision, "No collisions should have been found."
 
 def test_dynamic_featurization_with_collisions():

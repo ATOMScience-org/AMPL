@@ -10,8 +10,6 @@ from scipy.spatial.distance import squareform
 import pandas as pd
 
 from atomsci.ddm.pipeline import dist_metrics
-import atomsci.ddm.pipeline.featurization as feat
-import deepchem as dc
 
 def calc_dist_smiles(feat_type, dist_met, smiles_arr1, smiles_arr2=None, calc_type='nearest', num_nearest=1, **metric_kwargs):
     """Returns an array of distances between compounds given as SMILES strings, either between all pairs of compounds in a
@@ -268,27 +266,4 @@ def upload_distmatrix_to_DS(
     filename = fnm.replace("nm",feature_type) # fn is not defined anywhere. need to address this
     _dist_pkl = dist_df.to_pickle(filepath + filename)
     dsf.upload_file_to_DS(bucket, title, description, tags, key_values, filepath, filename, dataset_key, client=None)
-
-def check_ecfp_collisions(dset_df, smiles_col, size, radius):
-    """Check for ECFP uniqueness
-    Check to see if unique smiles result in unique ECFP features. Sometimes isn't the case
-    for ECFP features. A set of features should be the same size as a set of SMILES
-
-    Args:
-        feat_array (numpy array): 2d Feature array. Aligned with smiles
-
-        smiles (iterable of str): List of SMILES strings.
-
-    Returns:
-        collisions (bool):
-            True if there are collisions
-    """
-
-    featurizer_obj = dc.feat.CircularFingerprint(size=size, radius=radius)
-
-    features, is_valid = feat.featurize_smiles(dset_df, featurizer_obj, smiles_col)
-
-    valid_smiles = dset_df[is_valid][smiles_col]
-
-    return feat.check_ecfp_feature_collisions(features, valid_smiles)
 

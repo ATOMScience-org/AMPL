@@ -126,6 +126,31 @@ def remove_duplicate_smiles(dset_df, smiles_col='rdkit_smiles'):
     return dset_df
 
 # ****************************************************************************************
+def check_ecfp_collisions(dset_df, smiles_col, size, radius):
+    """Check for ECFP uniqueness
+    Check to see if unique smiles result in unique ECFP features. Sometimes isn't the case
+    for ECFP features. A set of features should be the same size as a set of SMILES
+
+    Args:
+        feat_array (numpy array): 2d Feature array. Aligned with smiles
+
+        smiles (iterable of str): List of SMILES strings.
+
+    Returns:
+        collisions (bool):
+            True if there are collisions
+    """
+
+    featurizer_obj = dc.feat.CircularFingerprint(size=size, radius=radius)
+
+    features, is_valid = featurize_smiles(dset_df, featurizer_obj, smiles_col)
+
+    valid_smiles = dset_df[is_valid][smiles_col]
+
+    return check_ecfp_feature_collisions(features, valid_smiles)
+
+
+# ****************************************************************************************
 def check_ecfp_feature_collisions(feat_array, smiles):
     """Check for feature uniqueness
     Check to see if unique smiles result in unique features. Sometimes isn't the case
