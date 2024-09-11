@@ -1,18 +1,9 @@
-import argparse
-import json
-import logging
 import os
-import shutil
-import sys
 
-import pytest
 import inspect
-import warnings
 
 from atomsci.ddm.utils import model_version_utils as mu
 
-from pathlib import Path
-import pdb
 
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 
