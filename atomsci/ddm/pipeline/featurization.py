@@ -753,7 +753,7 @@ class DynamicFeaturization(Featurization):
             has_collisions = check_ecfp_feature_collisions(features, valid_smiles)
 
             if has_collisions:
-                log.warning("Multiple SMILES mapped have the same ECFP features."
+                log.warning("Multiple SMILES mapped have the same ECFP features. "
                             "Increasing ecfp_radius can reduce collisons.")
 
         if features is None:

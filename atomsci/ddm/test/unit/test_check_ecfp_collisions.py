@@ -1,7 +1,9 @@
 import atomsci.ddm.pipeline.chem_diversity as cd
+import atomsci.ddm.pipeline.featurization as featurization
+import atomsci.ddm.pipeline.parameter_parser as parser
 import pandas as pd
 
-def test_check_ecfp_collisions():
+def get_collision_df():
     collision_smiles = [
         # group 1
         'CC(=O)N(C)[C@@H](Cc1ccccc1)C(=O)N(C)[C@@H](Cc1ccccc1)C(=O)N(C)[C@@H](Cc1ccccc1)C(N)=O',
@@ -29,7 +31,12 @@ def test_check_ecfp_collisions():
         'O/N=C/c1cc[n+](CCCCC[n+]2ccc(/C=N/O)cc2)cc1',
         'O/N=C/c1cc[n+](CCCCCCC[n+]2ccc(/C=N/O)cc2)cc1',
     ]
-    collision_df = pd.DataFrame(data={'smiles':collision_smiles})
+    collision_df = pd.DataFrame(data={'smiles':collision_smiles, 'id':[f'id_{i}' for i in range(len(collision_smiles))]})
+
+    return collision_df
+
+def test_check_ecfp_collisions():
+    collision_df = get_collision_df()
 
     no_collision_smiles = [
         # group 1
@@ -58,5 +65,34 @@ def test_check_ecfp_collisions():
     no_collision = cd.check_ecfp_collisions(no_collision_df, 'smiles', size=1024, radius=2)
     assert not no_collision, "No collisions should have been found."
 
+def test_dynamic_featurization_with_collisions():
+    test_csv = "test_collision_df.csv"
+    result_dir = "test_ecfp_collision_result"
+    collision_df = get_collision_df()
+
+    params = {
+        # dataset key
+        "dataset_key": test_csv,
+
+        # columns
+        "id_col": "id",
+        "smiles_col": "smiles",
+        "response_cols": "this column doesn't exist",
+
+        # featurizer
+        "featurizer": "ecfp",
+
+        # result dir
+        "result_dir": result_dir
+
+    }
+    pparams = parser.wrapper(params)
+    dynamic_featurizer = featurization.DynamicFeaturization(pparams)
+
+    # this should log a warning
+    _ = dynamic_featurizer.featurize_data(collision_df, pparams, contains_responses=False)
+
+
 if __name__ == '__main__':
+    test_dynamic_featurization_with_collisions()
     test_check_ecfp_collisions()
