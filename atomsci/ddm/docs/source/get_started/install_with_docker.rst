@@ -75,7 +75,7 @@ This normally takes about 15-20 minutes to build. Once it's built on your machin
 
 .. note::
 
-    *To build without cache, add "--no-cache" flag after "docker build". *
+   *To build without cache, add "--no-cache" flag after "docker build".*
 
 .. _Start container:
 
@@ -97,7 +97,7 @@ Use the following example to start the container. For images created or download
 
 .. code-block::
 
-    docker run -it -p 8888:8888 -v ${PWD}:/home atomsci/atomsci-ampl:latest:cpu bash   # replace with your <IMAGE>:<TAG>
+    docker run -it -p 8888:8888 -v ${PWD}:/home atomsci/atomsci-ampl:latest-cpu bash   # replace with your <IMAGE>:<TAG>
 
 To get more info for the "docker run" command options, type "docker run --help": 
 
@@ -175,7 +175,9 @@ Here's a screenshot of the `AMPL <https://github.com/ATOMScience-org/AMPL>`_ tut
 Use **atomsci-env** as the Run Kernel
 =====================================
 
-**This section is required only for images created from version 1.6.2 or earlier.**
+.. note::
+
+   **This section is only applied for images created from version 1.6.2 or earlier.**
 
 In order to use `AMPL <https://github.com/ATOMScience-org/AMPL>`_ Framework, select "atomsci-env" as the run kernel for the notebook. This should be set during image creation. In case it's not set, or if you want to verify. Try one of the following:
 
