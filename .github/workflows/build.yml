@@ -26,7 +26,7 @@ jobs:
         run: |
           make push-docker
         env:
-          ENV: ${{ github.ref_name }}
+          ENV: prod
           PLATFORM: gpu
   build-cpu-linux-amd64:
     runs-on: ubuntu-latest
@@ -49,7 +49,7 @@ jobs:
         run: |
           make push-docker
         env:
-          ENV: ${{ github.ref_name }}
+          ENV: prod
           PLATFORM: cpu
   build-cpu-linux-arm64:
     runs-on: ubuntu-latest
@@ -73,5 +73,5 @@ jobs:
           make push-docker
         env:
           ARCH: linux/arm64
-          ENV: ${{ github.ref_name }}
-          PLATFORM: cpu
+          ENV: prod
+          PLATFORM: arm

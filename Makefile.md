@@ -9,7 +9,7 @@ This Makefile is designed to manage Jupyter environments, Docker images, and the
 - **Environment Configuration:**
 
   - `ENV`: Specifies the environment (`dev`, `prod`, etc.). Default is `dev`.
-  - `PLATFORM`: Specifies the platform (`gpu`, `cpu`). Default is `cpu`.
+  - `PLATFORM`: Specifies the platform (`gpu`, `cpu`, `arm`). Default is `cpu`. `arm` for macOS arm.
   - `ARCH`: Specifies the platform architecture (`linux/amd64` or `linux/arm64`) to use.  Default to current platform.
   - `VERSION`: The version to be used for the docker tag.
 
