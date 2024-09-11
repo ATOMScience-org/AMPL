@@ -3,8 +3,6 @@ name: docker publish
 on:
   release:
     types: [published]
-  push:
-    branches: [ master ]
 
 jobs:
   build-gpu-image:
