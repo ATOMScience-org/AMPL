@@ -31,6 +31,8 @@ pyarrow
 
 bravado
 
+imblearn
+
 # optional for home users: prettier images in RDKit
 # requires pkg-config to build: sudo apt-get pkg-config
 # requires Cairo: sudo apt-get install libcairo2-dev

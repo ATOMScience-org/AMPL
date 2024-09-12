@@ -1202,9 +1202,6 @@ class HybridModelWrapper(NNModelWrapper):
         """
         super().__init__(params, featurizer, ds_client, random_state=random_state, seed=seed)
 
-        self.random_state = random_state
-        self.seed = seed
-
         if self.params.layer_sizes is None:
             if self.params.featurizer == 'ecfp':
                 self.params.layer_sizes = [1000, 500]
@@ -1617,10 +1614,7 @@ class ForestModelWrapper(ModelWrapper):
         self.model_dir = self.best_model_dir
         os.makedirs(self.best_model_dir, exist_ok=True)
 
-        self.random_state = random_state
-        self.seed = seed
-
-        self.model = self.make_dc_model(self.best_model_dir, random_state=random_state, seed=seed)
+        self.model = self.make_dc_model(self.best_model_dir)
 
     # ****************************************************************************************
     def train(self, pipeline):
@@ -1689,7 +1683,7 @@ class ForestModelWrapper(ModelWrapper):
         self.best_epoch = 0
 
     # ****************************************************************************************
-    def make_dc_model(self, model_dir, random_state=None, seed=None):
+    def make_dc_model(self, model_dir):
         """Build a DeepChem model.
 
         Builds a model, wraps it in DeepChem's wrapper and returns it
@@ -1823,11 +1817,9 @@ class DCRFModelWrapper(ForestModelWrapper):
             ds_client: datastore client.
         """
         super().__init__(params, featurizer, ds_client, random_state=random_state, seed=seed)
-        self.random_state = random_state
-        self.seed = seed
 
     # ****************************************************************************************
-    def make_dc_model(self, model_dir, random_state=None, seed=None):
+    def make_dc_model(self, model_dir):
         """Build a DeepChem model.
 
         Builds a model, wraps it in DeepChem's wrapper and returns it
@@ -1978,11 +1970,9 @@ class DCxgboostModelWrapper(ForestModelWrapper):
             ds_client: datastore client.
         """
         super().__init__(params, featurizer, ds_client, random_state=random_state, seed=seed)
-        self.random_state = random_state
-        self.seed = seed
 
     # ****************************************************************************************
-    def make_dc_model(self, model_dir, random_state=None, seed=None):
+    def make_dc_model(self, model_dir):
         """Build a DeepChem model.
 
         Builds a model, wraps it in DeepChem's wrapper and returns it
@@ -2334,8 +2324,6 @@ class PytorchDeepChemModelWrapper(NNModelWrapper):
         # use NNModelWrapper init. 
         super().__init__(params, featurizer, ds_client, random_state=random_state, seed=seed)
         self.num_epochs_trained = 0
-        self.random_state = random_state
-        self.seed = seed
         self.model = self.recreate_model()
 
     # ****************************************************************************************
@@ -2720,13 +2708,11 @@ class GraphConvDCModelWrapper(KerasDeepChemModelWrapper):
             model: The dc.models.GraphConvModel, MultitaskRegressor, or MultitaskClassifier object, as specified by the params attribute
 
         """
-        super().__init__(params, featurizer, ds_client)
+        super().__init__(params, featurizer, ds_client, random_state=random_state, seed=seed)
         # TODO (ksm): The next two attributes aren't used; suggest we drop them.
         self.g = tf.Graph()
         self.sess = tf.compat.v1.Session(graph=self.g)
         self.num_epochs_trained = 0
-        self.random_state = random_state
-        self.seed = seed
         self.model = self.recreate_model(model_dir=self.model_dir)
 
     # ****************************************************************************************

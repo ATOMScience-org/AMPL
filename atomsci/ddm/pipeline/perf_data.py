@@ -1114,11 +1114,16 @@ class KFoldClassificationPerfData(ClassificationPerfData):
         self.subset = subset
         if self.subset in ('train', 'valid', 'train_valid'):
 <<<<<<< HEAD
+<<<<<<< HEAD
             for fold, (train, valid) in enumerate(model_dataset.train_valid_dsets):
                 dataset = model_dataset.combined_training_data()
 =======
             dataset = model_dataset.combined_training_data()
 >>>>>>> upstream/1.7.0
+=======
+            for fold, (train, valid) in enumerate(model_dataset.train_valid_dsets):
+                dataset = model_dataset.combined_training_data()
+>>>>>>> origin/1.7.0
         elif self.subset == 'test':
             dataset = model_dataset.test_dset
         else:
@@ -1244,7 +1249,10 @@ class KFoldClassificationPerfData(ClassificationPerfData):
             class_probs = np.concatenate([dc.trans.undo_transforms(self.pred_vals[id], self.transformers) for id in ids], axis=0)
             prob_stds = None
         pred_classes = np.argmax(class_probs, axis=2)
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/1.7.0
         return (ids, pred_classes, class_probs, prob_stds)
 
 
