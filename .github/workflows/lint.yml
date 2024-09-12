@@ -1,0 +1,47 @@
+name: linter
+
+on: [push]
+
+jobs:
+  ruff:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9"]
+
+    steps:
+      - name: System Dependencies
+        run: |
+          sudo apt install -y build-essential \
+            libcairo2-dev \
+            pkg-config \
+            python3-dev \
+            python3-openssl
+      - uses: actions/checkout@v3
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Cache Python dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('pip/*.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install dependencies
+        run: |
+          python3.9 -m pip install --upgrade pip
+          if [ -f pip/cpu_requirements.txt ]; then pip install -r pip/cpu_requirements.txt; fi
+
+      - name: Install ruff
+        run: |
+          python3.9 -m pip install ruff
+
+      - name: Lint with ruff
+        run: |
+          # Check all lint rules
+          python3.9 -m ruff check atomsci/
+

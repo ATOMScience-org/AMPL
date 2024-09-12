@@ -4,12 +4,9 @@
 and predictions
 """
 
-from textwrap import wrap
-import sklearn.metrics
 
 import deepchem as dc
 import numpy as np
-import tensorflow as tf
 from sklearn.metrics import roc_auc_score, confusion_matrix, average_precision_score, precision_score, recall_score
 from sklearn.metrics import accuracy_score, matthews_corrcoef, cohen_kappa_score, log_loss, balanced_accuracy_score
 from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
@@ -623,7 +620,6 @@ class ClassificationPerfData(PerfData):
                 task_real_vals = real_vals[nzrows,i,:]
                 task_class_probs = class_probs[nzrows,i,:]
                 task_real_classes = np.argmax(task_real_vals, axis=1)
-                task_pred_classes = np.argmax(task_class_probs, axis=1)
             else:
                 # sklearn metrics functions are expecting single array of 1s and 0s for task_real_vals
                 # and task_class_probs for class 1 only
@@ -669,13 +665,9 @@ class ClassificationPerfData(PerfData):
         real_vals = self.get_real_values(ids)
         weights = self.get_weights(ids)
         if self.num_classes > 2:
-            real_val_list = [real_vals[:,i,:] for i in range(self.num_tasks)]
-            class_prob_list = [class_probs[:,i,:] for i in range(self.num_tasks)]
             real_classes = np.argmax(real_vals, axis=2)
         else:
             real_classes = real_vals
-            real_val_list = [real_vals[:,i] for i in range(self.num_tasks)]
-            class_prob_list = [class_probs[:,i,1] for i in range(self.num_tasks)]
 
         # Get the mean and SD of ROC AUC scores over folds. If only single fold training was done, the SD will be None.
         roc_auc_means, roc_auc_stds = self.compute_perf_metrics(per_task=True)
@@ -1121,8 +1113,12 @@ class KFoldClassificationPerfData(ClassificationPerfData):
 
         self.subset = subset
         if self.subset in ('train', 'valid', 'train_valid'):
+<<<<<<< HEAD
             for fold, (train, valid) in enumerate(model_dataset.train_valid_dsets):
                 dataset = model_dataset.combined_training_data()
+=======
+            dataset = model_dataset.combined_training_data()
+>>>>>>> upstream/1.7.0
         elif self.subset == 'test':
             dataset = model_dataset.test_dset
         else:
@@ -1184,9 +1180,7 @@ class KFoldClassificationPerfData(ClassificationPerfData):
             Increments folds by 1
 
         """
-        
-        class_probs = self._reshape_preds(predicted_vals)        
-
+        class_probs = self._reshape_preds(predicted_vals)
         for i, id in enumerate(ids):
             self.pred_vals[id] = np.concatenate([self.pred_vals[id], class_probs[i,:,:].reshape((1,self.num_tasks,-1))], axis=0)
         self.folds += 1
@@ -2150,7 +2144,7 @@ class EpochManager:
         valid_perf = self.update(ei, 'valid', valid_dset)
         test_perf = self.update(ei, 'test', test_dset)
 
-        return [p for p in [train_perf, valid_perf, test_perf] if not(p is None)]
+        return [p for p in [train_perf, valid_perf, test_perf] if p is not None]
 
     # ****************************************************************************************
     # class EpochManager

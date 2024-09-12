@@ -10,7 +10,6 @@ import atomsci.ddm.pipeline.model_pipeline as mp
 import atomsci.ddm.pipeline.parameter_parser as parse
 import atomsci.ddm.utils.curate_data as curate_data
 import atomsci.ddm.utils.struct_utils as struct_utils
-import pdb
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 import integrative_utilities
 
@@ -64,16 +63,6 @@ def curate():
     assert (os.path.isfile('delaney-processed_curated_external.csv'))
 
 
-def download():
-    """Separate download function so that download can be run separately if there is no internet."""
-    if (not os.path.isfile('delaney-processed.csv')):
-        integrative_utilities.download_save(
-            'https://deepchemdata.s3-us-west-1.amazonaws.com/datasets/delaney-processed.csv',
-            'delaney-processed.csv')
-
-    assert (os.path.isfile('delaney-processed.csv'))
-
-
 def test():
     """Test full model pipeline: Curate data, fit model, and predict property for new compounds"""
 
@@ -82,9 +71,9 @@ def test():
     integrative_utilities.clean_fit_predict()
     clean()
 
-    # Download
+    # Copy Data
     # --------
-    download()
+    integrative_utilities.copy_delaney()
 
     # Curate
     # ------
