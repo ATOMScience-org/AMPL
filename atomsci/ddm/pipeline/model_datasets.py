@@ -15,8 +15,6 @@ from pathlib import Path
 import getpass
 import sys
 
-from collections import defaultdict
-
 feather_supported = True
 try:
     import pyarrow.feather as feather
