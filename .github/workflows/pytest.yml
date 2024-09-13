@@ -40,6 +40,7 @@ jobs:
       - name: pytest
         run: |
           # python3.9 -m pytest --capture=sys --capture=fd --cov=atomsci/ -vv atomsci/ddm/test/unit
+          python3.9 -m pytest --capture=sys --capture=fd --cov=atomsci/ -vv atomsci/modac/test/unit
           cd atomsci/ddm/test/unit && python3.9 -m pytest -n 2 --capture=sys --capture=fd --cov=atomsci/ -vv
         env:
           ENV: test
