@@ -24,11 +24,11 @@ endif
 # Release version
 VERSION=$(shell cat VERSION)
 
-# If ENV is prod, we use VERSION for the tag, otherwise use PLATFORM
+# If ENV is from master branch, we use VERSION for the tag, otherwise use PLATFORM
 ifeq ($(ENV), prod)
     TAG = v$(VERSION)-$(SUBTAG)
 else
-    TAG = $(PLATFORM)-$(ENV)
+    TAG = $(ENV)-$(PLATFORM)
 endif
 
 # IMAGE REPOSITORY
@@ -51,7 +51,7 @@ WORK_DIR ?= work
 
 # Load Docker image
 load-docker:
-	docker load < ampl-$(PLATFORM)-$(ENV).tar.gz
+	docker load < ampl-$(TAG).tar.gz
 
 # Pull Docker image
 pull-docker:
@@ -63,12 +63,12 @@ push-docker:
 
 # Save Docker image
 save-docker:
-	docker save $(IMAGE_REPO):$(PLATFORM)-$(ENV) | gzip > ampl-$(PLATFORM)-$(ENV).tar.gz
+	docker save $(IMAGE_REPO):$(TAG) | gzip > ampl-$(TAG).tar.gz
 
 # Build Docker image
 build-docker:
 	@echo "Building Docker image for $(PLATFORM)"
-	docker buildx build -t $(IMAGE_REPO):$(PLATFORM)-$(ENV) --build-arg ENV=$(ENV) $(PLATFORM_ARG) --load -f Dockerfile.$(PLATFORM) .
+	docker buildx build -t $(IMAGE_REPO):$(TAG) --build-arg ENV=$(ENV) $(PLATFORM_ARG) --load -f Dockerfile.$(PLATFORM) .
 
 install: install-system
 
@@ -95,12 +95,12 @@ ifdef host
 	  $(GPU_ARG) \
 		--hostname $(host) \
 		--privileged \
-		-v $(shell pwd)/../$(WORK_DIR):/$(WORK_DIR) $(IMAGE_REPO):$(PLATFORM)-$(ENV) \
+		-v $(shell pwd)/../$(WORK_DIR):/$(WORK_DIR) $(IMAGE_REPO):$(TAG) \
 		/bin/bash -l -c "jupyter-notebook --ip=0.0.0.0 --no-browser --allow-root --port=$(JUPYTER_PORT)"
 else
 	docker run -p $(JUPYTER_PORT):$(JUPYTER_PORT) \
 		$(GPU_ARG) \
-		-v $(shell pwd)/../$(WORK_DIR):/$(WORK_DIR) $(IMAGE_REPO):$(PLATFORM)-$(ENV) \
+		-v $(shell pwd)/../$(WORK_DIR):/$(WORK_DIR) $(IMAGE_REPO):$(TAG) \
 		/bin/bash -l -c "jupyter-notebook --ip=0.0.0.0 --no-browser --allow-root --port=$(JUPYTER_PORT)"
 endif
 
@@ -109,7 +109,7 @@ endif
 jupyter-lab:
 	@echo "Starting Jupyter Lab"
 	docker run -p $(JUPYTER_PORT):$(JUPYTER_PORT) \
-		-v $(shell pwd)/../$(WORK_DIR):/$(WORK_DIR) $(IMAGE_REPO):$(PLATFORM)-$(ENV) \
+		-v $(shell pwd)/../$(WORK_DIR):/$(WORK_DIR) $(IMAGE_REPO):$(TAG) \
 		/bin/bash -l -c "jupyter-lab --ip=0.0.0.0 --allow-root --port=$(JUPYTER_PORT)"
 
 # Run pytest
@@ -117,26 +117,26 @@ pytest: pytest-unit pytest-integrative
 
 pytest-integrative:
 	@echo "Running integrative tests"
-	docker run -v $(shell pwd)/$(WORK_DIR):/$(WORK_DIR) $(IMAGE_REPO):$(PLATFORM)-$(ENV) \
+	docker run -v $(shell pwd)/$(WORK_DIR):/$(WORK_DIR) $(IMAGE_REPO):$(TAG) \
 			/bin/bash -l -c "cd atomsci/ddm/test/integrative && ./integrative_batch_tests.sh"
 
 pytest-unit:
 	@echo "Running unit tests"
-	docker run -v $(shell pwd)/$(WORK_DIR):/$(WORK_DIR) $(IMAGE_REPO):$(PLATFORM)-$(ENV) \
+	docker run -v $(shell pwd)/$(WORK_DIR):/$(WORK_DIR) $(IMAGE_REPO):$(TAG) \
 			/bin/bash -l -c "cd atomsci/ddm/test/unit && python3.9 -m pytest --capture=sys --capture=fd --cov=atomsci/ -vv"
 
 # Run ruff linter
 ruff:
 	@echo "Running ruff"
-	docker run -it $(IMAGE_REPO):$(PLATFORM)-$(ENV) /bin/bash -l -c "ruff check ."
+	docker run -it $(IMAGE_REPO):$(TAG) /bin/bash -l -c "ruff check ."
 
 # Run ruff linter with fix
 ruff-fix:
 	@echo "Running ruff with fix"
-	docker run -it $(IMAGE_REPO):$(PLATFORM)-$(ENV) /bin/bash -l -c "ruff check . --fix"
+	docker run -it $(IMAGE_REPO):$(TAG) /bin/bash -l -c "ruff check . --fix"
 
 shell:
-	docker run -v $(shell pwd)/../$(WORK_DIR):/$(WORK_DIR) -it $(IMAGE_REPO):$(PLATFORM)-$(ENV) /bin/bash
+	docker run -v $(shell pwd)/../$(WORK_DIR):/$(WORK_DIR) -it $(IMAGE_REPO):$(TAG) /bin/bash
 
 # Setup virtual environment and install dependencies
 setup:
