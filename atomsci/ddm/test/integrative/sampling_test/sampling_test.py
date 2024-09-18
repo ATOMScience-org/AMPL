@@ -119,7 +119,7 @@ def saved_model_identity(pparams):
 #-------------------------------------------------------------------
 
 #-------- random forest
-def train_valid_test_RF_SMOTE_test(): 
+def test_train_valid_test_RF_SMOTE(): 
     script_path = os.path.dirname(os.path.realpath(__file__))
     json_file = os.path.join(script_path, 'sampling_json/train_valid_test_RF_SMOTE.json')
 
@@ -131,7 +131,7 @@ def train_valid_test_RF_SMOTE_test():
 
     saved_model_identity(pparams)
 
-def k_fold_cv_RF_SMOTE_test():
+def test_k_fold_cv_RF_SMOTE():
     script_path = os.path.dirname(os.path.realpath(__file__))
     json_file = os.path.join(script_path, 'sampling_json/kfold_cv_RF_SMOTE.json')
 
@@ -143,7 +143,7 @@ def k_fold_cv_RF_SMOTE_test():
 
     saved_model_identity(pparams)
 
-def k_fold_cv_RF_undersampling_test():
+def test_k_fold_cv_RF_undersampling():
 
     script_path = os.path.dirname(os.path.realpath(__file__))
     json_file = os.path.join(script_path, 'sampling_json/kfold_cv_RF_undersampling.json')
@@ -156,7 +156,7 @@ def k_fold_cv_RF_undersampling_test():
 
     saved_model_identity(pparams)
 
-def train_valid_test_RF_undersampling_test(): 
+def test_train_valid_test_RF_undersampling(): 
     script_path = os.path.dirname(os.path.realpath(__file__))
     json_file = os.path.join(script_path, 'sampling_json/train_valid_test_RF_undersampling.json')
 
@@ -170,7 +170,7 @@ def train_valid_test_RF_undersampling_test():
 
 #-------- neural network
 
-def train_valid_test_NN_SMOTE_test():
+def test_train_valid_test_NN_SMOTE():
     script_path = os.path.dirname(os.path.realpath(__file__))
     json_file = os.path.join(script_path, 'sampling_json/train_valid_test_NN_SMOTE.json')
 
@@ -182,7 +182,7 @@ def train_valid_test_NN_SMOTE_test():
 
     saved_model_identity(pparams)
 
-def train_valid_test_NN_undersampling_test():
+def test_train_valid_test_NN_undersampling():
     script_path = os.path.dirname(os.path.realpath(__file__))
     json_file = os.path.join(script_path, 'sampling_json/train_valid_test_NN_undersampling.json')
 
@@ -194,7 +194,7 @@ def train_valid_test_NN_undersampling_test():
 
     saved_model_identity(pparams)
 
-def k_fold_cv_NN_SMOTE_test():
+def test_k_fold_cv_NN_SMOTE():
     script_path = os.path.dirname(os.path.realpath(__file__))
     json_file = os.path.join(script_path, 'sampling_json/kfold_cv_NN_SMOTE.json')
 
@@ -206,7 +206,7 @@ def k_fold_cv_NN_SMOTE_test():
 
     saved_model_identity(pparams)
 
-def k_fold_cv_NN_undersampling_test():
+def test_k_fold_cv_NN_undersampling():
     script_path = os.path.dirname(os.path.realpath(__file__))
     json_file = os.path.join(script_path, 'sampling_json/kfold_cv_NN_undersampling.json')
 
@@ -220,7 +220,7 @@ def k_fold_cv_NN_undersampling_test():
 
 #-------- xgboost
 
-def train_valid_test_xgboost_SMOTE_test():
+def test_train_valid_test_xgboost_SMOTE():
     script_path = os.path.dirname(os.path.realpath(__file__))
     json_file = os.path.join(script_path, 'sampling_json/train_valid_test_xgboost_SMOTE.json')
 
@@ -232,7 +232,7 @@ def train_valid_test_xgboost_SMOTE_test():
 
     saved_model_identity(pparams)
 
-def train_valid_test_xgboost_undersampling_test():
+def test_train_valid_test_xgboost_undersampling():
     script_path = os.path.dirname(os.path.realpath(__file__))
     json_file = os.path.join(script_path, 'sampling_json/train_valid_test_xgboost_undersampling.json')
 
@@ -244,7 +244,7 @@ def train_valid_test_xgboost_undersampling_test():
 
     saved_model_identity(pparams)
 
-def k_fold_cv_xgboost_SMOTE_test():
+def test_k_fold_cv_xgboost_SMOTE():
     script_path = os.path.dirname(os.path.realpath(__file__))
     json_file = os.path.join(script_path, 'sampling_json/kfold_cv_xgboost_SMOTE.json')
 
@@ -256,7 +256,7 @@ def k_fold_cv_xgboost_SMOTE_test():
 
     saved_model_identity(pparams)
 
-def k_fold_cv_xgboost_undersampling_test():
+def test_k_fold_cv_xgboost_undersampling():
     script_path = os.path.dirname(os.path.realpath(__file__))
     json_file = os.path.join(script_path, 'sampling_json/kfold_cv_xgboost_undersampling.json')
 
@@ -271,39 +271,39 @@ def k_fold_cv_xgboost_undersampling_test():
 
 if __name__=='__main__':
     print('train_valid_test_RF_SMOTE_test')
-    train_valid_test_RF_SMOTE_test()
+    test_train_valid_test_RF_SMOTE()
     
     print('train_valid_test_NN_SMOTE_test')
-    train_valid_test_NN_SMOTE_test()
+    test_train_valid_test_NN_SMOTE()
     
     print("train_valid_test_RF_undersampling_test")
-    train_valid_test_RF_undersampling_test()
+    test_train_valid_test_RF_undersampling()
     
     print("train_valid_test_NN_undersampling_test")
-    train_valid_test_NN_undersampling_test()
+    test_train_valid_test_NN_undersampling()
     
     print("kfold_cv_NN_SMOTE_test")
-    k_fold_cv_NN_SMOTE_test()
+    test_k_fold_cv_NN_SMOTE()
 
     print("kfold_cv_NN_undersampling_test")
-    k_fold_cv_NN_undersampling_test()
+    test_k_fold_cv_NN_undersampling()
 
     print("kfold_cv_RF_SMOTE_test")
-    k_fold_cv_RF_SMOTE_test()
+    test_k_fold_cv_RF_SMOTE()
 
     print("kfold_cv_RF_undersampling_test")
-    k_fold_cv_RF_undersampling_test()
+    test_k_fold_cv_RF_undersampling()
     
     print("train_valid_test_xgboost_SMOTE_test")
-    train_valid_test_xgboost_SMOTE_test()
+    test_train_valid_test_xgboost_SMOTE()
 
     print("train_valid_test_xgboost_undersampling_test")
-    train_valid_test_xgboost_undersampling_test()
+    test_train_valid_test_xgboost_undersampling()
 
     print("k_fold_cv_xgboost_SMOTE_test")
-    k_fold_cv_xgboost_SMOTE_test()
+    test_k_fold_cv_xgboost_SMOTE()
 
     print("k_fold_cv_xgboost_undersampling_test")
-    k_fold_cv_xgboost_undersampling_test()
+    test_k_fold_cv_xgboost_undersampling()
 
     print("Passed!")
