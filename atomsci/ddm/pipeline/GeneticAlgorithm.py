@@ -2,7 +2,6 @@ import numpy as np
 import uuid
 import scipy.spatial.distance as scipy_distance
 import multiprocessing
-import random
 from tqdm import tqdm
 import timeit
 from typing import Any, Callable, List, Tuple, Optional
@@ -213,7 +212,7 @@ if __name__ == '__main__':
             parent1 = parents[i%len(parents)]
             parent2 = parents[(i+1)%len(parents)]
 
-            crossover_point = random.randint(0, len(parents[0])-1)
+            crossover_point = random_state.integers(0, len(parents[0])-1, 1)[0]
             new_pop.append(parent1[:crossover_point]+parent2[crossover_point:])
 
         return new_pop
@@ -223,7 +222,7 @@ if __name__ == '__main__':
         for chromosome in pop:
             new_chromosome = list(chromosome)
             for i, g in enumerate(new_chromosome):
-                if random.random() < mutate_chance:
+                if random_state.random() < mutate_chance:
                     if new_chromosome[i] == 0:
                         new_chromosome[i] = 1
                     else:

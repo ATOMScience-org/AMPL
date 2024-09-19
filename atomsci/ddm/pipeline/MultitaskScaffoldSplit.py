@@ -1,6 +1,5 @@
 import argparse
 import logging
-import random
 import timeit
 import tempfile
 from typing import List, Optional, Set, Tuple
@@ -918,7 +917,7 @@ def ga_mutate(new_pop: List[List[str]],
     for solution in new_pop:
         new_solution = list(solution)
         for i, gene in enumerate(new_solution):
-            if random.random() < mutation_rate:
+            if random_state.random() < mutation_rate:
                 new_solution[i] = ['train', 'valid', 'test'][random_state.integers(low=0, high=2, size=1)[0]]
         mutated.append(new_solution)
 
