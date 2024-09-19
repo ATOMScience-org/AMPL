@@ -69,7 +69,7 @@ def test_splits():
         smiles_col=smiles_col, id_col=id_col, response_cols=response_cols, 
         diff_fitness_weight_tvt=dfw, ratio_fitness_weight=rfw, num_generations=1,
         num_super_scaffolds=num_super_scaffolds,
-        frac_train=frac_train, frac_test=frac_test, frac_valid=frac_valid)
+        frac_train=frac_train, frac_test=frac_test, frac_valid=frac_valid, seed=0)
     mss_split_df.to_csv('one_gen_split.csv', index=False)
     assert len(total_df) == len(mss_split_df)
 
@@ -86,7 +86,7 @@ def test_splits():
         diff_fitness_weight_tvt=dfw, ratio_fitness_weight=rfw,
         num_generations=num_generations,
         num_super_scaffolds=num_super_scaffolds,
-        frac_train=frac_train, frac_test=frac_test, frac_valid=frac_valid)
+        frac_train=frac_train, frac_test=frac_test, frac_valid=frac_valid, seed=0)
     mss_split_df.to_csv('thirty_gen_split.csv', index=False)
     assert len(total_df) == len(mss_split_df)
 

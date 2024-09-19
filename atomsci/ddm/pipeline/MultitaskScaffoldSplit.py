@@ -636,8 +636,8 @@ class MultitaskScaffoldSplitter(Splitter):
             A tuple with 3 elements that are training, validation, and test compound
             indices into dataset, respectively
         """
-        if seed is not None:
-            np.random.seed(seed)
+        self.seed = seed
+
         self.dataset = dataset
         self.diff_fitness_weight_tvt = diff_fitness_weight_tvt
         self.diff_fitness_weight_tvv = diff_fitness_weight_tvv
@@ -674,7 +674,7 @@ class MultitaskScaffoldSplitter(Splitter):
             population.append(split_chromosome)
 
         gene_alg = ga.GeneticAlgorithm(population, self.grade, ga_crossover,
-                        ga_mutate)
+                        ga_mutate, self.seed)
         #gene_alg.iterate(num_generations)
         for i in range(self.num_generations):
             gene_alg.step(print_timings=print_timings)
@@ -859,7 +859,8 @@ class MultitaskScaffoldSplitter(Splitter):
         return train_dataset, valid_dataset, test_dataset
 
 def ga_crossover(parents: List[List[str]],
-                num_pop: int) -> List[List[str]]:
+                num_pop: int,
+                random_state: np.random.Generator) -> List[List[str]]:
     """Create the next generation from parents
 
     A random index is chosen and genes up to that index from
@@ -872,6 +873,8 @@ def ga_crossover(parents: List[List[str]],
         A list of chromosomes.
     num_pop: int
         The number of new chromosomes to make
+    random_state: np.random.Generator
+        Random number generator
     Returns
     -------
     List[List[str]]
@@ -883,13 +886,14 @@ def ga_crossover(parents: List[List[str]],
         parent1 = parents[i%len(parents)]
         parent2 = parents[(i+1)%len(parents)]
 
-        crossover_point = random.randint(0, len(parents[0])-1)
+        crossover_point = random_state.integers(low=0, high=len(parents[0])-1, size=1)[0]
         new_pop.append(parent1[:crossover_point]+parent2[crossover_point:])
 
     return new_pop
 
 def ga_mutate(new_pop: List[List[str]],
-            mutation_rate: float = .02) -> List[List[str]]:
+            random_state: np.random.Generator,
+            mutation_rate: float = .02,) -> List[List[str]]:
     """Mutate the population
 
     Each chromosome is copied and mutated at mutation_rate.
@@ -900,6 +904,8 @@ def ga_mutate(new_pop: List[List[str]],
     ----------
     new_pop: List[List[str]]
         A list of chromosomes.
+    random_state: np.random.Generator
+        Random number generator
     mutation_rate: float
         How often a mutation occurs. 0.02 is a good rate for
         my test sets.
@@ -913,7 +919,7 @@ def ga_mutate(new_pop: List[List[str]],
         new_solution = list(solution)
         for i, gene in enumerate(new_solution):
             if random.random() < mutation_rate:
-                new_solution[i] = ['train', 'valid', 'test'][random.randint(0,2)]
+                new_solution[i] = ['train', 'valid', 'test'][random_state.integers(low=0, high=2, size=1)[0]]
         mutated.append(new_solution)
 
     return mutated
@@ -1039,6 +1045,7 @@ def parse_args():
     parser.add_argument('id_col', type=str, help='the column containing ids')
     parser.add_argument('response_cols', type=str, help='comma seperated string of response columns')
     parser.add_argument('output', type=str, help='name of the split file')
+    parser.add_argument('seed', type=int, default=0, help='name of the split file')
 
     return parser.parse_args()
 
@@ -1054,5 +1061,6 @@ if __name__ == '__main__':
     mss = MultitaskScaffoldSplitter()
     mss_split_df = split_with(total_df, mss, 
         smiles_col=args.smiles_col, id_col=args.id_col, response_cols=response_cols, 
-        diff_fitness_weight=dfw, ratio_fitness_weight=rfw, num_generations=args.num_gens)
+        diff_fitness_weight=dfw, ratio_fitness_weight=rfw, num_generations=args.num_gens,
+        seed=args.seed)
     mss_split_df.to_csv(args.output, index=False)
