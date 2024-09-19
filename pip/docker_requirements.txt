@@ -44,6 +44,7 @@ jupyter
 jupyterlab
 
 deepchem==2.8.0
-
 rdkit==2024.3.5
+
+# deepchem 2.8 requires lightgbm.                                                                                                                            lightgbm
 pyyaml==5.4.1

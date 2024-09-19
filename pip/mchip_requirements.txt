@@ -46,4 +46,7 @@ jupyterlab
 
 deepchem==2.7.1
 rdkit==2024.3.5
+
+# deepchem requires lightgbm. need to check if it works for macOS. https://pypi.org/project/lightgbm/
+lightgbm
 pyyaml==5.4.1
