@@ -9,7 +9,7 @@ tensorflow[and-cuda]~=2.14.0
 
 tensorrt
 
-torch==2.0.1
+torch==2.2.0
 torch_geometric
 lightning
 

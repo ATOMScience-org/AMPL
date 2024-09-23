@@ -8,7 +8,7 @@
 # use tensorflow not tensorflow-cpu for arm. see https://www.tensorflow.org/install/pip#linux
 tensorflow~=2.14.0
 
-torch==2.0.1
+torch==2.2.0+cpu
 torch_geometric
 lightning
 
