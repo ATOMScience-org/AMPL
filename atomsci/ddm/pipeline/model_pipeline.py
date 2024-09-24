@@ -15,11 +15,9 @@ import tempfile
 import tarfile
 import deepchem as dc
 import numpy as np
-import time
 import pandas as pd
 import scipy as sp
 from sklearn.metrics import pairwise_distances
-import pdb
 import copy
 
 from atomsci.ddm.utils import datastore_functions as dsf
@@ -219,7 +217,7 @@ class ModelPipeline:
             else:
                 self.ds_client = ds_client
         # Check consistency of task parameters
-        if type(params.response_cols) == str:
+        if isinstance(params.response_cols, str):
             params.response_cols = [params.response_cols]
         if params.num_model_tasks != len(params.response_cols):
             raise ValueError("num_model_tasks parameter is inconsistent with response_cols")
@@ -547,7 +545,7 @@ class ModelPipeline:
             out.write("\n")
 
         if self.params.save_results:
-            if type(model_metrics) != list:
+            if not isinstance(model_metrics, list):
                 model_metrics = [model_metrics]
             for metrics in model_metrics:
                 retry = True
@@ -1206,7 +1204,7 @@ def regenerate_results(result_dir, params=None, metadata_dict=None, shared_featu
     # Get the tarball containing the saved model from the datastore, and extract it into model_dir (old format)
     # or output_dir (new format) according to the format of the tarball contents.
 
-    extract_dir = trkr.extract_datastore_model_tarball(model_uuid, model_params.model_bucket, model_params.output_dir, 
+    _extract_dir = trkr.extract_datastore_model_tarball(model_uuid, model_params.model_bucket, model_params.output_dir,
                                          pipeline.model_wrapper.model_dir)
 
     # If that worked, reload the saved model training state
@@ -1252,7 +1250,7 @@ def create_prediction_pipeline(params, model_uuid, collection_name=None, featuri
     if collection_name is None:
         collection_name = trkr.get_model_collection_by_uuid(model_uuid, mlmt_client)
 
-    if type(params) == dict:
+    if isinstance(params, dict):
         params = parse.wrapper(params)
 
     metadata_dict = trkr.get_metadata_by_uuid(model_uuid, collection_name=collection_name)
@@ -1371,7 +1369,7 @@ def create_prediction_pipeline_from_file(params, reload_dir, model_path=None, mo
     # Unpack the model tar archive if one is specified
     if model_path is not None:
         # if mismatch, it will raise an exception
-        matched = mu.check_version_compatible(model_path)
+        _matched = mu.check_version_compatible(model_path)
         if reload_dir is None:
             # Create a temporary directory
             reload_dir = tempfile.mkdtemp()
@@ -1540,12 +1538,12 @@ def ensemble_predict(model_uuids, collections, dset_df, labels=None, dset_params
     """
 
     # Get the singleton MLMTClient instance
-    mlmt_client = dsf.initialize_model_tracker()
+    _mlmt_client = dsf.initialize_model_tracker()
     log = logging.getLogger('ATOM')
 
     pred_df = None
 
-    if type(collections) == str:
+    if isinstance(collections, str):
         collections = [collections] * len(model_uuids)
 
     if labels is None:
@@ -1678,7 +1676,7 @@ def retrain_model(model_uuid, collection_name=None, result_dir=None, mt_client=N
 
     log = logging.getLogger('ATOM')
     if not result_dir:
-        mlmt_client = dsf.initialize_model_tracker()
+        _mlmt_client = dsf.initialize_model_tracker()
 
         log.info("Loading model %s from collection %s" % (model_uuid, collection_name))
         metadata_dict = trkr.get_metadata_by_uuid(model_uuid, collection_name=collection_name)

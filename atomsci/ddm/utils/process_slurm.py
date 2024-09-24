@@ -39,7 +39,7 @@ def move_failed_slurm(output_dirs):
             os.mkdir(canceled_output_dir)
         for filename in files:
             with open(os.path.join(output_dir, filename), 'r') as f:
-                lines = [l.strip() for l in f.readlines()]
+                lines = [line.strip() for line in f.readlines()]
                 try:
                     if 'Successfully inserted into the database' not in lines[-2]:
                         print(filename)
@@ -64,7 +64,7 @@ def rerun_failed(script_dir, python_path, output_dirs, result_dir):
         files = [f for f in listdir(output_dir) if isfile(join(output_dir, f)) and 'slurm' in f]
         for filename in files:
             with open(os.path.join(output_dir, filename), 'r') as f:
-                lines = [l.strip() for l in f.readlines()]
+                lines = [line.strip() for line in f.readlines()]
                 try:
                     if 'Successfully inserted into the database' not in lines[-2]:
                         run_command(shell_script, python_path, script_dir, lines[0])
@@ -79,7 +79,7 @@ def get_timings(output_dirs):
         files = [f for f in listdir(output_dir) if isfile(join(output_dir, f)) and 'slurm' in f]
         for filename in files:
             with open(os.path.join(output_dir, filename), 'r') as f:
-                lines = [l.strip() for l in f.readlines()]
+                lines = [line.strip() for line in f.readlines()]
                 if lines[-2] == 'Successfully inserted into the database.':
                     run_time = lines[-1].split(' ')[-1]
                     num_samples = ''
