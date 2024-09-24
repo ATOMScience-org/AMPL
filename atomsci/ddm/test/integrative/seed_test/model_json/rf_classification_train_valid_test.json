@@ -11,5 +11,5 @@
 "transformers": "True", 
 "id_col": "compound_id", 
 "smiles_col": "base_rdkit_smiles",
-"response_cols":"pIC50", 
+"response_cols":"active", 
 "max_epochs":"100"}
