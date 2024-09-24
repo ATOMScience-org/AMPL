@@ -58,21 +58,13 @@ def saved_model_identity(pparams):
         pparams.split_uuid = split_uuid
         pparams.previously_split = True 
         pparams.split_only = False
-    try:
-        model_pipe.train_model()
-    except Exception as e:
-        print(f"Error during model training: {e}")
-        return
+
+    model_pipe.train_model()
 
     # load model metrics from file 
-    
-    try:
-        with open(os.path.join(pparams.output_dir, 'model_metrics.json'), 'r') as f:
-            model_metrics = json.load(f)
-    except Exception as e:
-        print(f"Error during loading model metrics: {e}")
-        return
-    
+    with open(os.path.join(pparams.output_dir, 'model_metrics.json'), 'r') as f:
+        model_metrics = json.load(f)
+
     original_metrics = find_best_test_metric(model_metrics)
     if pparams.prediction_type == 'regression':
         original_mae = original_metrics['prediction_results']['mae_score']

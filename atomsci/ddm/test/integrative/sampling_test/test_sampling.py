@@ -64,11 +64,7 @@ def saved_model_identity(pparams):
         pparams.previously_split = True
         pparams.split_only=False
 
-    try:
-        model_pipe.train_model()
-    except Exception as e:
-        print(f"Error during model training: {e}")
-        return 
+    model_pipe.train_model()
     
     #train_pipe = train(pparams)
     split_csv = os.path.join(script_path, '../../test_datasets/', model_pipe.data._get_split_key())
@@ -270,40 +266,40 @@ def test_k_fold_cv_xgboost_undersampling():
 #-------------------------------------------------------------------
 
 if __name__=='__main__':
-    print('train_valid_test_RF_SMOTE_test')
-    test_train_valid_test_RF_SMOTE()
+    #print('train_valid_test_RF_SMOTE_test')
+    #test_train_valid_test_RF_SMOTE()
     
-    print('train_valid_test_NN_SMOTE_test')
-    test_train_valid_test_NN_SMOTE()
+    #print('train_valid_test_NN_SMOTE_test')
+    #test_train_valid_test_NN_SMOTE()
     
-    print("train_valid_test_RF_undersampling_test")
-    test_train_valid_test_RF_undersampling()
+    #print("train_valid_test_RF_undersampling_test")
+    #test_train_valid_test_RF_undersampling()
     
-    print("train_valid_test_NN_undersampling_test")
-    test_train_valid_test_NN_undersampling()
+    #print("train_valid_test_NN_undersampling_test")
+    #test_train_valid_test_NN_undersampling()
     
     print("kfold_cv_NN_SMOTE_test")
     test_k_fold_cv_NN_SMOTE()
 
-    print("kfold_cv_NN_undersampling_test")
-    test_k_fold_cv_NN_undersampling()
+    #print("kfold_cv_NN_undersampling_test")
+    #test_k_fold_cv_NN_undersampling()
 
-    print("kfold_cv_RF_SMOTE_test")
-    test_k_fold_cv_RF_SMOTE()
+    #print("kfold_cv_RF_SMOTE_test")
+    #test_k_fold_cv_RF_SMOTE()
 
-    print("kfold_cv_RF_undersampling_test")
-    test_k_fold_cv_RF_undersampling()
+    #print("kfold_cv_RF_undersampling_test")
+    #test_k_fold_cv_RF_undersampling()
     
-    print("train_valid_test_xgboost_SMOTE_test")
-    test_train_valid_test_xgboost_SMOTE()
+    #print("train_valid_test_xgboost_SMOTE_test")
+    #test_train_valid_test_xgboost_SMOTE()
 
-    print("train_valid_test_xgboost_undersampling_test")
-    test_train_valid_test_xgboost_undersampling()
+    #print("train_valid_test_xgboost_undersampling_test")
+    #test_train_valid_test_xgboost_undersampling()
 
-    print("k_fold_cv_xgboost_SMOTE_test")
-    test_k_fold_cv_xgboost_SMOTE()
+    #print("k_fold_cv_xgboost_SMOTE_test")
+    #test_k_fold_cv_xgboost_SMOTE()
 
-    print("k_fold_cv_xgboost_undersampling_test")
-    test_k_fold_cv_xgboost_undersampling()
+    #print("k_fold_cv_xgboost_undersampling_test")
+    #test_k_fold_cv_xgboost_undersampling()
 
     print("Passed!")
