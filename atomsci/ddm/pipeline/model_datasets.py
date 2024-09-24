@@ -655,12 +655,32 @@ class ModelDataset(object):
         # All of the splits have the same combined train/valid data, regardless of whether we're using
         # k-fold or train/valid/test splitting.
         if self.combined_train_valid_data is None:
+            # normally combining one fold is sufficient, but if SMOTE is being used
+            # each fold will have compounds unique to it.
             (train, valid) = self.train_valid_dsets[0]
             combined_X = np.concatenate((train.X, valid.X), axis=0)
             combined_y = np.concatenate((train.y, valid.y), axis=0)
             combined_w = np.concatenate((train.w, valid.w), axis=0)
             combined_ids = np.concatenate((train.ids, valid.ids))
-        self.combined_train_valid_data = NumpyDataset(combined_X, combined_y, w=combined_w, ids=combined_ids)
+
+            contains_synthetic = any(id.startswith('synthetic_') for id in train.ids)
+            if contains_synthetic:
+                # for each successive fold, merge in any new compounds
+                for train, valid in self.train_valid_dsets[1:]:
+                    fold_ids = np.concatenate((train.ids, valid.ids))
+                    new_id_indexes = [i for i in range(len(fold_ids)) if i not in combined_ids]
+
+                    fold_ids = fold_ids[new_id_indexes]
+                    fold_X = np.concatenate((train.X, valid.X), axis=0)[new_id_indexes]
+                    fold_y = np.concatenate((train.y, valid.y), axis=0)[new_id_indexes]
+                    fold_w = np.concatenate((train.w, valid.w), axis=0)[new_id_indexes]
+
+                    combined_X = np.concatenate((combined_X, fold_X), axis=0)
+                    combined_y = np.concatenate((combined_y, fold_y), axis=0)
+                    combined_w = np.concatenate((combined_w, fold_w), axis=0)
+                    combined_ids = np.concatenate((combined_ids, fold_ids))
+
+            self.combined_train_valid_data = NumpyDataset(combined_X, combined_y, w=combined_w, ids=combined_ids)
         return self.combined_train_valid_data
 
     # ****************************************************************************************
@@ -697,9 +717,13 @@ class ModelDataset(object):
         """
         if subset not in self.subset_response_dict:
             if subset in ('train', 'valid', 'train_valid'):
+<<<<<<< HEAD
                 for fold, (train, valid) in enumerate(self.train_valid_dsets):
                     dataset = self.combined_training_data()
 
+=======
+                dataset = self.combined_training_data()
+>>>>>>> 0c83b6b6b5a94cc6fce944ea2a099775bbbcff09
             elif subset == 'test':
                 dataset = self.test_dset
             else:

@@ -58,21 +58,13 @@ def saved_model_identity(pparams):
         pparams.split_uuid = split_uuid
         pparams.previously_split = True 
         pparams.split_only = False
-    try:
-        model_pipe.train_model()
-    except Exception as e:
-        print(f"Error during model training: {e}")
-        return
+
+    model_pipe.train_model()
 
     # load model metrics from file 
-    
-    try:
-        with open(os.path.join(pparams.output_dir, 'model_metrics.json'), 'r') as f:
-            model_metrics = json.load(f)
-    except Exception as e:
-        print(f"Error during loading model metrics: {e}")
-        return
-    
+    with open(os.path.join(pparams.output_dir, 'model_metrics.json'), 'r') as f:
+        model_metrics = json.load(f)
+
     original_metrics = find_best_test_metric(model_metrics)
     if pparams.prediction_type == 'regression':
         original_mae = original_metrics['prediction_results']['mae_score']
@@ -239,7 +231,7 @@ def test_xgboost_classification_reproducibility():
 
 def test_xgboost_regression_kfold_cv_reproducibility():
     script_path = os.path.dirname(os.path.realpath(__file__))
-    json_file =  os.path.join(script_path, 'model_json/xgboost_regression_train_valid_test.json')
+    json_file =  os.path.join(script_path, 'model_json/xgboost_regression_kfold_test.json')
 
     pparams = parse.wrapper(['--config_file', json_file])
     pparams.dataset_key = os.path.join(script_path, '../../test_datasets/aurka_chembl_base_smiles_union.csv')
@@ -249,13 +241,56 @@ def test_xgboost_regression_kfold_cv_reproducibility():
 
 def test_xgboost_classification_kfold_cv_reproducibility():
     script_path = os.path.dirname(os.path.realpath(__file__))
-    json_file =  os.path.join(script_path, 'model_json/xgboost_classification_train_valid_test.json')
+    json_file =  os.path.join(script_path, 'model_json/xgboost_classification_kfold_test.json')
 
     pparams = parse.wrapper(['--config_file', json_file])
     pparams.dataset_key = os.path.join(script_path, '../../test_datasets/aurka_chembl_base_smiles_union.csv')
     pparams.result_dir=script_path
 
     saved_model_identity(pparams)
+
+# graphconv
+def test_graphconv_classification_reproducibility():
+    script_path = os.path.dirname(os.path.realpath(__file__))
+    json_file =  os.path.join(script_path, 'model_json/graphconv_classification_train_valid_test.json')
+
+    pparams = parse.wrapper(['--config_file', json_file])
+    pparams.dataset_key = os.path.join(script_path, '../../test_datasets/aurka_chembl_base_smiles_union.csv')
+    pparams.result_dir=script_path
+
+    saved_model_identity(pparams)
+
+def test_graphconv_regression_reproducibility():
+    script_path = os.path.dirname(os.path.realpath(__file__))
+    json_file =  os.path.join(script_path, 'model_json/graphconv_regression_train_valid_test.json')
+
+    pparams = parse.wrapper(['--config_file', json_file])
+    pparams.dataset_key = os.path.join(script_path, '../../test_datasets/aurka_chembl_base_smiles_union.csv')
+    pparams.result_dir=script_path
+
+    saved_model_identity(pparams)
+
+# DCmodels
+def test_attentivefp_regression_reproducibility():
+    script_path = os.path.dirname(os.path.realpath(__file__))
+    json_file =  os.path.join(script_path, 'model_json/attentivefp_regression_train_valid_test.json')
+
+    pparams = parse.wrapper(['--config_file', json_file])
+    pparams.dataset_key = os.path.join(script_path, '../../test_datasets/aurka_chembl_base_smiles_union.csv')
+    pparams.result_dir=script_path
+
+    saved_model_identity(pparams)
+
+def test_pytorchmpnn_regression_reproducibility():
+    script_path = os.path.dirname(os.path.realpath(__file__))
+    json_file =  os.path.join(script_path, 'model_json/pytorchmpnn_regression_train_valid_test.json')
+
+    pparams = parse.wrapper(['--config_file', json_file])
+    pparams.dataset_key = os.path.join(script_path, '../../test_datasets/aurka_chembl_base_smiles_union.csv')
+    pparams.result_dir=script_path
+
+    saved_model_identity(pparams)
+
 
 if __name__ == "__main__":
     # ------ random forest 
@@ -287,6 +322,19 @@ if __name__ == "__main__":
     test_xgboost_classification_reproducibility()
     print("test_xgboost_classification_kfold_reproducibility")
     test_xgboost_classification_kfold_cv_reproducibility()
+
+    # ------ graphconv
+    print("test_graphconv_classification_reproducibility")
+    test_graphconv_classification_reproducibility()
+    print("test_graphconv_regression_reproducibility")
+    test_graphconv_regression_reproducibility()
+
+    # ------ dcmodels
+    print("test_attentivefp_regression_reproducibility")
+    test_attentivefp_regression_reproducibility()
+
+    print("test_pytorchmpnn_regression_reproducibility")
+    test_pytorchmpnn_regression_reproducibility()
 
     print("Passed!")
     

@@ -254,7 +254,7 @@ class ModelPipeline:
 
         # ****************************************************************************************
 
-    def load_featurize_data(self, params=None, random_state=None, seed=None):
+    def load_featurize_data(self, params=None):
         """Loads the dataset from the datastore or the file system and featurizes it. If we are training
         a new model, split the dataset into training, validation and test sets.
 
@@ -594,7 +594,7 @@ class ModelPipeline:
 
     # ****************************************************************************************
 
-    def train_model(self, featurization=None, random_state=None, seed=None):
+    def train_model(self, featurization=None):
         """Build model described by self.params on the training dataset described by self.params.
 
         Generate predictions for the training, validation, and test datasets, and save the predictions and
@@ -1108,7 +1108,9 @@ def run_models(params, shared_featurization=None, generator=False):
 
         # Create the ModelWrapper object.
         pipeline.model_wrapper = model_wrapper.create_model_wrapper(pipeline.params, featurization,
-                                                                    pipeline.ds_client)
+                                                                    pipeline.ds_client,
+                                                                    random_state=pipeline.random_state,
+                                                                    seed=pipeline.seed)
 
         # Get the tarball containing the saved model from the datastore, and extract it into model_dir.
         model_dataset_oid = metadata_dict['model_parameters']['model_dataset_oid']
@@ -1200,7 +1202,9 @@ def regenerate_results(result_dir, params=None, metadata_dict=None, shared_featu
     # Create the ModelWrapper object.
 
     pipeline.model_wrapper = model_wrapper.create_model_wrapper(pipeline.params, featurization,
-                                                                pipeline.ds_client)
+                                                                pipeline.ds_client,
+                                                                random_state=pipeline.random_state,
+                                                                seed=pipeline.seed)
     # Get the tarball containing the saved model from the datastore, and extract it into model_dir (old format)
     # or output_dir (new format) according to the format of the tarball contents.
 
@@ -1428,7 +1432,9 @@ def create_prediction_pipeline_from_file(params, reload_dir, model_path=None, mo
     pipeline.orig_params = orig_params
 
     # Create the ModelWrapper object.
-    pipeline.model_wrapper = model_wrapper.create_model_wrapper(pipeline.params, featurization)
+    pipeline.model_wrapper = model_wrapper.create_model_wrapper(pipeline.params, featurization,
+                                                                random_state=pipeline.random_state,
+                                                                seed=pipeline.seed)
 
     orig_log_level = pipeline.log.getEffectiveLevel()
     if verbose:
