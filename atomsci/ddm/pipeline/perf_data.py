@@ -861,8 +861,7 @@ class KFoldRegressionPerfData(RegressionPerfData):
         """
         self.subset = subset
         if self.subset in ('train', 'valid', 'train_valid'):
-            for fold, (train, valid) in enumerate(model_dataset.train_valid_dsets):
-                dataset = model_dataset.combined_training_data()
+            dataset = model_dataset.combined_training_data()
         elif self.subset == 'test':
             dataset = model_dataset.test_dset
         else:
@@ -1113,9 +1112,7 @@ class KFoldClassificationPerfData(ClassificationPerfData):
 
         self.subset = subset
         if self.subset in ('train', 'valid', 'train_valid'):
-            for fold, (train, valid) in enumerate(model_dataset.train_valid_dsets):
-                dataset = model_dataset.combined_training_data()
-
+            dataset = model_dataset.combined_training_data()
         elif self.subset == 'test':
             dataset = model_dataset.test_dset
         else:
@@ -1132,6 +1129,8 @@ class KFoldClassificationPerfData(ClassificationPerfData):
         self.num_cmpds = dataset.y.shape[0]
         self.num_tasks = dataset.y.shape[1]
         self.num_classes = len(set(model_dataset.dataset.y.flatten()))
+        # pred vals maps compound ids to a matrix of predictions.
+        # predictions will be concatentated one by one as they come in in accumulate_preds
         self.pred_vals = dict([(id, np.empty((0, self.num_tasks, self.num_classes), dtype=np.float32)) for id in dataset.ids])
 
         real_vals, self.weights = model_dataset.get_subset_responses_and_weights(self.subset, [])
@@ -1179,6 +1178,7 @@ class KFoldClassificationPerfData(ClassificationPerfData):
         """
         class_probs = self._reshape_preds(predicted_vals)
         for i, id in enumerate(ids):
+            # Record predictions for each compound.
             self.pred_vals[id] = np.concatenate([self.pred_vals[id], class_probs[i,:,:].reshape((1,self.num_tasks,-1))], axis=0)
         self.folds += 1
         real_vals = self.get_real_values(ids)
