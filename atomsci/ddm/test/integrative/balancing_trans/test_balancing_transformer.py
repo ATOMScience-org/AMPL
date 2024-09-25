@@ -100,7 +100,9 @@ def train_model_wo_balan(dset_key, split_uuid, res_dir):
         "save_results": "False",
         "max_epochs": "500",
         "early_stopping_patience": "50",
-        "verbose": "False"
+        "verbose": "False",
+
+        "seed":"0"
     }
 
     for i in range(nreps):
@@ -147,7 +149,9 @@ def train_model_w_balan(dset_key, split_uuid, res_dir):
         "save_results": "False",
         "max_epochs": "500",
         "early_stopping_patience": "50",
-        "verbose": "False"
+        "verbose": "False",
+
+        "seed":"0"
     }
 
     for i in range(nreps):
