@@ -12,4 +12,5 @@
 "id_col": "compound_id", 
 "smiles_col": "base_rdkit_smiles",
 "response_cols":"active", 
+"uncertainty":"False",
 "max_epochs":"15"}

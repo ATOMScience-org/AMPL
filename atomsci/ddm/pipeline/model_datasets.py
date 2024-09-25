@@ -479,6 +479,12 @@ class ModelDataset(object):
             (Boolean): boolean specifying if all classes are specified in all splits
         """
         ref_class_set = get_classes(self.train_valid_dsets[0][0].y)
+        num_classes = len(ref_class_set)
+        if num_classes != self.params.class_number:
+            logger = logging.getLogger('ATOM')
+            logger.warning(f"Expected class_number:{self.params.class_number} "
+                           f"classes but got {num_classes} instead. Double check "
+                           "response columns or class_number parameter.")
         for train, valid in self.train_valid_dsets:
             if not ref_class_set == get_classes(train.y):
                 return False
