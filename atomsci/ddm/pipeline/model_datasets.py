@@ -723,13 +723,8 @@ class ModelDataset(object):
         """
         if subset not in self.subset_response_dict:
             if subset in ('train', 'valid', 'train_valid'):
-<<<<<<< HEAD
                 for fold, (train, valid) in enumerate(self.train_valid_dsets):
                     dataset = self.combined_training_data()
-
-=======
-                dataset = self.combined_training_data()
->>>>>>> 0c83b6b6b5a94cc6fce944ea2a099775bbbcff09
             elif subset == 'test':
                 dataset = self.test_dset
             else:
