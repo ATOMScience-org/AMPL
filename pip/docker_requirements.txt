@@ -7,7 +7,7 @@
 
 tensorflow-cpu~=2.14.0
 
-torch==2.2.0+cpu
+torch==2.2.1+cpu
 torch_geometric
 lightning
 
@@ -46,5 +46,6 @@ jupyterlab
 deepchem==2.8.0
 rdkit==2024.3.5
 
-# deepchem 2.8 requires lightgbm.                                                                                                                            lightgbm
+# deepchem 2.8 requires lightgbm. 
+lightgbm
 pyyaml==5.4.1
