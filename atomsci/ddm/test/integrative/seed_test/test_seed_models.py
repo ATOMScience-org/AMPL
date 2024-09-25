@@ -91,7 +91,7 @@ def saved_model_identity(pparams):
     #retrain_pipe = train(pparams)
 
     # extract the metrics from the retrained model 
-    with open(os.path.join(pparams.output_dir, 'model_metrics.json'), 'r') as f:
+    with open(os.path.join(retrain_pparams.output_dir, 'model_metrics.json'), 'r') as f:
         retrained_model_metrics = json.load(f)
     
     retrained_metrics = find_best_test_metric(retrained_model_metrics)
