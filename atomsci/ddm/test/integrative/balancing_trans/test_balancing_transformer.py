@@ -60,6 +60,7 @@ def params_wo_balan(dset_key, res_dir):
         "max_epochs": "2", # You don't need to train very long. Just need to build datasets
         "early_stopping_patience": "2",
         "verbose": "False",
+        "seed":"0",
     }
 
     return params
@@ -93,6 +94,7 @@ def params_w_balan(dset_key, res_dir):
         "max_epochs": "2",
         "early_stopping_patience": "2",
         "verbose": "False",
+        "seed":"0",
     }
 
     return params
