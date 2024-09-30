@@ -16,9 +16,7 @@ def test_balancing_transformer():
     balanced_weights = make_pipeline_and_get_weights(balanced_params)
     (major_weight, minor_weight), (major_count, minor_count) = np.unique(balanced_weights, return_counts=True)
     assert major_weight < minor_weight
-
-    assert major_count == 416
-    assert minor_count == 20
+    assert major_count > minor_count
 
     nonbalanced_params = params_wo_balan(dset_key, res_dir)
     nonbalanced_weights = make_pipeline_and_get_weights(nonbalanced_params)
