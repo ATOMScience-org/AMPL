@@ -1112,8 +1112,7 @@ class KFoldClassificationPerfData(ClassificationPerfData):
 
         self.subset = subset
         if self.subset in ('train', 'valid', 'train_valid'):
-            for fold, (train, valid) in enumerate(model_dataset.train_valid_dsets):
-                dataset = model_dataset.combined_training_data()
+            dataset = model_dataset.combined_training_data()
         elif self.subset == 'test':
             dataset = model_dataset.test_dset
         else:
