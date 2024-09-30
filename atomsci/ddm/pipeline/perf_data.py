@@ -1400,14 +1400,14 @@ class SimpleRegressionPerfData(RegressionPerfData):
 
     # ****************************************************************************************
     # class SimpleRegressionPerfData
-    def accumulate_preds(self, predicted_vals, ids, pred_stds=None):
+    def accumulate_preds(self, predicted_vals, ids=None, pred_stds=None):
         """Add training, validation or test set predictions to the data structure
         where we keep track of them.
 
         Args:
             predicted_vals (np.array): Array of predicted values
 
-            ids (list): List of the compound ids of the dataset
+            ids: Ignored for this class
 
             pred_stds (np.array): Optional np.array of the prediction standard deviations
 
@@ -1420,8 +1420,8 @@ class SimpleRegressionPerfData(RegressionPerfData):
         if pred_stds is not None:
             self.pred_stds = self._reshape_preds(pred_stds)
         pred_vals = dc.trans.undo_transforms(self.pred_vals, self.transformers)
-        real_vals = self.get_real_values(ids)
-        weights = self.get_weights(ids)
+        real_vals = self.get_real_values()
+        weights = self.get_weights()
         scores = []
         for i in range(self.num_tasks):
             nzrows = np.where(weights[:,i] != 0)[0]
@@ -1464,7 +1464,7 @@ class SimpleRegressionPerfData(RegressionPerfData):
     # class SimpleRegressionPerfData
     def get_real_values(self, ids=None):
         """Returns the real dataset response values, with any transformations undone, as an (ncmpds, ntasks) array
-        with compounds in the same ID order as in the return from get_pred_values().
+        with compounds in the same order as when this was created.
 
         Args:
             ids: Ignored for this class
@@ -1637,14 +1637,14 @@ class SimpleClassificationPerfData(ClassificationPerfData):
 
     # ****************************************************************************************
     # class SimpleClassificationPerfData
-    def accumulate_preds(self, predicted_vals, ids, pred_stds=None):
+    def accumulate_preds(self, predicted_vals, ids=None, pred_stds=None):
         """Add training, validation or test set predictions from the current dataset to the data structure
         where we keep track of them.
 
         Arguments:
             predicted_vals (np.array): Array of predicted values (class probabilities)
 
-            ids (list): List of the compound ids of the dataset
+            ids: Ignored for this class
 
             pred_stds (np.array): Optional np.array of the prediction standard deviations
 
@@ -1655,8 +1655,8 @@ class SimpleClassificationPerfData(ClassificationPerfData):
         class_probs = self.pred_vals = self._reshape_preds(predicted_vals)
         if pred_stds is not None:
             self.pred_stds = self._reshape_preds(pred_stds)
-        real_vals = self.get_real_values(ids)
-        weights = self.get_weights(ids)
+        real_vals = self.get_real_values()
+        weights = self.get_weights()
         # Break out different predictions for each task, with zero-weight compounds masked out, and compute per-task metrics
         scores = []
         for i in range(self.num_tasks):
