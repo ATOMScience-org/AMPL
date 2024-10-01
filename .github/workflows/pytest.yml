@@ -40,7 +40,7 @@ jobs:
       - name: pytest
         run: |
           # python3.9 -m pytest --capture=sys --capture=fd --cov=atomsci/ -vv atomsci/ddm/test/unit
-          cd atomsci/ddm/test/unit && python3.9 -m pytest -n 2 --capture=sys --capture=fd --cov=atomsci/ -vv
+          cd atomsci/ddm/test/unit && python3.9 -m pytest -n 2 --capture=sys --capture=fd --cov=atomsci -vv
         env:
           ENV: test
 
@@ -85,7 +85,7 @@ jobs:
       - name: pytest
         run: |
           # TODO: Run this test with pytest for paralell testing
-          # python3.9 -m pytest -n 2 --capture=sys --capture=fd --cov=atomsci/ -vv atomsci/ddm/test/integrative
+          # python3.9 -m pytest -n 2 --capture=sys --capture=fd --cov=atomsci -vv atomsci/ddm/test/integrative
           cd atomsci/ddm/test/integrative && ./integrative_batch_chunk_tests 0
         env:
           ENV: test
@@ -131,7 +131,7 @@ jobs:
       - name: pytest
         run: |
           # TODO: Run this test with pytest for paralell testing
-          # python3.9 -m pytest -n 2 --capture=sys --capture=fd --cov=atomsci/ -vv atomsci/ddm/test/integrative
+          # python3.9 -m pytest -n 2 --capture=sys --capture=fd --cov=atomsci -vv atomsci/ddm/test/integrative
           cd atomsci/ddm/test/integrative && ./integrative_batch_chunk_tests 1
         env:
           ENV: test
@@ -177,7 +177,7 @@ jobs:
       - name: pytest
         run: |
           # TODO: Run this test with pytest for paralell testing
-          # python3.9 -m pytest -n 2 --capture=sys --capture=fd --cov=atomsci/ -vv atomsci/ddm/test/integrative
+          # python3.9 -m pytest -n 2 --capture=sys --capture=fd --cov=atomsci -vv atomsci/ddm/test/integrative
           cd atomsci/ddm/test/integrative && ./integrative_batch_chunk_tests 2
         env:
           ENV: test
@@ -223,7 +223,7 @@ jobs:
       - name: pytest
         run: |
           # TODO: Run this test with pytest for paralell testing
-          # python3.9 -m pytest -n 2 --capture=sys --capture=fd --cov=atomsci/ -vv atomsci/ddm/test/integrative
+          # python3.9 -m pytest -n 2 --capture=sys --capture=fd --cov=atomsci -vv atomsci/ddm/test/integrative
           cd atomsci/ddm/test/integrative && ./integrative_batch_chunk_tests 3
         env:
           ENV: test
