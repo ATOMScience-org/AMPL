@@ -122,8 +122,8 @@ pytest-integrative:
 
 pytest-unit:
 	@echo "Running unit tests"
-	docker run -v $(shell pwd)/$(WORK_DIR):/$(WORK_DIR) $(IMAGE_REPO):$(PLATFORM)-$(ENV) \
-			/bin/bash -l -c "cd atomsci/ddm/test/unit && python3.9 -m pytest --capture=sys --capture=fd --cov=atomsci/ -vv"
+	docker run -v $(shell pwd)/$(WORK_DIR):/$(WORK_DIR) $(IMAGE_REPO):$(TAG) \
+			/bin/bash -l -c "cd atomsci/ddm/test/unit && python3.9 -m pytest --capture=sys --capture=fd --cov=atomsci -vv"
 
 # Run ruff linter
 ruff:
