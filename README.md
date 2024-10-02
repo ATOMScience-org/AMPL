@@ -1,5 +1,7 @@
 [![Develop test](https://github.com/ATOMScience-org/AMPL/actions/workflows/pytest.yml/badge.svg)](https://github.com/ATOMScience-org/AMPL/actions/workflows/pytest.yml)  [![Linter](https://github.com/ATOMScience-org/AMPL/actions/workflows/lint.yml/badge.svg)](https://github.com/ATOMScience-org/AMPL/actions/workflows/lint.yml)    [![Documentation Status](https://readthedocs.org/projects/ampl/badge/?version=stable)](https://ampl.readthedocs.io/en/latest/?badge=stable) 
-![GitHub Release](https://img.shields.io/github/v/release/ATOMScience-org/AMPL)   [![License](http://img.shields.io/:license-mit-blue.svg)](https://github.com/ATOMScience-org/AMPL/blob/master/LICENSE)  [![LinkedIn](https://img.shields.io/badge/linkedin-%230077B5.svg?logo=linkedin&logoColor=white)](https://www.linkedin.com/company/atomscience)
+ [![codecov](https://codecov.io/gh/ATOMScience-org/AMPL/graph/badge.svg)](https://codecov.io/gh/ATOMScience-org/AMPL)
+
+![GitHub Release](https://img.shields.io/github/v/release/ATOMScience-org/AMPL)  [![License](http://img.shields.io/:license-mit-blue.svg)](https://github.com/ATOMScience-org/AMPL/blob/master/LICENSE)  [![LinkedIn](https://img.shields.io/badge/linkedin-%230077B5.svg?logo=linkedin&logoColor=white)](https://www.linkedin.com/company/atomscience)
 
 | [Install](#install) | [Docker](#install-with-docker) | [Tutorials](#ampl-tutorials) |  [Features](#ampl-features) | [Pipeline parameters](atomsci/ddm/docs/PARAMETERS.md) | [Docs](https://ampl.readthedocs.io/en/latest/) |
 
