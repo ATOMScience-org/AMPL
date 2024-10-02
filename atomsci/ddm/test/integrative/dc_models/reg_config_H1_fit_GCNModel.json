@@ -7,6 +7,8 @@
     "data_owner": "username",
     "parser_version":"1.0",
 
+    "seed":"2015821819",
+
     "comment": "Input file",
     "comment": "----------------------------------------",
     "comment": "Note: dataset_key must be a path/file name: E.G. ./dataset.csv",
@@ -44,5 +46,11 @@
 
     "comment": "Results",
     "comment": "----------------------------------------",
-    "result_dir": "result"
+    "result_dir": "result",
+
+    "comment": "Test",
+    "comment": "----------------------------------------",    
+    "comment": "with the seed, the result should be 0.9871578924396036.",
+    "perf_threshold": "0.98"
+
 }

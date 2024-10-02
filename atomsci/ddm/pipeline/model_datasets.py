@@ -433,7 +433,7 @@ class ModelDataset(object):
         return self.tasks is not None
 
     # ****************************************************************************************
-    def split_dataset(self):
+    def split_dataset(self, random_state=None, seed=None):
         """Splits the dataset into paired training/validation and test subsets, according to the split strategy
                 selected by the model params. For traditional train/valid/test splits, there is only one training/validation
                 pair. For k-fold cross-validation splits, there are k different train/valid pairs; the validation sets are
@@ -452,7 +452,7 @@ class ModelDataset(object):
 
         # Create object to delegate splitting to.
         if self.splitting is None:
-            self.splitting = split.create_splitting(self.params)
+            self.splitting = split.create_splitting(self.params, random_state=random_state, seed=seed)
         self.train_valid_dsets, self.test_dset, self.train_valid_attr, self.test_attr = \
             self.splitting.split_dataset(self.dataset, self.attr, self.params.smiles_col)
         if self.train_valid_dsets is None:
@@ -479,6 +479,12 @@ class ModelDataset(object):
             (Boolean): boolean specifying if all classes are specified in all splits
         """
         ref_class_set = get_classes(self.train_valid_dsets[0][0].y)
+        num_classes = len(ref_class_set)
+        if num_classes != self.params.class_number:
+            logger = logging.getLogger('ATOM')
+            logger.warning(f"Expected class_number:{self.params.class_number} "
+                           f"classes but got {num_classes} instead. Double check "
+                           "response columns or class_number parameter.")
         for train, valid in self.train_valid_dsets:
             if not ref_class_set == get_classes(train.y):
                 return False
@@ -563,7 +569,7 @@ class ModelDataset(object):
         return split_df
 
     # ****************************************************************************************
-    def load_presplit_dataset(self, directory=None):
+    def load_presplit_dataset(self, directory=None, random_state=None, seed=None):
         """Loads a table of compound IDs assigned to split subsets, and uses them to split
         the currently loaded featurized dataset.
 
@@ -590,7 +596,7 @@ class ModelDataset(object):
         """
 
         # Load the split table from the datastore or filesystem
-        self.splitting = split.create_splitting(self.params)
+        self.splitting = split.create_splitting(self.params, random_state=random_state, seed=seed)
 
         try:
             split_df, split_kv = self.load_dataset_split_table(directory)
@@ -655,11 +661,31 @@ class ModelDataset(object):
         # All of the splits have the same combined train/valid data, regardless of whether we're using
         # k-fold or train/valid/test splitting.
         if self.combined_train_valid_data is None:
+            # normally combining one fold is sufficient, but if SMOTE or undersampling is being used
+            # just combining the first fold isn't enough
             (train, valid) = self.train_valid_dsets[0]
             combined_X = np.concatenate((train.X, valid.X), axis=0)
             combined_y = np.concatenate((train.y, valid.y), axis=0)
             combined_w = np.concatenate((train.w, valid.w), axis=0)
             combined_ids = np.concatenate((train.ids, valid.ids))
+
+            if self.params.sampling_method=='SMOTE' or self.params.sampling_method=='undersampling':
+                # for each successive fold, merge in any new compounds
+                # this loop just won't run if there are no additional folds
+                for train, valid in self.train_valid_dsets[1:]:
+                    fold_ids = np.concatenate((train.ids, valid.ids))
+                    new_id_indexes = [i for i in range(len(fold_ids)) if i not in combined_ids]
+
+                    fold_ids = fold_ids[new_id_indexes]
+                    fold_X = np.concatenate((train.X, valid.X), axis=0)[new_id_indexes]
+                    fold_y = np.concatenate((train.y, valid.y), axis=0)[new_id_indexes]
+                    fold_w = np.concatenate((train.w, valid.w), axis=0)[new_id_indexes]
+
+                    combined_X = np.concatenate((combined_X, fold_X), axis=0)
+                    combined_y = np.concatenate((combined_y, fold_y), axis=0)
+                    combined_w = np.concatenate((combined_w, fold_w), axis=0)
+                    combined_ids = np.concatenate((combined_ids, fold_ids))
+
             self.combined_train_valid_data = NumpyDataset(combined_X, combined_y, w=combined_w, ids=combined_ids)
         return self.combined_train_valid_data
 
@@ -697,7 +723,8 @@ class ModelDataset(object):
         """
         if subset not in self.subset_response_dict:
             if subset in ('train', 'valid', 'train_valid'):
-                dataset = self.combined_training_data()
+                for fold, (train, valid) in enumerate(self.train_valid_dsets):
+                    dataset = self.combined_training_data()
             elif subset == 'test':
                 dataset = self.test_dset
             else:
