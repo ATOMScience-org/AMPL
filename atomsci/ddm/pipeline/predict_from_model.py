@@ -80,7 +80,7 @@ def predict_from_tracker_model(model_uuid, collection, input_df, id_col='compoun
 # =====================================================================================================
 def predict_from_model_file(model_path, input_df, id_col='compound_id', smiles_col='rdkit_smiles',
                      response_col=None, conc_col=None, is_featurized=False, dont_standardize=False, AD_method=None, k=5, dist_metric="euclidean",
-                     external_training_data=None, max_train_records_for_AD=1000, verbose=None):
+                     external_training_data=None, max_train_records_for_AD=1000, AD_return_NN=False, verbose=None):
     """Loads a pretrained model from a model tarball file and runs predictions on compounds in an input
     data frame.
 
@@ -129,6 +129,11 @@ def predict_from_model_file(model_path, input_df, id_col='compound_id', smiles_c
         If the training dataset is larger than `max_train_records_for_AD`, a random sample of rows with
         this size is used instead for the AD calculations.
 
+        AD_return_NN (bool): If AD is calculated and this flag is set, additional columns will be added
+        that contain the compound_ids of the k nearest neighbors. These columns will be named
+        AD_NN_1 .. AD_NN_k. These neighbors are not in any particular order.
+
+
         verbose (bool or None): If True, set logging level to show all messages; if False, show only critical error
         messages; if None, leave logging level as is.
 
@@ -154,7 +159,7 @@ def predict_from_model_file(model_path, input_df, id_col='compound_id', smiles_c
         pipe.params.dataset_key=external_training_data
     pred_df = pipe.predict_full_dataset(input_df, contains_responses=has_responses, is_featurized=is_featurized,
                                         dset_params=pred_params, AD_method=AD_method, k=k, dist_metric=dist_metric,
-                                        max_train_records_for_AD=max_train_records_for_AD)
+                                        max_train_records_for_AD=max_train_records_for_AD, AD_return_NN=AD_return_NN)
     pred_df=input_df.merge(pred_df)
     return pred_df
 
