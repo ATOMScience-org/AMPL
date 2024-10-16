@@ -19,7 +19,6 @@ import pandas as pd
 import scipy as sp
 from sklearn.metrics import pairwise_distances
 import copy
-import pdb
 
 from atomsci.ddm.utils import datastore_functions as dsf
 import atomsci.ddm.utils.model_version_utils as mu
