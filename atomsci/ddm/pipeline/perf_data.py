@@ -12,6 +12,7 @@ from sklearn.metrics import accuracy_score, matthews_corrcoef, cohen_kappa_score
 from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
 
 from atomsci.ddm.pipeline import transformations as trans
+import pdb
 
 
 # ******************************************************************************************************************************
@@ -966,12 +967,14 @@ class KFoldRegressionPerfData(RegressionPerfData):
         ids = [id for id in all_ids if not (self.pred_vals[id].size == 0)]
 
         if self.subset in ['train', 'test', 'train_valid']:
-            rawvals = np.concatenate([self.pred_vals[id].mean(axis=0, keepdims=True).reshape((1,-1)) for id in ids])
-            vals = dc.trans.undo_transforms(rawvals, self.transformers)
+            tmp = [dc.trans.undo_transforms(self.pred_vals[id], self.transformers) for id in ids]
             if self.folds > 1:
-                stds = dc.trans.undo_transforms(np.concatenate([self.pred_vals[id].std(axis=0, keepdims=True).reshape((1,-1))
-                                       for id in ids]), self.transformers)
+                # mean transformed predictions
+                trans_preds = np.stack(tmp)
+                vals = trans_preds.mean(axis=1)
+                stds = trans_preds.std(axis=1)
             else:
+                vals = np.concatenate(tmp)
                 stds = None
         else:
             rawvals = np.concatenate([self.pred_vals[id].reshape((1,-1)) for id in ids], axis=0)
@@ -1229,14 +1232,14 @@ class KFoldClassificationPerfData(ClassificationPerfData):
         ids = [id for id in all_ids if not (self.pred_vals[id].size == 0)]
 
         if self.subset in ['train', 'test', 'train_valid']:
-            #class_probs = np.concatenate([dc.trans.undo_transforms(self.pred_vals[id], self.transformers).mean(axis=0, keepdims=True)
-            #                       for id in ids], axis=0)
-            #prob_stds = np.concatenate([dc.trans.undo_transforms(self.pred_vals[id], self.transformers).std(axis=0, keepdims=True)
-            #                       for id in ids], axis=0)
-            class_probs = dc.trans.undo_transforms(np.concatenate([self.pred_vals[id].mean(axis=0, keepdims=True)
-                                   for id in ids], axis=0), self.transformers)
-            prob_stds = dc.trans.undo_transforms(np.concatenate([self.pred_vals[id].std(axis=0, keepdims=True)
-                                   for id in ids], axis=0), self.transformers)
+            class_probs = np.concatenate([dc.trans.undo_transforms(self.pred_vals[id], self.transformers).mean(axis=0, keepdims=True)
+                                   for id in ids], axis=0)
+            prob_stds = np.concatenate([dc.trans.undo_transforms(self.pred_vals[id], self.transformers).std(axis=0, keepdims=True)
+                                   for id in ids], axis=0)
+            #class_probs = dc.trans.undo_transforms(np.concatenate([self.pred_vals[id].mean(axis=0, keepdims=True)
+            #                       for id in ids], axis=0), self.transformers)
+            #prob_stds = dc.trans.undo_transforms(np.concatenate([self.pred_vals[id].std(axis=0, keepdims=True)
+            #                       for id in ids], axis=0), self.transformers)
         else:
             class_probs = np.concatenate([dc.trans.undo_transforms(self.pred_vals[id], self.transformers) for id in ids], axis=0)
             prob_stds = None
