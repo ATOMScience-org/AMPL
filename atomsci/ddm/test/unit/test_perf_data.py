@@ -3,7 +3,6 @@ import atomsci.ddm.pipeline.model_pipeline as model_pipeline
 import atomsci.ddm.pipeline.parameter_parser as parse
 import os
 import tempfile
-import pdb
 import deepchem as dc
 import numpy as np
 import shutil

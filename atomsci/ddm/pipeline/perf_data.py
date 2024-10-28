@@ -12,7 +12,6 @@ from sklearn.metrics import accuracy_score, matthews_corrcoef, cohen_kappa_score
 from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
 
 from atomsci.ddm.pipeline import transformations as trans
-import pdb
 
 
 # ******************************************************************************************************************************
