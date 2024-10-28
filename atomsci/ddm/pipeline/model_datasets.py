@@ -13,7 +13,6 @@ from atomsci.ddm.pipeline import splitting as split
 from atomsci.ddm.utils import datastore_functions as dsf
 from pathlib import Path
 import getpass
-import traceback
 import sys
 import pdb
 
@@ -432,7 +431,7 @@ class ModelDataset(object):
         # Superclass method just looks in params; is called by subclasses (therefore, should NOT raise an exception if this fails)
         self.tasks = None
         if self.params.response_cols is not None:
-            if type(self.params.response_cols) == list:
+            if isinstance(self.params.response_cols, list):
                 self.tasks = self.params.response_cols
             else:
                 self.tasks = [self.params.response_cols]

@@ -9,7 +9,6 @@ import pandas as pd
 
 import tempfile
 import tarfile
-import json
 
 import atomsci.ddm.pipeline.parameter_parser as parse
 import atomsci.ddm.pipeline.compare_models as cm

@@ -16,22 +16,22 @@ Features
 --------
 AMPL enables tasks for modeling and prediction from data ingestion to data analysis and can be broken down into the following stages:
 
-- Data ingestion and curation
-- Featurization
-- Model training and tuning
-- Prediction generation
-- Visualization and analysis
-- Details of running specific features are within the parameter (options) documentation. 
+* Data ingestion and curation
+* Featurization
+* Model training and tuning
+* Prediction generation
+* Visualization and analysis
+* Details of running specific features are within the parameter (options) documentation. 
 
 More detailed documentation is in the library documentation.
 
 Built with
 ----------
 
-- `DeepChem <DeepChem_>`_: The basis for the graph convolution models
-- `RDKit <RDKit_>`_: Molecular informatics library
-- `Mordred <Mordred_>`_: Chemical descriptors
-- Other Python package dependencies
+* `DeepChem <DeepChem_>`_: The basis for the graph convolution models
+* `RDKit <RDKit_>`_: Molecular informatics library
+* `Mordred <Mordred_>`_: Chemical descriptors
+* Other Python package dependencies
 
 .. toctree::
    :maxdepth: 2

@@ -38,7 +38,7 @@ def clean():
         # should remove KCNA5_KCNH2_SCN5A_data.csv and split
         delete_file(f)
     delete_file('one_gen_split.csv')
-    delete_file('twenty_gen_split.csv')
+    delete_file('thirty_gen_split.csv')
     delete_file('ss_split.csv')
 
 def test_splits():
@@ -52,9 +52,9 @@ def test_splits():
     frac_train = 0.8
     frac_test = 0.1
     frac_valid = 0.1
-    num_super_scaffolds = 40
-    num_generations = 20
-    dfw = 1 # chemical distance importance weight
+    num_super_scaffolds = 60
+    num_generations = 30
+    dfw = 2 # chemical distance importance weight
     rfw = 1 # split fraction importance weight
 
     total_df = pd.read_csv('KCNA5_KCNH2_SCN5A_data.csv', dtype={id_col:str})
@@ -87,10 +87,10 @@ def test_splits():
         num_generations=num_generations,
         num_super_scaffolds=num_super_scaffolds,
         frac_train=frac_train, frac_test=frac_test, frac_valid=frac_valid)
-    mss_split_df.to_csv('twenty_gen_split.csv', index=False)
+    mss_split_df.to_csv('thirty_gen_split.csv', index=False)
     assert len(total_df) == len(mss_split_df)
 
-    split_b = pd.read_csv('twenty_gen_split.csv', dtype={'cmpd_id':str})
+    split_b = pd.read_csv('thirty_gen_split.csv', dtype={'cmpd_id':str})
     split_b_ss = SplitStats(total_df, split_b, smiles_col=smiles_col, 
         id_col=id_col, response_cols=response_cols)
     split_b_ss.make_all_plots(dist_path=os.path.join(output_dir, 
@@ -167,5 +167,5 @@ def test_pipeline_split_and_train():
 
 if __name__ == '__main__':
     test_splits()
-    test_pipeline_split_only()
-    test_pipeline_split_and_train()
+    #test_pipeline_split_only()
+    #test_pipeline_split_and_train()

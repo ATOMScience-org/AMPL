@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import json
-import numpy as np
 import pandas as pd
 import os
 import sys

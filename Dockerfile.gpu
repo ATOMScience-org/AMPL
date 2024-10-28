@@ -1,0 +1,49 @@
+FROM python:3.9
+
+# Prevent interactive dialogs from halting the build
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt update -y && apt install -y \
+  build-essential \
+  libcairo2-dev \
+  libhdf5-dev \
+  pkg-config \
+  python3-dev \
+  python3-openssl && \
+  apt clean && \
+  rm -rf /var/lib/apt/lists/*
+
+COPY ./pip/cuda_requirements.txt ./pip/cuda_requirements.txt
+RUN pip install -U pip && \
+  pip install --no-cache-dir \
+  --trusted-host pypi.python.org \
+  --trusted-host files.pythonhosted.org \
+  --trusted-host pypi.org \
+  --trusted-host data.dgl.ai \
+  --trusted-host download.pytorch.org \
+  -r ./pip/cuda_requirements.txt
+
+COPY ./pip/dev_requirements.txt ./pip/dev_requirements.txt
+RUN pip install -U pip && \
+  pip install --no-cache-dir \
+  --trusted-host pypi.python.org \
+  --trusted-host files.pythonhosted.org \
+  --trusted-host pypi.org \
+  --trusted-host data.dgl.ai \
+  --trusted-host download.pytorch.org \
+  -r ./pip/dev_requirements.txt
+
+COPY setup.py .
+COPY VERSION .
+COPY build.sh .
+COPY ./atomsci atomsci/
+
+# Install atomsci-ampl
+RUN ./build.sh
+RUN pip install -e .
+
+# Clean up
+RUN apt purge -y build-essential python3-dev && \
+  apt autoremove -y && \
+  rm -rf /var/lib/apt/lists/*
+RUN rm -rf /root/.cache/pip

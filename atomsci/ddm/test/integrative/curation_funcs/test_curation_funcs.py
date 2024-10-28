@@ -1,13 +1,9 @@
 #!/usr/bin/env python
 
-import json
-import numpy as np
 import pandas as pd
 import os
-import sys
 
 import atomsci.ddm.utils.curate_data as curate_data
-import atomsci.ddm.utils.struct_utils as struct_utils
 
 script_path = os.path.dirname(os.path.realpath(__file__))
 test_file_prefix = 'pGP_MDCK_efflux_ratio_chembl29'

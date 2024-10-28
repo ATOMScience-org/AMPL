@@ -1,7 +1,6 @@
 import glob
 import json
 import os
-import requests
 import shutil
 
 
@@ -17,28 +16,6 @@ def clean_fit_predict():
 
     if os.path.exists('predict'):
         shutil.rmtree('predict')
-
-
-def download_save(url, file_name, verify=True):
-    """Download dataset
-
-    Arguments:
-        url: URL
-        file_name: File name
-        verify: Verify SSL certificate
-    """
-
-    # Skip if file already exists
-    if (not (os.path.isfile(file_name) and os.path.getsize(file_name) > 0)):
-        assert(url)
-        r = requests.get(url, verify=verify)
-
-        assert (r.status_code == 200), 'Error: Could not download dataset'
-
-        with open(file_name, 'wb') as f:
-            f.write(r.content)
-
-        assert (os.path.isfile(file_name) and os.path.getsize(file_name) > 0), 'Error: dataset file not created'
 
 
 def get_subdirectory(model_dir_root):
@@ -96,3 +73,15 @@ def read_training_statistics_file(model_dir, subset, metric_col):
     test_metric = m['prediction_results'][metric_col]
     return test_metric
 
+def copy_delaney(dest='.'):
+    """Copies the delaney-processed.csv file to destination
+
+    Copies the delaney-processed.csv file to the given destination.
+    """
+
+    delaney_source = os.path.abspath(
+        os.path.join(
+            os.path.dirname(__file__),
+            '../test_datasets/delaney-processed.csv'))
+
+    shutil.copy(delaney_source, dest)

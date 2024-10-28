@@ -1,8 +1,4 @@
-import os
-import sys
 import pytest
-import inspect
-import numpy as np
 import atomsci.ddm.pipeline.featurization as feat
 import deepchem as dc
 from atomsci.ddm.pipeline import model_datasets as md
@@ -307,3 +303,31 @@ def test_get_feature_specific_metadata_descriptorfeaturization(caplog):
 
 #***********************************************************************************
 """
+
+def test_get_mordred_calculator():
+    try:
+        from mordred import Calculator, descriptors,get_descriptors_from_module # noqa: F401
+        from mordred.EState import AtomTypeEState, AggrType
+        from mordred.MolecularDistanceEdge import MolecularDistanceEdge
+        from mordred import BalabanJ, BertzCT, HydrogenBond, MoeType, RotatableBond, SLogP, TopoPSA # noqa: F401
+        #rdkit_desc_mods = [BalabanJ, BertzCT, HydrogenBond, MoeType, RotatableBond, SLogP, TopoPSA]
+        mordred_supported = True
+
+        default = feat.get_mordred_calculator()
+        assert len(default.descriptors) == 1556
+
+        no_ring_feat = feat.get_mordred_calculator(exclude=feat.subclassed_mordred_classes+['RingCount'])
+        assert len(no_ring_feat.descriptors) == 1418
+
+        # no mordred features
+        # get_mordred_calculator prepends mordred. for you
+        exclude = [d.__name__.replace('mordred.', '') for d in descriptors.all]
+        no_mordred_feat = feat.get_mordred_calculator(exclude=exclude)
+        assert len(no_mordred_feat.descriptors) == 65
+
+    except ImportError:
+        mordred_supported = False   
+
+
+if __name__ == '__main__':
+    test_get_mordred_calculator()

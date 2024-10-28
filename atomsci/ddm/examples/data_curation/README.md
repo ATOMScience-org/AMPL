@@ -124,7 +124,7 @@ CC=CC5S4
 
 ### DTC
 
-Visit http://drgutargetcommons.fimm.fi/ and download the whole dataset. Here are the first few lines of the dataset:
+Visit http://drugtargetcommons.fimm.fi/ and download the whole dataset. Here are the first few lines of the dataset:
 
 ```
 (atomsci) jupyter@ampl-ravi:~/MultipleSourceCurn/DB$ head DTC_data.csv

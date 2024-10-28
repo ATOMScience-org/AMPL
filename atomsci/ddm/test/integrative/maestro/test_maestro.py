@@ -133,10 +133,10 @@ def test():
     pparams = parse.wrapper(hp_params)
 
     print('launch maestro')
-    _ = wait_to_finish(f"maestro run -y -p custom_gen.py run_nn_ecfp.yaml", max_time=2*60*60) # wait 2 hours.
+    _ = wait_to_finish("maestro run -y -p custom_gen.py run_nn_ecfp.yaml", max_time=2*60*60) # wait 2 hours.
 
     result_df = cm.get_filesystem_perf_results(pparams.result_dir, pparams.prediction_type)
-    assert not result_df is None # Timed out
+    assert result_df is not None # Timed out
     assert max(result_df.loc[:,result_df.columns.str.contains("test_r2_score")].values) > 0.6 # should do at least this well. I saw values like 0.687
     
     print('waiting for maestro to finish')

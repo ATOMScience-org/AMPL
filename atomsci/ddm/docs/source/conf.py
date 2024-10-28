@@ -28,7 +28,7 @@ author = 'ATOM DDM Team'
 # import atomsci.ddm
 #version = atomsci.ddm.__version__
 # The short X.Y version
-version = '1.6.1'
+version = '1.6.3'
 copyright = f'{datetime.datetime.now().year}, {author}'
 
 # The full version, including alpha/beta/rc tags

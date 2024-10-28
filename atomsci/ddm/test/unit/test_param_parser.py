@@ -1,18 +1,11 @@
 import argparse
-import json
-import logging
 import os
-import shutil
-import sys
-import pandas as pd
 import pytest
 import inspect
-import warnings
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parentdir = os.path.dirname(currentdir)
 import atomsci.ddm.pipeline.parameter_parser as parse
 
-import pdb
 
 config_path = currentdir + '/config_list_inputs.json'
 filter_dict_path = currentdir + '/filter_dict_example.json'
@@ -388,3 +381,13 @@ def test_hierarchical_dict():
 def default_parameters():
     default_params = parse.list_defaults()
     return default_params
+
+
+#test utility functions
+
+def test_is_primitive():
+    assert parse.is_primitive_type(type(1.0))
+    assert parse.is_primitive_type(type('str'))
+    assert parse.is_primitive_type(type(1))
+    assert not parse.is_primitive_type(type({'foo':1}))
+    assert not parse.is_primitive_type(type(['foo']))

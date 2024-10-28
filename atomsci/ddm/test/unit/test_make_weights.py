@@ -1,5 +1,4 @@
 import numpy as np
-import pandas as pd
 import atomsci.ddm.pipeline.featurization as feat
 
 correct_v = np.array([[np.nan, 4.5622, np.nan, np.nan],
