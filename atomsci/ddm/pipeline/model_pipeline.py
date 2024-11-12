@@ -34,6 +34,20 @@ from atomsci.ddm.pipeline import transformations as trans
 logging.basicConfig(format='%(asctime)-15s %(message)s')
 
 # ---------------------------------------------
+def get_k_nearest_index(dist_matrix, k):
+    """Returns the indexes of the nearest k neighbors.
+
+    Find nearest k neighbors for every row and their indexes using
+    the given distance_matrix and metric.
+    """
+    result = []
+    for i in range(len(dist_matrix)):
+        kn_idx = np.argpartition(dist_matrix[i], k)[:k]
+        result.append(kn_idx)
+
+    return np.vstack(result)
+
+# ---------------------------------------------
 def calc_AD_kmean_dist(train_dset, pred_dset, k, train_dset_pair_distance=None, dist_metric="euclidean"):
     """calculate the probability of the prediction dataset fall in the the domain of traning set. Use Euclidean distance of the K nearest neighbours.
     train_dset and pred_dset should be in 2D numpy array format where each row is a compound.
@@ -42,24 +56,35 @@ def calc_AD_kmean_dist(train_dset, pred_dset, k, train_dset_pair_distance=None, 
         # calculate the pairwise distance of training set
         train_dset_pair_distance = pairwise_distances(X=train_dset, metric=dist_metric)
     train_kmean_dis = []
+    # here we use k+1 since the nearest neighbor is itself.
+    kn_idxes = get_k_nearest_index(train_dset_pair_distance, k+1)
     for i in range(len(train_dset_pair_distance)):
-        kn_idx = np.argpartition(train_dset_pair_distance[i], k+1)
-        dis = np.mean(train_dset_pair_distance[i][kn_idx[:k+1]])
+        # instead of taking the mean, we divide by k. Leaving out the distance to itself
+        dis = np.sum(train_dset_pair_distance[i][kn_idxes[i]])/k
         train_kmean_dis.append(dis)
     train_dset_distribution = sp.stats.norm.fit(train_kmean_dis)
     # pairwise distance between train and pred set
     pred_size = len(pred_dset)
     train_pred_dis = pairwise_distances(X=pred_dset, Y=train_dset, metric=dist_metric)
+    train_pred_kn_idxes = get_k_nearest_index(train_pred_dis, k)
     pred_kmean_dis_score = np.zeros(pred_size)
     for i in range(pred_size):
-        pred_km_dis = np.mean(np.sort(train_pred_dis[i])[:k])
+        dists = train_pred_dis[i][train_pred_kn_idxes[i]]
+        pred_km_dis = np.mean(dists)
         train_dset_std = train_dset_distribution[1] if train_dset_distribution[1] != 0 else 1e-6
         pred_kmean_dis_score[i] = max(1e-6, (pred_km_dis - train_dset_distribution[0]) / train_dset_std)
-    return pred_kmean_dis_score
+    return pred_kmean_dis_score, train_pred_kn_idxes
 
 # ---------------------------------------------
 def calc_AD_kmean_local_density(train_dset, pred_dset, k, train_dset_pair_distance=None, dist_metric="euclidean"):
-    """Evaluate the AD of pred data by comparing the distance betweenthe unseen object and its k nearest neighbors in the training set to the distance between these k nearest neighbors and their k nearest neighbors in the training set. Return the distance ratio. Greater than 1 means the pred data is far from the domain."""
+    """Evaluate the AD of pred data.
+    
+    AD is calculated by comparing the distance between 
+    the unseen object and its k nearest neighbors in the training set 
+    to the distance between these k nearest neighbors and their k nearest 
+    neighbors in the training set. Return the distance ratio. 
+    Greater than 1 means the pred data is far from the domain.
+    """
     if train_dset_pair_distance is None:
         # calculate the pair-wise distance of training set
         train_dset_pair_distance = pairwise_distances(X=train_dset, metric=dist_metric)
@@ -67,15 +92,17 @@ def calc_AD_kmean_local_density(train_dset, pred_dset, k, train_dset_pair_distan
     pred_size = len(pred_dset)
     train_pred_dis = pairwise_distances(X=pred_dset, Y=train_dset, metric=dist_metric)
     pred_kmean_dis_local_density = np.zeros(pred_size)
+    kn_idxes = get_k_nearest_index(train_pred_dis, k)
+    # use k+1 here since the nearest neighbor is itself.
+    nei_indxes = get_k_nearest_index(train_dset_pair_distance, k+1)
     for i in range(pred_size):
         # find the index of k nearest neighbour of each prediction data
-        kn_idx = np.argpartition(train_pred_dis[i], k)
-        pred_km_dis = np.mean(train_pred_dis[i][kn_idx[:k]])
+        pred_km_dis = np.mean(train_pred_dis[i][kn_idxes[i]])
         # find the neighbours of each neighbour and calculate the distance
         neighbor_dis = []
-        for nei_ix in kn_idx[:k]:
-            nei_kn_idx = np.argpartition(train_dset_pair_distance[nei_ix], k)
-            neighbor_dis.append(np.mean(train_dset_pair_distance[nei_ix][nei_kn_idx[:k]]))
+        for nei_ix in kn_idxes[i]:
+            # instead of taking the mean, we divide by k. Leaving out the distance to itself
+            neighbor_dis.append(np.sum(train_dset_pair_distance[nei_ix][nei_indxes[nei_ix]])/k)
         ave_nei_dis = np.mean(neighbor_dis)
         if ave_nei_dis == 0:
             ave_nei_dis = 1e-6
@@ -753,7 +780,7 @@ class ModelPipeline:
 
     # ****************************************************************************************
     def predict_full_dataset(self, dset_df, is_featurized=False, contains_responses=False, dset_params=None, AD_method=None, k=5, dist_metric="euclidean",
-                             max_train_records_for_AD=1000):
+                             max_train_records_for_AD=1000, AD_return_NN=False):
         """Compute predicted responses from a pretrained model on a set of compounds listed in
         a data frame. The data frame should contain, at minimum, a column of compound IDs; if
         SMILES strings are needed to compute features, they should be provided as well. Feature
@@ -795,6 +822,10 @@ class ModelPipeline:
             Note that the AD calculation time scales as the square of the number of training records used.
             If the training dataset is larger than `max_train_records_for_AD`, a random sample of rows with
             this size is used instead for the AD calculations.
+
+            AD_return_NN (bool): If AD is calculated and this flag is set, additional columns will be added
+            that contain the compound_ids of the k nearest neighbors. These columns will be named
+            AD_NN_1 .. AD_NN_k. These neighbors are not in any particular order.
 
         Returns:
             result_df (DataFrame): Data frame indexed by compound IDs containing a column of SMILES
@@ -894,8 +925,10 @@ class ModelPipeline:
                     if len(self.data.train_valid_dsets) > 1:
                         # combine train and valid set for k-fold CV models
                         train_X = np.concatenate((self.data.train_valid_dsets[0][0].X, self.data.train_valid_dsets[0][1].X))
+                        ids = np.concatenate((self.data.train_valid_dsets[0][0].ids, self.data.train_valid_dsets[0][1].ids))
                     else:
                         train_X = self.data.train_valid_dsets[0][0].X
+                        ids = self.data.train_valid_dsets[0][0].ids
     
                     if self.featurization.feat_type == "graphconv":
                         self.log.debug("Computing training data embeddings for AD calculation.")
@@ -910,11 +943,17 @@ class ModelPipeline:
 
                 self.log.debug("Calculating AD index.")
 
-
                 if AD_method == "local_density":
                     result_df["AD_index"] = calc_AD_kmean_local_density(self.featurized_train_data, pred_data, k, train_dset_pair_distance=self.train_pair_dis, dist_metric=dist_metric)
                 else:
-                    result_df["AD_index"] = calc_AD_kmean_dist(self.featurized_train_data, pred_data, k, train_dset_pair_distance=self.train_pair_dis, dist_metric=dist_metric)
+                    result_df["AD_index"], indexes = calc_AD_kmean_dist(self.featurized_train_data, pred_data, k, train_dset_pair_distance=self.train_pair_dis, dist_metric=dist_metric)
+
+                if AD_return_NN:
+                    for neigh in range(k):
+                        neigh_ids = []
+                        for comp in range(len(indexes)):
+                            neigh_ids.append(ids[indexes[comp][neigh]])
+                        result_df[f'AD_NN_{neigh}'] = neigh_ids
 
             except:
                 self.log.warning("AD index calculation failed")
