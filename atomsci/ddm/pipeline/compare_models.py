@@ -1871,7 +1871,7 @@ def get_multitask_perf_from_files_new(result_dir, pred_type='regression', datase
         pred=models[['model_uuid','response_cols']].join(pred)
 
         # check for > 1 dataset
-        if len(set(models.response_cols.astype(str)))>1:
+        if len(set(models.dataset_key.astype(str)))>1:
             raise Exception (f"Warning: you cannot export multitask model performances for more than one dataset at a time. Please provide the dataset_key as an additional parameter. Your {pred_type} options are: {list(set(models.dataset_key))}.")
 
         num_model_tasks=models.num_model_tasks.iloc[0]
