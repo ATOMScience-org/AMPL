@@ -200,7 +200,7 @@ def verify_saved_params(original_json_f, tar_f, keep_seed=False):
 
 def retrain(tar_f, prefix='H1', keep_seed=False):
     """retrain a model from tar_f"""
-    model = mr.train_model_from_tar(tar_f, 'result')
+    model = mr.train_model_from_tar(tar_f, 'result', keep_seed=keep_seed)
 
     uuid = model.params.model_uuid
     re_tar_f = f'result/{prefix}_curated_fit_model_{uuid}.tar.gz'
