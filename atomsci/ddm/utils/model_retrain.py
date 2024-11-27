@@ -49,7 +49,7 @@ except (ModuleNotFoundError, ImportError):
     mlmt_supported = False
 
 
-def train_model(input, output, dskey='', production=False):
+def train_model(input, output, dskey='', production=False, keep_seed=False):
     """Retrain a model saved in a model_metadata.json file
     
     Args:
@@ -76,6 +76,13 @@ def train_model(input, output, dskey='', production=False):
 
     # Parse parameters
     params = parse.wrapper(config)
+
+     # keep or discard seed.
+    if keep_seed and params.seed is None:
+        raise RuntimeWarning("Expected to find random seed not found. Retraining using a new random seed.")
+    elif not keep_seed:
+        params.seed = None
+
     params.result_dir = output
     # otherwise this will have the same uuid as the source model
     params.model_uuid = None
@@ -101,7 +108,7 @@ def train_model(input, output, dskey='', production=False):
 
     return model
 
-def train_model_from_tar(input, output, dskey='', production=False):
+def train_model_from_tar(input, output, dskey='', production=False, keep_seed=False):
     """Retrain a model saved in a tar.gz file
     
     Args:
@@ -122,9 +129,9 @@ def train_model_from_tar(input, output, dskey='', production=False):
     # make metadata path
     metadata_path = os.path.join(tmpdir, 'model_metadata.json')
     
-    return train_model(metadata_path, output, dskey=dskey, production=production)
+    return train_model(metadata_path, output, dskey=dskey, production=production, keep_seed=keep_seed)
 
-def train_model_from_tracker(model_uuid, output_dir, production=False):
+def train_model_from_tracker(model_uuid, output_dir, production=False, keep_seed=False):
     """Retrain a model saved in the model tracker, but save it to output_dir and don't insert it into the model tracker
 
     Args:
@@ -158,6 +165,12 @@ def train_model_from_tracker(model_uuid, output_dir, production=False):
     #if config[]
     # Parse parameters
     params = parse.wrapper(config)
+    # keep or discard seed.
+    if keep_seed and params.seed is None:
+        raise RuntimeWarning("Expected to find random seed not found. Retraining using a new random seed.")
+    elif not keep_seed:
+        params.seed = None
+
     params.result_dir = output_dir
     # otherwise this will have the same uuid as the source model
     params.model_uuid = None
@@ -181,7 +194,7 @@ def train_model_from_tracker(model_uuid, output_dir, production=False):
 
     return model
 
-def train_models_from_dataset_keys(input, output, pred_type='regression', production=False):
+def train_models_from_dataset_keys(input, output, pred_type='regression', production=False, keep_seed=False):
     """Retrain a list of models from an input file
 
     Args:
@@ -243,7 +256,7 @@ def train_models_from_dataset_keys(input, output, pred_type='regression', produc
         for model_uuid in best_mods.model_uuid.sort_values():
             try:
                 logger.debug('Training %s in %s' % (model_uuid, output))
-                train_model_from_tracker(model_uuid, output, production=production)
+                train_model_from_tracker(model_uuid, output, production=production, keep_seed=keep_seed)
             except Exception:
                 Exception(f'Error for model_uuid {model_uuid}')
                 pass
@@ -263,6 +276,7 @@ def main(argv):
     parser.add_argument('-dk', '--dataset_key', default='', help='Sometimes dataset keys get moved. Specify new location of dataset. Only works when passing in one model at time.')
     parser.add_argument('-pd_type', '--pred_type', default='regression', help='Specify the prediction type used for model retrain. The default is set to regression.')
     parser.add_argument('-prod', '--production', action='store_true', default=False, help='Retrain the model in production mode')
+    parser.add_argument('-keep_seed', '--keep_seed', action='store_true', default=False, help='Retrain the model using the saved seed if available.')
 
     args = parser.parse_args()
 
@@ -277,19 +291,19 @@ def main(argv):
     if os.path.isdir(input):
         # loop
         for path in Path(input).rglob('model_metadata.json'):
-            train_model(path.absolute(), output, production=args.production)
+            train_model(path.absolute(), output, production=args.production, keep_seed=args.keep_seed)
     elif os.path.isfile(input):
         # 2 if it's a file, check if it's a json or tar.gz or file that contains list of dataset keys
         if input.endswith('.json'):
-            train_model(input, output, dskey=args.dataset_key, production=args.production)
+            train_model(input, output, dskey=args.dataset_key, production=args.production, keep_seed=args.keep_seed)
         elif input.endswith('.tar.gz'):
-            train_model_from_tar(input, output, dskey=args.dataset_key, production=args.production)
+            train_model_from_tar(input, output, dskey=args.dataset_key, production=args.production, keep_seed=args.keep_seed)
         else:
-            train_models_from_dataset_keys(input, output, pred_type=args.pred_type, production=args.production)
+            train_models_from_dataset_keys(input, output, pred_type=args.pred_type, production=args.production, keep_seed=args.keep_seed)
     else:
         try:
             # 3 try to process 'input' as uuid
-            train_model_from_tracker(input, output, production=args.production)
+            train_model_from_tracker(input, output, production=args.production, keep_seed=args.keep_seed)
         except Exception:
             Exception('Unrecognized input %s'%input)
 

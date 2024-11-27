@@ -153,7 +153,7 @@ def train_and_predict(train_json_f, prefix='delaney-processed'):
 
     return tar_f
 
-def verify_saved_params(original_json_f, tar_f):
+def verify_saved_params(original_json_f, tar_f, keep_seed=False):
     """compares saved params in a tar file with original json"""
     reload_dir = tempfile.mkdtemp()
     with tarfile.open(tar_f, mode='r:gz') as tar:
@@ -187,7 +187,18 @@ def verify_saved_params(original_json_f, tar_f):
     print(tar_feat_params)
     assert original_feat_params == tar_feat_params
 
-def retrain(tar_f, prefix='H1'):
+    print('-----------------------------------')
+    print('seeds')
+    print(original_pp.seed)
+    print(tar_pp.seed)
+    assert original_pp.seed is not None
+    assert tar_pp.seed is not None
+    if keep_seed:
+        assert original_pp.seed == tar_pp.seed
+    else:
+        assert original_pp.seed != tar_pp.seed
+
+def retrain(tar_f, prefix='H1', keep_seed=False):
     """retrain a model from tar_f"""
     model = mr.train_model_from_tar(tar_f, 'result')
 
@@ -212,7 +223,7 @@ def H1_init():
 
 # Train and Predict
 # -----
-def test_reg_config_H1_fit_AttentiveFPModel():
+def run_test_reg_config_H1_fit_AttentiveFPModel(keep_seed):
     if not llnl_utils.is_lc_system():
         assert True
         return
@@ -223,12 +234,16 @@ def test_reg_config_H1_fit_AttentiveFPModel():
 
     verify_saved_params(json_f, tar_f)
 
-    re_tar_f = retrain(tar_f, 'H1')
+    re_tar_f = retrain(tar_f, 'H1', keep_seed=keep_seed)
 
-    verify_saved_params(json_f, re_tar_f)
+    verify_saved_params(json_f, re_tar_f, keep_seed=keep_seed)
+
+def test_reg_config_H1_fit_AttentiveFPModel():
+    run_test_reg_config_H1_fit_AttentiveFPModel(True)
+    run_test_reg_config_H1_fit_AttentiveFPModel(False)
 
 # -----
-def test_reg_config_H1_fit_GCNModel():
+def run_test_reg_config_H1_fit_GCNModel(keep_seed):
     if not llnl_utils.is_lc_system():
         assert True
         return
@@ -239,12 +254,16 @@ def test_reg_config_H1_fit_GCNModel():
 
     verify_saved_params(json_f, tar_f)
 
-    re_tar_f = retrain(tar_f, 'H1')
+    re_tar_f = retrain(tar_f, 'H1', keep_seed=keep_seed)
 
-    verify_saved_params(json_f, re_tar_f)
+    verify_saved_params(json_f, re_tar_f, keep_seed=keep_seed)
+
+def test_reg_config_H1_fit_GCNModel():
+    run_test_reg_config_H1_fit_GCNModel(True)
+    run_test_reg_config_H1_fit_GCNModel(False)
 
 # -----
-def test_reg_config_H1_fit_MPNNModel():
+def run_test_reg_config_H1_fit_MPNNModel(keep_seed):
     if not llnl_utils.is_lc_system():
         assert True
         return
@@ -255,11 +274,15 @@ def test_reg_config_H1_fit_MPNNModel():
 
     verify_saved_params(json_f, tar_f)
 
-    re_tar_f = retrain(tar_f, 'H1')
+    re_tar_f = retrain(tar_f, 'H1', keep_seed=keep_seed)
 
-    verify_saved_params(json_f, re_tar_f)
+    verify_saved_params(json_f, re_tar_f, keep_seed=keep_seed)
 
-def test_reg_config_H1_fit_GraphConvModel():
+def test_reg_config_H1_fit_MPNNModel():
+    run_test_reg_config_H1_fit_MPNNModel(True)
+    run_test_reg_config_H1_fit_MPNNModel(False)
+
+def run_test_reg_config_H1_fit_GraphConvModel(keep_seed):
     if not llnl_utils.is_lc_system():
         assert True
         return
@@ -270,11 +293,15 @@ def test_reg_config_H1_fit_GraphConvModel():
 
     verify_saved_params(json_f, tar_f)
 
-    re_tar_f = retrain(tar_f, 'H1')
+    re_tar_f = retrain(tar_f, 'H1', keep_seed=keep_seed)
 
-    verify_saved_params(json_f, re_tar_f)
+    verify_saved_params(json_f, re_tar_f, keep_seed=keep_seed)
 
-def test_reg_config_H1_fit_PytorchMPNNModel():
+def test_reg_config_H1_fit_GraphConvModel():
+    run_test_reg_config_H1_fit_GraphConvModel(True)
+    run_test_reg_config_H1_fit_GraphConvModel(False)
+
+def run_test_reg_config_H1_fit_PytorchMPNNModel(keep_seed):
     if not llnl_utils.is_lc_system():
         assert True
         return
@@ -285,9 +312,13 @@ def test_reg_config_H1_fit_PytorchMPNNModel():
 
     verify_saved_params(json_f, tar_f)
 
-    re_tar_f = retrain(tar_f, 'H1')
+    re_tar_f = retrain(tar_f, 'H1', keep_seed=keep_seed)
 
-    verify_saved_params(json_f, re_tar_f)
+    verify_saved_params(json_f, re_tar_f, keep_seed)
+
+def test_reg_config_H1_fit_PytorchMPNNModel():
+    run_test_reg_config_H1_fit_PytorchMPNNModel(True)
+    run_test_reg_config_H1_fit_PytorchMPNNModel(False)
 
 if __name__ == '__main__':
     test_reg_config_H1_fit_PytorchMPNNModel() # Pytorch implementation of MPNNModel
