@@ -118,6 +118,8 @@ def train_model_from_tar(input, output, dskey='', production=False, keep_seed=Fa
 
        dskey (str): new dataset key if file location has changed
 
+       keep_seed (bool): True to keep the same random seed.
+
     Returns:
        the model pipeline object with trained model
     """
