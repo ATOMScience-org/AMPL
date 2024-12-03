@@ -10,7 +10,7 @@ from atomsci.ddm.pipeline import parameter_parser as parse
 
 import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from integrative_utilities import extract_seed, get_test_set, find_best_test_metric
+from integrative_utilities import extract_seed, find_best_test_metric
 
 #-------------------------------------------------------------------
 """
