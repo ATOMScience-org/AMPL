@@ -7,6 +7,7 @@ import deepchem as dc
 import numpy as np
 import shutil
 import pandas as pd
+import json
 
 def copy_to_temp(dskey, res_dir):
     new_dskey = shutil.copy(dskey, res_dir)
@@ -20,26 +21,24 @@ def setup_paths():
 
     return res_dir, tmp_dskey
 
+def read_params(json_file, res_dir, tmp_dskey):
+    with open(json_file, 'r') as file:
+        params = json.load(file)
+    params['result_dir'] = res_dir
+    params['dataset_key'] = tmp_dskey
+    return params
+
+def make_relative_to_file(relative_path):
+    script_path = os.path.dirname(os.path.realpath(__file__))
+    result = os.path.join(script_path, relative_path)
+
+    return result
+
 def test_KFoldRegressionPerfData():
     res_dir, tmp_dskey = setup_paths()
 
-    params = {"verbose": "True",
-    "datastore": "False", 
-    "save_results": "False", 
-    "model_type": "NN", 
-    "featurizer": "ecfp", 
-    "split_strategy": "k_fold_cv", 
-    "splitter": "random",
-    "split_test_frac": "0.15", 
-    "split_valid_frac": "0.15", 
-    "transformers": "True", 
-    "dataset_key": tmp_dskey,
-    "id_col": "compound_id", 
-    "response_cols":"pIC50", 
-    "smiles_col": "base_rdkit_smiles",
-    "max_epochs":"2",
-    "prediction_type": "regression",
-    "result_dir":res_dir}
+    params = read_params(make_relative_to_file('config_perf_data_KFoldRegressoinPerfData.json'),
+        res_dir, tmp_dskey)
 
     # setup a pipeline that will be used to create performance data
     pparams = parse.wrapper(params)
@@ -89,24 +88,8 @@ def test_KFoldRegressionPerfDataMulti():
     df['pIC50_dupe'] = df['pIC50']
     df.to_csv(tmp_dskey, index=False)
 
-
-    params = {"verbose": "True",
-    "datastore": "False", 
-    "save_results": "False", 
-    "model_type": "NN", 
-    "featurizer": "ecfp", 
-    "split_strategy": "k_fold_cv", 
-    "splitter": "random",
-    "split_test_frac": "0.15", 
-    "split_valid_frac": "0.15", 
-    "transformers": "True", 
-    "dataset_key": tmp_dskey,
-    "id_col": "compound_id", 
-    "response_cols":["pIC50", "pIC50_dupe"], 
-    "smiles_col": "base_rdkit_smiles",
-    "max_epochs":"2",
-    "prediction_type": "regression",
-    "result_dir":res_dir}
+    params = read_params(make_relative_to_file('config_perf_data_KFoldRegressoinPerfDataMulti.json'),
+        res_dir, tmp_dskey)
 
     # setup a pipeline that will be used to create performance data
     pparams = parse.wrapper(params)
@@ -151,23 +134,9 @@ def test_KFoldRegressionPerfDataMulti():
 def test_KFoldClassificationPerfData():
     res_dir, tmp_dskey = setup_paths()
 
-    params = {"verbose": "True",
-    "datastore": "False", 
-    "save_results": "False", 
-    "model_type": "NN", 
-    "featurizer": "ecfp", 
-    "split_strategy": "k_fold_cv", 
-    "splitter": "random",
-    "split_test_frac": "0.15", 
-    "split_valid_frac": "0.15", 
-    "transformers": "True", 
-    "dataset_key": tmp_dskey,
-    "id_col": "compound_id", 
-    "response_cols":"active", 
-    "smiles_col": "base_rdkit_smiles",
-    "max_epochs":"2",
-    "prediction_type": "classification",
-    "result_dir":res_dir}
+    params = read_params(
+        make_relative_to_file('config_perf_data_KFoldClassificationPerfData.json'),
+        res_dir, tmp_dskey)
 
     # setup a pipeline that will be used to create performance data
     pparams = parse.wrapper(params)
@@ -216,23 +185,9 @@ def test_KFoldClassificationPerfData():
 def test_SimpleRegressionPerfData():
     res_dir, tmp_dskey = setup_paths()
 
-    params = {"verbose": "True",
-    "datastore": "False", 
-    "save_results": "False", 
-    "model_type": "NN", 
-    "featurizer": "ecfp", 
-    "split_strategy": "train_valid_test", 
-    "splitter": "random",
-    "split_test_frac": "0.15", 
-    "split_valid_frac": "0.15", 
-    "transformers": "True", 
-    "id_col": "compound_id", 
-    "dataset_key": tmp_dskey,
-    "response_cols":"pIC50", 
-    "smiles_col": "base_rdkit_smiles",
-    "max_epochs":"2",
-    "prediction_type": "regression",
-    "result_dir":res_dir}
+    params = read_params(
+        make_relative_to_file('config_perf_data_SimpleRegressionPerfData.json'),
+        res_dir, tmp_dskey)
 
     # setup a pipeline that will be used to create performance data
     pparams = parse.wrapper(params)
@@ -274,23 +229,9 @@ def test_SimpleRegressionPerfData():
 def test_SimpleClassificationPerfData():
     res_dir, tmp_dskey = setup_paths()
 
-    params = {"verbose": "True",
-    "datastore": "False", 
-    "save_results": "False", 
-    "model_type": "NN", 
-    "featurizer": "ecfp", 
-    "split_strategy": "train_valid_test", 
-    "splitter": "random",
-    "split_test_frac": "0.15", 
-    "split_valid_frac": "0.15", 
-    "transformers": "True", 
-    "dataset_key": tmp_dskey,
-    "id_col": "compound_id", 
-    "response_cols":"active", 
-    "smiles_col": "base_rdkit_smiles",
-    "max_epochs":"2",
-    "prediction_type": "classification",
-    "result_dir":res_dir}
+    params = read_params(
+        make_relative_to_file('config_perf_data_SimpleClassificationPerfData.json'),
+        res_dir, tmp_dskey)
 
     # setup a pipeline that will be used to create performance data
     pparams = parse.wrapper(params)
