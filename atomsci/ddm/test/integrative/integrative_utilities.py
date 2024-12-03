@@ -85,3 +85,14 @@ def copy_delaney(dest='.'):
             '../test_datasets/delaney-processed.csv'))
 
     shutil.copy(delaney_source, dest)
+
+def extract_seed(metadata_path):
+    with open(metadata_path, 'r') as f:
+        metadata = json.load(f)
+    return metadata.get('seed')
+
+def modify_params_with_seed(pparams, seed):
+    pparams.seed = seed
+    return pparams
+
+

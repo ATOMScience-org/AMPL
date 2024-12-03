@@ -9,20 +9,15 @@ import os
 from atomsci.ddm.pipeline import model_pipeline as mp
 from atomsci.ddm.pipeline import parameter_parser as parse 
 
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+from integrative_utilities import extract_seed, modify_params_with_seed
+
 #----------------------------------------------------------------------------------------------------------
 def split_dataset(pparams):
     model_pipe = mp.ModelPipeline(pparams)
     split_uuid = model_pipe.split_dataset()
     pparams.split_uuid = split_uuid
-    return pparams
-
-def extract_seed(metadata_path):
-    with open(metadata_path, 'r') as f:
-        metadata = json.load(f)
-    return metadata.get('seed')
-
-def modify_params_with_seed(pparams, seed):
-    pparams.seed = seed
     return pparams
 
 def compare_splits(original_split_csv, retrained_split_csv):

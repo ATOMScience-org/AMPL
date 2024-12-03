@@ -11,6 +11,10 @@ from atomsci.ddm.pipeline import model_pipeline as mp
 from atomsci.ddm.pipeline import parameter_parser as parse
 import atomsci.ddm.pipeline.predict_from_model as pfm
 
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+from integrative_utilities import extract_seed
+
 #-------------------------------------------------------------------
 
 def get_test_set(dataset_key, split_csv, id_col):
@@ -36,11 +40,6 @@ def find_best_test_metric(model_metrics):
         if metric['label'] == 'best' and metric['subset']=='test':
             return metric 
     return None 
-
-def extract_seed(metadata_path):
-    with open(metadata_path, 'r') as f:
-        metadata = json.load(f)
-    return metadata.get('seed')
 
 def saved_model_identity(pparams):
     script_path = os.path.dirname(os.path.realpath(__file__))

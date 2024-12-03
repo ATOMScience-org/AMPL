@@ -8,6 +8,10 @@ import json
 from atomsci.ddm.pipeline import model_pipeline as mp
 from atomsci.ddm.pipeline import parameter_parser as parse 
 
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+from integrative_utilities import extract_seed, modify_params_with_seed
+
 #-------------------------------------------------------------------
 """
 This script does the following:
@@ -37,15 +41,6 @@ def find_best_test_metric(model_metrics):
         if metric['label'] == 'best' and metric['subset'] == 'test':
             return metric 
     return None 
-
-def extract_seed(metadata_path):
-    with open(metadata_path, 'r') as f:
-        metadata = json.load(f)
-    return metadata.get('seed')
-
-def modify_params_with_seed(pparams, seed):
-    pparams.seed = seed
-    return pparams
 
 def saved_model_identity(pparams):
 
