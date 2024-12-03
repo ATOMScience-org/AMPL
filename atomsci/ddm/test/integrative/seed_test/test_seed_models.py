@@ -10,7 +10,7 @@ from atomsci.ddm.pipeline import parameter_parser as parse
 
 import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from integrative_utilities import extract_seed, modify_params_with_seed
+from integrative_utilities import extract_seed, get_test_set, find_best_test_metric
 
 #-------------------------------------------------------------------
 """
@@ -26,22 +26,6 @@ Creates and tests the following models:
 - train_valid_test split, k-fold cv split
 """
 #-------------------------------------------------------------------
-
-def get_test_set(dataset_key, split_csv, id_col):
-    """
-    Read the dataset key and split_uuid to split the dataset into split components
-    """
-    df = pd.read_csv(dataset_key)
-    split_df = pd.read_csv(split_csv)
-    test_df = df[df[id_col].isin(split_df[split_df['subset'] == 'test']['cmpd_id'])]
-    return test_df
-
-def find_best_test_metric(model_metrics):
-    for metric in model_metrics:
-        if metric['label'] == 'best' and metric['subset'] == 'test':
-            return metric 
-    return None 
-
 def saved_model_identity(pparams):
 
     retrain_pparams = copy.copy(pparams)

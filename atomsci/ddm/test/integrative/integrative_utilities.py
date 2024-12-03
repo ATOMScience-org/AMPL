@@ -95,4 +95,26 @@ def modify_params_with_seed(pparams, seed):
     pparams.seed = seed
     return pparams
 
+def get_test_set(dataset_key, split_csv, id_col):
+    """
+    Read the dataset key and split_uuid to split dataset into split components 
+    
+    Parameters: 
+        - dataset_key: path to csv file of dataset
+        - split_uuid: path to split csv file 
+        - id_col: name of ID column
+    
+    Returns:
+        - train, valid, test dataframe
+    """
+    df = pd.read_csv(dataset_key)
+    split_df=pd.read_csv(split_csv)
+    test_df = df[df[id_col].isin(split_df[split_df['subset']=='test']['cmpd_id'])]
 
+    return test_df
+
+def find_best_test_metric(model_metrics):
+    for metric in model_metrics:
+        if metric['label'] == 'best' and metric['subset']=='test':
+            return metric 
+    return None 
