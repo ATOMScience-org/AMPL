@@ -1,7 +1,6 @@
 #!/usr/bin/env python 
 """Testing the sampling methods. Want to ensure that the model pipeline works and that the sampling methods are incorporated.
 Based off of the test_kfold_split.py method. """
-import pandas as pd 
 import sklearn.metrics as skmetrics 
 import copy
 import os
