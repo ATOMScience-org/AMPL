@@ -132,7 +132,7 @@ class PerfData(object):
         """Initialize any attributes that are common to all PerfData subclasses"""
 
     # ****************************************************************************************
-    def accumulate_preds(self, predicted_vals, ids, pred_stds=None):
+    def accumulate_preds(self, predicted_vals, ids, fold, pred_stds=None):
         """Raises:
             NotImplementedError: The method is implemented by subclasses
         """
@@ -217,7 +217,7 @@ class RegressionPerfData(PerfData):
         self.weights = None
 
     # ****************************************************************************************
-    def accumulate_preds(self, predicted_vals, ids, pred_stds=None):
+    def accumulate_preds(self, predicted_vals, ids, fold, pred_stds=None):
         """Raises:
             NotImplementedError: The method is implemented by subclasses
         """
@@ -406,7 +406,7 @@ class HybridPerfData(PerfData):
         self.weights = None
 
     # ****************************************************************************************
-    def accumulate_preds(self, predicted_vals, ids, pred_stds=None):
+    def accumulate_preds(self, predicted_vals, ids, fold, pred_stds=None):
         """Raises:
             NotImplementedError: The method is implemented by subclasses
         """
@@ -631,7 +631,7 @@ class ClassificationPerfData(PerfData):
         self.weights = None
 
     # ****************************************************************************************
-    def accumulate_preds(self, predicted_vals, ids, pred_stds=None):
+    def accumulate_preds(self, predicted_vals, ids, fold, pred_stds=None):
         """Raises:
             NotImplementedError: The method is implemented by subclasses
         """
@@ -945,7 +945,7 @@ class KFoldRegressionPerfData(RegressionPerfData):
 
     # ****************************************************************************************
     # class KFoldRegressionPerfData
-    def accumulate_preds(self, predicted_vals, ids, pred_stds=None):
+    def accumulate_preds(self, predicted_vals, ids, fold, pred_stds=None):
         """Add training, validation or test set predictions from the current fold to the data structure
         where we keep track of them.
 
@@ -989,7 +989,7 @@ class KFoldRegressionPerfData(RegressionPerfData):
             self.pred_vals[id] = np.concatenate([self.pred_vals[id], predicted_vals[i,:].reshape((1,-1))], axis=0)
         self.folds += 1
 
-        pred_vals = dc.trans.undo_transforms(predicted_vals, self.transformers)
+        pred_vals = dc.trans.undo_transforms(predicted_vals, self.transformers[fold])
 
         real_vals = self.get_real_values(ids)
         weights = self.get_weights(ids)
@@ -1023,15 +1023,15 @@ class KFoldRegressionPerfData(RegressionPerfData):
         ids = sorted(self.pred_vals.keys())
         if self.subset in ['train', 'test', 'train_valid']:
             rawvals = np.concatenate([self.pred_vals[id].mean(axis=0, keepdims=True).reshape((1,-1)) for id in ids])
-            vals = dc.trans.undo_transforms(rawvals, self.transformers)
+            vals = dc.trans.undo_transforms(rawvals, self.transformers[fold])
             if self.folds > 1:
                 stds = dc.trans.undo_transforms(np.concatenate([self.pred_vals[id].std(axis=0, keepdims=True).reshape((1,-1))
-                                       for id in ids]), self.transformers)
+                                       for id in ids]), self.transformers[fold])
             else:
                 stds = None
         else:
             rawvals = np.concatenate([self.pred_vals[id].reshape((1,-1)) for id in ids], axis=0)
-            vals = dc.trans.undo_transforms(rawvals, self.transformers)
+            vals = dc.trans.undo_transforms(rawvals, self.transformers[fold])
             stds = None
         return (ids, vals, stds)
 
@@ -1053,7 +1053,7 @@ class KFoldRegressionPerfData(RegressionPerfData):
         if ids is None:
             ids = sorted(self.pred_vals.keys())
         real_vals = np.concatenate([self.real_vals[id].reshape((1,-1)) for id in ids], axis=0)
-        return dc.trans.undo_transforms(real_vals, self.transformers)
+        return dc.trans.undo_transforms(real_vals, self.transformers[fold])
 
 
     # ****************************************************************************************
@@ -1210,7 +1210,7 @@ class KFoldClassificationPerfData(ClassificationPerfData):
 
     # ****************************************************************************************
     # class KFoldClassificationPerfData
-    def accumulate_preds(self, predicted_vals, ids, pred_stds=None):
+    def accumulate_preds(self, predicted_vals, ids, fold, pred_stds=None):
         """Add training, validation or test set predictions from the current fold to the data structure
         where we keep track of them.
 
@@ -1245,7 +1245,7 @@ class KFoldClassificationPerfData(ClassificationPerfData):
                 task_real_vals = np.squeeze(real_vals[nzrows,i,:])
                 task_class_probs = dc.trans.undo_transforms(
                                                             np.squeeze(class_probs[nzrows,i,:]),
-                                                            self.transformers)
+                                                            self.transformers[fold])
                 scores.append(roc_auc_score(task_real_vals, task_class_probs, average='macro'))
             else:
                 # For binary classifier, sklearn metrics functions are expecting single array of 1s and 0s for real_vals_list,
@@ -1253,7 +1253,7 @@ class KFoldClassificationPerfData(ClassificationPerfData):
                 task_real_vals = np.squeeze(real_vals[nzrows,i])
                 task_class_probs = dc.trans.undo_transforms(
                                                             np.squeeze(class_probs[nzrows,i,1]),
-                                                            self.transformers)
+                                                            self.transformers[fold])
                 scores.append(roc_auc_score(task_real_vals, task_class_probs))
         self.perf_metrics.append(np.array(scores))
         return float(np.mean(scores))
@@ -1284,11 +1284,11 @@ class KFoldClassificationPerfData(ClassificationPerfData):
             #prob_stds = np.concatenate([dc.trans.undo_transforms(self.pred_vals[id], self.transformers).std(axis=0, keepdims=True)
             #                       for id in ids], axis=0)
             class_probs = dc.trans.undo_transforms(np.concatenate([self.pred_vals[id].mean(axis=0, keepdims=True)
-                                   for id in ids], axis=0), self.transformers)
+                                   for id in ids], axis=0), self.transformers[fold])
             prob_stds = dc.trans.undo_transforms(np.concatenate([self.pred_vals[id].std(axis=0, keepdims=True)
-                                   for id in ids], axis=0), self.transformers)
+                                   for id in ids], axis=0), self.transformers[fold])
         else:
-            class_probs = np.concatenate([dc.trans.undo_transforms(self.pred_vals[id], self.transformers) for id in ids], axis=0)
+            class_probs = np.concatenate([dc.trans.undo_transforms(self.pred_vals[id], self.transformers[fold]) for id in ids], axis=0)
             prob_stds = None
         pred_classes = np.argmax(class_probs, axis=2)
         return (ids, pred_classes, class_probs, prob_stds)
@@ -1450,7 +1450,7 @@ class SimpleRegressionPerfData(RegressionPerfData):
 
     # ****************************************************************************************
     # class SimpleRegressionPerfData
-    def accumulate_preds(self, predicted_vals, ids, pred_stds=None):
+    def accumulate_preds(self, predicted_vals, ids, fold, pred_stds=None):
         """Add training, validation or test set predictions to the data structure
         where we keep track of them.
 
@@ -1469,7 +1469,7 @@ class SimpleRegressionPerfData(RegressionPerfData):
         self.pred_vals = self._reshape_preds(predicted_vals)
         if pred_stds is not None:
             self.pred_stds = self._reshape_preds(pred_stds)
-        pred_vals = dc.trans.undo_transforms(self.pred_vals, self.transformers)
+        pred_vals = dc.trans.undo_transforms(self.pred_vals, self.transformers[fold])
         real_vals = self.get_real_values(ids)
         weights = self.get_weights(ids)
         scores = []
@@ -1497,15 +1497,15 @@ class SimpleRegressionPerfData(RegressionPerfData):
 
                 stds (np.array): Contains (ncmpds, ntasks) array of prediction standard deviations
         """
-        vals = dc.trans.undo_transforms(self.pred_vals, self.transformers)
+        vals = dc.trans.undo_transforms(self.pred_vals, self.transformers[fold])
         stds = None
         if self.pred_stds is not None:
             stds = self.pred_stds
-            if len(self.transformers) == 1 and (isinstance(self.transformers[0], dc.trans.NormalizationTransformer) or isinstance(self.transformers[0],trans.NormalizationTransformerMissingData)):
+            if len(self.transformers[fold]) == 1 and (isinstance(self.transformers[fold][0], dc.trans.NormalizationTransformer) or isinstance(self.transformers[fold][0],trans.NormalizationTransformerMissingData)):
                 # Untransform the standard deviations, if we can. This is a bit of a hack, but it works for
                 # NormalizationTransformer, since the standard deviations used to scale the data are
                 # stored in the transformer object.
-                    y_stds = self.transformers[0].y_stds.reshape((1,-1,1))
+                    y_stds = self.transformers[fold][0].y_stds.reshape((1,-1,1))
                     stds = stds / y_stds
         return (self.ids, vals, stds)
 
@@ -1523,7 +1523,7 @@ class SimpleRegressionPerfData(RegressionPerfData):
             np.array: Containing the real dataset response values with transformations undone.
 
         """
-        return dc.trans.undo_transforms(self.real_vals, self.transformers)
+        return dc.trans.undo_transforms(self.real_vals, self.transformers[fold])
 
 
     # ****************************************************************************************
@@ -1687,7 +1687,7 @@ class SimpleClassificationPerfData(ClassificationPerfData):
 
     # ****************************************************************************************
     # class SimpleClassificationPerfData
-    def accumulate_preds(self, predicted_vals, ids, pred_stds=None):
+    def accumulate_preds(self, predicted_vals, ids, fold, pred_stds=None):
         """Add training, validation or test set predictions from the current dataset to the data structure
         where we keep track of them.
 
@@ -1716,7 +1716,7 @@ class SimpleClassificationPerfData(ClassificationPerfData):
                 task_real_vals = np.squeeze(real_vals[nzrows,i,:])
                 task_class_probs = dc.trans.undo_transforms(
                                                             np.squeeze(class_probs[nzrows,i,:]),
-                                                            self.transformers)
+                                                            self.transformers[fold])
                 scores.append(roc_auc_score(task_real_vals, task_class_probs, average='macro'))
             else:
                 # For binary classifier, sklearn metrics functions are expecting single array of 1s and 0s for real_vals_list,
@@ -1724,7 +1724,7 @@ class SimpleClassificationPerfData(ClassificationPerfData):
                 task_real_vals = np.squeeze(real_vals[nzrows,i])
                 task_class_probs = dc.trans.undo_transforms(
                                                             np.squeeze(class_probs[nzrows,i,1]),
-                                                            self.transformers)
+                                                            self.transformers[fold])
                 scores.append(roc_auc_score(task_real_vals, task_class_probs))
         self.perf_metrics.append(np.array(scores))
         return float(np.mean(scores))
@@ -1752,7 +1752,7 @@ class SimpleClassificationPerfData(ClassificationPerfData):
                 prob_stds (np.array): Contains (ncmpds, ntasks, nclasses) array of standard errors for the class
                 probability estimates
         """
-        class_probs = dc.trans.undo_transforms(self.pred_vals, self.transformers)
+        class_probs = dc.trans.undo_transforms(self.pred_vals, self.transformers[fold])
         pred_classes = np.argmax(class_probs, axis=2)
         prob_stds = self.pred_stds
         return (self.ids, pred_classes, class_probs, prob_stds)
@@ -1907,7 +1907,7 @@ class SimpleHybridPerfData(HybridPerfData):
 
     # ****************************************************************************************
     # class SimpleHybridPerfData
-    def accumulate_preds(self, predicted_vals, ids, pred_stds=None):
+    def accumulate_preds(self, predicted_vals, ids, fold, pred_stds=None):
         """Add training, validation or test set predictions to the data structure
         where we keep track of them.
 
@@ -2013,7 +2013,7 @@ class SimpleHybridPerfData(HybridPerfData):
             np.array: Containing the real dataset response values with transformations undone.
 
         """
-        return self.transformers[0].untransform(self.real_vals)
+        return self.transformers[fold][0].untransform(self.real_vals)
 
 
     # ****************************************************************************************
@@ -2160,7 +2160,7 @@ class EpochManager:
 
     # ****************************************************************************************
     # class EpochManager
-    def update_epoch(self, ei, train_dset=None, valid_dset=None, test_dset=None):
+    def update_epoch(self, ei, fold, train_dset=None, valid_dset=None, test_dset=None):
         """Update training state after an epoch
 
                 This function updates train/valid/test_perf_data. Call this function once
@@ -2186,15 +2186,15 @@ class EpochManager:
            This function updates self._should_stop
 
         """
-        train_perf = self.update(ei, 'train', train_dset)
-        valid_perf = self.update(ei, 'valid', valid_dset)
-        test_perf = self.update(ei, 'test', test_dset)
+        train_perf = self.update(ei, 'train', train_dset, fold)
+        valid_perf = self.update(ei, 'valid', valid_dset, fold)
+        test_perf = self.update(ei, 'test', test_dset, fold)
 
         return [p for p in [train_perf, valid_perf, test_perf] if p is not None]
 
     # ****************************************************************************************
     # class EpochManager
-    def accumulate(self, ei, subset, dset):
+    def accumulate(self, ei, subset, dset, fold):
         """Accumulate predictions
 
                 Makes predictions, accumulate predictions and calculate the performance metric. Calls PerfData.accumulate_preds
@@ -2211,7 +2211,7 @@ class EpochManager:
            float: Performance metric for the given dset.
         """
         pred = self._make_pred(dset)
-        perf = getattr(self.wrapper, f'{subset}_perf_data')[ei].accumulate_preds(pred, dset.ids)
+        perf = getattr(self.wrapper, f'{subset}_perf_data')[ei].accumulate_preds(pred, dset.ids, fold)
         return perf
 
     # ****************************************************************************************
@@ -2270,7 +2270,7 @@ class EpochManager:
 
     # ****************************************************************************************
     # class EpochManager
-    def update(self, ei, subset, dset=None):
+    def update(self, ei, subset, fold, dset=None):
         """Update training state
 
                 Updates the training state for a given subset and epoch index with the given dataset.
@@ -2289,7 +2289,7 @@ class EpochManager:
         if dset is None:
             return None
 
-        perf = self.accumulate(ei, subset, dset)
+        perf = self.accumulate(ei, subset, dset, fold)
         self.compute(ei, subset)
 
         if subset == 'valid':

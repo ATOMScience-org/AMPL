@@ -301,7 +301,7 @@ class ModelPipeline:
         # is fitted to the training data only. The transformers are then applied to the training,
         # validation and test sets separately.
         if not params.split_only:
-            self.model_wrapper.create_transformers(self.data)
+            self.model_wrapper.create_transformers(trans.get_all_training_datasets(self.data))
         else:
             self.run_mode = ''
 

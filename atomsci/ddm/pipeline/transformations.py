@@ -138,7 +138,34 @@ def get_transformer_specific_metadata(params):
     return meta_dict
 
 # ****************************************************************************************
+def get_transformer_keys(params):
+    """Makes all transformer keys
+    There is one set of transformers for each fold and then one transformer
+    for both validation and training sets. AMPL automatically trains a model
+    using all validation and training data at the end of the training loop.
+    """
+    if params.split_strategy == 'k_fold_cv':
+        return [0, 'train_val']
+    else:
+        return list(range(params.num_folds))+['train_val']
 
+# ****************************************************************************************
+def get_all_training_datasets(model_dataset):
+    """Returns all 'training' datasets
+    This takes a model_dataset and returns a dictionary of all
+    datasets that will need a transformer. The keys will match
+    what is returned by get_transformer_keys
+    """
+    result = {}
+    # First, get the training set from all the folds
+    for i, t in enumerate(model_dataset.train_valid_dsets):
+        result[i] = t
+
+    # Next, add the dataset that contains all training+validation data
+    result['train_val'] = model_dataset.combined_training_data()
+
+
+# ****************************************************************************************
 class UMAPTransformer(Transformer):
     """Dimension reduction transformations using the UMAP algorithm.
     
