@@ -164,6 +164,8 @@ def get_all_training_datasets(model_dataset):
     # Next, add the dataset that contains all training+validation data
     result['train_val'] = model_dataset.combined_training_data()
 
+    return result
+
 
 # ****************************************************************************************
 class UMAPTransformer(Transformer):
