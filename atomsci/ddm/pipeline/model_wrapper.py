@@ -324,7 +324,7 @@ class ModelWrapper(object):
         raise NotImplementedError
 
         # ****************************************************************************************
-    def _create_output_transformers(self, model_dataset):
+    def _create_output_transformers(self, dataset):
         """Initialize transformers for responses and persist them for later.
 
         Args:
@@ -336,11 +336,11 @@ class ModelWrapper(object):
         """
         # TODO: Just a warning, we may have response transformers for classification datasets in the future
         if self.params.prediction_type=='regression' and self.params.transformers is True:
-            return [trans.NormalizationTransformerMissingData(transform_y=True, dataset=model_dataset.dataset)]
+            return [trans.NormalizationTransformerMissingData(transform_y=True, dataset=dataset)]
 
         # ****************************************************************************************
 
-    def _create_feature_transformers(self, model_dataset):
+    def _create_feature_transformers(self, dataset):
         """Initialize transformers for features, and persist them for later.
 
         Args:
@@ -351,7 +351,7 @@ class ModelWrapper(object):
                 transformers_x: A list of deepchem transformation objects on featurizers, only if conditions are met.
         """
         # Set up transformers for features, if needed
-        return trans.create_feature_transformers(self.params, model_dataset)
+        return trans.create_feature_transformers(self.params, dataset)
 
         # ****************************************************************************************
 
@@ -1589,7 +1589,7 @@ class HybridModelWrapper(NNModelWrapper):
         return model_spec_metadata
 
     # ****************************************************************************************
-    def _create_output_transformers(self, model_dataset):
+    def _create_output_transformers(self, dataset):
         """Initialize transformers for responses and persist them for later.
 
         Args:
@@ -1601,7 +1601,7 @@ class HybridModelWrapper(NNModelWrapper):
         """
         # TODO: Just a warning, we may have response transformers for classification datasets in the future
         if self.params.prediction_type=='regression' and self.params.transformers is True:
-            self.transformers = [trans.NormalizationTransformerHybrid(transform_y=True, dataset=model_dataset.dataset)]
+            self.transformers = [trans.NormalizationTransformerHybrid(transform_y=True, dataset=dataset)]
 
 # ****************************************************************************************
 class ForestModelWrapper(ModelWrapper):

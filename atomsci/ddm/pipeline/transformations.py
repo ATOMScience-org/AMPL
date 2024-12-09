@@ -92,7 +92,7 @@ def create_feature_transformers(params, model_dataset):
     return transformers_x
 
 # ****************************************************************************************
-def create_weight_transformers(params, model_dataset):
+def create_weight_transformers(params, dataset):
     """Fit an optional balancing transformation to the weight matrix of the given dataset, and return a
     DeepChem transformer object holding its parameters.
 
@@ -106,7 +106,7 @@ def create_weight_transformers(params, model_dataset):
     """
     if params.weight_transform_type == 'balancing':
         if params.prediction_type == 'classification':
-            transformers_w = [BalancingTransformer(model_dataset.dataset)]
+            transformers_w = [BalancingTransformer(dataset)]
         else:
             log.warning("Warning: Balancing transformer only supported for classification models.")
             transformers_w = []
