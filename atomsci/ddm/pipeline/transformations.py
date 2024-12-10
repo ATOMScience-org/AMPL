@@ -38,10 +38,14 @@ def get_statistics_missing_ydata(dataset):
        values for the y variable only. The x variable still assumes no
        missing values.
     """
-    y_means = np.zeros(len(dataset.get_task_names()))
-    y_m2 = np.zeros(len(dataset.get_task_names()))
-    dy = np.zeros(len(dataset.get_task_names()))
-    n = np.zeros(len(dataset.get_task_names()))
+    if len(dataset.y.shape)==1:
+        num_tasks = 1
+    else:
+        num_tasks = dataset.y.shape[1]
+    y_means = np.zeros(num_tasks)
+    y_m2 = np.zeros(num_tasks)
+    dy = np.zeros(num_tasks)
+    n = np.zeros(num_tasks)
     for _, y, w, _ in dataset.itersamples():
        for it in range(len(y)) :
             ## set weights to 0 for missing data
@@ -61,7 +65,7 @@ def get_statistics_missing_ydata(dataset):
     return y_means, y_stds
 
 # ****************************************************************************************
-def create_feature_transformers(params, model_dataset):
+def create_feature_transformers(params, featurization, train_dset):
     """Fit a scaling and centering transformation to the feature matrix of the given dataset, and return a
     DeepChem transformer object holding its parameters.
 
@@ -78,14 +82,13 @@ def create_feature_transformers(params, model_dataset):
         log.warning("UMAP feature transformation is deprecated and will be removed in a future release.")
         if params.split_strategy == 'k_fold_cv':
             log.warning("Warning: UMAP transformation may produce misleading results when used with K-fold split strategy.")
-        train_dset = model_dataset.train_valid_dsets[0][0]
         transformers_x = [UMAPTransformer(params, train_dset)]
     elif params.transformers:
         # TODO: Transformers on responses and features should be controlled only by parameters
         # response_transform_type and feature_transform_type, rather than params.transformers.
 
         # Scale and center feature matrix if featurization type calls for it
-        transformers_x = model_dataset.featurization.create_feature_transformer(model_dataset.dataset)
+        transformers_x = featurization.create_feature_transformer(train_dset)
     else:
         transformers_x = []
 
@@ -144,10 +147,17 @@ def get_transformer_keys(params):
     for both validation and training sets. AMPL automatically trains a model
     using all validation and training data at the end of the training loop.
     """
-    if params.split_strategy == 'k_fold_cv':
-        return [0, 'train_val']
+    if params.split_strategy != 'k_fold_cv':
+        return ['final']
     else:
-        return list(range(params.num_folds))+['train_val']
+        return list(range(params.num_folds))+['final']
+
+# ****************************************************************************************
+def get_blank_transformations():
+    """Get empty transformations dictionary
+    These keys must always exist, even when there are no transformations
+    """
+    return {'final':[]}
 
 # ****************************************************************************************
 def get_all_training_datasets(model_dataset):
@@ -157,12 +167,18 @@ def get_all_training_datasets(model_dataset):
     what is returned by get_transformer_keys
     """
     result = {}
-    # First, get the training set from all the folds
-    for i, t in enumerate(model_dataset.train_valid_dsets):
-        result[i] = t
+    if model_dataset.splitting is None:
+        # this dataset is not split into training and validation, use all data
+        result['final'] = model_dataset.dataset
+    elif len(model_dataset.train_valid_dsets)==1:
+        result['final'] = model_dataset.train_valid_dsets[0]
+    else:
+        # First, get the training set from all the folds
+        for i, t in enumerate(model_dataset.train_valid_dsets):
+            result[i] = t
 
-    # Next, add the dataset that contains all training+validation data
-    result['train_val'] = model_dataset.combined_training_data()
+        # Next, add the dataset that contains all training+validation data
+        result['final'] = model_dataset.combined_training_data()
 
     return result
 

@@ -7,6 +7,7 @@ from deepchem.models import GraphConvModel
 import atomsci.ddm.pipeline.model_datasets as model_dataset
 import atomsci.ddm.pipeline.model_wrapper as model_wrapper
 import atomsci.ddm.pipeline.model_pipeline as MP
+import atomsci.ddm.pipeline.transformations as trans
 
 import utils_testing as utils
 import copy
@@ -43,22 +44,22 @@ DD = dc.data.datasets.NumpyDataset
 #***********************************************************************************
 def test_create_model_wrapper():
     """
-        Args:
+    Args:
         params (Namespace) : Parameters passed to the model pipeline
-                     featurizer (Featurization): Object managing the featurization of compounds
-                                 ds_client (DatastoreClient): Interface to the file datastore
+        featurizer (Featurization): Object managing the featurization of compounds
+        ds_client (DatastoreClient): Interface to the file datastore
 
-                                                  Returns:
-                                                  model (pipeline.Model): Wrapper for DeepChem, sklearn or other model.
+    Returns:
+        model (pipeline.Model): Wrapper for DeepChem, sklearn or other model.
 
-                                                              Raises:
-ValueError: Only params.model_type = 'NN' or 'RF' is supported. 
+    Raises:
+        ValueError: Only params.model_type = 'NN' or 'RF' is supported. 
 
-Dependencies:
-None
+    Dependencies:
+        None
 
-Calls:
-MultitaskDCModelWrapper, DCRFModelWrapper
+    Calls:
+        MultitaskDCModelWrapper, DCRFModelWrapper
     """
     inp_params = parse.wrapper(general_params)
     featurization = feat.create_featurization(inp_params)
@@ -72,8 +73,8 @@ MultitaskDCModelWrapper, DCRFModelWrapper
     test.append(mdl.output_dir == inp_params.output_dir)
     test.append(mdl.model_dir == inp_params.output_dir + '/' + 'model')
     test.append(mdl.best_model_dir == inp_params.output_dir + '/' + 'best_model')
-    test.append(mdl.transformers == [])
-    test.append(mdl.transformers_x == [])
+    test.append(mdl.transformers['final'] == [])
+    test.append(mdl.transformers_x['final'] == [])
     test.append(isinstance(mdl, model_wrapper.MultitaskDCModelWrapper))
 
     # testing for correct attribute initialization with model_type == "RF"
@@ -137,20 +138,21 @@ def test_super_create_transformers():
     test = []
     test.append(mdl.params.prediction_type == 'regression')
     test.append(mdl.params.model_type == 'NN')
-    mdl.create_transformers(data_obj_ecfp)
-    test.append(isinstance(mdl.transformers[0], dc.trans.transformers.NormalizationTransformer))
-    test.append(mdl.transformers_x == [])
+    mdl.create_transformers(trans.get_all_training_datasets(data_obj_ecfp))
+    test.append(isinstance(mdl.transformers['final'][0], dc.trans.transformers.NormalizationTransformer))
+    test.append(mdl.transformers_x['final'] == [])
     #testing saving of transformer to correct location:
-    transformer_path = os.path.join(mdl.output_dir, 'transformers.pkl')
+    transformer_path = os.path.join(mdl.output_dir, 'transformers_final.pkl')
     test.append(os.path.isfile(transformer_path))
+
 
     # TODO: test proper saving of the transformer to the datastore
 
     # TODO: test when transformers is False:
     inp_params.prediction_type = 'classification'
     mdl = model_wrapper.create_model_wrapper(inp_params, featurization)
-    test.append(mdl.transformers == [])
-    test.append(mdl.transformers_x == [])
+    test.append(mdl.transformers['final'] == [])
+    test.append(mdl.transformers_x['final'] == [])
     assert all(test)
 
 
@@ -182,7 +184,7 @@ def test_super_transform_dataset():
     data_obj_ecfp.get_featurized_data()
     mdl = model_wrapper.create_model_wrapper(inp_params, data_obj_ecfp.featurization)
     mdl.setup_model_dirs()
-    mdl.create_transformers(data_obj_ecfp)
+    mdl.create_transformers(trans.get_all_training_datasets(data_obj_ecfp))
     dataset = mdl.transform_dataset(data_obj_ecfp.dataset)
 
     test = []

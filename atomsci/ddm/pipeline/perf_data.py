@@ -139,14 +139,14 @@ class PerfData(object):
         raise NotImplementedError
 
     # ****************************************************************************************
-    def get_pred_values(self):
+    def get_pred_values(self, fold):
         """Raises:
             NotImplementedError: The method is implemented by subclasses
         """
         raise NotImplementedError
 
     # ****************************************************************************************
-    def get_real_values(self, ids=None):
+    def get_real_values(self, fold, ids=None):
         """Raises:
             NotImplementedError: The method is implemented by subclasses
         """
@@ -170,7 +170,7 @@ class PerfData(object):
         raise NotImplementedError
 
     # ****************************************************************************************
-    def get_prediction_results(self):
+    def get_prediction_results(self, fold):
         """Raises:
             NotImplementedError: The method is implemented by subclasses
         """
@@ -224,7 +224,7 @@ class RegressionPerfData(PerfData):
         raise NotImplementedError
 
     # ****************************************************************************************
-    def get_pred_values(self):
+    def get_pred_values(self, fold):
         """Raises:
             NotImplementedError: The method is implemented by subclasses
         """
@@ -257,7 +257,7 @@ class RegressionPerfData(PerfData):
 
         """
         ids, pred_vals, stds = self.get_pred_values()
-        real_vals = self.get_real_values(ids)
+        real_vals = self.get_real_values('train_valid', ids)
         weights = self.get_weights(ids)
         scores = []
         for i in range(self.num_tasks):
@@ -274,7 +274,7 @@ class RegressionPerfData(PerfData):
 
     # ****************************************************************************************
     # class RegressionPerfData
-    def get_prediction_results(self):
+    def get_prediction_results(self, fold):
         """Returns a dictionary of performance metrics for a regression model.
         The dictionary values should contain only primitive Python types, so that it can
         be easily JSONified.
@@ -303,8 +303,8 @@ class RegressionPerfData(PerfData):
         # and then averaging the metrics. If people start asking for SDs of MAE and RMSE scores over folds,
         # we'll change the code to compute all metrics the same way.
 
-        (ids, pred_vals, pred_stds) = self.get_pred_values()
-        real_vals = self.get_real_values(ids)
+        (ids, pred_vals, pred_stds) = self.get_pred_values(fold=fold)
+        real_vals = self.get_real_values(ids, fold=fold)
         weights = self.get_weights(ids)
         mae_scores = []
         rms_scores = []
@@ -477,7 +477,7 @@ class HybridPerfData(PerfData):
 
     # ****************************************************************************************
     # class HybridPerfData
-    def get_prediction_results(self):
+    def get_prediction_results(self, fold):
         """Returns a dictionary of performance metrics for a regression model.
         The dictionary values should contain only primitive Python types, so that it can
         be easily JSONified.
@@ -707,7 +707,7 @@ class ClassificationPerfData(PerfData):
 
     # ****************************************************************************************
     # class ClassificationPerfData
-    def get_prediction_results(self):
+    def get_prediction_results(self, fold):
         """Returns a dictionary of performance metrics for a classification model.
         The dictionary values will contain only primitive Python types, so that it can
         be easily JSONified.
@@ -1005,7 +1005,7 @@ class KFoldRegressionPerfData(RegressionPerfData):
 
     # ****************************************************************************************
     # class KFoldRegressionPerfData
-    def get_pred_values(self):
+    def get_pred_values(self, fold):
         """Returns the predicted values accumulated over training, with any transformations undone.
         If self.subset is 'train' or 'test', the function will return averages over the training folds for each compound
         along with standard deviations when there are predictions from multiple folds. Otherwise, returns a
@@ -1038,7 +1038,7 @@ class KFoldRegressionPerfData(RegressionPerfData):
 
     # ****************************************************************************************
     # class KFoldRegressionPerfData
-    def get_real_values(self, ids=None):
+    def get_real_values(self, fold, ids=None):
         """Returns the real dataset response values, with any transformations undone, as an (ncmpds, ntasks) array
         in the same ID order as get_pred_values() (unless ids is specified).
 
@@ -1260,7 +1260,7 @@ class KFoldClassificationPerfData(ClassificationPerfData):
 
     # ****************************************************************************************
     # class KFoldClassificationPerfData
-    def get_pred_values(self):
+    def get_pred_values(self, fold):
         """Returns the predicted values accumulated over training, with any transformations undone.  If self.subset
         is 'train', 'train_valid' or 'test', the function will return the means and standard deviations of the class probabilities
         over the training folds for each compound, for each task.  Otherwise, returns a single set of predicted probabilites for
@@ -1484,7 +1484,7 @@ class SimpleRegressionPerfData(RegressionPerfData):
 
     # ****************************************************************************************
     # class SimpleRegressionPerfData
-    def get_pred_values(self):
+    def get_pred_values(self, fold):
         """Returns the predicted values accumulated over training, with any transformations undone.  Returns
         a tuple (ids, values, stds), where ids is the list of compound IDs, values is a (ncmpds, ntasks) array
         of predictions, and stds is always None for this class.
@@ -1512,7 +1512,7 @@ class SimpleRegressionPerfData(RegressionPerfData):
 
     # ****************************************************************************************
     # class SimpleRegressionPerfData
-    def get_real_values(self, ids=None):
+    def get_real_values(self, fold, ids=None):
         """Returns the real dataset response values, with any transformations undone, as an (ncmpds, ntasks) array
         with compounds in the same ID order as in the return from get_pred_values().
 
@@ -1731,7 +1731,7 @@ class SimpleClassificationPerfData(ClassificationPerfData):
 
     # ****************************************************************************************
     # class SimpleClassificationPerfData
-    def get_pred_values(self):
+    def get_pred_values(self, fold):
         """Returns the predicted values accumulated over training, with any transformations undone.
         If self.subset is 'train', the function will average class probabilities over the k-1 folds in which each
         compound was part of the training set, and return the most probable class. Otherwise, there should be a
@@ -1979,7 +1979,7 @@ class SimpleHybridPerfData(HybridPerfData):
 
     # ****************************************************************************************
     # class SimpleHybridPerfData
-    def get_pred_values(self):
+    def get_pred_values(self, fold):
         """Returns the predicted values accumulated over training, with any transformations undone.  Returns
         a tuple (ids, values, stds), where ids is the list of compound IDs, values is a (ncmpds, ntasks) array
         of predictions, and stds is always None for this class.
@@ -2002,7 +2002,7 @@ class SimpleHybridPerfData(HybridPerfData):
 
     # ****************************************************************************************
     # class SimpleHybridPerfData
-    def get_real_values(self, ids=None):
+    def get_real_values(self, fold, ids=None):
         """Returns the real dataset response values, with any transformations undone, as an (ncmpds, ntasks) array
         with compounds in the same ID order as in the return from get_pred_values().
 

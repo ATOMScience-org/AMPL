@@ -283,9 +283,9 @@ class ModelWrapper(object):
         self.output_dir = self.params.output_dir
         self.model_dir = os.path.join(self.output_dir, 'model')
         os.makedirs(self.model_dir, exist_ok=True)
-        self.transformers = {}
-        self.transformers_x = {}
-        self.transformers_w = {}
+        self.transformers = trans.get_blank_transformations()
+        self.transformers_x = trans.get_blank_transformations()
+        self.transformers_w = trans.get_blank_transformations()
 
         # ****************************************************************************************
 
@@ -351,7 +351,7 @@ class ModelWrapper(object):
                 transformers_x: A list of deepchem transformation objects on featurizers, only if conditions are met.
         """
         # Set up transformers for features, if needed
-        return trans.create_feature_transformers(self.params, dataset)
+        return trans.create_feature_transformers(self.params, self.featurization, dataset)
 
         # ****************************************************************************************
 
@@ -402,7 +402,7 @@ class ModelWrapper(object):
         if not trans.transformers_needed(self.params):
             return
 
-        for i in trans.get_transformer_keys():
+        for i in trans.get_transformer_keys(self.params):
             # for backwards compatibity if this file exists, all folds use the same transformers
             local_path = f"{self.output_dir}/transformers.pkl"
             if not os.path.exists(local_path):
@@ -441,7 +441,7 @@ class ModelWrapper(object):
 
         # ****************************************************************************************
 
-    def transform_dataset(self, dataset, fold=0):
+    def transform_dataset(self, dataset, fold='final'):
         """Transform the responses and/or features in the given DeepChem dataset using the current transformers.
 
         Args:
@@ -518,7 +518,7 @@ class ModelWrapper(object):
         # We pass transformed=False to indicate that the preds and uncertainties we get from
         # generate_predictions are already untransformed, so that perf_data.get_prediction_results()
         # doesn't untransform them again.
-        if hasattr(self.transformers[0][0], "ishybrid"):
+        if hasattr(self.transformers['final'][0], "ishybrid"):
             # indicate that we are training a hybrid model
             # ASDF need to know what to pass in as the y transform now that they are fold dependent.
             perf_data = perf.create_perf_data("hybrid", model_dataset, self.transformers, 'test', is_ki=self.params.is_ki, ki_convert_ratio=self.params.ki_convert_ratio, transformed=False)
@@ -562,7 +562,7 @@ class ModelWrapper(object):
         # We pass transformed=False to indicate that the preds and uncertainties we get from
         # generate_predictions are already untransformed, so that perf_data.get_prediction_results()
         # doesn't untransform them again.
-        if hasattr(self.transformers[0], "ishybrid"):
+        if hasattr(self.transformers['final'][0], "ishybrid"):
             # indicate that we are training a hybrid model
             perf_data = perf.create_perf_data("hybrid", model_dataset, self.transformers, 'full', is_ki=self.params.is_ki, ki_convert_ratio=self.params.ki_convert_ratio, transformed=False)
         else:
@@ -1012,7 +1012,7 @@ class NNModelWrapper(ModelWrapper):
             # saved will be the one we created intentionally when we reached a new best validation score.
             self.model.fit(train_dset, nb_epoch=1, checkpoint_interval=0)
             train_perf, valid_perf, test_perf = em.update_epoch(ei,
-                                train_dset=train_dset, valid_dset=valid_dset, test_dset=test_dset, fold=0)
+                                train_dset=train_dset, valid_dset=valid_dset, test_dset=test_dset, fold='final')
 
             self.log.info("Epoch %d: training %s = %.3f, validation %s = %.3f, test %s = %.3f" % (
                           ei, pipeline.metric_type, train_perf, pipeline.metric_type, valid_perf,
@@ -1123,14 +1123,18 @@ class NNModelWrapper(ModelWrapper):
 
                 # =-=ksm: The second 'isinstance' shouldn't be necessary since NormalizationTransformerMissingData
                 # is a subclass of dc.trans.NormalizationTransformer.
-                if len(self.transformers) == 1 and (isinstance(self.transformers[0], dc.trans.NormalizationTransformer) 
-                                                 or isinstance(self.transformers[0],trans.NormalizationTransformerMissingData)):
-                    y_stds = self.transformers[0].y_stds.reshape((1,ntasks,1))
+                if len(self.transformers) == 1 and (isinstance(self.transformers['final'][0], dc.trans.NormalizationTransformer) 
+                                                 or isinstance(self.transformers['final'][0],trans.NormalizationTransformerMissingData)):
+                    y_stds = self.transformers['final'][0].y_stds.reshape((1,ntasks,1))
                     std = std / y_stds
-                pred = dc.trans.undo_transforms(pred, self.transformers)
+                pred = dc.trans.undo_transforms(pred, self.transformers['final'])
         else:
             # Classification models and regression models without uncertainty are handled here
-            txform = [] if (not self.params.transformers or self.transformers is None) else self.transformers
+            if (not self.params.transformers or self.transformers is None):
+                txform = [] 
+            else:
+                txform = self.transformers['final']
+
             pred = self.model.predict(dataset, txform)
             if self.params.prediction_type == 'regression':
                 if isinstance(pred, list) and len(pred) == 0:
@@ -1277,8 +1281,9 @@ class HybridModelWrapper(NNModelWrapper):
         if len(pos_bind[0]) == 0:
             return loss_ki, torch.tensor(0.0, dtype=torch.float32)
         # convert Ki to % binding
-        y_stds = self.transformers[0].y_stds
-        y_means = self.transformers[0].y_means
+        # assumes no folds
+        y_stds = self.transformers['final'][0].y_stds
+        y_means = self.transformers['final'][0].y_means
         if self.params.is_ki:
             bind_pred = self._predict_binding(y_means + y_stds * yp[pos_bind, 0], conc=yr[pos_bind, 1])
         else:
@@ -1305,8 +1310,9 @@ class HybridModelWrapper(NNModelWrapper):
         # Compute L2 loss for pKi predictions
         loss_ki = torch.sum((yp[pos_ki, 0] - yr[pos_ki, 0]) ** 2)
         #convert the ki prediction back to Ki scale
-        y_stds = self.transformers[0].y_stds
-        y_means = self.transformers[0].y_means
+        #hybrid models do not support kfold validation
+        y_stds = self.transformers['final'][0].y_stds
+        y_means = self.transformers['final'][0].y_means
         # Compute fraction bound to *radioligand* (not drug) from predicted pKi
         if self.params.is_ki:
             rl_bind_pred = 1 - self._predict_binding(y_means + y_stds * yp[pos_bind, 0], conc=yr[pos_bind, 1])
@@ -1468,7 +1474,7 @@ class HybridModelWrapper(NNModelWrapper):
                 valid_loss_ep /= (valid_data.n_ki + valid_data.n_bind)
 
             train_perf, valid_perf, test_perf = em.update_epoch(ei,
-                                train_dset=train_dset, valid_dset=valid_dset, test_dset=test_dset, fold=0)
+                                train_dset=train_dset, valid_dset=valid_dset, test_dset=test_dset, fold='final')
 
             self.log.info("Epoch %d: training %s = %.3f, training loss = %.3f, validation %s = %.3f, validation loss = %.3f, test %s = %.3f" % (
                           ei, pipeline.metric_type, train_perf, train_loss_ep, pipeline.metric_type, valid_perf, valid_loss_ep,
@@ -1558,11 +1564,11 @@ class HybridModelWrapper(NNModelWrapper):
         if self.params.transformers and self.transformers is not None:
             if has_conc:
                 pred = np.concatenate((pred, real[:, [1]]), axis=1)
-                pred = self.transformers[0].untransform(pred, isreal=False)
+                pred = self.transformers['final'][0].untransform(pred, isreal=False)
                 pred_bind_pos = np.where(~np.isnan(pred[:, 1]))[0]
                 pred[pred_bind_pos, 0] = self._predict_binding(pred[pred_bind_pos, 0], pred[pred_bind_pos, 1])
             else:
-                pred = self.transformers[0].untransform(pred, isreal=False)
+                pred = self.transformers['final'][0].untransform(pred, isreal=False)
         else:
             if has_conc:
                 pred = np.concatenate((pred, real[:, [1]]), axis=1)

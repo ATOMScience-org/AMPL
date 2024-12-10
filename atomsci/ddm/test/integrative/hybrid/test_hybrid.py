@@ -52,7 +52,7 @@ def test():
 
     print("Check the model performance on validation data")
     pred_data = pl.model_wrapper.get_perf_data(subset="valid", epoch_label="best")
-    pred_results = pred_data.get_prediction_results()
+    pred_results = pred_data.get_prediction_results('final')
     print(pred_results)
 
     pred_score = pred_results['r2_score']
