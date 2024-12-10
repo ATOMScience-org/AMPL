@@ -305,13 +305,6 @@ class ModelPipeline:
         else:
             self.run_mode = ''
 
-        if self.run_mode == 'training':
-            for i, (train, valid) in enumerate(self.data.train_valid_dsets):
-                train = self.model_wrapper.transform_dataset(train)
-                valid = self.model_wrapper.transform_dataset(valid)
-                self.data.train_valid_dsets[i] = (train, valid)
-            self.data.test_dset = self.model_wrapper.transform_dataset(self.data.test_dset)
-
         # ****************************************************************************************
 
     def create_model_metadata(self):
@@ -864,7 +857,7 @@ class ModelPipeline:
         # Get features for each compound and construct a DeepChem Dataset from them
         self.data.get_featurized_data(dset_df, is_featurized)
         # Transform the features and responses if needed
-        self.data.dataset = self.model_wrapper.transform_dataset(self.data.dataset)
+        self.data.dataset = self.model_wrapper.transform_dataset(self.data.dataset, fold='final')
 
         # Note that at this point, the dataset may contain fewer rows than the input. Typically this happens because
         # of invalid SMILES strings. Remove any rows from the input dataframe corresponding to SMILES strings that were
@@ -995,7 +988,7 @@ class ModelPipeline:
         self.data = model_datasets.create_minimal_dataset(self.params, self.featurization)
         self.data.get_featurized_data(dset_df, is_featurized=False)
         # Not sure the following is necessary
-        self.data.dataset = self.model_wrapper.transform_dataset(self.data.dataset)
+        self.data.dataset = self.model_wrapper.transform_dataset(self.data.dataset, fold='final')
 
         # Get the embeddings as a numpy array
         embeddings = self.model_wrapper.generate_embeddings(self.data.dataset)
@@ -1577,7 +1570,7 @@ def ensemble_predict(model_uuids, collections, dset_df, labels=None, dset_params
             raise Exception("response_cols missing from model params")
         is_featurized = (len(set(pipe.featurization.get_feature_columns()) - set(dset_df.columns.values)) == 0)
         pipe.data.get_featurized_data(dset_df, is_featurized)
-        pipe.data.dataset = pipe.model_wrapper.transform_dataset(pipe.data.dataset)
+        pipe.data.dataset = pipe.model_wrapper.transform_dataset(pipe.data.dataset, fold='final')
 
         # Create a temporary data frame to hold the compound IDs and predictions. The model may not
         # return predictions for all the requested compounds, so we have to outer join the predictions

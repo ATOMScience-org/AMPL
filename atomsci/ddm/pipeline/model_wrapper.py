@@ -8,6 +8,7 @@ import shutil
 import joblib
 
 import deepchem as dc
+import deepchem.trans as dctrans
 import numpy as np
 import tensorflow as tf
 if dc.__version__.startswith('2.1'):
@@ -441,7 +442,7 @@ class ModelWrapper(object):
 
         # ****************************************************************************************
 
-    def transform_dataset(self, dataset, fold='final'):
+    def transform_dataset(self, dataset, fold):
         """Transform the responses and/or features in the given DeepChem dataset using the current transformers.
 
         Args:
@@ -514,19 +515,14 @@ class ModelWrapper(object):
 
         # Create a PerfData object, which knows how to format the prediction results in the structure
         # expected by the model tracker.
-
-        # We pass transformed=False to indicate that the preds and uncertainties we get from
-        # generate_predictions are already untransformed, so that perf_data.get_prediction_results()
-        # doesn't untransform them again.
         if hasattr(self.transformers['final'][0], "ishybrid"):
             # indicate that we are training a hybrid model
-            # ASDF need to know what to pass in as the y transform now that they are fold dependent.
-            perf_data = perf.create_perf_data("hybrid", model_dataset, self.transformers, 'test', is_ki=self.params.is_ki, ki_convert_ratio=self.params.ki_convert_ratio, transformed=False)
+            perf_data = perf.create_perf_data("hybrid", model_dataset, 'test', is_ki=self.params.is_ki, ki_convert_ratio=self.params.ki_convert_ratio)
         else:
-            perf_data = perf.create_perf_data(self.params.prediction_type, model_dataset, self.transformers, 'test', transformed=False)
+            perf_data = perf.create_perf_data(self.params.prediction_type, model_dataset, 'test')
         test_dset = model_dataset.test_dset
         test_preds, test_stds = self.generate_predictions(test_dset)
-        _ = perf_data.accumulate_preds(test_preds, test_dset.ids, test_stds, fold=fold)
+        _ = perf_data.accumulate_preds(test_preds, test_dset.ids, test_stds)
         return perf_data
 
         # ****************************************************************************************
@@ -558,17 +554,13 @@ class ModelWrapper(object):
 
         # Create a PerfData object, which knows how to format the prediction results in the structure
         # expected by the model tracker.
-
-        # We pass transformed=False to indicate that the preds and uncertainties we get from
-        # generate_predictions are already untransformed, so that perf_data.get_prediction_results()
-        # doesn't untransform them again.
         if hasattr(self.transformers['final'][0], "ishybrid"):
             # indicate that we are training a hybrid model
-            perf_data = perf.create_perf_data("hybrid", model_dataset, self.transformers, 'full', is_ki=self.params.is_ki, ki_convert_ratio=self.params.ki_convert_ratio, transformed=False)
+            perf_data = perf.create_perf_data("hybrid", model_dataset, 'full', is_ki=self.params.is_ki, ki_convert_ratio=self.params.ki_convert_ratio)
         else:
-            perf_data = perf.create_perf_data(self.params.prediction_type, model_dataset, self.transformers, 'full', transformed=False)
+            perf_data = perf.create_perf_data(self.params.prediction_type, model_dataset, 'full')
         full_preds, full_stds = self.generate_predictions(model_dataset.dataset)
-        _ = perf_data.accumulate_preds(full_preds, model_dataset.dataset.ids, full_stds, fold)
+        _ = perf_data.accumulate_preds(full_preds, model_dataset.dataset.ids, full_stds)
         return perf_data
 
         # ****************************************************************************************
@@ -901,12 +893,9 @@ class NNModelWrapper(ModelWrapper):
                                 subsets={'train':'train_valid', 'valid':'valid', 'test':'test'},
                                 prediction_type=self.params.prediction_type, 
                                 model_dataset=pipeline.data, 
-                                production=self.params.production,
-                                transformers=self.transformers)
-        em.set_make_pred(lambda x: self.model.predict(x, []))
-        em.on_new_best_valid(lambda : 1+1) # does not need to take any action
+                                production=self.params.production)
 
-        test_dset = pipeline.data.test_dset
+        em.on_new_best_valid(lambda : 1+1) # does not need to take any action
 
         # Train a separate model for each fold
         models = []
@@ -915,21 +904,28 @@ class NNModelWrapper(ModelWrapper):
 
         for ei in LCTimerKFoldIterator(self.params, pipeline, self.log):
             # Create PerfData structures that are only used within loop to compute metrics during initial training
-            train_perf_data = perf.create_perf_data(self.params.prediction_type, pipeline.data, self.transformers, 'train')
-            test_perf_data = perf.create_perf_data(self.params.prediction_type, pipeline.data, self.transformers, 'test')
+            train_perf_data = perf.create_perf_data(self.params.prediction_type, 'train')
+            test_perf_data = perf.create_perf_data(self.params.prediction_type, 'test')
             for k in range(num_folds):
                 self.model = models[k]
                 train_dset, valid_dset = pipeline.data.train_valid_dsets[k]
+                train_dset = self.transform_dataset(train_dset, fold=k)
+                valid_dset = self.transform_dataset(valid_dset, fold=k)
+                test_dset = self.transform_dataset(pipeline.data.test_dset, fold=k)
 
                 # We turn off automatic checkpointing - we only want to save a checkpoints for the final model.
                 self.model.fit(train_dset, nb_epoch=1, checkpoint_interval=0, restore=False)
-                train_pred = self.model.predict(train_dset, [])
-                test_pred = self.model.predict(test_dset, [])
+                train_pred = self.model.predict(train_dset, [self.transformers[k]])
+                test_pred = self.model.predict(test_dset, [self.transformers[k]])
 
-                train_perf = train_perf_data.accumulate_preds(train_pred, train_dset.ids, fold=k)
-                test_perf = test_perf_data.accumulate_preds(test_pred, test_dset.ids, fold=k)
-
-                valid_perf = em.accumulate(ei, subset='valid', dset=valid_dset, fold=k)
+                train_perf = train_perf_data.accumulate_preds(train_pred, train_dset.ids)
+                test_perf = test_perf_data.accumulate_preds(test_pred, test_dset.ids)
+                
+                # update the make pred function to include latest transformers
+                def make_pred(x):
+                    return self.model.predict(x, self.transformers[k])
+                em.set_make_pred(make_pred)
+                valid_perf = em.accumulate(ei, subset='valid', dset=valid_dset, transforms=self.transformers[k])
                 self.log.info("Fold %d, epoch %d: training %s = %.3f, validation %s = %.3f, test %s = %.3f" % (
                               k, ei, pipeline.metric_type, train_perf, pipeline.metric_type, valid_perf,
                               pipeline.metric_type, test_perf))
@@ -945,7 +941,12 @@ class NNModelWrapper(ModelWrapper):
 
         # Train a new model for best_epoch epochs on the combined training/validation set. Compute the training and test
         # set metrics at each epoch.
-        fit_dataset = pipeline.data.combined_training_data()
+        fit_dataset = self.transform_dataset(pipeline.data.combined_training_data(), fold='final')
+        test_dset = self.transform_dataset(pipeline.data.test_dset, fold='final')
+        def make_pred(x):
+            return self.model.predict(x, self.transformers['final'])
+        em.set_make_pred(make_pred)
+
         retrain_start = time.time()
         self.model = self.recreate_model()
         self.log.info(f"Best epoch was {self.best_epoch}, retraining with combined training/validation set")
@@ -1000,19 +1001,22 @@ class NNModelWrapper(ModelWrapper):
         em = perf.EpochManager(self,
                                 prediction_type=self.params.prediction_type, 
                                 model_dataset=pipeline.data, 
-                                production=self.params.production,
-                                transformers=self.transformers)
-        em.set_make_pred(lambda x: self.model.predict(x, []))
+                                production=self.params.production)
+        def make_pred(dset):
+            return self.model.predict(dset, self.transformers['final'])
+        em.set_make_pred(make_pred)
         em.on_new_best_valid(lambda : self.model.save_checkpoint())
 
-        test_dset = pipeline.data.test_dset
         train_dset, valid_dset = pipeline.data.train_valid_dsets[0]
+        train_dset = self.transform_dataset(train_dset, 'final')
+        valid_dset = self.transform_dataset(valid_dset, 'final')
+        test_dset = self.transform_dataset(pipeline.data.test_dset, 'final')
         for ei in LCTimerIterator(self.params, pipeline, self.log):
             # Train the model for one epoch. We turn off automatic checkpointing, so the last checkpoint
             # saved will be the one we created intentionally when we reached a new best validation score.
             self.model.fit(train_dset, nb_epoch=1, checkpoint_interval=0)
             train_perf, valid_perf, test_perf = em.update_epoch(ei,
-                                train_dset=train_dset, valid_dset=valid_dset, test_dset=test_dset, fold='final')
+                                train_dset=train_dset, valid_dset=valid_dset, test_dset=test_dset)
 
             self.log.info("Epoch %d: training %s = %.3f, validation %s = %.3f, test %s = %.3f" % (
                           ei, pipeline.metric_type, train_perf, pipeline.metric_type, valid_perf,
@@ -1447,9 +1451,11 @@ class HybridModelWrapper(NNModelWrapper):
             opt, ei, self.model_dict))
 
         train_dset, valid_dset = pipeline.data.train_valid_dsets[0]
+        train_dset = self.transform_dataset(train_dset, 'final')
+        valid_dset = self.transform_dataset(valid_dset, 'final')
+        test_dset = self.transform_dataset(pipeline.data.test_dset, 'final')
         if len(pipeline.data.train_valid_dsets) > 1:
             raise Exception("Currently the hybrid model  doesn't support K-fold cross validation splitting.")
-        test_dset = pipeline.data.test_dset
         train_data, valid_data = self.train_valid_dsets[0]
         for ei in LCTimerIterator(self.params, pipeline, self.log):
             # Train the model for one epoch. We turn off automatic checkpointing, so the last checkpoint
@@ -1657,25 +1663,27 @@ class ForestModelWrapper(ModelWrapper):
 
         self.data = pipeline.data
         self.best_epoch = None
-        self.train_perf_data = perf.create_perf_data(self.params.prediction_type, pipeline.data, self.transformers,'train')
-        self.valid_perf_data = perf.create_perf_data(self.params.prediction_type, pipeline.data, self.transformers, 'valid')
-        self.test_perf_data = perf.create_perf_data(self.params.prediction_type, pipeline.data, self.transformers, 'test')
+        self.train_perf_data = perf.create_perf_data(self.params.prediction_type, pipeline.data, 'train')
+        self.valid_perf_data = perf.create_perf_data(self.params.prediction_type, pipeline.data, 'valid')
+        self.test_perf_data = perf.create_perf_data(self.params.prediction_type, pipeline.data, 'test')
 
-        test_dset = pipeline.data.test_dset
 
         num_folds = len(pipeline.data.train_valid_dsets)
         for k in range(num_folds):
             train_dset, valid_dset = pipeline.data.train_valid_dsets[k]
+            train_dset = self.transform_dataset(train_dset, fold=k)
+            valid_dset = self.transform_dataset(valid_dset, fold=k)
+            test_dset = self.transform_dataset(pipeline.data.test_dset, fold=k)
             self.model.fit(train_dset)
 
-            train_pred = self.model.predict(train_dset, [])
-            train_perf = self.train_perf_data.accumulate_preds(train_pred, train_dset.ids, fold=k)
+            train_pred = self.model.predict(train_dset, self.transformers[k])
+            train_perf = self.train_perf_data.accumulate_preds(train_pred, train_dset.ids)
 
-            valid_pred = self.model.predict(valid_dset, [])
-            valid_perf = self.valid_perf_data.accumulate_preds(valid_pred, valid_dset.ids, fold=k)
+            valid_pred = self.model.predict(valid_dset, self.transformers[k])
+            valid_perf = self.valid_perf_data.accumulate_preds(valid_pred, valid_dset.ids)
 
-            test_pred = self.model.predict(test_dset, [])
-            test_perf = self.test_perf_data.accumulate_preds(test_pred, test_dset.ids, fold=k)
+            test_pred = self.model.predict(test_dset, self.transformers[k])
+            test_perf = self.test_perf_data.accumulate_preds(test_pred, test_dset.ids)
             self.log.info("Fold %d: training %s = %.3f, validation %s = %.3f, test %s = %.3f" % (
                           k, pipeline.metric_type, train_perf, pipeline.metric_type, valid_perf,
                              pipeline.metric_type, test_perf))
@@ -1692,6 +1700,7 @@ class ForestModelWrapper(ModelWrapper):
         if num_folds > 1:
             # For k-fold CV, retrain on the combined training and validation sets
             fit_dataset = self.data.combined_training_data()
+            fit_dataset = self.transform_dataset(fit_dataset, fold='final')
             self.model.fit(fit_dataset)
         self.model_save()
         # The best model is just the single RF training run.
@@ -1898,7 +1907,7 @@ class DCRFModelWrapper(ForestModelWrapper):
         pred, std = None, None
         self.log.info("Evaluating current model")
 
-        pred = self.model.predict(dataset, self.transformers)
+        pred = self.model.predict(dataset, self.transformers['final'])
         ncmpds = pred.shape[0]
         pred = pred.reshape((ncmpds,1,-1))
 
@@ -1908,7 +1917,7 @@ class DCRFModelWrapper(ForestModelWrapper):
                 ## s.d. from forest
                 if self.params.transformers and self.transformers is not None:
                     RF_per_tree_pred = [dc.trans.undo_transforms(
-                        tree.predict(dataset.X), self.transformers) for tree in rf_model.estimators_]
+                        tree.predict(dataset.X), self.transformers['final']) for tree in rf_model.estimators_]
                 else:
                     RF_per_tree_pred = [tree.predict(dataset.X) for tree in rf_model.estimators_]
 
@@ -2076,25 +2085,27 @@ class DCxgboostModelWrapper(ForestModelWrapper):
 
         self.data = pipeline.data
         self.best_epoch = None
-        self.train_perf_data = perf.create_perf_data(self.params.prediction_type, pipeline.data, self.transformers,'train')
-        self.valid_perf_data = perf.create_perf_data(self.params.prediction_type, pipeline.data, self.transformers, 'valid')
-        self.test_perf_data = perf.create_perf_data(self.params.prediction_type, pipeline.data, self.transformers, 'test')
+        self.train_perf_data = perf.create_perf_data(self.params.prediction_type, pipeline.data, 'train')
+        self.valid_perf_data = perf.create_perf_data(self.params.prediction_type, pipeline.data, 'valid')
+        self.test_perf_data = perf.create_perf_data(self.params.prediction_type, pipeline.data, 'test')
 
-        test_dset = pipeline.data.test_dset
 
         num_folds = len(pipeline.data.train_valid_dsets)
         for k in range(num_folds):
             train_dset, valid_dset = pipeline.data.train_valid_dsets[k]
+            train_dset = self.transform_dataset(train_dset, fold=k)
+            valid_dset = self.transform_dataset(valid_dset, fold=k)
+            test_dset = self.transform_dataset(pipeline.data.test_dset, fold=k)
             self.model.fit(train_dset)
 
-            train_pred = self.model.predict(train_dset, [])
-            train_perf = self.train_perf_data.accumulate_preds(train_pred, train_dset.ids, fold=k)
+            train_pred = self.model.predict(train_dset, self.transformers[k])
+            train_perf = self.train_perf_data.accumulate_preds(train_pred, train_dset.ids)
 
-            valid_pred = self.model.predict(valid_dset, [])
-            valid_perf = self.valid_perf_data.accumulate_preds(valid_pred, valid_dset.ids, fold=k)
+            valid_pred = self.model.predict(valid_dset, self.transformers[k])
+            valid_perf = self.valid_perf_data.accumulate_preds(valid_pred, valid_dset.ids)
 
-            test_pred = self.model.predict(test_dset, [])
-            test_perf = self.test_perf_data.accumulate_preds(test_pred, test_dset.ids, fold=k)
+            test_pred = self.model.predict(test_dset, self.transformers[k])
+            test_perf = self.test_perf_data.accumulate_preds(test_pred, test_dset.ids)
             self.log.info("Fold %d: training %s = %.3f, validation %s = %.3f, test %s = %.3f" % (
                           k, pipeline.metric_type, train_perf, pipeline.metric_type, valid_perf,
                              pipeline.metric_type, test_perf))
@@ -2110,6 +2121,7 @@ class DCxgboostModelWrapper(ForestModelWrapper):
         if num_folds > 1:
             # For k-fold CV, retrain on the combined training and validation sets
             fit_dataset = self.data.combined_training_data()
+            fit_dataset = self.transform_dataset(fit_dataset, fold='final')
             self.model.fit(fit_dataset)
         self.model_save()
         # The best model is just the single xgb training run.

@@ -379,6 +379,7 @@ class ModelDataset(object):
                 if params.prediction_type=='classification':
                     w = w.astype(np.float32)
 
+                self.untransformed_dataset = NumpyDataset(features, self.vals, ids=ids)
                 self.dataset = NumpyDataset(features, self.vals, ids=ids, w=w)
                 self.log.info("Using prefeaturized data; number of features = " + str(self.n_features))
                 return
@@ -404,6 +405,7 @@ class ModelDataset(object):
         self.log.debug("Number of features: " + str(self.n_features))
            
         # Create the DeepChem dataset       
+        self.untransformed_dataset = NumpyDataset(features, self.vals, ids=ids)
         self.dataset = NumpyDataset(features, self.vals, ids=ids, w=w)
         # Checking for minimum number of rows
         if len(self.dataset) < params.min_compound_number:
@@ -681,7 +683,7 @@ class ModelDataset(object):
 
     # *************************************************************************************
 
-    def get_subset_responses_and_weights(self, subset, transformers):
+    def get_subset_responses_and_weights(self, subset):
         """Returns a dictionary mapping compound IDs in the given dataset subset to arrays of response values
         and weights.  Used by the perf_data module under k-fold CV.
 
@@ -703,13 +705,30 @@ class ModelDataset(object):
             else:
                 raise ValueError('Unknown dataset subset type "%s"' % subset)
 
-            y = dc.trans.undo_transforms(dataset.y, transformers)
+            response_vals = dict()
+            dataset_ids = set(dataset.ids)
+            for id, y in zip(self.untransformed_dataset.ids, self.untransformed_dataset.y):
+                if id in dataset_ids:
+                    response_vals[id] = y
+
             w = dataset.w
-            response_vals = dict([(id, y[i,:]) for i, id in enumerate(dataset.ids)])
             weights = dict([(id, w[i,:]) for i, id in enumerate(dataset.ids)])
             self.subset_response_dict[subset] = response_vals
             self.subset_weight_dict[subset] = weights
         return self.subset_response_dict[subset], self.subset_weight_dict[subset]
+
+    # *************************************************************************************
+
+    def get_untransformed_responses(self, ids):
+        """ Returns a numpy array of untransformed response values
+        """
+        response_vals = np.zeros((len(ids), self.untransformed_dataset.y.shape[1]))
+        response_dict = dict([(id, y) for id, y in zip(self.untransformed_dataset.ids, self.untransformed_dataset.y)])
+
+        for i, id in enumerate(ids):
+            response_vals[i] = response_dict[id]
+
+        return response_vals
 
     # *************************************************************************************
 
@@ -828,6 +847,8 @@ class MinimalDataset(ModelDataset):
                                                                                     params, self.contains_responses)
             self.log.warning("Done")
         self.n_features = self.featurization.get_feature_count()
+        
+        self.untransformed_dataset= NumpyDataset(features, self.vals, ids=ids)
         self.dataset = NumpyDataset(features, self.vals, ids=ids)
 
     # ****************************************************************************************

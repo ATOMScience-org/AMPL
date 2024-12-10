@@ -185,7 +185,7 @@ def test_super_transform_dataset():
     mdl = model_wrapper.create_model_wrapper(inp_params, data_obj_ecfp.featurization)
     mdl.setup_model_dirs()
     mdl.create_transformers(trans.get_all_training_datasets(data_obj_ecfp))
-    dataset = mdl.transform_dataset(data_obj_ecfp.dataset)
+    dataset = mdl.transform_dataset(data_obj_ecfp.dataset, fold='final')
 
     test = []
     # checking that the dataset is the correct type

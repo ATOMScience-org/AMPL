@@ -148,7 +148,7 @@ def get_transformer_keys(params):
     using all validation and training data at the end of the training loop.
     """
     if params.split_strategy != 'k_fold_cv':
-        return ['final']
+        return [0, 'final']
     else:
         return list(range(params.num_folds))+['final']
 
@@ -157,7 +157,7 @@ def get_blank_transformations():
     """Get empty transformations dictionary
     These keys must always exist, even when there are no transformations
     """
-    return {'final':[]}
+    return {0:[], 'final':[]}
 
 # ****************************************************************************************
 def get_all_training_datasets(model_dataset):
@@ -171,10 +171,14 @@ def get_all_training_datasets(model_dataset):
         # this dataset is not split into training and validation, use all data
         result['final'] = model_dataset.dataset
     elif len(model_dataset.train_valid_dsets)==1:
-        result['final'] = model_dataset.train_valid_dsets[0]
+        # there is only one fold, use the training set from that
+        # for random forests and xgboost models, the final and
+        # 0th fold are the same if there k-fold is not used
+        result['final'] = model_dataset.train_valid_dsets[0][0]
+        result[0] = model_dataset.train_valid_dsets[0][0]
     else:
         # First, get the training set from all the folds
-        for i, t in enumerate(model_dataset.train_valid_dsets):
+        for i, (t, v) in enumerate(model_dataset.train_valid_dsets):
             result[i] = t
 
         # Next, add the dataset that contains all training+validation data
