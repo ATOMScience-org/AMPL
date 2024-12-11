@@ -142,7 +142,7 @@ def test_super_create_transformers():
     test.append(isinstance(mdl.transformers['final'][0], dc.trans.transformers.NormalizationTransformer))
     test.append(mdl.transformers_x['final'] == [])
     #testing saving of transformer to correct location:
-    transformer_path = os.path.join(mdl.output_dir, 'transformers_final.pkl')
+    transformer_path = os.path.join(mdl.output_dir, 'transformers.pkl')
     test.append(os.path.isfile(transformer_path))
 
 
