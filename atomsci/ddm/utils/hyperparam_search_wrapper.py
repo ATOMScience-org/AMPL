@@ -1564,7 +1564,7 @@ class HyperOptSearch():
             for subset in subsets:
                 if not model_failed:
                     perf_data = pl.model_wrapper.get_perf_data(subset=subset, epoch_label="best")
-                    sub_pred_results = perf_data.get_prediction_results('final')
+                    sub_pred_results = perf_data.get_prediction_results()
                 else:
                     if tparam.prediction_type == "regression":
                         sub_pred_results = {"r2_score": 0, "rms_score": 100}
