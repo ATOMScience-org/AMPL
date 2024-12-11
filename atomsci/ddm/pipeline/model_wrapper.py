@@ -434,9 +434,21 @@ class ModelWrapper(object):
         if len(transformers_tuple) == 3:
             ty, tx, tw = transformers_tuple
         else:
+            # this must be very old, we no longer save just 2 transformers
             ty, tx = transformers_tuple
+            # ensure that this is an old model where transformers are still lists
+            assert isinstance(ty, list)
             tw = []
 
+        # this is for backwards compatibility, if ty, tx, tw are lists, convert them to dictionaries.
+        if isinstance(ty, list):
+            # this is an old model. Only one set of transformers
+            for k in trans.get_transformer_keys(self.params):
+                self.transformers[k] = ty
+                self.transformers_x[k] = tx
+                self.transformers_w[k] = tw
+        else:
+            # these are new transformers. They are dictionaries
             self.transformers = ty
             self.transformers_x = tx
             self.transformers_w = tw
@@ -926,7 +938,7 @@ class NNModelWrapper(ModelWrapper):
                 def make_pred(x):
                     return self.model.predict(x, self.transformers[k])
                 em.set_make_pred(make_pred)
-                valid_perf = em.accumulate(ei, subset='valid', dset=valid_dset, transforms=self.transformers[k])
+                valid_perf = em.accumulate(ei, subset='valid', dset=valid_dset)
                 self.log.info("Fold %d, epoch %d: training %s = %.3f, validation %s = %.3f, test %s = %.3f" % (
                               k, ei, pipeline.metric_type, train_perf, pipeline.metric_type, valid_perf,
                               pipeline.metric_type, test_perf))
@@ -954,7 +966,7 @@ class NNModelWrapper(ModelWrapper):
 
         for ei in range(self.best_epoch+1):
             self.model.fit(fit_dataset, nb_epoch=1, checkpoint_interval=0, restore=False)
-            train_perf, test_perf = em.update_epoch(ei, train_dset=fit_dataset, test_dset=test_dset, fold='train_valid')
+            train_perf, test_perf = em.update_epoch(ei, train_dset=fit_dataset, test_dset=test_dset)
 
             self.log.info(f"Combined folds: Epoch {ei}, training {pipeline.metric_type} = {train_perf:.3},"
                          + f"test {pipeline.metric_type} = {test_perf:.3}")
