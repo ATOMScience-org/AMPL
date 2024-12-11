@@ -916,8 +916,8 @@ class NNModelWrapper(ModelWrapper):
 
                 # We turn off automatic checkpointing - we only want to save a checkpoints for the final model.
                 self.model.fit(train_dset, nb_epoch=1, checkpoint_interval=0, restore=False)
-                train_pred = self.model.predict(train_dset, [self.transformers[k]])
-                test_pred = self.model.predict(test_dset, [self.transformers[k]])
+                train_pred = self.model.predict(train_dset, self.transformers[k])
+                test_pred = self.model.predict(test_dset, self.transformers[k])
 
                 train_perf = train_perf_data.accumulate_preds(train_pred, train_dset.ids)
                 test_perf = test_perf_data.accumulate_preds(test_pred, test_dset.ids)
