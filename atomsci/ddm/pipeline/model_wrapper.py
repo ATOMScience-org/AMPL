@@ -905,8 +905,8 @@ class NNModelWrapper(ModelWrapper):
 
         for ei in LCTimerKFoldIterator(self.params, pipeline, self.log):
             # Create PerfData structures that are only used within loop to compute metrics during initial training
-            train_perf_data = perf.create_perf_data(self.params.prediction_type, 'train')
-            test_perf_data = perf.create_perf_data(self.params.prediction_type, 'test')
+            train_perf_data = perf.create_perf_data(self.params.prediction_type, pipeline.data, 'train')
+            test_perf_data = perf.create_perf_data(self.params.prediction_type, pipeline.data, 'test')
             for k in range(num_folds):
                 self.model = models[k]
                 train_dset, valid_dset = pipeline.data.train_valid_dsets[k]
