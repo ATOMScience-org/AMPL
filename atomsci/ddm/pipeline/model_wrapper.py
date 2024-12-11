@@ -338,6 +338,8 @@ class ModelWrapper(object):
         # TODO: Just a warning, we may have response transformers for classification datasets in the future
         if self.params.prediction_type=='regression' and self.params.transformers is True:
             return [trans.NormalizationTransformerMissingData(transform_y=True, dataset=dataset)]
+        else:
+            return []
 
         # ****************************************************************************************
 
@@ -1612,7 +1614,9 @@ class HybridModelWrapper(NNModelWrapper):
         """
         # TODO: Just a warning, we may have response transformers for classification datasets in the future
         if self.params.prediction_type=='regression' and self.params.transformers is True:
-            self.transformers = [trans.NormalizationTransformerHybrid(transform_y=True, dataset=dataset)]
+            return [trans.NormalizationTransformerHybrid(transform_y=True, dataset=dataset)]
+        else:
+            return []
 
 # ****************************************************************************************
 class ForestModelWrapper(ModelWrapper):
