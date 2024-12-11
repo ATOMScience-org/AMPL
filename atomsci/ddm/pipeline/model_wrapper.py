@@ -8,7 +8,6 @@ import shutil
 import joblib
 
 import deepchem as dc
-import deepchem.trans as dctrans
 import numpy as np
 import tensorflow as tf
 if dc.__version__.startswith('2.1'):

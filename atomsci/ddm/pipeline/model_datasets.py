@@ -6,7 +6,6 @@ import shutil
 from deepchem.data import NumpyDataset
 import numpy as np
 import pandas as pd
-import deepchem as dc
 import uuid
 from atomsci.ddm.pipeline import featurization as feat
 from atomsci.ddm.pipeline import splitting as split
