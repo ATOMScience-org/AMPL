@@ -1638,7 +1638,7 @@ class SimpleClassificationPerfData(ClassificationPerfData):
             if self.num_classes > 2:
                 # If more than 2 classes, real_vals is indicator matrix (one-hot encoded). 
                 task_real_vals = np.squeeze(real_vals[nzrows,i,:])
-                task_class_probs =np.squeeze(class_probs[nzrows,i,:])
+                task_class_probs = np.squeeze(class_probs[nzrows,i,:])
 
                 scores.append(roc_auc_score(task_real_vals, task_class_probs, average='macro'))
             else:
