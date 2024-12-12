@@ -709,6 +709,8 @@ class ModelDataset(object):
             for id, y in zip(self.untransformed_dataset.ids, self.untransformed_dataset.y):
                 if id in dataset_ids:
                     response_vals[id] = y
+            # we need to double check that all responses_vals we asked for were found
+            assert len(response_vals) == len(dataset_ids)
 
             w = dataset.w
             weights = dict([(id, w[i,:]) for i, id in enumerate(dataset.ids)])
