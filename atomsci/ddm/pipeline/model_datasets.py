@@ -704,13 +704,7 @@ class ModelDataset(object):
             else:
                 raise ValueError('Unknown dataset subset type "%s"' % subset)
 
-            response_vals = dict()
-            dataset_ids = set(dataset.ids)
-            for id, y in zip(self.untransformed_dataset.ids, self.untransformed_dataset.y):
-                if id in dataset_ids:
-                    response_vals[id] = y
-            # we need to double check that all responses_vals we asked for were found
-            assert len(response_vals) == len(dataset_ids)
+            response_vals = self.get_untransformed_responses(dataset.ids)
 
             w = dataset.w
             weights = dict([(id, w[i,:]) for i, id in enumerate(dataset.ids)])
@@ -728,6 +722,9 @@ class ModelDataset(object):
 
         for i, id in enumerate(ids):
             response_vals[i] = response_dict[id]
+
+        # we need to double check that all responses_vals we asked for were found
+        assert len(response_vals) == len(set(ids))
 
         return response_vals
 
