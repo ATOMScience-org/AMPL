@@ -35,7 +35,7 @@ def test_all_missing_values():
 
 def test_one_task_no_missing_values():
     y = np.array([[1.0], [3.0], [5.0]])
-    w = np.array([[1, 1], [1, 1], [1, 1]])
+    w = np.array([[1], [1], [1]])
     x = np.ones_like(y)
     ids = np.array(range(len(y)))
     dataset = NumpyDataset(X=x, y=y, w=w, ids=ids)
