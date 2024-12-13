@@ -165,8 +165,8 @@ def plot_pred_vs_actual(model, epoch_label='best', threshold=None, error_bars=Fa
         for s, subset in enumerate(subsets):
             perf_data = wrapper.get_perf_data(subset, epoch_label)
             pred_results = perf_data.get_prediction_results()
-            y_actual = perf_data.get_real_values('final')
-            ids, y_pred, y_std = perf_data.get_pred_values('final')
+            y_actual = perf_data.get_real_values()
+            ids, y_pred, y_std = perf_data.get_pred_values()
             r2 = pred_results['r2_score']
             if perf_data.num_tasks > 1:
                 r2_scores = pred_results['task_r2_scores']
