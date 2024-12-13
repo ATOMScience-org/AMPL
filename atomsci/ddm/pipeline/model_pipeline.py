@@ -856,8 +856,6 @@ class ModelPipeline:
             raise Exception("response_cols missing from model params")
         # Get features for each compound and construct a DeepChem Dataset from them
         self.data.get_featurized_data(dset_df, is_featurized)
-        # Transform the features and responses if needed
-        self.data.dataset = self.model_wrapper.transform_dataset(self.data.dataset, fold='final')
 
         # Note that at this point, the dataset may contain fewer rows than the input. Typically this happens because
         # of invalid SMILES strings. Remove any rows from the input dataframe corresponding to SMILES strings that were
