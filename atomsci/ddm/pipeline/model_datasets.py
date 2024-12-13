@@ -318,6 +318,9 @@ class ModelDataset(object):
         self.subset_response_dict = {}
         # Cache for subset-specific response values matched to IDs, used by k-fold CV code
         self.subset_weight_dict = {}
+        # Cache for untransformed response values matched to IDs, used by k-fold CV code
+        self.untransformed_response_dict = {}
+
 
     # ****************************************************************************************
     def load_full_dataset(self):
@@ -718,10 +721,11 @@ class ModelDataset(object):
         """ Returns a numpy array of untransformed response values
         """
         response_vals = np.zeros((len(ids), self.untransformed_dataset.y.shape[1]))
-        response_dict = dict([(id, y) for id, y in zip(self.untransformed_dataset.ids, self.untransformed_dataset.y)])
+        if len(self.untransformed_response_dict) == 0:
+            self.untransformed_response_dict = dict(zip(self.untransformed_dataset.ids, self.untransformed_dataset.y))
 
         for i, id in enumerate(ids):
-            response_vals[i] = response_dict[id]
+            response_vals[i] = self.untransformed_response_dict[id]
 
         # we need to double check that all responses_vals we asked for were found
         assert len(response_vals) == len(set(ids))
