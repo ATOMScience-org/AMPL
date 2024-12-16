@@ -17,7 +17,7 @@
         "model_type": "NN",
         "featurizer": "ecfp",
         "learning_rate": ".0007",
-        "layer_sizes": "512,128",
+        "layer_sizes": "20,10",
         "dropouts": "0.3,0.3",
         "save_results": "False",
         "max_epochs": "2", 

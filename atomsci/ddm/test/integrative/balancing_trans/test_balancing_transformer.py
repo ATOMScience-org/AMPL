@@ -93,10 +93,11 @@ def make_pipeline(params):
 
 def make_pipeline_and_get_weights(params):
     model_pipeline = make_pipeline(params)
+    model_wrapper = model_pipeline.model_wrapper
+    train_dataset = model_pipeline.data.train_valid_dsets[0][0]
+    transformed_data = model_wrapper.transform_dataset(train_dataset, fold=0)
 
-    print(model_pipeline.model_wrapper.transformers_w)
-    print(np.unique(model_pipeline.data.train_valid_dsets[0][0].y, return_counts=True))
-    return model_pipeline.data.train_valid_dsets[0][0].w
+    return transformed_data.w
 
 def make_relative_to_file(relative_path):
     script_path = os.path.dirname(os.path.realpath(__file__))
@@ -131,5 +132,5 @@ def params_w_balan(dset_key, res_dir):
     return params
 
 if __name__ == '__main__':
-    test_all_transformers()
-    #test_balancing_transformer()
+    #test_all_transformers()
+    test_balancing_transformer()
