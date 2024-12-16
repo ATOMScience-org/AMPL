@@ -34,7 +34,11 @@ def test_balancing_transformer():
 def test_all_transformers():
     res_dir = tempfile.mkdtemp()
     dskey = os.path.join(res_dir, 'special_test_dset.csv')
-    params = params_w_balan(dskey, res_dir)
+    params = read_params(
+        make_relative_to_file('jsons/all_transforms.json'),
+        dskey,
+        res_dir
+    )
     make_test_datasets.make_test_dataset_and_split(dskey, params['descriptor_type'])
 
     params['previously_featurized'] = True
@@ -77,7 +81,7 @@ def test_all_transformers():
     # untransformed mean is 10 expected transformed mean is (10 - 0) / 2
     assert abs(np.mean(trans_valid_dset.X) - 5) < 1e-4
     # untransformed std is 5 expected transformed std is 5/2 
-    assert abs(np.std(trans_valid_dset.X) - (2.5))
+    assert abs(np.std(trans_valid_dset.X) - (2.5)) < 1e-4
     # validation has a 50/50 split. Majority class * 4 should equal oversampled minority class
     valid_weights = trans_valid_dset.w
     (valid_weight1, valid_weight2), (valid_count1, valid_count2) = np.unique(valid_weights, return_counts=True)
@@ -132,5 +136,5 @@ def params_w_balan(dset_key, res_dir):
     return params
 
 if __name__ == '__main__':
-    #test_all_transformers()
+    test_all_transformers()
     test_balancing_transformer()
