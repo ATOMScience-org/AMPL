@@ -977,7 +977,7 @@ class NNModelWrapper(ModelWrapper):
         self._copy_model(self.best_model_dir)
         retrain_time = time.time() - retrain_start
         self.log.info("Time to retrain model for %d epochs: %.1f seconds, %.1f sec/epoch" % (self.best_epoch, retrain_time, 
-                       retrain_time/self.best_epoch))
+                       retrain_time/max(1, self.best_epoch)))
 
     # ****************************************************************************************
     def train_with_early_stopping(self, pipeline):

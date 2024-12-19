@@ -78,9 +78,9 @@ def test_all_transformers():
     valid_dset = model_pipeline.data.train_valid_dsets[0][1]
     trans_valid_dset = model_pipeline.model_wrapper.transform_dataset(valid_dset, fold=0)
 
-    # untransformed mean is 10 expected transformed mean is (10 - 0) / 2
+    # transformed validation mean is 10 expected transformed mean is (10 - 0) / 2
     assert abs(np.mean(trans_valid_dset.X) - 5) < 1e-4
-    # untransformed std is 5 expected transformed std is 5/2 
+    # transformed validation std is 5 expected transformed std is 5/2 
     assert abs(np.std(trans_valid_dset.X) - (2.5)) < 1e-4
     # validation has a 50/50 split. Majority class * 4 should equal oversampled minority class
     valid_weights = trans_valid_dset.w
@@ -135,6 +135,90 @@ def params_w_balan(dset_key, res_dir):
 
     return params
 
+def test_kfold_transformers():
+    res_dir = tempfile.mkdtemp()
+    dskey = os.path.join(res_dir, 'special_test_dset.csv')
+    params = read_params(
+        make_relative_to_file('jsons/all_transforms.json'),
+        dskey,
+        res_dir
+    )
+    num_folds = 3
+
+    make_test_datasets.make_kfold_dataset_and_split(dskey, 
+            params['descriptor_type'], num_folds=num_folds)
+
+    params['previously_featurized'] = True
+    params['previously_split'] = True
+    params['splitter'] = 'index'
+    params['split_uuid'] = 'testsplit'
+    params['split_strategy'] = 'k_fold_cv'
+    params['num_folds'] = num_folds
+    params['response_cols'] = ['class']
+
+    # check that the transformers are correct
+    model_pipeline = make_pipeline(params)
+    for f in range(num_folds):
+        assert(len(model_pipeline.model_wrapper.transformers[f])==0)
+
+        assert(len(model_pipeline.model_wrapper.transformers_x[f])==1)
+        transformer_x = model_pipeline.model_wrapper.transformers_x[f][0]
+        assert(isinstance(transformer_x, trans.NormalizationTransformerMissingData))
+
+        assert(len(model_pipeline.model_wrapper.transformers_w[f])==1)
+        assert(isinstance(model_pipeline.model_wrapper.transformers_w[f][0], trans.BalancingTransformer))
+
+    assert(len(model_pipeline.data.train_valid_dsets)==num_folds)
+    for i, (train_dset, valid_dset) in enumerate(model_pipeline.data.train_valid_dsets):
+        # check that the transforms are correct
+        trans_train_dset = model_pipeline.model_wrapper.transform_dataset(train_dset, fold=i)
+        transformer_x = model_pipeline.model_wrapper.transformers_x[i][0]
+
+        # the mean of each fold is the square of the fold value
+        fold_means = [f*f for f in range(num_folds)]
+        fold_means.remove(i*i)
+        expected_mean = sum(fold_means)/len(fold_means)
+
+        # mean should be nearly 0
+        assert abs(np.mean(trans_train_dset.X)) < 1e-4
+
+        # transformer means should be around expected_mean
+        np.testing.assert_array_almost_equal(transformer_x.X_means, np.ones_like(transformer_x.X_means)*expected_mean)
+
+        # std should be nearly 1
+        assert abs(np.std(trans_train_dset.X) - 1) < 1e-4
+
+        # there is an 80/20 imbalance in classification
+        weights = trans_train_dset.w
+        (weight1, weight2), (count1, count2) = np.unique(weights, return_counts=True)
+        assert (weight1*count1 - weight2*count2) < 1e-3
+
+        # validation set has a different distribution
+        trans_valid_dset = model_pipeline.model_wrapper.transform_dataset(valid_dset, fold=i)
+
+        # validation mean should not be 0
+        assert abs(np.mean(trans_valid_dset.X)) > 1e-4
+
+        # validation has a 80/20 split. Majority class * 4 should equal oversampled minority class
+        valid_weights = trans_valid_dset.w
+        (valid_weight1, valid_weight2), (valid_count1, valid_count2) = np.unique(valid_weights, return_counts=True)
+        assert (valid_weight1*valid_count1 - valid_weight2*valid_count2) < 1e-3
+
+    # test that the final transformer is correct
+    expected_mean = sum([f*f for f in range(num_folds)])/num_folds
+    trans_combined_dset = model_pipeline.model_wrapper.transform_dataset(
+        model_pipeline.data.combined_training_data(), fold='final')
+    # mean should be nearly 0
+    assert abs(np.mean(trans_combined_dset.X)) < 1e-4
+
+    assert(len(model_pipeline.model_wrapper.transformers_x['final'])==1)
+    transformer_x = model_pipeline.model_wrapper.transformers_x['final'][0]
+    assert(isinstance(transformer_x, trans.NormalizationTransformerMissingData))
+    # transformer means should be around expected_mean
+    np.testing.assert_array_almost_equal(transformer_x.X_means, np.ones_like(transformer_x.X_means)*expected_mean)
+
+
 if __name__ == '__main__':
+    test_kfold_transformers()
     test_all_transformers()
     test_balancing_transformer()
