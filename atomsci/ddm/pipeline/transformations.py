@@ -290,7 +290,7 @@ class NormalizationTransformerMissingData(NormalizationTransformer):
             else:
                 X = np.nan_to_num(X * X_weight / self.X_stds)
             # zero out large values, especially for out of range test data
-            X[np.abs(X) > 1e30] = 0
+            X[np.abs(X) > 1e30] = 1e30
         if self.transform_y:
             if not hasattr(self, 'move_mean') or self.move_mean:
                 y = np.nan_to_num((y - self.y_means) / self.y_stds)
