@@ -87,7 +87,6 @@ def test_all_transformers():
     (valid_weight1, valid_weight2), (valid_count1, valid_count2) = np.unique(valid_weights, return_counts=True)
     assert (valid_weight1*valid_count1*4 - valid_weight2*valid_count2) < 1e-4
 
-
 def make_pipeline(params):
     pparams = parse.wrapper(params)
     model_pipeline = mp.ModelPipeline(pparams)
@@ -217,8 +216,82 @@ def test_kfold_transformers():
     # transformer means should be around expected_mean
     np.testing.assert_array_almost_equal(transformer_x.X_means, np.ones_like(transformer_x.X_means)*expected_mean)
 
+def test_kfold_regression_transformers():
+    res_dir = tempfile.mkdtemp()
+    dskey = os.path.join(res_dir, 'special_test_dset.csv')
+    params = read_params(
+        make_relative_to_file('jsons/all_transforms_regression.json'),
+        dskey,
+        res_dir
+    )
+    num_folds = 3
+
+    make_test_datasets.make_kfold_dataset_and_split(dskey, 
+            params['descriptor_type'], num_folds=num_folds)
+
+    # check that the transformers are correct
+    model_pipeline = make_pipeline(params)
+    for f in range(num_folds):
+        assert(len(model_pipeline.model_wrapper.transformers[f])==1)
+        transformer = model_pipeline.model_wrapper.transformers[f][0]
+        assert(isinstance(transformer, trans.NormalizationTransformerMissingData))
+
+
+        assert(len(model_pipeline.model_wrapper.transformers_x[f])==1)
+        transformer_x = model_pipeline.model_wrapper.transformers_x[f][0]
+        assert(isinstance(transformer_x, trans.NormalizationTransformerMissingData))
+
+        assert(len(model_pipeline.model_wrapper.transformers_w[f])==0)
+
+    assert(len(model_pipeline.data.train_valid_dsets)==num_folds)
+    for i, (train_dset, valid_dset) in enumerate(model_pipeline.data.train_valid_dsets):
+        # check that the transforms are correct
+        trans_train_dset = model_pipeline.model_wrapper.transform_dataset(train_dset, fold=i)
+        transformer = model_pipeline.model_wrapper.transformers[i][0]
+
+        # the mean of each fold is the square of the fold value
+        fold_means = [f*f for f in range(num_folds)]
+        fold_means.remove(i*i)
+        expected_mean_1 = sum(fold_means)/len(fold_means)
+        expected_mean_2 = expected_mean_1*10
+
+        # mean should be nearly 0
+        assert abs(np.mean(trans_train_dset.y)) < 1e-4
+
+        # transformer means should be around expected_mean
+        assert(transformer.y_means.shape==(2,))
+        expected_y_means = np.array([expected_mean_1, expected_mean_2])
+        np.testing.assert_array_almost_equal(transformer.y_means, expected_y_means)
+
+        # std should be nearly 1
+        assert abs(np.std(trans_train_dset.y) - 1) < 1e-4
+
+        # validation set has a different distribution
+        trans_valid_dset = model_pipeline.model_wrapper.transform_dataset(valid_dset, fold=i)
+
+        # validation mean should not be 0
+        assert abs(np.mean(trans_valid_dset.y)) > 1e-4
+
+    # test that the final transformer is correct
+    expected_mean_1 = sum([f*f for f in range(num_folds)])/num_folds
+    expected_mean_2 = expected_mean_1*10
+    expected_y_means = np.array([expected_mean_1, expected_mean_2])
+
+    trans_combined_dset = model_pipeline.model_wrapper.transform_dataset(
+        model_pipeline.data.combined_training_data(), fold='final')
+
+    # mean should be nearly 0
+    assert abs(np.mean(trans_combined_dset.y)) < 1e-4
+
+    assert(len(model_pipeline.model_wrapper.transformers['final'])==1)
+    transformer = model_pipeline.model_wrapper.transformers['final'][0]
+    assert(isinstance(transformer, trans.NormalizationTransformerMissingData))
+    # transformer means should be around expected_mean
+    np.testing.assert_array_almost_equal(transformer.y_means, expected_y_means)
+
 
 if __name__ == '__main__':
-    test_kfold_transformers()
-    test_all_transformers()
-    test_balancing_transformer()
+    test_kfold_regression_transformers()
+    #test_kfold_transformers()
+    #test_all_transformers()
+    #test_balancing_transformer()
