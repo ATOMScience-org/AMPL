@@ -239,11 +239,16 @@ class ModelWrapper(object):
 
             output_dir (str): The parent path of the model directory
 
-            transformers (list): Initialized as an empty list, stores the transformers on the response cols
+            transformers (dict of lists): Initialized using transformers.get_blank_transformations.
+            Keyed using integer fold numbers or 'final' e.g., {0:[], 1:[], 'final':[]}.
+            Stores deepchem transformation objects on the response cols for each fold and uses the 'final' key for
+            the transformer fitted for the final model. When using k-fold validation, 'final' is fitted
+            using all training and validation data. Without k-fold validation, transformers for 0 and 'final'
+            are the same.
 
-            transformers_x (list): Initialized as an empty list, stores the transformers on the features
+            transformers_x (dict of lists): Same as transformers, but stores the transformers on the features
 
-            transformers_w (list): Initialized as an empty list, stores the transformers on the weights
+            transformers_w (dict of lists): Same as transformers, but stores the transformers on the weights
 
         set in setup_model_dirs:
             best_model_dir (str): The subdirectory under output_dir that contains the best model. Created in setup_model_dirs
@@ -269,11 +274,17 @@ class ModelWrapper(object):
 
                 output_dir (str): The parent path of the model directory
 
-                transformers (list): Initialized as an empty list, stores the transformers on the response cols
+                transformers (dict of lists): Initialized using transformers.get_blank_transformations.
+                Keyed using integer fold numbers or 'final' e.g., {0:[], 1:[], 'final':[]}.
+                Stores deepchem transformation objects on the response cols for each fold and uses the 'final' key for
+                the transformer fitted for the final model. When using k-fold validation, 'final' is fitted
+                using all training and validation data. Without k-fold validation, transformers for 0 and 'final'
+                are the same.
 
-                transformers_x (list): Initialized as an empty list, stores the transformers on the features
+                transformers_x (dict of lists): Same as transformers, but stores the transformers on the features
 
-                transformers_w (list): Initialized as an empty list, stores the transformers on the weights
+                transformers_w (dict of lists): Same as transformers, but stores the transformers on the weights
+
 
         """
         self.params = params
@@ -328,7 +339,7 @@ class ModelWrapper(object):
         """Initialize transformers for responses and persist them for later.
 
         Args:
-            model_dataset: The ModelDataset object that handles the current dataset
+            dataset: A dc.Dataset object
 
         Side effects:
             Overwrites the attributes:
@@ -346,7 +357,7 @@ class ModelWrapper(object):
         """Initialize transformers for features, and persist them for later.
 
         Args:
-            model_dataset: The ModelDataset object that handles the current dataset
+            dataset: A dc.Dataset object
 
         Side effects:
             Overwrites the attributes:
@@ -361,17 +372,21 @@ class ModelWrapper(object):
         """Initialize transformers for responses, features and weights, and persist them for later.
 
         Args:
-            training_datasets: The ModelDataset object that handles the current dataset
+            training_datasets: A dictionary of dc.Datasets containing the training data from 
+            each fold. Generated using transformers.get_all_training_datasets.
 
         Side effects:
             Overwrites the attributes:
-                transformers: A list of deepchem transformation objects on responses, only if conditions are met
+                transformers (dict of lists): Initialized using transformers.get_blank_transformations.
+                Keyed using integer fold numbers or 'final' e.g., {0:[], 1:[], 'final':[]}.
+                Stores deepchem transformation objects on the response cols for each fold and uses the 'final' key for
+                the transformer fitted for the final model. When using k-fold validation, 'final' is fitted
+                using all training and validation data. Without k-fold validation, transformers for 0 and 'final'
+                are the same.
 
-                transformers_x: A list of deepchem transformation objects on features, only if conditions are met.
+                transformers_x (dict of lists): Same as transformers, but stores the transformers on the features
 
-                transformers_w: A list of deepchem transformation objects on weights, only if conditions are met.
-
-                params.transformer_key: A string pointing to the dataset key containing the transformer in the datastore, or the path to the transformer
+                transformers_w (dict of lists): Same as transformers, but stores the transformers on the weights
 
         """
         total_transformers = 0
@@ -459,7 +474,7 @@ class ModelWrapper(object):
 
         Args:
             dataset: The DeepChem DiskDataset that contains a dataset
-            fold (int): Which fold is being transformed.
+            fold (int/str): Which fold is being transformed.
 
         Returns:
             transformed_dataset: The transformed DeepChem DiskDataset
@@ -511,7 +526,7 @@ class ModelWrapper(object):
         return perf_data.get_prediction_results()
 
         # ****************************************************************************************
-    def get_test_perf_data(self, model_dir, model_dataset, fold):
+    def get_test_perf_data(self, model_dir, model_dataset):
         """Returns the predicted values and metrics for the current test dataset against
         the version of the model stored in model_dir, as a PerfData object.
 
@@ -553,7 +568,7 @@ class ModelWrapper(object):
         return perf_data.get_prediction_results()
 
         # ****************************************************************************************
-    def get_full_dataset_perf_data(self, model_dataset, fold):
+    def get_full_dataset_perf_data(self, model_dataset):
         """Returns the predicted values and metrics from the current model for the full current dataset,
         as a PerfData object.
 
@@ -1617,7 +1632,7 @@ class HybridModelWrapper(NNModelWrapper):
         """Initialize transformers for responses and persist them for later.
 
         Args:
-            model_dataset: The ModelDataset object that handles the current dataset
+            dataset: The dc.Dataset object that contains the current training dataset
 
         Side effects:
             Overwrites the attributes:

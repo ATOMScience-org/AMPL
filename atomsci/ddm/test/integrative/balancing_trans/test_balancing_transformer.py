@@ -16,6 +16,9 @@ import logging
 logger = logging.getLogger(__name__)
 
 def test_balancing_transformer():
+    """
+    Test the balancing transformer to ensure that it correctly adjusts weights for imbalanced datasets.
+    """
     dset_key = make_relative_to_file('../../test_datasets/MRP3_dataset.csv')
 
     res_dir = tempfile.mkdtemp()
@@ -32,6 +35,10 @@ def test_balancing_transformer():
     assert weight == 1
 
 def test_all_transformers():
+    """
+    Test all transformers to ensure they work correctly with the dataset.
+
+    """
     res_dir = tempfile.mkdtemp()
     dskey = os.path.join(res_dir, 'special_test_dset.csv')
     params = read_params(
@@ -88,6 +95,9 @@ def test_all_transformers():
     assert (valid_weight1*valid_count1*4 - valid_weight2*valid_count2) < 1e-4
 
 def make_pipeline(params):
+    """
+    Generates a pipeline given parameters
+    """
     pparams = parse.wrapper(params)
     model_pipeline = mp.ModelPipeline(pparams)
     model_pipeline.train_model()
@@ -95,6 +105,9 @@ def make_pipeline(params):
     return model_pipeline
 
 def make_pipeline_and_get_weights(params):
+    """
+    Generates the pipeline and gets the weights given parameters
+    """
     model_pipeline = make_pipeline(params)
     model_wrapper = model_pipeline.model_wrapper
     train_dataset = model_pipeline.data.train_valid_dsets[0][0]
@@ -103,12 +116,27 @@ def make_pipeline_and_get_weights(params):
     return transformed_data.w
 
 def make_relative_to_file(relative_path):
+    """
+    Generates the full path relative to the location of this file.
+    """
+    
     script_path = os.path.dirname(os.path.realpath(__file__))
     result = os.path.join(script_path, relative_path)
 
     return result
 
 def read_params(json_file, tmp_dskey, res_dir):
+    """
+    Read parameters from a JSON file and update them with the dataset key and result directory.
+
+    Parameters:
+    json_file (str): Path to the JSON file containing parameters.
+    tmp_dskey (str): Temporary dataset key.
+    res_dir (str): Result directory.
+
+    Returns:
+    dict: Updated parameters.
+    """
     with open(json_file, 'r') as file:
         params = json.load(file)
     params['result_dir'] = res_dir
@@ -116,7 +144,9 @@ def read_params(json_file, tmp_dskey, res_dir):
     return params
 
 def params_wo_balan(dset_key, res_dir):
-    # Train classification models without balancing weights. Repeat this several times so we can get some statistics on the performance metrics.
+    """
+    Reads params for models without balancing weight
+    """
     params = read_params(
         make_relative_to_file('jsons/wo_balancing_transformer.json'),
         dset_key,
@@ -125,7 +155,9 @@ def params_wo_balan(dset_key, res_dir):
     return params
 
 def params_w_balan(dset_key, res_dir):
-    # Now train models on the same dataset with balancing weights
+    """
+    Reads params for models with balancing weight
+    """
     params = read_params(
         make_relative_to_file('jsons/balancing_transformer.json'),
         dset_key,
@@ -135,6 +167,9 @@ def params_w_balan(dset_key, res_dir):
     return params
 
 def test_kfold_transformers():
+    """
+    Test transformers for a kfold classification model
+    """
     res_dir = tempfile.mkdtemp()
     dskey = os.path.join(res_dir, 'special_test_dset.csv')
     params = read_params(
@@ -217,6 +252,10 @@ def test_kfold_transformers():
     np.testing.assert_array_almost_equal(transformer_x.X_means, np.ones_like(transformer_x.X_means)*expected_mean)
 
 def test_kfold_regression_transformers():
+    """
+    Tests transformers for each fold of a kfold regression model. Ensures
+    that the transformers are correct for each fold.
+    """
     res_dir = tempfile.mkdtemp()
     dskey = os.path.join(res_dir, 'special_test_dset.csv')
     params = read_params(

@@ -251,6 +251,19 @@ class ModelDataset(object):
             combined_train_valid_data (dc.Dataset): A dataset object (initialized as None), of the merged train
             and valid splits
 
+            combined_train_valid_data (dc.NumpyDataset): Cache for combined training and validation data, 
+            used by k-fold CV code
+
+            subset_response_dict (dictionary): Cache for subset-specific response values matched to IDs, 
+            used by k-fold CV code
+
+            subset_weight_dict (dictionary): Cache for subset-specific weights matched to IDs, 
+            used by k-fold CV code
+
+            untransformed_response_dict (dictionary): Cache for untransformed response values 
+            matched to IDs, used by k-fold CV code
+
+
         set in get_featurized_data:
             dataset: A new featurized DeepChem Dataset.
 
@@ -316,7 +329,7 @@ class ModelDataset(object):
         self.combined_train_valid_data = None
         # Cache for subset-specific response values matched to IDs, used by k-fold CV code
         self.subset_response_dict = {}
-        # Cache for subset-specific response values matched to IDs, used by k-fold CV code
+        # Cache for subset-specific weights matched to IDs, used by k-fold CV code
         self.subset_weight_dict = {}
         # Cache for untransformed response values matched to IDs, used by k-fold CV code
         self.untransformed_response_dict = {}
@@ -355,6 +368,7 @@ class ModelDataset(object):
                 n_features: The count of features (int)
                 vals: The response col after featurization (np.array)
                 attr: A pd.dataframe containing the compound ids and smiles
+                untranfsormed_dataset: A NumpyDataset containing untransformed data
         """
         
         if params is None:
@@ -692,8 +706,6 @@ class ModelDataset(object):
         Args:
             subset (string): Label of subset, 'train', 'test', or 'valid'
 
-            transformers: Transformers object for full dataset
-
         Returns:
             tuple(response_dict, weight_dict)
                 (response_dict): dictionary mapping compound ids to arrays of per-task untransformed response values
@@ -718,8 +730,16 @@ class ModelDataset(object):
     # *************************************************************************************
 
     def get_untransformed_responses(self, ids):
-        """ Returns a numpy array of untransformed response values
         """
+        Returns a numpy array of untransformed response values for the given IDs.
+
+        Parameters:
+        ids (list or np.ndarray): List or array of IDs for which to retrieve untransformed response values.
+
+        Returns:
+        np.ndarray: A numpy array of untransformed response values corresponding to the given IDs.
+        """        
+
         response_vals = np.zeros((len(ids), self.untransformed_dataset.y.shape[1]))
         if len(self.untransformed_response_dict) == 0:
             self.untransformed_response_dict = dict(zip(self.untransformed_dataset.ids, self.untransformed_dataset.y))

@@ -19,6 +19,9 @@ def get_absolute_path(relative_path):
     return absolute_path
 
 def get_features(feature_type):
+    """
+    Gets the feature columns given a feature_type, e.g. rdkit_raw
+    """
     desc_spec_file = get_absolute_path('../../data/descriptor_sets_sources_by_descr_type.csv')
     desc_spec_df = pd.read_csv(desc_spec_file, index_col=False)
 
@@ -157,6 +160,17 @@ def make_split_df(train_ids, valid_ids, test_ids):
     return split_df
 
 def make_test_dataset_and_split(dataset_key, feature_types):
+    """
+    Given a dataset key and a feature type, create a featurized
+    csv file and split.
+
+    Args:
+        dataset_key (str): Where to save the newly generated test DataFrame
+
+        feature_types (str): A feature type, e.g. rdkit_raw
+
+
+    """
     features = get_features(feature_types)
     df, train_ids, valid_ids, test_ids = make_test_dataset(features)
 
@@ -211,6 +225,17 @@ def make_kfold_test_dataset(features, fold_size=1000, num_test=1000, num_folds=5
     return df, train_valid_ids, test_ids
 
 def make_kfold_split_df(train_valid_ids, test_ids):
+    """
+    Given lists of train_valid_ids and test_ids create a split DataFrame
+
+    Args:
+        train_valid_ids (list of lists): A list of ids
+
+        test_ids (list): Ids for test compounds
+
+    Returns:
+        DataFrame: A split DataFrame that can be read by AMPL
+    """
     fold_dfs = []
     for i, tvi in enumerate(train_valid_ids):
         data = {'cmpd_id':tvi}
@@ -230,6 +255,18 @@ def make_kfold_split_df(train_valid_ids, test_ids):
     return split_df
 
 def make_kfold_dataset_and_split(dataset_key, feature_types, num_folds=3):
+    """
+    Given a dataset key and a feature type,  and nubmer of folds create a featurized
+    csv file and split.
+
+    Args:
+        dataset_key (str): Where to save the newly generated test DataFrame
+
+        feature_types (str): A feature type, e.g. rdkit_raw
+
+        num_folds (int): Number of folds
+
+    """
     features = get_features(feature_types)
     df, train_ids, test_ids = make_kfold_test_dataset(features, num_folds=num_folds)
 
