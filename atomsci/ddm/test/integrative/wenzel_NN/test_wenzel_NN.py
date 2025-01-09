@@ -23,10 +23,6 @@ import integrative_utilities
 
 def clean():
     """Clean test files"""
-    if not llnl_utils.is_lc_system():
-        assert True
-        return
-
     for f in ['hlm_clearance_curated_predict.csv',
               'hlm_clearance_curated_external.csv',
               'hlm_clearance_curated_fit.csv',
@@ -90,7 +86,7 @@ def check_for_data_zip():
     assert(os.path.isfile('ci8b00785_si_001.tar.gz'))
 
 
-@pytest.mark.skipif(os.environ.get("ENABLE_LIVERMORE") is None, reason="Requires access to Livermore dataset")
+#@pytest.mark.skipif(os.environ.get("ENABLE_LIVERMORE") is None, reason="Requires access to Livermore dataset")
 def test():
     """Test full model pipeline: Curate data, fit model, and predict property for new compounds"""
     # Clean
