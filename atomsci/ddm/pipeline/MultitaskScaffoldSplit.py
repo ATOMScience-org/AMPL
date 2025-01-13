@@ -1044,7 +1044,7 @@ def parse_args():
     parser.add_argument('id_col', type=str, help='the column containing ids')
     parser.add_argument('response_cols', type=str, help='comma seperated string of response columns')
     parser.add_argument('output', type=str, help='name of the split file')
-    parser.add_argument('seed', type=int, default=0, help='name of the split file')
+    parser.add_argument('seed', type=int, default=0, help='Random seed used in random number generators.')
 
     return parser.parse_args()
 

@@ -1,7 +1,6 @@
 #!/usr/bin/env python 
 """Testing the sampling methods. Want to ensure that the model pipeline works and that the sampling methods are incorporated.
 Based off of the test_kfold_split.py method. """
-import pandas as pd 
 import sklearn.metrics as skmetrics 
 import copy
 import os
@@ -11,36 +10,11 @@ from atomsci.ddm.pipeline import model_pipeline as mp
 from atomsci.ddm.pipeline import parameter_parser as parse
 import atomsci.ddm.pipeline.predict_from_model as pfm
 
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+from integrative_utilities import extract_seed, get_test_set, find_best_test_metric
+
 #-------------------------------------------------------------------
-
-def get_test_set(dataset_key, split_csv, id_col):
-    """
-    Read the dataset key and split_uuid to split dataset into split components 
-    
-    Parameters: 
-        - dataset_key: path to csv file of dataset
-        - split_uuid: path to split csv file 
-        - id_col: name of ID column
-    
-    Returns:
-        - train, valid, test dataframe
-    """
-    df = pd.read_csv(dataset_key)
-    split_df=pd.read_csv(split_csv)
-    test_df = df[df[id_col].isin(split_df[split_df['subset']=='test']['cmpd_id'])]
-
-    return test_df
-
-def find_best_test_metric(model_metrics):
-    for metric in model_metrics:
-        if metric['label'] == 'best' and metric['subset']=='test':
-            return metric 
-    return None 
-
-def extract_seed(metadata_path):
-    with open(metadata_path, 'r') as f:
-        metadata = json.load(f)
-    return metadata.get('seed')
 
 def saved_model_identity(pparams):
     script_path = os.path.dirname(os.path.realpath(__file__))

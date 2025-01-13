@@ -954,7 +954,7 @@ class NNModelWrapper(ModelWrapper):
         self._copy_model(self.best_model_dir)
         retrain_time = time.time() - retrain_start
         self.log.info("Time to retrain model for %d epochs: %.1f seconds, %.1f sec/epoch" % (self.best_epoch, retrain_time, 
-                       retrain_time/self.best_epoch))
+                       retrain_time/max(1, self.best_epoch)))
 
     # ****************************************************************************************
     def train_with_early_stopping(self, pipeline):
@@ -2000,7 +2000,7 @@ class DCxgboostModelWrapper(ForestModelWrapper):
                                          reg_lambda=1,
                                          scale_pos_weight=1,
                                          base_score=0.5,
-                                         random_state= self.seed, #0,
+                                         random_state= self.seed,
                                          missing=np.nan,
                                          importance_type='gain',
                                          n_jobs=-1,
@@ -2025,7 +2025,7 @@ class DCxgboostModelWrapper(ForestModelWrapper):
                                           reg_lambda=1,
                                           scale_pos_weight=1,
                                           base_score=0.5,
-                                          random_state=self.seed, #0,
+                                          random_state=self.seed,
                                           importance_type='gain',
                                           missing=np.nan,
                                           gpu_id = -1,
@@ -2135,7 +2135,7 @@ class DCxgboostModelWrapper(ForestModelWrapper):
                                          reg_lambda=1,
                                          scale_pos_weight=1,
                                          base_score=0.5,
-                                         random_state=self.seed, #0,
+                                         random_state=self.seed,
                                          missing=np.nan,
                                          importance_type='gain',
                                          n_jobs=-1,
@@ -2160,7 +2160,7 @@ class DCxgboostModelWrapper(ForestModelWrapper):
                                          reg_lambda=1,
                                          scale_pos_weight=1,
                                          base_score=0.5,
-                                         random_state=self.seed, #0,
+                                         random_state=self.seed, 
                                          importance_type='gain',
                                          missing=np.nan,
                                          gpu_id = -1,
