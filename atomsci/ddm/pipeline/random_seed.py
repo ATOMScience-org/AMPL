@@ -4,6 +4,8 @@ import uuid
 import random
 import torch
 import tensorflow as tf
+import logging
+logging.basicConfig(format='%(asctime)-15s %(message)s') 
 #----------------------------------------------------------------------------------
 class RandomStateGenerator:
     """
@@ -25,6 +27,9 @@ class RandomStateGenerator:
         self.set_seed(self.seed)
     
     def set_seed(self, seed):
+        log = logging.getLogger('ATOM')
+        log.warning("The global seed is being set to %d, for reproducibility. Note that this action "
+                    "will synchronize the randonmess across all libraries which may impact the randomness of other parts of the pipeline.", seed)
         """Set the seed for all relevant libraries."""
         
         global _seed, _random_state
