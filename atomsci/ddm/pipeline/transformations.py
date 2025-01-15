@@ -38,10 +38,14 @@ def get_statistics_missing_ydata(dataset):
        values for the y variable only. The x variable still assumes no
        missing values.
     """
-    y_means = np.zeros(len(dataset.get_task_names()))
-    y_m2 = np.zeros(len(dataset.get_task_names()))
-    dy = np.zeros(len(dataset.get_task_names()))
-    n = np.zeros(len(dataset.get_task_names()))
+    if len(dataset.y.shape)==1:
+        num_tasks = 1
+    else:
+        num_tasks = dataset.y.shape[1]
+    y_means = np.zeros(num_tasks)
+    y_m2 = np.zeros(num_tasks)
+    dy = np.zeros(num_tasks)
+    n = np.zeros(num_tasks)
     for _, y, w, _ in dataset.itersamples():
        for it in range(len(y)) :
             ## set weights to 0 for missing data
@@ -61,14 +65,17 @@ def get_statistics_missing_ydata(dataset):
     return y_means, y_stds
 
 # ****************************************************************************************
-def create_feature_transformers(params, model_dataset):
+def create_feature_transformers(params, featurization, train_dset):
     """Fit a scaling and centering transformation to the feature matrix of the given dataset, and return a
     DeepChem transformer object holding its parameters.
 
     Args:
-        params (argparse.namespace: Object containing the parameter list
+        params (argparse.namespace): Object containing the parameter list
 
-        model_dataset (ModelDataset): Contains the dataset to be transformed.
+        featurization (featurization.Featurization): A Featurization object that will be used with
+        the train_dset object.
+
+        train_dset (dc.Dataset): Contains the dataset used to fit the the transformers.
 
     Returns:
         (list of DeepChem transformer objects): list of transformers for the feature matrix
@@ -78,35 +85,34 @@ def create_feature_transformers(params, model_dataset):
         log.warning("UMAP feature transformation is deprecated and will be removed in a future release.")
         if params.split_strategy == 'k_fold_cv':
             log.warning("Warning: UMAP transformation may produce misleading results when used with K-fold split strategy.")
-        train_dset = model_dataset.train_valid_dsets[0][0]
         transformers_x = [UMAPTransformer(params, train_dset)]
     elif params.transformers:
         # TODO: Transformers on responses and features should be controlled only by parameters
         # response_transform_type and feature_transform_type, rather than params.transformers.
 
         # Scale and center feature matrix if featurization type calls for it
-        transformers_x = model_dataset.featurization.create_feature_transformer(model_dataset.dataset)
+        transformers_x = featurization.create_feature_transformer(train_dset)
     else:
         transformers_x = []
 
     return transformers_x
 
 # ****************************************************************************************
-def create_weight_transformers(params, model_dataset):
+def create_weight_transformers(params, dataset):
     """Fit an optional balancing transformation to the weight matrix of the given dataset, and return a
     DeepChem transformer object holding its parameters.
 
     Args:
         params (argparse.namespace: Object containing the parameter list
 
-        model_dataset (ModelDataset): Contains the dataset to be transformed.
+        dataset (dc.Dataset): Contains the dataset to be transformed.
 
     Returns:
         (list of DeepChem transformer objects): list of transformers for the weight matrix
     """
     if params.weight_transform_type == 'balancing':
         if params.prediction_type == 'classification':
-            transformers_w = [BalancingTransformer(model_dataset.dataset)]
+            transformers_w = [BalancingTransformer(dataset)]
         else:
             log.warning("Warning: Balancing transformer only supported for classification models.")
             transformers_w = []
@@ -138,7 +144,69 @@ def get_transformer_specific_metadata(params):
     return meta_dict
 
 # ****************************************************************************************
+def get_transformer_keys(params):
+    """Makes all transformer keys
+    There is one set of transformers for each fold and then one transformer
+    for both validation and training sets. AMPL automatically trains a model
+    using all validation and training data at the end of the training loop.
 
+    Args:
+        params (argparse.namespace: Object containing the parameter list
+
+    Returns:
+        (list): A list of all keys used in transformer dictionaries.
+    """
+    if params.split_strategy != 'k_fold_cv':
+        return [0, 'final']
+    else:
+        return list(range(params.num_folds))+['final']
+
+# ****************************************************************************************
+def get_blank_transformations():
+    """Get empty transformations dictionary
+    These keys must always exist, even when there are no transformations
+
+    Returns:
+        (dict): A dictionary containing empty lists. Used when no transformers are needed
+    """
+    return {0:[], 'final':[]}
+
+# ****************************************************************************************
+def get_all_training_datasets(model_dataset):
+    """Returns all 'training' datasets
+    This takes a model_dataset and returns a dictionary of all
+    datasets that will need a transformer. The keys will match
+    what is returned by get_transformer_keys
+
+    Args:
+        model_dataset: A model_datasets.ModelDataset object containing the current dataset.
+
+    Returns:
+        dict of dc.Datasets: A dictionary keyed using keys fold numbers and 'final'. Contains
+        the training data for each fold and the final training+validation training set.
+    """
+    result = {}
+    if model_dataset.splitting is None:
+        # this dataset is not split into training and validation, use all data
+        result['final'] = model_dataset.dataset
+    elif len(model_dataset.train_valid_dsets)==1:
+        # there is only one fold, use the training set from that
+        # for random forests and xgboost models, the final and
+        # 0th fold are the same if there k-fold is not used
+        result['final'] = model_dataset.train_valid_dsets[0][0]
+        result[0] = model_dataset.train_valid_dsets[0][0]
+    else:
+        # First, get the training set from all the folds
+        for i, (t, v) in enumerate(model_dataset.train_valid_dsets):
+            result[i] = t
+
+        # Next, add the dataset that contains all training+validation data
+        result['final'] = model_dataset.combined_training_data()
+
+    return result
+
+
+# ****************************************************************************************
 class UMAPTransformer(Transformer):
     """Dimension reduction transformations using the UMAP algorithm.
     
@@ -240,6 +308,8 @@ class NormalizationTransformerMissingData(NormalizationTransformer):
                 X = np.nan_to_num((X - self.X_means) * X_weight / self.X_stds)
             else:
                 X = np.nan_to_num(X * X_weight / self.X_stds)
+            # zero out large values, especially for out of range test data
+            X[np.abs(X) > 1e30] = 1e30
         if self.transform_y:
             if not hasattr(self, 'move_mean') or self.move_mean:
                 y = np.nan_to_num((y - self.y_means) / self.y_stds)
