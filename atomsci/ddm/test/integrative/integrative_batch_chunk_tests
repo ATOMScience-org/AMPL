@@ -1,4 +1,3 @@
-
 #!/bin/bash
 
 set -e
@@ -25,14 +24,9 @@ calculate_hash() {
 # Function to determine if a folder belongs to the selected subset
 belongs_to_subset() {
     local folder="$1"
-    echo "folder $folder"
     local hash=$(calculate_hash "$folder")
     local hash_decimal=$((0x${hash:0:8}))
     local subset=$((hash_decimal % num_subsets))
-    echo "hash $hash"
-    echo "hash_decimal $hash_decimal"
-    echo "subset $subset"
-    echo "subset_index $subset_index"
     if [ "$subset" -eq "$subset_index" ]; then
         return 0  # Folder belongs to the subset
     else
@@ -46,8 +40,8 @@ for folder in "${folders[@]}"; do
         file=($folder/test_*.py)
         if [[ -f "$file" && "$folder" != "__pycache__/" ]]; then
             cd "$folder"
-            echo "Testing $file $folder"
-            echo "pytest --capture=sys --capture=fd --cov=atomsci -vv"
+            echo "Testing $folder"
+            pytest --capture=sys --capture=fd --cov=atomsci -vv
             cd ..
         else
           echo "Skipping folder: $folder. Not a test directory."
