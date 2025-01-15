@@ -49,6 +49,8 @@ def check_data_accessibility(model_path, verbose=True):
                     dataset_info[path] = (dataset_path, False)
                     if verbose:
                         print(f"{os.path.basename(path)} trained on unreadable file:\n\t{dataset_path}")
+    if verbose:
+        print(f"model_path = {model_path}, model_path_len = {len(model_paths)}, dataset_info_length = {len(dataset_info)}")
     return dataset_info
 
 
