@@ -326,6 +326,8 @@ class ModelPipeline:
             for i, (train, valid) in enumerate(self.data.train_valid_dsets):
                 if self.data.params.prediction_type == 'classification' and self.params.sampling_method is not None:
                     train = sample.apply_sampling_method(train, params, random_state=self.random_state, seed=self.seed)
+                    self.data.update_untransformed_responses(train.ids, train.y)
+                    self.data.train_valid_dsets[i] = (train, valid)
 
         # We now create transformers after splitting, to allow for the case where the transformer
         # is fitted to the training data only. The transformers are then applied to the training,

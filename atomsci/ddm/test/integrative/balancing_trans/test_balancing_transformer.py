@@ -40,21 +40,21 @@ def test_balancing_transformer():
 
     print('-=======SMOTE balancing===================================')
     smote_balanced_params = params_w_SMOTE_balan(dset_key, res_dir)
-    smote_balanced_params['sampling_ratio'] = 'auto'
+    smote_balanced_params['sampling_ratio'] = 1
     print('sampling_ratio: ', smote_balanced_params['sampling_ratio'])
     smote_balanced_weights = make_pipeline_and_get_weights(smote_balanced_params)
-    (weight,), (count,)= np.unique(smote_balanced_weights, return_counts=True)
-    assert weight == 1
     # all weights should be the same
+    (weight1,), (count1,)= np.unique(smote_balanced_weights, return_counts=True)
     print('-==========================================')
 
-    print('-=======SMOTE 0.8 balancing===================================')
+    print('-=======SMOTE 0.5 balancing===================================')
     smote_balanced_params = params_w_SMOTE_balan(dset_key, res_dir)
-    smote_balanced_params['sampling_ratio'] = 0.8
+    smote_balanced_params['sampling_ratio'] = 0.5
     smote_balanced_weights = make_pipeline_and_get_weights(smote_balanced_params)
     (major_weight, minor_weight), (major_count, minor_count) = np.unique(smote_balanced_weights, return_counts=True)
-    assert major_weight < minor_weight
-    assert major_count > minor_count
+    # there should be twice as many major class as minor class
+    assert abs((major_weight*2) - minor_weight) < .0001
+    assert abs(major_count - (minor_count * 2)) < .0001
     print('-==========================================')
 
 def params_w_SMOTE_balan(dset_key, res_dir):

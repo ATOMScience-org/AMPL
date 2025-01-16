@@ -395,7 +395,7 @@ class ModelDataset(object):
                 if params.prediction_type=='classification':
                     w = w.astype(np.float32)
 
-                self.untransformed_dataset = NumpyDataset(features, self.vals, ids=ids)
+                self.update_untransformed_responses(ids, self.vals)
                 self.dataset = NumpyDataset(features, self.vals, ids=ids, w=w)
                 self.log.info("Using prefeaturized data; number of features = " + str(self.n_features))
                 return
@@ -421,7 +421,7 @@ class ModelDataset(object):
         self.log.debug("Number of features: " + str(self.n_features))
            
         # Create the DeepChem dataset       
-        self.untransformed_dataset = NumpyDataset(features, self.vals, ids=ids)
+        self.update_untransformed_responses(ids, self.vals)
         self.dataset = NumpyDataset(features, self.vals, ids=ids, w=w)
         # Checking for minimum number of rows
         if len(self.dataset) < params.min_compound_number:
@@ -755,6 +755,24 @@ class ModelDataset(object):
 
     # *************************************************************************************
 
+    def update_untransformed_responses(self, ids, y):
+        """
+        Updates self.untransformed_response_dict with the given ids and y
+
+        Parameters:
+        ids (list or np.ndarray): List or array of IDs for which to retrieve untransformed response values.
+
+        y (list or np.ndarray): List or array of responses values.
+
+        Returns:
+        None
+        """
+        self.untransformed_response_dict.update(
+            dict(zip(ids, y))
+            )
+
+    # *************************************************************************************
+
     def get_untransformed_responses(self, ids):
         """
         Returns a numpy array of untransformed response values for the given IDs.
@@ -766,9 +784,7 @@ class ModelDataset(object):
         np.ndarray: A numpy array of untransformed response values corresponding to the given IDs.
         """        
 
-        response_vals = np.zeros((len(ids), self.untransformed_dataset.y.shape[1]))
-        if len(self.untransformed_response_dict) == 0:
-            self.untransformed_response_dict = dict(zip(self.untransformed_dataset.ids, self.untransformed_dataset.y))
+        response_vals = np.zeros((len(ids), self.vals.shape[1]))
 
         for i, id in enumerate(ids):
             response_vals[i] = self.untransformed_response_dict[id]
@@ -893,7 +909,7 @@ class MinimalDataset(ModelDataset):
             self.log.warning("Done")
         self.n_features = self.featurization.get_feature_count()
         
-        self.untransformed_dataset= NumpyDataset(features, self.vals, ids=ids)
+        self.update_untransformed_responses(ids, self.vals)
         self.dataset = NumpyDataset(features, self.vals, ids=ids)
 
     # ****************************************************************************************
