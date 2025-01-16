@@ -784,7 +784,7 @@ class ModelDataset(object):
         np.ndarray: A numpy array of untransformed response values corresponding to the given IDs.
         """        
 
-        response_vals = np.zeros((len(ids), self.vals.shape[1]))
+        response_vals = np.zeros(len(ids), len(self.untransformed_response_dict[ids[0]]))
 
         for i, id in enumerate(ids):
             response_vals[i] = self.untransformed_response_dict[id]
@@ -845,6 +845,7 @@ class MinimalDataset(ModelDataset):
         self.tasks = None
         self.attr = None
         self.contains_responses = contains_responses
+        self.untransformed_response_dict = {}
 
     # ****************************************************************************************
     def get_dataset_tasks(self, dset_df):
@@ -986,6 +987,7 @@ class DatastoreDataset(ModelDataset):
 
         super().__init__(params, featurization)
         self.dataset_oid = None
+        self.untransformed_response_dict = {}
         if params.dataset_name:
             self.dataset_name = params.dataset_name
         else:
