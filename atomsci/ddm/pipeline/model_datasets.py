@@ -784,7 +784,8 @@ class ModelDataset(object):
         np.ndarray: A numpy array of untransformed response values corresponding to the given IDs.
         """        
 
-        response_vals = np.zeros(len(ids), len(self.untransformed_response_dict[ids[0]]))
+        num_tasks = len(self.untransformed_response_dict[ids[0]])
+        response_vals = np.zeros((len(ids), num_tasks))
 
         for i, id in enumerate(ids):
             response_vals[i] = self.untransformed_response_dict[id]
