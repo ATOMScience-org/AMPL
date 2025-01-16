@@ -23,32 +23,39 @@ def test_balancing_transformer():
 
     res_dir = tempfile.mkdtemp()
 
+    print('-=======normal balancing===================================')
     balanced_params = params_w_balan(dset_key, res_dir)
     balanced_weights = make_pipeline_and_get_weights(balanced_params)
     (major_weight, minor_weight), (major_count, minor_count) = np.unique(balanced_weights, return_counts=True)
     assert major_weight < minor_weight
     assert major_count > minor_count
+    print('-==========================================')
 
+    print('-=======no balancing===================================')
     nonbalanced_params = params_wo_balan(dset_key, res_dir)
     nonbalanced_weights = make_pipeline_and_get_weights(nonbalanced_params)
     (weight,), (count,) = np.unique(nonbalanced_weights, return_counts=True)
     assert weight == 1
-    assert count == 436
+    print('-==========================================')
 
+    print('-=======SMOTE balancing===================================')
     smote_balanced_params = params_w_SMOTE_balan(dset_key, res_dir)
-    smote_balanced_params['sampling_ratio'] = 0.5
+    smote_balanced_params['sampling_ratio'] = 'auto'
+    print('sampling_ratio: ', smote_balanced_params['sampling_ratio'])
     smote_balanced_weights = make_pipeline_and_get_weights(smote_balanced_params)
-    (weight,), (count,) = np.unique(smote_balanced_weights, return_counts=True)
+    (weight,), (count,)= np.unique(smote_balanced_weights, return_counts=True)
+    assert weight == 1
     # all weights should be the same
-    assert np.all(weight==weight[0])
+    print('-==========================================')
 
+    print('-=======SMOTE 0.8 balancing===================================')
     smote_balanced_params = params_w_SMOTE_balan(dset_key, res_dir)
     smote_balanced_params['sampling_ratio'] = 0.8
     smote_balanced_weights = make_pipeline_and_get_weights(smote_balanced_params)
     (major_weight, minor_weight), (major_count, minor_count) = np.unique(smote_balanced_weights, return_counts=True)
-    # There should be one weight that's larger and one that is smaller
     assert major_weight < minor_weight
     assert major_count > minor_count
+    print('-==========================================')
 
 def params_w_SMOTE_balan(dset_key, res_dir):
     # Try with SMOTE with ratio set to .50

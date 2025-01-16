@@ -1235,7 +1235,8 @@ def get_parser():
     
     parser.add_argument(
         '--sampling_ratio', dest='sampling_ratio', type=str, default='auto',
-        help='The desired ratio of the minority class to the majority class after sampling.')
+        help='The "sampling_ratio" parameter of SMOTE must be a float in the range (0.0, 1.0], a str '
+            'among {"auto", "not majority", "minority", "all", "not minority"}')
     parser.add_argument(
         '--sampling_k_neighbors', dest='sampling_k_neighbors', type=int, default=5,
         help='The nearest neighbors used to define the neighborhood of samples to use to generate the synthetic samples. Specifically used for SMOTE.')
@@ -1747,7 +1748,36 @@ def postprocess_args(parsed_args):
     if vars(parsed_args).get('dataset_key') and os.path.exists(parsed_args.dataset_key):
         _ = mto.many_to_one(fn=parsed_args.dataset_key, smiles_col=parsed_args.smiles_col, id_col=parsed_args.id_col)
 
+    # Validates the sampling_ratio argument for SMOTE and undersampling
+    parsed_args.sampling_ratio = validate_sampling_strategy_argument(parsed_args.sampling_ratio)
+
     return parsed_args
+
+#***********************************************************************************************************
+def validate_sampling_strategy_argument(value):
+    """Validates sampling_strategy parameter for SMOTE and undersampling.
+    Validates that the input value is either a float in the range (0.0, 1.0] or a string among 
+    {'auto', 'not majority', 'minority', 'all', 'not minority'}. Raises a ValueError if the validation fails.
+
+    Args:
+        value (str): The input value to validate.
+
+    Raises:
+        ValueError: If the value is not a float in the range (0.0, 1.0] or a valid string.
+    """
+    valid_strings = {"auto", "not majority", "minority", "all", "not minority"}
+    
+    try:
+        float_value = float(value)
+        if float_value <= 0.0 or float_value > 1.0:
+            raise ValueError(f"Value '{value}' is not a float in the range (0.0, 1.0].")
+        else:
+            return float_value
+    except ValueError:
+        if value not in valid_strings:
+            raise ValueError(f"Value '{value}' is not a valid string among {valid_strings}.")
+        else:
+            return value
 
 
 #***********************************************************************************************************
