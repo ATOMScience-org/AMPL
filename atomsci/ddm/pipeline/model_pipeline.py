@@ -930,7 +930,7 @@ class ModelPipeline:
                         train_dset = dc.data.NumpyDataset(train_X)
                         self.featurized_train_data = self.model_wrapper.generate_embeddings(train_dset)
                     else:
-                        if self.featurization.descriptor_type=='mordred_filtered':
+                        if hasattr(self.featurization.descriptor_type) and self.featurization.descriptor_type=='mordred_filtered':
                             train_X = train_X[:,~np.isnan(train_X).all(axis=0)]
                             train_X = np.where(np.isnan(train_X), np.nanmean(train_X, axis=0), train_X)
                         self.featurized_train_data = train_X

@@ -34,8 +34,8 @@ def test():
     hp_params["script_dir"] = script_dir
     hp_params["python_path"] = python_path
     
-    for feat in ['ECFP','mordred_filtered','rdkit_raw','graphconv']:
-        if feat in ['ECFP','graphconv']:
+    for feat in ['ecfp','mordred_filtered','rdkit_raw','graphconv']:
+        if feat in ['ecfp','graphconv']:
             hp_params['featurizer']=feat
         else:
             hp_params['featurizer']='computed_descriptors'
