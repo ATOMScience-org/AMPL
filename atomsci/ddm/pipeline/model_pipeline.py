@@ -903,7 +903,7 @@ class ModelPipeline:
             else:
                 pred_data = copy.deepcopy(self.data.dataset.X)
                 
-            if self.featurization.descriptor_type=='mordred_filtered':
+            if hasattr(self.featurization.descriptor_type) and self.featurization.descriptor_type=='mordred_filtered':
                 pred_data = pred_data[:,~np.isnan(pred_data).all(axis=0)]
                 pred_data = np.where(np.isnan(pred_data), np.nanmean(pred_data, axis=0), pred_data)
 
