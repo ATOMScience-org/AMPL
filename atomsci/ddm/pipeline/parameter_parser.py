@@ -1295,7 +1295,7 @@ def get_parser():
         'q_min is the first quantile and q_max is the third quantile. '
         '(q_min, q_max), 0.0 < q_min < q_max < 100.0. Default is "25.0,75.0"')
     parser.add_argument(
-        '--robustscaler_with_scaling', action='store_true',
+        '--robustscaler_unit_variance', action='store_true',
         help='If True, scale data so that normally distributed features have a variance of 1. '
         'In general, if the difference between the x-values of q_max and q_min for a standard '
         'normal distribution is greater than 1, the dataset will be scaled down. '
