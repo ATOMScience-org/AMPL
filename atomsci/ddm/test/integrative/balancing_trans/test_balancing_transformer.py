@@ -7,6 +7,8 @@ import numpy as np
 import os
 import json
 
+from sklearn.preprocessing import RobustScaler, PowerTransformer
+
 import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 import make_test_datasets
@@ -328,6 +330,36 @@ def test_kfold_regression_transformers():
     # transformer means should be around expected_mean
     np.testing.assert_array_almost_equal(transformer.y_means, expected_y_means)
 
+def test_sklearn_transformers():
+    """
+    Test the balancing transformer to ensure that it correctly adjusts weights for imbalanced datasets.
+    """
+    dset_key = make_relative_to_file('../../test_datasets/MRP3_dataset.csv')
+    res_dir = tempfile.mkdtemp()
+
+    robustscaler_params = read_params(
+        make_relative_to_file('jsons/RobustScaler_transformer.json'),
+        dset_key,
+        res_dir
+    )
+
+    robustscaler_pipe = make_pipeline(robustscaler_params)
+    transformers_x = robustscaler_pipe.model_wrapper.transformers_x
+    assert len(transformers_x)==1
+    assert isinstance(transformers_x[0], trans.SklearnTransformerWrapper)
+    assert isinstance(transformers_x[0].sklearn_transformer, RobustScaler)
+
+    powertransformer_params = read_params(
+        make_relative_to_file('jsons/PowerTransformer_transformer.json'),
+        dset_key,
+        res_dir
+    )
+
+    powertransformer_pipe = make_pipeline(powertransformer_params)
+    transformers_x = powertransformer_pipe.model_wrapper.transformers_x
+    assert len(transformers_x)==1
+    assert isinstance(transformers_x[0], trans.SklearnTransformerWrapper)
+    assert isinstance(transformers_x[0].sklearn_transformer, PowerTransformer)
 
 if __name__ == '__main__':
     test_kfold_regression_transformers()

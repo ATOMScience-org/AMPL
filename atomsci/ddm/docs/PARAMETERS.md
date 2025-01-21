@@ -593,16 +593,17 @@ the model will train for max_epochs regardless of validation error.|
   
 |||
 |-|-|
-|*Description:*|type of transformation for the features|
-|*Default:*|normalization|
-|*Type:*|Choice|
+|*Description:*|type of transformation for the features. Choices are {"normalization", "RobustScaler", "PowerTransformer"}.|
+|*Default:*|"normalizaton"|
+|*Type:*|choice|
   
 - **response\_transform\_type**  
   
 |||
 |-|-|
-|*Description:*|type of transformation for the response column (defaults to "normalization") TODO: Not currently implemented|
-|*Default:*|normalization|
+|*Description:*|type of transformation for the response column. Choices are {"normalization"}|
+|*Default:*|"normalization"|
+|*Type:*|choice|
   
 - **transformer\_bucket**  
   
@@ -632,6 +633,54 @@ the model will train for max_epochs regardless of validation error.|
 |*Default:*|TRUE|
 |*Type:*|Bool|
   
+- **robustscaler_with_centering**  
+  
+|||
+|-|-|
+|*Description:*|If `True`, center the data before scaling. This will cause `transform` to raise an exception when attempted on sparse matrices, because centering them entails building a dense matrix which in common use cases is likely to be too large to fit in memory.|
+|*Default:*|TRUE|
+|*Type:*|Bool|
+
+- **robustscaler_with_scaling**  
+  
+|||
+|-|-|
+|*Description:*|If `True`, scale the data to interquartile range.|
+|*Default:*|TRUE|
+|*Type:*|Bool|
+
+  - **robustscaler_quartile_range**  
+  
+|||
+|-|-|
+|*Description:*|Quantile range used to calculate `scale_`. By default this is equal to the IQR, i.e., `q_min` is the first quantile and `q_max` is the third quantile. `(q_min, q_max), 0.0 < q_min < q_max < 100.0`|
+|*Default:*|(25.0, 75.0)|
+|*Type:*|List|
+
+  - **robustscaler_unit_variance**  
+  
+|||
+|-|-|
+|*Description:*|If `True`, scale data so that normally distributed features have a variance of 1. In general, if the difference between the x-values of `q_max` and `q_min` for a standard normal distribution is greater than 1, the dataset will be scaled down. If less than 1, the dataset will be scaled up.|
+|*Default:*|FALSE|
+|*Type:*|bool|
+
+  - **powertransformer_method**  
+  
+|||
+|-|-|
+|*Description:*|The power transform method. Available methods are: ‘yeo-johnson’ , works with positive and negative values ‘box-cox’, only works with strictly positive values. Choices are {"yeo-johnson", "box-cox"}|
+|*Default:*|"yeo-johnson"|
+|*Type:*|choice|
+
+  - **powertransformer_standardize**  
+  
+|||
+|-|-|
+|*Description:*|Set to True to apply zero-mean, unit-variance normalization to the transformed output.|
+|*Default:*|TRUE|
+|*Type:*|Bool|
+
 ---
 
 <a name="XGBoost"></a>

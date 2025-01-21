@@ -533,7 +533,8 @@ convert_to_float_list = {'dropouts','weight_init_stddevs','bias_init_consts','le
                          "xgb_min_child_weight",
                          "xgb_subsample",
                          "xgb_colsample_bytree",
-                         "ki_convert_ratio"
+                         "ki_convert_ratio",
+                         "robustscaler_quartile_range"
                          }
 convert_to_int_list = {'layer_sizes','rf_max_features','rf_estimators', 'rf_max_depth',
                        'layer_nums', 'node_nums',
@@ -1252,11 +1253,13 @@ def get_parser():
     # **********************************************************************************************************
     # model_building_parameters: transformers
     parser.add_argument(
-        '--feature_transform_type', dest='feature_transform_type', choices=['normalization'],
+        '--feature_transform_type', dest='feature_transform_type', 
+        choices=['normalization', 'RobustScaler', 'PowerTransformer'],
         default='normalization', help='type of transformation for the features')
     parser.add_argument(
         '--response_transform_type', dest='response_transform_type', default='normalization',
-        help='type of normalization for the response column TODO: Not currently implemented')
+        choices=['normalization'],
+        help='type of normalization for the response column.')
     parser.add_argument(
         '--weight_transform_type', dest='weight_transform_type', choices=[None, 'None', 'balancing'], default=None,
         help='type of normalization for the weights')
@@ -1274,6 +1277,41 @@ def get_parser():
     parser.add_argument(
         '--transformers', dest='transformers', action='store_false',
         help='Boolean switch for using transformation on regression output. Default is True')
+
+    # RobustScaler parameters
+    parser.add_argument(
+        '--robustscaler_with_centering', action='store_false',
+        help='If True, center the data before scaling. '
+        'This will cause transform to raise an exception when attempted on sparse matrices, '
+        'because centering them entails building a dense matrix which in common use '
+        'cases is likely to be too large to fit in memory. Default is True')
+    parser.add_argument(
+        '--robustscaler_with_scaling', action='store_false',
+        help='If True, scale the data to interquartile range. Default is True')
+    parser.add_argument(
+        '--robustscaler_quartile_range', type=str, default='25.0,75.0',
+        help='Quantile range used to calculate scale_. '
+        'By default this is equal to the IQR, i.e., '
+        'q_min is the first quantile and q_max is the third quantile. '
+        '(q_min, q_max), 0.0 < q_min < q_max < 100.0. Default is "25.0,75.0"')
+    parser.add_argument(
+        '--robustscaler_with_scaling', action='store_true',
+        help='If True, scale data so that normally distributed features have a variance of 1. '
+        'In general, if the difference between the x-values of q_max and q_min for a standard '
+        'normal distribution is greater than 1, the dataset will be scaled down. '
+        'If less than 1, the dataset will be scaled up. Default is False.')
+
+    # PowerTransformer parameters
+    parser.add_argument(
+        '--powertransformer_method', choices=['yeo-johnson', 'box-cox'],
+        help='The power transform method. Available methods are: "yeo-johnson", '
+        'works with positive and negative values "box-cox", only works with strictly positive values. '
+        'Choices are {"yeo-johnson", "box-cox"}')
+    parser.add_argument(
+        '--powertransformer_standardize', action='store_false',
+        help='Set to True to apply zero-mean, unit-variance normalization to the transformed output. '
+        'Default is True.')
+
     parser.set_defaults(transformers=True)
 
     # **********************************************************************************************************

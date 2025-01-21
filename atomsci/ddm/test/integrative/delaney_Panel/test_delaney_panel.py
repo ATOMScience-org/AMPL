@@ -306,6 +306,14 @@ def test_multi_class_random_config_delaney_fit_NN_mordred_filtered():
     init()
     train_and_predict('jsons/multi_class_random_config_delaney_fit_NN_mordred_filtered.json') # crashes during run
 
+def test_multi_class_random_config_delaney_fit_NN_mordred_filtered_robustscaler():
+    init()
+    train_and_predict('jsons/multi_class_random_config_delaney_fit_NN_mordred_filtered_robustscaler.json') # crashes during run
+
+def test_multi_class_random_config_delaney_fit_NN_mordred_filtered_powertransformer():
+    init()
+    train_and_predict('jsons/multi_class_random_config_delaney_fit_NN_mordred_filtered_powertransformer.json') # crashes during run
+
 def test_multi_class_config_delaney_fit_NN_graphconv():
     init()
     train_and_predict('jsons/multi_class_config_delaney_fit_NN_graphconv.json') # fine

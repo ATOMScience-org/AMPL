@@ -22,6 +22,8 @@ from rdkit.Chem import rdmolops
 from rdkit.Chem import Descriptors
 from rdkit.ML.Descriptors import MoleculeDescriptors
 
+from sklearn.preprocessing import RobustScaler, PowerTransformer
+
 subclassed_mordred_classes = ['EState', 'MolecularDistanceEdge']
 try:
     from mordred import Calculator, descriptors
@@ -615,12 +617,13 @@ class Featurization(object):
         raise NotImplementedError
 
     # ****************************************************************************************
-    def create_feature_transformer(self, dataset):
+    def create_feature_transformer(self, dataset, params):
         """Fit a scaling and centering transformation to the feature matrix of the given dataset, and return a
         DeepChem transformer object holding its parameters.
 
         Args:
             dataset (deepchem.Dataset): featurized dataset
+            params (Namespace): Contains parameters used to instantiate the featurizer.
 
         Returns:
             Empty list
@@ -814,12 +817,13 @@ class DynamicFeaturization(Featurization):
         return features, ids, vals, attr, w, featurized_dset_df
 
     # ****************************************************************************************
-    def create_feature_transformer(self, dataset):
+    def create_feature_transformer(self, dataset, params):
         """Fit a scaling and centering transformation to the feature matrix of the given dataset, and return a
         DeepChem transformer object holding its parameters.
 
         Args:
             dataset (deepchem.Dataset): featurized dataset
+            params (Namespace): Contains parameters used to instantiate the featurizer.
 
         Returns:
             Empty list since we will not be transforming the features of a DynamicFeaturization object
@@ -1150,12 +1154,13 @@ class PersistentFeaturization(Featurization):
         raise NotImplementedError
 
     # ****************************************************************************************
-    def create_feature_transformer(self, dataset):
+    def create_feature_transformer(self, dataset, params):
         """Fit a scaling and centering transformation to the feature matrix of the given dataset, and return a
         DeepChem transformer object holding its parameters.
 
         Args:
             dataset (deepchem.Dataset): featurized dataset
+            params (Namespace): Contains parameters used to instantiate the featurizer.
 
         """
         # Leave it to subclasses to determine if features should be scaled and centered.
@@ -1588,17 +1593,39 @@ class DescriptorFeaturization(PersistentFeaturization):
         return len(self.get_feature_columns())
 
     # ****************************************************************************************
-    def create_feature_transformer(self, dataset):
+    def create_feature_transformer(self, dataset, params):
         """Fit a scaling and centering transformation to the feature matrix of the given dataset, and return a
         DeepChem transformer object holding its parameters.
 
         Args:
             dataset (deepchem.Dataset): featurized dataset
+            params (Namespace): Contains parameters used to instantiate the featurizer.
 
         Returns:
             (list of DeepChem transformer objects): list of transformers for the feature matrix
         """
-        transformers_x = [trans.NormalizationTransformerMissingData(transform_X=True, dataset=dataset)]
+        if params.feature_transform_type == 'normalization':
+            transformers_x = [trans.NormalizationTransformerMissingData(transform_X=True, dataset=dataset)]
+        elif params.feature_transformer_type == 'RobustScaler':
+            transformers_x = [
+                trans.SklearnTransformerWrapper(transform_X=True, dataset=dataset,
+                    sklearn_transformer=RobustScaler(
+                        with_centering=params.robustscaler_with_centering,
+                        with_scaling=params.robustscaler_with_scaling,
+                        quantile_range=params.robustscaler_quartile_range,
+                        unit_variance=params.robustscaler_unit_variance
+                    ))
+                ]
+        elif params.feature_transformer_type == 'PowerTransformer':
+            transformers_x = [
+                trans.SklearnTransformerWrapper(transform_X=True, dataset=dataset,
+                    sklearn_transformer=PowerTransformer(
+                        method=params.powertransformer_method,
+                        standardize=params.powertransformer_standardize
+                    ))
+                ]
+        else:
+            transformers_x = []
         return transformers_x
 
 

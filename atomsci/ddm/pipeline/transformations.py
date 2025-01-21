@@ -7,8 +7,7 @@ import logging
 import numpy as np
 
 from deepchem.trans.transformers import Transformer, NormalizationTransformer, BalancingTransformer
-from sklearn.impute import SimpleImputer
-from sklearn.preprocessing import RobustScaler
+
 
 logging.basicConfig(format='%(asctime)-15s %(message)s')
 log = logging.getLogger('ATOM')
@@ -84,7 +83,7 @@ def create_feature_transformers(params, featurization, train_dset):
         # response_transform_type and feature_transform_type, rather than params.transformers.
 
         # Scale and center feature matrix if featurization type calls for it
-        transformers_x = featurization.create_feature_transformer(train_dset)
+        transformers_x = featurization.create_feature_transformer(train_dset, params)
     else:
         transformers_x = []
 
@@ -126,7 +125,18 @@ def get_transformer_specific_metadata(params):
         transformer.
     """
     meta_dict = {}
-    
+    if params.feature_transform_type == 'RobustScaler':
+        robustscaler_dict = dict(
+            robustscaler_with_centering = params.robustscaler_with_centering,
+            robustscaler_with_scaling = params.robustscaler_with_scaling,
+            robustscaler_with_quartile_range = params.robustscaler_quartile_range,
+            robustscaler_unit_variance = params.robustscaler_unit_variance,)
+        meta_dict['robustscaler_specific'] = robustscaler_dict
+    if params.feature_transform_type == 'PowerTransformer':
+        powertransformer_dict = dict(
+                        powertransformer_method = params.powertransformer_method,
+                        powertransformer_standardize = params.powertransformer_standardize)
+        meta_dict['powertransformer_specific'] = powertransformer_dict    
     return meta_dict
 
 # ****************************************************************************************
