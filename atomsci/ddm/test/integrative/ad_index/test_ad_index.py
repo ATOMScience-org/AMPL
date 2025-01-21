@@ -35,7 +35,10 @@ def test():
     hp_params["python_path"] = python_path
     
     for feat in ['ecfp','mordred_filtered','rdkit_raw','graphconv']:
-        if feat in ['ecfp','graphconv']:
+        if feat == 'ecfp':
+            hp_params['featurizer']=feat
+        elif feat =='graphconv':
+            hp_params['model_type']='NN'
             hp_params['featurizer']=feat
         else:
             hp_params['featurizer']='computed_descriptors'
