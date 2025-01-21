@@ -504,10 +504,7 @@ class ModelWrapper(object):
            the number of dimensions of the feature space, taking both featurization method
         and transformers into account.
         """
-        if self.params.feature_transform_type == 'umap':
-            return self.params.umap_dim
-        else:
-            return self.featurization.get_feature_count()
+        return self.featurization.get_feature_count()
 
         # ****************************************************************************************
 

@@ -459,9 +459,8 @@ def convert_metadata(old_metadata):
         ("descriptor_specific", 'DescriptorSpecific'),
         ("nn_specific", "NNSpecific"),
         ("xgb_specific", "xgbSpecific"),
-        ("umap_specific", "UmapSpecific"),
-
     ]
+
     for (nkey, okey) in map_keys:
         value = model_metadata.get(okey)
         if value is not None:

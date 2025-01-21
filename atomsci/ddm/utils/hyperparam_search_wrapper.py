@@ -135,8 +135,6 @@ def reformat_filter_dict(filter_dict):
                'training_dataset':
                        {'bucket', 'dataset_key', 'dataset_oid', 'num_classes','feature_transform_type',
                         'response_transform_type', 'id_col', 'smiles_col', 'response_cols'},
-               'umap_specific':
-                       {'umap_dim', 'umap_metric', 'umap_min_dist', 'umap_neighbors','umap_targ_wt'}
               }
     if filter_dict['model_type'] == 'NN':
         rename_dict['nn_specific'] = {'baseline_epoch', 'batch_size', 'best_epoch', 'bias_init_consts','dropouts',
@@ -270,7 +268,6 @@ class HyperparameterSearch(object):
         self.hyperparam_layers = {'layer_sizes', 'dropouts', 'weight_init_stddevs', 'bias_init_consts'}
         self.hyperparam_keys = {'model_type', 'featurizer', 'splitter', 'learning_rate', 'weight_decay_penalty',
                                 'rf_estimators', 'rf_max_features', 'rf_max_depth',
-                                'umap_dim', 'umap_targ_wt', 'umap_metric', 'umap_neighbors', 'umap_min_dist',
                                 'xgb_learning_rate',
                                 'xgb_gamma'}
         self.nn_specific_keys = {'learning_rate', 'layers','weight_decay_penalty'}

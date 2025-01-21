@@ -527,7 +527,7 @@ class AutoArgumentAdder:
 # Parameters that may take lists of values, usually but not always in the context of a hyperparam search
 
 convert_to_float_list = {'dropouts','weight_init_stddevs','bias_init_consts','learning_rate',
-                         'umap_targ_wt', 'umap_min_dist', 'dropout_list','weight_decay_penalty',
+                         'dropout_list','weight_decay_penalty',
                          'xgb_learning_rate',
                          'xgb_gamma',
                          "xgb_min_child_weight",
@@ -536,7 +536,7 @@ convert_to_float_list = {'dropouts','weight_init_stddevs','bias_init_consts','le
                          "ki_convert_ratio"
                          }
 convert_to_int_list = {'layer_sizes','rf_max_features','rf_estimators', 'rf_max_depth',
-                       'umap_dim', 'umap_neighbors', 'layer_nums', 'node_nums',
+                       'layer_nums', 'node_nums',
                        'xgb_max_depth',  'xgb_n_estimators'}.union(all_auto_int_lists())
 convert_to_numeric_list = convert_to_float_list | convert_to_int_list
 keep_as_list = {'dropouts','weight_init_stddevs','bias_init_consts',
@@ -550,9 +550,9 @@ not_a_list_outside_of_hyperparams = {'learning_rate','weight_decay_penalty',
                                      'xgb_max_depth',  'xgb_n_estimators'
                                      }
 convert_to_str_list = \
-    {'response_cols','model_type','featurizer','splitter','umap_metric','weight_decay_penalty_type','descriptor_type'}
+    {'response_cols','model_type','featurizer','splitter','weight_decay_penalty_type','descriptor_type'}
 not_a_str_list_outside_of_hyperparams = \
-    {'model_type','featurizer','splitter','umap_metric','weight_decay_penalty_type','descriptor_type'}
+    {'model_type','featurizer','splitter','weight_decay_penalty_type','descriptor_type'}
 
 #**********************************************************************************************************
 def to_str(params_obj):
@@ -1252,7 +1252,7 @@ def get_parser():
     # **********************************************************************************************************
     # model_building_parameters: transformers
     parser.add_argument(
-        '--feature_transform_type', dest='feature_transform_type', choices=['normalization', 'umap'],
+        '--feature_transform_type', dest='feature_transform_type', choices=['normalization'],
         default='normalization', help='type of transformation for the features')
     parser.add_argument(
         '--response_transform_type', dest='response_transform_type', default='normalization',
@@ -1275,29 +1275,6 @@ def get_parser():
         '--transformers', dest='transformers', action='store_false',
         help='Boolean switch for using transformation on regression output. Default is True')
     parser.set_defaults(transformers=True)
-
-    # **********************************************************************************************************
-    # model_building_parameters: UMAP
-    parser.add_argument(
-        '--umap_dim', dest='umap_dim', required=False, default='10',
-        help='Dimension of projected feature space, if UMAP transformation is requested. Can be input as a comma '
-             'separated list for hyperparameter search (e.g. \'2,6,10\').')
-    parser.add_argument(
-        '--umap_metric', dest='umap_metric', required=False, default='euclidean',
-        help='Distance metric used, if UMAP transformation is requested. Can be input as a comma separated list '
-             'for hyperparameter search (e.g. \'euclidean\',\'cityblock\')')
-    parser.add_argument(
-        '--umap_min_dist', dest='umap_min_dist', required=False, default='0.05',
-        help='Minimum distance used in UMAP projection, if UMAP transformation is requested. Can be input as a '
-             'comma separated list for hyperparameter search (e.g. \'0.01,0.02,0.05\')')
-    parser.add_argument(
-        '--umap_neighbors', dest='umap_neighbors', required=False, default='20',
-        help='Number of nearest neighbors used in UMAP projection, if UMAP transformation is requested. Can be input '
-             'as a comma separated list for hyperparameter search (e.g. \'10,20,30\')')
-    parser.add_argument(
-        '--umap_targ_wt', dest='umap_targ_wt', required=False, default='0.0',
-        help='Weight given to training set response values in UMAP projection, if UMAP transformation is requested.'
-             ' Can be input as a comma separated list for hyperparameter search (e.g. \'0.0,0.1,0.2\')')
 
     # **********************************************************************************************************
     # model_building_parameters: XGBoost

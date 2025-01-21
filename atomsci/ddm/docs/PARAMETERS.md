@@ -16,7 +16,6 @@ The AMPL pipeline contains many parameters and options to fit models and make pr
   - [Hybrid model](#Hybrid-model)
   - [Splitting](#Splitting)
   - [Transformers](#Transformers)
-  - [UMAP](#UMAP)
   - [XGBoost](#XGBoost)
   - [Additional DeepChem Models](#Auto-DCModels)
 - [Model Saving](#Model-Saving)
@@ -632,46 +631,6 @@ the model will train for max_epochs regardless of validation error.|
 |*Description:*|Boolean switch for using transformation on regression output. Default is True|
 |*Default:*|TRUE|
 |*Type:*|Bool|
-  
----
-
-<a name="UMAP"></a>
-## UMAP  
-
-- **umap\_dim**  
-  
-|||
-|-|-|
-|*Description:*|Dimension of projected feature space, if UMAP transformation is requested. Can be input as a comma separated list for hyperparameter search (e.g. '2,6,10').|
-|*Default:*|10|
-  
-- **umap\_metric**  
-  
-|||
-|-|-|
-|*Description:*|Distance metric used, if UMAP transformation is requested. Can be input as a comma separated list for hyperparameter search (e.g. 'euclidean','cityblock')|
-|*Default:*|euclidean|
-  
-- **umap\_min\_dist**  
-  
-|||
-|-|-|
-|*Description:*|Minimum distance used in UMAP projection, if UMAP transformation is requested. Can be input as a comma separated list for hyperparameter search (e.g. '0.01,0.02,0.05')|
-|*Default:*|0.05|
-  
-- **umap\_neighbors**  
-  
-|||
-|-|-|
-|*Description:*|Number of nearest neighbors used in UMAP projection, if UMAP transformation is requested. Can be input as a comma separated list for hyperparameter search (e.g. '10,20,30')|
-|*Default:*|20|
-  
-- **umap\_targ\_wt**  
-  
-|||
-|-|-|
-|*Description:*|Weight given to training set response values in UMAP projection, if UMAP transformation is requested. Can be input as a comma separated list for hyperparameter search (e.g. '0.0,0.1,0.2')|
-|*Default:*|0.0|
   
 ---
 

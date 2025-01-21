@@ -5,7 +5,6 @@ provided by DeepChem.
 import logging
 
 import numpy as np
-import umap
 
 from deepchem.trans.transformers import Transformer, NormalizationTransformer, BalancingTransformer
 from sklearn.impute import SimpleImputer
@@ -80,13 +79,7 @@ def create_feature_transformers(params, featurization, train_dset):
     Returns:
         (list of DeepChem transformer objects): list of transformers for the feature matrix
     """
-    if params.feature_transform_type == 'umap':
-        # Map feature vectors using UMAP for dimension reduction
-        log.warning("UMAP feature transformation is deprecated and will be removed in a future release.")
-        if params.split_strategy == 'k_fold_cv':
-            log.warning("Warning: UMAP transformation may produce misleading results when used with K-fold split strategy.")
-        transformers_x = [UMAPTransformer(params, train_dset)]
-    elif params.transformers:
+    if params.transformers:
         # TODO: Transformers on responses and features should be controlled only by parameters
         # response_transform_type and feature_transform_type, rather than params.transformers.
 
@@ -133,14 +126,7 @@ def get_transformer_specific_metadata(params):
         transformer.
     """
     meta_dict = {}
-    if params.feature_transform_type == 'umap':
-        umap_dict = dict(
-                        umap_dim = params.umap_dim,
-                        umap_metric = params.umap_metric,
-                        umap_targ_wt = params.umap_targ_wt,
-                        umap_neighbors = params.umap_neighbors,
-                        umap_min_dist = params.umap_min_dist )
-        meta_dict['umap_specific'] = umap_dict
+    
     return meta_dict
 
 # ****************************************************************************************
@@ -204,64 +190,6 @@ def get_all_training_datasets(model_dataset):
         result['final'] = model_dataset.combined_training_data()
 
     return result
-
-
-# ****************************************************************************************
-class UMAPTransformer(Transformer):
-    """Dimension reduction transformations using the UMAP algorithm.
-    
-    DEPRECATED: Will be removed in a future release.
-
-    Attributes:
-        mapper (UMAP) : UMAP transformer
-        scaler (RobustScaler): Centering/scaling transformer
-
-    """
-    def __init__(self, params, dataset):
-        """Initializes a UMAPTransformer object.
-
-        Args:
-            params (Namespace): Contains parameters used to instantiate the transformer.
-
-            dataset (Dataset): Dataset used to "train" the projection mapping.
-        """
-
-        # TODO: decide whether to make n_epochs a parameter
-        #default_n_epochs = None
-        default_n_epochs = 500
-
-        if params.prediction_type == 'classification':
-            target_metric = 'categorical'
-        else:
-            target_metric = 'l2'
-        self.scaler = RobustScaler()
-        # Use SimpleImputer to replace missing values (NaNs) with means for each column
-        self.imputer = SimpleImputer()
-        scaled_X = self.scaler.fit_transform(self.imputer.fit_transform(dataset.X))
-        self.mapper = umap.UMAP(n_neighbors=params.umap_neighbors,
-                                n_components=params.umap_dim,
-                                metric=params.umap_metric,
-                                target_metric=target_metric,
-                                target_weight=params.umap_targ_wt,
-                                min_dist=params.umap_min_dist,
-                                n_epochs=default_n_epochs)
-        # TODO: How to deal with multitask data?
-        self.mapper.fit(scaled_X, y=dataset.y.flatten())
-
-    # ****************************************************************************************
-    def transform(self, dataset, parallel=False):
-        return super(UMAPTransformer, self).transform(dataset, parallel=parallel)
-
-    # ****************************************************************************************
-    def transform_array(self, X, y, w, ids):
-        X = self.mapper.transform(self.scaler.transform(self.imputer.transform(X)))
-        return (X, y, w, ids)
-
-    # ****************************************************************************************
-    def untransform(self, z):
-        """Reverses stored transformation on provided data."""
-        raise NotImplementedError("Can't reverse a UMAP transformation")
-    # ****************************************************************************************
 
 
 # ****************************************************************************************
