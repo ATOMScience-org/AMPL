@@ -775,8 +775,11 @@ def dict_to_list(inp_dictionary,replace_spaces=False):
     temp_list_to_command_line = []
 
     # Special case handling for arguments that are False or True by default
-    default_false = ['previously_split','use_shortlist','datastore', 'save_results','verbose', 'hyperparam', 'split_only', 'is_ki', 'production'] 
-    default_true = ['transformers','previously_featurized','uncertainty', 'rerun']
+    default_false = ['previously_split','use_shortlist','datastore', 'save_results','verbose', 'hyperparam', 'split_only', 'is_ki', 'production',
+                     'robustscaler_unit_variance'] 
+    default_true = ['transformers','previously_featurized','uncertainty', 'rerun',
+                    'robustscaler_with_centering', 'robustscaler_with_scaling',
+                    'powertransformer_standardize']
     for key, value in inp_dictionary.items():
         if key in default_false:
             true_options = ['True','true','ture','TRUE','Ture']

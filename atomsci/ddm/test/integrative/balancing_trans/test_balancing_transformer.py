@@ -345,9 +345,9 @@ def test_sklearn_transformers():
 
     robustscaler_pipe = make_pipeline(robustscaler_params)
     transformers_x = robustscaler_pipe.model_wrapper.transformers_x
-    assert len(transformers_x)==1
-    assert isinstance(transformers_x[0], trans.SklearnTransformerWrapper)
-    assert isinstance(transformers_x[0].sklearn_transformer, RobustScaler)
+    assert len(transformers_x[0])==1
+    assert isinstance(transformers_x[0][0], trans.SklearnTransformerWrapper)
+    assert isinstance(transformers_x[0][0].sklearn_transformer, RobustScaler)
 
     powertransformer_params = read_params(
         make_relative_to_file('jsons/PowerTransformer_transformer.json'),
@@ -357,12 +357,13 @@ def test_sklearn_transformers():
 
     powertransformer_pipe = make_pipeline(powertransformer_params)
     transformers_x = powertransformer_pipe.model_wrapper.transformers_x
-    assert len(transformers_x)==1
-    assert isinstance(transformers_x[0], trans.SklearnTransformerWrapper)
-    assert isinstance(transformers_x[0].sklearn_transformer, PowerTransformer)
+    assert len(transformers_x[0])==1
+    assert isinstance(transformers_x[0][0], trans.SklearnTransformerWrapper)
+    assert isinstance(transformers_x[0][0].sklearn_transformer, PowerTransformer)
 
 if __name__ == '__main__':
-    test_kfold_regression_transformers()
+    test_sklearn_transformers()
+    #test_kfold_regression_transformers()
     #test_kfold_transformers()
     #test_all_transformers()
     #test_balancing_transformer()
