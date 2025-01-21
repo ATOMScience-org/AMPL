@@ -2,6 +2,54 @@ import atomsci.ddm.pipeline.transformations as trans
 import numpy as np
 from deepchem.data import NumpyDataset
 
+from sklearn.preprocessing import RobustScaler, PowerTransformer
+
+def test_sklearn_transformer_wrapper():
+    """
+    Creates a mock dataset.
+        Tests the SklearnTransformerWrapper with RobustScaler on X.
+        Tests the SklearnTransformerWrapper with PowerTransformer on y.
+        Tests the SklearnTransformerWrapper with RobustScaler on w.
+        Asserts that the transformed values match the expected values.
+    """
+    # Create a mock dataset
+    X = np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]])
+    y = np.array([[1.0], [3.0], [5.0]])
+    w = np.array([[1.0], [1.0], [1.0]])
+    ids = np.array(range(len(y)))
+    dataset = NumpyDataset(X=X, y=y, w=w, ids=ids)
+
+    # Test with RobustScaler on X
+    scaler = RobustScaler()
+    transformer = trans.SklearnTransformerWrapper(dataset, scaler, transform_X=True)
+    transformed_dataset = transformer.transform(dataset)
+    expected_transformed_X = scaler.fit_transform(X)
+    np.testing.assert_array_almost_equal(transformed_dataset.X, expected_transformed_X)
+
+    # Test untransform on X
+    untransformed_X = transformer.untransform(transformed_dataset.X)
+    np.testing.assert_array_almost_equal(untransformed_X, X)
+
+    # Test with PowerTransformer on y
+    power_transformer = PowerTransformer()
+    transformer = trans.SklearnTransformerWrapper(dataset, power_transformer, transform_y=True)
+    transformed_dataset = transformer.transform(dataset)
+    expected_transformed_y = power_transformer.fit_transform(y)
+    np.testing.assert_array_almost_equal(transformed_dataset.y, expected_transformed_y)
+
+    # Test untransform on y
+    untransformed_y = transformer.untransform(transformed_dataset.y)
+    np.testing.assert_array_almost_equal(untransformed_y, y)
+
+    # Test with RobustScaler on w
+    transformer = trans.SklearnTransformerWrapper(dataset, scaler, transform_w=True)
+    transformed_dataset = transformer.transform(dataset)
+    expected_transformed_w = scaler.fit_transform(w)
+    np.testing.assert_array_almost_equal(transformed_dataset.w, expected_transformed_w)
+
+    # Test untransform on w
+    untransformed_w = transformer.untransform(transformed_dataset.w)
+    np.testing.assert_array_almost_equal(untransformed_w, w)
 
 def test_no_missing_values():
     """

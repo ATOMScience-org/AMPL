@@ -265,6 +265,47 @@ class UMAPTransformer(Transformer):
 
 
 # ****************************************************************************************
+class SklearnTransformerWrapper(Transformer):
+    """
+    This wrapps a given sklearn transformer and converts it to a DeepChem style transformer
+    """
+    def __init__(self, dataset, sklearn_transformer, 
+                 transform_X=False, transform_y=False, transform_w=False):
+
+        self.transform_X = transform_X
+        self.transform_y = transform_y
+        self.transform_w = transform_w
+
+        assert sum([self.transform_X, self.transform_y, self.transform_w]), \
+            "This transformer can operate on only one of X, y, or w."
+
+        self.sklearn_transformer = sklearn_transformer
+
+        if self.transform_X:
+            self.sklearn_transformer.fit(dataset.X)
+        elif self.transform_y:
+            self.sklearn_transformer.fit(dataset.y)
+        else:
+            self.sklearn_transformer.fit(dataset.w)
+
+    def transform(self, dataset, parallel=False):
+        return dataset.transform(self)
+
+    def transform_array(self, X, y, w, ids):
+        """Transform the data in a set of (X, y, w) arrays."""
+        if self.transform_X:
+            X = self.sklearn_transformer.transform(X)
+        elif self.transform_y:
+            y = self.sklearn_transformer.transform(y)
+        else:
+            w = self.sklearn_transformer.transform(w)
+
+        return (X, y, w, ids)
+
+    def untransform(self, z: np.ndarray) -> np.ndarray:
+        return self.sklearn_transformer.inverse_transform(z)
+
+# ****************************************************************************************
 
 class NormalizationTransformerMissingData(NormalizationTransformer):
     """Test extension to check for missing data"""
