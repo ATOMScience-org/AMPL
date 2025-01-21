@@ -903,7 +903,7 @@ class ModelPipeline:
             else:
                 pred_data = copy.deepcopy(self.data.dataset.X)
                 
-            if hasattr(self.featurization.descriptor_type) and self.featurization.descriptor_type=='mordred_filtered':
+            if self.featurization.feat_type=="computed_descriptors" and self.featurization.descriptor_type=='mordred_filtered':
                 pred_data = pred_data[:,~np.isnan(pred_data).all(axis=0)]
                 pred_data = np.where(np.isnan(pred_data), np.nanmean(pred_data, axis=0), pred_data)
 
@@ -930,7 +930,7 @@ class ModelPipeline:
                         train_dset = dc.data.NumpyDataset(train_X)
                         self.featurized_train_data = self.model_wrapper.generate_embeddings(train_dset)
                     else:
-                        if hasattr(self.featurization.descriptor_type) and self.featurization.descriptor_type=='mordred_filtered':
+                        if self.featurization.feat_type=="computed_descriptors" and self.featurization.descriptor_type=='mordred_filtered':
                             train_X = train_X[:,~np.isnan(train_X).all(axis=0)]
                             train_X = np.where(np.isnan(train_X), np.nanmean(train_X, axis=0), train_X)
                         self.featurized_train_data = train_X
