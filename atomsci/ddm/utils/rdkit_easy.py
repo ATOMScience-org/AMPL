@@ -11,7 +11,9 @@ import logging
 
 import pandas as pd
 from rdkit import DataStructs
+from rdkit import Chem
 from rdkit.Chem import AllChem
+from rdkit.Chem import QED
 from rdkit.Chem import Descriptors
 from rdkit.Chem import PandasTools
 from rdkit.Chem.Draw import MolToImage, rdMolDraw2D
@@ -73,6 +75,113 @@ def calculate_descriptors(df, molecule_column='mol'):
     df2=pd.DataFrame(cds, columns=descriptors)
     df=df.join(df2, lsuffix='', rsuffix='_rdk')
     return df
+
+
+
+def compute_drug_likeness(df, molecule_column='mol'):
+    """Compute various molecular descriptors and drug-likeness criteria for compounds specified by RDKit Mol objects.
+    The descriptors are added to the input data frame, and are limited to those used to compute the Lipinski 
+    rule-of-five, Ghose and Veber drug-likeness filters. The QED (qualitative estimate of drug-likeness) score is
+    also added to the data frame, along with columns of booleans indicating whether the various sets of filter
+    criteria are met.
+
+    Args:
+        df (pandas.DataFrame): Input DataFrame containing RDKit Mol objects.
+        molecule_column (str): Name of the column in the DataFrame that contains the RDKit Mol objects. Default is 'mol'.
+    Returns:
+        pandas.DataFrame: A copy of the input DataFrame with additional columns for the computed descriptors:
+            - MolWt: Molecular weight
+            - LogP: Logarithm of the partition coefficient between n-octanol and water
+            - NumHDonors: Number of hydrogen bond donors
+            - NumHAcceptors: Number of hydrogen bond acceptors
+            - TPSA: Topological polar surface area
+            - NumRotatableBonds: Number of rotatable bonds
+            - MolarRefractivity: Molar refractivity
+            - QED: Quantitative estimate of drug-likeness
+            - TotalAtoms: Total number of atoms
+            - Lipinski: Boolean indicating if the molecule meets Lipinski's rule of five criteria
+            - Ghose: Boolean indicating if the molecule meets Ghose filter criteria
+            - Veber: Boolean indicating if the molecule meets Veber's rule criteria
+    """
+    # Create a copy of the input DataFrame
+    df_copy = df.copy()
+    
+    # Initialize lists to store the computed descriptors
+    mol_wt = []
+    logp = []
+    num_h_donors = []
+    num_h_acceptors = []
+    tpsa = []
+    num_rotatable_bonds = []
+    molar_refractivity = []
+    qed_scores = []
+    total_atoms = []
+    lipinski_criteria = []
+    ghose_criteria = []
+    veber_criteria = []
+    
+    # Iterate over each RDKit Mol object in the DataFrame
+    for mol in df_copy[molecule_column]:
+        if mol is not None:
+            mw = Descriptors.MolWt(mol)
+            lp = Descriptors.MolLogP(mol)
+            h_donors = Descriptors.NumHDonors(mol)
+            h_acceptors = Descriptors.NumHAcceptors(mol)
+            tpsa_val = Descriptors.TPSA(mol)
+            rot_bonds = Descriptors.NumRotatableBonds(mol)
+            mr = Descriptors.MolMR(mol)
+            qed_val = QED.qed(mol)
+            num_atoms = Chem.rdMolDescriptors.CalcNumAtoms(mol)
+            
+            mol_wt.append(mw)
+            logp.append(lp)
+            num_h_donors.append(h_donors)
+            num_h_acceptors.append(h_acceptors)
+            tpsa.append(tpsa_val)
+            num_rotatable_bonds.append(rot_bonds)
+            molar_refractivity.append(mr)
+            qed_scores.append(qed_val)
+            total_atoms.append(num_atoms)
+            
+            # Check Lipinski's rule of five criteria
+            lipinski = (mw <= 500 and lp <= 5 and h_donors <= 5 and h_acceptors <= 10)
+            lipinski_criteria.append(lipinski)
+            # Check Ghose filter criteria
+            ghose = (160 <= mw <= 480 and -0.4 <= lp <= 5.6 and 40 <= mr <= 130 and 20 <= num_atoms <= 70)
+            ghose_criteria.append(ghose)
+            # Check Veber's rule criteria
+            veber = (rot_bonds <= 10 and tpsa_val <= 140)
+            veber_criteria.append(veber)
+        else:
+            mol_wt.append(None)
+            logp.append(None)
+            num_h_donors.append(None)
+            num_h_acceptors.append(None)
+            tpsa.append(None)
+            num_rotatable_bonds.append(None)
+            molar_refractivity.append(None)
+            qed_scores.append(None)
+            total_atoms.append(None)
+            lipinski_criteria.append(None)
+            ghose_criteria.append(None)
+            veber_criteria.append(None)
+    
+    # Add the computed descriptors to the DataFrame
+    df_copy['MolWt'] = mol_wt
+    df_copy['LogP'] = logp
+    df_copy['NumHDonors'] = num_h_donors
+    df_copy['NumHAcceptors'] = num_h_acceptors
+    df_copy['TPSA'] = tpsa
+    df_copy['NumRotatableBonds'] = num_rotatable_bonds
+    df_copy['MolarRefractivity'] = molar_refractivity
+    df_copy['QED'] = qed_scores
+    df_copy['TotalAtoms'] = total_atoms
+    df_copy['Lipinski'] = lipinski_criteria
+    df_copy['Ghose'] = ghose_criteria
+    df_copy['Veber'] = veber_criteria
+    
+    return df_copy
+
 
 def cluster_dataframe(df, molecule_column='mol', cluster_column='cluster', cutoff=0.2):
     """Performs Butina clustering on compounds specified by Mol objects in a data frame.
