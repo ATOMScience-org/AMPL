@@ -1607,16 +1607,16 @@ class DescriptorFeaturization(PersistentFeaturization):
         if params.feature_transform_type == 'normalization':
             transformers_x = [trans.NormalizationTransformerMissingData(transform_X=True, dataset=dataset)]
         elif params.feature_transform_type == 'RobustScaler':
-            # Check unit_variance has length 2 and convert it into a tuple
-            unit_variance = params.robustscaler_unit_variance
-            assert len(unit_variance) == 2, f'robustscaler_unit_variance must have length 2, got {unit_variance}.'
-            unit_variance = (unit_variance[0], unit_variance[1])
+            # Check quartile_range has length 2 and convert it into a tuple
+            quartiles = params.robustscaler_quartile_range
+            assert len(quartiles) == 2, f'robustscaler_quartile_range must have length 2, got {quartiles}.'
+            quartiles = (quartiles[0], quartiles[1])
             transformers_x = [
                 trans.SklearnTransformerWrapper(transform_X=True, dataset=dataset,
                     sklearn_transformer=RobustScaler(
                         with_centering=params.robustscaler_with_centering,
                         with_scaling=params.robustscaler_with_scaling,
-                        quantile_range=params.robustscaler_quartile_range,
+                        quantile_range=quartiles,
                         unit_variance=params.robustscaler_unit_variance
                     ))
                 ]
