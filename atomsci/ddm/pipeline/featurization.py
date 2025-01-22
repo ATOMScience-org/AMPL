@@ -1606,7 +1606,7 @@ class DescriptorFeaturization(PersistentFeaturization):
         """
         if params.feature_transform_type == 'normalization':
             transformers_x = [trans.NormalizationTransformerMissingData(transform_X=True, dataset=dataset)]
-        elif params.feature_transformer_type == 'RobustScaler':
+        elif params.feature_transform_type == 'RobustScaler':
             transformers_x = [
                 trans.SklearnTransformerWrapper(transform_X=True, dataset=dataset,
                     sklearn_transformer=RobustScaler(
@@ -1616,7 +1616,7 @@ class DescriptorFeaturization(PersistentFeaturization):
                         unit_variance=params.robustscaler_unit_variance
                     ))
                 ]
-        elif params.feature_transformer_type == 'PowerTransformer':
+        elif params.feature_transform_type == 'PowerTransformer':
             transformers_x = [
                 trans.SklearnTransformerWrapper(transform_X=True, dataset=dataset,
                     sklearn_transformer=PowerTransformer(
