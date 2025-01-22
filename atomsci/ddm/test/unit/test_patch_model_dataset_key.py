@@ -104,7 +104,7 @@ def test_check_data_accessibility_bad():
     # directory with bad tarball
     model_path = currentdir
 
-    dataset_info = pmdk.check_data_accessibility(model_path=model_path)
+    dataset_info = pmdk.check_data_accessibility(model_path=model_path, verbose=True)
     assert len(dataset_info) == 0
 
 if __name__ == '__main__':

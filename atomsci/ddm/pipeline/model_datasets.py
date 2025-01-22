@@ -6,7 +6,6 @@ import shutil
 from deepchem.data import NumpyDataset
 import numpy as np
 import pandas as pd
-import deepchem as dc
 import uuid
 from atomsci.ddm.pipeline import featurization as feat
 from atomsci.ddm.pipeline import splitting as split
@@ -252,6 +251,19 @@ class ModelDataset(object):
             combined_train_valid_data (dc.Dataset): A dataset object (initialized as None), of the merged train
             and valid splits
 
+            combined_train_valid_data (dc.NumpyDataset): Cache for combined training and validation data, 
+            used by k-fold CV code
+
+            subset_response_dict (dictionary): Cache for subset-specific response values matched to IDs, 
+            used by k-fold CV code
+
+            subset_weight_dict (dictionary): Cache for subset-specific weights matched to IDs, 
+            used by k-fold CV code
+
+            untransformed_response_dict (dictionary): Cache for untransformed response values 
+            matched to IDs, used by k-fold CV code
+
+
         set in get_featurized_data:
             dataset: A new featurized DeepChem Dataset.
 
@@ -317,8 +329,11 @@ class ModelDataset(object):
         self.combined_train_valid_data = None
         # Cache for subset-specific response values matched to IDs, used by k-fold CV code
         self.subset_response_dict = {}
-        # Cache for subset-specific response values matched to IDs, used by k-fold CV code
+        # Cache for subset-specific weights matched to IDs, used by k-fold CV code
         self.subset_weight_dict = {}
+        # Cache for untransformed response values matched to IDs, used by k-fold CV code
+        self.untransformed_response_dict = {}
+
 
     # ****************************************************************************************
     def load_full_dataset(self):
@@ -353,6 +368,7 @@ class ModelDataset(object):
                 n_features: The count of features (int)
                 vals: The response col after featurization (np.array)
                 attr: A pd.dataframe containing the compound ids and smiles
+                untranfsormed_dataset: A NumpyDataset containing untransformed data
         """
         
         if params is None:
@@ -379,6 +395,7 @@ class ModelDataset(object):
                 if params.prediction_type=='classification':
                     w = w.astype(np.float32)
 
+                self.untransformed_dataset = NumpyDataset(features, self.vals, ids=ids)
                 self.dataset = NumpyDataset(features, self.vals, ids=ids, w=w)
                 self.log.info("Using prefeaturized data; number of features = " + str(self.n_features))
                 return
@@ -404,6 +421,7 @@ class ModelDataset(object):
         self.log.debug("Number of features: " + str(self.n_features))
            
         # Create the DeepChem dataset       
+        self.untransformed_dataset = NumpyDataset(features, self.vals, ids=ids)
         self.dataset = NumpyDataset(features, self.vals, ids=ids, w=w)
         # Checking for minimum number of rows
         if len(self.dataset) < params.min_compound_number:
@@ -681,14 +699,12 @@ class ModelDataset(object):
 
     # *************************************************************************************
 
-    def get_subset_responses_and_weights(self, subset, transformers):
+    def get_subset_responses_and_weights(self, subset):
         """Returns a dictionary mapping compound IDs in the given dataset subset to arrays of response values
         and weights.  Used by the perf_data module under k-fold CV.
 
         Args:
             subset (string): Label of subset, 'train', 'test', or 'valid'
-
-            transformers: Transformers object for full dataset
 
         Returns:
             tuple(response_dict, weight_dict)
@@ -703,13 +719,35 @@ class ModelDataset(object):
             else:
                 raise ValueError('Unknown dataset subset type "%s"' % subset)
 
-            y = dc.trans.undo_transforms(dataset.y, transformers)
+            response_vals = dict(zip(dataset.ids, self.get_untransformed_responses(dataset.ids)))
+
             w = dataset.w
-            response_vals = dict([(id, y[i,:]) for i, id in enumerate(dataset.ids)])
             weights = dict([(id, w[i,:]) for i, id in enumerate(dataset.ids)])
             self.subset_response_dict[subset] = response_vals
             self.subset_weight_dict[subset] = weights
         return self.subset_response_dict[subset], self.subset_weight_dict[subset]
+
+    # *************************************************************************************
+
+    def get_untransformed_responses(self, ids):
+        """
+        Returns a numpy array of untransformed response values for the given IDs.
+
+        Parameters:
+        ids (list or np.ndarray): List or array of IDs for which to retrieve untransformed response values.
+
+        Returns:
+        np.ndarray: A numpy array of untransformed response values corresponding to the given IDs.
+        """        
+
+        response_vals = np.zeros((len(ids), self.untransformed_dataset.y.shape[1]))
+        if len(self.untransformed_response_dict) == 0:
+            self.untransformed_response_dict = dict(zip(self.untransformed_dataset.ids, self.untransformed_dataset.y))
+
+        for i, id in enumerate(ids):
+            response_vals[i] = self.untransformed_response_dict[id]
+
+        return response_vals
 
     # *************************************************************************************
 
@@ -828,6 +866,8 @@ class MinimalDataset(ModelDataset):
                                                                                     params, self.contains_responses)
             self.log.warning("Done")
         self.n_features = self.featurization.get_feature_count()
+        
+        self.untransformed_dataset= NumpyDataset(features, self.vals, ids=ids)
         self.dataset = NumpyDataset(features, self.vals, ids=ids)
 
     # ****************************************************************************************
