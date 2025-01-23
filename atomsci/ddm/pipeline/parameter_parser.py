@@ -1307,6 +1307,7 @@ def get_parser():
     # PowerTransformer parameters
     parser.add_argument(
         '--powertransformer_method', choices=['yeo-johnson', 'box-cox'],
+        default='yeo-johnson',
         help='The power transform method. Available methods are: "yeo-johnson", '
         'works with positive and negative values "box-cox", only works with strictly positive values. '
         'Choices are {"yeo-johnson", "box-cox"}')
