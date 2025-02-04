@@ -1558,7 +1558,7 @@ class HyperOptSearch():
             model_failed = False
             try:
                 pl.train_model()
-            except Exception as e:
+            except Exception:
                 self.log.exception('Exception found during hyperopt training')
                 model_failed = True
 
