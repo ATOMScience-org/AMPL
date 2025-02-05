@@ -6,6 +6,7 @@ from atomsci.ddm.utils import llnl_utils
 
 # Train and Predict
 # -----
+@pytest.mark.gpu_required
 def test_reg_config_H1_fit_AttentiveFPModel():
     if not llnl_utils.is_lc_system():
         assert True

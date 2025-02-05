@@ -8,6 +8,7 @@ import tarfile
 import json
 import glob
 import pandas as pd
+import pytest
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../delaney_Panel'))
 from test_delaney_panel import init, train_and_predict
@@ -248,6 +249,7 @@ def test_GraphConvModel_results():
 
     clean()
 
+@pytest.mark.gpu_required
 def test_MPNN_results():
     if not llnl_utils.is_lc_system():
         assert True

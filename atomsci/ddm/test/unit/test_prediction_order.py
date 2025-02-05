@@ -5,12 +5,13 @@ import pandas as pd
 import numpy as np
 import sklearn.metrics as skm
 from atomsci.ddm.utils import llnl_utils
+import pytest
 
 """
 make sure that the various ways of making predictions return
 predictions in the same order as the input
 """
-
+@pytest.mark.gpu_required
 def test_predict_from_model():
     """test that predict_from_model makes predictions in the same
     order as the input

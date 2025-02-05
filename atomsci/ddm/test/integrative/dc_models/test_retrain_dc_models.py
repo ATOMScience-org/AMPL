@@ -7,6 +7,7 @@ import os
 import sys
 import tarfile
 import tempfile
+import pytest
 
 import rdkit.Chem as rdC
 import rdkit.Chem.Descriptors as rdCD
@@ -212,6 +213,7 @@ def H1_init():
 
 # Train and Predict
 # -----
+@pytest.mark.gpu_required
 def test_reg_config_H1_fit_AttentiveFPModel():
     if not llnl_utils.is_lc_system():
         assert True
@@ -228,6 +230,7 @@ def test_reg_config_H1_fit_AttentiveFPModel():
     verify_saved_params(json_f, re_tar_f)
 
 # -----
+@pytest.mark.gpu_required
 def test_reg_config_H1_fit_GCNModel():
     if not llnl_utils.is_lc_system():
         assert True
@@ -244,6 +247,7 @@ def test_reg_config_H1_fit_GCNModel():
     verify_saved_params(json_f, re_tar_f)
 
 # -----
+@pytest.mark.gpu_required
 def test_reg_config_H1_fit_MPNNModel():
     if not llnl_utils.is_lc_system():
         assert True
@@ -259,6 +263,7 @@ def test_reg_config_H1_fit_MPNNModel():
 
     verify_saved_params(json_f, re_tar_f)
 
+@pytest.mark.gpu_required
 def test_reg_config_H1_fit_GraphConvModel():
     if not llnl_utils.is_lc_system():
         assert True
@@ -274,6 +279,7 @@ def test_reg_config_H1_fit_GraphConvModel():
 
     verify_saved_params(json_f, re_tar_f)
 
+@pytest.mark.gpu_required
 def test_reg_config_H1_fit_PytorchMPNNModel():
     if not llnl_utils.is_lc_system():
         assert True

@@ -2,10 +2,12 @@ import os
 
 from atomsci.ddm.pipeline import compare_models as cm
 from atomsci.ddm.utils import llnl_utils
+import pytest
 
 def clean():
     pass
 
+@pytest.mark.gpu_required
 def test():
     if not llnl_utils.is_lc_system():
         assert True
