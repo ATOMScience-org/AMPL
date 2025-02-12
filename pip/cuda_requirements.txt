@@ -41,6 +41,7 @@ MolVS
 mordred
 
 pytest
+matplotcheck
 ipykernel
 
 deepchem==2.7.1

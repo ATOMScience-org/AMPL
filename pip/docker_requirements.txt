@@ -39,6 +39,7 @@ maestrowf
 MolVS
 mordred
 pytest
+matplotcheck
 ipykernel
 jupyter
 jupyterlab
