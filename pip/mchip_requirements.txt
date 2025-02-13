@@ -5,6 +5,8 @@
 # for LC developers: comment out pypi index url and use t$
 # --extra-index-url https://wci-repo.llnl.gov/repository/$
 
+-r dev_requirements.txt
+
 # use tensorflow not tensorflow-cpu for arm. see https://www.tensorflow.org/install/pip#linux
 tensorflow~=2.14.0
 
@@ -38,12 +40,6 @@ bravado
 maestrowf
 MolVS
 mordred
-
-pytest
-matplotcheck
-ipykernel
-notebook
-jupyterlab
 
 deepchem==2.7.1
 rdkit==2024.3.5

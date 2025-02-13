@@ -5,8 +5,10 @@ jupyterlab
 maestrowf
 matplotlib
 matplotlib-venn
+notebook
 pytest
 pytest-cov
+pytest-mock
 pytest-xdist
 matplotcheck
 ruff
