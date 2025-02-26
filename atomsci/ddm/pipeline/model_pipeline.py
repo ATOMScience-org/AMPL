@@ -965,6 +965,10 @@ class ModelPipeline:
                 pred_data = self.predict_embedding(dset_df, dset_params=dset_params)
             else:
                 pred_data = copy.deepcopy(self.data.dataset.X)
+                
+            if self.featurization.feat_type=="computed_descriptors" and self.featurization.descriptor_type=='mordred_filtered':
+                pred_data = pred_data[:,~np.isnan(pred_data).all(axis=0)]
+                pred_data = np.where(np.isnan(pred_data), np.nanmean(pred_data, axis=0), pred_data)
 
             try:
                 if not hasattr(self, 'featurized_train_data'):
@@ -989,6 +993,9 @@ class ModelPipeline:
                         train_dset = dc.data.NumpyDataset(train_X)
                         self.featurized_train_data = self.model_wrapper.generate_embeddings(train_dset)
                     else:
+                        if self.featurization.feat_type=="computed_descriptors" and self.featurization.descriptor_type=='mordred_filtered':
+                            train_X = train_X[:,~np.isnan(train_X).all(axis=0)]
+                            train_X = np.where(np.isnan(train_X), np.nanmean(train_X, axis=0), train_X)
                         self.featurized_train_data = train_X
 
                 if not hasattr(self, "train_pair_dis") or not hasattr(self, "train_pair_dis_metric") or self.train_pair_dis_metric != dist_metric:
@@ -996,7 +1003,7 @@ class ModelPipeline:
                     self.train_pair_dis_metric = dist_metric
 
                 self.log.debug("Calculating AD index.")
-
+                
                 if AD_method == "local_density":
                     result_df["AD_index"] = calc_AD_kmean_local_density(self.featurized_train_data, pred_data, k, train_dset_pair_distance=self.train_pair_dis, dist_metric=dist_metric)
                 else:
