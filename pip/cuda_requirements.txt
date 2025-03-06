@@ -5,8 +5,6 @@
 #--extra-index-url https://wci-repo.llnl.gov/repository/pypi-group/simple
 -f https://data.dgl.ai/wheels/cu118/repo.html
 
--r dev_requirements.txt
-
 tensorflow[and-cuda]~=2.14.0
 
 tensorrt
@@ -41,6 +39,10 @@ bravado
 maestrowf
 MolVS
 mordred
+
+pytest
+matplotcheck
+ipykernel
 
 deepchem==2.7.1
 rdkit==2024.3.5

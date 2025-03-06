@@ -5,8 +5,6 @@
 # for LC developers: comment out pypi index url and use t$
 # --extra-index-url https://wci-repo.llnl.gov/repository/$
 
--r dev_requirements.txt
-
 tensorflow-cpu~=2.14.0
 
 torch==2.0.1
@@ -40,6 +38,11 @@ bravado
 maestrowf
 MolVS
 mordred
+pytest
+matplotcheck
+ipykernel
+jupyter
+jupyterlab
 
 deepchem==2.7.1
 rdkit==2024.3.5
