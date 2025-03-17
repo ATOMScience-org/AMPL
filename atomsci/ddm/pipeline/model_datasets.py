@@ -407,12 +407,14 @@ class ModelDataset(object):
                 pass
         else:
             self.log.info("Creating new featurized dataset for dataset %s" % self.dataset_name)
+        print("inside get_featurzied_data, before load_full_dataset")
         dset_df = self.load_full_dataset()
         sample_only = False
         if (params.max_dataset_rows > 0) and (len(dset_df) > params.max_dataset_rows):
             dset_df = dset_df.sample(n=params.max_dataset_rows).reset_index(drop=True)
             sample_only = True
         check_task_columns(params, dset_df)
+        print("dataset loaded")
         features, ids, self.vals, self.attr, w, featurized_dset_df = self.featurization.featurize_data(dset_df, params, self.contains_responses)
         if not sample_only:
             self.save_featurized_data(featurized_dset_df)

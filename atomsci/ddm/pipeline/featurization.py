@@ -9,6 +9,9 @@ import numpy as np
 import deepchem as dc
 import pandas as pd
 
+from tqdm import tqdm
+import concurrent.futures
+
 from atomsci.ddm.utils import datastore_functions as dsf
 from atomsci.ddm.pipeline import transformations as trans
 from atomsci.ddm.pipeline import parameter_parser as pp
@@ -251,41 +254,42 @@ def get_2d_mols(smiles_strs):
     mols = np.array(mols)[is_valid]
     return mols, is_valid
 
-def get_3d_mols(smiles_strs):
-    """Convert SMILES strings to Mol objects with explicit hydrogens and 3D coordinates
-
+def get_3d_mols(smiles_strs, max_workers=None):
+    """
+    Convert SMILES strings to RDKit Mol objects with explicit hydrogens and 3D coordinates,
+    in parallel using multiple threads.
     Args:
         smiles_strs (iterable of str): List of SMILES strings to convert
-
+        max_workers (int): Number of worker threads to use
     Returns:
         tuple (mols, is_valid):
             mols (ndarray of Mol): Mol objects for valid SMILES strings only
-            is_valid (ndarray of bool): True for each input SMILES string that was valid according to RDKit
-
+            is_valid (ndarray of bool): True for each input SMILES string that was valid
+                                        according to RDKit
     """
-    log.debug('Converting SMILES to RDKit Mols')
-    nsmiles = len(smiles_strs)
-    mols = [None]*nsmiles
-    for i, smi in enumerate(smiles_strs):
+    log.debug(f'Converting SMILES to RDKit Mols in parallel (max_workers={max_workers})')
+    # Helper function that handles a single SMILES
+    def process_smiles(smi):
+        if smi is None:
+            return None
         try:
-            mols[i] = Chem.MolFromSmiles(smi)
+            mol = Chem.MolFromSmiles(smi)
+            if mol:
+                mol = Chem.AddHs(mol)
+                AllChem.EmbedMolecule(mol)
+            return mol
         except TypeError:
-            pass
-
-    log.debug('Adding hydrogens to mols')
-    mols = [Chem.AddHs(m) if m is not None else None for m in mols]
-    log.debug('Computing 3D coordinates')
-    for i, m in enumerate(mols):
-        if m is not None:
-            try:
-                AllChem.EmbedMolecule(m)
-            except RuntimeError:
-                # This sometimes fails in the RDKit code. Give up on this molecule.
-                mols[i] = None
-    is_valid = np.array([(m is not None) for m in mols], dtype=bool)
-    mols = np.array(mols)[is_valid]
+            # TypeErrors can occur in Chem.MolFromSmiles
+            return None
+        except RuntimeError:
+            # Runtime Errors can occur in EmbedMolecule
+            return None
+    # Use a ThreadPoolExecutor to process SMILES in parallel
+    with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+        mols_list = list(executor.map(process_smiles, smiles_strs))
+    is_valid = np.array([m is not None for m in mols_list], dtype=bool)
+    mols = np.array(mols_list)[is_valid]
     return mols, is_valid
-
 
 def compute_2d_mordred_descrs(mols):
     """Compute 2D Mordred descriptors only
@@ -351,7 +355,7 @@ def compute_mordred_descriptors_from_smiles(smiles_strs, max_cpus=None, quiet=Tr
                             were considered valid.
 
     """
-    mols3d, is_valid = get_3d_mols(smiles_strs)
+    mols3d, is_valid = get_3d_mols(smiles_strs, max_workers=max_cpus)
     if not np.any(is_valid):
         log.error("No valid SMILES strings input to compute_mordred_descriptors_from_smiles.")
         log.error("First input SMILES = %s" % smiles_strs[0])
@@ -380,7 +384,7 @@ def compute_all_rdkit_descrs(mol_df, mol_col = "mol"):
     all_desc = [x[0] for x in Descriptors._descList]
     calc = get_rdkit_calculator(all_desc)
     cds=[]
-    for mol in mol_df[mol_col]:
+    for mol in tqdm(mol_df[mol_col], desc="compute_all_rdkit_descrs, calc descriptor"):
         cd = calc.CalcDescriptors(mol)
         cds.append(cd)
     df2=pd.DataFrame(cds, columns=all_desc, index=mol_df.index)
@@ -1764,6 +1768,7 @@ class ComputedDescriptorFeaturization(DescriptorFeaturization):
         # Compute descriptors for the compounds that need them
         if len(calc_smiles) > 0:
             calc_smiles_df = input_df[input_df[params.smiles_col].isin(calc_smiles)]
+            print("about to compute_descriptors")
             calc_desc_df, is_valid = self.compute_descriptors(calc_smiles_df, params)
             calc_smiles_feat_df = calc_smiles_df[is_valid].reset_index(drop=True)[[params.smiles_col]]
             # update descr_cols with smiles col to merge instead of concat data
@@ -1883,6 +1888,7 @@ class ComputedDescriptorFeaturization(DescriptorFeaturization):
             ret_df = ret_df.join(desc_df, how='inner')
 
         elif descr_source == 'rdkit':
+            print("about to compute rdkit descriptors")
             desc_df, is_valid = self.compute_rdkit_descriptors(smiles_df, smiles_col = params.smiles_col)
             desc_df = desc_df[descr_cols]
             # Add the ID and SMILES columns to the returned data frame
@@ -1923,7 +1929,7 @@ class ComputedDescriptorFeaturization(DescriptorFeaturization):
                 is_valid (ndarray of bool): True for each input SMILES string that was valid according to RDKit
 
         """
-        mols3d, is_valid = get_3d_mols(smiles_strs)
+        mols3d, is_valid = get_3d_mols(smiles_strs, params.mordred_cpus)
         quiet = not params.verbose
         desc_df = compute_all_mordred_descrs(mols3d, params.mordred_cpus, quiet=quiet)
         return desc_df, is_valid

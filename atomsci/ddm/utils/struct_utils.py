@@ -13,6 +13,7 @@ import logging
 from rdkit import Chem
 from rdkit.Chem import AllChem, Draw, Descriptors
 from rdkit.Chem.MolStandardize import rdMolStandardize
+from rdkit.Chem.rdchem import AtomValenceException
 
 stdizer = molvs.standardize.Standardizer(prefer_organic=True)
 uncharger = molvs.charge.Uncharger()
@@ -225,7 +226,10 @@ def base_mol_from_smiles(orig_smiles, useIsomericSmiles=True, removeCharges=Fals
     cmpd_mol = Chem.MolFromSmiles(orig_smiles)
     if cmpd_mol is None:
         return None
-    std_mol = stdizer.isotope_parent(stdizer.fragment_parent(cmpd_mol), skip_standardize=True)
+    try:
+        std_mol = stdizer.isotope_parent(stdizer.fragment_parent(cmpd_mol), skip_standardize=True)
+    except AtomValenceException:
+        return None
     if removeCharges:
         std_mol = uncharger(std_mol)
     return std_mol

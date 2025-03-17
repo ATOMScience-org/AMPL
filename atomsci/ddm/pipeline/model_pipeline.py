@@ -281,7 +281,9 @@ class ModelPipeline:
         """
         if params is None:
             params = self.params
+        print("Before create model dataset")
         self.data = model_datasets.create_model_dataset(params, self.featurization, self.ds_client)
+        print("model dataset created")
         self.data.get_featurized_data(params)
 
         if self.run_mode == 'training':
@@ -552,6 +554,7 @@ class ModelPipeline:
         if featurization is None:
             featurization = feat.create_featurization(self.params)
         self.featurization = featurization
+        print("before load_featurize_data")
         self.load_featurize_data()
         return self.data.split_uuid
 

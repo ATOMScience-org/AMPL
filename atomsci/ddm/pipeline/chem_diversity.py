@@ -3,6 +3,7 @@
 import sys
 import numpy as np
 from rdkit import Chem
+from rdkit.Chem import rdFingerprintGenerator
 from rdkit.Chem import AllChem
 from scipy.spatial.distance import pdist
 from scipy.spatial.distance import cdist
@@ -41,19 +42,20 @@ def calc_dist_smiles(feat_type, dist_met, smiles_arr1, smiles_arr2=None, calc_ty
 
     """
     within_dset = False
+    morg_gen = rdFingerprintGenerator.GetMorganGenerator(radius=2, fpSize=1024)
     if feat_type in ['ECFP','ecfp'] and dist_met=='tanimoto':
         mols1 = [Chem.MolFromSmiles(s) for s in smiles_arr1]
-        fprints1 = [AllChem.GetMorganFingerprintAsBitVect(mol, 2, 1024) for mol in mols1]
+        fprints1 = [morg_gen.GetFingerprint(mol) for mol in mols1]
         if smiles_arr2 is not None:
             if len(smiles_arr2) == 1:
                 cpd_mol = Chem.MolFromSmiles(smiles_arr2[0])
-                cpd_fprint = AllChem.GetMorganFingerprintAsBitVect(cpd_mol, 2, 1024)
+                cpd_fprint = morg_gen.GetFingerprint(cpd_mol)
                 # Vector of distances
                 return calc_summary(dist_metrics.tanimoto_single(cpd_fprint, fprints1)[0], calc_type, 
                                     num_nearest, within_dset)
             else:
                 mols2 = [Chem.MolFromSmiles(s) for s in smiles_arr2]
-                fprints2 = [AllChem.GetMorganFingerprintAsBitVect(mol, 2, 1024) for mol in mols2]
+                fprints2 = [morg_gen.GetFingerprint(mol) for mol in mols2]
         else:
             fprints2 = None
             within_dset = True
