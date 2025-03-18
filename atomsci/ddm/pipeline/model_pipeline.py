@@ -15,11 +15,9 @@ import tempfile
 import tarfile
 import deepchem as dc
 import numpy as np
-import time
 import pandas as pd
 import scipy as sp
 from sklearn.metrics import pairwise_distances
-import pdb
 import copy
 
 from atomsci.ddm.utils import datastore_functions as dsf
@@ -36,6 +34,20 @@ from atomsci.ddm.pipeline import transformations as trans
 logging.basicConfig(format='%(asctime)-15s %(message)s')
 
 # ---------------------------------------------
+def get_k_nearest_index(dist_matrix, k):
+    """Returns the indexes of the nearest k neighbors.
+
+    Find nearest k neighbors for every row and their indexes using
+    the given distance_matrix and metric.
+    """
+    result = []
+    for i in range(len(dist_matrix)):
+        kn_idx = np.argpartition(dist_matrix[i], k)[:k]
+        result.append(kn_idx)
+
+    return np.vstack(result)
+
+# ---------------------------------------------
 def calc_AD_kmean_dist(train_dset, pred_dset, k, train_dset_pair_distance=None, dist_metric="euclidean"):
     """calculate the probability of the prediction dataset fall in the the domain of traning set. Use Euclidean distance of the K nearest neighbours.
     train_dset and pred_dset should be in 2D numpy array format where each row is a compound.
@@ -44,24 +56,35 @@ def calc_AD_kmean_dist(train_dset, pred_dset, k, train_dset_pair_distance=None, 
         # calculate the pairwise distance of training set
         train_dset_pair_distance = pairwise_distances(X=train_dset, metric=dist_metric)
     train_kmean_dis = []
+    # here we use k+1 since the nearest neighbor is itself.
+    kn_idxes = get_k_nearest_index(train_dset_pair_distance, k+1)
     for i in range(len(train_dset_pair_distance)):
-        kn_idx = np.argpartition(train_dset_pair_distance[i], k+1)
-        dis = np.mean(train_dset_pair_distance[i][kn_idx[:k+1]])
+        # instead of taking the mean, we divide by k. Leaving out the distance to itself
+        dis = np.sum(train_dset_pair_distance[i][kn_idxes[i]])/k
         train_kmean_dis.append(dis)
     train_dset_distribution = sp.stats.norm.fit(train_kmean_dis)
     # pairwise distance between train and pred set
     pred_size = len(pred_dset)
     train_pred_dis = pairwise_distances(X=pred_dset, Y=train_dset, metric=dist_metric)
+    train_pred_kn_idxes = get_k_nearest_index(train_pred_dis, k)
     pred_kmean_dis_score = np.zeros(pred_size)
     for i in range(pred_size):
-        pred_km_dis = np.mean(np.sort(train_pred_dis[i])[:k])
+        dists = train_pred_dis[i][train_pred_kn_idxes[i]]
+        pred_km_dis = np.mean(dists)
         train_dset_std = train_dset_distribution[1] if train_dset_distribution[1] != 0 else 1e-6
         pred_kmean_dis_score[i] = max(1e-6, (pred_km_dis - train_dset_distribution[0]) / train_dset_std)
-    return pred_kmean_dis_score
+    return pred_kmean_dis_score, train_pred_kn_idxes
 
 # ---------------------------------------------
 def calc_AD_kmean_local_density(train_dset, pred_dset, k, train_dset_pair_distance=None, dist_metric="euclidean"):
-    """Evaluate the AD of pred data by comparing the distance betweenthe unseen object and its k nearest neighbors in the training set to the distance between these k nearest neighbors and their k nearest neighbors in the training set. Return the distance ratio. Greater than 1 means the pred data is far from the domain."""
+    """Evaluate the AD of pred data.
+    
+    AD is calculated by comparing the distance between 
+    the unseen object and its k nearest neighbors in the training set 
+    to the distance between these k nearest neighbors and their k nearest 
+    neighbors in the training set. Return the distance ratio. 
+    Greater than 1 means the pred data is far from the domain.
+    """
     if train_dset_pair_distance is None:
         # calculate the pair-wise distance of training set
         train_dset_pair_distance = pairwise_distances(X=train_dset, metric=dist_metric)
@@ -69,15 +92,17 @@ def calc_AD_kmean_local_density(train_dset, pred_dset, k, train_dset_pair_distan
     pred_size = len(pred_dset)
     train_pred_dis = pairwise_distances(X=pred_dset, Y=train_dset, metric=dist_metric)
     pred_kmean_dis_local_density = np.zeros(pred_size)
+    kn_idxes = get_k_nearest_index(train_pred_dis, k)
+    # use k+1 here since the nearest neighbor is itself.
+    nei_indxes = get_k_nearest_index(train_dset_pair_distance, k+1)
     for i in range(pred_size):
         # find the index of k nearest neighbour of each prediction data
-        kn_idx = np.argpartition(train_pred_dis[i], k)
-        pred_km_dis = np.mean(train_pred_dis[i][kn_idx[:k]])
+        pred_km_dis = np.mean(train_pred_dis[i][kn_idxes[i]])
         # find the neighbours of each neighbour and calculate the distance
         neighbor_dis = []
-        for nei_ix in kn_idx[:k]:
-            nei_kn_idx = np.argpartition(train_dset_pair_distance[nei_ix], k)
-            neighbor_dis.append(np.mean(train_dset_pair_distance[nei_ix][nei_kn_idx[:k]]))
+        for nei_ix in kn_idxes[i]:
+            # instead of taking the mean, we divide by k. Leaving out the distance to itself
+            neighbor_dis.append(np.sum(train_dset_pair_distance[nei_ix][nei_indxes[nei_ix]])/k)
         ave_nei_dis = np.mean(neighbor_dis)
         if ave_nei_dis == 0:
             ave_nei_dis = 1e-6
@@ -200,7 +225,7 @@ class ModelPipeline:
             else:
                 self.ds_client = ds_client
         # Check consistency of task parameters
-        if type(params.response_cols) == str:
+        if isinstance(params.response_cols, str):
             params.response_cols = [params.response_cols]
         if params.num_model_tasks != len(params.response_cols):
             raise ValueError("num_model_tasks parameter is inconsistent with response_cols")
@@ -276,16 +301,9 @@ class ModelPipeline:
         # is fitted to the training data only. The transformers are then applied to the training,
         # validation and test sets separately.
         if not params.split_only:
-            self.model_wrapper.create_transformers(self.data)
+            self.model_wrapper.create_transformers(trans.get_all_training_datasets(self.data))
         else:
             self.run_mode = ''
-
-        if self.run_mode == 'training':
-            for i, (train, valid) in enumerate(self.data.train_valid_dsets):
-                train = self.model_wrapper.transform_dataset(train)
-                valid = self.model_wrapper.transform_dataset(valid)
-                self.data.train_valid_dsets[i] = (train, valid)
-            self.data.test_dset = self.model_wrapper.transform_dataset(self.data.test_dset)
 
         # ****************************************************************************************
 
@@ -491,7 +509,7 @@ class ModelPipeline:
             out.write("\n")
 
         if self.params.save_results:
-            if type(model_metrics) != list:
+            if not isinstance(model_metrics, list):
                 model_metrics = [model_metrics]
             for metrics in model_metrics:
                 retry = True
@@ -728,9 +746,11 @@ class ModelPipeline:
             the featurizer may not be able to featurize all of them.
         """
 
+        logger = logging.getLogger('ATOM')
+        orig_log_level = logger.getEffectiveLevel()
+        logger.setLevel(orig_log_level)
         if not verbose:
             os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1'
-            logger = logging.getLogger('ATOM')
             logger.setLevel(logging.CRITICAL)
             sys.stdout = io.StringIO()
             import warnings
@@ -747,12 +767,13 @@ class ModelPipeline:
         res = self.predict_on_dataframe(df, AD_method=AD_method, k=k, dist_metric=dist_metric)
 
         sys.stdout = sys.__stdout__
+        logger.setLevel(orig_log_level)
 
         return res
 
     # ****************************************************************************************
     def predict_full_dataset(self, dset_df, is_featurized=False, contains_responses=False, dset_params=None, AD_method=None, k=5, dist_metric="euclidean",
-                             max_train_records_for_AD=1000):
+                             max_train_records_for_AD=1000, AD_return_NN=False):
         """Compute predicted responses from a pretrained model on a set of compounds listed in
         a data frame. The data frame should contain, at minimum, a column of compound IDs; if
         SMILES strings are needed to compute features, they should be provided as well. Feature
@@ -795,6 +816,10 @@ class ModelPipeline:
             If the training dataset is larger than `max_train_records_for_AD`, a random sample of rows with
             this size is used instead for the AD calculations.
 
+            AD_return_NN (bool): If AD is calculated and this flag is set, additional columns will be added
+            that contain the compound_ids of the k nearest neighbors. These columns will be named
+            AD_NN_1 .. AD_NN_k. These neighbors are not in any particular order.
+
         Returns:
             result_df (DataFrame): Data frame indexed by compound IDs containing a column of SMILES
             strings, with additional columns containing the predicted values for each response variable.
@@ -831,8 +856,6 @@ class ModelPipeline:
             raise Exception("response_cols missing from model params")
         # Get features for each compound and construct a DeepChem Dataset from them
         self.data.get_featurized_data(dset_df, is_featurized)
-        # Transform the features and responses if needed
-        self.data.dataset = self.model_wrapper.transform_dataset(self.data.dataset)
 
         # Note that at this point, the dataset may contain fewer rows than the input. Typically this happens because
         # of invalid SMILES strings. Remove any rows from the input dataframe corresponding to SMILES strings that were
@@ -879,6 +902,10 @@ class ModelPipeline:
                 pred_data = self.predict_embedding(dset_df, dset_params=dset_params)
             else:
                 pred_data = copy.deepcopy(self.data.dataset.X)
+                
+            if self.featurization.feat_type=="computed_descriptors" and self.featurization.descriptor_type=='mordred_filtered':
+                pred_data = pred_data[:,~np.isnan(pred_data).all(axis=0)]
+                pred_data = np.where(np.isnan(pred_data), np.nanmean(pred_data, axis=0), pred_data)
 
             try:
                 if not hasattr(self, 'featurized_train_data'):
@@ -893,14 +920,19 @@ class ModelPipeline:
                     if len(self.data.train_valid_dsets) > 1:
                         # combine train and valid set for k-fold CV models
                         train_X = np.concatenate((self.data.train_valid_dsets[0][0].X, self.data.train_valid_dsets[0][1].X))
+                        ids = np.concatenate((self.data.train_valid_dsets[0][0].ids, self.data.train_valid_dsets[0][1].ids))
                     else:
                         train_X = self.data.train_valid_dsets[0][0].X
+                        ids = self.data.train_valid_dsets[0][0].ids
     
                     if self.featurization.feat_type == "graphconv":
                         self.log.debug("Computing training data embeddings for AD calculation.")
                         train_dset = dc.data.NumpyDataset(train_X)
                         self.featurized_train_data = self.model_wrapper.generate_embeddings(train_dset)
                     else:
+                        if self.featurization.feat_type=="computed_descriptors" and self.featurization.descriptor_type=='mordred_filtered':
+                            train_X = train_X[:,~np.isnan(train_X).all(axis=0)]
+                            train_X = np.where(np.isnan(train_X), np.nanmean(train_X, axis=0), train_X)
                         self.featurized_train_data = train_X
 
                 if not hasattr(self, "train_pair_dis") or not hasattr(self, "train_pair_dis_metric") or self.train_pair_dis_metric != dist_metric:
@@ -908,12 +940,18 @@ class ModelPipeline:
                     self.train_pair_dis_metric = dist_metric
 
                 self.log.debug("Calculating AD index.")
-
-
+                
                 if AD_method == "local_density":
                     result_df["AD_index"] = calc_AD_kmean_local_density(self.featurized_train_data, pred_data, k, train_dset_pair_distance=self.train_pair_dis, dist_metric=dist_metric)
                 else:
-                    result_df["AD_index"] = calc_AD_kmean_dist(self.featurized_train_data, pred_data, k, train_dset_pair_distance=self.train_pair_dis, dist_metric=dist_metric)
+                    result_df["AD_index"], indexes = calc_AD_kmean_dist(self.featurized_train_data, pred_data, k, train_dset_pair_distance=self.train_pair_dis, dist_metric=dist_metric)
+
+                if AD_return_NN:
+                    for neigh in range(k):
+                        neigh_ids = []
+                        for comp in range(len(indexes)):
+                            neigh_ids.append(ids[indexes[comp][neigh]])
+                        result_df[f'AD_NN_{neigh}'] = neigh_ids
 
             except:
                 self.log.warning("AD index calculation failed")
@@ -955,7 +993,7 @@ class ModelPipeline:
         self.data = model_datasets.create_minimal_dataset(self.params, self.featurization)
         self.data.get_featurized_data(dset_df, is_featurized=False)
         # Not sure the following is necessary
-        self.data.dataset = self.model_wrapper.transform_dataset(self.data.dataset)
+        self.data.dataset = self.model_wrapper.transform_dataset(self.data.dataset, fold='final')
 
         # Get the embeddings as a numpy array
         embeddings = self.model_wrapper.generate_embeddings(self.data.dataset)
@@ -1147,7 +1185,7 @@ def regenerate_results(result_dir, params=None, metadata_dict=None, shared_featu
     # Get the tarball containing the saved model from the datastore, and extract it into model_dir (old format)
     # or output_dir (new format) according to the format of the tarball contents.
 
-    extract_dir = trkr.extract_datastore_model_tarball(model_uuid, model_params.model_bucket, model_params.output_dir, 
+    _extract_dir = trkr.extract_datastore_model_tarball(model_uuid, model_params.model_bucket, model_params.output_dir,
                                          pipeline.model_wrapper.model_dir)
 
     # If that worked, reload the saved model training state
@@ -1193,7 +1231,7 @@ def create_prediction_pipeline(params, model_uuid, collection_name=None, featuri
     if collection_name is None:
         collection_name = trkr.get_model_collection_by_uuid(model_uuid, mlmt_client)
 
-    if type(params) == dict:
+    if isinstance(params, dict):
         params = parse.wrapper(params)
 
     metadata_dict = trkr.get_metadata_by_uuid(model_uuid, collection_name=collection_name)
@@ -1258,6 +1296,7 @@ def create_prediction_pipeline(params, model_uuid, collection_name=None, featuri
     pipeline.model_wrapper = model_wrapper.create_model_wrapper(pipeline.params, featurization,
                                                                 pipeline.ds_client)
 
+    orig_log_level = pipeline.log.getEffectiveLevel()
     if params.verbose:
         pipeline.log.setLevel(logging.DEBUG)
     else:
@@ -1275,6 +1314,7 @@ def create_prediction_pipeline(params, model_uuid, collection_name=None, featuri
     # Reload the saved model training state
     pipeline.model_wrapper.reload_model(pipeline.model_wrapper.model_dir)
 
+    pipeline.log.setLevel(orig_log_level)
     return pipeline
 
 
@@ -1310,7 +1350,7 @@ def create_prediction_pipeline_from_file(params, reload_dir, model_path=None, mo
     # Unpack the model tar archive if one is specified
     if model_path is not None:
         # if mismatch, it will raise an exception
-        matched = mu.check_version_compatible(model_path)
+        _matched = mu.check_version_compatible(model_path)
         if reload_dir is None:
             # Create a temporary directory
             reload_dir = tempfile.mkdtemp()
@@ -1371,6 +1411,7 @@ def create_prediction_pipeline_from_file(params, reload_dir, model_path=None, mo
     # Create the ModelWrapper object.
     pipeline.model_wrapper = model_wrapper.create_model_wrapper(pipeline.params, featurization)
 
+    orig_log_level = pipeline.log.getEffectiveLevel()
     if verbose:
         pipeline.log.setLevel(logging.DEBUG)
     else:
@@ -1382,6 +1423,7 @@ def create_prediction_pipeline_from_file(params, reload_dir, model_path=None, mo
     # If that worked, reload the saved model training state
     pipeline.model_wrapper.reload_model(model_dir)
 
+    pipeline.log.setLevel(orig_log_level)
     return pipeline
 
 
@@ -1477,12 +1519,12 @@ def ensemble_predict(model_uuids, collections, dset_df, labels=None, dset_params
     """
 
     # Get the singleton MLMTClient instance
-    mlmt_client = dsf.initialize_model_tracker()
+    _mlmt_client = dsf.initialize_model_tracker()
     log = logging.getLogger('ATOM')
 
     pred_df = None
 
-    if type(collections) == str:
+    if isinstance(collections, str):
         collections = [collections] * len(model_uuids)
 
     if labels is None:
@@ -1533,7 +1575,7 @@ def ensemble_predict(model_uuids, collections, dset_df, labels=None, dset_params
             raise Exception("response_cols missing from model params")
         is_featurized = (len(set(pipe.featurization.get_feature_columns()) - set(dset_df.columns.values)) == 0)
         pipe.data.get_featurized_data(dset_df, is_featurized)
-        pipe.data.dataset = pipe.model_wrapper.transform_dataset(pipe.data.dataset)
+        pipe.data.dataset = pipe.model_wrapper.transform_dataset(pipe.data.dataset, fold='final')
 
         # Create a temporary data frame to hold the compound IDs and predictions. The model may not
         # return predictions for all the requested compounds, so we have to outer join the predictions
@@ -1615,7 +1657,7 @@ def retrain_model(model_uuid, collection_name=None, result_dir=None, mt_client=N
 
     log = logging.getLogger('ATOM')
     if not result_dir:
-        mlmt_client = dsf.initialize_model_tracker()
+        _mlmt_client = dsf.initialize_model_tracker()
 
         log.info("Loading model %s from collection %s" % (model_uuid, collection_name))
         metadata_dict = trkr.get_metadata_by_uuid(model_uuid, collection_name=collection_name)

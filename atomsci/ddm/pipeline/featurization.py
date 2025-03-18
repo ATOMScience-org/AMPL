@@ -1,18 +1,14 @@
 """Classes providing different methods of featurizing compounds and other data entities"""
-
+import collections
 import logging
 import os
-import sys
 import tempfile
-import pdb
 import time
 import copy
 
 import numpy as np
 import deepchem as dc
 import pandas as pd
-import deepchem.data.data_loader as dl
-from deepchem.data import NumpyDataset
 
 from atomsci.ddm.utils import datastore_functions as dsf
 from atomsci.ddm.pipeline import transformations as trans
@@ -29,11 +25,9 @@ from rdkit.ML.Descriptors import MoleculeDescriptors
 
 subclassed_mordred_classes = ['EState', 'MolecularDistanceEdge']
 try:
-    from mordred import Calculator, descriptors, get_descriptors_from_module
+    from mordred import Calculator, descriptors
     from mordred.EState import AtomTypeEState, AggrType
     from mordred.MolecularDistanceEdge import MolecularDistanceEdge
-    from mordred import BalabanJ, BertzCT, HydrogenBond, MoeType, RotatableBond, SLogP, TopoPSA
-    #rdkit_desc_mods = [BalabanJ, BertzCT, HydrogenBond, MoeType, RotatableBond, SLogP, TopoPSA]
     mordred_supported = True
 except ImportError:
     mordred_supported = False
@@ -52,7 +46,7 @@ except (ImportError, AttributeError, ModuleNotFoundError):
 #except ImportError:
 #    pass
 
-import collections
+
 
 logging.basicConfig(format='%(asctime)-15s %(message)s')
 log = logging.getLogger('ATOM')
@@ -65,24 +59,24 @@ def make_weights(vals, is_class=False):
     it with 0 if there is not value or 1 if there is.
 
     Args:
-        vals: numpy array containing nans where there are not labels
+        vals: numpy array containing nans or empty strings where there are not labels
 
     Returns:
-        out_vals: numpy array same as input vals, but nans are replaced with 0
-        w: numpy array same shape as vals, where w[i,j] = 1 if vals[i,j] is nan else w[i,j] = 0
+        vals: numpy array same as input vals, but strings are replaced with 0 (for classification models) or nans (for regression models)
+        w: numpy array same shape as out_vals, where w[i,j] = 1 if vals[i,j] is nan else w[i,j] = 0
     """
-    # sometimes instead of nan, '' is used for missing values
     out_vals = np.copy(vals)
+    # sometimes instead of nan, '' is used for missing values
     if not np.issubdtype(out_vals.dtype, np.number):
         # there might be strings or other objects in this array
         out_vals[out_vals==''] = np.nan
     out_vals = out_vals.astype(float)
     w = np.where(np.isnan(out_vals), 0., 1).astype(float)
-    out_vals = np.where(np.isnan(out_vals), 0., out_vals)
     if is_class:
+        out_vals = np.where(np.isnan(out_vals), 0., out_vals)
         return out_vals, w
     else:
-        return vals, w
+        return out_vals, w
 
 
 # ****************************************************************************************
@@ -154,6 +148,55 @@ def remove_duplicate_smiles(dset_df, smiles_col='rdkit_smiles'):
     dset_df = dset_df[~remove]
     log.warning("All rows with duplicate smiles strings have been removed")
     return dset_df
+
+# ****************************************************************************************
+def check_ecfp_collisions(dset_df, smiles_col, size, radius):
+    """Check for ECFP uniqueness
+    Check to see if unique smiles result in unique ECFP features. Sometimes isn't the case
+    for ECFP features. A set of features should be the same size as a set of SMILES
+
+    Args:
+        feat_array (numpy array): 2d Feature array. Aligned with smiles
+
+        smiles (iterable of str): List of SMILES strings.
+
+    Returns:
+        collisions (bool):
+            True if there are collisions
+    """
+
+    featurizer_obj = dc.feat.CircularFingerprint(size=size, radius=radius)
+
+    features, is_valid = featurize_smiles(dset_df, featurizer_obj, smiles_col)
+
+    valid_smiles = dset_df[is_valid][smiles_col]
+
+    return check_ecfp_feature_collisions(features, valid_smiles)
+
+
+# ****************************************************************************************
+def check_ecfp_feature_collisions(feat_array, smiles):
+    """Check for feature uniqueness
+    Check to see if unique smiles result in unique features. Sometimes isn't the case
+    for ECFP features. A set of features should be the same size as a set of SMILES
+
+    Args:
+        feat_array (numpy array): 2d Feature array. Aligned with smiles
+
+        smiles (iterable of str): List of SMILES strings.
+
+    Returns:
+        collisions (bool):
+            True if there are collisions
+    """
+
+    num_unique_feats = len(np.unique(feat_array, axis=0))
+    num_unique_smiles = len(set(smiles))
+
+    if num_unique_feats == num_unique_smiles and num_unique_smiles == 0:
+        log.warning("Received empty features and smiles when checking for ecfp feature collisions.")
+
+    return num_unique_feats != num_unique_smiles
 
 # ****************************************************************************************
 def get_dataset_attributes(dset_df, params):
@@ -417,7 +460,7 @@ def get_mordred_calculator(exclude=subclassed_mordred_classes, ignore_3D=False):
     calc = Calculator(ignore_3D=ignore_3D)
     exclude = ['mordred.%s' % mod for mod in exclude]
     for desc_mod in descriptors.all:
-        if not desc_mod.__name__ in exclude:
+        if desc_mod.__name__ not in exclude:
             calc.register(desc_mod, ignore_3D=ignore_3D)
     calc.register(ATOMAtomTypeEState)
     calc.register(ATOMMolecularDistanceEdge)
@@ -753,6 +796,15 @@ class DynamicFeaturization(Featurization):
         """
         attr = get_dataset_attributes(dset_df, params)
         features, is_valid = featurize_smiles(dset_df, featurizer=self.featurizer_obj, smiles_col=params.smiles_col)
+
+        if params.featurizer == 'ecfp':
+            valid_smiles = dset_df[is_valid][params.smiles_col]
+            has_collisions = check_ecfp_feature_collisions(features, valid_smiles)
+
+            if has_collisions:
+                log.warning("Multiple SMILES mapped have the same ECFP features. "
+                            "Increasing ecfp_radius can reduce collisons.")
+
         if features is None:
             raise Exception("Featurization failed for dataset")
         # Some SMILES strings may not be featurizable. This filters for only valid IDs.
@@ -773,7 +825,7 @@ class DynamicFeaturization(Featurization):
             feat_df = pd.DataFrame(dict(c0=features))
         featurized_dset_df = pd.concat([keep_df, feat_df], ignore_index=False, axis=1)
 
-        is_class=params.model_type=='classification'
+        is_class=params.prediction_type=='classification'
         if contains_responses and (params.model_type != 'hybrid'):
             vals, w = make_weights(featurized_dset_df[params.response_cols].values, is_class=is_class) #, self.id_field)
         else:
@@ -993,7 +1045,7 @@ class EmbeddingFeaturization(DynamicFeaturization):
         weights = input_dataset.w
         attr = input_model_dataset.attr
 
-        input_dataset = self.embedding_pipeline.model_wrapper.transform_dataset(input_dataset)
+        input_dataset = self.embedding_pipeline.model_wrapper.transform_dataset(input_dataset, fold='final')
 
         # Run the embedding model to generate features. 
         embedding = self.embedding_pipeline.model_wrapper.generate_embeddings(input_dataset)
@@ -1219,7 +1271,7 @@ class DescriptorFeaturization(PersistentFeaturization):
         else:
             try:
                 ds_client = dsf.config_client()
-            except Exception as e:
+            except Exception:
                 ds_client = None
         cls.desc_type_cols = {}
         cls.desc_type_scaled = {}
@@ -1242,7 +1294,7 @@ class DescriptorFeaturization(PersistentFeaturization):
             # Try the descriptor_spec_key parameter first, then fall back to package file
             try:
                 desc_spec_df = dsf.retrieve_dataset_by_datasetkey(desc_spec_key, desc_spec_bucket, ds_client)
-            except:
+            except Exception:
                 desc_spec_df = pd.read_csv(desc_spec_key_fallback, index_col=False)
 
         for desc_type, source, scaled, descriptors in zip(desc_spec_df.descr_type.values,
@@ -1290,7 +1342,7 @@ class DescriptorFeaturization(PersistentFeaturization):
         if len(cls.supported_descriptor_types) == 0:
             cls.load_descriptor_spec(params.descriptor_spec_bucket, params.descriptor_spec_key)
 
-        if not params.descriptor_type in cls.supported_descriptor_types:
+        if params.descriptor_type not in cls.supported_descriptor_types:
             raise ValueError("Unsupported descriptor type %s" % params.descriptor_type)
         self.descriptor_type = params.descriptor_type
         self.descriptor_key = params.descriptor_key
@@ -1380,7 +1432,7 @@ class DescriptorFeaturization(PersistentFeaturization):
             ds_client = None
         file_type = ''
         local_path = self.descriptor_key
-        if ds_client != None :
+        if ds_client is not None :
             # First get the datastore metadata for the descriptor table. Ideally this will exist even if the table
             # itself lives in the filesystem.
             desc_metadata = dsf.retrieve_dataset_by_datasetkey(self.descriptor_key, bucket=params.descriptor_bucket,
@@ -1505,7 +1557,7 @@ class DescriptorFeaturization(PersistentFeaturization):
 
         nrows = len(ids)
         ncols = len(params.response_cols)
-        is_class= params.model_type=='classification'
+        is_class= params.prediction_type=='classification'
         if contains_responses and (params.model_type != 'hybrid'):
             vals = featurized_dset_df[params.response_cols].values
             vals, weights = make_weights(vals, is_class=is_class)
@@ -1646,7 +1698,7 @@ class ComputedDescriptorFeaturization(DescriptorFeaturization):
         """
         super().__init__(params)
         cls = self.__class__
-        if not params.descriptor_type in cls.supported_descriptor_types:
+        if params.descriptor_type not in cls.supported_descriptor_types:
             raise ValueError("Descriptor type %s is not in the supported descriptor_type list" % params.descriptor_type)
 
 
@@ -1805,7 +1857,7 @@ class ComputedDescriptorFeaturization(DescriptorFeaturization):
         ids = featurized_dset_df[params.id_col]
         nrows = len(ids)
         ncols = len(params.response_cols)
-        is_class=params.model_type=='classification'
+        is_class=params.prediction_type=='classification'
         if contains_responses and (params.model_type != 'hybrid'):
             vals = featurized_dset_df[params.response_cols].values
             vals, weights = make_weights(vals, is_class=is_class)

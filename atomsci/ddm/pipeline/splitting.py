@@ -2,15 +2,12 @@
 testing, generation of predicted values and performance metrics.
 """
 
-import pdb
 import logging
-import os
-import sys
 import copy
 import deepchem as dc
 import numpy as np
 import pandas as pd
-from deepchem.data import NumpyDataset, Dataset
+from deepchem.data import NumpyDataset
 from atomsci.ddm.pipeline.ave_splitter import AVEMinSplitter
 from atomsci.ddm.pipeline.temporal_splitter import TemporalSplitter
 from atomsci.ddm.pipeline.MultitaskScaffoldSplit import MultitaskScaffoldSplitter
@@ -226,9 +223,9 @@ class Splitting(object):
             else:
                 metric = None
             if params.base_splitter in smiles_splits:
-                id_col = params.smiles_col
+                _id_col = params.smiles_col
             else:
-                id_col = params.id_col
+                _id_col = params.id_col
             self.splitter = TemporalSplitter(cutoff_date=params.cutoff_date,
                     date_col=params.date_col,
                     base_splitter=params.base_splitter, metric=metric)
@@ -713,7 +710,8 @@ class DatasetManager:
             # w = [[0, 1, 0], --> w = [[1, 1, 0]]
             #      [1, 0, 0],
             #      [1, 0, 0]]
-            w_agg_func = lambda x: np.clip(np.sum(x, axis=0), a_min=0, a_max=1)
+            def w_agg_func(x):
+                return np.clip(np.sum(x, axis=0), a_min=0, a_max=1)
             agg_dict = {col:w_agg_func for col in self.w_cols}
             agg_dict['indices'] = 'first'
             agg_dict['compound_id'] = 'first' # Either they're all the same or they're not used
