@@ -13,7 +13,6 @@ from atomsci.ddm.utils import datastore_functions as dsf
 from pathlib import Path
 import getpass
 import sys
-import pdb
 
 feather_supported = True
 try:
