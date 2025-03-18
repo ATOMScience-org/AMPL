@@ -40,7 +40,6 @@ MolVS
 mordred
 
 pytest
-matplotcheck
 ipykernel
 notebook
 jupyterlab
