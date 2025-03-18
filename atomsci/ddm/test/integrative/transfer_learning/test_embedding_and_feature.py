@@ -3,21 +3,15 @@
 import os
 import atomsci.ddm.pipeline.model_pipeline as mp
 import atomsci.ddm.pipeline.parameter_parser as parse
+import atomsci.ddm.pipeline.compare_models as cp
+import atomsci.ddm.utils.model_file_reader as mfr
 import shutil
 import glob
-import time
 
 def test_embedded_features():
 
     dskey = os.path.join(os.path.dirname(__file__), 
                          '../../test_datasets/H1_hybrid.csv')
-    expected_rdkit_raw_file = os.path.join(os.path.dirname(__file__), 
-                         '../../test_datasets/scaled_descriptors/H1_hybrid_with_rdkit_raw_descriptors.csv')
-    expected_mordred_filtered_file = os.path.join(os.path.dirname(__file__), 
-                         '../../test_datasets/scaled_descriptors/H1_hybrid_with_mordred_filtered_descriptors.csv')
-
-    assert not os.path.exists(expected_rdkit_raw_file), f'{expected_rdkit_raw_file} should not exist'
-    assert not os.path.exists(expected_mordred_filtered_file), f'{expected_mordred_filtered_file} should not exist'
 
     id_col = 'compound_id'
     smiles_col = 'rdkit_smiles'
@@ -63,31 +57,27 @@ def test_embedded_features():
 
             model_pipeline = mp.ModelPipeline(pparams)
             model_pipeline.train_model()
+
+            # test that there are indeed more features
+            assert model_pipeline.data.featurization.get_feature_count() > model_pipeline.data.featurization.input_featurization.get_feature_count()
+
             split_uuids.append(model_pipeline.data.split_uuid)
+
+            model_uuid = model_pipeline.params.model_uuid
+            results_df = cp.get_filesystem_perf_results(result_dir=result_dir, pred_type='regression')
+            trained_model_path = results_df[results_df['model_uuid']==model_uuid]['model_path'].values[0]
+
+            reader = mfr.ModelFileReader(trained_model_path)
+
+            assert reader.get_embedding_model_path() == model_path
+            assert reader.get_embedding_and_features()
 
         return split_uuids
 
-    start = time.time()
     all_split_uuids = run_tests()
-    end = time.time()
-    first_run = end-start
-
-    assert os.path.exists(expected_rdkit_raw_file), f'{expected_rdkit_raw_file} should exist'
-    assert os.path.exists(expected_mordred_filtered_file), f'{expected_mordred_filtered_file} should exist'
-
-    start = time.time()
-    all_split_uuids = all_split_uuids + run_tests()
-    end = time.time()
-    second_run = end-start
-
-    # loading features should make this run much faster
-    assert second_run*2<first_run, f'Loading features should be at least twice as fast. Instead first run took {first_run} and second run took {second_run}'
-
-    # clean
+    
+    #clean
     shutil.rmtree(result_dir)
-    os.remove(expected_rdkit_raw_file)
-    os.remove(expected_mordred_filtered_file)
-
     for suuid in all_split_uuids:
         split_pattern = os.path.join(os.path.dirname(__file__), 
                          f'../../test_datasets/H1_hybrid*{suuid}.csv')
@@ -97,6 +87,7 @@ def test_embedded_features():
         os.remove(splits[0])
 
     print('cleaned and done')
+
 
 if __name__ == '__main__':
     test_embedded_features()

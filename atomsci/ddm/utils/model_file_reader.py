@@ -91,6 +91,32 @@ class ModelFileReader:
         """
         return self.metadata_dict.get("model_parameters")
 
+    def get_embedding_specific_parameters(self):
+        """Returns:
+            (str): embedding specific parameters
+
+        """
+        return self.metadata_dict.get("embedding_specific")
+
+    def get_embedding_model_uuid(self):
+        """Returns:
+            (str): embedding_model_uuid
+        """
+        return self.get_embedding_specific_parameters().get("embedding_model_uuid")
+
+
+    def get_embedding_model_path(self):
+        """Returns:
+            (str): embedding_model_path
+        """
+        return self.get_embedding_specific_parameters().get("embedding_model_path")
+
+    def get_embedding_and_features(self):
+        """Returns:
+            (bool): embedding_and_features
+        """
+        return self.get_embedding_specific_parameters().get("embedding_and_features")
+
     def get_model_uuid(self):
         """Returns:
             (str): model uuid

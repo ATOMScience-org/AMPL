@@ -1113,7 +1113,8 @@ class EmbeddingFeaturization(DynamicFeaturization):
         embedding_params = dict(
             embedding_model_uuid = params.embedding_model_uuid,
             embedding_model_collection = params.embedding_model_collection,
-            embedding_model_path = params.embedding_model_path)
+            embedding_model_path = params.embedding_model_path,
+            embedding_and_features = params.embedding_and_features)
         feat_metadata['embedding_specific'] = embedding_params
 
         return feat_metadata
