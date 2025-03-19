@@ -1,0 +1,35 @@
+{
+    "comment": "Input file",
+    "comment": "----------------------------------------",
+    "comment": "Note: dataset_key must be a path/file name: E.G. ./dataset.csv",
+    "id_col": "Id",
+    "smiles_col": "smiles",
+    "class_number": "3",
+
+    "comment": "Split",
+    "comment": "----------------------------------------",
+    "splitter": "random",
+
+    "comment": "Prediction Type",
+    "comment": "----------------------------------------",
+    "response_cols": "sol_category",
+    "prediction_type": "classification",
+
+    "comment": "Features",
+    "comment": "----------------------------------------",
+    "featurizer": "ecfp",
+
+    "comment": "Model",
+    "comment": "----------------------------------------",
+    "model_type": "NN",
+    "dropout": ".01,.01,.01",
+    "layer_sizes": "256,50,18",
+    "learning_rate": "0.00007",
+    "max_epochs": "25",
+    
+    "comment": "Training",
+    "comment": "----------------------------------------",
+    "comment": "This regulates how long to train the model",
+    "early_stopping_patience": "2"
+}
+

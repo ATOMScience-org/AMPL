@@ -19,6 +19,8 @@ umap-learn
 
 pyarrow
 
+imblearn
+
 # requires pkg-config to build: sudo apt-get pkg-config
 # requires Cairo: sudo apt-get install libcairo2-dev
 # pycairo
