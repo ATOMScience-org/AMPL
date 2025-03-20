@@ -4,6 +4,8 @@ import os
 import atomsci.ddm.pipeline.model_pipeline as mp
 import atomsci.ddm.pipeline.parameter_parser as parse
 import atomsci.ddm.pipeline.compare_models as cp
+import atomsci.ddm.pipeline.featurization as feat
+import atomsci.ddm.pipeline.model_datasets as md
 import atomsci.ddm.utils.model_file_reader as mfr
 import shutil
 import glob
@@ -17,8 +19,10 @@ def test_embedded_features():
     smiles_col = 'rdkit_smiles'
     response_cols = 'activity'
 
-    model_paths = glob.glob( os.path.join(os.path.dirname(__file__), 
-        'embedding_model*.tar.gz'))
+    embedding_models = ['embedding_model_ecfp.tar.gz',
+                        'embedding_model_graphconv.tar.gz',
+                        'embedding_model_rdkit_raw.tar.gz']
+    model_paths = [os.path.join(os.path.dirname(__file__), em) for em in embedding_models]
     result_dir = os.path.join(os.path.dirname(__file__),
         'test_embedding')
 
@@ -55,11 +59,23 @@ def test_embedded_features():
 
             pparams = parse.wrapper(transfer_json)
 
+            # Test training of embedding+features model
             model_pipeline = mp.ModelPipeline(pparams)
             model_pipeline.train_model()
 
+            # test correct featurization
+            featurization = model_pipeline.data.featurization
+            assert isinstance(featurization, feat.EmbeddingFeaturization)
+
+            # test correct dataset
+            assert isinstance(model_pipeline.data, md.FileEmbeddingDataset)
+
+            metadata = featurization.get_feature_specific_metadata(pparams)
+            assert metadata['embedding_specific']['embedding_model_path'] == model_path
+            assert metadata['embedding_specific']['embedding_and_features']
+
             # test that there are indeed more features
-            assert model_pipeline.data.featurization.get_feature_count() > model_pipeline.data.featurization.input_featurization.get_feature_count()
+            assert featurization.get_feature_count() > featurization.input_featurization.get_feature_count()
 
             split_uuids.append(model_pipeline.data.split_uuid)
 

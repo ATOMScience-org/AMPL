@@ -163,6 +163,7 @@ def test_get_mordred_calculator():
     except ImportError:
         mordred_supported = False   
 
+#***********************************************************************************
 def test_copy_featurizer_params():
     """Test the copy_featurizer_params function to ensure it correctly copies featurization parameters."""
 
