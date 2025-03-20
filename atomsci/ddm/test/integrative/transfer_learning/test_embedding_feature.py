@@ -16,8 +16,10 @@ def test_embedded_features():
     expected_mordred_filtered_file = os.path.join(os.path.dirname(__file__), 
                          '../../test_datasets/scaled_descriptors/H1_hybrid_with_mordred_filtered_descriptors.csv')
 
-    os.remove(expected_rdkit_raw_file)
-    os.remove(expected_mordred_filtered_file)
+    if os.path.exists(expected_rdkit_raw_file):
+        os.remove(expected_rdkit_raw_file)
+    if os.path.exists(expected_mordred_filtered_file):
+        os.remove(expected_mordred_filtered_file)
 
     assert not os.path.exists(expected_rdkit_raw_file), f'{expected_rdkit_raw_file} should not exist'
     assert not os.path.exists(expected_mordred_filtered_file), f'{expected_mordred_filtered_file} should not exist'
