@@ -41,6 +41,54 @@ def clean():
     delete_file('thirty_gen_split.csv')
     delete_file('ss_split.csv')
 
+def test_seeded_splits():
+    clean()
+
+    init_data()
+
+    smiles_col = 'compound_id'
+    id_col = 'compound_id'
+    frac_train = 0.8
+    frac_test = 0.1
+    frac_valid = 0.1
+    num_super_scaffolds = 60
+    dfw = 2 # chemical distance importance weight
+    rfw = 1 # split fraction importance weight
+
+    total_df = pd.read_csv('KCNA5_KCNH2_SCN5A_data.csv', dtype={id_col:str})
+    response_cols = ['target_KCNA5_standard_value',
+        'target_KCNH2_standard_value',
+        'target_SCN5A_activity']
+
+    # -------------------------------------------------------------------------
+    # one generation multitask scaffold split
+    mss = MultitaskScaffoldSplitter()
+    A_split_df = split_with(total_df, mss, 
+        smiles_col=smiles_col, id_col=id_col, response_cols=response_cols, 
+        diff_fitness_weight_tvt=dfw, ratio_fitness_weight=rfw, num_generations=1,
+        num_super_scaffolds=num_super_scaffolds,
+        frac_train=frac_train, frac_test=frac_test, frac_valid=frac_valid, seed=0)
+
+    b_mss = MultitaskScaffoldSplitter()
+    B_split_df = split_with(total_df, b_mss, 
+        smiles_col=smiles_col, id_col=id_col, response_cols=response_cols, 
+        diff_fitness_weight_tvt=dfw, ratio_fitness_weight=rfw, num_generations=1,
+        num_super_scaffolds=num_super_scaffolds,
+        frac_train=frac_train, frac_test=frac_test, frac_valid=frac_valid, seed=0)
+
+    c_mss = MultitaskScaffoldSplitter()
+    C_split_df = split_with(total_df, c_mss, 
+        smiles_col=smiles_col, id_col=id_col, response_cols=response_cols, 
+        diff_fitness_weight_tvt=dfw, ratio_fitness_weight=rfw, num_generations=1,
+        num_super_scaffolds=num_super_scaffolds,
+        frac_train=frac_train, frac_test=frac_test, frac_valid=frac_valid, seed=42)
+
+    assert all(A_split_df['cmpd_id']==B_split_df['cmpd_id']) and all(A_split_df['subset']==B_split_df['subset'])
+    # compounds can be in the same order
+    assert not all(A_split_df['subset']==C_split_df['subset'])
+
+    clean()
+
 def test_splits():
     clean()
 
@@ -69,7 +117,7 @@ def test_splits():
         smiles_col=smiles_col, id_col=id_col, response_cols=response_cols, 
         diff_fitness_weight_tvt=dfw, ratio_fitness_weight=rfw, num_generations=1,
         num_super_scaffolds=num_super_scaffolds,
-        frac_train=frac_train, frac_test=frac_test, frac_valid=frac_valid)
+        frac_train=frac_train, frac_test=frac_test, frac_valid=frac_valid, seed=0)
     mss_split_df.to_csv('one_gen_split.csv', index=False)
     assert len(total_df) == len(mss_split_df)
 
@@ -86,7 +134,7 @@ def test_splits():
         diff_fitness_weight_tvt=dfw, ratio_fitness_weight=rfw,
         num_generations=num_generations,
         num_super_scaffolds=num_super_scaffolds,
-        frac_train=frac_train, frac_test=frac_test, frac_valid=frac_valid)
+        frac_train=frac_train, frac_test=frac_test, frac_valid=frac_valid, seed=0)
     mss_split_df.to_csv('thirty_gen_split.csv', index=False)
     assert len(total_df) == len(mss_split_df)
 
@@ -166,6 +214,7 @@ def test_pipeline_split_and_train():
     clean()
 
 if __name__ == '__main__':
-    test_splits()
+    test_seeded_splits()
+    #test_splits()
     #test_pipeline_split_only()
     #test_pipeline_split_and_train()

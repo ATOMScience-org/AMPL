@@ -25,16 +25,49 @@ def test_balancing_transformer():
 
     res_dir = tempfile.mkdtemp()
 
+    print('-=======normal balancing===================================')
     balanced_params = params_w_balan(dset_key, res_dir)
     balanced_weights = make_pipeline_and_get_weights(balanced_params)
     (major_weight, minor_weight), (major_count, minor_count) = np.unique(balanced_weights, return_counts=True)
     assert major_weight < minor_weight
     assert major_count > minor_count
+    print('-==========================================')
 
+    print('-=======no balancing===================================')
     nonbalanced_params = params_wo_balan(dset_key, res_dir)
     nonbalanced_weights = make_pipeline_and_get_weights(nonbalanced_params)
     (weight,), (count,) = np.unique(nonbalanced_weights, return_counts=True)
     assert weight == 1
+    print('-==========================================')
+
+    print('-=======SMOTE balancing===================================')
+    smote_balanced_params = params_w_SMOTE_balan(dset_key, res_dir)
+    smote_balanced_params['sampling_ratio'] = 1
+    print('sampling_ratio: ', smote_balanced_params['sampling_ratio'])
+    smote_balanced_weights = make_pipeline_and_get_weights(smote_balanced_params)
+    # all weights should be the same
+    (weight1,), (count1,)= np.unique(smote_balanced_weights, return_counts=True)
+    print('-==========================================')
+
+    print('-=======SMOTE 0.5 balancing===================================')
+    smote_balanced_params = params_w_SMOTE_balan(dset_key, res_dir)
+    smote_balanced_params['sampling_ratio'] = 0.5
+    smote_balanced_weights = make_pipeline_and_get_weights(smote_balanced_params)
+    (major_weight, minor_weight), (major_count, minor_count) = np.unique(smote_balanced_weights, return_counts=True)
+    # there should be twice as many major class as minor class
+    assert abs((major_weight*2) - minor_weight) < .0001
+    assert abs(major_count - (minor_count * 2)) < .0001
+    print('-==========================================')
+
+def params_w_SMOTE_balan(dset_key, res_dir):
+    # Try with SMOTE with ratio set to .50
+    params = read_params(
+        make_relative_to_file('jsons/SMOTE_balancing_transformer.json'),
+        dset_key,
+        res_dir
+    )
+
+    return params
 
 def test_all_transformers():
     """
@@ -362,8 +395,7 @@ def test_sklearn_transformers():
     assert isinstance(transformers_x[0][0].sklearn_transformer, PowerTransformer)
 
 if __name__ == '__main__':
-    test_sklearn_transformers()
-    #test_kfold_regression_transformers()
-    #test_kfold_transformers()
-    #test_all_transformers()
-    #test_balancing_transformer()
+    test_kfold_regression_transformers()
+    test_kfold_transformers()
+    test_all_transformers()
+    test_balancing_transformer()

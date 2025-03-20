@@ -30,6 +30,8 @@ from atomsci.ddm.pipeline import featurization as feat
 from atomsci.ddm.pipeline import parameter_parser as parse
 from atomsci.ddm.pipeline import model_tracker as trkr
 from atomsci.ddm.pipeline import transformations as trans
+from atomsci.ddm.pipeline import random_seed as rs
+from atomsci.ddm.pipeline import sampling as sample
 
 logging.basicConfig(format='%(asctime)-15s %(message)s')
 
@@ -179,7 +181,7 @@ class ModelPipeline:
             data (ModelDataset object): A data object that featurizes and splits the dataset
     """
 
-    def __init__(self, params, ds_client=None, mlmt_client=None):
+    def __init__(self, params, ds_client=None, mlmt_client=None, random_state=None, seed=None):
         """Initializes ModelPipeline object.
 
         Args:
@@ -213,6 +215,23 @@ class ModelPipeline:
         self.log = logging.getLogger('ATOM')
         self.run_mode = 'training'  # default, can be overridden later
         self.start_time = time.time()
+        
+        # initialize seed
+        if seed is None:
+            seed = getattr(params, 'seed', None)
+            self.random_gen = rs.RandomStateGenerator(params, seed)
+            self.seed = self.random_gen.get_seed()
+        else:
+            # pass the seed into the RandomStateGenerator
+            self.random_gen = rs.RandomStateGenerator(seed)
+            self.seed = self.random_gen.get_seed()
+        
+        if random_state is None:
+            self.random_state = self.random_gen.get_random_state()
+        else:
+            self.random_state = random_state
+        # log the seed used 
+        self.log.info('Initiating ModelPipeline with seed {}'.format(self.seed))
 
         # Default dataset_name parameter from dataset_key
         if params.dataset_name is None:
@@ -273,6 +292,7 @@ class ModelPipeline:
         Args:
             params (Namespace): Optional set of parameters to be used for featurization; by default this function
             uses the parameters used when the pipeline was created.
+            seed (int): Optional seed for reproducibility
 
         Side effects:
             Sets the following attributes of the ModelPipeline
@@ -291,12 +311,24 @@ class ModelPipeline:
                 self.log.info('Training in production mode. Ignoring '
                     'previous split and creating production split. '
                     'Production split will not be saved.')
-                self.data.split_dataset()
-            elif not (params.previously_split and self.data.load_presplit_dataset()):
-                self.data.split_dataset()
+                self.data.split_dataset(random_state=self.random_state, seed=self.seed)
+            elif not (params.previously_split and self.data.load_presplit_dataset(random_state=self.random_state, seed=self.seed)):
+                self.data.split_dataset(random_state=self.random_state, seed=self.seed)
                 self.data.save_split_dataset()
+                # write split metadata
+                self.create_split_metadata()
+                self.save_split_metadata()
             if self.data.params.prediction_type == 'classification':
                 self.data._validate_classification_dataset()
+
+        # apply sampling before fitting transformers
+        if self.run_mode == 'training':
+            for i, (train, valid) in enumerate(self.data.train_valid_dsets):
+                if self.data.params.prediction_type == 'classification' and self.params.sampling_method is not None:
+                    train = sample.apply_sampling_method(train, params, random_state=self.random_state, seed=self.seed)
+                    self.data.update_untransformed_responses(train.ids, train.y)
+                    self.data.train_valid_dsets[i] = (train, valid)
+
         # We now create transformers after splitting, to allow for the case where the transformer
         # is fitted to the training data only. The transformers are then applied to the training,
         # validation and test sets separately.
@@ -360,6 +392,13 @@ class ModelPipeline:
             hyperparam_uuid=self.params.hyperparam_uuid,
             ampl_version=mu.get_ampl_version()
         )
+        # add in sampling method parameters for documentation/reproducibility
+        if self.params.sampling_method is not None:
+            model_params['sampling_method'] = self.params.sampling_method
+        if self.params.sampling_ratio is not None:
+            model_params['sampling_ratio'] = self.params.sampling_ratio
+        if self.params.sampling_k_neighbors is not None:
+            model_params['sampling_k_neighbors'] = self.params.sampling_k_neighbors
 
         splitting_metadata = self.data.get_split_metadata()
         model_metadata = dict(
@@ -378,6 +417,8 @@ class ModelPipeline:
             model_metadata[key] = data
         for key, data in trans.get_transformer_specific_metadata(self.params).items():
             model_metadata[key] = data
+            
+        model_metadata['seed'] = self.seed
 
         self.model_metadata = model_metadata
 
@@ -430,6 +471,28 @@ class ModelPipeline:
             # If not using the model tracker, save the model state and metadata in a tarball in the filesystem
             trkr.save_model_tarball(self.output_dir, self.params.model_tarball_path)
         self.model_wrapper._clean_up_excess_files(self.model_wrapper.model_dir)
+
+   # ****************************************************************************************
+    def create_split_metadata(self):
+        """Creates metadata for each split dataset. 
+        It will save the seed used to create the split dataset and relevant parameters."""
+        self.split_data = dict(
+            dataset_key = self.params.dataset_key,
+            id_col = self.params.id_col, 
+            smiles_col = self.params.smiles_col, 
+            response_cols = self.params.response_cols,
+            seed = self.seed
+        )
+        self.splitting_metadata = self.data.get_split_metadata() 
+        self.split_data['splitting_metadata'] = self.splitting_metadata
+
+    # ****************************************************************************************
+    def save_split_metadata(self):
+        out_file = os.path.join(self.output_dir, 'split_metadata.json')
+ 
+        with open(out_file, 'w') as out:
+            json.dump(self.split_data, out, sort_keys=True, indent=4, separators=(',', ': '))
+            out.write("\n")
 
     # ****************************************************************************************
     def create_prediction_metadata(self, prediction_results):
@@ -592,7 +655,7 @@ class ModelPipeline:
 
         ## create model wrapper if not split_only
         if not self.params.split_only:
-            self.model_wrapper = model_wrapper.create_model_wrapper(self.params, self.featurization, self.ds_client)
+            self.model_wrapper = model_wrapper.create_model_wrapper(self.params, self.featurization, self.ds_client, random_state=self.random_state, seed=self.seed)
             self.model_wrapper.setup_model_dirs()
 
         self.load_featurize_data()
@@ -902,6 +965,10 @@ class ModelPipeline:
                 pred_data = self.predict_embedding(dset_df, dset_params=dset_params)
             else:
                 pred_data = copy.deepcopy(self.data.dataset.X)
+                
+            if self.featurization.feat_type=="computed_descriptors" and self.featurization.descriptor_type=='mordred_filtered':
+                pred_data = pred_data[:,~np.isnan(pred_data).all(axis=0)]
+                pred_data = np.where(np.isnan(pred_data), np.nanmean(pred_data, axis=0), pred_data)
 
             try:
                 if not hasattr(self, 'featurized_train_data'):
@@ -926,6 +993,9 @@ class ModelPipeline:
                         train_dset = dc.data.NumpyDataset(train_X)
                         self.featurized_train_data = self.model_wrapper.generate_embeddings(train_dset)
                     else:
+                        if self.featurization.feat_type=="computed_descriptors" and self.featurization.descriptor_type=='mordred_filtered':
+                            train_X = train_X[:,~np.isnan(train_X).all(axis=0)]
+                            train_X = np.where(np.isnan(train_X), np.nanmean(train_X, axis=0), train_X)
                         self.featurized_train_data = train_X
 
                 if not hasattr(self, "train_pair_dis") or not hasattr(self, "train_pair_dis_metric") or self.train_pair_dis_metric != dist_metric:
@@ -933,7 +1003,7 @@ class ModelPipeline:
                     self.train_pair_dis_metric = dist_metric
 
                 self.log.debug("Calculating AD index.")
-
+                
                 if AD_method == "local_density":
                     result_df["AD_index"] = calc_AD_kmean_local_density(self.featurized_train_data, pred_data, k, train_dset_pair_distance=self.train_pair_dis, dist_metric=dist_metric)
                 else:
@@ -1082,7 +1152,9 @@ def run_models(params, shared_featurization=None, generator=False):
 
         # Create the ModelWrapper object.
         pipeline.model_wrapper = model_wrapper.create_model_wrapper(pipeline.params, featurization,
-                                                                    pipeline.ds_client)
+                                                                    pipeline.ds_client,
+                                                                    random_state=pipeline.random_state,
+                                                                    seed=pipeline.seed)
 
         # Get the tarball containing the saved model from the datastore, and extract it into model_dir.
         model_dataset_oid = metadata_dict['model_parameters']['model_dataset_oid']
@@ -1174,7 +1246,9 @@ def regenerate_results(result_dir, params=None, metadata_dict=None, shared_featu
     # Create the ModelWrapper object.
 
     pipeline.model_wrapper = model_wrapper.create_model_wrapper(pipeline.params, featurization,
-                                                                pipeline.ds_client)
+                                                                pipeline.ds_client,
+                                                                random_state=pipeline.random_state,
+                                                                seed=pipeline.seed)
     # Get the tarball containing the saved model from the datastore, and extract it into model_dir (old format)
     # or output_dir (new format) according to the format of the tarball contents.
 
@@ -1402,7 +1476,9 @@ def create_prediction_pipeline_from_file(params, reload_dir, model_path=None, mo
     pipeline.orig_params = orig_params
 
     # Create the ModelWrapper object.
-    pipeline.model_wrapper = model_wrapper.create_model_wrapper(pipeline.params, featurization)
+    pipeline.model_wrapper = model_wrapper.create_model_wrapper(pipeline.params, featurization,
+                                                                random_state=pipeline.random_state,
+                                                                seed=pipeline.seed)
 
     orig_log_level = pipeline.log.getEffectiveLevel()
     if verbose:

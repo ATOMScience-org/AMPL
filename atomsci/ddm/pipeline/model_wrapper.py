@@ -168,7 +168,7 @@ def all_bases(model):
     return result
 
 # ****************************************************************************************
-def create_model_wrapper(params, featurizer, ds_client=None):
+def create_model_wrapper(params, featurizer, ds_client=None, random_state=None, seed=None):
     """Factory function for creating Model objects of the correct subclass for params.model_type.
 
     Args:
@@ -186,11 +186,11 @@ def create_model_wrapper(params, featurizer, ds_client=None):
     """
     if params.model_type == 'NN':
         if params.featurizer == 'graphconv':
-            return GraphConvDCModelWrapper(params, featurizer, ds_client)
+            return GraphConvDCModelWrapper(params, featurizer, ds_client, random_state=random_state, seed=seed)
         else:
-            return MultitaskDCModelWrapper(params, featurizer, ds_client)
+            return MultitaskDCModelWrapper(params, featurizer, ds_client, random_state=random_state, seed=seed)
     elif params.model_type == 'RF':
-        return DCRFModelWrapper(params, featurizer, ds_client)
+        return DCRFModelWrapper(params, featurizer, ds_client, random_state=random_state, seed=seed)
     elif params.model_type == 'xgboost':
         if not xgboost_supported:
             raise Exception("Unable to import xgboost. \
@@ -206,9 +206,9 @@ def create_model_wrapper(params, featurizer, ds_client=None):
                              installation: \
                              from pip: pip install xgboost==0.90")
         else:
-            return DCxgboostModelWrapper(params, featurizer, ds_client)
+            return DCxgboostModelWrapper(params, featurizer, ds_client, random_state=random_state, seed=seed)
     elif params.model_type == 'hybrid':
-        return HybridModelWrapper(params, featurizer, ds_client)
+        return HybridModelWrapper(params, featurizer, ds_client, random_state=random_state, seed=seed)
     elif params.model_type in pp.model_wl:
         requested_model = pp.model_wl[params.model_type]
         bases = all_bases(requested_model)
@@ -217,9 +217,9 @@ def create_model_wrapper(params, featurizer, ds_client=None):
         if any(['TorchModel' in str(b) for b in bases]):
             if not afp_supported:
                 raise Exception("dgl and dgllife packages must be installed to use attentive_fp model.")
-            return PytorchDeepChemModelWrapper(params, featurizer, ds_client)
+            return PytorchDeepChemModelWrapper(params, featurizer, ds_client, random_state=random_state, seed=seed)
         elif any(['KerasModel' in str(b) for b in bases]):
-            return KerasDeepChemModelWrapper(params, featurizer, ds_client)
+            return KerasDeepChemModelWrapper(params, featurizer, ds_client, random_state=random_state, seed=seed)
     else:
         raise ValueError("Unknown model_type %s" % params.model_type)
 
@@ -254,7 +254,7 @@ class ModelWrapper(object):
             best_model_dir (str): The subdirectory under output_dir that contains the best model. Created in setup_model_dirs
 
     """
-    def __init__(self, params, featurizer, ds_client):
+    def __init__(self, params, featurizer, ds_client, random_state=None, seed=None):
         """Initializes ModelWrapper object.
 
         Args:
@@ -297,6 +297,9 @@ class ModelWrapper(object):
         self.transformers = trans.get_blank_transformations()
         self.transformers_x = trans.get_blank_transformations()
         self.transformers_w = trans.get_blank_transformations()
+
+        self.random_state = random_state
+        self.seed = seed
 
         # ****************************************************************************************
 
@@ -1217,7 +1220,7 @@ class HybridModelWrapper(NNModelWrapper):
 
     """
 
-    def __init__(self, params, featurizer, ds_client):
+    def __init__(self, params, featurizer, ds_client, random_state=None, seed=None):
         """Initializes HybridModelWrapper object.
 
         Args:
@@ -1242,7 +1245,8 @@ class HybridModelWrapper(NNModelWrapper):
 
             model: dc.models.TorchModel
         """
-        super().__init__(params, featurizer, ds_client)
+        super().__init__(params, featurizer, ds_client, random_state=random_state, seed=seed)
+
         if self.params.layer_sizes is None:
             if self.params.featurizer == 'ecfp':
                 self.params.layer_sizes = [1000, 500]
@@ -1647,7 +1651,7 @@ class ForestModelWrapper(ModelWrapper):
 
     contains code that is similar between the two tree based classes
     """
-    def __init__(self, params, featurizer, ds_client):
+    def __init__(self, params, featurizer, ds_client, random_state=None, seed=None):
         """Initializes DCRFModelWrapper object.
 
         Args:
@@ -1656,7 +1660,7 @@ class ForestModelWrapper(ModelWrapper):
             featurizer (Featurization): Object managing the featurization of compounds
             ds_client: datastore client.
         """
-        super().__init__(params, featurizer, ds_client)
+        super().__init__(params, featurizer, ds_client, random_state=random_state, seed=seed)
         self.best_model_dir = os.path.join(self.output_dir, 'best_model')
         self.model_dir = self.best_model_dir
         os.makedirs(self.best_model_dir, exist_ok=True)
@@ -1857,7 +1861,7 @@ class DCRFModelWrapper(ForestModelWrapper):
 
     """
 
-    def __init__(self, params, featurizer, ds_client):
+    def __init__(self, params, featurizer, ds_client, random_state=None, seed=None):
         """Initializes DCRFModelWrapper object.
 
         Args:
@@ -1866,7 +1870,7 @@ class DCRFModelWrapper(ForestModelWrapper):
             featurizer (Featurization): Object managing the featurization of compounds
             ds_client: datastore client.
         """
-        super().__init__(params, featurizer, ds_client)
+        super().__init__(params, featurizer, ds_client, random_state=random_state, seed=seed)
 
     # ****************************************************************************************
     def make_dc_model(self, model_dir):
@@ -1884,12 +1888,14 @@ class DCRFModelWrapper(ForestModelWrapper):
             rf_model = RandomForestRegressor(n_estimators=self.params.rf_estimators,
                                              max_features=self.params.rf_max_features,
                                              max_depth=self.params.rf_max_depth,
-                                             n_jobs=-1)
+                                             n_jobs=-1,
+                                             random_state=self.seed)
         else:
             rf_model = RandomForestClassifier(n_estimators=self.params.rf_estimators,
                                               max_features=self.params.rf_max_features,
                                               max_depth=self.params.rf_max_depth,
-                                              n_jobs=-1)
+                                              n_jobs=-1,
+                                              random_state=self.seed)
 
         return dc.models.sklearn_models.SklearnModel(rf_model, model_dir=model_dir)
 
@@ -2009,7 +2015,7 @@ class DCxgboostModelWrapper(ForestModelWrapper):
 
     """
 
-    def __init__(self, params, featurizer, ds_client):
+    def __init__(self, params, featurizer, ds_client, random_state=None, seed=None):
         """Initializes RunModel object.
 
         Args:
@@ -2018,7 +2024,7 @@ class DCxgboostModelWrapper(ForestModelWrapper):
             featurizer (Featurization): Object managing the featurization of compounds
             ds_client: datastore client.
         """
-        super().__init__(params, featurizer, ds_client)
+        super().__init__(params, featurizer, ds_client, random_state=random_state, seed=seed)
 
     # ****************************************************************************************
     def make_dc_model(self, model_dir):
@@ -2049,7 +2055,7 @@ class DCxgboostModelWrapper(ForestModelWrapper):
                                          reg_lambda=1,
                                          scale_pos_weight=1,
                                          base_score=0.5,
-                                         random_state=0,
+                                         random_state= self.seed,
                                          missing=np.nan,
                                          importance_type='gain',
                                          n_jobs=-1,
@@ -2074,7 +2080,7 @@ class DCxgboostModelWrapper(ForestModelWrapper):
                                           reg_lambda=1,
                                           scale_pos_weight=1,
                                           base_score=0.5,
-                                          random_state=0,
+                                          random_state=self.seed,
                                           importance_type='gain',
                                           missing=np.nan,
                                           gpu_id = -1,
@@ -2187,7 +2193,7 @@ class DCxgboostModelWrapper(ForestModelWrapper):
                                          reg_lambda=1,
                                          scale_pos_weight=1,
                                          base_score=0.5,
-                                         random_state=0,
+                                         random_state=self.seed,
                                          missing=np.nan,
                                          importance_type='gain',
                                          n_jobs=-1,
@@ -2212,7 +2218,7 @@ class DCxgboostModelWrapper(ForestModelWrapper):
                                          reg_lambda=1,
                                          scale_pos_weight=1,
                                          base_score=0.5,
-                                         random_state=0,
+                                         random_state=self.seed, 
                                          importance_type='gain',
                                          missing=np.nan,
                                          gpu_id = -1,
@@ -2365,7 +2371,7 @@ class PytorchDeepChemModelWrapper(NNModelWrapper):
             valid_perfs (dict): A dictionary of predicted values and metrics on the validation dataset
 
     """
-    def __init__(self, params, featurizer, ds_client):
+    def __init__(self, params, featurizer, ds_client, random_state=None, seed=None):
         """Initializes AttentiveFPModelWrapper object. Creates the underlying DeepChem AttentiveFPModel instance.
 
         Args:
@@ -2375,9 +2381,8 @@ class PytorchDeepChemModelWrapper(NNModelWrapper):
             ds_client: datastore client.
         """
         # use NNModelWrapper init. 
-        super().__init__(params, featurizer, ds_client)
+        super().__init__(params, featurizer, ds_client, random_state=random_state, seed=seed)
         self.num_epochs_trained = 0
-
         self.model = self.recreate_model()
 
     # ****************************************************************************************
@@ -2403,6 +2408,7 @@ class PytorchDeepChemModelWrapper(NNModelWrapper):
 
         # build the model
         model = chosen_model(
+                sed = self.seed,
                 **extracted_features
             ) 
 
@@ -2733,7 +2739,7 @@ class GraphConvDCModelWrapper(KerasDeepChemModelWrapper):
 
     """
 
-    def __init__(self, params, featurizer, ds_client):
+    def __init__(self, params, featurizer, ds_client, random_state=None, seed=None):
         """Initializes GraphConvDCModelWrapper object.
 
         Args:
@@ -2761,12 +2767,11 @@ class GraphConvDCModelWrapper(KerasDeepChemModelWrapper):
             model: The dc.models.GraphConvModel, MultitaskRegressor, or MultitaskClassifier object, as specified by the params attribute
 
         """
-        super().__init__(params, featurizer, ds_client)
+        super().__init__(params, featurizer, ds_client, random_state=random_state, seed=seed)
         # TODO (ksm): The next two attributes aren't used; suggest we drop them.
         self.g = tf.Graph()
         self.sess = tf.compat.v1.Session(graph=self.g)
         self.num_epochs_trained = 0
-
         self.model = self.recreate_model(model_dir=self.model_dir)
 
     # ****************************************************************************************
@@ -2804,7 +2809,8 @@ class GraphConvDCModelWrapper(KerasDeepChemModelWrapper):
             dense_layer_size=self.params.layer_sizes[-1],
             dropout=self.params.dropouts,
             penalty=self.params.weight_decay_penalty,
-            penalty_type=self.params.weight_decay_penalty_type)
+            penalty_type=self.params.weight_decay_penalty_type,
+            seed=self.seed)
         return model
 
     # ****************************************************************************************

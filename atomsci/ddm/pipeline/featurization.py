@@ -4,6 +4,7 @@ import logging
 import os
 import tempfile
 import time
+import copy
 
 import numpy as np
 import deepchem as dc
@@ -106,6 +107,29 @@ def create_featurization(params):
         return ComputedDescriptorFeaturization(params)
     else:
         raise ValueError("Unknown featurization type %s" % params.featurizer)
+
+# ****************************************************************************************
+def copy_featurizer_params(source, dest):
+    """Copy all parameters related to featurization from source to target params
+    Returns a deepcopy of dest object with featurization parameters copied from
+    source object
+    
+    Args:
+        source (argparse.Namespace): Object containing source parameters
+        dest (argparse.Namespace): Destination object for parameters
+    
+    Returns:
+        New argparse.Namespace object with source featurization parameters
+        copied over dest parameters
+    """
+    result = copy.deepcopy(dest)
+    result.descriptor_type = source.descriptor_type
+    result.ecfp_radius = source.ecfp_radius
+    result.ecfp_size = source.ecfp_size
+    result.featurizer = source.featurizer
+    result.mordred_cpus = source.mordred_cpus
+
+    return result
 
 # ****************************************************************************************
 def remove_duplicate_smiles(dset_df, smiles_col='rdkit_smiles'):
@@ -957,6 +981,13 @@ class EmbeddingFeaturization(DynamicFeaturization):
         # Restore the logging level, which may have been changed by the create_prediction_pipeline function
         log.setLevel(log_level)
 
+        # merge embedding params and current prams to create featurizer for input dataset
+        self.input_data_params = copy_featurizer_params(source=self.embedding_pipeline.params, 
+                                    dest=params)
+        self.input_featurization = self.embedding_pipeline.model_wrapper.featurization
+        self.embedding_pipeline.featurization = self.input_featurization
+
+        self.embedding_and_features = params.embedding_and_features and not self.input_data_params.featurizer=='graphconv'
 
     # ****************************************************************************************
     def __str__(self):
@@ -980,7 +1011,7 @@ class EmbeddingFeaturization(DynamicFeaturization):
 
         Args:
             dset_df (DataFrame): A table of data to be featurized. At minimum, should include columns
-            for the compound ID and SMILES string
+            for the compound ID, SMILES string, and feature columns.
 
             params (Namespace): Parsed parameters to be used for featurization.
 
@@ -1004,20 +1035,13 @@ class EmbeddingFeaturization(DynamicFeaturization):
         """
 
         # First featurize the molecules in dset_df using the featurizer of the embedding model. 
-
-        input_featurization = self.embedding_pipeline.model_wrapper.featurization
-        self.embedding_pipeline.featurization = input_featurization
-
-        input_model_dataset = md.create_minimal_dataset(self.embedding_pipeline.params,
-                                    input_featurization, contains_responses=True)
+        input_model_dataset = md.create_minimal_dataset(self.input_data_params,
+                                    self.input_featurization, contains_responses=True)
 
         input_dset_df = dset_df.copy()
-        if contains_responses:
-            colmap = {}
-            for orig_col, embed_col in zip(params.response_cols, self.embedding_pipeline.params.response_cols):
-                colmap[orig_col] = embed_col
-            input_dset_df = input_dset_df.rename(columns=colmap)
-        input_model_dataset.get_featurized_data(input_dset_df)
+
+        is_featurized = input_model_dataset.has_all_feature_columns(input_dset_df)
+        input_model_dataset.get_featurized_data(input_dset_df, is_featurized=is_featurized)
         input_dataset = input_model_dataset.dataset
         input_features = input_dataset.X
         ids = input_dataset.ids
@@ -1034,6 +1058,12 @@ class EmbeddingFeaturization(DynamicFeaturization):
         # Strip off this extra padding.
         nrows = input_features.shape[0]
         embedding = embedding[:nrows,:]
+
+        # include input dataset features as an option
+        if self.embedding_and_features:
+            embedding = np.hstack((embedding, input_dataset.X))
+            # input_features sometimes contains nan values
+            #embedding[np.isnan(embedding)] = 0
 
         # Select columns to include from the input dataset in the featurized dataset data frame
         dset_cols = [params.id_col, params.smiles_col]
@@ -1061,10 +1091,14 @@ class EmbeddingFeaturization(DynamicFeaturization):
         # of nodes in the final Dense layer, which is given by the last element of params.layer_sizes.
         # For other NN models, the embedding layer has the number of nodes specified by that last element.
         if self.embedding_pipeline.params.featurizer == 'graphconv':
-            return 2*self.embedding_pipeline.params.layer_sizes[-1]
+            result = 2*self.embedding_pipeline.params.layer_sizes[-1]
         else:
-            return self.embedding_pipeline.params.layer_sizes[-1]
+            result = self.embedding_pipeline.params.layer_sizes[-1]
 
+        if self.embedding_and_features:
+            result = result + self.input_featurization.get_feature_count()
+
+        return result
 
     # ****************************************************************************************
     def get_feature_specific_metadata(self, params):
@@ -1083,7 +1117,8 @@ class EmbeddingFeaturization(DynamicFeaturization):
         embedding_params = dict(
             embedding_model_uuid = params.embedding_model_uuid,
             embedding_model_collection = params.embedding_model_collection,
-            embedding_model_path = params.embedding_model_path)
+            embedding_model_path = params.embedding_model_path,
+            embedding_and_features = params.embedding_and_features)
         feat_metadata['embedding_specific'] = embedding_params
 
         return feat_metadata

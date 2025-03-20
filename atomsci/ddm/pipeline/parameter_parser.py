@@ -538,7 +538,7 @@ convert_to_float_list = {'dropouts','weight_init_stddevs','bias_init_consts','le
                          }
 convert_to_int_list = {'layer_sizes','rf_max_features','rf_estimators', 'rf_max_depth',
                        'layer_nums', 'node_nums',
-                       'xgb_max_depth',  'xgb_n_estimators'}.union(all_auto_int_lists())
+                       'xgb_max_depth',  'xgb_n_estimators', 'seed'}.union(all_auto_int_lists())
 convert_to_numeric_list = convert_to_float_list | convert_to_int_list
 keep_as_list = {'dropouts','weight_init_stddevs','bias_init_consts',
                 'layer_sizes','dropout_list','layer_nums'}.union(all_auto_lists())
@@ -775,6 +775,8 @@ def dict_to_list(inp_dictionary,replace_spaces=False):
     temp_list_to_command_line = []
 
     # Special case handling for arguments that are False or True by default
+    default_false = ['previously_split','use_shortlist','datastore', 'save_results','verbose', 'hyperparam', 'split_only', 'is_ki', 'production', 'embedding_and_features'] 
+    default_true = ['transformers','previously_featurized','uncertainty', 'rerun']
     default_false = ['previously_split','use_shortlist','datastore', 'save_results','verbose', 'hyperparam', 'split_only', 'is_ki', 'production',
                      'robustscaler_unit_variance'] 
     default_true = ['transformers','previously_featurized','uncertainty', 'rerun',
@@ -1004,6 +1006,11 @@ def get_parser():
         '--embedding_model_path', dest='embedding_model_path', type=str, default=None,
         help='File path for pretrained model used to compute embedding features')
 
+    parser.add_argument(
+        '--embedding_and_features', dest='embedding_and_features', action='store_true',
+        help='File path for pretrained model used to compute embedding features')
+    parser.set_defaults(embedding_and_features=False)
+
 
     # **********************************************************************************************************
     # model_building_parameters: general
@@ -1042,6 +1049,10 @@ def get_parser():
         '--verbose', dest='verbose', action='store_true',
         help='True/False flag for setting verbosity')
     parser.set_defaults(verbose=False)
+    parser.add_argument(
+        '--seed', dest='seed', default=None,
+        help='Random seed used for initializing the random number generator to ensure results are reproducible.'
+        'Default is None and a random seed will be generated.')
 
     # **********************************************************************************************************
     # model_building_parameters: graphconv
@@ -1228,6 +1239,19 @@ def get_parser():
         help='Type of splitter to use: index, random, scaffold, butina, ave_min, temporal, fingerprint, multitaskscaffold or stratified.'
              ' Used to set the splitting.py subclass. Can be input as a comma separated list for hyperparameter search'
              ' (e.g. \'scaffold\',\'random\')')
+    # sampling specific parameters (imbalance-learn)
+    parser.add_argument(
+        '--sampling_method', dest='sampling_method', type=str, default=None,
+        help='Method for sampling to address class imbalance (e.g., \'undersampling\', \'SMOTE\')')
+    
+    parser.add_argument(
+        '--sampling_ratio', dest='sampling_ratio', type=str, default='auto',
+        help='The "sampling_ratio" parameter of SMOTE must be a float in the range (0.0, 1.0], a str '
+            'among {"auto", "not majority", "minority", "all", "not minority"}')
+    parser.add_argument(
+        '--sampling_k_neighbors', dest='sampling_k_neighbors', type=int, default=5,
+        help='The nearest neighbors used to define the neighborhood of samples to use to generate the synthetic samples. Specifically used for SMOTE.')
+
 
     parser.add_argument(
         '--mtss_num_super_scaffolds', default=40, type=int,
@@ -1750,7 +1774,36 @@ def postprocess_args(parsed_args):
     if vars(parsed_args).get('dataset_key') and os.path.exists(parsed_args.dataset_key):
         _ = mto.many_to_one(fn=parsed_args.dataset_key, smiles_col=parsed_args.smiles_col, id_col=parsed_args.id_col)
 
+    # Validates the sampling_ratio argument for SMOTE and undersampling
+    parsed_args.sampling_ratio = validate_sampling_strategy_argument(parsed_args.sampling_ratio)
+
     return parsed_args
+
+#***********************************************************************************************************
+def validate_sampling_strategy_argument(value):
+    """Validates sampling_strategy parameter for SMOTE and undersampling.
+    Validates that the input value is either a float in the range (0.0, 1.0] or a string among 
+    {'auto', 'not majority', 'minority', 'all', 'not minority'}. Raises a ValueError if the validation fails.
+
+    Args:
+        value (str): The input value to validate.
+
+    Raises:
+        ValueError: If the value is not a float in the range (0.0, 1.0] or a valid string.
+    """
+    valid_strings = {"auto", "not majority", "minority", "all", "not minority"}
+    
+    try:
+        float_value = float(value)
+        if float_value <= 0.0 or float_value > 1.0:
+            raise ValueError(f"Value '{value}' is not a float in the range (0.0, 1.0].")
+        else:
+            return float_value
+    except ValueError:
+        if value not in valid_strings:
+            raise ValueError(f"Value '{value}' is not a valid string among {valid_strings}.")
+        else:
+            return value
 
 
 #***********************************************************************************************************
