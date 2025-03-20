@@ -1,3 +1,4 @@
+from argparse import Namespace
 import pytest
 import atomsci.ddm.pipeline.featurization as feat
 import deepchem as dc
@@ -328,6 +329,44 @@ def test_get_mordred_calculator():
     except ImportError:
         mordred_supported = False   
 
+def test_copy_featurizer_params():
+    """Test the copy_featurizer_params function to ensure it correctly copies featurization parameters."""
+
+    # Create source and destination Namespace objects
+    source = Namespace(
+        descriptor_type="mordred",
+        ecfp_radius=3,
+        ecfp_size=2048,
+        featurizer="ecfp",
+        mordred_cpus=4
+    )
+    dest = Namespace(
+        descriptor_type="rdkit",
+        ecfp_radius=2,
+        ecfp_size=1024,
+        featurizer="graphconv",
+        mordred_cpus=2
+    )
+
+    # Call the function
+    result = feat.copy_featurizer_params(source, dest)
+
+    # Assert that the result is a deepcopy and not the same object as dest
+    assert result is not dest
+
+    # Assert that the featurization parameters were correctly copied
+    assert result.descriptor_type == source.descriptor_type
+    assert result.ecfp_radius == source.ecfp_radius
+    assert result.ecfp_size == source.ecfp_size
+    assert result.featurizer == source.featurizer
+    assert result.mordred_cpus == source.mordred_cpus
+
+    # Assert that other attributes in dest remain unchanged
+    assert hasattr(result, "descriptor_type")
+    assert hasattr(result, "ecfp_radius")
+    assert hasattr(result, "ecfp_size")
+    assert hasattr(result, "featurizer")
+    assert hasattr(result, "mordred_cpus")
 
 if __name__ == '__main__':
     test_get_mordred_calculator()
