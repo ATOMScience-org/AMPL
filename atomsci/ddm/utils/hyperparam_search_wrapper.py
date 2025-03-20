@@ -1466,6 +1466,8 @@ class HyperOptSearch():
                 par_list = [float(e) for e in domain_list[1].split(",")]
                 self.space["xgbw"] = build_hyperopt_search_domain("xgbw", method, par_list)
 
+        self.log = logging.getLogger("hyperopt_search")
+
 
     def run_search(self):
         #name of the results
@@ -1556,9 +1558,14 @@ class HyperOptSearch():
             model_failed = False
             try:
                 pl.train_model()
+<<<<<<< HEAD
             except Exception as e:
                 print(f'Model training failed during optimization.')
                 print(e)
+=======
+            except Exception:
+                self.log.exception('Exception found during hyperopt training')
+>>>>>>> 1.7.0
                 model_failed = True
 
             subsets = ["train", "valid", "test"]

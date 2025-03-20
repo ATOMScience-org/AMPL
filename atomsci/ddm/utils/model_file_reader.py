@@ -220,7 +220,14 @@ class ModelFileReader:
 
         """
         return self.get_training_dataset().get('response_cols')
-    
+
+    def get_random_seed(self):
+        """Returns:
+            (int): random seed used in model training. Returns None if not found.
+
+        """
+        return self.metadata_dict.get('seed')
+
     def get_model_info(self):
         """Extract the model metadata (and if applicable, model metrics)
 

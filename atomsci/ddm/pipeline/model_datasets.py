@@ -399,7 +399,7 @@ class ModelDataset(object):
                 if params.prediction_type=='classification':
                     w = w.astype(np.float32)
 
-                self.untransformed_dataset = NumpyDataset(features, self.vals, ids=ids)
+                self.update_untransformed_responses(ids, self.vals)
                 self.dataset = NumpyDataset(features, self.vals, ids=ids, w=w)
                 self.log.info("Using prefeaturized data; number of features = " + str(self.n_features))
                 return
@@ -425,7 +425,7 @@ class ModelDataset(object):
         self.log.debug("Number of features: " + str(self.n_features))
            
         # Create the DeepChem dataset       
-        self.untransformed_dataset = NumpyDataset(features, self.vals, ids=ids)
+        self.update_untransformed_responses(ids, self.vals)
         self.dataset = NumpyDataset(features, self.vals, ids=ids, w=w)
         # Checking for minimum number of rows
         if len(self.dataset) < params.min_compound_number:
@@ -455,7 +455,7 @@ class ModelDataset(object):
         return self.tasks is not None
 
     # ****************************************************************************************
-    def split_dataset(self):
+    def split_dataset(self, random_state=None, seed=None):
         """Splits the dataset into paired training/validation and test subsets, according to the split strategy
                 selected by the model params. For traditional train/valid/test splits, there is only one training/validation
                 pair. For k-fold cross-validation splits, there are k different train/valid pairs; the validation sets are
@@ -474,7 +474,7 @@ class ModelDataset(object):
 
         # Create object to delegate splitting to.
         if self.splitting is None:
-            self.splitting = split.create_splitting(self.params)
+            self.splitting = split.create_splitting(self.params, random_state=random_state, seed=seed)
         self.train_valid_dsets, self.test_dset, self.train_valid_attr, self.test_attr = \
             self.splitting.split_dataset(self.dataset, self.attr, self.params.smiles_col)
         if self.train_valid_dsets is None:
@@ -501,6 +501,12 @@ class ModelDataset(object):
             (Boolean): boolean specifying if all classes are specified in all splits
         """
         ref_class_set = get_classes(self.train_valid_dsets[0][0].y)
+        num_classes = len(ref_class_set)
+        if num_classes != self.params.class_number:
+            logger = logging.getLogger('ATOM')
+            logger.warning(f"Expected class_number:{self.params.class_number} "
+                           f"classes but got {num_classes} instead. Double check "
+                           "response columns or class_number parameter.")
         for train, valid in self.train_valid_dsets:
             if not ref_class_set == get_classes(train.y):
                 return False
@@ -585,7 +591,7 @@ class ModelDataset(object):
         return split_df
 
     # ****************************************************************************************
-    def load_presplit_dataset(self, directory=None):
+    def load_presplit_dataset(self, directory=None, random_state=None, seed=None):
         """Loads a table of compound IDs assigned to split subsets, and uses them to split
         the currently loaded featurized dataset.
 
@@ -612,7 +618,7 @@ class ModelDataset(object):
         """
 
         # Load the split table from the datastore or filesystem
-        self.splitting = split.create_splitting(self.params)
+        self.splitting = split.create_splitting(self.params, random_state=random_state, seed=seed)
 
         try:
             split_df, split_kv = self.load_dataset_split_table(directory)
@@ -677,11 +683,31 @@ class ModelDataset(object):
         # All of the splits have the same combined train/valid data, regardless of whether we're using
         # k-fold or train/valid/test splitting.
         if self.combined_train_valid_data is None:
+            # normally combining one fold is sufficient, but if SMOTE or undersampling is being used
+            # just combining the first fold isn't enough
             (train, valid) = self.train_valid_dsets[0]
             combined_X = np.concatenate((train.X, valid.X), axis=0)
             combined_y = np.concatenate((train.y, valid.y), axis=0)
             combined_w = np.concatenate((train.w, valid.w), axis=0)
             combined_ids = np.concatenate((train.ids, valid.ids))
+
+            if self.params.sampling_method=='SMOTE' or self.params.sampling_method=='undersampling':
+                # for each successive fold, merge in any new compounds
+                # this loop just won't run if there are no additional folds
+                for train, valid in self.train_valid_dsets[1:]:
+                    fold_ids = np.concatenate((train.ids, valid.ids))
+                    new_id_indexes = [i for i in range(len(fold_ids)) if i not in combined_ids]
+
+                    fold_ids = fold_ids[new_id_indexes]
+                    fold_X = np.concatenate((train.X, valid.X), axis=0)[new_id_indexes]
+                    fold_y = np.concatenate((train.y, valid.y), axis=0)[new_id_indexes]
+                    fold_w = np.concatenate((train.w, valid.w), axis=0)[new_id_indexes]
+
+                    combined_X = np.concatenate((combined_X, fold_X), axis=0)
+                    combined_y = np.concatenate((combined_y, fold_y), axis=0)
+                    combined_w = np.concatenate((combined_w, fold_w), axis=0)
+                    combined_ids = np.concatenate((combined_ids, fold_ids))
+
             self.combined_train_valid_data = NumpyDataset(combined_X, combined_y, w=combined_w, ids=combined_ids)
         return self.combined_train_valid_data
 
@@ -733,6 +759,24 @@ class ModelDataset(object):
 
     # *************************************************************************************
 
+    def update_untransformed_responses(self, ids, y):
+        """
+        Updates self.untransformed_response_dict with the given ids and y
+
+        Parameters:
+        ids (list or np.ndarray): List or array of IDs for which to retrieve untransformed response values.
+
+        y (list or np.ndarray): List or array of responses values.
+
+        Returns:
+        None
+        """
+        self.untransformed_response_dict.update(
+            dict(zip(ids, y))
+            )
+
+    # *************************************************************************************
+
     def get_untransformed_responses(self, ids):
         """
         Returns a numpy array of untransformed response values for the given IDs.
@@ -744,9 +788,8 @@ class ModelDataset(object):
         np.ndarray: A numpy array of untransformed response values corresponding to the given IDs.
         """        
 
-        response_vals = np.zeros((len(ids), self.untransformed_dataset.y.shape[1]))
-        if len(self.untransformed_response_dict) == 0:
-            self.untransformed_response_dict = dict(zip(self.untransformed_dataset.ids, self.untransformed_dataset.y))
+        num_tasks = len(self.untransformed_response_dict[ids[0]])
+        response_vals = np.zeros((len(ids), num_tasks))
 
         for i, id in enumerate(ids):
             response_vals[i] = self.untransformed_response_dict[id]
@@ -807,6 +850,7 @@ class MinimalDataset(ModelDataset):
         self.tasks = None
         self.attr = None
         self.contains_responses = contains_responses
+        self.untransformed_response_dict = {}
 
     # ****************************************************************************************
     def get_dataset_tasks(self, dset_df):
@@ -871,7 +915,7 @@ class MinimalDataset(ModelDataset):
             self.log.warning("Done")
         self.n_features = self.featurization.get_feature_count()
         
-        self.untransformed_dataset= NumpyDataset(features, self.vals, ids=ids)
+        self.update_untransformed_responses(ids, self.vals)
         self.dataset = NumpyDataset(features, self.vals, ids=ids)
 
     # ****************************************************************************************
@@ -948,6 +992,7 @@ class DatastoreDataset(ModelDataset):
 
         super().__init__(params, featurization)
         self.dataset_oid = None
+        self.untransformed_response_dict = {}
         if params.dataset_name:
             self.dataset_name = params.dataset_name
         else:
