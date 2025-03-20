@@ -92,52 +92,6 @@ def test_get_feature_columns_dynamicfeaturization():
         test.append(len(cols) == 292)
     assert all(test)
 
-
-#***********************************************************************************
-#def test_extract_prefeaturized_data_dynamicfeaturization():
-    #loads in a previously featurized dataset. Should always return None or an exception if using DynamicFeaturization
-    # TODO: NEEDS TO BE UPDATED SINCE dataset_file no longer exists
-    # featurizer_ecfp.extract_prefeaturized_data(delaney_params_ecfp.dataset_file, data_obj_ecfp) == (None,None,None,None)
-#***********************************************************************************
-
-# def test_featurize_data_dynamicfeaturization_ecfp():
-#     #testing featurization of ecfp, graphconv. Checking to see if the types of featurization are reasonable, if the lengths of the output from the featurizer are the same, and if the output of ids, values, and attr are (str, np.float64, panda.df) and that the index name and columh name match those specified in the parameters
-#     test = []
-#     (features, ids, values, attr) = featurizer_ecfp.featurize_data(df_delaney, data_obj_ecfp)
-#     test.append(len(features) == len(ids) and len(values) == len(attr) and len(values) == len(features))
-#     test.append(len(features[0]) == delaney_params_ecfp.ecfp_size)
-#     test.append(isinstance(features[0], np.ndarray))
-#     test.append(isinstance(ids[0], str))
-#     test.append(isinstance(values[0], np.ndarray))
-#     test.append(attr.index.name == delaney_params_ecfp.id_col)
-#     test.append(attr.columns[0] == delaney_params_ecfp.smiles_col)
-#     assert all(test)
-    
-# def test_featurize_data_dynamicfeaturization_graphconv():
-#     test = []
-#     (features, ids, values, attr) = featurizer_graphconv.featurize_data(df_delaney, data_obj_graphconv)
-#     test.append(len(features) == len(ids) and len(values) == len(attr) and len(values) == len(features))
-#     test.append(isinstance(features[0], dc.feat.mol_graphs.ConvMol))
-#     test.append(isinstance(ids[0], str))
-#     test.append(isinstance(values[0], np.ndarray))
-#     test.append(attr.index.name == delaney_params_graphconv.id_col)
-#     test.append(attr.columns[0] == delaney_params_graphconv.smiles_col)
-#     assert all(test)
-#     """  
-#     #TODO: Fix molvae featurization
-# def test_featurize_data_dynamicfeaturization_molvae():
-#     
-#     (features, ids, values, attr) = featurizer_molvae.featurize_data(df_delaney, data_obj_molvae)
-#     test.append(len(features) == len(ids) and len(values) == len(attr) and len(values) == len(features)
-#     #TODO: find DC type molvae
-#     #test.append(isinstance(features[0], dc.feat.mol_graphs.ConvMol)
-#     test.append(isinstance(ids[0], str)
-#     test.append(isinstance(values[0],np.float64)
-#     test.append(attr.index.name == delaney_params_molvae.id_col
-#     test.append(attr.columns[0] == delaney_params_molvae.smiles_col
-#     """
-    
-
 #***********************************************************************************
 def test_get_featurized_dset_name_dynamicfeaturization():
     """Dynamic featurization does not support get_featurized_dset_name"""
@@ -159,44 +113,7 @@ def test_get_feature_specific_metadata_dynamicfeaturization():
                              "ecfp_size":delaney_params_ecfp.ecfp_size }}
     graphconv_metadata = featurizer_graphconv.get_feature_specific_metadata(delaney_params_graphconv)
     assert graphconv_metadata == {}
-    
-    #molvae_metadata = featurizer_molvae.get_feature_specific_metadata(delaney_params_molvae)
-    #test.append(molvae_metadata =={'MolVAESpecific': 
-    #                        {"mol_vae_model_file": delaney_params_molvae.mol_vae_model_file}}
-
-#***********************************************************************************
-    #TODO: will begin testing of DescriptorFeaturization and PersistentFeaturization after checking the base cases of 'ecfp, graphconv, molvae'
-    #WARNING: Cannot test the descriptors featurization object with datastore integration. Descriptors are effectively too large to properly stream from the datastore.
-#***********************************************************************************
-#***********************************************************************************
-
-#(desc_params, desc_data_obj, MAOA_df) = utils.moe_descriptors()
-#
-#
-#featurizer_desc = desc_data_obj.featurization
-#desc_data_obj.check_task_columns(MAOA_df)
-#featurized_dset_name = featurizer_desc.get_featurized_dset_name(desc_data_obj.dataset_name)
-#data_dir = os.path.join(desc_data_obj.params.output_dir, featurizer_desc.get_featurized_data_subdir())
-#featurized_dset_path = os.path.join(data_dir, featurized_dset_name)
-
-#********************************
-# (desc_params_ds, desc_data_obj_ds, MAOA_df_ds) = utils.moe_descriptors(datastore = True)
-# 
-# featurizer_desc_ds = desc_data_obj_ds.featurization
-# desc_data_obj_ds.check_task_columns(MAOA_df_ds)
-    
-# def test_create_featurization_descriptorfeaturization():
-#     #testing if classes are properly generated from the factory method. Asserting that the correct methods exist, and are callable. Asserting correct dc featurizer object is called
-#     test = []
-#     test.append(isinstance(featurizer_desc, feat.DescriptorFeaturization))
-#     methods = ["featurize_data","get_feature_columns","extract_prefeaturized_data","get_feature_count","get_feature_specific_metadata","get_featurized_dset_name","get_featurized_data_subdir"]
-#     for method in methods:
-#         test.append(callable(getattr(featurizer_desc,method)))
-#     test.append(featurizer_desc.descriptor_type == desc_params.descriptor_type)
-#     test.append(featurizer_desc.descriptor_key == desc_params.descriptor_key)
-#     test.append(featurizer_desc.precomp_descr_table.empty)
-#     assert all(test)
-    
+   
 #***********************************************************************************
 def get_featurized_dset_name_descriptorfeaturization():
     #sanity check that we are getting the correct featurized dset name. Also generating the featurized dset name for saving the featurized dataset. Used in model_datasets.save_featurized_data
@@ -221,89 +138,6 @@ def get_get_feature_columns_and_count_descriptorfeaturization():
     assert all(test)
     
 #***********************************************************************************
-"""
-def test_featurize_data_descriptorfeaturization():
-    #testing for correct descriptor featurization. Checking the length of all ouputs are equivalence. 
-    #Checks that the features are a pandas dataframe and that the columns of the features match those in moe_desc_cols. 
-    #Checks for the correct typing of the ids, vals, and attr.
-    #Technically is testing the save_featurized_data function in model_datasets.
-    test = []
-    (features,ids,vals,attr) = featurizer_desc.featurize_data(MAOA_df, desc_data_obj)
-    num_descriptors = len(featurizer_desc.moe_desc_cols)
-    (rows, cols) = features.shape
-    test.append(rows == len(ids) and len(vals) == len(attr) and len(vals) == len(ids))
-    test.append(isinstance(features, np.ndarray))
-    test.append(cols == 306)
-    test.append(isinstance(ids[0], str))
-    test.append(isinstance(vals[0],np.float64))
-    test.append(attr.index.name == desc_params.id_col)
-    test.append(attr.columns[0] == desc_params.smiles_col)
-    test.append(not featurizer_desc.precomp_descr_table.empty)
-    (rows_fullfeature, cols_fullfeature) = featurizer_desc.precomp_descr_table.shape
-    test.append(cols_fullfeature == 323)
-    test.append(rows_fullfeature == 1857923)
-    test.append(os.path.isfile(featurized_dset_path))
-    from pathlib import Path
-    path_metadata = Path(featurized_dset_path)
-    test.append(path_metadata.group() == ownership)
-    assert all(test)
-    #*************************************************
-    
-    
-def test_featurize_data_descriptorfeaturization_ds():
-    #testing for correct descriptor featurization. Checking the length of all ouputs are equivalence. 
-    #Checks that the features are a pandas dataframe and that the columns of the features match those in moe_desc_cols. 
-    #Checks for the correct typing of the ids, vals, and attr.
-    #Technically is testing the save_featurized_data function in model_datasets.
-    test = []
-    (features,ids,vals,attr) = featurizer_desc_ds.featurize_data(MAOA_df_ds, desc_data_obj_ds)
-    num_descriptors = len(featurizer_desc_ds.moe_desc_cols)
-    (rows, cols) = features.shape
-    test.append(rows == len(ids) and len(vals) == len(attr) and len(vals) == len(ids))
-    test.append(isinstance(features, np.ndarray))
-    test.append(cols == 306)
-    test.append(isinstance(ids[0], str))
-    test.append(isinstance(vals[0],np.float64))
-    test.append(attr.index.name == desc_params_ds.id_col)
-    test.append(attr.columns[0] == desc_params_ds.smiles_col)
-    test.append(not featurizer_desc.precomp_descr_table.empty)
-    (rows_fullfeature, cols_fullfeature) = featurizer_desc.precomp_descr_table.shape
-    test.append(cols_fullfeature == 323)
-    test.append(rows_fullfeature == 1857923)
-    assert all(test)
-    #*****************************
-
-def test_extract_prefeaturized_data_descriptorfeaturization_ds():
-    #Now testing the proper reloading of the featurized data
-    test = []
-    (features,ids,vals,attr) = featurizer_desc_ds.featurize_data(MAOA_df_ds, desc_data_obj_ds)
-    featurized_dset_key = featurizer_desc_ds.get_featurized_dset_name(desc_data_obj_ds.dataset_name)
-    dset_df = csv2df(featurized_dset_key, desc_data_obj_ds.params.bucket, desc_data_obj_ds.ds_client)
-    reloaded = desc_data_obj_ds.load_featurized_data()
-    test.append(reloaded.equals(dset_df))
-    (features_ext, ids_ext, vals_ext, attr_ext)=featurizer_desc_ds.extract_prefeaturized_data(reloaded,desc_data_obj_ds)
-    diff_features = abs(features - features_ext) < 1E-13
-    test.append(diff_features.all())
-    test.append(set(ids) == set(ids_ext)) 
-    test.append((abs(np.array(vals) - np.array(vals_ext)) < 1E-13).all()) 
-    test.append(isinstance(vals, list))
-    test.append(attr.equals(attr_ext))
-    assert all(test)
-
-                                      
-#***********************************************************************************
-def test_get_feature_specific_metadata_descriptorfeaturization(caplog):
-    #testing feature metadata is properly generated
-    
-    metadata_dict = featurizer_desc.get_feature_specific_metadata(desc_params)
-    assert metadata_dict == {'DescriptorSpecific' : 
-                            {"descriptor_type" : desc_params.descriptor_type,
-                           "descriptor_key" : desc_params.descriptor_key}}
-                                         
-
-
-#***********************************************************************************
-"""
 
 def test_get_mordred_calculator():
     try:
