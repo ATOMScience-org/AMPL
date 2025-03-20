@@ -1558,14 +1558,8 @@ class HyperOptSearch():
             model_failed = False
             try:
                 pl.train_model()
-<<<<<<< HEAD
-            except Exception as e:
-                print(f'Model training failed during optimization.')
-                print(e)
-=======
             except Exception:
                 self.log.exception('Exception found during hyperopt training')
->>>>>>> 1.7.0
                 model_failed = True
 
             subsets = ["train", "valid", "test"]
