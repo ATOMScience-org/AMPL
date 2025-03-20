@@ -1523,7 +1523,7 @@ class EmbeddingDataset:
         self.log.debug("Number of features: " + str(self.n_features))
            
         # Create the DeepChem dataset       
-        self.untransformed_dataset= NumpyDataset(features, self.vals, ids=ids)
+        self.update_untransformed_responses(ids, self.vals)
         self.dataset = NumpyDataset(features, self.vals, ids=ids, w=w)
         # Checking for minimum number of rows
         if len(self.dataset) < params.min_compound_number:
