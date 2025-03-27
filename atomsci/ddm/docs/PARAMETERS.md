@@ -713,6 +713,15 @@ the model will train for max_epochs regardless of validation error.|
 |*Default:*|TRUE|
 |*Type:*|Bool|
 
+  - **imputer_strategy**  
+  
+|||
+|-|-|
+|*Description:*|This sets the imputer strategy for the SimpleImputer for use with PowerTransformer or RobustScaler. Choices are {"mean", "median", "most_frequent"}|
+|*Default:*|"mean"|
+|*Type:*|choice|
+
+
 ---
 
 <a name="XGBoost"></a>

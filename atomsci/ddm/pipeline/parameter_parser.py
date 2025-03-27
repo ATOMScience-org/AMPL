@@ -1340,6 +1340,14 @@ def get_parser():
         help='Set to True to apply zero-mean, unit-variance normalization to the transformed output. '
         'Default is True.')
 
+    # Sklearn parameters
+    parser.add_argument(
+        '--imputer_strategy', choices=['mean', 'median', 'most_frequent'],
+        default='mean',
+        help='This sets the imputer strategy for the SimpleImputer for use with'
+        'PowerTransformer or RobustScaler.'
+        'Choices are {"mean", "median", "most_frequent"}')
+
     parser.set_defaults(transformers=True)
 
     # **********************************************************************************************************
