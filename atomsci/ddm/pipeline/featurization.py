@@ -1940,6 +1940,9 @@ class ComputedDescriptorFeaturization(DescriptorFeaturization):
             if not mordred_supported:
                 raise Exception("mordred package needs to be installed to use Mordred descriptors")
             desc_df, is_valid = self.compute_mordred_descriptors(smiles_df[params.smiles_col].values, params)
+            if descr_scaled:
+                desc_df = self.scale_by_heavyatomcount(desc_df, params.descriptor_type)
+
             desc_df = desc_df[descr_cols]
             # Add the ID and SMILES columns to the returned data frame
             ret_df = smiles_df[is_valid][[params.id_col, params.smiles_col]].reset_index(drop=True)

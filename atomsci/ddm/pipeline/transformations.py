@@ -6,6 +6,8 @@ import logging
 
 import numpy as np
 
+from sklearn.impute import SimpleImputer
+from sklearn.pipeline import Pipeline
 from deepchem.trans.transformers import Transformer, NormalizationTransformer, BalancingTransformer
 
 
@@ -124,20 +126,15 @@ def get_transformer_specific_metadata(params):
         meta_dict (dict): Nested dictionary of parameters and values for each currently active
         transformer.
     """
-    meta_dict = {}
-    if params.feature_transform_type == 'RobustScaler':
-        robustscaler_dict = dict(
-            robustscaler_with_centering = params.robustscaler_with_centering,
-            robustscaler_with_scaling = params.robustscaler_with_scaling,
-            robustscaler_with_quartile_range = params.robustscaler_quartile_range,
-            robustscaler_unit_variance = params.robustscaler_unit_variance,)
-        meta_dict['robustscaler_specific'] = robustscaler_dict
-    if params.feature_transform_type == 'PowerTransformer':
-        powertransformer_dict = dict(
-                        powertransformer_method = params.powertransformer_method,
-                        powertransformer_standardize = params.powertransformer_standardize)
-        meta_dict['powertransformer_specific'] = powertransformer_dict    
-    return meta_dict
+    meta_dict = dict(
+        robustscaler_with_centering = params.robustscaler_with_centering,
+        robustscaler_with_scaling = params.robustscaler_with_scaling,
+        robustscaler_quartile_range = params.robustscaler_quartile_range,
+        robustscaler_unit_variance = params.robustscaler_unit_variance,
+        powertransformer_method = params.powertransformer_method,
+        powertransformer_standardize = params.powertransformer_standardize,
+        imputer_strategy = params.imputer_strategy)
+    return dict(transformer_specific=meta_dict)
 
 # ****************************************************************************************
 def get_transformer_keys(params):
@@ -208,7 +205,8 @@ class SklearnTransformerWrapper(Transformer):
     This wrapps a given sklearn transformer and converts it to a DeepChem style transformer
     """
     def __init__(self, dataset, sklearn_transformer, 
-                 transform_X=False, transform_y=False, transform_w=False):
+                 transform_X=False, transform_y=False, transform_w=False,
+                 imputer_strategy="mean"):
 
         self.transform_X = transform_X
         self.transform_y = transform_y
@@ -217,7 +215,11 @@ class SklearnTransformerWrapper(Transformer):
         assert sum([self.transform_X, self.transform_y, self.transform_w]), \
             "This transformer can operate on only one of X, y, or w."
 
-        self.sklearn_transformer = sklearn_transformer
+        # keep_empty_features is set to true so that feature counts do not change
+        imputer = SimpleImputer(strategy=imputer_strategy, keep_empty_features=True,
+                                add_indicator=True) # this is true so that inverse works
+        self.sklearn_transformer = Pipeline([('imputer', imputer), 
+                                             ('scaler', sklearn_transformer)])
 
         if self.transform_X:
             self.sklearn_transformer.fit(dataset.X)

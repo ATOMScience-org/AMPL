@@ -91,6 +91,55 @@ class ModelFileReader:
         """
         return self.metadata_dict.get("model_parameters")
 
+    def get_transformer_specific_parameters(self):
+        """Returns:
+            (str): embedding specific parameters
+
+        """
+        return self.metadata_dict.get("transformer_specific")
+
+    def get_robustscaler_with_centering(self):
+        """Returns:
+            (bool): robustscaler_with_centering
+        """
+        return self.get_transformer_specific_parameters().get("robustscaler_with_centering")
+
+    def get_robustscaler_with_scaling(self):
+        """Returns:
+            (bool): robustscaler_with_scaling
+        """
+        return self.get_transformer_specific_parameters().get("robustscaler_with_scaling")
+
+    def get_robustscaler_quartile_range(self):
+        """Returns:
+            (list[float]): robustscaler_quartile_range
+        """
+        return self.get_transformer_specific_parameters().get("robustscaler_quartile_range")
+
+    def get_robustscaler_unit_variance(self):
+        """Returns:
+            (bool): robustscaler_unit_variance
+        """
+        return self.get_transformer_specific_parameters().get("robustscaler_unit_variance")
+
+    def get_powertransformer_method(self):
+        """Returns:
+            (str): powertransformer_method
+        """
+        return self.get_transformer_specific_parameters().get("powertransformer_method")
+
+    def get_powertransformer_standardize(self):
+        """Returns:
+            (bool): powertransformer_standardize
+        """
+        return self.get_transformer_specific_parameters().get("powertransformer_standardize")
+
+    def get_imputer_strategy(self):
+        """Returns:
+            (str): imputer_strategy
+        """
+        return self.get_transformer_specific_parameters().get("imputer_strategy")
+
     def get_embedding_specific_parameters(self):
         """Returns:
             (str): embedding specific parameters
@@ -103,7 +152,6 @@ class ModelFileReader:
             (str): embedding_model_uuid
         """
         return self.get_embedding_specific_parameters().get("embedding_model_uuid")
-
 
     def get_embedding_model_path(self):
         """Returns:

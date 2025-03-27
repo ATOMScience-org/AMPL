@@ -3,6 +3,8 @@ import tempfile
 import atomsci.ddm.pipeline.parameter_parser as parse
 import atomsci.ddm.pipeline.model_pipeline as mp
 import atomsci.ddm.pipeline.transformations as trans
+import atomsci.ddm.pipeline.compare_models as cm
+import atomsci.ddm.utils.model_file_reader as mfr
 import numpy as np
 import os
 import json
@@ -380,8 +382,18 @@ def test_sklearn_transformers():
     transformers_x = robustscaler_pipe.model_wrapper.transformers_x
     assert len(transformers_x[0])==1
     assert isinstance(transformers_x[0][0], trans.SklearnTransformerWrapper)
-    assert isinstance(transformers_x[0][0].sklearn_transformer, RobustScaler)
+    assert isinstance(transformers_x[0][0].sklearn_transformer.named_steps['scaler'], RobustScaler)
 
+    tar_path = cm.get_filesystem_perf_results(res_dir)['model_path'].values[0]
+    reader = mfr.ModelFileReader(tar_path)
+
+    assert reader.get_robustscaler_with_centering()
+    assert reader.get_robustscaler_with_scaling()
+    assert reader.get_robustscaler_quartile_range() == [30.0, 80.0]
+    assert reader.get_robustscaler_unit_variance()
+    assert reader.get_imputer_strategy() == 'mean'
+
+    res_dir = tempfile.mkdtemp()
     powertransformer_params = read_params(
         make_relative_to_file('jsons/PowerTransformer_transformer.json'),
         dset_key,
@@ -392,10 +404,17 @@ def test_sklearn_transformers():
     transformers_x = powertransformer_pipe.model_wrapper.transformers_x
     assert len(transformers_x[0])==1
     assert isinstance(transformers_x[0][0], trans.SklearnTransformerWrapper)
-    assert isinstance(transformers_x[0][0].sklearn_transformer, PowerTransformer)
+    assert isinstance(transformers_x[0][0].sklearn_transformer.named_steps['scaler'], PowerTransformer)
+
+    tar_path = cm.get_filesystem_perf_results(res_dir)['model_path'].values[0]
+    reader = mfr.ModelFileReader(tar_path)
+
+    assert reader.get_powertransformer_method() == 'yeo-johnson'
+    assert reader.get_powertransformer_standardize()
 
 if __name__ == '__main__':
-    test_kfold_regression_transformers()
-    test_kfold_transformers()
-    test_all_transformers()
-    test_balancing_transformer()
+    test_sklearn_transformers()
+    #test_kfold_regression_transformers()
+    #test_kfold_transformers()
+    #test_all_transformers()
+    #test_balancing_transformer()
