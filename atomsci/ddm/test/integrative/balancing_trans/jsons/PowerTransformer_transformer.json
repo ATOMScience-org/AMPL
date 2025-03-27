@@ -16,7 +16,7 @@
         "transformers": "True",
         "model_type": "NN",
         "featurizer": "computed_descriptors",
-        "descriptor_type": "rdkit_raw",
+        "descriptor_type": "mordred_filtered",
         "feature_transform_type": "PowerTransformer",
         "learning_rate": ".0007",
         "layer_sizes": "20,10",

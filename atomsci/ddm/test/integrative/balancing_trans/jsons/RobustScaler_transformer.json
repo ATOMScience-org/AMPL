@@ -16,7 +16,7 @@
         "transformers": "True",
         "model_type": "NN",
         "featurizer": "computed_descriptors",
-        "descriptor_type": "rdkit_raw",
+        "descriptor_type": "mordred_filtered",
         "feature_transform_type": "RobustScaler",
         "robustscaler_with_center": "True",
         "robustscaler_with_scaling": "True",
