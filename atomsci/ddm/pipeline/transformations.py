@@ -3,7 +3,6 @@ provided by DeepChem.
 """
 
 import logging
-import pdb
 
 import numpy as np
 
@@ -217,7 +216,8 @@ class SklearnTransformerWrapper(Transformer):
             "This transformer can operate on only one of X, y, or w."
 
         # keep_empty_features is set to true so that feature counts do not change
-        imputer = SimpleImputer(strategy=imputer_strategy, keep_empty_features=True)
+        imputer = SimpleImputer(strategy=imputer_strategy, keep_empty_features=True,
+                                add_indicator=True) # this is true so that inverse works
         self.sklearn_transformer = Pipeline([('imputer', imputer), 
                                              ('scaler', sklearn_transformer)])
 
