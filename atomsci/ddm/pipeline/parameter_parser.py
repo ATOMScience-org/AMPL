@@ -775,13 +775,14 @@ def dict_to_list(inp_dictionary,replace_spaces=False):
     temp_list_to_command_line = []
 
     # Special case handling for arguments that are False or True by default
-    default_false = ['previously_split','use_shortlist','datastore', 'save_results','verbose', 'hyperparam', 'split_only', 'is_ki', 'production', 'embedding_and_features'] 
-    default_true = ['transformers','previously_featurized','uncertainty', 'rerun']
-    default_false = ['previously_split','use_shortlist','datastore', 'save_results','verbose', 'hyperparam', 'split_only', 'is_ki', 'production',
+    default_false = ['previously_split','use_shortlist','datastore', 
+                     'save_results','verbose', 'hyperparam', 'split_only', 'is_ki', 'production',
+                     'embedding_and_features', 
                      'robustscaler_unit_variance'] 
     default_true = ['transformers','previously_featurized','uncertainty', 'rerun',
                     'robustscaler_with_centering', 'robustscaler_with_scaling',
                     'powertransformer_standardize']
+
     for key, value in inp_dictionary.items():
         if key in default_false:
             true_options = ['True','true','ture','TRUE','Ture']
@@ -1304,6 +1305,7 @@ def get_parser():
     parser.add_argument(
         '--transformers', dest='transformers', action='store_false',
         help='Boolean switch for using transformation on regression output. Default is True')
+    parser.set_defaults(transformers=True)
 
     # RobustScaler parameters
     parser.add_argument(
@@ -1312,9 +1314,11 @@ def get_parser():
         'This will cause transform to raise an exception when attempted on sparse matrices, '
         'because centering them entails building a dense matrix which in common use '
         'cases is likely to be too large to fit in memory. Default is True')
+    parser.set_defaults(robustscaler_with_centering=True)
     parser.add_argument(
         '--robustscaler_with_scaling', action='store_false',
         help='If True, scale the data to interquartile range. Default is True')
+    parser.set_defaults(robustscaler_with_scaling=True)
     parser.add_argument(
         '--robustscaler_quartile_range', type=str, default='25.0,75.0',
         help='Quantile range used to calculate scale_. '
@@ -1327,6 +1331,7 @@ def get_parser():
         'In general, if the difference between the x-values of q_max and q_min for a standard '
         'normal distribution is greater than 1, the dataset will be scaled down. '
         'If less than 1, the dataset will be scaled up. Default is False.')
+    parser.set_defaults(robustscaler_unit_variance=False)
 
     # PowerTransformer parameters
     parser.add_argument(
@@ -1339,6 +1344,7 @@ def get_parser():
         '--powertransformer_standardize', action='store_false',
         help='Set to True to apply zero-mean, unit-variance normalization to the transformed output. '
         'Default is True.')
+    parser.set_defaults(powertransformer_standardize=True)
 
     # Sklearn parameters
     parser.add_argument(
@@ -1347,8 +1353,6 @@ def get_parser():
         help='This sets the imputer strategy for the SimpleImputer for use with'
         'PowerTransformer or RobustScaler.'
         'Choices are {"mean", "median", "most_frequent"}')
-
-    parser.set_defaults(transformers=True)
 
     # **********************************************************************************************************
     # model_building_parameters: XGBoost
