@@ -24,7 +24,8 @@ from rdkit.Chem import Descriptors
 from rdkit.ML.Descriptors import MoleculeDescriptors
 
 from sklearn.preprocessing import RobustScaler, PowerTransformer
-
+from sklearn.impute import SimpleImputer
+from sklearn.pipeline import Pipeline
 subclassed_mordred_classes = ['EState', 'MolecularDistanceEdge']
 try:
     from mordred import Calculator, descriptors
@@ -1642,27 +1643,37 @@ class DescriptorFeaturization(PersistentFeaturization):
         if params.feature_transform_type == 'normalization':
             transformers_x = [trans.NormalizationTransformerMissingData(transform_X=True, dataset=dataset)]
         elif params.feature_transform_type == 'RobustScaler':
+            # keep_empty_features is set to true so that feature counts do not change
+            imputer = SimpleImputer(strategy=params.imputer_strategy, keep_empty_features=True,
+                                    add_indicator=True) # this is true so that inverse works
             # Check quartile_range has length 2 and convert it into a tuple
             quartiles = params.robustscaler_quartile_range
             assert len(quartiles) == 2, f'robustscaler_quartile_range must have length 2, got {quartiles}.'
             quartiles = (quartiles[0], quartiles[1])
-            transformers_x = [
-                trans.SklearnTransformerWrapper(transform_X=True, dataset=dataset,
-                    sklearn_transformer=RobustScaler(
+            robust_scaler = RobustScaler(
                         with_centering=params.robustscaler_with_centering,
                         with_scaling=params.robustscaler_with_scaling,
                         quantile_range=quartiles,
                         unit_variance=params.robustscaler_unit_variance
-                    ))
-                ]
-        elif params.feature_transform_type == 'PowerTransformer':
+                    )
+            pipeline = Pipeline([('SimpleImputer', imputer), ('RobustScaler', robust_scaler)])
             transformers_x = [
-                trans.SklearnTransformerWrapper(transform_X=True, dataset=dataset,
-                    sklearn_transformer=PowerTransformer(
+                trans.SklearnPipelineWrapper(transform_X=True, dataset=dataset,
+                    sklearn_pipeline=pipeline)
+            ]
+        elif params.feature_transform_type == 'PowerTransformer':
+            # keep_empty_features is set to true so that feature counts do not change
+            imputer = SimpleImputer(strategy=params.imputer_strategy, keep_empty_features=True,
+                                    add_indicator=True) # this is true so that inverse works
+            power_transformer = PowerTransformer(
                         method=params.powertransformer_method,
                         standardize=params.powertransformer_standardize
-                    ))
-                ]
+            )
+            pipeline = Pipeline([('SimpleImputer', imputer), ('PowerTransformer', power_transformer)])
+            transformers_x = [
+                trans.SklearnPipelineWrapper(transform_X=True, dataset=dataset,
+                    sklearn_pipeline=pipeline)
+            ]
         else:
             transformers_x = []
         return transformers_x
