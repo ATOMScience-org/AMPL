@@ -9,7 +9,9 @@ import numpy as np
 import os
 import json
 
+from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import RobustScaler, PowerTransformer
+from sklearn.pipeline import Pipeline
 
 import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
@@ -365,7 +367,7 @@ def test_kfold_regression_transformers():
     # transformer means should be around expected_mean
     np.testing.assert_array_almost_equal(transformer.y_means, expected_y_means)
 
-def test_sklearn_transformers():
+def test_sklearn_pipelines():
     """
     Test the balancing transformer to ensure that it correctly adjusts weights for imbalanced datasets.
     """
@@ -381,8 +383,13 @@ def test_sklearn_transformers():
     robustscaler_pipe = make_pipeline(robustscaler_params)
     transformers_x = robustscaler_pipe.model_wrapper.transformers_x
     assert len(transformers_x[0])==1
-    assert isinstance(transformers_x[0][0], trans.SklearnTransformerWrapper)
-    assert isinstance(transformers_x[0][0].sklearn_transformer.named_steps['scaler'], RobustScaler)
+    assert isinstance(transformers_x[0][0], trans.SklearnPipelineWrapper)
+    assert isinstance(transformers_x[0][0].sklearn_pipeline, Pipeline)
+    scaler = transformers_x[0][0].sklearn_pipeline.named_steps['RobustScaler']
+    assert isinstance(scaler, RobustScaler)
+    imputer = transformers_x[0][0].sklearn_pipeline.named_steps['SimpleImputer']
+    assert isinstance(imputer, SimpleImputer)
+    assert imputer.strategy == 'median'
 
     tar_path = cm.get_filesystem_perf_results(res_dir)['model_path'].values[0]
     reader = mfr.ModelFileReader(tar_path)
@@ -391,7 +398,7 @@ def test_sklearn_transformers():
     assert reader.get_robustscaler_with_scaling()
     assert reader.get_robustscaler_quartile_range() == [30.0, 80.0]
     assert reader.get_robustscaler_unit_variance()
-    assert reader.get_imputer_strategy() == 'mean'
+    assert reader.get_imputer_strategy() == 'median'
 
     res_dir = tempfile.mkdtemp()
     powertransformer_params = read_params(
@@ -403,8 +410,10 @@ def test_sklearn_transformers():
     powertransformer_pipe = make_pipeline(powertransformer_params)
     transformers_x = powertransformer_pipe.model_wrapper.transformers_x
     assert len(transformers_x[0])==1
-    assert isinstance(transformers_x[0][0], trans.SklearnTransformerWrapper)
-    assert isinstance(transformers_x[0][0].sklearn_transformer.named_steps['scaler'], PowerTransformer)
+    assert isinstance(transformers_x[0][0], trans.SklearnPipelineWrapper)
+    assert isinstance(transformers_x[0][0].sklearn_pipeline, Pipeline)
+    scaler = transformers_x[0][0].sklearn_pipeline.named_steps['PowerTransformer']
+    assert isinstance(scaler, PowerTransformer)
 
     tar_path = cm.get_filesystem_perf_results(res_dir)['model_path'].values[0]
     reader = mfr.ModelFileReader(tar_path)
@@ -413,7 +422,7 @@ def test_sklearn_transformers():
     assert reader.get_powertransformer_standardize()
 
 if __name__ == '__main__':
-    test_sklearn_transformers()
+    test_sklearn_pipelines()
     #test_kfold_regression_transformers()
     #test_kfold_transformers()
     #test_all_transformers()

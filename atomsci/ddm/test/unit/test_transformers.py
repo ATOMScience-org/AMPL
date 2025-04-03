@@ -4,7 +4,7 @@ from deepchem.data import NumpyDataset
 
 from sklearn.preprocessing import RobustScaler, PowerTransformer
 
-def test_sklearn_transformer_wrapper():
+def test_sklearn_pipeline_wrapper():
     """
     Creates a mock dataset.
         Tests the SklearnTransformerWrapper with RobustScaler on X.
@@ -21,7 +21,7 @@ def test_sklearn_transformer_wrapper():
 
     # Test with RobustScaler on X
     scaler = RobustScaler()
-    transformer = trans.SklearnTransformerWrapper(dataset, scaler, transform_X=True)
+    transformer = trans.SklearnPipelineWrapper(dataset, scaler, transform_X=True)
     transformed_dataset = transformer.transform(dataset)
     expected_transformed_X = scaler.fit_transform(X)
     np.testing.assert_array_almost_equal(transformed_dataset.X, expected_transformed_X)
@@ -32,7 +32,7 @@ def test_sklearn_transformer_wrapper():
 
     # Test with PowerTransformer on y
     power_transformer = PowerTransformer()
-    transformer = trans.SklearnTransformerWrapper(dataset, power_transformer, transform_y=True)
+    transformer = trans.SklearnPipelineWrapper(dataset, power_transformer, transform_y=True)
     transformed_dataset = transformer.transform(dataset)
     expected_transformed_y = power_transformer.fit_transform(y)
     np.testing.assert_array_almost_equal(transformed_dataset.y, expected_transformed_y)
@@ -42,7 +42,7 @@ def test_sklearn_transformer_wrapper():
     np.testing.assert_array_almost_equal(untransformed_y, y)
 
     # Test with RobustScaler on w
-    transformer = trans.SklearnTransformerWrapper(dataset, scaler, transform_w=True)
+    transformer = trans.SklearnPipelineWrapper(dataset, scaler, transform_w=True)
     transformed_dataset = transformer.transform(dataset)
     expected_transformed_w = scaler.fit_transform(w)
     np.testing.assert_array_almost_equal(transformed_dataset.w, expected_transformed_w)

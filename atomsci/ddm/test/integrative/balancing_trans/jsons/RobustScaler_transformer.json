@@ -22,6 +22,7 @@
         "robustscaler_with_scaling": "True",
         "robustscaler_quartile_range": "30.0,80.0",
         "robustscaler_unit_variance": "True",
+        "imputer_strategy": "median",
         "save_results": "False",
         "verbose": "False",
         "seed":"0"

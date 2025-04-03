@@ -6,10 +6,7 @@ import logging
 
 import numpy as np
 
-from sklearn.impute import SimpleImputer
-from sklearn.pipeline import Pipeline
 from deepchem.trans.transformers import Transformer, NormalizationTransformer, BalancingTransformer
-
 
 logging.basicConfig(format='%(asctime)-15s %(message)s')
 log = logging.getLogger('ATOM')
@@ -200,13 +197,12 @@ def get_all_training_datasets(model_dataset):
 
 
 # ****************************************************************************************
-class SklearnTransformerWrapper(Transformer):
+class SklearnPipelineWrapper(Transformer):
     """
     This wrapps a given sklearn transformer and converts it to a DeepChem style transformer
     """
-    def __init__(self, dataset, sklearn_transformer, 
-                 transform_X=False, transform_y=False, transform_w=False,
-                 imputer_strategy="mean"):
+    def __init__(self, dataset, sklearn_pipeline, 
+                 transform_X=False, transform_y=False, transform_w=False):
 
         self.transform_X = transform_X
         self.transform_y = transform_y
@@ -215,18 +211,14 @@ class SklearnTransformerWrapper(Transformer):
         assert sum([self.transform_X, self.transform_y, self.transform_w]), \
             "This transformer can operate on only one of X, y, or w."
 
-        # keep_empty_features is set to true so that feature counts do not change
-        imputer = SimpleImputer(strategy=imputer_strategy, keep_empty_features=True,
-                                add_indicator=True) # this is true so that inverse works
-        self.sklearn_transformer = Pipeline([('imputer', imputer), 
-                                             ('scaler', sklearn_transformer)])
+        self.sklearn_pipeline = sklearn_pipeline
 
         if self.transform_X:
-            self.sklearn_transformer.fit(dataset.X)
+            self.sklearn_pipeline.fit(dataset.X)
         elif self.transform_y:
-            self.sklearn_transformer.fit(dataset.y)
+            self.sklearn_pipeline.fit(dataset.y)
         else:
-            self.sklearn_transformer.fit(dataset.w)
+            self.sklearn_pipeline.fit(dataset.w)
 
     def transform(self, dataset, parallel=False):
         return dataset.transform(self)
@@ -234,16 +226,16 @@ class SklearnTransformerWrapper(Transformer):
     def transform_array(self, X, y, w, ids):
         """Transform the data in a set of (X, y, w) arrays."""
         if self.transform_X:
-            X = self.sklearn_transformer.transform(X)
+            X = self.sklearn_pipeline.transform(X)
         elif self.transform_y:
-            y = self.sklearn_transformer.transform(y)
+            y = self.sklearn_pipeline.transform(y)
         else:
-            w = self.sklearn_transformer.transform(w)
+            w = self.sklearn_pipeline.transform(w)
 
         return (X, y, w, ids)
 
     def untransform(self, z: np.ndarray) -> np.ndarray:
-        return self.sklearn_transformer.inverse_transform(z)
+        return self.sklearn_pipeline.inverse_transform(z)
 
 # ****************************************************************************************
 
