@@ -359,6 +359,6 @@ def test_class_config_H1_fit_NN_moe():
         train_and_predict('jsons/class_config_H1_fit_NN_moe.json', prefix='H1')
 
 if __name__ == '__main__':
-    test_class_config_delaney_fit_XGB_mordred_filtered()
+    test_class_config_delaney_fit_XGB_rdkit_scaled()
     test_class_config_delaney_fit_XGB_mordred_filtered_scaled()
     #pass

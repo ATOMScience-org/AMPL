@@ -1952,7 +1952,7 @@ class ComputedDescriptorFeaturization(DescriptorFeaturization):
                 raise Exception("mordred package needs to be installed to use Mordred descriptors")
             desc_df, is_valid = self.compute_mordred_descriptors(smiles_df[params.smiles_col].values, params)
             if descr_scaled:
-                desc_df = self.scale_by_heavyatomcount(desc_df, params.descriptor_type)
+                desc_df = self.scale_by_heavyatomcount_and_log_scale(desc_df, params.descriptor_type)
 
             desc_df = desc_df[descr_cols]
             # Add the ID and SMILES columns to the returned data frame
@@ -1965,7 +1965,8 @@ class ComputedDescriptorFeaturization(DescriptorFeaturization):
         elif descr_source == 'rdkit':
             desc_df, is_valid = self.compute_rdkit_descriptors(smiles_df, smiles_col = params.smiles_col)
             if descr_scaled:
-                desc_df = self.scale_by_heavyatomcount(desc_df, params.descriptor_type)
+                desc_df = self.scale_by_heavyatomcount_and_log_scale(desc_df, params.descriptor_type)
+                # RDKit features do not contain log scale features
 
             desc_df = desc_df[descr_cols]
             # Add the ID and SMILES columns to the returned data frame
@@ -2091,7 +2092,7 @@ class ComputedDescriptorFeaturization(DescriptorFeaturization):
         return scaled_df.copy()
 
     # ****************************************************************************************
-    def scale_by_heavyatomcount(self, desc_df, descr_type, heavy_atom_col=''):
+    def scale_by_heavyatomcount_and_log_scale(self, desc_df, descr_type, heavy_atom_col=''):
         """Scale selected descriptors computed by rdkit or mordred by dividing their values by the heavy atom count per molecule.
 
         Args:
@@ -2099,8 +2100,14 @@ class ComputedDescriptorFeaturization(DescriptorFeaturization):
 
             descr_type (str): Descriptor type, used to look up expected set of descriptor columns.
 
+            heavy_atom_col (str): Column containing the heavy atom count. Default value is '', which will try
+                to infer the heavy atom count column based on descr_type.
+
         Returns:
             scaled_df (DataFrame): Data frame with scaled descriptors.
+
+        Raises:
+            ValueError: If there are negative feature values in a column that needs log scaling       
 
         """
         cls = self.__class__
@@ -2117,11 +2124,19 @@ class ComputedDescriptorFeaturization(DescriptorFeaturization):
                                    "Should be HeavyAtomCount or nHeavyAtom or set using the heavy_atom_col parameter")
 
         unscaled_desc_cols = [col.replace('_per_heavyatom', '') for col in descr_cols]
+        unscaled_desc_cols = [col.replace('_log_scaled', '') for col in unscaled_desc_cols]
         nondesc_cols = list(set(desc_df.columns.values) - set(unscaled_desc_cols))
         scaled_cols=[desc_df[nondesc_cols].copy()]
         for scaled_col, unscaled_col in zip(descr_cols, unscaled_desc_cols):
             if scaled_col.endswith('_per_heavyatom'):
                 tmp_col=desc_df[unscaled_col] / ha_count
+                tmp_col=tmp_col.rename(scaled_col)
+                scaled_cols.append(tmp_col)
+            elif scaled_col.endswith('_log_scaled'):
+                feat_vals = desc_df[unscaled_col]
+                if any(feat_vals < 0):
+                    raise ValueError(f"Cannot log scale {unscaled_col} because of negative values in feature.")
+                tmp_col=np.log(feat_vals)
                 tmp_col=tmp_col.rename(scaled_col)
                 scaled_cols.append(tmp_col)
             else:
