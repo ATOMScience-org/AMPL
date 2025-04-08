@@ -211,28 +211,6 @@ class RegressionPerfData(PerfData):
         self.weights = None
 
     # ****************************************************************************************
-    def accumulate_preds(self, predicted_vals, ids, pred_stds=None):
-        """Raises:
-            NotImplementedError: The method is implemented by subclasses
-        """
-        raise NotImplementedError
-
-    # ****************************************************************************************
-    def get_pred_values(self):
-        """Raises:
-            NotImplementedError: The method is implemented by subclasses
-        """
-        raise NotImplementedError
-
-    # ****************************************************************************************
-    def compute_perf_metrics(self, per_task=False):
-        """Raises:
-            NotImplementedError: The method is implemented by subclasses
-        """
-        raise NotImplementedError
-
-
-    # ****************************************************************************************
     # class RegressionPerfData
     def model_choice_score(self, score_type='r2'):
         """Computes a score function based on the accumulated predicted values, to be used for selecting
@@ -398,28 +376,6 @@ class HybridPerfData(PerfData):
         self.perf_metrics = []
         self.model_score = None
         self.weights = None
-
-    # ****************************************************************************************
-    def accumulate_preds(self, predicted_vals, ids, pred_stds=None):
-        """Raises:
-            NotImplementedError: The method is implemented by subclasses
-        """
-        raise NotImplementedError
-
-    # ****************************************************************************************
-    def get_pred_values(self):
-        """Raises:
-            NotImplementedError: The method is implemented by subclasses
-        """
-        raise NotImplementedError
-
-    # ****************************************************************************************
-    def compute_perf_metrics(self, per_task=False):
-        """Raises:
-            NotImplementedError: The method is implemented by subclasses
-        """
-        raise NotImplementedError
-
 
     # ****************************************************************************************
     # class HybridPerfData
@@ -623,22 +579,7 @@ class ClassificationPerfData(PerfData):
         self.perf_metrics = []
         self.model_score = None
         self.weights = None
-
-    # ****************************************************************************************
-    def accumulate_preds(self, predicted_vals, ids, pred_stds=None):
-        """Raises:
-            NotImplementedError: The method is implemented by subclasses
-        """
-        raise NotImplementedError
-
-    # ****************************************************************************************
-    def get_pred_values(self):
-        """Raises:
-            NotImplementedError: The method is implemented by subclasses
-        """
-        raise NotImplementedError
-
-
+        
     # ****************************************************************************************
     # class ClassificationPerfData
     def model_choice_score(self, score_type='roc_auc'):
@@ -658,8 +599,8 @@ class ClassificationPerfData(PerfData):
 
         """
         ids, pred_classes, class_probs, prob_stds = self.get_pred_values()
-        real_vals = self.get_real_values()
-        weights = self.get_weights()
+        real_vals = self.get_real_values(ids=ids)
+        weights = self.get_weights(ids=ids)
         scores = []
             
         for i in range(self.num_tasks):
@@ -997,7 +938,11 @@ class KFoldRegressionPerfData(RegressionPerfData):
             otherwise.
 
         """
-        ids = sorted(self.pred_vals.keys())
+        #ids = sorted(self.pred_vals.keys())
+        all_ids = sorted(self.pred_vals.keys())
+        # with kfold + SMOTE, not all ids have predictions 
+        ids = [id for id in all_ids if not (self.pred_vals[id].size == 0)]
+
         if self.subset in ['train', 'test', 'train_valid']:
             vals = np.concatenate([self.pred_vals[id].mean(axis=0, keepdims=True).reshape((1,-1)) for id in ids])
             if self.folds > 1:
@@ -1153,6 +1098,8 @@ class KFoldClassificationPerfData(ClassificationPerfData):
         self.num_cmpds = dataset.y.shape[0]
         self.num_tasks = dataset.y.shape[1]
         self.num_classes = len(set(model_dataset.dataset.y.flatten()))
+        # pred vals maps compound ids to a matrix of predictions.
+        # predictions will be concatentated one by one as they come in in accumulate_preds
         self.pred_vals = dict([(id, np.empty((0, self.num_tasks, self.num_classes), dtype=np.float32)) for id in dataset.ids])
 
         real_vals, self.weights = model_dataset.get_subset_responses_and_weights(self.subset)
@@ -1195,6 +1142,7 @@ class KFoldClassificationPerfData(ClassificationPerfData):
         """
         class_probs = self._reshape_preds(predicted_vals)
         for i, id in enumerate(ids):
+            # Record predictions for each compound.
             self.pred_vals[id] = np.concatenate([self.pred_vals[id], class_probs[i,:,:].reshape((1,self.num_tasks,-1))], axis=0)
         self.folds += 1
         real_vals = self.get_real_values(ids=ids)
@@ -1236,7 +1184,10 @@ class KFoldClassificationPerfData(ClassificationPerfData):
             probability estimates (only available for the 'train' and 'test' subsets; None otherwise).
 
         """
-        ids = sorted(self.pred_vals.keys())
+        all_ids = sorted(self.pred_vals.keys())
+        # with kfold + SMOTE, not all ids have predictions
+        ids = [id for id in all_ids if not (self.pred_vals[id].size == 0)]
+
         if self.subset in ['train', 'test', 'train_valid']:
             class_probs = np.concatenate([self.pred_vals[id].mean(axis=0, keepdims=True)
                                    for id in ids], axis=0)
@@ -1392,7 +1343,7 @@ class SimpleRegressionPerfData(RegressionPerfData):
 
     # ****************************************************************************************
     # class SimpleRegressionPerfData
-    def accumulate_preds(self, predicted_vals, ids, pred_stds=None):
+    def accumulate_preds(self, predicted_vals, ids=None, pred_stds=None):
         """Add training, validation or test set predictions to the data structure
         where we keep track of them.
 
