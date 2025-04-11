@@ -13,7 +13,6 @@ from atomsci.ddm.utils import compare_splits_plots as csp
 
 import matplotlib.pyplot as plt
 import seaborn as sns
-from scipy import stats
 
 
 # ---------------------------------------------------------------------------------------------------------------------------------
@@ -51,7 +50,7 @@ def plot_split_diagnostics(params_or_pl, axes=None, num_rows=None, num_cols=1, m
     """
 
     # Save current matplotlib color cycle and switch to 'colorblind' palette
-    old_palette = sns.color_palette()
+    _ = sns.color_palette()
     sns.set_palette('colorblind')
 
     if isinstance(params_or_pl, dict):
