@@ -1,4 +1,3 @@
-import pdb
 import argparse
 import logging
 import timeit
@@ -160,57 +159,6 @@ def dist_smiles_from_ecfp(ecfp1: List[rdkit.DataStructs.cDataStructs.ExplicitBit
     return cd.calc_summary(dist_metrics.tanimoto(ecfp1, ecfp2), calc_type='nearest', 
                         num_nearest=1, within_dset=False)
 
-def _generate_scaffold_dist_matrix(scaffold_lists: List[np.ndarray],
-                                ecfp_features: List[rdkit.DataStructs.cDataStructs.ExplicitBitVect]) -> np.ndarray:
-        """Returns a nearest neighbors distance matrix between each scaffold.
-
-        The distance between two scaffolds is defined as the
-        the distance between the two closest compounds between the two
-        scaffolds.
-
-        TODO: Ask Stewart: Why did he change to using the median instead of the min?
-
-        Parameters
-        ----------
-        scaffold_lists: List[np.ndarray]
-            List of scaffolds. A scaffold is a set of indices into ecfp_features
-        ecfp_features: List[rdkit.DataStructs.cDataStructs.ExplicitBitVect]
-            List of ecfp features, one for each compound in the dataset
-
-        Returns
-        -------
-        dist_mat: np.ndarray
-            Distance matrix, symmetric.
-        """
-        print('start generating big dist mat')
-        start = timeit.default_timer()
-        # First compute the full matrix of distances between all pairs of ECFPs
-        dmat = dist_metrics.tanimoto(ecfp_features)
-
-        mat_shape = (len(scaffold_lists), len(scaffold_lists))
-        scaff_dist_mat = np.zeros(mat_shape)
-        for i, scaff1 in tqdm(enumerate(scaffold_lists)):
-            scaff1_rows = scaff1.reshape((-1,1))
-            for j, scaff2 in enumerate(scaffold_lists[:i]):
-                if i == j:
-                    continue
-
-                dists = dmat[scaff1_rows, scaff2].flatten()
-                #min_dist = np.median(dists)
-                # ksm: Change back to min and see what happens
-                min_dist = np.min(dists)
-
-                if min_dist==0:
-                    print("two scaffolds match exactly?!?", i, j)
-                    print(len(set(scaff2).intersection(set(scaff1))))
-
-                scaff_dist_mat[i,j] = min_dist
-                scaff_dist_mat[j,i] = min_dist
-
-        print("finished scaff dist mat: %0.2f min"%((timeit.default_timer()-start)/60))
-        return scaff_dist_mat
-
-
 class MultitaskScaffoldSplitter(Splitter):
     """MultitaskScaffoldSplitter Splitter class.
 
@@ -298,11 +246,11 @@ class MultitaskScaffoldSplitter(Splitter):
                 if min_dist==0:
                     logger.info(f"Scaffolds {i} and {j} have at least one ECFP in common")
                     for k in scaff1:
-                        for l in scaff2:
-                            if dmat[k,l] == 0:
-                                logger.debug(f"\tcompound {k} in scaffold {i}, compound {l} in scaffold {j}")
+                        for m in scaff2:
+                            if dmat[k,m] == 0:
+                                logger.debug(f"\tcompound {k} in scaffold {i}, compound {m} in scaffold {j}")
                                 logger.debug(f"\tSMILES {k}: {self.smiles[k]}")
-                                logger.debug(f"\tSMILES {l}: {self.smiles[l]}\n")
+                                logger.debug(f"\tSMILES {m}: {self.smiles[m]}\n")
 
 
                 scaff_dist_mat[i,j] = min_dist
@@ -490,7 +438,6 @@ class MultitaskScaffoldSplitter(Splitter):
         float
             A float between 0 and 1. 1 best 0 is worst
         """
-        #start = timeit.default_timer()
         # total_counts is the number of labels per task
         total_counts = np.sum(self.dataset.w, axis=0)
 
@@ -518,7 +465,6 @@ class MultitaskScaffoldSplitter(Splitter):
         worst_distance = np.linalg.norm(np.ones(len(target_split)))
         worst_distance = np.sqrt(len(target_split))
         ratio_fit = 1 - np.linalg.norm(target_split-current_split)/worst_distance
-        logging.info("\tratio_fitness: %0.2f min"%((timeit.default_timer()-start)/60))
 
         return ratio_fit
 
@@ -540,7 +486,6 @@ class MultitaskScaffoldSplitter(Splitter):
             the train subset response value distributions, averaged over tasks. One means
             the distributions perfectly match.
         """
-        #start = timeit.default_timer()
         dist_sum = 0.0
         ntasks = self.dataset.y.shape[1]
         train_ind, valid_ind, test_ind = self.split_chromosome_to_compound_split(split_chromosome)
@@ -560,7 +505,6 @@ class MultitaskScaffoldSplitter(Splitter):
             dist_sum += valid_dist + test_dist
 
         avg_dist = dist_sum/(ntasks*2)
-        logging.info("\tresponse_distr_fitness: %0.2f min"%((timeit.default_timer()-start)/60))
         return 1 - avg_dist
 
     def sanity_check_chromosome(self, split_chromosome: List[str]) -> bool:
@@ -792,10 +736,8 @@ class MultitaskScaffoldSplitter(Splitter):
         # initial population
         population = []
         for i in range(self.num_pop):
-            #start = timeit.default_timer()
             split_chromosome = self._split(frac_train=frac_train, frac_valid=frac_valid, 
                                 frac_test=frac_test)
-            #print("per_loop: %0.2f min"%((timeit.default_timer()-start)/60))
 
             population.append(split_chromosome)
 
