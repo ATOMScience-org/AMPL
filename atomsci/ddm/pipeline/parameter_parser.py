@@ -1125,7 +1125,7 @@ def get_parser():
     production_help_string = \
         ('Runs training in produciton mode. The model will be trained for exactly max_epochs and '
          'it will duplicate the dataset so that the entire dataset will be used for training, '
-         'validatin, and test.')
+         'validation, and test.')
     parser.add_argument(
         '--production', dest='production', default=False,
         action='store_true',
@@ -1529,7 +1529,7 @@ def get_parser():
     # NN model
     parser.add_argument(
         '--lr', dest='lr', required=False, default=None,
-        help='learing rate shown in HyperOpt domain format, e.g. --lr=uniform|0.00001,0.001')
+        help='learning rate shown in HyperOpt domain format, e.g. --lr=uniform|0.00001,0.001')
     parser.add_argument(
         '--ls', dest='ls', required=False, default=None,
         help='layer sizes shown in HyperOpt domain format, e.g. --ls=choice|2|8,16,32,64,128,256,512')
