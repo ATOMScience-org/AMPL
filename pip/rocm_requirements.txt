@@ -4,7 +4,6 @@
 tensorflow
 
 ### amd gpu: https://jax.readthedocs.io/en/latest/developer.html#additional-notes-for-building-a-rocm-jaxlib-for-amd-gpus
-jax
 
 -i https://download.pytorch.org/whl/rocm5.4.2
 torch
@@ -20,6 +19,8 @@ umap-learn
 
 pyarrow
 
+imblearn
+
 # requires pkg-config to build: sudo apt-get pkg-config
 # requires Cairo: sudo apt-get install libcairo2-dev
 # pycairo
@@ -32,9 +33,7 @@ mordred
 pytest
 ipykernel
 
-rdkit>=2024.3.3
 deepchem[tensorflow] # instructions unclear here - trouble on my home system
-deepchem[jax]        # instructions unclear here - trouble on my home system
 deepchem[torch]      # instructions unclear here - works fine on home system
 
 pyyaml==5.4.1

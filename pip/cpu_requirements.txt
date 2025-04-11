@@ -1,13 +1,11 @@
-# Minimal pip requirement list for AMPL with CPU support only. This includes only the packages directly imported by AMPL code, plus a few others commonly used during development. 
+# Minimal pip requirement list for AMPL with CPU support only. This includes only the packages directly imported by AMPL code, plus a few others commonly used during development.
 -i https://download.pytorch.org/whl/cpu
 --extra-index-url https://data.dgl.ai/wheels/repo.html
 --extra-index-url https://pypi.python.org/simple
 # for LC developers: comment out pypi index url and use t$
 # --extra-index-url https://wci-repo.llnl.gov/repository/$
 
-tensorflow==2.14.0
-
-jax[cpu]==0.4.16
+tensorflow-cpu~=2.14.0
 
 torch==2.0.1
 torch_geometric
@@ -31,10 +29,12 @@ pyarrow
 
 bravado
 
+imblearn
+
 # optional for home users: prettier images in RDKit
 # requires pkg-config to build: sudo apt-get pkg-config
 # requires Cairo: sudo apt-get install libcairo2-dev
-# pycairo 
+# pycairo
 
 maestrowf
 MolVS
@@ -43,7 +43,6 @@ mordred
 pytest
 ipykernel
 
-rdkit>=2024.3.3
 deepchem==2.7.1
-rdkit==2023.3.3
+rdkit==2024.3.5
 pyyaml==5.4.1

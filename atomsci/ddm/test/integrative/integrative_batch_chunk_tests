@@ -1,0 +1,52 @@
+#!/bin/bash
+
+set -e
+
+if [ -z "$1" ]; then
+    echo "Usage: $0 <subset_index>"
+    exit 1
+fi
+
+# Number of chunks (subsets)
+num_subsets=4
+
+# Chunk to run
+subset_index=$1
+
+# Test folders
+folders=($(ls -d */))
+
+# Function to calculate the hash of a folder name
+calculate_hash() {
+    echo -n "$1" | md5sum | awk '{print $1}'
+}
+
+# Function to determine if a folder belongs to the selected subset
+belongs_to_subset() {
+    local folder="$1"
+    local hash=$(calculate_hash "$folder")
+    local hash_decimal=$((0x${hash:0:8}))
+    local subset=$((hash_decimal % num_subsets))
+    if [ "$subset" -eq "$subset_index" ]; then
+        return 0  # Folder belongs to the subset
+    else
+        return 1  # Folder does not belong to the subset
+    fi
+}
+
+# Iterate over folders and run those that belong to the selected subset
+for folder in "${folders[@]}"; do
+    if belongs_to_subset "$folder"; then
+        file=($folder/test_*.py)
+        if [[ -f "$file" && "$folder" != "__pycache__/" ]]; then
+            cd "$folder"
+            echo "Testing $folder"
+            pytest --capture=sys --capture=fd --cov=atomsci -vv
+            cd ..
+        else
+          echo "Skipping folder: $folder. Not a test directory."
+        fi
+    else
+        echo "Skipping folder: $folder. Not in batch."
+    fi
+done

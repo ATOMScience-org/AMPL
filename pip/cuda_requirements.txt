@@ -3,18 +3,15 @@
 --extra-index-url https://pypi.python.org/simple
 # **Note**: for LC developers, comment out line 3 pypi install and use/uncommenting line 5:
 #--extra-index-url https://wci-repo.llnl.gov/repository/pypi-group/simple
--f https://storage.googleapis.com/jax-releases/jax_cuda_releases.html
 -f https://data.dgl.ai/wheels/cu118/repo.html
 
-tensorflow==2.14.0
+tensorflow[and-cuda]~=2.14.0
 
 tensorrt
 
 torch==2.0.1
 torch_geometric
 lightning
-
-jax[cuda11_pip]==0.4.16
 
 dgl==1.1.2
 dgllife
@@ -34,6 +31,8 @@ pyarrow
 
 bravado
 
+imblearn
+
 # optional for home users: prettier images in RDKit
 # requires pkg-config to build: sudo apt-get pkg-config
 # requires Cairo: sudo apt-get install libcairo2-dev
@@ -46,8 +45,7 @@ mordred
 pytest
 ipykernel
 
-rdkit>=2024.3.3
 deepchem==2.7.1
-rdkit==2023.3.3
+rdkit==2024.3.5
 
 pyyaml==5.4.1

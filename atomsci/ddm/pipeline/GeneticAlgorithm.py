@@ -1,10 +1,10 @@
 import numpy as np
+import uuid
 import scipy.spatial.distance as scipy_distance
 import multiprocessing
-import random
 from tqdm import tqdm
 import timeit
-from typing import Any, Callable, List
+from typing import Any, Callable, List, Tuple, Optional
 
 N_PROCS = multiprocessing.cpu_count()
 
@@ -22,7 +22,8 @@ class GeneticAlgorithm:
                 init_pop: List[List[Any]],
                 fitness_func: Callable,
                 crossover_func: Callable,
-                mutate_func: Callable):
+                mutate_func: Callable,
+                seed: Optional[int]):
         """
         Creates a GeneticAlgorithm object
 
@@ -40,7 +41,13 @@ class GeneticAlgorithm:
         mutate_func: Callable
             A callable that takes a list of chromosomes and returns another list of mutated 
             chromosomes
+        seed: Optional[int]
+            Seed for random number generator
         """
+
+        if seed is None:
+            seed = uuid.uuid4().int % (2**32)
+        self.random_state = np.random.default_rng(seed)
 
         self.pop = init_pop
         self.pop_scores = None
@@ -73,6 +80,47 @@ class GeneticAlgorithm:
         self.pop = [chrome for fitness, chrome in pairs]
         self.pop_scores = [fitness for fitness, chrome in pairs]
 
+
+        self.best_fitness = -1e20
+        self.best_solution = None
+
+    def update_best_solution(self):
+        """ Grade the population and save the scores
+
+        Saves the best solution from self.pop and self.pop_scores
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
+        """
+
+        if self.pop_scores[0]>self.best_fitness:
+            self.best_fitness = self.pop_scores[0]
+            self.best_solution = self.pop[0]
+
+    def get_best(self) -> Tuple[float,List[Any]]:
+        """ Grade the population and save the scores
+
+        Saves the best solution from self.pop and self.pop_scores
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        best_fitness: float
+            The best fitness ever scored from any generation.
+
+        best_solution: List[Any]
+            The best chromosome from any generation
+        """
+
+        return self.best_fitness, self.best_solution
 
     def parallel_grade_population(self):
         """ Scores the chromosomes in the current population and sorts them in decreasing score order.
@@ -157,19 +205,21 @@ class GeneticAlgorithm:
 
         i = timeit.default_timer()
         # Generate new population by crossing parent chromosomes
-        new_pop = self.crossover_func(parents, self.num_pop)
+        new_pop = self.crossover_func(parents, self.num_pop, random_state=self.random_state)
         if print_timings:
             print('\tcrossover %0.2f min'%((timeit.default_timer()-i)/60))
 
         # mutate population
         i = timeit.default_timer()
-        self.pop = self.mutate_func(new_pop)
+        self.pop = self.mutate_func(new_pop, random_state=self.random_state)
         # Compute scores for new chromosomes and sort population by score
         self.serial_grade_population()
         #self.parallel_grade_population()
         if print_timings:
             print('\tmutate %0.2f min'%((timeit.default_timer()-i)/60))
             print('total %0.2f min'%((timeit.default_timer()-start)/60))
+
+        self.update_best_solution()
 
 if __name__ == '__main__':
     num_pop = 500
@@ -180,23 +230,23 @@ if __name__ == '__main__':
     def fitness_func(chromosome):
         return 1 - scipy_distance.rogerstanimoto(chromosome, target_chromosome)
 
-    def crossover_func(parents, pop_size):
+    def crossover_func(parents, pop_size, random_state):
         new_pop = []
         for i in range(num_pop):
             parent1 = parents[i%len(parents)]
             parent2 = parents[(i+1)%len(parents)]
 
-            crossover_point = random.randint(0, len(parents[0])-1)
+            crossover_point = random_state.integers(0, len(parents[0])-1, 1)[0]
             new_pop.append(parent1[:crossover_point]+parent2[crossover_point:])
 
         return new_pop
 
-    def mutate_func(pop, mutate_chance=0.01):
+    def mutate_func(pop, random_state, mutate_chance=0.01):
         new_pop = []
         for chromosome in pop:
             new_chromosome = list(chromosome)
             for i, g in enumerate(new_chromosome):
-                if random.random() < mutate_chance:
+                if random_state.random() < mutate_chance:
                     if new_chromosome[i] == 0:
                         new_chromosome[i] = 1
                     else:

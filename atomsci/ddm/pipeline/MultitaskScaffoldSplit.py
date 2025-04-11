@@ -1,19 +1,17 @@
 import pdb
-import logging
 import argparse
-import random
+import logging
 import timeit
 import tempfile
-from typing import Any, Dict, List, Iterator, Optional, Sequence, Set, Tuple
-
+from typing import List, Optional, Set, Tuple
+from functools import partial
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
-from functools import partial
 from scipy import stats
 
 import deepchem as dc
-from deepchem.data import Dataset, NumpyDataset
+from deepchem.data import Dataset
 from deepchem.splits import Splitter
 from deepchem.splits.splitters import _generate_scaffold
 
@@ -126,7 +124,6 @@ def calc_ecfp(smiles: List[str],
         UIntSparseIntVect. This datatype is used specifically with
         dist_smiles_from_ecfp
     """
-    from functools import partial
     func = partial(calc_ecfp,workers=1)
     if workers > 1:
       from multiprocessing import pool
@@ -163,6 +160,57 @@ def dist_smiles_from_ecfp(ecfp1: List[rdkit.DataStructs.cDataStructs.ExplicitBit
     return cd.calc_summary(dist_metrics.tanimoto(ecfp1, ecfp2), calc_type='nearest', 
                         num_nearest=1, within_dset=False)
 
+def _generate_scaffold_dist_matrix(scaffold_lists: List[np.ndarray],
+                                ecfp_features: List[rdkit.DataStructs.cDataStructs.ExplicitBitVect]) -> np.ndarray:
+        """Returns a nearest neighbors distance matrix between each scaffold.
+
+        The distance between two scaffolds is defined as the
+        the distance between the two closest compounds between the two
+        scaffolds.
+
+        TODO: Ask Stewart: Why did he change to using the median instead of the min?
+
+        Parameters
+        ----------
+        scaffold_lists: List[np.ndarray]
+            List of scaffolds. A scaffold is a set of indices into ecfp_features
+        ecfp_features: List[rdkit.DataStructs.cDataStructs.ExplicitBitVect]
+            List of ecfp features, one for each compound in the dataset
+
+        Returns
+        -------
+        dist_mat: np.ndarray
+            Distance matrix, symmetric.
+        """
+        print('start generating big dist mat')
+        start = timeit.default_timer()
+        # First compute the full matrix of distances between all pairs of ECFPs
+        dmat = dist_metrics.tanimoto(ecfp_features)
+
+        mat_shape = (len(scaffold_lists), len(scaffold_lists))
+        scaff_dist_mat = np.zeros(mat_shape)
+        for i, scaff1 in tqdm(enumerate(scaffold_lists)):
+            scaff1_rows = scaff1.reshape((-1,1))
+            for j, scaff2 in enumerate(scaffold_lists[:i]):
+                if i == j:
+                    continue
+
+                dists = dmat[scaff1_rows, scaff2].flatten()
+                #min_dist = np.median(dists)
+                # ksm: Change back to min and see what happens
+                min_dist = np.min(dists)
+
+                if min_dist==0:
+                    print("two scaffolds match exactly?!?", i, j)
+                    print(len(set(scaff2).intersection(set(scaff1))))
+
+                scaff_dist_mat[i,j] = min_dist
+                scaff_dist_mat[j,i] = min_dist
+
+        print("finished scaff dist mat: %0.2f min"%((timeit.default_timer()-start)/60))
+        return scaff_dist_mat
+
+
 class MultitaskScaffoldSplitter(Splitter):
     """MultitaskScaffoldSplitter Splitter class.
 
@@ -194,7 +242,7 @@ class MultitaskScaffoldSplitter(Splitter):
           List of indices of each scaffold in the dataset.
         """
         scaffolds = {}
-        data_len = len(dataset)
+        _data_len = len(dataset)
 
         for ind, smiles in enumerate(dataset.ids):
             scaffold = _generate_scaffold(smiles)
@@ -470,7 +518,7 @@ class MultitaskScaffoldSplitter(Splitter):
         worst_distance = np.linalg.norm(np.ones(len(target_split)))
         worst_distance = np.sqrt(len(target_split))
         ratio_fit = 1 - np.linalg.norm(target_split-current_split)/worst_distance
-        #print("\tratio_fitness: %0.2f min"%((timeit.default_timer()-start)/60))
+        logging.info("\tratio_fitness: %0.2f min"%((timeit.default_timer()-start)/60))
 
         return ratio_fit
 
@@ -499,20 +547,55 @@ class MultitaskScaffoldSplitter(Splitter):
         for task in range(ntasks):
             train_y = self.dataset.y[train_ind, task]
             train_y = train_y[~np.isnan(train_y)]
-            #print(f"task {task} train: mean = {np.mean(train_y)}, SD = {np.std(train_y)}")
+
             valid_y = self.dataset.y[valid_ind, task]
             valid_y = valid_y[~np.isnan(valid_y)]
-            valid_dist = stats.wasserstein_distance(train_y, valid_y)
-            #print(f"        valid: mean = {np.mean(valid_y)}, SD = {np.std(valid_y)}, Wasserstein dist = {valid_dist}")
+
             test_y = self.dataset.y[test_ind, task]
             test_y = test_y[~np.isnan(test_y)]
+
             test_dist = stats.wasserstein_distance(train_y, test_y)
-            #print(f"        test: mean = {np.mean(test_y)}, SD = {np.std(test_y)}, Wasserstein dist = {test_dist}")
+            valid_dist = stats.wasserstein_distance(train_y, valid_y)
 
             dist_sum += valid_dist + test_dist
 
         avg_dist = dist_sum/(ntasks*2)
+        logging.info("\tresponse_distr_fitness: %0.2f min"%((timeit.default_timer()-start)/60))
         return 1 - avg_dist
+
+    def sanity_check_chromosome(self, split_chromosome: List[str]) -> bool:
+        """Sanity checks a chromosome
+
+        Checks to see that each subset has at least 1 labelled compound
+
+        Parameters
+        ----------
+        List[str]: split_chromosome
+            A list of strings, index i contains a string, 'train', 'valid', 'test'
+            which determines the partition that scaffold belongs
+
+        Returns
+        -------
+        bool
+            A bool. True if the chromosome is sane.
+        """
+        ntasks = self.dataset.y.shape[1]
+        train_ind, valid_ind, test_ind = self.split_chromosome_to_compound_split(split_chromosome)
+        for task in range(ntasks):
+            train_y = self.dataset.y[train_ind, task]
+            train_y = train_y[~np.isnan(train_y)]
+
+            valid_y = self.dataset.y[valid_ind, task]
+            valid_y = valid_y[~np.isnan(valid_y)]
+
+            test_y = self.dataset.y[test_ind, task]
+            test_y = test_y[~np.isnan(test_y)]
+
+            # one task has 0 data points
+            if (len(train_y)==0) or (len(valid_y)==0) or (len(test_y)==0):
+                return False
+
+        return True
 
     def grade(self, split_chromosome: List[str]) -> float:
         """Assigns a score to a given chromosome
@@ -534,6 +617,10 @@ class MultitaskScaffoldSplitter(Splitter):
         
         """
         fitness = 0.0
+
+        if not self.sanity_check_chromosome(split_chromosome):
+            return fitness
+
         # Only call the functions for each fitness term if their weight is nonzero
         if self.diff_fitness_weight_tvt != 0.0:
             #score = self.scaffold_diff_fitness(split_chromosome, 'train', 'test')
@@ -675,8 +762,8 @@ class MultitaskScaffoldSplitter(Splitter):
             A tuple with 3 elements that are training, validation, and test compound
             indices into dataset, respectively
         """
-        if seed is not None:
-            np.random.seed(seed)
+        self.seed = seed
+
         self.dataset = dataset
         self.diff_fitness_weight_tvt = diff_fitness_weight_tvt
         self.diff_fitness_weight_tvv = diff_fitness_weight_tvv
@@ -708,12 +795,13 @@ class MultitaskScaffoldSplitter(Splitter):
             #start = timeit.default_timer()
             split_chromosome = self._split(frac_train=frac_train, frac_valid=frac_valid, 
                                 frac_test=frac_test)
+            #print("per_loop: %0.2f min"%((timeit.default_timer()-start)/60))
 
             population.append(split_chromosome)
 
         self.fitness_terms = {}
         gene_alg = ga.GeneticAlgorithm(population, self.grade, ga_crossover,
-                        ga_mutate)
+                        ga_mutate, self.seed)
         #gene_alg.iterate(num_generations)
         best_ever = None
         best_ever_fit = -np.inf
@@ -911,7 +999,8 @@ class MultitaskScaffoldSplitter(Splitter):
         return train_dataset, valid_dataset, test_dataset
 
 def ga_crossover(parents: List[List[str]],
-                num_pop: int) -> List[List[str]]:
+                num_pop: int,
+                random_state: np.random.Generator) -> List[List[str]]:
     """Create the next generation from parents
 
     A random index is chosen and genes up to that index from
@@ -924,6 +1013,8 @@ def ga_crossover(parents: List[List[str]],
         A list of chromosomes.
     num_pop: int
         The number of new chromosomes to make
+    random_state: np.random.Generator
+        Random number generator
     Returns
     -------
     List[List[str]]
@@ -935,13 +1026,14 @@ def ga_crossover(parents: List[List[str]],
         parent1 = parents[i%len(parents)]
         parent2 = parents[(i+1)%len(parents)]
 
-        crossover_point = random.randint(0, len(parents[0])-1)
+        crossover_point = random_state.integers(low=0, high=len(parents[0])-1, size=1)[0]
         new_pop.append(parent1[:crossover_point]+parent2[crossover_point:])
 
     return new_pop
 
 def ga_mutate(new_pop: List[List[str]],
-            mutation_rate: float = .02) -> List[List[str]]:
+            random_state: np.random.Generator,
+            mutation_rate: float = .02,) -> List[List[str]]:
     """Mutate the population
 
     Each chromosome is copied and mutated at mutation_rate.
@@ -952,6 +1044,8 @@ def ga_mutate(new_pop: List[List[str]],
     ----------
     new_pop: List[List[str]]
         A list of chromosomes.
+    random_state: np.random.Generator
+        Random number generator
     mutation_rate: float
         How often a mutation occurs. 0.02 is a good rate for
         my test sets.
@@ -964,8 +1058,8 @@ def ga_mutate(new_pop: List[List[str]],
     for solution in new_pop:
         new_solution = list(solution)
         for i, gene in enumerate(new_solution):
-            if random.random() < mutation_rate:
-                new_solution[i] = ['train', 'valid', 'test'][random.randint(0,2)]
+            if random_state.random() < mutation_rate:
+                new_solution[i] = ['train', 'valid', 'test'][random_state.integers(low=0, high=2, size=1)[0]]
         mutated.append(new_solution)
 
     return mutated
@@ -1091,6 +1185,7 @@ def parse_args():
     parser.add_argument('id_col', type=str, help='the column containing ids')
     parser.add_argument('response_cols', type=str, help='comma seperated string of response columns')
     parser.add_argument('output', type=str, help='name of the split file')
+    parser.add_argument('seed', type=int, default=0, help='Random seed used in random number generators.')
 
     return parser.parse_args()
 
@@ -1106,5 +1201,6 @@ if __name__ == '__main__':
     mss = MultitaskScaffoldSplitter()
     mss_split_df = split_with(total_df, mss, 
         smiles_col=args.smiles_col, id_col=args.id_col, response_cols=response_cols, 
-        diff_fitness_weight=dfw, ratio_fitness_weight=rfw, num_generations=args.num_gens)
+        diff_fitness_weight=dfw, ratio_fitness_weight=rfw, num_generations=args.num_gens,
+        seed=args.seed)
     mss_split_df.to_csv(args.output, index=False)

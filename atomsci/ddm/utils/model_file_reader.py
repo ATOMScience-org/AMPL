@@ -1,14 +1,13 @@
-import tempfile
 import tarfile
 import os
 import json
 import argparse
 import sys
-import pdb
 import numpy as np
+from bravado.exception import HTTPNotFound
 
-import atomsci.ddm.utils.file_utils as futils
 from atomsci.ddm.pipeline import parameter_parser as parse
+from atomsci.ddm.utils import datastore_functions as dsf
 
 def get_multiple_models_metadata(*args):
     """A function that takes model tar.gz file(s) and extract the metadata (and if applicable, model metrics)
@@ -28,7 +27,7 @@ def get_multiple_models_metadata(*args):
         try:
             metadata = ModelFileReader(arg).get_model_info()
             metadata_list.append(metadata)
-        except:
+        except (IOError, KeyError):
             raise IOError("Problem access the file(s) or not AMPL model tarball(s).")
             
     return metadata_list
@@ -69,8 +68,7 @@ class ModelFileReader:
                 try:
                     meta_info = tarball.getmember('./model_metadata.json')
                 except KeyError:
-                    print(f"{tarpath} is not an AMPL model tarball")
-                    return {}
+                    raise KeyError(f"{data_file_path} is not an AMPL model tarball")
                 with tarball.extractfile(meta_info) as meta_fd:
                     self.metadata_dict = json.loads(meta_fd.read())
                     self.pparams = parse.wrapper(self.metadata_dict)
@@ -92,6 +90,32 @@ class ModelFileReader:
 
         """
         return self.metadata_dict.get("model_parameters")
+
+    def get_embedding_specific_parameters(self):
+        """Returns:
+            (str): embedding specific parameters
+
+        """
+        return self.metadata_dict.get("embedding_specific")
+
+    def get_embedding_model_uuid(self):
+        """Returns:
+            (str): embedding_model_uuid
+        """
+        return self.get_embedding_specific_parameters().get("embedding_model_uuid")
+
+
+    def get_embedding_model_path(self):
+        """Returns:
+            (str): embedding_model_path
+        """
+        return self.get_embedding_specific_parameters().get("embedding_model_path")
+
+    def get_embedding_and_features(self):
+        """Returns:
+            (bool): embedding_and_features
+        """
+        return self.get_embedding_specific_parameters().get("embedding_and_features")
 
     def get_model_uuid(self):
         """Returns:
@@ -196,7 +220,14 @@ class ModelFileReader:
 
         """
         return self.get_training_dataset().get('response_cols')
-    
+
+    def get_random_seed(self):
+        """Returns:
+            (int): random seed used in model training. Returns None if not found.
+
+        """
+        return self.metadata_dict.get('seed')
+
     def get_model_info(self):
         """Extract the model metadata (and if applicable, model metrics)
 
@@ -223,9 +254,9 @@ class ModelFileReader:
             model_dict['bucket'] = self.pparams.bucket
             ds_client = dsf.config_client()
             try:
-                ds_dset = ds_client.ds_datasets.get_bucket_dataset(bucket_name=bucket, dataset_key=dskey).result()
+                ds_client.ds_datasets.get_bucket_dataset(bucket_name=self.pparams.bucket, dataset_key=self.pparams.dataset_key).result()
                 model_dict['dataset_available'] = True
-            except bravado.exception.HTTPNotFound:
+            except HTTPNotFound:
                 model_dict['dataset_available'] = False
         else:
             model_dict['bucket'] = np.nan

@@ -154,16 +154,6 @@ def H1_double_curate():
     assert (os.path.isfile('H1_double_curated_external.csv'))
     assert (os.path.isfile('H1_double_curated_fit_train_valid_test_scaffold_002251a2-83f8-4511-acf5-e8bbc5f86677.csv'))
 
-
-def download():
-    """Separate download function so that download can be run separately if there is no internet."""
-    if (not os.path.isfile('delaney-processed.csv')):
-        integrative_utilities.download_save(
-            'https://deepchemdata.s3-us-west-1.amazonaws.com/datasets/delaney-processed.csv',
-            'delaney-processed.csv')
-
-    assert (os.path.isfile('delaney-processed.csv'))
-
 def train_and_predict(train_json_f, prefix='delaney-processed'):
     # Train model
     # -----------
@@ -245,9 +235,9 @@ def init():
     integrative_utilities.clean_fit_predict()
     clean()
 
-    # Download
+    # Copy Data
     # --------
-    download()
+    integrative_utilities.copy_delaney()
 
     # Curate
     # ------

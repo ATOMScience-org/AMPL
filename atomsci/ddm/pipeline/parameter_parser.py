@@ -1,13 +1,9 @@
 import argparse
 import json
 import sys
-from time import process_time
-import typing
 import os
 import re
 import logging
-import datetime
-import pdb
 
 import deepchem.models as dcm
 import deepchem.models.torch_models as dcmt
@@ -18,7 +14,6 @@ import os.path
 import atomsci.ddm.utils.checksum_utils as cu
 import atomsci.ddm.utils.many_to_one as mto
 
-from packaging.version import parse
 
 log = logging.getLogger('ATOM')
 # TODO: mjt, do we need to deal with parameters with options?
@@ -179,7 +174,7 @@ def extract_featurizer_params(params, strip_prefix=True):
     aaa = AutoArgumentAdder(featurizer_wl[params.featurizer], params.featurizer)
     return aaa.extract_params(params, strip_prefix=strip_prefix)
 
-def is_primative_type(t):
+def is_primitive_type(t):
     """Returns true if t is of type int, str, or float
 
     Args:
@@ -188,10 +183,10 @@ def is_primative_type(t):
     Returns:
         bool. True if type is int, str, or float
     """
-    return t == int or t == str or t == float
+    return t in (int, str, float)
 
-def primative_type_only(type_annotation):
-    """Given annotation, return only primative types that can be read in
+def primitive_type_only(type_annotation):
+    """Given annotation, return only primitive types that can be read in
     from commandline, int, float, and str.
 
     Default return value is str, which is default for type parameter in
@@ -203,13 +198,13 @@ def primative_type_only(type_annotation):
     Returns:
         type: One of 3 choices, int, float, str
     """
-    if is_primative_type(type_annotation):
+    if is_primitive_type(type_annotation):
         return type_annotation
 
     annots = strip_optional(type_annotation=type_annotation)
     if len(annots) > 1:
         for t in annots:
-            if is_primative_type(t):
+            if is_primitive_type(t):
                 return t
         return str
     else:
@@ -448,16 +443,16 @@ class AutoArgumentAdder:
         for p in self.args:
             p_name = f'--{self._make_param_name(p)}'
             t = self.types[p]
-            pt = primative_type_only(t)
+            pt = primitive_type_only(t)
 
             if p in parameter_synonyms:
                 # don't set default or type. e.g. learning_rate in AMPL is a str where as DeepChem
                 # expects a float
                 parser.add_argument(p_name, dest=parameter_synonyms[p],
-                    help=f'Auto added argument used in one of these: '+', '.join(self.used_by[p]))
+                    help='Auto added argument used in one of these: '+', '.join(self.used_by[p]))
             else:
                 parser.add_argument(p_name, type=pt, default=None,
-                    help=f'Auto added argument used in one of these: '+', '.join(self.used_by[p]))
+                    help='Auto added argument used in one of these: '+', '.join(self.used_by[p]))
 
     def extract_params(self, params, strip_prefix=False):
         """Extracts non-None parameters from the given Namespace.
@@ -544,7 +539,7 @@ convert_to_float_list = {'dropouts','weight_init_stddevs','bias_init_consts','le
                          }
 convert_to_int_list = {'layer_sizes','rf_max_features','rf_estimators', 'rf_max_depth',
                        'umap_dim', 'umap_neighbors', 'layer_nums', 'node_nums',
-                       'xgb_max_depth',  'xgb_n_estimators'}.union(all_auto_int_lists())
+                       'xgb_max_depth',  'xgb_n_estimators', 'seed'}.union(all_auto_int_lists())
 convert_to_numeric_list = convert_to_float_list | convert_to_int_list
 keep_as_list = {'dropouts','weight_init_stddevs','bias_init_consts',
                 'layer_sizes','dropout_list','layer_nums'}.union(all_auto_lists())
@@ -580,7 +575,7 @@ def to_str(params_obj):
     """
     # This command converts the namespace_obj to a dict, with the spaces replaced with
     # a temporary string.
-    if type(params_obj) == dict:
+    if type(params_obj) is dict:
         strobj = dict_to_list(params_obj,replace_spaces=True)
     else:
         strobj = dict_to_list(vars(params_obj),replace_spaces=True)
@@ -682,7 +677,7 @@ def parse_config_file(config_file_path):
             flat_dict[vals] = flat_dict.pop(key)
 
     #dictionary comprehension that retains only the keys that are in the accepted list of parameters
-    hyperparam = 'hyperparam' in orig_keys and flat_dict['hyperparam'] == True
+    hyperparam = 'hyperparam' in orig_keys and flat_dict['hyperparam']
     newdict = remove_unrecognized_arguments(flat_dict, hyperparam)
 
     newdict['config_file'] = config_file_path
@@ -705,7 +700,7 @@ def flatten_dict(inp_dict,newdict = {}):
     """
 
     for key, val in inp_dict.items():
-        if isinstance(val,dict) and not (key in ['DatasetMetadata', 'dataset_metadata']):
+        if isinstance(val,dict) and key not in ['DatasetMetadata', 'dataset_metadata']:
             flatten_dict(val,newdict)
         else:
             if key in newdict and newdict[key] != val:
@@ -783,7 +778,7 @@ def dict_to_list(inp_dictionary,replace_spaces=False):
     temp_list_to_command_line = []
 
     # Special case handling for arguments that are False or True by default
-    default_false = ['previously_split','use_shortlist','datastore', 'save_results','verbose', 'hyperparam', 'split_only', 'is_ki', 'production'] 
+    default_false = ['previously_split','use_shortlist','datastore', 'save_results','verbose', 'hyperparam', 'split_only', 'is_ki', 'production', 'embedding_and_features'] 
     default_true = ['transformers','previously_featurized','uncertainty', 'rerun']
     for key, value in inp_dictionary.items():
         if key in default_false:
@@ -803,13 +798,13 @@ def dict_to_list(inp_dictionary,replace_spaces=False):
             elif isinstance(value, list):
                 sep = ","
                 newval = sep.join([str(item) for item in value])
-                if replace_spaces == True:
+                if replace_spaces:
                     temp_list_to_command_line.append(newval.replace(" ",replace_spaces_str))
                 else:
                     temp_list_to_command_line.append(newval)
             else:
                 newval = str(value)
-                if replace_spaces == True:
+                if replace_spaces:
                     temp_list_to_command_line.append(newval.replace(" ",replace_spaces_str))
                 else:
                     temp_list_to_command_line.append(newval)
@@ -1009,6 +1004,11 @@ def get_parser():
         '--embedding_model_path', dest='embedding_model_path', type=str, default=None,
         help='File path for pretrained model used to compute embedding features')
 
+    parser.add_argument(
+        '--embedding_and_features', dest='embedding_and_features', action='store_true',
+        help='File path for pretrained model used to compute embedding features')
+    parser.set_defaults(embedding_and_features=False)
+
 
     # **********************************************************************************************************
     # model_building_parameters: general
@@ -1047,6 +1047,10 @@ def get_parser():
         '--verbose', dest='verbose', action='store_true',
         help='True/False flag for setting verbosity')
     parser.set_defaults(verbose=False)
+    parser.add_argument(
+        '--seed', dest='seed', default=None,
+        help='Random seed used for initializing the random number generator to ensure results are reproducible.'
+        'Default is None and a random seed will be generated.')
 
     # **********************************************************************************************************
     # model_building_parameters: graphconv
@@ -1233,6 +1237,19 @@ def get_parser():
         help='Type of splitter to use: index, random, scaffold, butina, ave_min, temporal, fingerprint, multitaskscaffold or stratified.'
              ' Used to set the splitting.py subclass. Can be input as a comma separated list for hyperparameter search'
              ' (e.g. \'scaffold\',\'random\')')
+    # sampling specific parameters (imbalance-learn)
+    parser.add_argument(
+        '--sampling_method', dest='sampling_method', type=str, default=None,
+        help='Method for sampling to address class imbalance (e.g., \'undersampling\', \'SMOTE\')')
+    
+    parser.add_argument(
+        '--sampling_ratio', dest='sampling_ratio', type=str, default='auto',
+        help='The "sampling_ratio" parameter of SMOTE must be a float in the range (0.0, 1.0], a str '
+            'among {"auto", "not majority", "minority", "all", "not minority"}')
+    parser.add_argument(
+        '--sampling_k_neighbors', dest='sampling_k_neighbors', type=int, default=5,
+        help='The nearest neighbors used to define the neighborhood of samples to use to generate the synthetic samples. Specifically used for SMOTE.')
+
 
     parser.add_argument(
         '--mtss_num_super_scaffolds', default=40, type=int,
@@ -1745,11 +1762,11 @@ def postprocess_args(parsed_args):
 
     # set num_model_tasks to equal len(response_cols)
     # this ignores the current value of num_model_tasks
-    if not parsed_args.num_model_tasks is None:
+    if parsed_args.num_model_tasks is not None:
         log.debug("num_model_tasks is deprecated and its value is ignored.")
-    if parsed_args.response_cols is None or type(parsed_args.response_cols) == str:
+    if parsed_args.response_cols is None or type(parsed_args.response_cols) is str:
         parsed_args.num_model_tasks = 1
-    elif type(parsed_args.response_cols) == list:
+    elif type(parsed_args.response_cols) is list:
         parsed_args.num_model_tasks = len(parsed_args.response_cols)
     else:
         raise Exception(f'Unexpected type for response_cols {type(parsed_args.response_cols)}')
@@ -1760,7 +1777,36 @@ def postprocess_args(parsed_args):
     if vars(parsed_args).get('dataset_key') and os.path.exists(parsed_args.dataset_key):
         _ = mto.many_to_one(fn=parsed_args.dataset_key, smiles_col=parsed_args.smiles_col, id_col=parsed_args.id_col)
 
+    # Validates the sampling_ratio argument for SMOTE and undersampling
+    parsed_args.sampling_ratio = validate_sampling_strategy_argument(parsed_args.sampling_ratio)
+
     return parsed_args
+
+#***********************************************************************************************************
+def validate_sampling_strategy_argument(value):
+    """Validates sampling_strategy parameter for SMOTE and undersampling.
+    Validates that the input value is either a float in the range (0.0, 1.0] or a string among 
+    {'auto', 'not majority', 'minority', 'all', 'not minority'}. Raises a ValueError if the validation fails.
+
+    Args:
+        value (str): The input value to validate.
+
+    Raises:
+        ValueError: If the value is not a float in the range (0.0, 1.0] or a valid string.
+    """
+    valid_strings = {"auto", "not majority", "minority", "all", "not minority"}
+    
+    try:
+        float_value = float(value)
+        if float_value <= 0.0 or float_value > 1.0:
+            raise ValueError(f"Value '{value}' is not a float in the range (0.0, 1.0].")
+        else:
+            return float_value
+    except ValueError:
+        if value not in valid_strings:
+            raise ValueError(f"Value '{value}' is not a valid string among {valid_strings}.")
+        else:
+            return value
 
 
 #***********************************************************************************************************
@@ -1774,7 +1820,7 @@ def make_dataset_key_absolute(parsed_args):
     # if so, make it relative to current working directory
     # update to allow for datastore
     if not parsed_args.datastore:
-        if (not parsed_args.dataset_key is None) and (not os.path.isabs(parsed_args.dataset_key)):
+        if (parsed_args.dataset_key is not None) and (not os.path.isabs(parsed_args.dataset_key)):
             parsed_args.dataset_key = os.path.abspath(parsed_args.dataset_key)
 
     return parsed_args
@@ -1815,7 +1861,7 @@ def remove_unrecognized_arguments(params, hyperparam=False):
     Returns:
         dict of parameters
     """
-    if not type(params) == dict:
+    if type(params) is not dict:
         params = vars(params)
 
     #dictionary comprehension that retains only the keys that are in the accepted list of parameters

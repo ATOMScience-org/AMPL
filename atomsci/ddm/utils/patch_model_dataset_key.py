@@ -45,10 +45,12 @@ def check_data_accessibility(model_path, verbose=True):
                     dset_fp = open(dataset_path, 'r')
                     dset_fp.close()
                     dataset_info[path] = (dataset_path, True)
-                except:
+                except Exception:
                     dataset_info[path] = (dataset_path, False)
                     if verbose:
                         print(f"{os.path.basename(path)} trained on unreadable file:\n\t{dataset_path}")
+    if verbose:
+        print(f"model_path = {model_path}, model_path_len = {len(model_paths)}, dataset_info_length = {len(dataset_info)}")
     return dataset_info
 
 
@@ -70,7 +72,7 @@ def patch_model_dataset_key(model_path, new_model_path, dataset_path, require_ha
     # Compute a checksum for the new dataset.
     try:
         new_hash = cu.create_checksum(dataset_path)
-    except Exception as e:
+    except Exception:
         print(f"Error reading dataset {dataset_path}")
         raise
 
@@ -79,7 +81,7 @@ def patch_model_dataset_key(model_path, new_model_path, dataset_path, require_ha
         with open(model_path, 'rb') as tarfile_fp:
             with tarfile.open(fileobj=tarfile_fp, mode='r:gz') as tfile:
                 tar_contents = tfile.getnames()
-                if not './model_metadata.json' in tar_contents:
+                if './model_metadata.json' not in tar_contents:
                     raise ValueError(f"{model_path} is not an AMPL model tarball")
                 futils.safe_extract(tfile, path=tmp_dir)
         meta_path = os.path.join(tmp_dir, 'model_metadata.json')
@@ -109,7 +111,7 @@ def patch_model_dataset_key(model_path, new_model_path, dataset_path, require_ha
             print(f"Wrote {new_model_path}")
         return 0
 
-if (__file__ == '__main__') and (len(sys.argv) > 3):
+if (__name__ == '__main__') and (len(sys.argv) > 3):
     model_path = sys.argv[1]
     new_model_path = sys.argv[2]
     dataset_path = sys.argv[3]

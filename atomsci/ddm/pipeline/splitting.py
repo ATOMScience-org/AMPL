@@ -2,15 +2,12 @@
 testing, generation of predicted values and performance metrics.
 """
 
-import pdb
 import logging
-import os
-import sys
 import copy
 import deepchem as dc
 import numpy as np
 import pandas as pd
-from deepchem.data import NumpyDataset, Dataset
+from deepchem.data import NumpyDataset
 from atomsci.ddm.pipeline.ave_splitter import AVEMinSplitter
 from atomsci.ddm.pipeline.temporal_splitter import TemporalSplitter
 from atomsci.ddm.pipeline.MultitaskScaffoldSplit import MultitaskScaffoldSplitter
@@ -30,7 +27,7 @@ split_params = ['splitter', 'split_strategy', 'split_valid_frac', 'split_test_fr
                 'mtss_train_valid_dist_weight', 'mtss_split_fraction_weight', 'mtss_num_pop',
                 'mtss_response_distr_weight']
 
-def create_splitting(params):
+def create_splitting(params, random_state=None, seed=None):
     """Factory function to create appropriate type of Splitting object, based on dataset parameters
     
     Args:
@@ -46,11 +43,11 @@ def create_splitting(params):
     """
 
     if params.production:
-        return ProductionSplitting(params)
+        return ProductionSplitting(params, random_state=random_state, seed=seed)
     elif params.split_strategy == 'train_valid_test':
-        return TrainValidTestSplitting(params)
+        return TrainValidTestSplitting(params, random_state=random_state, seed=seed)
     elif params.split_strategy == 'k_fold_cv':
-        return KFoldSplitting(params)
+        return KFoldSplitting(params, random_state=random_state, seed=seed)
     else:
         raise Exception("Unknown split strategy %s" % params.split_strategy)
 
@@ -175,7 +172,7 @@ class Splitting(object):
 
     """
 
-    def __init__(self, params):
+    def __init__(self, params, random_state=None, seed=None):
         """Constructor, also serves as a factory method for creating the associated DeepChem splitter object
 
         Args:
@@ -196,9 +193,14 @@ class Splitting(object):
                 splitter (Deepchem split object): A splitting object of the subtype specified by split
 
         """
+        self.random_state = random_state
+        self.seed = seed
+
         self.params = params
         self.split = params.splitter
-        if params.splitter == 'index':
+        if params.production:
+            self.splitter = ProductionSplitter()
+        elif params.splitter == 'index':
             self.splitter = dc.splits.IndexSplitter()
         elif params.splitter == 'random':
             self.splitter = dc.splits.RandomSplitter()
@@ -226,9 +228,9 @@ class Splitting(object):
             else:
                 metric = None
             if params.base_splitter in smiles_splits:
-                id_col = params.smiles_col
+                _id_col = params.smiles_col
             else:
-                id_col = params.id_col
+                _id_col = params.id_col
             self.splitter = TemporalSplitter(cutoff_date=params.cutoff_date,
                     date_col=params.date_col,
                     base_splitter=params.base_splitter, metric=metric)
@@ -283,7 +285,7 @@ class KFoldSplitting(Splitting):
 
     """
 
-    def __init__(self, params):
+    def __init__(self, params, random_state=None, seed=None):
         """Initialization method for KFoldSplitting.
 
                 Sets the following attributes for KFoldSplitting:
@@ -296,8 +298,9 @@ class KFoldSplitting(Splitting):
            num_folds (int): The number of k-fold splits to perform
 
         """
-        super().__init__(params)
+        super().__init__(params, random_state, seed)
         self.num_folds = params.num_folds
+
 
     # ****************************************************************************************
 
@@ -367,13 +370,13 @@ class KFoldSplitting(Splitting):
         # Use DeepChem train_test_split() to select held-out test set; then use k_fold_split on the
         # training set to split it into training/validation folds.
         if self.split == 'butina':
-            train_cv, test, _ = self.splitter.train_valid_test_split(dataset)
+            train_cv, test, _ = self.splitter.train_valid_test_split(dataset, seed=self.seed)
             self.splitter = dc.splits.ScaffoldSplitter()
-            train_cv_pairs = self.splitter.k_fold_split(train_cv, self.num_folds)
+            train_cv_pairs = self.splitter.k_fold_split(train_cv, self.num_folds, seed=self.seed)
         else:
             # TODO: Add special handling for AVE splitter
-            train_cv, test = self.splitter.train_test_split(dataset, frac_train=train_frac)
-            train_cv_pairs = self.splitter.k_fold_split(train_cv, self.num_folds)
+            train_cv, test = self.splitter.train_test_split(dataset, frac_train=train_frac, seed=self.seed)
+            train_cv_pairs = self.splitter.k_fold_split(train_cv, self.num_folds, seed=self.seed)
 
         train_valid_dsets = []
         train_valid_attr = []
@@ -406,7 +409,7 @@ class TrainValidTestSplitting(Splitting):
 
     """
 
-    def __init__(self, params):
+    def __init__(self, params, random_state=None, seed=None):
         """Initialization method for TrainValidTestSplitting.
 
                 Sets the following attributes for TrainValidTestSplitting:
@@ -419,7 +422,7 @@ class TrainValidTestSplitting(Splitting):
            num_folds (int): The number of k-fold splits to perform. In this case, it is always set to 1
 
         """
-        super().__init__(params)
+        super().__init__(params, random_state=random_state, seed=seed)
         self.num_folds = 1
 
     # ****************************************************************************************
@@ -493,11 +496,11 @@ class TrainValidTestSplitting(Splitting):
 
         if self.split == 'butina':
             # Can't use train_test_split with Butina because Butina splits into train and valid sets only.
-            train_valid, test, _ = self.splitter.train_valid_test_split(dataset)
+            train_valid, test, _ = self.splitter.train_valid_test_split(dataset, seed=self.seed)
             self.splitter = dc.splits.ScaffoldSplitter()
             # With Butina splitting, we don't have control over the size of the test set
             train_frac = 1.0 - self.params.split_valid_frac
-            train, valid = self.splitter.train_test_split(train_valid, frac_train=train_frac)
+            train, valid = self.splitter.train_test_split(train_valid, frac_train=train_frac, seed=self.seed)
         elif self.split == 'ave_min':
             # AVEMinSplitter also only does train-valid splits, but at least nested splits seem to work.
             # TODO: Change this if we modify AVE splitter to do 3-way splits internally.
@@ -506,11 +509,11 @@ class TrainValidTestSplitting(Splitting):
             log.info("Performing split for test set")
             train_valid, test, _ = self.splitter.train_valid_test_split(dataset, frac_train=train_valid_frac, 
                                                                         frac_valid=self.params.split_test_frac,
-                                                                        frac_test=0.0)
+                                                                        frac_test=0.0, seed=self.seed)
             log.info("Performing split of training and validation sets")
             train, valid, _ = self.splitter.train_valid_test_split(train_valid, frac_train=train_frac/train_valid_frac, 
                                                                    frac_valid=self.params.split_valid_frac/train_valid_frac,
-                                                                   frac_test=0.0)
+                                                                   frac_test=0.0, seed=self.seed)
             log.info("Results of 3-way split: %d training, %d validation, %d test compounds" % (
                      train.X.shape[0], valid.X.shape[0], test.X.shape[0]))
         elif self.split == 'temporal':
@@ -532,11 +535,12 @@ class TrainValidTestSplitting(Splitting):
                 response_distr_fitness_weight=self.params.mtss_response_distr_weight,
                 num_super_scaffolds=self.params.mtss_num_super_scaffolds,
                 num_pop=self.params.mtss_num_pop,
-                num_generations=self.params.mtss_num_generations)
+                num_generations=self.params.mtss_num_generations,
+                seed=self.seed)
         else:
             train_frac = 1.0 - self.params.split_valid_frac - self.params.split_test_frac
             train, valid, test = self.splitter.train_valid_test_split(dataset, 
-                frac_train=train_frac, frac_valid=self.params.split_valid_frac, frac_test=self.params.split_test_frac)
+                frac_train=train_frac, frac_valid=self.params.split_valid_frac, frac_test=self.params.split_test_frac, seed=self.seed)
 
         # After splitting unique compound_ids or SMILES are expanded 
         train, train_attr = dm.expand_selection(train.ids)
@@ -561,10 +565,11 @@ class ProductionSplitter(dc.splits.Splitter):
 # ****************************************************************************************
 
 class ProductionSplitting(Splitting):
-    def __init__(self, params):
+    def __init__(self, params, random_state=None, seed=None):
         """This Splitting only does one thing and ignores all splitter parameters"""
-        self.splitter = ProductionSplitter()
+        super().__init__(params, random_state=random_state, seed=seed)
         self.split = 'production'
+        self.num_folds = 1
 
     # ****************************************************************************************
     def get_split_prefix(self, parent=''):
@@ -624,7 +629,7 @@ class ProductionSplitting(Splitting):
         dm = DatasetManager(dataset=dataset, attr_df=attr_df, smiles_col=smiles_col,
             needs_smiles=self.needs_smiles())
         dataset = dm.compact_dataset()
-        train, valid, test = self.splitter.train_valid_test_split(dataset)
+        train, valid, test = self.splitter.train_valid_test_split(dataset, seed=self.seed)
         
         # After splitting unique compound_ids or SMILES are expanded 
         train, train_attr = dm.expand_selection(train.ids)
@@ -713,7 +718,8 @@ class DatasetManager:
             # w = [[0, 1, 0], --> w = [[1, 1, 0]]
             #      [1, 0, 0],
             #      [1, 0, 0]]
-            w_agg_func = lambda x: np.clip(np.sum(x, axis=0), a_min=0, a_max=1)
+            def w_agg_func(x):
+                return np.clip(np.sum(x, axis=0), a_min=0, a_max=1)
             agg_dict = {col:w_agg_func for col in self.w_cols}
             agg_dict['indices'] = 'first'
             agg_dict['compound_id'] = 'first' # Either they're all the same or they're not used
