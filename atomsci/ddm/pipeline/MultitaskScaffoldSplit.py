@@ -1,12 +1,10 @@
 import argparse
 import logging
-import timeit
 import tempfile
 from typing import List, Optional, Set, Tuple
 from functools import partial
 import numpy as np
 import pandas as pd
-from tqdm import tqdm
 from scipy import stats
 
 import deepchem as dc
