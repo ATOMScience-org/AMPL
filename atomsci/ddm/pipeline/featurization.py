@@ -1644,8 +1644,7 @@ class DescriptorFeaturization(PersistentFeaturization):
             transformers_x = [trans.NormalizationTransformerMissingData(transform_X=True, dataset=dataset)]
         elif params.feature_transform_type == 'RobustScaler':
             # keep_empty_features is set to true so that feature counts do not change
-            imputer = SimpleImputer(strategy=params.imputer_strategy, keep_empty_features=True,
-                                    add_indicator=True) # this is true so that inverse works
+            imputer = SimpleImputer(strategy=params.imputer_strategy, keep_empty_features=True)
             # Check quartile_range has length 2 and convert it into a tuple
             quartiles = params.robustscaler_quartile_range
             assert len(quartiles) == 2, f'robustscaler_quartile_range must have length 2, got {quartiles}.'
@@ -1663,8 +1662,7 @@ class DescriptorFeaturization(PersistentFeaturization):
             ]
         elif params.feature_transform_type == 'PowerTransformer':
             # keep_empty_features is set to true so that feature counts do not change
-            imputer = SimpleImputer(strategy=params.imputer_strategy, keep_empty_features=True,
-                                    add_indicator=True) # this is true so that inverse works
+            imputer = SimpleImputer(strategy=params.imputer_strategy, keep_empty_features=True)
             power_transformer = PowerTransformer(
                         method=params.powertransformer_method,
                         standardize=params.powertransformer_standardize

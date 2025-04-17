@@ -208,7 +208,7 @@ class SklearnPipelineWrapper(Transformer):
         self.transform_y = transform_y
         self.transform_w = transform_w
 
-        assert sum([self.transform_X, self.transform_y, self.transform_w]), \
+        assert (self.transform_X ^ self.transform_y) ^ self.transform_w, \
             "This transformer can operate on only one of X, y, or w."
 
         self.sklearn_pipeline = sklearn_pipeline
@@ -235,7 +235,7 @@ class SklearnPipelineWrapper(Transformer):
         return (X, y, w, ids)
 
     def untransform(self, z: np.ndarray) -> np.ndarray:
-        return self.sklearn_pipeline.inverse_transform(z)
+        raise NotImplementedError("SklearnPipelineWrapper does not support inverse transforms")
 
 # ****************************************************************************************
 
