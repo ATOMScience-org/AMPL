@@ -1,6 +1,7 @@
 import atomsci.ddm.pipeline.transformations as trans
 import numpy as np
 from deepchem.data import NumpyDataset
+import pytest
 
 from sklearn.preprocessing import RobustScaler, PowerTransformer
 
@@ -27,8 +28,9 @@ def test_sklearn_pipeline_wrapper():
     np.testing.assert_array_almost_equal(transformed_dataset.X, expected_transformed_X)
 
     # Test untransform on X
-    untransformed_X = transformer.untransform(transformed_dataset.X)
-    np.testing.assert_array_almost_equal(untransformed_X, X)
+    with pytest.raises(NotImplementedError) as exception_info:
+        untransformed_X = transformer.untransform(transformed_dataset.X)
+    assert str(exception_info.value) == 'SklearnPipelineWrapper does not support inverse transforms'
 
     # Test with PowerTransformer on y
     power_transformer = PowerTransformer()
@@ -38,8 +40,9 @@ def test_sklearn_pipeline_wrapper():
     np.testing.assert_array_almost_equal(transformed_dataset.y, expected_transformed_y)
 
     # Test untransform on y
-    untransformed_y = transformer.untransform(transformed_dataset.y)
-    np.testing.assert_array_almost_equal(untransformed_y, y)
+    with pytest.raises(NotImplementedError) as exception_info:
+        untransformed_y = transformer.untransform(transformed_dataset.y)
+    assert str(exception_info.value) == 'SklearnPipelineWrapper does not support inverse transforms'
 
     # Test with RobustScaler on w
     transformer = trans.SklearnPipelineWrapper(dataset, scaler, transform_w=True)
@@ -48,8 +51,9 @@ def test_sklearn_pipeline_wrapper():
     np.testing.assert_array_almost_equal(transformed_dataset.w, expected_transformed_w)
 
     # Test untransform on w
-    untransformed_w = transformer.untransform(transformed_dataset.w)
-    np.testing.assert_array_almost_equal(untransformed_w, w)
+    with pytest.raises(NotImplementedError) as exception_info:
+        untransformed_w = transformer.untransform(transformed_dataset.w)
+    assert str(exception_info.value) == 'SklearnPipelineWrapper does not support inverse transforms'
 
 def test_no_missing_values():
     """
