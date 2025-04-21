@@ -1608,6 +1608,7 @@ def get_multitask_perf_from_files_new(result_dir, pred_type='regression', datase
                 elif 'model_metadata.json' in tar.getnames():
                     with tar.extractfile('model_metadata.json') as meta:
                         meta=json.loads(meta.read())
+                        meta['model_path']=tar_file
                 else:
                     continue
             if meta['model_parameters']['prediction_type']==pred_type:
@@ -1621,9 +1622,9 @@ def get_multitask_perf_from_files_new(result_dir, pred_type='regression', datase
             with open(model_path, 'r') as model:
                 meta=json.loads(model.read())
                 tarfiles=[x for x in tar_list if meta['model_uuid'] in x]
-                if len(tarfiles)==1:
+                try:
                     meta['model_path']=tarfiles[0]
-                else:
+                except:
                     meta['model_path']=os.path.dirname(model_path)               
             if meta['model_parameters']['prediction_type']==pred_type:
                 if (dataset_key is not None) and (meta['training_dataset']['dataset_key']==dataset_key):
@@ -1660,57 +1661,69 @@ def get_multitask_perf_from_files_new(result_dir, pred_type='regression', datase
     # manipulate dfs
     models['features']=np.where(models.featurizer=='computed_descriptors',models.descriptor_type, models.featurizer)
     keep_dicts=keep_dicts[keep_dicts.model_uuid.isin(models.model_uuid)]
+    
+    mt_models=models[models.num_model_tasks.astype(int)>1]
+    st_models=models[models.num_model_tasks.astype(int)==1]
+    assert(len(mt_models)+len(st_models)==len(models))
+    
+    models_dfs=[ mt_models,st_models,]
 
-    # deal with metrics
+    # deal with metrics for st and mt separately
+    # do metrics by subset
     tm=pd.DataFrame(training_metrics.training_metrics.tolist())
-    preds=[]
-    for col in tm.columns:
-        
-        # get metrics and metric label
-        met=pd.DataFrame(tm[col].tolist())
-        metlabel=met.label.iloc[0]+'_'+met.subset.iloc[0]
-    
-        # expand metrics to get scores
-        pred=pd.DataFrame(met.prediction_results.tolist())
-        pred=models[['model_uuid','response_cols']].join(pred)
-
-        # check for > 1 dataset
-        if len(set(models.response_cols.astype(str)))>1:
-            raise Exception (f"Warning: you cannot export multitask model performances for more than one dataset at a time. Please provide the dataset_key as an additional parameter. Your {pred_type} options are: {list(set(models.dataset_key))}.")
-
-        num_model_tasks=models.num_model_tasks.iloc[0]
-        
-        # get task scores - long form and rename columns
-        taskcols=['response_cols']
-        taskcols.extend([x for x in pred.columns if 'task' in x])    
-        task_preds=pred[['model_uuid']+taskcols].set_index('model_uuid').explode(taskcols).reset_index()
-
-        # get full model scores and rename columns
-        predcols=[x for x in pred.columns if 'task' not in x]
-        predcols.remove('response_cols')
-        pred=pred[predcols].copy()
-        pred.columns=[metlabel+'_'+col if col!='model_uuid' else col for col in predcols]
-        pred['response_cols']='full_model'
-        
-        # rename task_pred columns to match full model names
-        coldict={}
-        for col in task_preds.columns:
-            if col not in ['model_uuid','response_cols']:
-                coldict[col]=[predcol for predcol in pred.columns if predcol.replace(metlabel+'_','').startswith(col.replace('task_','')[0:3])][0]
-        task_preds=task_preds.rename(columns=coldict)
-
-        # concatenate all scores
-        if num_model_tasks>1:
-            pred=pd.concat([pred,task_preds])
+    final_preds=[]
+    for col in tm.columns: # each subset
+        preds=[]
+        for models_df in models_dfs:
+            # check for > 1 dataset
+            if len(set(models_df.dataset_key.astype(str)))>1:
+                raise Exception (f"Warning: you cannot export multitask model performances for more than one dataset at a time. Please provide the dataset_key as an additional parameter. Your {pred_type} options are: {list(set(models.dataset_key))}.")
             
-        # if single task model, rename response columns and filter out empty rows
-        if num_model_tasks==1:
-            pred=pred[pred.response_cols=='full_model']
-            pred['response_cols']=[x[0] for x in models.response_cols]
-    
-        # append to list
-        preds.append(pred)
+            # get metrics and metric label
+            met=pd.DataFrame(tm[col].tolist())        
+            metlabel=met.label.iloc[0]+'_'+met.subset.iloc[0]
         
+            # expand metrics to get scores
+            pred=pd.DataFrame(met.prediction_results.tolist())
+            pred=models_df[['model_uuid','response_cols']].join(pred)
+            
+            # get num_model_tasks
+            num_model_tasks=models_df.num_model_tasks.astype(int).iloc[0]
+
+            # get task scores - long form and rename columns
+            taskcols=['response_cols']
+            taskcols.extend([x for x in pred.columns if 'task' in x])    
+            task_preds=pred[['model_uuid']+taskcols].set_index('model_uuid').explode(taskcols).reset_index()
+        
+            # get full model scores and rename columns
+            predcols=[x for x in pred.columns if 'task' not in x]
+            predcols.remove('response_cols')
+            pred=pred[predcols].copy()
+            pred.columns=[metlabel+'_'+col if col!='model_uuid' else col for col in predcols]
+            pred['response_cols']='full_model'
+        
+            # rename task_pred columns to match full model names
+            coldict={}
+            for task_col in task_preds.columns:
+                if task_col not in ['model_uuid','response_cols']:
+                    coldict[task_col]=[predcol for predcol in pred.columns if predcol.replace(metlabel+'_','').startswith(task_col.replace('task_','')[0:3])][0]
+            task_preds=task_preds.rename(columns=coldict)
+        
+            # concatenate all scores
+            if num_model_tasks>1:
+                pred=pd.concat([pred,task_preds])
+                pred['multitask']=1
+
+            # if single task model, rename response columns and filter out empty rows
+            if num_model_tasks==1:
+                pred['multitask']=0
+                pred=pred[pred.response_cols=='full_model']
+                pred['response_cols']=[x[0] for x in models_df.response_cols]
+            # append to list
+            preds.append(pred)
+        preds=pd.concat(preds).reset_index(drop=True)
+        final_preds.append(preds)
+    
     # trim model df columns - add compatibility for new metadata weight_transform_type
     models=models.filter(items=['model_uuid', 'time_built', 'ampl_version','dataset_key', 'model_path',
            'model_type', 'prediction_type', 'splitter',
@@ -1719,8 +1732,8 @@ def get_multitask_perf_from_files_new(result_dir, pred_type='regression', datase
            'smiles_col', 'features','model_choice_score_type',])
     
     # merge model info and pred_df info
-    for pred in preds:
-        models=models.merge(pred)
+    for pred in final_preds:
+        models=models.merge(pred, how='left')
 
     # deal with info left in dicts
     models=models.merge(keep_dicts)
@@ -1733,7 +1746,7 @@ def get_multitask_perf_from_files_new(result_dir, pred_type='regression', datase
             models=models.drop(columns=col)
         except Exception: 
             pass
-
+    
     return models
 
 

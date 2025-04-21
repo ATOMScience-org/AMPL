@@ -907,16 +907,18 @@ class MinimalDataset(ModelDataset):
                 self.vals = np.zeros((nrows,ncols))
             self.attr = pd.DataFrame({params.smiles_col: dset_df[params.smiles_col].values},
                                  index=dset_df[params.id_col])
+            if params.model_type != "hybrid":
+                self.vals, weights = feat.make_weights(self.vals, is_class=params.prediction_type=='classification')
             self.log.warning("Done")
         else:
             self.log.warning("Featurizing data...")
-            features, ids, self.vals, self.attr, weights, featurized_dset_df  = self.featurization.featurize_data(dset_df, 
-                                                                                    params, self.contains_responses)
+            features, ids, self.vals, self.attr, weights, featurized_dset_df  = self.featurization.featurize_data(dset_df, params, self.contains_responses)
             self.log.warning("Done")
         self.n_features = self.featurization.get_feature_count()
         
+        # existing
         self.update_untransformed_responses(ids, self.vals)
-        self.dataset = NumpyDataset(features, self.vals, ids=ids)
+        self.dataset = NumpyDataset(features, self.vals, ids=ids, w=weights)
 
     # ****************************************************************************************
     def save_featurized_data(self, featurized_dset_df):
