@@ -1,4 +1,5 @@
 """This module contains unit tests for performance plots in the AMPL project"""
+from contextlib import contextmanager
 import matplotlib.pyplot as plt
 from unittest.mock import MagicMock
 
@@ -7,8 +8,6 @@ import pandas as pd
 
 from matplotcheck.base import PlotTester
 from atomsci.ddm.pipeline.perf_plots import plot_pred_vs_actual_from_df
-
-import matplotlib.pyplot as plt
 
 # --- Fixtures ---
 @pytest.fixture
@@ -51,17 +50,27 @@ def mock_model_pipeline():
     mock_mp.model_wrapper.get_perf_data = MagicMock()
     return mock_mp
 
-@pytest.fixture
-def mock_plot():
-    """ 
-    A pytest fixture that provides a mock plot for testing.
+# Create a context manager for the figure
+@contextmanager
+def mock_plot_context():
+    """
+    Provides a mock context for matplotlib plotting during testing.
+
+    This function creates a new matplotlib figure, yields it for testing purposes,
+    and ensures that the figure is properly closed after the test is complete.
 
     Yields:
-        Mock: A mock object for the plot.
+        matplotlib.figure.Figure: The current matplotlib figure object.
     """
-    plt.figure()
-    yield plt.gcf()
-    plt.close()
+    plt.figure()  # Create a new figure
+    try:
+        yield plt.gcf()  # Yield the current figure for testing
+    finally:
+        plt.close()  # Close the figure after the test
+
+@pytest.fixture
+def mock_plot():
+    return mock_plot_context  # Return the context manager
 
 # --- Test Cases ---
 def test_plot_pred_vs_actual_from_df_basic(mock_data, mock_plot):
@@ -81,14 +90,18 @@ def test_plot_pred_vs_actual_from_df_basic(mock_data, mock_plot):
         AssertionError: If any of the assertions fail.
     """
     df = mock_data
-    ax = plot_pred_vs_actual_from_df(df, actual_col='avg_pIC50_actual', pred_col='avg_pIC50_pred')
-    
-    pt = PlotTester(ax)
-    assert ax is not None
-    #pt.assert_num_axes(1)
-    pt.assert_axis_label_contains("x", "avg_pIC50_actual")
-    pt.assert_axis_label_contains("y", "avg_pIC50_pred")
-    pt.assert_plot_type("scatter")
+
+    with mock_plot() as mock_scatter:
+        ax = plot_pred_vs_actual_from_df(df, actual_col='avg_pIC50_actual', pred_col='avg_pIC50_pred')
+        
+        # Verify the plot was created
+        assert ax is not None
+
+        # Additional assertions using PlotTester
+        pt = PlotTester(ax)
+        pt.assert_axis_label_contains("x", "avg_pIC50_actual")
+        pt.assert_axis_label_contains("y", "avg_pIC50_pred")
+        pt.assert_plot_type("scatter")
 
 def test_plot_pred_vs_actual_from_df_with_std(mock_data, mock_plot):
     """
@@ -110,14 +123,14 @@ def test_plot_pred_vs_actual_from_df_with_std(mock_data, mock_plot):
         AssertionError: If any of the assertions fail.
     """
     df = mock_data
-    ax = plot_pred_vs_actual_from_df(df, actual_col='avg_pIC50_actual', pred_col='avg_pIC50_pred', std_col='avg_pIC50_std')
-    
-    pt = PlotTester(ax)
-    assert ax is not None
-    #pt.assert_num_axes(1)
-    pt.assert_axis_label_contains("x", "avg_pIC50_actual")
-    pt.assert_axis_label_contains("y", "avg_pIC50_pred")
-    pt.assert_plot_type("scatter")
+    with mock_plot() as mock_scatter:
+        ax = plot_pred_vs_actual_from_df(df, actual_col='avg_pIC50_actual', pred_col='avg_pIC50_pred', std_col='avg_pIC50_std')
+        
+        pt = PlotTester(ax)
+        assert ax is not None
+        pt.assert_axis_label_contains("x", "avg_pIC50_actual")
+        pt.assert_axis_label_contains("y", "avg_pIC50_pred")
+        pt.assert_plot_type("scatter")
 
 def test_plot_pred_vs_actual_from_df_with_label(mock_data, mock_plot):
     """
@@ -135,15 +148,15 @@ def test_plot_pred_vs_actual_from_df_with_label(mock_data, mock_plot):
         The plot title is "Test Label".
     """
     df = mock_data
-    ax = plot_pred_vs_actual_from_df(df, actual_col='avg_pIC50_actual', pred_col='avg_pIC50_pred', label='Test Label')
-    
-    pt = PlotTester(ax)
-    assert ax is not None
-    #pt.assert_num_axes(1)
-    pt.assert_axis_label_contains("x", "avg_pIC50_actual")
-    pt.assert_axis_label_contains("y", "avg_pIC50_pred")
-    pt.assert_plot_type("scatter")
-    assert ax.get_title() == 'Test Label'
+    with mock_plot() as mock_scatter:
+        ax = plot_pred_vs_actual_from_df(df, actual_col='avg_pIC50_actual', pred_col='avg_pIC50_pred', label='Test Label')
+        
+        pt = PlotTester(ax)
+        assert ax is not None
+        pt.assert_axis_label_contains("x", "avg_pIC50_actual")
+        pt.assert_axis_label_contains("y", "avg_pIC50_pred")
+        pt.assert_plot_type("scatter")
+        assert ax.get_title() == 'Test Label'
 
 def test_plot_pred_vs_actual_from_df_with_threshold(mock_data, mock_plot):
     """
@@ -162,15 +175,15 @@ def test_plot_pred_vs_actual_from_df_with_threshold(mock_data, mock_plot):
     """
 
     df = mock_data
-    ax = plot_pred_vs_actual_from_df(df, actual_col='avg_pIC50_actual', pred_col='avg_pIC50_pred', threshold=7.0)
-    
-    pt = PlotTester(ax)
-    assert ax is not None
-   # pt.assert_num_axes(1)
-    pt.assert_axis_label_contains("x", "avg_pIC50_actual")
-    pt.assert_axis_label_contains("y", "avg_pIC50_pred")
-    pt.assert_plot_type("scatter")
-    assert any(line.get_linestyle() == '--' for line in ax.get_lines())
+    with mock_plot() as mock_scatter:
+        ax = plot_pred_vs_actual_from_df(df, actual_col='avg_pIC50_actual', pred_col='avg_pIC50_pred', threshold=7.0)
+        
+        pt = PlotTester(ax)
+        assert ax is not None
+        pt.assert_axis_label_contains("x", "avg_pIC50_actual")
+        pt.assert_axis_label_contains("y", "avg_pIC50_pred")
+        pt.assert_plot_type("scatter")
+        assert any(line.get_linestyle() == '--' for line in ax.get_lines())
 
 def test_plot_pred_vs_actual_from_df_with_all_options(mock_data, mock_plot):
     """
@@ -189,13 +202,13 @@ def test_plot_pred_vs_actual_from_df_with_all_options(mock_data, mock_plot):
         - At least one line in the plot has a dashed linestyle ('--').
     """
     df = mock_data
-    ax = plot_pred_vs_actual_from_df(df, actual_col='avg_pIC50_actual', pred_col='avg_pIC50_pred', std_col='avg_pIC50_std', label='Test Label', threshold=7.0)
-    
-    pt = PlotTester(ax)
-    assert ax is not None
-    #pt.assert_num_axes(1)
-    pt.assert_axis_label_contains("x", "avg_pIC50_actual")
-    pt.assert_axis_label_contains("y", "avg_pIC50_pred")
-    pt.assert_plot_type("scatter")
-    assert ax.get_title() == 'Test Label'
-    assert any(line.get_linestyle() == '--' for line in ax.get_lines())
+    with mock_plot() as mock_scatter:
+        ax = plot_pred_vs_actual_from_df(df, actual_col='avg_pIC50_actual', pred_col='avg_pIC50_pred', std_col='avg_pIC50_std', label='Test Label', threshold=7.0)
+        
+        pt = PlotTester(ax)
+        assert ax is not None
+        pt.assert_axis_label_contains("x", "avg_pIC50_actual")
+        pt.assert_axis_label_contains("y", "avg_pIC50_pred")
+        pt.assert_plot_type("scatter")
+        assert ax.get_title() == 'Test Label'
+        assert any(line.get_linestyle() == '--' for line in ax.get_lines())

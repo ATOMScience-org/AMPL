@@ -8,6 +8,7 @@ The tests cover the following functionalities:
 - Computing Wasserstein distances between response distributions of different subsets.
 
 """
+from contextlib import contextmanager
 import pytest
 import pandas as pd
 
@@ -66,21 +67,28 @@ def split_file():
     }
     return pd.DataFrame(data)
 
-@pytest.fixture
-def mock_plot():
+# Create a context manager for the figure
+@contextmanager
+def mock_plot_context():
     """
-    Fixture to create a mock plot.
+    Provides a mock context for matplotlib plotting during testing.
 
-    This fixture sets up a new matplotlib figure for testing purposes. It yields the current figure
-    object to the test function and ensures that the figure is closed after the test is completed.
+    This function creates a new matplotlib figure, yields it for testing purposes,
+    and ensures that the figure is properly closed after the test is complete.
 
     Yields:
-        matplotlib.figure.Figure: The current figure object for testing.
+        matplotlib.figure.Figure: The current matplotlib figure object.
     """
     plt.figure()  # Create a new figure
-    yield plt.gcf()  # Yield the current figure for testing
-    plt.close()  # Close the figure after the test
- 
+    try:
+        yield plt.gcf()  # Yield the current figure for testing
+    finally:
+        plt.close()  # Close the figure after the test
+
+@pytest.fixture
+def mock_plot():
+    return mock_plot_context  # Return the context manager
+   
 # --- Test Cases ---     
 def test_get_split_labeled_dataset(params, dataset, split_file, mocker):
     """Test the get_split_labeled_dataset function.
@@ -123,13 +131,15 @@ def test_plot_split_subset_response_distrs_regression(mock_plot, params, dataset
         split_file (pd.DataFrame): Sample split file.
         mocker (pytest_mock.MockerFixture): Mocking fixture.
     """
-    mocker.patch('pandas.read_csv', side_effect=[dataset, split_file])
-    fig, ax = plt.subplots(1, len(params['response_cols']))
-    plot_split_subset_response_distrs(params, axes=ax)
-    for colnum, col in enumerate(params['response_cols']):
-        plot_tester = PlotTester(ax[colnum])
-        if params['prediction_type'] == 'regression':
-            plot_tester.assert_title_contains(f"{col} distribution by subset under")
+    with mock_plot() as fig:
+        ax = fig.subplots(1, len(params['response_cols']))
+        mocker.patch('pandas.read_csv', side_effect=[dataset, split_file])
+        
+        plot_split_subset_response_distrs(params, axes=ax)
+        for colnum, col in enumerate(params['response_cols']):
+            plot_tester = PlotTester(ax[colnum])
+            if params['prediction_type'] == 'regression':
+                plot_tester.assert_title_contains(f"{col} distribution by subset under")
 
 def test_plot_split_subset_response_distrs_classification(mock_plot, params, dataset, split_file, mocker):
     """Test the plot_split_subset_response_distrs function for classification.
@@ -143,12 +153,13 @@ def test_plot_split_subset_response_distrs_classification(mock_plot, params, dat
     """
     params['prediction_type'] = 'classification'
     mocker.patch('pandas.read_csv', side_effect=[dataset, split_file])
-    fig, ax = plt.subplots(1, len(params['response_cols']))
-    plot_split_subset_response_distrs(params, axes=ax)
-    for colnum, col in enumerate(params['response_cols']):
-        plot_tester = PlotTester(ax[colnum])
-        if params['prediction_type'] != 'regression':
-            plot_tester.assert_title_contains(f"Percent of {col} = 1 by subset under")
+    with mock_plot() as fig:
+        ax = fig.subplots(1, len(params['response_cols']))
+        plot_split_subset_response_distrs(params, axes=ax)
+        for colnum, col in enumerate(params['response_cols']):
+            plot_tester = PlotTester(ax[colnum])
+            if params['prediction_type'] != 'regression':
+                plot_tester.assert_title_contains(f"Percent of {col} = 1 by subset under")
             
 def test_compute_split_subset_wasserstein_distances(params, dataset, split_file, mocker):
     """Test the compute_split_subset_wasserstein_distances function.

@@ -8,6 +8,7 @@ import pandas as pd
 from matplotlib import pyplot as plt
 from atomsci.ddm.utils.compare_splits_plots import SplitStats, split, parse_args
 from matplotcheck.base import PlotTester
+from contextlib import contextmanager
 
 # --- Fixtures ---
 @pytest.fixture
@@ -33,23 +34,30 @@ def mock_data():
     split_df = pd.DataFrame(split_data)
     return total_df, split_df
 
-@pytest.fixture
-def mock_plot():
+# Create a context manager for the figure
+@contextmanager
+def mock_plot_context():
     """
-    Fixture to create a mock plot.
+    Provides a mock context for matplotlib plotting during testing.
 
-    This fixture sets up a new matplotlib figure for testing purposes. It yields the current figure
-    object to the test function and ensures that the figure is closed after the test is completed.
+    This function creates a new matplotlib figure, yields it for testing purposes,
+    and ensures that the figure is properly closed after the test is complete.
 
     Yields:
-        matplotlib.figure.Figure: The current figure object for testing.
+        matplotlib.figure.Figure: The current matplotlib figure object.
     """
     plt.figure()  # Create a new figure
-    yield plt.gcf()  # Yield the current figure for testing
-    plt.close()  # Close the figure after the test
+    try:
+        yield plt.gcf()  # Yield the current figure for testing
+    finally:
+        plt.close()  # Close the figure after the test
+
+@pytest.fixture
+def mock_plot():
+    return mock_plot_context  # Return the context manager
 
 # --- Test Cases ---    
-def test_dist_hist_train_v_test_plot(mock_data):
+def test_dist_hist_train_v_test_plot(mock_plot, mock_data):
     """
     Test the `dist_hist_train_v_test_plot` method of the `SplitStats` class.
     This test verifies that the histogram plot comparing the distribution of 
@@ -64,20 +72,21 @@ def test_dist_hist_train_v_test_plot(mock_data):
         - The x-axis label contains the text "Tanimoto distance".
         - The y-axis label contains the text "Proportion of compounds".
     """
-    total_df, split_df = mock_data
-    ss = SplitStats(total_df, split_df, smiles_col='smiles', id_col='cmpd_id', response_cols=['response'])
+    with mock_plot() as fig:
+        ax = fig.subplots()
+        total_df, split_df = mock_data
+        ss = SplitStats(total_df, split_df, smiles_col='smiles', id_col='cmpd_id', response_cols=['response'])
     
-    fig, ax = plt.subplots()
-    ax = ss.dist_hist_train_v_test_plot(ax=ax)
+        ax = ss.dist_hist_train_v_test_plot(ax=ax)
     
-    pt = PlotTester(ax)
+        pt = PlotTester(ax)
      
-    assert ax is not None
-    pt.assert_num_bins(1)   # Check if histogram has been plotted
-    pt.assert_axis_label_contains("x", "Tanimoto distance")
-    pt.assert_axis_label_contains("y", "Proportion of compounds")
+        assert ax is not None
+        pt.assert_num_bins(1)   # Check if histogram has been plotted
+        pt.assert_axis_label_contains("x", "Tanimoto distance")
+        pt.assert_axis_label_contains("y", "Proportion of compounds")
     
-def test_dist_hist_train_v_valid_plot(mock_data):
+def test_dist_hist_train_v_valid_plot(mock_plot, mock_data):
     """
     Test the `dist_hist_train_v_valid_plot` method of the `SplitStats` class.
     This test verifies that the `dist_hist_train_v_valid_plot` method correctly
@@ -93,20 +102,21 @@ def test_dist_hist_train_v_valid_plot(mock_data):
         - The x-axis label contains the text "Tanimoto distance".
         - The y-axis label contains the text "Proportion of compounds".
     """
-    total_df, split_df = mock_data
-    ss = SplitStats(total_df, split_df, smiles_col='smiles', id_col='cmpd_id', response_cols=['response'])
+    with mock_plot() as fig:
+        ax = fig.subplots()
+        total_df, split_df = mock_data
+        ss = SplitStats(total_df, split_df, smiles_col='smiles', id_col='cmpd_id', response_cols=['response'])
         
-    fig, ax = plt.subplots()
-    ax = ss.dist_hist_train_v_valid_plot(ax=ax)
+        ax = ss.dist_hist_train_v_valid_plot(ax=ax)
     
-    pt = PlotTester(ax)
+        pt = PlotTester(ax)
           
-    assert ax is not None
-    pt.assert_num_bins(1)   # Check if histogram has been plotted
-    pt.assert_axis_label_contains("x", "Tanimoto distance")
-    pt.assert_axis_label_contains("y", "Proportion of compounds")
+        assert ax is not None
+        pt.assert_num_bins(1)   # Check if histogram has been plotted
+        pt.assert_axis_label_contains("x", "Tanimoto distance")
+        pt.assert_axis_label_contains("y", "Proportion of compounds")
         
-def test_dist_hist_plot_train_v_test(mock_data):
+def test_dist_hist_plot_train_v_test(mock_plot, mock_data):
     """
     Test the distribution histogram plot for training vs. testing data.
     This test function takes mock data, creates a SplitStats object, and generates
@@ -120,20 +130,21 @@ def test_dist_hist_plot_train_v_test(mock_data):
         Asserts that the x-axis label contains "Tanimoto distance".
         Asserts that the y-axis label contains "Proportion of compounds".
     """
-    total_df, split_df = mock_data
-    ss = SplitStats(total_df, split_df, smiles_col='smiles', id_col='cmpd_id', response_cols=['response'])
+    with mock_plot() as fig:
+        ax = fig.subplots()
+        total_df, split_df = mock_data
+        ss = SplitStats(total_df, split_df, smiles_col='smiles', id_col='cmpd_id', response_cols=['response'])
             
-    fig, ax = plt.subplots()
-    ax = ss.dist_hist_train_v_test_plot(ax=ax)
+        ax = ss.dist_hist_train_v_test_plot(ax=ax)
     
-    pt = PlotTester(ax)
+        pt = PlotTester(ax)
           
-    assert ax is not None
-    pt.assert_num_bins(1)   # Check if histogram has been plotted
-    pt.assert_axis_label_contains("x", "Tanimoto distance")
-    pt.assert_axis_label_contains("y", "Proportion of compounds")
+        assert ax is not None
+        pt.assert_num_bins(1)   # Check if histogram has been plotted
+        pt.assert_axis_label_contains("x", "Tanimoto distance")
+        pt.assert_axis_label_contains("y", "Proportion of compounds")
 
-def test_dist_hist_plot_train_v_valid(mock_data):
+def test_dist_hist_plot_train_v_valid(mock_plot, mock_data):
     """
     Test the distribution histogram plot for training vs validation data.
     This test function verifies the following:
@@ -146,18 +157,19 @@ def test_dist_hist_plot_train_v_valid(mock_data):
     Raises:
         AssertionError: If any of the assertions fail.
     """
-    total_df, split_df = mock_data
-    ss = SplitStats(total_df, split_df, smiles_col='smiles', id_col='cmpd_id', response_cols=['response'])
+    with mock_plot() as fig:
+        ax = fig.subplots()
+        total_df, split_df = mock_data
+        ss = SplitStats(total_df, split_df, smiles_col='smiles', id_col='cmpd_id', response_cols=['response'])
             
-    fig, ax = plt.subplots()
-    ax = ss.dist_hist_train_v_valid_plot(ax=ax)
+        ax = ss.dist_hist_train_v_valid_plot(ax=ax)
             
-    pt = PlotTester(ax)
+        pt = PlotTester(ax)
           
-    assert ax is not None
-    pt.assert_num_bins(1)   # Check if histogram has been plotted
-    pt.assert_axis_label_contains("x", "Tanimoto distance")
-    pt.assert_axis_label_contains("y", "Proportion of compounds")
+        assert ax is not None
+        pt.assert_num_bins(1)   # Check if histogram has been plotted
+        pt.assert_axis_label_contains("x", "Tanimoto distance")
+        pt.assert_axis_label_contains("y", "Proportion of compounds")
     
 def test_split_function(mock_data):
     """
