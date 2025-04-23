@@ -1638,7 +1638,7 @@ def get_multitask_perf_from_files_new(result_dir, pred_type='regression', datase
     metadata=pd.DataFrame(model_list)
     
     # establish initial unpacked models df
-    dropcols=['model_uuid','time_built','model_path','training_metrics']
+    dropcols=['model_uuid','time_built','model_path','training_metrics','seed']
     models=metadata[['model_uuid','time_built','model_path']]
     
     # find colums to keep as dicts and extract
