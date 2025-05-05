@@ -4,10 +4,12 @@ import numpy as np
 import json
 import os
 
+import pytest
+
 import atomsci.ddm.pipeline.parameter_parser as parse
 import atomsci.ddm.pipeline.model_pipeline as mp
 import atomsci.ddm.pipeline.predict_from_model as pfm
-from atomsci.ddm.utils import llnl_utils
+# from atomsci.ddm.utils import llnl_utils
 
 import sklearn.metrics as skmetrics
 
@@ -99,6 +101,7 @@ def test_train_valid_test():
 
     saved_model_identity(pparams)
 
+@pytest.mark.dgl_required
 def test_attentivefp():
     script_path = os.path.dirname(os.path.realpath(__file__))
     json_file = os.path.join(script_path, 'attentivefp_random.json')
@@ -110,6 +113,7 @@ def test_attentivefp():
 
     saved_model_identity(pparams)
 
+@pytest.mark.dgl_required
 def test_gcnmodel():
     script_path = os.path.dirname(os.path.realpath(__file__))
     json_file = os.path.join(script_path, 'gcnmodel_random.json')
@@ -132,6 +136,7 @@ def test_graphconvmodel():
 
     saved_model_identity(pparams)
 
+@pytest.mark.dgl_required
 def test_mpnnmodel():
     script_path = os.path.dirname(os.path.realpath(__file__))
     json_file = os.path.join(script_path, 'MPNNModel_random.json')
@@ -143,6 +148,7 @@ def test_mpnnmodel():
 
     saved_model_identity(pparams)
 
+@pytest.mark.dgl_required
 def test_pytorchmpnnmodel():
     script_path = os.path.dirname(os.path.realpath(__file__))
     json_file = os.path.join(script_path, 'PytorchMPNNModel_random.json')
@@ -155,9 +161,9 @@ def test_pytorchmpnnmodel():
     saved_model_identity(pparams)
 
 def saved_model_identity(pparams):
-    if not llnl_utils.is_lc_system():
-        assert True
-        return
+    # if not llnl_utils.is_lc_system():
+    #     assert True
+    #     return
         
     script_path = os.path.dirname(os.path.realpath(__file__))
     if not pparams.previously_split:
