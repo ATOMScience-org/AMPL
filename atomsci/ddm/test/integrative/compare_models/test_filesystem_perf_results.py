@@ -249,7 +249,7 @@ def test_GraphConvModel_results():
 
     clean()
 
-@pytest.mark.gpu_required
+@pytest.mark.dgl_required
 def test_MPNN_results():
     if not llnl_utils.is_lc_system():
         assert True

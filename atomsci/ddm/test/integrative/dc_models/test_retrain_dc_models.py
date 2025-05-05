@@ -224,7 +224,7 @@ def H1_init():
 
 # Train and Predict
 # -----
-@pytest.mark.gpu_required
+@pytest.mark.dgl_required
 def run_test_reg_config_H1_fit_AttentiveFPModel(keep_seed):
     if not llnl_utils.is_lc_system():
         assert True
@@ -245,7 +245,7 @@ def test_reg_config_H1_fit_AttentiveFPModel():
     run_test_reg_config_H1_fit_AttentiveFPModel(False)
 
 # -----
-@pytest.mark.gpu_required
+@pytest.mark.dgl_required
 def run_test_reg_config_H1_fit_GCNModel(keep_seed):
     if not llnl_utils.is_lc_system():
         assert True
@@ -266,7 +266,7 @@ def test_reg_config_H1_fit_GCNModel():
     run_test_reg_config_H1_fit_GCNModel(False)
 
 # -----
-@pytest.mark.gpu_required
+@pytest.mark.dgl_required
 def run_test_reg_config_H1_fit_MPNNModel(keep_seed):
     if not llnl_utils.is_lc_system():
         assert True
@@ -286,7 +286,6 @@ def test_reg_config_H1_fit_MPNNModel():
     run_test_reg_config_H1_fit_MPNNModel(True)
     run_test_reg_config_H1_fit_MPNNModel(False)
 
-@pytest.mark.gpu_required
 def run_test_reg_config_H1_fit_GraphConvModel(keep_seed):
     if not llnl_utils.is_lc_system():
         assert True
@@ -306,7 +305,7 @@ def test_reg_config_H1_fit_GraphConvModel():
     run_test_reg_config_H1_fit_GraphConvModel(True)
     run_test_reg_config_H1_fit_GraphConvModel(False)
 
-@pytest.mark.gpu_required
+@pytest.mark.dgl_required
 def run_test_reg_config_H1_fit_PytorchMPNNModel(keep_seed):
     if not llnl_utils.is_lc_system():
         assert True

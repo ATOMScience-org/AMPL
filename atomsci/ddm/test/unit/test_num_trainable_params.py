@@ -7,11 +7,10 @@ import pytest
 def clean():
     pass
 
-@pytest.mark.gpu_required
 def test():
-    if not llnl_utils.is_lc_system():
-        assert True
-        return
+    # if not llnl_utils.is_lc_system():
+    #     assert True
+    #     return
     
     tar_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 
         '../../examples/BSEP/models/bsep_classif_scaffold_split.tar.gz')
