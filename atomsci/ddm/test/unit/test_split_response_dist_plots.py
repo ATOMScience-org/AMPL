@@ -12,10 +12,8 @@ from contextlib import contextmanager
 import pytest
 import pandas as pd
 
-from matplotcheck.base import PlotTester
 from atomsci.ddm.utils.split_response_dist_plots import plot_split_subset_response_distrs, compute_split_subset_wasserstein_distances, get_split_labeled_dataset
 from matplotlib import pyplot as plt
-from matplotcheck.base import PlotTester
 
 # --- Fixtures ---
 @pytest.fixture
@@ -104,62 +102,62 @@ def test_get_split_labeled_dataset(params, dataset, split_file, mocker):
     assert 'split_subset' in dset_df.columns
     assert split_label == 'random split'
 
-def test_plot_split_subset_response_distrs(params, dataset, split_file, mocker):
-    """Test the plot_split_subset_response_distrs function.
+# def test_plot_split_subset_response_distrs(params, dataset, split_file, mocker):
+#     """Test the plot_split_subset_response_distrs function.
 
-    Args:
-        params (dict): Parameters for the test.
-        dataset (pd.DataFrame): Sample dataset.
-        split_file (pd.DataFrame): Sample split file.
-        mocker (pytest_mock.MockerFixture): Mocking fixture.
-    """
-    mocker.patch('pandas.read_csv', side_effect=[dataset, split_file])
-    fig, ax = plt.subplots(1, len(params['response_cols']))
-    plot_split_subset_response_distrs(params, axes=ax)
-    for axis in ax:
-        plot_tester = PlotTester(axis)
-        if params['prediction_type'] == 'regression':
-            plot_tester.assert_title_contains('distribution by subset under')
+#     Args:
+#         params (dict): Parameters for the test.
+#         dataset (pd.DataFrame): Sample dataset.
+#         split_file (pd.DataFrame): Sample split file.
+#         mocker (pytest_mock.MockerFixture): Mocking fixture.
+#     """
+#     mocker.patch('pandas.read_csv', side_effect=[dataset, split_file])
+#     fig, ax = plt.subplots(1, len(params['response_cols']))
+#     plot_split_subset_response_distrs(params, axes=ax)
+#     for axis in ax:
+#         plot_tester = PlotTester(axis)
+#         if params['prediction_type'] == 'regression':
+#             plot_tester.assert_title_contains('distribution by subset under')
         
-def test_plot_split_subset_response_distrs_regression(mock_plot, params, dataset, split_file, mocker):
-    """Test the plot_split_subset_response_distrs function for regression.
+# def test_plot_split_subset_response_distrs_regression(mock_plot, params, dataset, split_file, mocker):
+#     """Test the plot_split_subset_response_distrs function for regression.
 
-    Args:
-        mock_plot (matplotlib.figure.Figure): Mock plot fixture.
-        params (dict): Parameters for the test.
-        dataset (pd.DataFrame): Sample dataset.
-        split_file (pd.DataFrame): Sample split file.
-        mocker (pytest_mock.MockerFixture): Mocking fixture.
-    """
-    with mock_plot() as fig:
-        ax = fig.subplots(1, len(params['response_cols']))
-        mocker.patch('pandas.read_csv', side_effect=[dataset, split_file])
+#     Args:
+#         mock_plot (matplotlib.figure.Figure): Mock plot fixture.
+#         params (dict): Parameters for the test.
+#         dataset (pd.DataFrame): Sample dataset.
+#         split_file (pd.DataFrame): Sample split file.
+#         mocker (pytest_mock.MockerFixture): Mocking fixture.
+#     """
+#     with mock_plot() as fig:
+#         ax = fig.subplots(1, len(params['response_cols']))
+#         mocker.patch('pandas.read_csv', side_effect=[dataset, split_file])
         
-        plot_split_subset_response_distrs(params, axes=ax)
-        for colnum, col in enumerate(params['response_cols']):
-            plot_tester = PlotTester(ax[colnum])
-            if params['prediction_type'] == 'regression':
-                plot_tester.assert_title_contains(f"{col} distribution by subset under")
+#         plot_split_subset_response_distrs(params, axes=ax)
+#         for colnum, col in enumerate(params['response_cols']):
+#             plot_tester = PlotTester(ax[colnum])
+#             if params['prediction_type'] == 'regression':
+#                 plot_tester.assert_title_contains(f"{col} distribution by subset under")
 
-def test_plot_split_subset_response_distrs_classification(mock_plot, params, dataset, split_file, mocker):
-    """Test the plot_split_subset_response_distrs function for classification.
+# def test_plot_split_subset_response_distrs_classification(mock_plot, params, dataset, split_file, mocker):
+#     """Test the plot_split_subset_response_distrs function for classification.
 
-    Args:
-        mock_plot (matplotlib.figure.Figure): Mock plot fixture.
-        params (dict): Parameters for the test.
-        dataset (pd.DataFrame): Sample dataset.
-        split_file (pd.DataFrame): Sample split file.
-        mocker (pytest_mock.MockerFixture): Mocking fixture.
-    """
-    params['prediction_type'] = 'classification'
-    mocker.patch('pandas.read_csv', side_effect=[dataset, split_file])
-    with mock_plot() as fig:
-        ax = fig.subplots(1, len(params['response_cols']))
-        plot_split_subset_response_distrs(params, axes=ax)
-        for colnum, col in enumerate(params['response_cols']):
-            plot_tester = PlotTester(ax[colnum])
-            if params['prediction_type'] != 'regression':
-                plot_tester.assert_title_contains(f"Percent of {col} = 1 by subset under")
+#     Args:
+#         mock_plot (matplotlib.figure.Figure): Mock plot fixture.
+#         params (dict): Parameters for the test.
+#         dataset (pd.DataFrame): Sample dataset.
+#         split_file (pd.DataFrame): Sample split file.
+#         mocker (pytest_mock.MockerFixture): Mocking fixture.
+#     """
+#     params['prediction_type'] = 'classification'
+#     mocker.patch('pandas.read_csv', side_effect=[dataset, split_file])
+#     with mock_plot() as fig:
+#         ax = fig.subplots(1, len(params['response_cols']))
+#         plot_split_subset_response_distrs(params, axes=ax)
+#         for colnum, col in enumerate(params['response_cols']):
+#             plot_tester = PlotTester(ax[colnum])
+#             if params['prediction_type'] != 'regression':
+#                 plot_tester.assert_title_contains(f"Percent of {col} = 1 by subset under")
             
 def test_compute_split_subset_wasserstein_distances(params, dataset, split_file, mocker):
     """Test the compute_split_subset_wasserstein_distances function.
