@@ -15,7 +15,7 @@ from test_delaney_panel import init, train_and_predict
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../dc_models'))
 from test_retrain_dc_models import H1_curate
-# from atomsci.ddm.utils import llnl_utils
+from atomsci.ddm.utils import llnl_utils
 
 def clean():
     delaney_files = glob.glob('delaney-processed*.csv')
@@ -180,6 +180,7 @@ def test_XGB_results():
 
     clean()
 
+@pytest.mark.dgl_required
 def test_AttentiveFP_results():
     clean()
     H1_curate()
@@ -202,6 +203,7 @@ def test_AttentiveFP_results():
 
     clean()
 
+@pytest.mark.dgl_required
 def test_GCN_results():
     clean()
     H1_curate()
@@ -251,9 +253,9 @@ def test_GraphConvModel_results():
 
 @pytest.mark.dgl_required
 def test_MPNN_results():
-    # if not llnl_utils.is_lc_system():
-    #     assert True
-    #     return
+    if not llnl_utils.is_lc_system():
+        assert True
+        return
 
     clean()
     H1_curate()
@@ -277,7 +279,12 @@ def test_MPNN_results():
 
     clean()
 
+@pytest.mark.dgl_required
 def test_PytorchMPNN_results():
+    if not llnl_utils.is_lc_system():
+        assert True
+        return
+    
     clean()
     H1_curate()
     json_f = 'jsons/reg_config_H1_fit_PytorchMPNNModel.json'
