@@ -416,7 +416,7 @@ def test_xgb_alpha_and_xgb_lambda():
     """
     # Define test inputs
     input_params = {
-        "model_type": "NN",
+        "model_type": "xgboost",
         "xgb_alpha": "0.1",
         "xgb_lambda": "0.5" }
     # Parse the inputs
