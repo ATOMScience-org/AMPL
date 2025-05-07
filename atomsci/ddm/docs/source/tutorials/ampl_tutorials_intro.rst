@@ -16,6 +16,9 @@ properties. We have created easy to follow tutorials that walk through the steps
 `AMPL <https://github.com/ATOMScience-org/AMPL>`_, curate a dataset, effectively train and evaluate a machine 
 learning model, and use that model to make predictions.
 
+In addition to our written tutorials, we're now offering a series of 
+`video tutorials <https://www.youtube.com/channel/UCOF6zZ7ltGwopYCoOGIFM-w>`_, designed to help users navigate and maximize AMPL's powerful features.
+
 End-to-End Modeling Pipeline Tutorial Series
 ********************************************
 
