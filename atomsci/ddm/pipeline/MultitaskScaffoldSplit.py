@@ -484,6 +484,8 @@ class MultitaskScaffoldSplitter(Splitter):
             the train subset response value distributions, averaged over tasks. One means
             the distributions perfectly match.
         """
+        if not self.sanity_check_chromosome(split_chromosome):
+            return 0.0
         dist_sum = 0.0
         ntasks = self.dataset.y.shape[1]
         train_ind, valid_ind, test_ind = self.split_chromosome_to_compound_split(split_chromosome)
@@ -542,52 +544,48 @@ class MultitaskScaffoldSplitter(Splitter):
     def grade(self, split_chromosome: List[str]) -> float:
         """Assigns a score to a given chromosome
 
-        Balances the score between how well stratified the split is and how
-        different the training and test partitions are.
+        Returns a total fitness score for a candidate split, as a weighted sum of
+        fitness terms, with the weights determined by user specified split parameters.
 
-        Parameters
-        ----------
-        List[str]: split_chromosome
-            A list of strings, index i contains a string, 'train', 'valid', 'test'
-            which determines the partition that scaffold belongs
+        Args:
+            split_chromosome (List[str]):
+                A list of strings of length equal to the number of superscaffolds. The i'th string
+                must be 'train', 'valid', or 'test', indicating which partition i'th scaffold is
+                assigned to in the candidate split.
 
-        Returns
-        -------
-        float
-            A float between 0 and 1. 1 best 0 is worst
+        Returns:
+            float
+                The total fitness score, ranging from 0 to 1 with 1 being the best.
         """
         
-        """
-        fitness = 0.0
-
-        if not self.sanity_check_chromosome(split_chromosome):
-            return fitness
-
-        # Only call the functions for each fitness term if their weight is nonzero
-        if self.diff_fitness_weight_tvt != 0.0:
-            #score = self.scaffold_diff_fitness(split_chromosome, 'train', 'test')
-            score = self.far_frac_fitness(split_chromosome, 'train', 'test')
-            fitness += self.diff_fitness_weight_tvt*score
-        if self.diff_fitness_weight_tvv != 0.0:
-            #score = self.scaffold_diff_fitness(split_chromosome, 'train', 'valid')
-            score = self.far_frac_fitness(split_chromosome, 'train', 'valid')
-            fitness += self.diff_fitness_weight_tvv*score
-        if self.ratio_fitness_weight != 0.0:
-            score = self.ratio_fitness(split_chromosome)
-            fitness += self.ratio_fitness_weight*score
-        if self.response_distr_fitness_weight != 0.0:
-            score = self.response_distr_fitness(split_chromosome)
-            fitness += self.response_distr_fitness_weight*score
-
-        # Normalize the score to the range [0,1]
-        fitness /= (self.diff_fitness_weight_tvt + self.diff_fitness_weight_tvv + self.ratio_fitness_weight +
-                    self.response_distr_fitness_weight)
-        return fitness
-        """
         fitness_scores = self.get_fitness_scores(split_chromosome)
         return fitness_scores['total_fitness']
 
     def get_fitness_scores(self, split_chromosome):
+        """
+        Calculate fitness scores for a given split chromosome based on various fitness terms.
+
+        This method computes individual fitness scores for different criteria (e.g., scaffold 
+        distance distribution, partition size ratios, response value distribution) and combines them into a 
+        total fitness score. Each fitness term is weighted according to its respective weight 
+        parameter.
+
+        Args:
+            split_chromosome (List[str]): A list of strings representing the data split to evaluate.
+
+        Returns:
+            dict: A dictionary containing individual fitness scores for each term and the 
+                  normalized total fitness score. Keys include:
+                  - 'test_scaf_dist': Fitness score representing the Tanimoto distance distribution between test set
+                    compounds and their nearest neighbors in the training set.
+                  - 'valid_scaf_dist': Fitness score representing the Tanimoto distance distribution between validation set
+                    compounds and their nearest neighbors in the training set.
+                  - 'ratio': Fitness score based on how well the proportions of compounds in the split subsets conform
+                    to those specified by the split_valid_frac and split_test_frac parameters.
+                  - 'response_distr': Fitness score based on how well the validation and test set response value 
+                    distributions match that of the train subset.
+                  - 'total_fitness': The normalized total fitness score, ranging from 0 to 1.
+        """
         fitness_scores = {}
         total_fitness = 0.0
         # Only call the functions for each fitness term if their weight is nonzero
@@ -613,9 +611,10 @@ class MultitaskScaffoldSplitter(Splitter):
 
     def init_scaffolds(self,
              dataset: Dataset) -> None:
-        """Creates super scaffolds used in splitting
+        """Creates super scaffolds used in splitting.
 
-        This function sets a
+        This function combines the scaffolds found in the input dataset into a smaller set of super scaffolds
+        according to the mtss_num_super_scaffolds parameter.
 
         Parameters
         ----------
@@ -657,13 +656,15 @@ class MultitaskScaffoldSplitter(Splitter):
             print_timings: bool = False,
             early_stopping_generations = 25,
             log_every_n: int = 10) -> Tuple:
-        """Creates a split for the given datset
+        """Creates a split for the given datset.
 
-        This split splits the dataset into a list of super scaffolds then
-        assigns each scaffold into one of three partitions. The scaffolds
-        are assigned using a GeneticAlgorithm and tries to maximize the
-        difference between the training and test partitions as well as ensuring
-        all tasks have an appropriate number of training/validation/test samples
+        This function splits the dataset into a list of super scaffolds, then
+        assigns each super scaffold into one of three partitions. The scaffolds
+        are assigned using a GeneticAlgorithm which tries to maximize a fitness
+        function for the split. The fitness function computes a weighted sum
+        of various criteria for the quality of the split, with the weights determined
+        by user specified parameters; see the descriptions of the weight parameters
+        below.
 
         Parameters
         ----------
@@ -684,7 +685,7 @@ class MultitaskScaffoldSplitter(Splitter):
         diff_fitness_weight_tvv: float
             Weight for the importance of the difference between training and valid
             partitions
-        ratio_fitness_feight: float
+        ratio_fitness_weight: float
             Weight for the importance of ensuring each task has the appropriate
             number of samples in training/validation/test
         response_distr_fitness_weight: float
@@ -881,7 +882,7 @@ class MultitaskScaffoldSplitter(Splitter):
         diff_fitness_weight_tvv: float
             Weight for the importance of the difference between training and valid
             partitions
-        ratio_fitness_feight: float
+        ratio_fitness_weight: float
             Weight for the importance of ensuring each task has the appropriate
             number of samples in training/validation/test
         num_super_scaffolds: int
