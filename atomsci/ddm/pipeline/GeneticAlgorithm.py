@@ -56,7 +56,30 @@ class GeneticAlgorithm:
         self.fitness_func = fitness_func
         self.crossover_func = crossover_func
         self.mutate_func = mutate_func
-        self.parallel_grade_population()
+        self.serial_grade_population()
+        #self.parallel_grade_population()
+
+
+    def serial_grade_population(self):
+        """ Scores the chromosomes in the current population and sorts them in decreasing score order.
+        Saves the sorted scores in self.pop_scores. Not multithreaded; surprisingly, this runs faster
+        than the multithreaded function parallel_grade_scores.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None. As a side effect, sorts the chromosomes in self.pop and updates the scores in self.pop_scores.
+        """
+        fitnesses = []
+        for chrom in self.pop:
+            fitnesses.append(self.fitness_func(chrom))
+        pairs = sorted(zip(fitnesses, self.pop), reverse=True)
+        self.pop = [chrome for fitness, chrome in pairs]
+        self.pop_scores = [fitness for fitness, chrome in pairs]
+
 
         self.best_fitness = -1e20
         self.best_solution = None
@@ -72,7 +95,7 @@ class GeneticAlgorithm:
 
         Returns
         -------
-        Nothing
+        None
         """
 
         if self.pop_scores[0]>self.best_fitness:
@@ -100,9 +123,12 @@ class GeneticAlgorithm:
         return self.best_fitness, self.best_solution
 
     def parallel_grade_population(self):
-        """ Grade the population and save the scores
-
-        Updates the order of self.pop and self.pop_scores
+        """ Scores the chromosomes in the current population and sorts them in decreasing score order.
+        Saves the sorted scores in self.pop_scores. 
+        
+        Although this does the same thing in multiple threads as the single-threaded function 
+        serial_grade_population, it seems to run much slower, at least for multitask scaffold splits
+        with 100 chromosomes.
 
         Parameters
         ----------
@@ -110,16 +136,13 @@ class GeneticAlgorithm:
 
         Returns
         -------
-        Nothing
+        None
         """
         pool = multiprocessing.Pool(processes=N_PROCS)
         fitnesses = pool.map(self.fitness_func, self.pop)
         pool.close()
         pool.join()
-        pairs = list(zip(fitnesses, self.pop))
-
-        pairs.sort(key=lambda x: x[0], reverse=True)
-
+        pairs = sorted(zip(fitnesses, self.pop), reverse=True)
         self.pop = [chrome for fitness, chrome in pairs]
         self.pop_scores = [fitness for fitness, chrome in pairs]
 
@@ -138,10 +161,7 @@ class GeneticAlgorithm:
         parents: List[List[Any]]
             A list of chromosomes that will be parents for the next generation
         """
-        self.parallel_grade_population()
-
-        parents = [chrome for chrome in self.pop[:self.num_parents]]
-        return parents
+        return self.pop[:self.num_parents]
 
     def iterate(self, num_generations: int):
         """ Iterates the genetic algorithm num_generations
@@ -178,12 +198,13 @@ class GeneticAlgorithm:
 
         start = timeit.default_timer()
         i = timeit.default_timer()
+        # select parents using rank selection
         parents = self.select_parents()
         if print_timings:
             print('\tfind parents %0.2f min'%((timeit.default_timer()-i)/60))
 
-        # select parents using rank selection
         i = timeit.default_timer()
+        # Generate new population by crossing parent chromosomes
         new_pop = self.crossover_func(parents, self.num_pop, random_state=self.random_state)
         if print_timings:
             print('\tcrossover %0.2f min'%((timeit.default_timer()-i)/60))
@@ -191,6 +212,9 @@ class GeneticAlgorithm:
         # mutate population
         i = timeit.default_timer()
         self.pop = self.mutate_func(new_pop, random_state=self.random_state)
+        # Compute scores for new chromosomes and sort population by score
+        self.serial_grade_population()
+        #self.parallel_grade_population()
         if print_timings:
             print('\tmutate %0.2f min'%((timeit.default_timer()-i)/60))
             print('total %0.2f min'%((timeit.default_timer()-start)/60))

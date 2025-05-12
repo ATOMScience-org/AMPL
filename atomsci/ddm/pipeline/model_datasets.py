@@ -90,6 +90,24 @@ def check_task_columns(params, dset_df):
 
 
 # ****************************************************************************************
+def get_class_freqs(params):
+    """Given an input dataset for a classification model, returns the value counts
+    for each class for each task. Uses params.dataset_key to locate the dataset and params.response_cols
+    to identify the columns containing the class labels. Returns a list of lists, one for each task,
+    containing the value counts for each class (not counting missing values).
+    """
+    dset_df = pd.read_csv(params.dataset_key)
+    freq_list = []
+    # =-=ksm Strange but true: All classification tasks have to have the same number of classes. This may
+    # be a "feature" of DeepChem, because of the format of the model prediction arrays.
+    nclasses = params.class_number
+    for col in params.response_cols:
+        vc = dset_df[col].value_counts()
+        freqs = [vc.get(cl, 0) for cl in range(nclasses)]
+        freq_list.append(freqs)
+    return freq_list
+
+# ****************************************************************************************
 def set_group_permissions(system, path, data_owner='public', data_owner_group='public'):
     """Set file group and permissions to standard values for a dataset containing proprietary
     or public data, as indicated by 'data_owner'.
@@ -429,7 +447,7 @@ class ModelDataset(object):
         self.dataset = NumpyDataset(features, self.vals, ids=ids, w=w)
         # Checking for minimum number of rows
         if len(self.dataset) < params.min_compound_number:
-            self.log.warning("Dataset of length %i is shorter than the required length %i" % (len(self.dataset), params.min_compound_number))
+            self.log.info("Dataset of length %i is shorter than the recommended length %i" % (len(self.dataset), params.min_compound_number))
 
     # ****************************************************************************************
     def get_dataset_tasks(self, dset_df):
