@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 """Contains class ModelWrapper and its subclasses, which are wrappers for DeepChem and scikit-learn model classes."""
-
 import logging
 import os
 import shutil
@@ -9,6 +8,7 @@ import joblib
 
 import deepchem as dc
 import numpy as np
+import pandas as pd
 import tensorflow as tf
 if dc.__version__.startswith('2.1'):
     from deepchem.models.tensorgraph.fcnet import MultitaskRegressor, MultitaskClassifier
@@ -45,6 +45,7 @@ from packaging import version
 
 from atomsci.ddm.utils import datastore_functions as dsf
 from atomsci.ddm.utils import llnl_utils
+from atomsci.ddm.pipeline import model_datasets as md
 from atomsci.ddm.pipeline import transformations as trans
 from atomsci.ddm.pipeline import perf_data as perf
 import atomsci.ddm.pipeline.parameter_parser as pp
@@ -226,10 +227,25 @@ def create_model_wrapper(params, featurizer, ds_client=None, random_state=None, 
 # ****************************************************************************************
 
 class ModelWrapper(object):
-    """Wrapper for DeepChem and sklearn model objects. Provides methods to train and test a model,
+    """Root class of AMPL wrappers for DeepChem and sklearn model objects; models developed by the AMPL team
+    are implemented as subclasses of this class. Provides generic methods to train and test a model,
     generate predictions for an input dataset, and generate performance metrics for these predictions.
 
+    Class hierarchy:
+
+    ModelWrapper
+    ├── NNModelWrapper
+    |   └── PytorchDeepChemModelWrapper
+    |   |   ├── MultitaskDCModelWrapper
+    |   |   ├── KerasDeepChemModelWrapper
+    |   |       └── GraphConvDCModelWrapper
+    |   ├── HybridModelWrapper
+    ├── ForestModelWrapper
+    │   ├── DCRFModelWrapper
+    │   └── DCxgboostModelWrapper
+
     Attributes:
+
         Set in __init__
             params (argparse.Namespace): The argparse.Namespace parameter object that contains all parameter information
 
@@ -762,7 +778,8 @@ class LCTimerKFoldIterator(LCTimerIterator):
 
 # ****************************************************************************************
 class NNModelWrapper(ModelWrapper):
-    """Wrapper for NN models.
+    """ModelWrapper class for neural network models, including both DeepChem models and NN models implemented
+       within AMPL.
 
         Many NN models share similar functions. This class aggregates those similar functions
         to reduce copied code
@@ -999,7 +1016,10 @@ class NNModelWrapper(ModelWrapper):
 
     # ****************************************************************************************
     def train_with_early_stopping(self, pipeline):
-        """Trains a neural net model for up to self.params.max_epochs epochs, while tracking the validation
+        """Training method for neural networks without k-fold cross validation that allows
+        early stopping when validation metric fails to improve for specified number of epochs. 
+
+        Trains a neural net model for up to self.params.max_epochs epochs, while tracking the validation
         set metric given by params.model_choice_score_type. Saves a model checkpoint each time the metric
         is improved over its previous saved value by more than a threshold percentage. If the metric fails to
         improve for more than a specified 'patience' number of epochs, stop training and revert the model state
@@ -1181,8 +1201,9 @@ class NNModelWrapper(ModelWrapper):
 
 # ****************************************************************************************
 class HybridModelWrapper(NNModelWrapper):
-    """A wrapper for hybrid models, contains methods to load in a dataset, split and featurize the data, fit a model to the train dataset,
-    generate predictions for an input dataset, and generate performance metrics for these predictions.
+    """Implementation of AMPL's "hybrid" model, a specialized neural network that can be trained on a mixture of
+    single concentration % binding/inhibition data and aggregate dose-response (pIC50 or pKi) data. Requires specially
+    formatted training data that includes a column of concentrations for the single-point measurements.
 
     Attributes:
         Set in __init__
@@ -1650,9 +1671,10 @@ class HybridModelWrapper(NNModelWrapper):
 
 # ****************************************************************************************
 class ForestModelWrapper(ModelWrapper):
-    """Wrapper class for DCRFModelWrapper and DCxgboostModelWrapper
+    """ModelWrapper class for tree-based models (random forests and gradient-boosted trees).
+    Contains code that is common to the two model types; model-specific code is in the
+    subclasses DCRFModelWrapper and DCxgboostModelWrapper.
 
-    contains code that is similar between the two tree based classes
     """
     def __init__(self, params, featurizer, ds_client, random_state=None, seed=None):
         """Initializes DCRFModelWrapper object.
@@ -1839,7 +1861,9 @@ class ForestModelWrapper(ModelWrapper):
 
 # ****************************************************************************************
 class DCRFModelWrapper(ForestModelWrapper):
-    """Contains methods to load in a dataset, split and featurize the data, fit a model to the train dataset,
+    """ModelWrapper class for random forest models.
+
+    Contains methods to load in a dataset, split and featurize the data, fit a model to the train dataset,
     generate predictions for an input dataset, and generate performance metrics for these predictions.
 
     Attributes:
@@ -1894,9 +1918,14 @@ class DCRFModelWrapper(ForestModelWrapper):
                                              n_jobs=-1,
                                              random_state=self.seed)
         else:
+            if self.params.weight_transform_type == 'balancing':
+                class_weights = 'balanced'
+            else:
+                class_weights = None
             rf_model = RandomForestClassifier(n_estimators=self.params.rf_estimators,
                                               max_features=self.params.rf_max_features,
                                               max_depth=self.params.rf_max_depth,
+                                              class_weight=class_weights,
                                               n_jobs=-1,
                                               random_state=self.seed)
 
@@ -1992,7 +2021,9 @@ class DCRFModelWrapper(ForestModelWrapper):
     
 # ****************************************************************************************
 class DCxgboostModelWrapper(ForestModelWrapper):
-    """Contains methods to load in a dataset, split and featurize the data, fit a model to the train dataset,
+    """ModelWrapper class for gradient-boosted tree models, as implemented in the xgboost package.
+
+    Contains methods to load in a dataset, split and featurize the data, fit a model to the train dataset,
     generate predictions for an input dataset, and generate performance metrics for these predictions.
 
     Attributes:
@@ -2054,8 +2085,8 @@ class DCxgboostModelWrapper(ForestModelWrapper):
                                          subsample=self.params.xgb_subsample,
                                          colsample_bytree=self.params.xgb_colsample_bytree,
                                          colsample_bylevel=1,
-                                         reg_alpha=0,
-                                         reg_lambda=1,
+                                         reg_alpha=self.params.xgb_alpha,
+                                         reg_lambda=self.params.xgb_lambda,
                                          scale_pos_weight=1,
                                          base_score=0.5,
                                          random_state= self.seed,
@@ -2067,6 +2098,16 @@ class DCxgboostModelWrapper(ForestModelWrapper):
                                          max_bin = 16,
                                          )
         else:
+            if self.params.weight_transform_type == 'balancing':
+                # Compute a class weight for positive class samples to help deal with imblanced datasets
+                class_freqs = md.get_class_freqs(self.params)
+                if len(class_freqs) > 1:
+                    raise ValueError("xgboost models don't currently support multitask data")
+                if len(class_freqs[0]) > 2:
+                    raise ValueError("xgboost models don't currently support multiclass data")
+                pos_class_weight = class_freqs[0][0]/class_freqs[0][1]
+            else:
+                pos_class_weight = 1
             xgb_model = xgb.XGBClassifier(max_depth=self.params.xgb_max_depth,
                                          learning_rate=self.params.xgb_learning_rate,
                                          n_estimators=self.params.xgb_n_estimators,
@@ -2079,9 +2120,9 @@ class DCxgboostModelWrapper(ForestModelWrapper):
                                           subsample=self.params.xgb_subsample,
                                           colsample_bytree=self.params.xgb_colsample_bytree,
                                           colsample_bylevel=1,
-                                          reg_alpha=0,
-                                          reg_lambda=1,
-                                          scale_pos_weight=1,
+                                          reg_alpha=self.params.xgb_alpha,
+                                          reg_lambda=self.params.xgb_lambda,
+                                          scale_pos_weight=pos_class_weight,
                                           base_score=0.5,
                                           random_state=self.seed,
                                           importance_type='gain',
@@ -2192,8 +2233,8 @@ class DCxgboostModelWrapper(ForestModelWrapper):
                                          subsample=self.params.xgb_subsample,
                                          colsample_bytree=self.params.xgb_colsample_bytree,
                                          colsample_bylevel=1,
-                                         reg_alpha=0,
-                                         reg_lambda=1,
+                                         reg_alpha=self.params.xgb_alpha,
+                                         reg_lambda=self.params.xgb_lambda,
                                          scale_pos_weight=1,
                                          base_score=0.5,
                                          random_state=self.seed,
@@ -2217,8 +2258,8 @@ class DCxgboostModelWrapper(ForestModelWrapper):
                                          subsample=self.params.xgb_subsample,
                                          colsample_bytree=self.params.xgb_colsample_bytree,
                                          colsample_bylevel=1,
-                                         reg_alpha=0,
-                                         reg_lambda=1,
+                                         reg_alpha=self.params.xgb_alpha,
+                                         reg_lambda=self.params.xgb_lambda,
                                          scale_pos_weight=1,
                                          base_score=0.5,
                                          random_state=self.seed, 
@@ -2329,6 +2370,8 @@ class DCxgboostModelWrapper(ForestModelWrapper):
                        "xgb_learning_rate" : self.params.xgb_learning_rate,
                        "xgb_n_estimators" : self.params.xgb_n_estimators,
                        "xgb_gamma" : self.params.xgb_gamma,
+                       "xgb_alpha" : self.params.xgb_alpha,
+                       "xgb_lambda" : self.params.xgb_lambda,
                        "xgb_min_child_weight" : self.params.xgb_min_child_weight,
                        "xgb_subsample" : self.params.xgb_subsample,
                        "xgb_colsample_bytree"  :self.params.xgb_colsample_bytree
@@ -2345,13 +2388,9 @@ class DCxgboostModelWrapper(ForestModelWrapper):
 
 # ****************************************************************************************
 class PytorchDeepChemModelWrapper(NNModelWrapper):
-    """Implementation of AttentiveFP model from Xiong et al. [1]_. It uses a graph attention model
-    to propagate information from bond and neighboring atom features across a molecule represented as
-    a graph.
-
-    References:
-        .. [1] Xiong, Zhaoping et al. "Pushing the Boundaries of Molecular Representation for Drug Discovery
-           with the Graph Attention Mechanism." Journal of Medicinal Chemistry (2019) doi: 10.1021/acs.jmedchem.0b00959
+    """ModelWrapper implementation for all DeepChem neural network model classes. Contrary to the class
+    name, this includes DeepChem models based on Keras as well as PyTorch. Provides a generic wrapper for
+    the whitelisted DeepChem model classes AttentiveFPModel, GCNModel, and the PyTorch version of MPNNModel.
 
     Attributes:
         Set in __init__
@@ -2472,7 +2511,10 @@ class PytorchDeepChemModelWrapper(NNModelWrapper):
 
 # ****************************************************************************************
 class MultitaskDCModelWrapper(PytorchDeepChemModelWrapper):
-    """Contains methods to load in a dataset, split and featurize the data, fit a model to the train dataset,
+    """ModelWrapper class for fully connected neural network models, aka multilayer perceptrons. Provides
+    interface to the DeepChem MultitaskClassifier and MultitaskRegressor model classes.
+
+    Contains methods to load in a dataset, split and featurize the data, fit a model to the train dataset,
     generate predictions for an input dataset, and generate performance metrics for these predictions.
 
     Attributes:
@@ -2516,6 +2558,92 @@ class MultitaskDCModelWrapper(PytorchDeepChemModelWrapper):
                 contains a list of dictionaries of predicted values and metrics on the validation dataset
 
     """
+    def train_with_early_stopping(self, pipeline):
+        """Training method for fully connected neural networks without k-fold cross validation that allows
+        early stopping when validation metric fails to improve for specified number of epochs. Differs from
+        superclass NNModelWrapper implementation by saving mean input feature weights by epoch, providing a
+        way to monitor effects of different weight_decay_penalty settings.
+        
+        Trains a neural net model for up to self.params.max_epochs epochs, while tracking the validation
+        set metric given by params.model_choice_score_type. Saves a model checkpoint each time the metric
+        is improved over its previous saved value by more than a threshold percentage. If the metric fails to
+        improve for more than a specified 'patience' number of epochs, stop training and revert the model state
+        to the last saved checkpoint.
+
+        Args:
+            pipeline (ModelPipeline): The ModelPipeline instance for this model run.
+
+        Side effects:
+            Sets the following attributes for NNModelWrapper:
+                data (ModelDataset): contains the dataset, set in pipeline
+
+                best_epoch (int): Initialized as None, keeps track of the epoch with the best validation score
+
+                best_validation_score (float): The best validation model choice score attained during training.
+
+                train_perf_data (list of PerfData): Initialized as an empty array,
+                    contains the predictions and performance of the training dataset
+
+                valid_perf_data (list of PerfData): Initialized as an empty array,
+                    contains the predictions and performance of the validation dataset
+
+                train_epoch_perfs (np.array): A standard training set performance metric (r2_score or roc_auc), at the end of each epoch.
+
+                valid_epoch_perfs (np.array): A standard validation set performance metric (r2_score or roc_auc), at the end of each epoch.
+        """
+        self.data = pipeline.data
+        feature_names = self.data.featurization.get_feature_columns()
+        nfeatures = len(feature_names)
+        self.feature_weights = dict(zip(feature_names, [[] for f in feature_names]))
+
+        em = perf.EpochManager(self,
+                                prediction_type=self.params.prediction_type, 
+                                model_dataset=pipeline.data, 
+                                production=self.params.production)
+        def make_pred(dset):
+            return self.model.predict(dset, self.transformers['final'])
+        em.set_make_pred(make_pred)
+        em.on_new_best_valid(lambda : self.model.save_checkpoint())
+
+        train_dset, valid_dset = pipeline.data.train_valid_dsets[0]
+        train_dset = self.transform_dataset(train_dset, 'final')
+        valid_dset = self.transform_dataset(valid_dset, 'final')
+        test_dset = self.transform_dataset(pipeline.data.test_dset, 'final')
+        for ei in LCTimerIterator(self.params, pipeline, self.log):
+            # Train the model for one epoch. We turn off automatic checkpointing, so the last checkpoint
+            # saved will be the one we created intentionally when we reached a new best validation score.
+            self.model.fit(train_dset, nb_epoch=1, checkpoint_interval=0)
+            train_perf, valid_perf, test_perf = em.update_epoch(ei,
+                                train_dset=train_dset, valid_dset=valid_dset, test_dset=test_dset)
+
+            self.log.info("Epoch %d: training %s = %.3f, validation %s = %.3f, test %s = %.3f" % (
+                          ei, pipeline.metric_type, train_perf, pipeline.metric_type, valid_perf,
+                          pipeline.metric_type, test_perf))
+
+            layer1_weights = self.model.model.layers[0].weight
+            feature_weights = np.zeros(nfeatures, dtype=float)
+            for node_weights in layer1_weights:
+                node_feat_weights = torch.abs(node_weights).detach().numpy()
+                feature_weights += node_feat_weights
+            for fnum, fname in enumerate(feature_names):
+                self.feature_weights[fname].append(feature_weights[fnum])
+
+            self.num_epochs_trained = ei + 1
+            # Compute performance metrics for each subset, and check if we've reached a new best validation set score
+            if em.should_stop():
+                break
+
+        self.feature_weights_df = pd.DataFrame(self.feature_weights)
+        self.feature_weights_df['epoch'] = range(len(self.feature_weights_df))
+
+        # Revert to last checkpoint
+        self.restore()
+        self.model_save()
+
+        # Only copy the model files we need, not the entire directory
+        self._copy_model(self.best_model_dir)
+        self.log.info(f"Best model from epoch {self.best_epoch} saved to {self.best_model_dir}")
+
 
     def recreate_model(self, model_dir=None):
         """Creates a new DeepChem Model object of the correct type for the requested featurizer and prediction type
@@ -2633,6 +2761,10 @@ class MultitaskDCModelWrapper(PytorchDeepChemModelWrapper):
 
 # ****************************************************************************************
 class KerasDeepChemModelWrapper(PytorchDeepChemModelWrapper):
+    """ModelWrapper class providing interface to DeepChem models implemented with the Keras toolkit.
+    This class overrides the superclass methods for saving and reloading models to deal with checkpoint
+    file formats specific to TensorFlow (and thus Keras) based models.
+    """
     def _copy_model(self, dest_dir):
         """Copies the files needed to recreate a DeepChem NN model from the current model
         directory to a destination directory.
@@ -2697,7 +2829,10 @@ class KerasDeepChemModelWrapper(PytorchDeepChemModelWrapper):
 
 # ****************************************************************************************
 class GraphConvDCModelWrapper(KerasDeepChemModelWrapper):
-    """Contains methods to load in a dataset, split and featurize the data, fit a model to the train dataset,
+    """ModelWrapper subclass for Duvenaud style graph convolution models, as implemented in the DeepChem
+    GraphConvModel model class.
+    
+    Contains methods to load in a dataset, split and featurize the data, fit a model to the train dataset,
     generate predictions for an input dataset, and generate performance metrics for these predictions.
 
     Attributes:

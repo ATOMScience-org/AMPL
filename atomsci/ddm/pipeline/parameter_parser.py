@@ -530,6 +530,8 @@ convert_to_float_list = {'dropouts','weight_init_stddevs','bias_init_consts','le
                          'umap_targ_wt', 'umap_min_dist', 'dropout_list','weight_decay_penalty',
                          'xgb_learning_rate',
                          'xgb_gamma',
+                         'xgb_alpha',
+                         'xgb_lambda',
                          "xgb_min_child_weight",
                          "xgb_subsample",
                          "xgb_colsample_bytree",
@@ -544,6 +546,8 @@ keep_as_list = {'dropouts','weight_init_stddevs','bias_init_consts',
 not_a_list_outside_of_hyperparams = {'learning_rate','weight_decay_penalty',
                                      'xgb_learning_rate',
                                      'xgb_gamma',
+                                     'xgb_alpha',
+                                     'xgb_lambda',
                                      'xgb_min_child_weight',
                                      'xgb_subsample',
                                      'xgb_colsample_bytree',
@@ -1121,7 +1125,7 @@ def get_parser():
     production_help_string = \
         ('Runs training in produciton mode. The model will be trained for exactly max_epochs and '
          'it will duplicate the dataset so that the entire dataset will be used for training, '
-         'validatin, and test.')
+         'validation, and test.')
     parser.add_argument(
         '--production', dest='production', default=False,
         action='store_true',
@@ -1332,6 +1336,14 @@ def get_parser():
         help='Minimum loss reduction required to make a further partition on a leaf node of the tree. Can be input'
              ' as a comma separated list for hyperparameter search (e.g. \'0.0,0.1,0.2\')')
     parser.add_argument(
+        '--xgb_alpha', dest='xgb_alpha', default='0.0',
+        help='L1 regularization term on weights. Increasing this value will make model more conservative. Can be input'
+             ' as a comma separated list for hyperparameter search (e.g. \'0.0,0.1,0.2\')')
+    parser.add_argument(
+        '--xgb_lambda', dest='xgb_lambda', default='1.0',
+        help='L2 regularization term on weights. Increasing this value will make model more conservative. Can be input'
+             ' as a comma separated list for hyperparameter search (e.g. \'0.0,0.1,0.2\')')
+    parser.add_argument(
         '--xgb_learning_rate', dest='xgb_learning_rate', default='0.1',
         help='Boosting learning rate (xgb\'s \"eta\"). Can be input as a comma separated list for hyperparameter'
              ' search (e.g. \'0.1,0.01,0.001\')')
@@ -1517,7 +1529,7 @@ def get_parser():
     # NN model
     parser.add_argument(
         '--lr', dest='lr', required=False, default=None,
-        help='learing rate shown in HyperOpt domain format, e.g. --lr=uniform|0.00001,0.001')
+        help='learning rate shown in HyperOpt domain format, e.g. --lr=uniform|0.00001,0.001')
     parser.add_argument(
         '--ls', dest='ls', required=False, default=None,
         help='layer sizes shown in HyperOpt domain format, e.g. --ls=choice|2|8,16,32,64,128,256,512')
@@ -1527,6 +1539,12 @@ def get_parser():
     parser.add_argument(
         '--dp', dest='dp', required=False, default=None,
         help='dropouts shown in HyperOpt domain format, e.g. --dp=uniform|3|0,0.4')
+    parser.add_argument(
+        '--wdp', dest='wdp', required=False, default=None,
+        help='weight_decay_penalty shown in HyperOpt domain format, e.g. --wdp=loguniform|-6.908,-4.605')
+    parser.add_argument(
+        '--wdt', dest='wdt', required=False, default=None,
+        help='weight_decay_penalty_type shown in HyperOpt domain format, e.g. --wdt=choice|l1,l2')
     # RF model
     parser.add_argument(
         '--rfe', dest='rfe', required=False, default=None,
@@ -1541,6 +1559,12 @@ def get_parser():
     parser.add_argument(
         '--xgbg', dest='xgbg', required=False, default=None,
         help='xgb_gamma shown in HyperOpt domain format, e.g. --xgbg=uniform|0,0.4')
+    parser.add_argument(
+        '--xgba', dest='xgba', required=False, default=None,
+        help='xgb_alpha shown in HyperOpt domain format, e.g. --xgba=uniform|0,0.4')
+    parser.add_argument(
+        '--xgbb', dest='xgbb', required=False, default=None,
+        help='xgb_lambda shown in HyperOpt domain format, e.g. --xgbb=uniform|0,0.4')
     parser.add_argument(
         '--xgbl', dest='xgbl', required=False, default=None,
         help='xgb_learning_rate shown in HyperOpt domain format, e.g. --xgbl=loguniform|-6.9,-2.3')

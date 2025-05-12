@@ -1,5 +1,5 @@
-"""Functions for comparing and visualizing model performance. Most of these functions rely on ATOM's model tracker and
-datastore services, which are not part of the standard AMPL installation, but a few functions will work on collections of
+"""Functions for comparing and visualizing model performance. Some of these functions rely on ATOM's model tracker and
+datastore services, which are not part of the standard AMPL installation, but several functions will work on collections of
 models saved as local files.
 """
 
@@ -159,6 +159,8 @@ def get_training_perf_table(dataset_key, bucket, collection_name, pred_type='reg
     model_type_list = []
     max_epochs_list = []
     learning_rate_list = []
+    weight_decay_penalty_list = []
+    weight_decay_penalty_type_list = []
     dropouts_list = []
     layer_sizes_list = []
     featurizer_list = []
@@ -168,6 +170,8 @@ def get_training_perf_table(dataset_key, bucket, collection_name, pred_type='reg
     rf_max_depth_list = []
     xgb_learning_rate_list = []
     xgb_gamma_list = []
+    xgb_alpha_list = []
+    xgb_lambda_list = []
     xgb_max_depth_list = []
     xgb_colsample_bytree_list = []
     xgb_subsample_list = []
@@ -214,6 +218,9 @@ def get_training_perf_table(dataset_key, bucket, collection_name, pred_type='reg
             max_epochs_list.append(nn_params['max_epochs'])
             best_epoch_list.append(nn_params['best_epoch'])
             learning_rate_list.append(nn_params['learning_rate'])
+            weight_decay_penalty_list.append(nn_params['weight_decay_penalty'])
+            weight_decay_penalty_type_list.append(nn_params['weight_decay_penalty_type'])
+            learning_rate_list.append(nn_params['learning_rate'])
             layer_sizes_list.append(','.join(['%d' % s for s in nn_params['layer_sizes']]))
             dropouts_list.append(','.join(['%.2f' % d for d in nn_params['dropouts']]))
             rf_estimators_list.append(nan)
@@ -221,6 +228,8 @@ def get_training_perf_table(dataset_key, bucket, collection_name, pred_type='reg
             rf_max_depth_list.append(nan)
             xgb_learning_rate_list.append(nan)
             xgb_gamma_list.append(nan)
+            xgb_alpha_list.append(nan)
+            xgb_lambda_list.append(nan)
             xgb_max_depth_list.append(nan)
             xgb_colsample_bytree_list.append(nan)
             xgb_subsample_list.append(nan)
@@ -235,10 +244,14 @@ def get_training_perf_table(dataset_key, bucket, collection_name, pred_type='reg
             max_epochs_list.append(nan)
             best_epoch_list.append(nan)
             learning_rate_list.append(nan)
+            weight_decay_penalty_list.append(nan)
+            weight_decay_penalty_type_list.append(nan)
             layer_sizes_list.append(nan)
             dropouts_list.append(nan)
             xgb_learning_rate_list.append(nan)
             xgb_gamma_list.append(nan)
+            xgb_alpha_list.append(nan)
+            xgb_lambda_list.append(nan)
             xgb_max_depth_list.append(nan)
             xgb_colsample_bytree_list.append(nan)
             xgb_subsample_list.append(nan)
@@ -252,10 +265,14 @@ def get_training_perf_table(dataset_key, bucket, collection_name, pred_type='reg
             max_epochs_list.append(nan)
             best_epoch_list.append(nan)
             learning_rate_list.append(nan)
+            weight_decay_penalty_list.append(nan)
+            weight_decay_penalty_type_list.append(nan)
             layer_sizes_list.append(nan)
             dropouts_list.append(nan)
             xgb_learning_rate_list.append(xgb_params["xgb_learning_rate"])
             xgb_gamma_list.append(xgb_params["xgb_gamma"])
+            xgb_alpha_list.append(xgb_params.get("xgb_alpha", 0.0))
+            xgb_lambda_list.append(xgb_params.get("xgb_lambda", 1.0))
             xgb_max_depth_list.append(xgb_params["xgb_max_depth"])
             xgb_colsample_bytree_list.append(xgb_params["xgb_colsample_bytree"])
             xgb_subsample_list.append(xgb_params["xgb_subsample"])
@@ -273,6 +290,8 @@ def get_training_perf_table(dataset_key, bucket, collection_name, pred_type='reg
                     max_epochs=max_epochs_list,
                     best_epoch=best_epoch_list,
                     learning_rate=learning_rate_list,
+                    weight_decay_penalty_type=weight_decay_penalty_type_list,
+                    weight_decay_penalty=weight_decay_penalty_list,
                     layer_sizes=layer_sizes_list,
                     dropouts=dropouts_list,
                     rf_estimators=rf_estimators_list,
@@ -280,6 +299,8 @@ def get_training_perf_table(dataset_key, bucket, collection_name, pred_type='reg
                     rf_max_depth=rf_max_depth_list,
                     xgb_learning_rate = xgb_learning_rate_list,
                     xgb_gamma = xgb_gamma_list,
+                    xgb_alpha = xgb_alpha_list,
+                    xgb_lambda = xgb_lambda_list,
                     xgb_max_depth = xgb_max_depth_list,
                     xgb_colsample_bytree = xgb_colsample_bytree_list,
                     xgb_subsample = xgb_subsample_list,
@@ -303,15 +324,15 @@ def extract_model_and_feature_parameters(metadata_dict, keep_required=True):
 
     Returns:
         dictionary containing featurizer and model parameters. Most contain the following
-        keys. ['max_epochs', 'best_epoch', 'learning_rate', 'layer_sizes', 'dropouts',
-        'rf_estimators', 'rf_max_features', 'rf_max_depth', 'xgb_gamma', 'xgb_learning_rate',
+        keys. ['max_epochs', 'best_epoch', 'learning_rate', 'weight_decay_penalty_type', 'weight_decay_penalty', 'layer_sizes', 'dropouts',
+        'rf_estimators', 'rf_max_features', 'rf_max_depth', 'xgb_gamma', 'xgb_alpha', 'xgb_lambda', 'xgb_learning_rate',
         'xgb_max_depth', 'xgb_colsample_bytree', 'xgb_subsample', 'xgb_n_estimators', 'xgb_min_child_weight',
         'featurizer_parameters_dict', 'model_parameters_dict']
     """
     model_params = metadata_dict['model_parameters']
     model_type = model_params['model_type']
-    required = ['max_epochs', 'best_epoch', 'learning_rate', 'layer_sizes', 'dropouts', 
-        'rf_estimators', 'rf_max_features', 'rf_max_depth', 'xgb_gamma', 'xgb_learning_rate',
+    required = ['max_epochs', 'best_epoch', 'learning_rate', 'layer_sizes', 'dropouts', 'weight_decay_penalty_type', 'weight_decay_penalty',
+        'rf_estimators', 'rf_max_features', 'rf_max_depth', 'xgb_gamma', 'xgb_alpha', 'xgb_lambda', 'xgb_learning_rate',
         'xgb_max_depth', 'xgb_colsample_bytree', 'xgb_subsample', 'xgb_n_estimators', 'xgb_min_child_weight'
         ]
 
@@ -324,6 +345,9 @@ def extract_model_and_feature_parameters(metadata_dict, keep_required=True):
             model_info['max_epochs'] = nn_params['max_epochs']
             model_info['best_epoch'] = nn_params['best_epoch']
             model_info['learning_rate'] = nn_params['learning_rate']
+            model_info['weight_decay_penalty_type'] = nn_params['weight_decay_penalty_type']
+            model_info['weight_decay_penalty'] = nn_params['weight_decay_penalty']
+            model_info['learning_rate'] = nn_params['learning_rate']
             model_info['layer_sizes'] = ','.join(['%d' % s for s in nn_params['layer_sizes']])
             model_info['dropouts'] = ','.join(['%.2f' % d for d in nn_params['dropouts']])
         elif model_type == 'RF':
@@ -334,6 +358,8 @@ def extract_model_and_feature_parameters(metadata_dict, keep_required=True):
         elif model_type == 'xgboost':
             xgb_params = metadata_dict['xgb_specific']
             model_info['xgb_gamma'] = xgb_params['xgb_gamma']
+            model_info['xgb_alpha'] = xgb_params.get('xgb_alpha', 0.0)
+            model_info['xgb_lambda'] = xgb_params.get('xgb_lambda', 1.0)
             model_info['xgb_learning_rate'] = xgb_params['xgb_learning_rate']
             model_info['xgb_max_depth'] = xgb_params['xgb_max_depth']
             model_info['xgb_colsample_bytree'] = xgb_params['xgb_colsample_bytree']
@@ -975,6 +1001,8 @@ def get_filesystem_perf_results(result_dir, pred_type='classification', expand=T
                 print(f"Can't access model {dirpath}")
 
     print("Found data for %d models under %s" % (len(model_list), result_dir))
+    if len(model_list) == 0:
+        return pd.DataFrame()
 
     # build dictonary of tarball names
     tar_dict = {os.path.basename(tf):tf for tf in tar_list}
@@ -1506,6 +1534,8 @@ def get_summary_metadata_table(uuids, collections=None):
                          'Layer Sizes':   nn_params['layer_sizes'],
                          'Optimizer':     nn_params['optimizer_type'],
                          'Learning Rate': nn_params['learning_rate'],
+                         'Weight decay penalty type': nn_params['weight_decay_penalty_type'],
+                         'Weight decay penalty': nn_params['weight_decay_penalty'],
                          'Dropouts':      nn_params['dropouts'],
                          'Best Epoch (Max)': '%i (%i)' % (nn_params['best_epoch'],nn_params['max_epochs']),
                          'Collection':    collection_name,
@@ -1546,6 +1576,8 @@ def get_summary_metadata_table(uuids, collections=None):
                          'Model Type (Featurizer)':    '%s (%s)' % (mdl_params['model_type'],featurizer),
                          'XGB learning rate': xgb_params['xgb_learning_rate'],
                          'Gamma':    xgb_params['xgb_gamma'],
+                         'Alpha':    xgb_params.get('xgb_alpha', 0.0),
+                         'Lambda':    xgb_params.get('xgb_lambda', 1.0),
                          'XGB max depth': xgb_params['xgb_max_depth'],
                          'Column sample fraction':    xgb_params['xgb_colsample_bytree'],
                          'Row subsample fraction':    xgb_params['xgb_subsample'],
@@ -2087,7 +2119,7 @@ def get_multitask_perf_from_tracker(collection_name, response_cols=None, expand_
                   'weight_decay_penalty', 'weight_decay_penalty_type', 'weight_init_stddevs', 'splitter',
                   'split_uuid', 'split_test_frac', 'split_valid_frac', 'smiles_col', 'id_col',
                   'feature_transform_type', 'response_cols', 'response_transform_type', 'num_model_tasks',
-                  'rf_estimators', 'rf_max_depth', 'rf_max_features', 'xgb_gamma', 'xgb_learning_rate',
+                  'rf_estimators', 'rf_max_depth', 'rf_max_features', 'xgb_gamma', 'xgb_alpha', 'xgb_lambda', 'xgb_learning_rate',
                   'xgb_max_depth', 'xgb_colsample_bytree', 'xgb_subsample', 'xgb_n_estimators', 'xgb_min_child_weight',
                   ]
         keepcols.extend(alldat.columns[alldat.columns.str.contains('best')])
