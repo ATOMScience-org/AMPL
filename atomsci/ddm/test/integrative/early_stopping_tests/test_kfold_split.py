@@ -103,9 +103,6 @@ def test_train_valid_test():
 
 @pytest.mark.dgl_required
 def test_attentivefp():
-    if not llnl_utils.is_lc_system():
-        assert True
-        return
     script_path = os.path.dirname(os.path.realpath(__file__))
     json_file = os.path.join(script_path, 'attentivefp_random.json')
 
@@ -118,9 +115,6 @@ def test_attentivefp():
 
 @pytest.mark.dgl_required
 def test_gcnmodel():
-    if not llnl_utils.is_lc_system():
-        assert True
-        return
     script_path = os.path.dirname(os.path.realpath(__file__))
     json_file = os.path.join(script_path, 'gcnmodel_random.json')
 

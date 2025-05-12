@@ -226,10 +226,6 @@ def H1_init():
 # -----
 @pytest.mark.dgl_required
 def run_test_reg_config_H1_fit_AttentiveFPModel(keep_seed):
-    # if not llnl_utils.is_lc_system():
-    #     assert True
-    #     return
-    
     H1_init()
     json_f = 'reg_config_H1_fit_AttentiveFPModel.json'
     tar_f = train_and_predict(json_f, prefix='H1') # crashes during run
@@ -245,10 +241,6 @@ def test_reg_config_H1_fit_AttentiveFPModel():
 # -----
 @pytest.mark.dgl_required
 def run_test_reg_config_H1_fit_GCNModel(keep_seed):
-    # if not llnl_utils.is_lc_system():
-    #     assert True
-    #     return
-        
     H1_init()
     json_f = 'reg_config_H1_fit_GCNModel.json'
     tar_f = train_and_predict(json_f, prefix='H1') # crashes during run
