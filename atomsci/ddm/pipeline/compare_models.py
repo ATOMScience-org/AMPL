@@ -1871,6 +1871,8 @@ def get_multitask_perf_from_files_new(result_dir, pred_type='regression', datase
     for col in tm.columns: # each subset
         preds=[]
         for models_df in models_dfs:
+            if len(models_df)==0:
+                continue
             # check for > 1 dataset
             if len(set(models_df.dataset_key.astype(str)))>1:
                 raise Exception (f"Warning: you cannot export multitask model performances for more than one dataset at a time. Please provide the dataset_key as an additional parameter. Your {pred_type} options are: {list(set(models.dataset_key))}.")
