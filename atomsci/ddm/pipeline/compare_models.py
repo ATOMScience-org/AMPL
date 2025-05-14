@@ -317,7 +317,7 @@ def get_training_perf_table(dataset_key, bucket, collection_name, pred_type='reg
 # -----------------------------------------------------------------------------------------------------------------
 def extract_model_and_feature_parameters(metadata_dict, keep_required=True):
     """Given a config file, extract model and featurizer parameters. Looks for parameter names
-    that end in *_specific. e.g. nn_specific, auto_featurizer_specific
+    that end in \*_specific. e.g. nn_specific, auto_featurizer_specific
 
     Args:
         model_metadict (dict): Dictionary containing NON-FLATTENED metadata for an AMPL model

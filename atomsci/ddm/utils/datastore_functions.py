@@ -1465,9 +1465,9 @@ def repeat_defined_search(defined_search, client=None, to_return='df', display_a
 
         client (optional): set client if not using the default
         to_return (str, optional): (default=df)
-                'df' (df_results)  = return a pandas dataframe summarizing metadata of files meeting criteria
-                oid' (dataset_oid) = return a list of dataset_oids meeting criteria
-                ds_key' (dataset_key) = return a list of dataset_key + bucket tuples
+            'df' (df_results)  = return a pandas dataframe summarizing metadata of files meeting criteria
+            'oid' (dataset_oid) = return a list of dataset_oids meeting criteria
+            'ds_key' (dataset_key) = return a list of dataset_key + bucket tuples
 
         display_all_column (bool, optional): default False. If True, displays all associated metadata instead of just a selected subset
 
@@ -1657,30 +1657,25 @@ def list_key_values(bucket, input_key, category='experimental', client=None):
     return values_for_key
 
     #------------------------------------
-def search_files_interactive (bucket='all', client=None, to_return='df', display_all_columns=False, max_rows=10):
     #TODO: This will replace filter_datasets_interactive eventually. This function uses the new key:value lookup tables
-    """This tool helps you find the files you need via an interactive/guided interface.
+def search_files_interactive(bucket='all', client=None, to_return='df', display_all_columns=False, max_rows=10):
+    """
+    This tool helps you find the files you need via an interactive/guided interface.
 
     Args:
-        bucket (str or list, optional): buckets to search (defaults to searching all buckets you have access to in the datastore)
-
-        client (optional): set client if not using the default
-
-        to_return (str): 'df' (df_results)  = return a pandas dataframe summarizing metadata of files meeting criteria
-                         'search' (search_criteria) = return a list containing search criteria where position 0 = string/list of buckets, and remaining positions are dictionaries of search criteria.
-                                                      Designed to work with 'repeat_defined_search' function.
-                         'oid' (dataset_oid) = return a list of dataset_oids meeting criteria
-                         'ds_key' (dataset_key) = return a list of dataset_key + bucket tuples
-
-        display_all_columns (bool, optional): If 'False' (default), then show only a selected subset of the columns
-
-        max_rows (int, optional): maximum rows to display during interactive search
+        bucket (str or list, optional): Buckets to search (defaults to searching all buckets you have access to in the datastore).
+        client (optional): Set client if not using the default.
+        to_return (str): 'df' (df_results) = return a pandas dataframe summarizing metadata of files meeting criteria,
+                         'search' (search_criteria) = return a list containing search criteria where position 0 = string/list of buckets, 
+                         and remaining positions are dictionaries of search criteria. Designed to work with 'repeat_defined_search' function.
+                         'oid' (dataset_oid) = return a list of dataset_oids meeting criteria,
+                         'ds_key' (dataset_key) = return a list of dataset_key + bucket tuples.
+        display_all_columns (bool, optional): If 'False' (default), then show only a selected subset of the columns.
+        max_rows (int, optional): Maximum rows to display during interactive search.
 
     Returns:
         None
-
     """
-
     if to_return not in ['df','search','oid','ds_key']:
         raise ValueError('to_return entry invalid')
 
