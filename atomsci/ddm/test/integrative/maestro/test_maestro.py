@@ -5,6 +5,7 @@ import json
 import subprocess
 import os
 import time
+import pytest
 
 import atomsci.ddm.pipeline.parameter_parser as parse
 import atomsci.ddm.pipeline.compare_models as cm
@@ -114,6 +115,7 @@ def wait_to_finish(maestro_run_command, max_time=600):
 
     return True
 
+@pytest.mark.slurm_required
 def test():
     """Test full model pipeline: Curate data, fit model, and predict property for new compounds"""
 

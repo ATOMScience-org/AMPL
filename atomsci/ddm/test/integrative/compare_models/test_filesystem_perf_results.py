@@ -8,6 +8,7 @@ import tarfile
 import json
 import glob
 import pandas as pd
+import pytest
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../delaney_Panel'))
 from test_delaney_panel import init, train_and_predict
@@ -180,6 +181,7 @@ def test_XGB_results():
 
     clean()
 
+@pytest.mark.dgl_required
 def test_AttentiveFP_results():
     clean()
     H1_curate()
@@ -202,6 +204,7 @@ def test_AttentiveFP_results():
 
     clean()
 
+@pytest.mark.dgl_required
 def test_GCN_results():
     clean()
     H1_curate()
@@ -249,6 +252,7 @@ def test_GraphConvModel_results():
 
     clean()
 
+@pytest.mark.dgl_required
 def test_MPNN_results():
     if not llnl_utils.is_lc_system():
         assert True
@@ -276,7 +280,12 @@ def test_MPNN_results():
 
     clean()
 
+@pytest.mark.dgl_required
 def test_PytorchMPNN_results():
+    if not llnl_utils.is_lc_system():
+        assert True
+        return
+    
     clean()
     H1_curate()
     json_f = 'jsons/reg_config_H1_fit_PytorchMPNNModel.json'

@@ -1,6 +1,13 @@
 name: tests
 
-on: [push, pull_request]
+on: 
+    push: 
+      branches: ["**"]
+    pull_request:
+      types:
+        - opened
+        - reopened
+        - ready_for_review
 
 jobs:
   pytest-unit:
