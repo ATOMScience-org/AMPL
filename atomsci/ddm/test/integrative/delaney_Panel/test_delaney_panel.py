@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 import os
 import sys
+import pytest
 
 import atomsci.ddm.pipeline.model_pipeline as mp
 import atomsci.ddm.pipeline.predict_from_model as pfm
@@ -317,26 +318,31 @@ def test_multi_reg_config_delaney_fit_NN_graphconv():
 # MOE doesn't seem to predict delaney very well
 # these are run using H1
 # -------
+@pytest.mark.moe_required
 def test_reg_config_H1_fit_XGB_moe():
     H1_init()
     if llnl_utils.is_lc_system():
         train_and_predict('jsons/reg_config_H1_fit_XGB_moe.json', prefix='H1')
 
+@pytest.mark.moe_required
 def test_reg_config_H1_fit_NN_moe():
     H1_init()
     if llnl_utils.is_lc_system():
         train_and_predict('jsons/reg_config_H1_fit_NN_moe.json', prefix='H1')
 
+@pytest.mark.moe_required
 def test_reg_config_H1_double_fit_NN_moe():
     H1_double_init()
     if llnl_utils.is_lc_system():
         train_and_predict('jsons/reg_config_H1_double_fit_NN_moe.json', prefix='H1_double')
 
+@pytest.mark.moe_required
 def test_multi_class_random_config_H1_fit_NN_moe():
     H1_init()
     if llnl_utils.is_lc_system():
         train_and_predict('jsons/multi_class_config_H1_fit_NN_moe.json', prefix='H1')
 
+@pytest.mark.moe_required
 def test_class_config_H1_fit_NN_moe():
     H1_init()
     if llnl_utils.is_lc_system():
