@@ -113,6 +113,12 @@ export PYTORCH_HIP_ALLOC_CONF=gargage_collection_threshold:0.9,max_split_size_mb
 export TF_FORCE_GPU_ALLOW_GROWTH=true
 ```
 
+- Install pytest, plotting packages for development, test use.
+
+```bash
+cd AMPL/pip
+pip install -r dev_requirements.txt
+```
 #### 6. *(Optional) LLNL LC only*: if you use [model_tracker](https://ampl.readthedocs.io/en/latest/pipeline.html#module-pipeline.model_tracker), install atomsci.clients
 ```bash
 # LLNL only: required for ATOM model_tracker
@@ -145,6 +151,7 @@ cd AMPL/pip
 # If use CUDA: 
 # module load cuda/11.8                         
 pip install -r cpu_requirements.txt    # install cpu_requirements.txt OR cuda_requirements.txt  
+pip install -r dev_requirements.txt    # install pytest, plotting packages.
 
 # LLNL only: required for ATOM model_tracker
 # pip install -r clients_requirements.txt
