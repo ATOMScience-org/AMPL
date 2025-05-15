@@ -1837,8 +1837,8 @@ def get_multitask_perf_from_files_new(result_dir, pred_type='regression', datase
     metadata=pd.DataFrame(model_list)
     
     # establish initial unpacked models df
-    dropcols=['model_uuid','time_built','model_path','training_metrics']
-    models=metadata[['model_uuid','time_built','model_path']]
+    dropcols=['model_uuid','time_built','model_path','training_metrics','seed']
+    models=metadata[['model_uuid','time_built','model_path','seed']]
     
     # find colums to keep as dicts and extract
     dict_cols=['model_uuid','splitting_parameters']
@@ -1927,7 +1927,7 @@ def get_multitask_perf_from_files_new(result_dir, pred_type='regression', datase
     
     # trim model df columns - add compatibility for new metadata weight_transform_type
     models=models.filter(items=['model_uuid', 'time_built', 'ampl_version','dataset_key', 'model_path',
-           'model_type', 'prediction_type', 'splitter',
+           'model_type','seed','prediction_type', 'splitter',
            'split_strategy', 'split_valid_frac', 'split_test_frac', 'split_uuid', 
             'production', 'feature_transform_type','response_transform_type', 'weight_transform_type',
            'smiles_col', 'features','model_choice_score_type',])
