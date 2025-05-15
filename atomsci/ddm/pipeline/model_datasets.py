@@ -934,7 +934,7 @@ class MinimalDataset(ModelDataset):
             self.log.warning("Done")
         self.n_features = self.featurization.get_feature_count()
         
-        self.untransformed_dataset= NumpyDataset(features, self.vals, ids=ids, w=weights)
+        self.update_untransformed_responses(ids, self.vals)
         self.dataset = NumpyDataset(features, self.vals, ids=ids, w=weights)
 
     # ****************************************************************************************
