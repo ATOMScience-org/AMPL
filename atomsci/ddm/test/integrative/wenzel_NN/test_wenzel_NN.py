@@ -4,7 +4,6 @@ import json
 import numpy as np
 import os
 import pandas as pd
-import pytest
 import shutil
 import sys
 import tarfile
@@ -16,17 +15,12 @@ import atomsci.ddm.utils.struct_utils as struct_utils
 import atomsci.ddm.utils.file_utils as futils
 import atomsci.ddm.pipeline.compare_models as cm
 import atomsci.ddm.pipeline.predict_from_model as pfm
-from atomsci.ddm.utils import llnl_utils
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 import integrative_utilities
 
 def clean():
     """Clean test files"""
-    if not llnl_utils.is_lc_system():
-        assert True
-        return
-
     for f in ['hlm_clearance_curated_predict.csv',
               'hlm_clearance_curated_external.csv',
               'hlm_clearance_curated_fit.csv',
@@ -90,7 +84,6 @@ def check_for_data_zip():
     assert(os.path.isfile('ci8b00785_si_001.tar.gz'))
 
 
-@pytest.mark.skipif(os.environ.get("ENABLE_LIVERMORE") is None, reason="Requires access to Livermore dataset")
 def test():
     """Test full model pipeline: Curate data, fit model, and predict property for new compounds"""
     # Clean

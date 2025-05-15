@@ -156,7 +156,7 @@ def predict_from_model_file(model_path, input_df, id_col='compound_id', smiles_c
 
     pipe = mp.create_prediction_pipeline_from_file(pred_params, reload_dir=None, model_path=model_path)
     if external_training_data is not None:
-        pipe.params.dataset_key=external_training_data
+        pipe.orig_params.dataset_key=external_training_data
     pred_df = pipe.predict_full_dataset(input_df, contains_responses=has_responses, is_featurized=is_featurized,
                                         dset_params=pred_params, AD_method=AD_method, k=k, dist_metric=dist_metric,
                                         max_train_records_for_AD=max_train_records_for_AD, AD_return_NN=AD_return_NN)

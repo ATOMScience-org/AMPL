@@ -36,9 +36,13 @@ def create_model_dataset(params, featurization, ds_client=None):
         ds_client (Datastore client)
 
     Returns:
-        either (DatastoreDataset) or (FileDataset): instantiated ModelDataset subclass specified by params
+        either (DatastoreDataset) or (FileDataset) or (DatastoreEmbeddingDataset) or (FileEmbeddingDataset): instantiated ModelDataset subclass specified by params
     """
-    if params.datastore:
+    if params.featurizer == 'embedding' and params.datastore:
+        return DatastoreEmbeddingDataset(params, featurization, ds_client)
+    if params.featurizer == 'embedding':
+        return FileEmbeddingDataset(params, featurization)
+    elif params.datastore:
         return DatastoreDataset(params, featurization, ds_client)
     else:
         return FileDataset(params, featurization)
@@ -84,6 +88,24 @@ def check_task_columns(params, dset_df):
     if len(missing_tasks) > 0:
         raise Exception(f"Requested prediction task columns {missing_tasks} are missing from training dataset")
 
+
+# ****************************************************************************************
+def get_class_freqs(params):
+    """Given an input dataset for a classification model, returns the value counts
+    for each class for each task. Uses params.dataset_key to locate the dataset and params.response_cols
+    to identify the columns containing the class labels. Returns a list of lists, one for each task,
+    containing the value counts for each class (not counting missing values).
+    """
+    dset_df = pd.read_csv(params.dataset_key)
+    freq_list = []
+    # =-=ksm Strange but true: All classification tasks have to have the same number of classes. This may
+    # be a "feature" of DeepChem, because of the format of the model prediction arrays.
+    nclasses = params.class_number
+    for col in params.response_cols:
+        vc = dset_df[col].value_counts()
+        freqs = [vc.get(cl, 0) for cl in range(nclasses)]
+        freq_list.append(freqs)
+    return freq_list
 
 # ****************************************************************************************
 def set_group_permissions(system, path, data_owner='public', data_owner_group='public'):
@@ -251,6 +273,19 @@ class ModelDataset(object):
             combined_train_valid_data (dc.Dataset): A dataset object (initialized as None), of the merged train
             and valid splits
 
+            combined_train_valid_data (dc.NumpyDataset): Cache for combined training and validation data, 
+            used by k-fold CV code
+
+            subset_response_dict (dictionary): Cache for subset-specific response values matched to IDs, 
+            used by k-fold CV code
+
+            subset_weight_dict (dictionary): Cache for subset-specific weights matched to IDs, 
+            used by k-fold CV code
+
+            untransformed_response_dict (dictionary): Cache for untransformed response values 
+            matched to IDs, used by k-fold CV code
+
+
         set in get_featurized_data:
             dataset: A new featurized DeepChem Dataset.
 
@@ -316,7 +351,7 @@ class ModelDataset(object):
         self.combined_train_valid_data = None
         # Cache for subset-specific response values matched to IDs, used by k-fold CV code
         self.subset_response_dict = {}
-        # Cache for subset-specific response values matched to IDs, used by k-fold CV code
+        # Cache for subset-specific weights matched to IDs, used by k-fold CV code
         self.subset_weight_dict = {}
         # Cache for untransformed response values matched to IDs, used by k-fold CV code
         self.untransformed_response_dict = {}
@@ -355,6 +390,7 @@ class ModelDataset(object):
                 n_features: The count of features (int)
                 vals: The response col after featurization (np.array)
                 attr: A pd.dataframe containing the compound ids and smiles
+                untranfsormed_dataset: A NumpyDataset containing untransformed data
         """
         
         if params is None:
@@ -381,7 +417,7 @@ class ModelDataset(object):
                 if params.prediction_type=='classification':
                     w = w.astype(np.float32)
 
-                self.untransformed_dataset = NumpyDataset(features, self.vals, ids=ids)
+                self.update_untransformed_responses(ids, self.vals)
                 self.dataset = NumpyDataset(features, self.vals, ids=ids, w=w)
                 self.log.info("Using prefeaturized data; number of features = " + str(self.n_features))
                 return
@@ -407,11 +443,11 @@ class ModelDataset(object):
         self.log.debug("Number of features: " + str(self.n_features))
            
         # Create the DeepChem dataset       
-        self.untransformed_dataset = NumpyDataset(features, self.vals, ids=ids)
+        self.update_untransformed_responses(ids, self.vals)
         self.dataset = NumpyDataset(features, self.vals, ids=ids, w=w)
         # Checking for minimum number of rows
         if len(self.dataset) < params.min_compound_number:
-            self.log.warning("Dataset of length %i is shorter than the required length %i" % (len(self.dataset), params.min_compound_number))
+            self.log.info("Dataset of length %i is shorter than the recommended length %i" % (len(self.dataset), params.min_compound_number))
 
     # ****************************************************************************************
     def get_dataset_tasks(self, dset_df):
@@ -437,7 +473,7 @@ class ModelDataset(object):
         return self.tasks is not None
 
     # ****************************************************************************************
-    def split_dataset(self):
+    def split_dataset(self, random_state=None, seed=None):
         """Splits the dataset into paired training/validation and test subsets, according to the split strategy
                 selected by the model params. For traditional train/valid/test splits, there is only one training/validation
                 pair. For k-fold cross-validation splits, there are k different train/valid pairs; the validation sets are
@@ -456,7 +492,7 @@ class ModelDataset(object):
 
         # Create object to delegate splitting to.
         if self.splitting is None:
-            self.splitting = split.create_splitting(self.params)
+            self.splitting = split.create_splitting(self.params, random_state=random_state, seed=seed)
         self.train_valid_dsets, self.test_dset, self.train_valid_attr, self.test_attr = \
             self.splitting.split_dataset(self.dataset, self.attr, self.params.smiles_col)
         if self.train_valid_dsets is None:
@@ -483,6 +519,12 @@ class ModelDataset(object):
             (Boolean): boolean specifying if all classes are specified in all splits
         """
         ref_class_set = get_classes(self.train_valid_dsets[0][0].y)
+        num_classes = len(ref_class_set)
+        if num_classes != self.params.class_number:
+            logger = logging.getLogger('ATOM')
+            logger.warning(f"Expected class_number:{self.params.class_number} "
+                           f"classes but got {num_classes} instead. Double check "
+                           "response columns or class_number parameter.")
         for train, valid in self.train_valid_dsets:
             if not ref_class_set == get_classes(train.y):
                 return False
@@ -567,7 +609,7 @@ class ModelDataset(object):
         return split_df
 
     # ****************************************************************************************
-    def load_presplit_dataset(self, directory=None):
+    def load_presplit_dataset(self, directory=None, random_state=None, seed=None):
         """Loads a table of compound IDs assigned to split subsets, and uses them to split
         the currently loaded featurized dataset.
 
@@ -594,7 +636,7 @@ class ModelDataset(object):
         """
 
         # Load the split table from the datastore or filesystem
-        self.splitting = split.create_splitting(self.params)
+        self.splitting = split.create_splitting(self.params, random_state=random_state, seed=seed)
 
         try:
             split_df, split_kv = self.load_dataset_split_table(directory)
@@ -659,11 +701,31 @@ class ModelDataset(object):
         # All of the splits have the same combined train/valid data, regardless of whether we're using
         # k-fold or train/valid/test splitting.
         if self.combined_train_valid_data is None:
+            # normally combining one fold is sufficient, but if SMOTE or undersampling is being used
+            # just combining the first fold isn't enough
             (train, valid) = self.train_valid_dsets[0]
             combined_X = np.concatenate((train.X, valid.X), axis=0)
             combined_y = np.concatenate((train.y, valid.y), axis=0)
             combined_w = np.concatenate((train.w, valid.w), axis=0)
             combined_ids = np.concatenate((train.ids, valid.ids))
+
+            if self.params.sampling_method=='SMOTE' or self.params.sampling_method=='undersampling':
+                # for each successive fold, merge in any new compounds
+                # this loop just won't run if there are no additional folds
+                for train, valid in self.train_valid_dsets[1:]:
+                    fold_ids = np.concatenate((train.ids, valid.ids))
+                    new_id_indexes = [i for i in range(len(fold_ids)) if i not in combined_ids]
+
+                    fold_ids = fold_ids[new_id_indexes]
+                    fold_X = np.concatenate((train.X, valid.X), axis=0)[new_id_indexes]
+                    fold_y = np.concatenate((train.y, valid.y), axis=0)[new_id_indexes]
+                    fold_w = np.concatenate((train.w, valid.w), axis=0)[new_id_indexes]
+
+                    combined_X = np.concatenate((combined_X, fold_X), axis=0)
+                    combined_y = np.concatenate((combined_y, fold_y), axis=0)
+                    combined_w = np.concatenate((combined_w, fold_w), axis=0)
+                    combined_ids = np.concatenate((combined_ids, fold_ids))
+
             self.combined_train_valid_data = NumpyDataset(combined_X, combined_y, w=combined_w, ids=combined_ids)
         return self.combined_train_valid_data
 
@@ -692,8 +754,6 @@ class ModelDataset(object):
         Args:
             subset (string): Label of subset, 'train', 'test', or 'valid'
 
-            transformers: Transformers object for full dataset
-
         Returns:
             tuple(response_dict, weight_dict)
                 (response_dict): dictionary mapping compound ids to arrays of per-task untransformed response values
@@ -717,12 +777,37 @@ class ModelDataset(object):
 
     # *************************************************************************************
 
-    def get_untransformed_responses(self, ids):
-        """ Returns a numpy array of untransformed response values
+    def update_untransformed_responses(self, ids, y):
         """
-        response_vals = np.zeros((len(ids), self.untransformed_dataset.y.shape[1]))
-        if len(self.untransformed_response_dict) == 0:
-            self.untransformed_response_dict = dict(zip(self.untransformed_dataset.ids, self.untransformed_dataset.y))
+        Updates self.untransformed_response_dict with the given ids and y
+
+        Parameters:
+        ids (list or np.ndarray): List or array of IDs for which to retrieve untransformed response values.
+
+        y (list or np.ndarray): List or array of responses values.
+
+        Returns:
+        None
+        """
+        self.untransformed_response_dict.update(
+            dict(zip(ids, y))
+            )
+
+    # *************************************************************************************
+
+    def get_untransformed_responses(self, ids):
+        """
+        Returns a numpy array of untransformed response values for the given IDs.
+
+        Parameters:
+        ids (list or np.ndarray): List or array of IDs for which to retrieve untransformed response values.
+
+        Returns:
+        np.ndarray: A numpy array of untransformed response values corresponding to the given IDs.
+        """        
+
+        num_tasks = len(self.untransformed_response_dict[ids[0]])
+        response_vals = np.zeros((len(ids), num_tasks))
 
         for i, id in enumerate(ids):
             response_vals[i] = self.untransformed_response_dict[id]
@@ -783,6 +868,7 @@ class MinimalDataset(ModelDataset):
         self.tasks = None
         self.attr = None
         self.contains_responses = contains_responses
+        self.untransformed_response_dict = {}
 
     # ****************************************************************************************
     def get_dataset_tasks(self, dset_df):
@@ -925,6 +1011,7 @@ class DatastoreDataset(ModelDataset):
 
         super().__init__(params, featurization)
         self.dataset_oid = None
+        self.untransformed_response_dict = {}
         if params.dataset_name:
             self.dataset_name = params.dataset_name
         else:
@@ -1152,9 +1239,7 @@ class DatastoreDataset(ModelDataset):
         return split_df, split_kv
 
 
-
 # ****************************************************************************************
-
 
 class FileDataset(ModelDataset):
     """Subclass representing a dataset for data-driven modeling that lives in the filesystem.
@@ -1337,8 +1422,6 @@ class FileDataset(ModelDataset):
         self.dataset_key = featurized_dset_path
         featurized_dset_df[self.params.id_col] = featurized_dset_df[self.params.id_col].astype(str)
 
-        
-
         return featurized_dset_df
 
     # ****************************************************************************************
@@ -1378,10 +1461,172 @@ class FileDataset(ModelDataset):
         split_df = pd.read_csv(split_table_file, index_col=False)
         return split_df, None
 
+
+class EmbeddingDataset:
+    """Template representing a dataset for transfer learning modeling.
+    The dataset itself inherits from DatastoreDataset or FileDataset and contains a second dataset, FileDataset or
+    DatastoreDataset, etc, to calculate input features to the embedding model
+
+    Attributes:
+
+    set in get_featurized_data:
+        dataset: A new featurized DeepChem Dataset.
+        n_features: The count of features (int)
+        attr: A pd.dataframe containing the compound ids and smiles
+        input_dataset: This is the inner dataset responsible for handling features for the input to the embedding model
+    """
+
+    # ****************************************************************************************
+    def get_featurized_data(self, params=None):
+        """Does whatever is necessary to prepare a featurized dataset.
+        Loads an existing prefeaturized dataset if one exists and if parameter previously_featurized is
+        set True; otherwise loads a raw dataset and featurizes it. Creates an associated DeepChem Dataset
+        object. Once the data is featurized, it is fed into the embedding featurization to calculate
+        the final dataset.
+
+        Side effects:
+            Sets the following attributes in the ModelDataset object:
+                dataset: A new featurized DeepChem Dataset.
+                n_features: The count of features (int)
+                vals: The response col after featurization (np.array)
+                attr: A pd.dataframe containing the compound ids and smiles
+                input_dataset: This is used for saving splits
+        """
+
+        self._create_input_dataset()
+
+        if params is None:
+            params = self.params
+        load_success = False
+        # see if input features have alraedy been calculated
+        if params.previously_featurized:
+            try:
+                self.log.debug("Attempting to load featurized dataset")
+                featurized_dset_df = self.input_dataset.load_featurized_data()
+                if (params.max_dataset_rows > 0) and (len(featurized_dset_df) > params.max_dataset_rows):
+                    featurized_dset_df = featurized_dset_df.sample(n=params.max_dataset_rows)
+                featurized_dset_df[params.id_col] = featurized_dset_df[params.id_col].astype(str)
+
+                load_success = True
+                should_save = False
+
+            except AssertionError as a:
+                raise a
+            except Exception as e:
+                self.log.debug("Exception when trying to load featurized data:\n%s" % str(e))
+                self.log.info("Featurized dataset not previously saved for dataset %s, creating new" % self.input_dataset.dataset_name)
+                pass
+
+        # if not, calculate input features
+        if not load_success:
+            self.log.info("Creating new featurized dataset for dataset %s" % self.input_dataset.dataset_name)
+            dset_df = self.input_dataset.load_full_dataset()
+            should_save = True
+            if (params.max_dataset_rows > 0) and (len(dset_df) > params.max_dataset_rows):
+                dset_df = dset_df.sample(n=params.max_dataset_rows).reset_index(drop=True)
+                should_save = False
+            check_task_columns(params, dset_df)
+            _, _, _, _, _, featurized_dset_df = self.featurization.input_featurization.featurize_data(
+                                                    dset_df,
+                                                    self.featurization.input_data_params,
+                                                    self.input_dataset.contains_responses)
+            load_success = True
+
+        if should_save:
+            self.input_dataset.save_featurized_data(featurized_dset_df)
+
+        # calculate the embedding
+        features, ids, self.vals, self.attr, w, featurized_dset_df = self.featurization.featurize_data(
+                                                    featurized_dset_df, params, self.contains_responses)
+        self.n_features = self.featurization.get_feature_count()
+        self.log.debug("Number of features: " + str(self.n_features))
+           
+        # Create the DeepChem dataset       
+        self.update_untransformed_responses(ids, self.vals)
+        self.dataset = NumpyDataset(features, self.vals, ids=ids, w=w)
+        # Checking for minimum number of rows
+        if len(self.dataset) < params.min_compound_number:
+            self.log.warning("Dataset of length %i is shorter than the required length %i" % (len(self.dataset), params.min_compound_number))
+
+        return
+
+    # ****************************************************************************************
+    def save_featurized_data(self, featurized_dset_df):
+        """Does nothing, since a EmbeddingDataset object does not persist its data.
+
+        Args:
+                featurized_dset_df (pd.DataFrame): Ignored.
+        """
+        pass
+
+# ****************************************************************************************
+class DatastoreEmbeddingDataset(EmbeddingDataset, DatastoreDataset):
+    """Subclass representing a datastore dataset for transfer learning modeling.
+    The dataset itself inherits from DatastoreDataset and contains a second dataset, 
+    DatastoreDataset, etc, to calculate input features to the embedding model
+
+    Attributes:
+
+    Same as DatastoreDataset
+
+    set in get_featurized_data:
+        dataset: A new featurized DeepChem Dataset.
+        n_features: The count of features (int)
+        attr: A pd.dataframe containing the compound ids and smiles
+        input_dataset: This is the inner dataset responsible for handling features for the input to the embedding model
+    """
+
+    # ****************************************************************************************
+    def _create_input_dataset(self):
+        """Creates input_dataset used to load featurized data for the embedding model
+
+        Side effects:
+            Sets the following attributes :
+                input_dataset: This is used for saving splits
+        """
+
+        self.input_dataset = create_model_dataset(params=self.featurization.input_data_params,
+                            featurization=self.featurization.input_featurization,
+                            ds_client=self.ds_client)
+
+
+# ****************************************************************************************
+class FileEmbeddingDataset(EmbeddingDataset, FileDataset):
+    """Subclass representing a file dataset for transfer learning modeling.
+    The dataset itself inherits from FileDataset and contains a second dataset, 
+    FileDataset, etc, to calculate input features to the embedding model
+
+    Attributes:
+
+    Same as DatastoreDataset
+
+    set in get_featurized_data:
+        dataset: A new featurized DeepChem Dataset.
+        n_features: The count of features (int)
+        attr: A pd.dataframe containing the compound ids and smiles
+        input_dataset: This is the inner dataset responsible for handling features for the input to the embedding model
+    """
+
+    # ****************************************************************************************
+    def _create_input_dataset(self):
+        """Creates input_dataset used to load featurized data for the embedding model
+
+        Side effects:
+            Sets the following attributes :
+                input_dataset: This is used for saving splits
+        """
+
+        self.input_dataset = create_model_dataset(params=self.featurization.input_data_params,
+                            featurization=self.featurization.input_featurization,
+                            ds_client=None)
+
+
+# ****************************************************************************************
 class ClassificationDataException(Exception):
     """Used when dataset for classification problem violates assumptions
        -   Every subset in a split must have all classes
        -   Labels must range from 0 <= L < num_classes. DeepChem requires this.
            Errors occur when L > num_classes or L < 0
     """
+
     pass

@@ -1,0 +1,19 @@
+{
+    "system": "LC",
+    "datastore": "False",
+    "save_results": "False",
+    "data_owner": "username",
+    "prediction_type": "regression",
+    "dataset_key": "../../test_datasets/H1_std.csv",
+    "id_col": "compound_id",
+    "smiles_col": "base_rdkit_smiles",
+    "response_cols": "pKi_mean",
+    "split_uuid": "002251a2-83f8-4511-acf5-e8bbc5f86677",
+    "previously_split": "True",
+    "uncertainty": "True",
+    "verbose": "True",
+    "transformers": "True",
+    "model_type": "NN",
+    "featurizer": "graphconv",
+    "result_dir": "./output"
+}

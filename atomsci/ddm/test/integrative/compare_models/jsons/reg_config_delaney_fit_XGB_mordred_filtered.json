@@ -27,6 +27,9 @@
     "model_type": "xgboost",
     "xgb_gamma": "0.1",
     "xgb_learning_rate": "0.11",
+    "xgb_alpha": 0.0,
+    "xgb_lambda": 1.0,
+
 
     "comment": "Results",
     "comment": "----------------------------------------",    

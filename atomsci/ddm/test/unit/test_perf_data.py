@@ -10,10 +10,28 @@ import pandas as pd
 import json
 
 def copy_to_temp(dskey, res_dir):
+    """
+    Copy a dataset to a temporary directory.
+
+    Parameters:
+    dskey (str): Path to the original dataset.
+    res_dir (str): Path to the temporary directory.
+
+    Returns:
+    str: Path to the copied dataset in the temporary directory.
+    """
     new_dskey = shutil.copy(dskey, res_dir)
     return new_dskey
 
 def setup_paths():
+    """
+    Set up the paths for the test, including creating a temporary directory and copying the dataset to it.
+
+    Returns:
+    tuple: A tuple containing:
+        - res_dir (str): Path to the temporary result directory.
+        - tmp_dskey (str): Path to the copied dataset in the temporary directory.
+    """
     script_path = os.path.dirname(os.path.realpath(__file__))
     res_dir = tempfile.mkdtemp()
     dskey = os.path.join(script_path, '../test_datasets/aurka_chembl_base_smiles_union.csv')
@@ -22,6 +40,18 @@ def setup_paths():
     return res_dir, tmp_dskey
 
 def read_params(json_file, res_dir, tmp_dskey):
+    """
+    Read parameters from a JSON file and update them with the result directory and dataset key.
+
+    Parameters:
+    json_file (str): Path to the JSON file containing parameters.
+    res_dir (str): Path to the result directory.
+    tmp_dskey (str): Path to the copied dataset in the temporary directory.
+
+    Returns:
+    dict: Updated parameters.
+    """
+
     with open(json_file, 'r') as file:
         params = json.load(file)
     params['result_dir'] = res_dir
@@ -29,12 +59,25 @@ def read_params(json_file, res_dir, tmp_dskey):
     return params
 
 def make_relative_to_file(relative_path):
+    """
+    Generates the full path relative to the location of this file.
+
+    Parameters:
+    relative_path (str): The relative path to convert.
+
+    Returns:
+    str: The absolute path corresponding to the relative path.
+    """
     script_path = os.path.dirname(os.path.realpath(__file__))
     result = os.path.join(script_path, relative_path)
 
     return result
 
 def test_KFoldRegressionPerfData():
+    """
+    Test the KFoldRegressionPerfData class to ensure it correctly handles k-fold regression performance data.
+
+    """
     res_dir, tmp_dskey = setup_paths()
 
     params = read_params(make_relative_to_file('config_perf_data_KFoldRegressoinPerfData.json'),
@@ -78,6 +121,9 @@ def test_KFoldRegressionPerfData():
     assert r2_std==0
 
 def test_KFoldRegressionPerfDataMulti():
+    """
+    Test the KFoldRegressionPerfData class for multi-fold regression performance data.
+    """
     res_dir, tmp_dskey = setup_paths()
 
     # duplicate pIC50 column
@@ -126,6 +172,10 @@ def test_KFoldRegressionPerfDataMulti():
     assert r2_std==0
 
 def test_KFoldClassificationPerfData():
+    """
+    Test the KFoldClassificationPerfData functionality.
+
+    """
     res_dir, tmp_dskey = setup_paths()
 
     params = read_params(
@@ -175,6 +225,10 @@ def test_KFoldClassificationPerfData():
     assert roc_auc_std==0
 
 def test_SimpleRegressionPerfData():
+    """
+    Test the SimpleRegressionPerfData class for correct performance data creation and metrics computation.
+
+    """
     res_dir, tmp_dskey = setup_paths()
 
     params = read_params(
@@ -216,6 +270,13 @@ def test_SimpleRegressionPerfData():
     assert r2_mean == 1
 
 def test_SimpleClassificationPerfData():
+    """
+    Test function for SimpleClassificationPerfData.
+
+    This function sets up a model pipeline, trains a model, and creates performance data
+    for a simple classification task. It then verifies the following:
+
+    """
     res_dir, tmp_dskey = setup_paths()
 
     params = read_params(

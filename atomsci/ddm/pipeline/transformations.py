@@ -70,9 +70,12 @@ def create_feature_transformers(params, featurization, train_dset):
     DeepChem transformer object holding its parameters.
 
     Args:
-        params (argparse.namespace: Object containing the parameter list
+        params (argparse.namespace): Object containing the parameter list
 
-        model_dataset (ModelDataset): Contains the dataset to be transformed.
+        featurization (featurization.Featurization): A Featurization object that will be used with
+        the train_dset object.
+
+        train_dset (dc.Dataset): Contains the dataset used to fit the the transformers.
 
     Returns:
         (list of DeepChem transformer objects): list of transformers for the feature matrix
@@ -102,7 +105,7 @@ def create_weight_transformers(params, dataset):
     Args:
         params (argparse.namespace: Object containing the parameter list
 
-        model_dataset (ModelDataset): Contains the dataset to be transformed.
+        dataset (dc.Dataset): Contains the dataset to be transformed.
 
     Returns:
         (list of DeepChem transformer objects): list of transformers for the weight matrix
@@ -146,6 +149,12 @@ def get_transformer_keys(params):
     There is one set of transformers for each fold and then one transformer
     for both validation and training sets. AMPL automatically trains a model
     using all validation and training data at the end of the training loop.
+
+    Args:
+        params (argparse.namespace: Object containing the parameter list
+
+    Returns:
+        (list): A list of all keys used in transformer dictionaries.
     """
     if params.split_strategy != 'k_fold_cv':
         return [0, 'final']
@@ -156,6 +165,9 @@ def get_transformer_keys(params):
 def get_blank_transformations():
     """Get empty transformations dictionary
     These keys must always exist, even when there are no transformations
+
+    Returns:
+        (dict): A dictionary containing empty lists. Used when no transformers are needed
     """
     return {0:[], 'final':[]}
 
@@ -165,6 +177,13 @@ def get_all_training_datasets(model_dataset):
     This takes a model_dataset and returns a dictionary of all
     datasets that will need a transformer. The keys will match
     what is returned by get_transformer_keys
+
+    Args:
+        model_dataset: A model_datasets.ModelDataset object containing the current dataset.
+
+    Returns:
+        dict of dc.Datasets: A dictionary keyed using keys fold numbers and 'final'. Contains
+        the training data for each fold and the final training+validation training set.
     """
     result = {}
     if model_dataset.splitting is None:

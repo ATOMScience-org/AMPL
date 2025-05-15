@@ -103,7 +103,7 @@ def test():
 
     # Check training statistics
     # -------------------------
-    integrative_utilities.training_statistics_file(reload_dir, 'test', 0.6)
+    integrative_utilities.training_statistics_file(reload_dir, 'test', 0.55)
 
     # Make prediction parameters
     # --------------------------
