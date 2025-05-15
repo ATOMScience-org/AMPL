@@ -1794,6 +1794,9 @@ def get_multitask_perf_from_files_new(result_dir, pred_type='regression', datase
     # Navigate the results directory tree (read tar files version, which is slower)
     model_list = []
     tar_list=glob(f'{result_dir}/**/*.tar.gz', recursive=True)
+    if len(tar_list)==0:
+        logger.warning(f'No tar files found in {result_dir}.')
+        return None
     if tar:
         for tar_file in tar_list:
             with tarfile.open(tar_file, "r:gz") as tar:
