@@ -1823,7 +1823,7 @@ def get_multitask_perf_from_files_new(result_dir, pred_type='regression', datase
                 tarfiles=[x for x in tar_list if meta['model_uuid'] in x]
                 try:
                     meta['model_path']=tarfiles[0]
-                except:
+                except Exception:
                     meta['model_path']=os.path.dirname(model_path)               
             if meta['model_parameters']['prediction_type']==pred_type:
                 if (dataset_key is not None) and (meta['training_dataset']['dataset_key']==dataset_key):
