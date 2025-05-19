@@ -137,18 +137,19 @@ def all_auto_lists():
     return set(result)
 
 def extract_model_params(params, strip_prefix=True):
-    """Extracts parameters meant for a specific model. Use only for
-    arguments automatically added by an AutoArgumentAdder
+    """Extract parameters specific to a model.
+
+    This function extracts parameters intended for a specific model. It should only be used 
+    for arguments automatically added by an AutoArgumentAdder.
 
     Args:
-        params (Namespace): Parameter Namespace
-        strip_prefix (bool): Automatically added parameters come with a prefix.
-            When True, the prefix is removed. e.g. AttentiveFP_mode
-            becomes mode
+        params (argparse.Namespace): The parameter namespace containing all arguments.
+        strip_prefix (bool): If True, removes the prefix from automatically added parameters.
+            For example, 'AttentiveFP_mode' becomes 'mode'.
 
     Returns:
-        dict: A subset of parameters from params that should be passed on to the
-            model
+        dict: A dictionary containing a subset of parameters from `params` that are relevant 
+            to the specified model.
     """
     assert params.model_type in model_wl
 
@@ -156,18 +157,19 @@ def extract_model_params(params, strip_prefix=True):
     return aaa.extract_params(params, strip_prefix=strip_prefix)
 
 def extract_featurizer_params(params, strip_prefix=True):
-    """Extracts parameters meant for a specific featurizer. Use only for
-    arguments automatically added by an AutoArgumentAdder
+    """Extract parameters specific to a featurizer.
+
+    This function extracts parameters intended for a specific featurizer. It should only be used 
+    for arguments automatically added by an AutoArgumentAdder.
 
     Args:
-        params (Namespace): Parameter Namespace
-        strip_prefix (bool): Automatically added parameters come with a prefix.
-            When True, the prefix is removed. e.g. MolGraphConvFeaturizer_use_edges
-            becomes use_edges
+        params (argparse.Namespace): The parameter namespace containing all arguments.
+        strip_prefix (bool): If True, removes the prefix from automatically added parameters.
+            For example, 'MolGraphConvFeaturizer_use_edges' becomes 'use_edges'.
 
     Returns:
-        dict: A subset of parameters from params that should be passed on to the
-            featurizer
+        dict: A dictionary containing a subset of parameters from `params` that are relevant 
+            to the specified featurizer.
     """
     assert params.featurizer in featurizer_wl
 
@@ -314,21 +316,22 @@ def strip_optional(type_annotation):
         return [type_annotation]
 
 class AutoArgumentAdder:
-    """Finds, manages, and adds all parameters of an object to a argparse parser
+    """Finds, manages, and adds all parameters of an object to an argparse parser.
 
-    AutoArgumentAdder recursively finds all keyword arguments of a given object.
+    AutoArgumentAdder recursively identifies all keyword arguments of a given object.
     A prefix is added to each keyword argument to prevent collisions and help
     distinguish automatically added arguments from normal arguments.
 
     Attributes:
-        func (object): The original object e.g. dcm.AttentiveFPModel
-        funcs (List[object]): A list of parents. e.g. KerasModel
-        prefix (str): A prefix for arguments. e.g. 'AttentiveFPModel'
-        types (dict): A mapping between parameter names and types. Prefixes
-            are not used in the keys.
-        used_by (dict): A mapping between parameter names (no prefix) and
-            the object or objects that use that parameter.
-        args (set): A set of all argument names
+
+        func (object): The original object, e.g., dcm.AttentiveFPModel.
+        funcs (List[object]): A list of parent classes, e.g., KerasModel.
+        prefix (str): A prefix for arguments, e.g., 'AttentiveFPModel'.
+        types (dict): A mapping between parameter names and their types. Prefixes
+            are not included in the keys.
+        used_by (dict): A mapping between parameter names (without prefix) and
+            the object(s) that use those parameters.
+        args (set): A set of all argument names.
     """
     def __init__(self, func, prefix):
         """Initialize all attributes with given object

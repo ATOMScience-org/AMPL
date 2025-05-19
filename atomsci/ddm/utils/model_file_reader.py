@@ -13,7 +13,7 @@ def get_multiple_models_metadata(*args):
     """A function that takes model tar.gz file(s) and extract the metadata (and if applicable, model metrics)
 
     Args:
-        *args: Variable length argument list of model tar.gz file(s)
+        \*args: Variable length argument list of model tar.gz file(s)
 
     Returns:
         a list of models' most important model parameters and metrics. or an empty array if it fails to parse the input file(s).

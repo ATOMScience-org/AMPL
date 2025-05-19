@@ -15,10 +15,11 @@ An open-source, end-to-end software pipeline for data curation, model building, 
 
 The ATOM Modeling PipeLine (AMPL) extends the functionality of DeepChem and supports an array of machine learning and molecular featurization tools to predict key potency, safety and pharmacokinetic-relevant parameters. AMPL has been benchmarked on a large collection of pharmaceutical datasets covering a wide range of parameters. This is a living software project with active development. Check back for continued updates. Feedback is welcomed and appreciated, and the project is open to contributions! An [article describing the AMPL project](https://pubs.acs.org/doi/abs/10.1021/acs.jcim.9b01053) was published in JCIM. The AMPL pipeline documentation is available [here](https://ampl.readthedocs.io/en/latest/pipeline.html).
 
-
-![Static Badge](https://img.shields.io/badge/Announcement-1.6.1-blue)
-
 Check out our new tutorial series that walks through AMPL's end-to-end modeling pipeline to build a machine learning model! View them in our [docs](https://ampl.readthedocs.io/en/latest/) or as Jupyter notebooks in our [repo](https://github.com/ATOMScience-org/AMPL/tree/master/atomsci/ddm/examples/tutorials).
+
+![Static Badge](https://img.shields.io/badge/Announcement-1.7.0-blue)
+
+In addition to our written tutorials, we now provide a series of video tutorials on our YouTube channel, [ATOMScience-org](https://www.youtube.com/channel/UCOF6zZ7ltGwopYCoOGIFM-w). These videos are created to assist users in exploring and leveraging AMPL's robust capabilities.
 
 ---
 ## Table of contents
