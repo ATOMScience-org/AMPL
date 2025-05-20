@@ -1,5 +1,5 @@
-"""Functions for comparing and visualizing model performance. Most of these functions rely on ATOM's model tracker and
-datastore services, which are not part of the standard AMPL installation, but a few functions will work on collections of
+"""Functions for comparing and visualizing model performance. Some of these functions rely on ATOM's model tracker and
+datastore services, which are not part of the standard AMPL installation, but several functions will work on collections of
 models saved as local files.
 """
 
@@ -159,6 +159,8 @@ def get_training_perf_table(dataset_key, bucket, collection_name, pred_type='reg
     model_type_list = []
     max_epochs_list = []
     learning_rate_list = []
+    weight_decay_penalty_list = []
+    weight_decay_penalty_type_list = []
     dropouts_list = []
     layer_sizes_list = []
     featurizer_list = []
@@ -168,6 +170,8 @@ def get_training_perf_table(dataset_key, bucket, collection_name, pred_type='reg
     rf_max_depth_list = []
     xgb_learning_rate_list = []
     xgb_gamma_list = []
+    xgb_alpha_list = []
+    xgb_lambda_list = []
     xgb_max_depth_list = []
     xgb_colsample_bytree_list = []
     xgb_subsample_list = []
@@ -214,6 +218,9 @@ def get_training_perf_table(dataset_key, bucket, collection_name, pred_type='reg
             max_epochs_list.append(nn_params['max_epochs'])
             best_epoch_list.append(nn_params['best_epoch'])
             learning_rate_list.append(nn_params['learning_rate'])
+            weight_decay_penalty_list.append(nn_params['weight_decay_penalty'])
+            weight_decay_penalty_type_list.append(nn_params['weight_decay_penalty_type'])
+            learning_rate_list.append(nn_params['learning_rate'])
             layer_sizes_list.append(','.join(['%d' % s for s in nn_params['layer_sizes']]))
             dropouts_list.append(','.join(['%.2f' % d for d in nn_params['dropouts']]))
             rf_estimators_list.append(nan)
@@ -221,6 +228,8 @@ def get_training_perf_table(dataset_key, bucket, collection_name, pred_type='reg
             rf_max_depth_list.append(nan)
             xgb_learning_rate_list.append(nan)
             xgb_gamma_list.append(nan)
+            xgb_alpha_list.append(nan)
+            xgb_lambda_list.append(nan)
             xgb_max_depth_list.append(nan)
             xgb_colsample_bytree_list.append(nan)
             xgb_subsample_list.append(nan)
@@ -235,10 +244,14 @@ def get_training_perf_table(dataset_key, bucket, collection_name, pred_type='reg
             max_epochs_list.append(nan)
             best_epoch_list.append(nan)
             learning_rate_list.append(nan)
+            weight_decay_penalty_list.append(nan)
+            weight_decay_penalty_type_list.append(nan)
             layer_sizes_list.append(nan)
             dropouts_list.append(nan)
             xgb_learning_rate_list.append(nan)
             xgb_gamma_list.append(nan)
+            xgb_alpha_list.append(nan)
+            xgb_lambda_list.append(nan)
             xgb_max_depth_list.append(nan)
             xgb_colsample_bytree_list.append(nan)
             xgb_subsample_list.append(nan)
@@ -252,10 +265,14 @@ def get_training_perf_table(dataset_key, bucket, collection_name, pred_type='reg
             max_epochs_list.append(nan)
             best_epoch_list.append(nan)
             learning_rate_list.append(nan)
+            weight_decay_penalty_list.append(nan)
+            weight_decay_penalty_type_list.append(nan)
             layer_sizes_list.append(nan)
             dropouts_list.append(nan)
             xgb_learning_rate_list.append(xgb_params["xgb_learning_rate"])
             xgb_gamma_list.append(xgb_params["xgb_gamma"])
+            xgb_alpha_list.append(xgb_params.get("xgb_alpha", 0.0))
+            xgb_lambda_list.append(xgb_params.get("xgb_lambda", 1.0))
             xgb_max_depth_list.append(xgb_params["xgb_max_depth"])
             xgb_colsample_bytree_list.append(xgb_params["xgb_colsample_bytree"])
             xgb_subsample_list.append(xgb_params["xgb_subsample"])
@@ -273,6 +290,8 @@ def get_training_perf_table(dataset_key, bucket, collection_name, pred_type='reg
                     max_epochs=max_epochs_list,
                     best_epoch=best_epoch_list,
                     learning_rate=learning_rate_list,
+                    weight_decay_penalty_type=weight_decay_penalty_type_list,
+                    weight_decay_penalty=weight_decay_penalty_list,
                     layer_sizes=layer_sizes_list,
                     dropouts=dropouts_list,
                     rf_estimators=rf_estimators_list,
@@ -280,6 +299,8 @@ def get_training_perf_table(dataset_key, bucket, collection_name, pred_type='reg
                     rf_max_depth=rf_max_depth_list,
                     xgb_learning_rate = xgb_learning_rate_list,
                     xgb_gamma = xgb_gamma_list,
+                    xgb_alpha = xgb_alpha_list,
+                    xgb_lambda = xgb_lambda_list,
                     xgb_max_depth = xgb_max_depth_list,
                     xgb_colsample_bytree = xgb_colsample_bytree_list,
                     xgb_subsample = xgb_subsample_list,
@@ -296,22 +317,22 @@ def get_training_perf_table(dataset_key, bucket, collection_name, pred_type='reg
 # -----------------------------------------------------------------------------------------------------------------
 def extract_model_and_feature_parameters(metadata_dict, keep_required=True):
     """Given a config file, extract model and featurizer parameters. Looks for parameter names
-    that end in *_specific. e.g. nn_specific, auto_featurizer_specific
+    that end in \*_specific. e.g. nn_specific, auto_featurizer_specific
 
     Args:
         model_metadict (dict): Dictionary containing NON-FLATTENED metadata for an AMPL model
 
     Returns:
         dictionary containing featurizer and model parameters. Most contain the following
-        keys. ['max_epochs', 'best_epoch', 'learning_rate', 'layer_sizes', 'dropouts',
-        'rf_estimators', 'rf_max_features', 'rf_max_depth', 'xgb_gamma', 'xgb_learning_rate',
+        keys. ['max_epochs', 'best_epoch', 'learning_rate', 'weight_decay_penalty_type', 'weight_decay_penalty', 'layer_sizes', 'dropouts',
+        'rf_estimators', 'rf_max_features', 'rf_max_depth', 'xgb_gamma', 'xgb_alpha', 'xgb_lambda', 'xgb_learning_rate',
         'xgb_max_depth', 'xgb_colsample_bytree', 'xgb_subsample', 'xgb_n_estimators', 'xgb_min_child_weight',
         'featurizer_parameters_dict', 'model_parameters_dict']
     """
     model_params = metadata_dict['model_parameters']
     model_type = model_params['model_type']
-    required = ['max_epochs', 'best_epoch', 'learning_rate', 'layer_sizes', 'dropouts', 
-        'rf_estimators', 'rf_max_features', 'rf_max_depth', 'xgb_gamma', 'xgb_learning_rate',
+    required = ['max_epochs', 'best_epoch', 'learning_rate', 'layer_sizes', 'dropouts', 'weight_decay_penalty_type', 'weight_decay_penalty',
+        'rf_estimators', 'rf_max_features', 'rf_max_depth', 'xgb_gamma', 'xgb_alpha', 'xgb_lambda', 'xgb_learning_rate',
         'xgb_max_depth', 'xgb_colsample_bytree', 'xgb_subsample', 'xgb_n_estimators', 'xgb_min_child_weight'
         ]
 
@@ -324,6 +345,9 @@ def extract_model_and_feature_parameters(metadata_dict, keep_required=True):
             model_info['max_epochs'] = nn_params['max_epochs']
             model_info['best_epoch'] = nn_params['best_epoch']
             model_info['learning_rate'] = nn_params['learning_rate']
+            model_info['weight_decay_penalty_type'] = nn_params['weight_decay_penalty_type']
+            model_info['weight_decay_penalty'] = nn_params['weight_decay_penalty']
+            model_info['learning_rate'] = nn_params['learning_rate']
             model_info['layer_sizes'] = ','.join(['%d' % s for s in nn_params['layer_sizes']])
             model_info['dropouts'] = ','.join(['%.2f' % d for d in nn_params['dropouts']])
         elif model_type == 'RF':
@@ -334,6 +358,8 @@ def extract_model_and_feature_parameters(metadata_dict, keep_required=True):
         elif model_type == 'xgboost':
             xgb_params = metadata_dict['xgb_specific']
             model_info['xgb_gamma'] = xgb_params['xgb_gamma']
+            model_info['xgb_alpha'] = xgb_params.get('xgb_alpha', 0.0)
+            model_info['xgb_lambda'] = xgb_params.get('xgb_lambda', 1.0)
             model_info['xgb_learning_rate'] = xgb_params['xgb_learning_rate']
             model_info['xgb_max_depth'] = xgb_params['xgb_max_depth']
             model_info['xgb_colsample_bytree'] = xgb_params['xgb_colsample_bytree']
@@ -975,6 +1001,8 @@ def get_filesystem_perf_results(result_dir, pred_type='classification', expand=T
                 print(f"Can't access model {dirpath}")
 
     print("Found data for %d models under %s" % (len(model_list), result_dir))
+    if len(model_list) == 0:
+        return pd.DataFrame()
 
     # build dictonary of tarball names
     tar_dict = {os.path.basename(tf):tf for tf in tar_list}
@@ -1506,6 +1534,8 @@ def get_summary_metadata_table(uuids, collections=None):
                          'Layer Sizes':   nn_params['layer_sizes'],
                          'Optimizer':     nn_params['optimizer_type'],
                          'Learning Rate': nn_params['learning_rate'],
+                         'Weight decay penalty type': nn_params['weight_decay_penalty_type'],
+                         'Weight decay penalty': nn_params['weight_decay_penalty'],
                          'Dropouts':      nn_params['dropouts'],
                          'Best Epoch (Max)': '%i (%i)' % (nn_params['best_epoch'],nn_params['max_epochs']),
                          'Collection':    collection_name,
@@ -1546,6 +1576,8 @@ def get_summary_metadata_table(uuids, collections=None):
                          'Model Type (Featurizer)':    '%s (%s)' % (mdl_params['model_type'],featurizer),
                          'XGB learning rate': xgb_params['xgb_learning_rate'],
                          'Gamma':    xgb_params['xgb_gamma'],
+                         'Alpha':    xgb_params.get('xgb_alpha', 0.0),
+                         'Lambda':    xgb_params.get('xgb_lambda', 1.0),
                          'XGB max depth': xgb_params['xgb_max_depth'],
                          'Column sample fraction':    xgb_params['xgb_colsample_bytree'],
                          'Row subsample fraction':    xgb_params['xgb_subsample'],
@@ -1794,6 +1826,9 @@ def get_multitask_perf_from_files_new(result_dir, pred_type='regression', datase
     # Navigate the results directory tree (read tar files version, which is slower)
     model_list = []
     tar_list=glob(f'{result_dir}/**/*.tar.gz', recursive=True)
+    if len(tar_list)==0:
+        logger.warning(f'No tar files found in {result_dir}.')
+        return None
     if tar:
         for tar_file in tar_list:
             with tarfile.open(tar_file, "r:gz") as tar:
@@ -1804,6 +1839,7 @@ def get_multitask_perf_from_files_new(result_dir, pred_type='regression', datase
                 elif 'model_metadata.json' in tar.getnames():
                     with tar.extractfile('model_metadata.json') as meta:
                         meta=json.loads(meta.read())
+                        meta['model_path']=tar_file
                 else:
                     continue
             if meta['model_parameters']['prediction_type']==pred_type:
@@ -1817,9 +1853,9 @@ def get_multitask_perf_from_files_new(result_dir, pred_type='regression', datase
             with open(model_path, 'r') as model:
                 meta=json.loads(model.read())
                 tarfiles=[x for x in tar_list if meta['model_uuid'] in x]
-                if len(tarfiles)==1:
+                try:
                     meta['model_path']=tarfiles[0]
-                else:
+                except Exception:
                     meta['model_path']=os.path.dirname(model_path)               
             if meta['model_parameters']['prediction_type']==pred_type:
                 if (dataset_key is not None) and (meta['training_dataset']['dataset_key']==dataset_key):
@@ -1833,8 +1869,8 @@ def get_multitask_perf_from_files_new(result_dir, pred_type='regression', datase
     metadata=pd.DataFrame(model_list)
     
     # establish initial unpacked models df
-    dropcols=['model_uuid','time_built','model_path','training_metrics']
-    models=metadata[['model_uuid','time_built','model_path']]
+    dropcols=['model_uuid','time_built','model_path','training_metrics','seed']
+    models=metadata[['model_uuid','time_built','model_path','seed']]
     
     # find colums to keep as dicts and extract
     dict_cols=['model_uuid','splitting_parameters']
@@ -1856,67 +1892,81 @@ def get_multitask_perf_from_files_new(result_dir, pred_type='regression', datase
     # manipulate dfs
     models['features']=np.where(models.featurizer=='computed_descriptors',models.descriptor_type, models.featurizer)
     keep_dicts=keep_dicts[keep_dicts.model_uuid.isin(models.model_uuid)]
+    
+    mt_models=models[models.num_model_tasks.astype(int)>1]
+    st_models=models[models.num_model_tasks.astype(int)==1]
+    assert(len(mt_models)+len(st_models)==len(models))
+    
+    models_dfs=[ mt_models,st_models,]
 
-    # deal with metrics
+    # deal with metrics for st and mt separately
+    # do metrics by subset
     tm=pd.DataFrame(training_metrics.training_metrics.tolist())
-    preds=[]
-    for col in tm.columns:
-        
-        # get metrics and metric label
-        met=pd.DataFrame(tm[col].tolist())
-        metlabel=met.label.iloc[0]+'_'+met.subset.iloc[0]
-    
-        # expand metrics to get scores
-        pred=pd.DataFrame(met.prediction_results.tolist())
-        pred=models[['model_uuid','response_cols']].join(pred)
-
-        # check for > 1 dataset
-        if len(set(models.response_cols.astype(str)))>1:
-            raise Exception (f"Warning: you cannot export multitask model performances for more than one dataset at a time. Please provide the dataset_key as an additional parameter. Your {pred_type} options are: {list(set(models.dataset_key))}.")
-
-        num_model_tasks=models.num_model_tasks.iloc[0]
-        
-        # get task scores - long form and rename columns
-        taskcols=['response_cols']
-        taskcols.extend([x for x in pred.columns if 'task' in x])    
-        task_preds=pred[['model_uuid']+taskcols].set_index('model_uuid').explode(taskcols).reset_index()
-
-        # get full model scores and rename columns
-        predcols=[x for x in pred.columns if 'task' not in x]
-        predcols.remove('response_cols')
-        pred=pred[predcols].copy()
-        pred.columns=[metlabel+'_'+col if col!='model_uuid' else col for col in predcols]
-        pred['response_cols']='full_model'
-        
-        # rename task_pred columns to match full model names
-        coldict={}
-        for col in task_preds.columns:
-            if col not in ['model_uuid','response_cols']:
-                coldict[col]=[predcol for predcol in pred.columns if predcol.replace(metlabel+'_','').startswith(col.replace('task_','')[0:3])][0]
-        task_preds=task_preds.rename(columns=coldict)
-
-        # concatenate all scores
-        if num_model_tasks>1:
-            pred=pd.concat([pred,task_preds])
+    final_preds=[]
+    for col in tm.columns: # each subset
+        preds=[]
+        for models_df in models_dfs:
+            if len(models_df)==0:
+                continue
+            # check for > 1 dataset
+            if len(set(models_df.dataset_key.astype(str)))>1:
+                raise Exception (f"Warning: you cannot export multitask model performances for more than one dataset at a time. Please provide the dataset_key as an additional parameter. Your {pred_type} options are: {list(set(models.dataset_key))}.")
             
-        # if single task model, rename response columns and filter out empty rows
-        if num_model_tasks==1:
-            pred=pred[pred.response_cols=='full_model']
-            pred['response_cols']=[x[0] for x in models.response_cols]
-    
-        # append to list
-        preds.append(pred)
+            # get metrics and metric label
+            met=pd.DataFrame(tm[col].tolist())        
+            metlabel=met.label.iloc[0]+'_'+met.subset.iloc[0]
         
+            # expand metrics to get scores
+            pred=pd.DataFrame(met.prediction_results.tolist())
+            pred=models_df[['model_uuid','response_cols']].join(pred)
+            
+            # get num_model_tasks
+            num_model_tasks=models_df.num_model_tasks.astype(int).iloc[0]
+
+            # get task scores - long form and rename columns
+            taskcols=['response_cols']
+            taskcols.extend([x for x in pred.columns if 'task' in x])    
+            task_preds=pred[['model_uuid']+taskcols].set_index('model_uuid').explode(taskcols).reset_index()
+        
+            # get full model scores and rename columns
+            predcols=[x for x in pred.columns if 'task' not in x]
+            predcols.remove('response_cols')
+            pred=pred[predcols].copy()
+            pred.columns=[metlabel+'_'+col if col!='model_uuid' else col for col in predcols]
+            pred['response_cols']='full_model'
+        
+            # rename task_pred columns to match full model names
+            coldict={}
+            for task_col in task_preds.columns:
+                if task_col not in ['model_uuid','response_cols']:
+                    coldict[task_col]=[predcol for predcol in pred.columns if predcol.replace(metlabel+'_','').startswith(task_col.replace('task_','')[0:3])][0]
+            task_preds=task_preds.rename(columns=coldict)
+        
+            # concatenate all scores
+            if num_model_tasks>1:
+                pred=pd.concat([pred,task_preds])
+                pred['multitask']=1
+
+            # if single task model, rename response columns and filter out empty rows
+            if num_model_tasks==1:
+                pred['multitask']=0
+                pred=pred[pred.response_cols=='full_model']
+                pred['response_cols']=[x[0] for x in models_df.response_cols]
+            # append to list
+            preds.append(pred)
+        preds=pd.concat(preds).reset_index(drop=True)
+        final_preds.append(preds)
+    
     # trim model df columns - add compatibility for new metadata weight_transform_type
     models=models.filter(items=['model_uuid', 'time_built', 'ampl_version','dataset_key', 'model_path',
-           'model_type', 'prediction_type', 'splitter',
+           'model_type','seed','prediction_type', 'splitter',
            'split_strategy', 'split_valid_frac', 'split_test_frac', 'split_uuid', 
             'production', 'feature_transform_type','response_transform_type', 'weight_transform_type',
            'smiles_col', 'features','model_choice_score_type',])
     
     # merge model info and pred_df info
-    for pred in preds:
-        models=models.merge(pred)
+    for pred in final_preds:
+        models=models.merge(pred, how='left')
 
     # deal with info left in dicts
     models=models.merge(keep_dicts)
@@ -1929,7 +1979,7 @@ def get_multitask_perf_from_files_new(result_dir, pred_type='regression', datase
             models=models.drop(columns=col)
         except Exception: 
             pass
-
+    
     return models
 
 
@@ -2087,7 +2137,7 @@ def get_multitask_perf_from_tracker(collection_name, response_cols=None, expand_
                   'weight_decay_penalty', 'weight_decay_penalty_type', 'weight_init_stddevs', 'splitter',
                   'split_uuid', 'split_test_frac', 'split_valid_frac', 'smiles_col', 'id_col',
                   'feature_transform_type', 'response_cols', 'response_transform_type', 'num_model_tasks',
-                  'rf_estimators', 'rf_max_depth', 'rf_max_features', 'xgb_gamma', 'xgb_learning_rate',
+                  'rf_estimators', 'rf_max_depth', 'rf_max_features', 'xgb_gamma', 'xgb_alpha', 'xgb_lambda', 'xgb_learning_rate',
                   'xgb_max_depth', 'xgb_colsample_bytree', 'xgb_subsample', 'xgb_n_estimators', 'xgb_min_child_weight',
                   ]
         keepcols.extend(alldat.columns[alldat.columns.str.contains('best')])

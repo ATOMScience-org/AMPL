@@ -138,32 +138,35 @@ def _get_scorer(score_type):
 
 # ===================================================================================================
 def base_feature_importance(model_pipeline=None, params=None):
-    """Minimal baseline feature importance function. Given an AMPL model (or the parameters to train a model),
-    returns a data frame with a row for each feature. The columns of the data frame depend on the model type and
-    prediction type. If the model is a binary classifier, the columns include  t-statistics and p-values
-    for the differences between the means of the active and inactive compounds. If the model is a random forest,
-    the columns will include the mean decrease in impurity (MDI) of each feature, computed by the scikit-learn
-    feature_importances_ function. See the scikit-learn documentation for warnings about interpreting the MDI
-    importance. For all models, the returned data frame will include feature names, means and standard deviations
-    for each feature. The importances are calculated using only the training subset of the data.
+    """Minimal baseline feature importance function.
 
-    This function has been tested on RFs and NNs with rdkit descriptors. Other models and feature combinations
+    Given an AMPL model (or the parameters to train a model), returns a DataFrame with a row for each feature. 
+    The columns of the DataFrame depend on the model type and prediction type. If the model is a binary classifier, 
+    the columns include t-statistics and p-values for the differences between the means of the active and inactive 
+    compounds. If the model is a random forest, the columns will include the mean decrease in impurity (MDI) of each 
+    feature, computed by the scikit-learn `feature_importances_` function. See the scikit-learn documentation for 
+    warnings about interpreting the MDI importance. For all models, the returned DataFrame will include feature names, 
+    means, and standard deviations for each feature. The importances are calculated using only the training subset of 
+    the data.
+
+    This function has been tested on RFs and NNs with rdkit descriptors. Other models and feature combinations 
     may not be supported.
 
     Args:
-        model_pipeline (`ModelPipeline`): A pipeline object for a model that was trained in the current Python session
-        or loaded from the model tracker or a tarball file. Either model_pipeline or params must be provided.
-
-        params (`dict`): Parameter dictionary for a model to be trained and analyzed. Either model_pipeline or a
-        params argument must be passed; if both are passed, params is ignored and the parameters from model_pipeline
-        are used.
+    
+        model_pipeline (ModelPipeline, optional): A pipeline object for a model that was trained in the current 
+            Python session or loaded from the model tracker or a tarball file. Either `model_pipeline` or `params` 
+            must be provided.
+        params (dict, optional): Parameter dictionary for a model to be trained and analyzed. Either `model_pipeline` 
+            or `params` must be passed; if both are passed, `params` is ignored and the parameters from `model_pipeline` 
+            are used.
 
     Returns:
-        (imp_df, model_pipeline, pparams) (tuple):
-            imp_df (`DataFrame`): Table of feature importance metrics.
-            model_pipeline (`ModelPipeline`): Pipeline object for model that was passed to or trained by function.
-            pparams (`Namespace`): Parsed parameters of model.
-
+    
+        tuple: A tuple containing:
+            - imp_df (DataFrame): Table of feature importance metrics.
+            - model_pipeline (ModelPipeline): Pipeline object for the model that was passed to or trained by the function.
+            - pparams (Namespace): Parsed parameters of the model.
     """
     log = logging.getLogger('ATOM')
     if model_pipeline is None:
@@ -498,7 +501,24 @@ def cluster_permutation_importance(model_pipeline=None, params=None, score_type=
 
 # ===================================================================================================
 def _calc_cluster_permutation_scores(estimator, X, y, col_indices, random_state, n_repeats, scorer):
-    """Calculate score of estimator when `col_indices` are all permuted randomly."""
+    """Calculate the scores of an estimator when the specified columns in the input data
+    are permuted randomly. This is typically used to assess the importance of features
+    by measuring the impact of shuffling their values on the model's performance.
+
+    Args:
+        estimator (object): The trained model or estimator to evaluate.
+        X (numpy.ndarray): The input feature matrix of shape (n_samples, n_features).
+        y (array-like): The target values corresponding to the input data.
+        col_indices (list of int): Indices of the columns in `X` to be permuted.
+        random_state (numpy.random.RandomState): Random state instance for reproducibility.
+        n_repeats (int): Number of times to repeat the permutation process.
+        scorer (callable): A scoring function that takes the estimator, permuted `X`, 
+            and `y` as inputs and returns a score.
+
+    Returns:
+        numpy.ndarray: An array of shape (n_repeats,) containing the scores for each 
+        permutation round.
+    """
     # Work on a copy of X to to ensure thread-safety in case of threading based
     # parallelism. 
     X_permuted = X.copy()
@@ -515,3 +535,34 @@ def _calc_cluster_permutation_scores(estimator, X, y, col_indices, random_state,
 
 
 
+# ===================================================================================================
+def plot_nn_feature_weights_vs_epoch(pipeline, axes=None, plot_width=20, plot_height=15):
+    """Plot a line graph of summed weight absolute values from neural network feature nodes to first hidden layer vs 
+    training epoch. This plot is intended to show which features have the most influence on the final
+    prediction output. It is also used to show the effect of increasing the weight_decay_penalty
+    parameter, which should result in decreasing the weights on less important features.
+    
+    Args:
+        pipeline (ModelPipeline): The pipeline object from a neural network model that was trained in the
+        current Python session.
+        axes (matplotlib.Axes, optional): An Axes object to draw the plot in. If none is provided, the function will
+        create one in a figure with the specified width and height.
+        plot_width (float, optional): Figure width. Defaults to 20.
+        plot_height (float, optional): Figure height. Defaults to 15.
+    
+    Returns:
+        None
+    """
+    if axes is None:
+        fig, axes = plt.subplots(figsize=(plot_width, plot_height))
+        fig.suptitle("Sums of feature node : hidden layer absolute weights vs epoch")
+    
+    wt_df = pipeline.model_wrapper.feature_weights_df
+    max_epoch = len(wt_df)
+    best_epoch = pipeline.model_wrapper.best_epoch
+    for feat in pipeline.data.featurization.get_feature_columns():
+        sns.lineplot(data=wt_df, x='epoch', y=feat, ax=axes)
+        axes.text(max_epoch + 4, wt_df[feat].values[max_epoch-1], feat)
+    axes.set_ylabel("Sum over 1st hidden layer nodes of feature weight absolute values")
+    axes.axvline(best_epoch, linestyle='--', color='blue')
+    

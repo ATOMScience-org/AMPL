@@ -1,0 +1,50 @@
+{
+    "comment": "System",
+    "comment": "----------------------------------------",
+    "system": "LC",
+    "datastore": "False",
+    "save_results": "False",
+    "data_owner": "username",
+
+    "comment": "Input file",
+    "comment": "----------------------------------------",
+    "comment": "Note: dataset_key must be a path/file name: E.G. ./dataset.csv",
+    "dataset_key": "./delaney-processed_curated_fit.csv",
+    "id_col": "Compound ID",
+    "smiles_col": "smiles",
+
+    "comment": "Prediction Type",
+    "comment": "----------------------------------------",
+    "response_cols": "measured log solubility in mols per litre",
+    "prediction_type": "regression",
+
+    "comment": "Features",
+    "comment": "----------------------------------------",
+    "featurizer": "graphconv",
+
+    "comment": "Model",
+    "comment": "----------------------------------------",
+    "model_type": "NN",
+
+    "comment": "Neural network",
+    "comment": "----------------------------------------",
+    "dropouts": "0.10,0.10,0.10",
+    "layer_sizes": "64,64,64",
+    "learning_rate": "0.000753",
+    "max_epochs": "5",
+
+    "comment": "Training",
+    "comment": "----------------------------------------",    
+    "comment": "This regulates how long to train the model",
+    "early_stopping_patience": "500",
+
+    "comment": "Results",
+    "comment": "----------------------------------------",    
+    "result_dir": "result",
+
+    "comment": "Test config",
+    "comment": "these variables are only used in THIS test.",
+    "comment": "They will not do anything in the pipeline",
+    "comment": "----------------------------------------",
+    "perf_threshold": ".65"
+}

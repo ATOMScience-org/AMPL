@@ -1415,6 +1415,7 @@ class HyperOptSearch():
                     for i in range(1,num_layer):
                         self.space[f"ratio{i}"] = build_hyperopt_search_domain(f"ratio{i}", method, par_list)
 
+            # dropouts
             if self.params.dp:
                 domain_list = self.params.dp.split("|")
                 method = domain_list[0]
@@ -1422,6 +1423,21 @@ class HyperOptSearch():
                 par_list = [float(e) for e in domain_list[2].split(",")]
                 for i in range(num_layer):
                     self.space[f"dp{i}"] = build_hyperopt_search_domain(f"dp{i}", method, par_list)
+
+            # weight decay penalty
+            if self.params.wdp:
+                domain_list = self.params.wdp.split("|")
+                method = domain_list[0]
+                par_list = [float(e) for e in domain_list[1].split(",")]
+                self.space["weight_decay_penalty"] = build_hyperopt_search_domain("weight_decay_penalty", method, par_list)
+
+            # weight decay penalty type
+            if self.params.wdt:
+                domain_list = self.params.wdt.split("|")
+                method = domain_list[0]
+                par_list = domain_list[1].split(",")
+                self.space["weight_decay_penalty_type"] = build_hyperopt_search_domain("weight_decay_penalty_type", method, par_list)
+
         elif self.params.model_type == "xgboost":
             #build searching domain for XGBoost parameters
             if self.params.xgbg:
@@ -1429,6 +1445,18 @@ class HyperOptSearch():
                 method = domain_list[0]
                 par_list = [float(e) for e in domain_list[1].split(",")]
                 self.space["xgbg"] = build_hyperopt_search_domain("xgbg", method, par_list)
+
+            if self.params.xgba:
+                domain_list = self.params.xgba.split("|")
+                method = domain_list[0]
+                par_list = [float(e) for e in domain_list[1].split(",")]
+                self.space["xgba"] = build_hyperopt_search_domain("xgba", method, par_list)
+
+            if self.params.xgbb:
+                domain_list = self.params.xgbb.split("|")
+                method = domain_list[0]
+                par_list = [float(e) for e in domain_list[1].split(",")]
+                self.space["xgbb"] = build_hyperopt_search_domain("xgbb", method, par_list)
 
             if self.params.xgbl:
                 domain_list = self.params.xgbl.split("|")
@@ -1466,6 +1494,8 @@ class HyperOptSearch():
                 par_list = [float(e) for e in domain_list[1].split(",")]
                 self.space["xgbw"] = build_hyperopt_search_domain("xgbw", method, par_list)
 
+        self.log = logging.getLogger("hyperopt_search")
+
 
     def run_search(self):
         #name of the results
@@ -1497,6 +1527,10 @@ class HyperOptSearch():
                     self.params.learning_rate = p["learning_rate"]
                 if self.params.dp:
                     self.params.dropouts = ",".join([str(p[e]) for e in p if e[:2] == "dp"])
+                if self.params.wdp:
+                    self.params.weight_decay_penalty = p['weight_decay_penalty']
+                if self.params.wdt:
+                    self.params.weight_decay_penalty_type = p['weight_decay_penalty_type']
                 if self.params.ls:
                     if not self.params.ls_ratio:
                         self.params.layer_sizes = ",".join([str(p[e]) for e in p if e[:2] == "ls"])
@@ -1505,11 +1539,16 @@ class HyperOptSearch():
                         for i in range(1,len([e for e in p if e[:5] == "ratio"])+1):
                             list_layer_sizes.append(int(list_layer_sizes[-1] * p[f"ratio{i}"]))
                         self.params.layer_sizes = ",".join([str(e) for e in list_layer_sizes])
-                hp_params = f'{self.params.learning_rate}_{self.params.layer_sizes}_{self.params.dropouts}'
-                print(f"learning_rate: {self.params.learning_rate}, layer_sizes: {self.params.layer_sizes}, dropouts: {self.params.dropouts}")
+                hp_params = f'{self.params.learning_rate}_{self.params.layer_sizes}_{self.params.dropouts}_{self.params.weight_decay_penalty_type}_{self.params.weight_decay_penalty}'
+                print(f"learning_rate: {self.params.learning_rate}, layer_sizes: {self.params.layer_sizes}, dropouts: {self.params.dropouts}, "
+                      f"weight_decay_penalty: {self.params.weight_decay_penalty_type}({self.params.weight_decay_penalty})")
             elif self.params.model_type == "xgboost":
                 if self.params.xgbg:
                     self.params.xgb_gamma = p["xgbg"]
+                if self.params.xgba:
+                    self.params.xgb_alpha = p["xgba"]
+                if self.params.xgbb:
+                    self.params.xgb_lambda = p["xgbb"]
                 if self.params.xgbl:
                     self.params.xgb_learning_rate = p["xgbl"]
                 if self.params.xgbd:
@@ -1522,8 +1561,10 @@ class HyperOptSearch():
                     self.params.xgb_n_estimators = p["xgbn"]
                 if self.params.xgbw:
                     self.params.xgb_min_child_weight = p["xgbw"]
-                hp_params = f'{self.params.xgb_gamma}_{self.params.xgb_learning_rate}_{self.params.xgb_max_depth}_{self.params.xgb_colsample_bytree}_{self.params.xgb_subsample}_{self.params.xgb_n_estimators}_{self.params.xgb_min_child_weight}'
+                hp_params = f'{self.params.xgb_gamma}_{self.params.xgb_alpha}_{self.params.xgb_lambda}_{self.params.xgb_learning_rate}_{self.params.xgb_max_depth}_{self.params.xgb_colsample_bytree}_{self.params.xgb_subsample}_{self.params.xgb_n_estimators}_{self.params.xgb_min_child_weight}'
                 print(f"xgb_gamma: {self.params.xgb_gamma}, "
+                      f"xgb_alpha: {self.params.xgb_alpha}, "
+                      f"xgb_lambda: {self.params.xgb_lambda}, "
                       f"xgb_learning_rate: {self.params.xgb_learning_rate}, "
                       f"xgb_max_depth: {self.params.xgb_max_depth}, "
                       f"xgb_colsample_bytree: {self.params.xgb_colsample_bytree}, "
@@ -1557,6 +1598,7 @@ class HyperOptSearch():
             try:
                 pl.train_model()
             except Exception:
+                self.log.exception('Exception found during hyperopt training')
                 model_failed = True
 
             subsets = ["train", "valid", "test"]
@@ -1675,7 +1717,7 @@ def parse_params(param_list):
     argparse.Namespace
 
     Args:
-        *any_arg: any single input of a str, dict, argparse.Namespace, or list
+        \*any_arg: any single input of a str, dict, argparse.Namespace, or list
 
     Returns:
         argparse.Namespace
@@ -1706,7 +1748,10 @@ def parse_params(param_list):
                    'slurm_time_limit'} | excluded_keys
     if params.search_type == 'hyperopt':
         # keep more parameters
-        keep_params = keep_params | {'lr', 'learning_rate','ls', 'layer_sizes','ls_ratio','dp', 'dropouts','rfe', 'rf_estimators','rfd', 'rf_max_depth','rff', 'rf_max_features','xgbg', 'xgb_gamma','xgbl', 'xgb_learning_rate', 'xgbd', 'xgb_max_depth', 'xgbc', 'xgb_colsample_bytree', 'xgbs', 'xgb_subsample', 'xgbn', 'xgb_n_estimators', 'xgbw', 'xgb_min_child_weight', 'hp_checkpoint_load', 'hp_checkpoint_save'}
+        keep_params = keep_params | {'lr', 'learning_rate','ls', 'layer_sizes','ls_ratio','dp', 'dropouts', 'wdp', 'weight_decay_penalty', 'wdt', 'weight_decay_penalty_type',
+                                     'rfe', 'rf_estimators','rfd', 'rf_max_depth','rff', 'rf_max_features',
+                                     'xgbg', 'xgb_gamma', 'xgba', 'xgb_alpha', 'xgbb', 'xgb_lambda', 'xgbl', 'xgb_learning_rate', 'xgbd', 'xgb_max_depth', 'xgbc', 'xgb_colsample_bytree', 
+                                     'xgbs', 'xgb_subsample', 'xgbn', 'xgb_n_estimators', 'xgbw', 'xgb_min_child_weight', 'hp_checkpoint_load', 'hp_checkpoint_save'}
 
     params.__dict__ = parse.prune_defaults(params, keep_params=keep_params)
 

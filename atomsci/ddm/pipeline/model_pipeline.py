@@ -30,8 +30,24 @@ from atomsci.ddm.pipeline import featurization as feat
 from atomsci.ddm.pipeline import parameter_parser as parse
 from atomsci.ddm.pipeline import model_tracker as trkr
 from atomsci.ddm.pipeline import transformations as trans
+from atomsci.ddm.pipeline import random_seed as rs
+from atomsci.ddm.pipeline import sampling as sample
 
 logging.basicConfig(format='%(asctime)-15s %(message)s')
+
+# ---------------------------------------------
+def get_k_nearest_index(dist_matrix, k):
+    """Returns the indexes of the nearest k neighbors.
+
+    Find nearest k neighbors for every row and their indexes using
+    the given distance_matrix and metric.
+    """
+    result = []
+    for i in range(len(dist_matrix)):
+        kn_idx = np.argpartition(dist_matrix[i], k)[:k]
+        result.append(kn_idx)
+
+    return np.vstack(result)
 
 # ---------------------------------------------
 def calc_AD_kmean_dist(train_dset, pred_dset, k, train_dset_pair_distance=None, dist_metric="euclidean"):
@@ -42,24 +58,35 @@ def calc_AD_kmean_dist(train_dset, pred_dset, k, train_dset_pair_distance=None, 
         # calculate the pairwise distance of training set
         train_dset_pair_distance = pairwise_distances(X=train_dset, metric=dist_metric)
     train_kmean_dis = []
+    # here we use k+1 since the nearest neighbor is itself.
+    kn_idxes = get_k_nearest_index(train_dset_pair_distance, k+1)
     for i in range(len(train_dset_pair_distance)):
-        kn_idx = np.argpartition(train_dset_pair_distance[i], k+1)
-        dis = np.mean(train_dset_pair_distance[i][kn_idx[:k+1]])
+        # instead of taking the mean, we divide by k. Leaving out the distance to itself
+        dis = np.sum(train_dset_pair_distance[i][kn_idxes[i]])/k
         train_kmean_dis.append(dis)
     train_dset_distribution = sp.stats.norm.fit(train_kmean_dis)
     # pairwise distance between train and pred set
     pred_size = len(pred_dset)
     train_pred_dis = pairwise_distances(X=pred_dset, Y=train_dset, metric=dist_metric)
+    train_pred_kn_idxes = get_k_nearest_index(train_pred_dis, k)
     pred_kmean_dis_score = np.zeros(pred_size)
     for i in range(pred_size):
-        pred_km_dis = np.mean(np.sort(train_pred_dis[i])[:k])
+        dists = train_pred_dis[i][train_pred_kn_idxes[i]]
+        pred_km_dis = np.mean(dists)
         train_dset_std = train_dset_distribution[1] if train_dset_distribution[1] != 0 else 1e-6
         pred_kmean_dis_score[i] = max(1e-6, (pred_km_dis - train_dset_distribution[0]) / train_dset_std)
-    return pred_kmean_dis_score
+    return pred_kmean_dis_score, train_pred_kn_idxes
 
 # ---------------------------------------------
 def calc_AD_kmean_local_density(train_dset, pred_dset, k, train_dset_pair_distance=None, dist_metric="euclidean"):
-    """Evaluate the AD of pred data by comparing the distance betweenthe unseen object and its k nearest neighbors in the training set to the distance between these k nearest neighbors and their k nearest neighbors in the training set. Return the distance ratio. Greater than 1 means the pred data is far from the domain."""
+    """Evaluate the AD of pred data.
+    
+    AD is calculated by comparing the distance between 
+    the unseen object and its k nearest neighbors in the training set 
+    to the distance between these k nearest neighbors and their k nearest 
+    neighbors in the training set. Return the distance ratio. 
+    Greater than 1 means the pred data is far from the domain.
+    """
     if train_dset_pair_distance is None:
         # calculate the pair-wise distance of training set
         train_dset_pair_distance = pairwise_distances(X=train_dset, metric=dist_metric)
@@ -67,15 +94,17 @@ def calc_AD_kmean_local_density(train_dset, pred_dset, k, train_dset_pair_distan
     pred_size = len(pred_dset)
     train_pred_dis = pairwise_distances(X=pred_dset, Y=train_dset, metric=dist_metric)
     pred_kmean_dis_local_density = np.zeros(pred_size)
+    kn_idxes = get_k_nearest_index(train_pred_dis, k)
+    # use k+1 here since the nearest neighbor is itself.
+    nei_indxes = get_k_nearest_index(train_dset_pair_distance, k+1)
     for i in range(pred_size):
         # find the index of k nearest neighbour of each prediction data
-        kn_idx = np.argpartition(train_pred_dis[i], k)
-        pred_km_dis = np.mean(train_pred_dis[i][kn_idx[:k]])
+        pred_km_dis = np.mean(train_pred_dis[i][kn_idxes[i]])
         # find the neighbours of each neighbour and calculate the distance
         neighbor_dis = []
-        for nei_ix in kn_idx[:k]:
-            nei_kn_idx = np.argpartition(train_dset_pair_distance[nei_ix], k)
-            neighbor_dis.append(np.mean(train_dset_pair_distance[nei_ix][nei_kn_idx[:k]]))
+        for nei_ix in kn_idxes[i]:
+            # instead of taking the mean, we divide by k. Leaving out the distance to itself
+            neighbor_dis.append(np.sum(train_dset_pair_distance[nei_ix][nei_indxes[nei_ix]])/k)
         ave_nei_dis = np.mean(neighbor_dis)
         if ave_nei_dis == 0:
             ave_nei_dis = 1e-6
@@ -152,7 +181,7 @@ class ModelPipeline:
             data (ModelDataset object): A data object that featurizes and splits the dataset
     """
 
-    def __init__(self, params, ds_client=None, mlmt_client=None):
+    def __init__(self, params, ds_client=None, mlmt_client=None, random_state=None, seed=None):
         """Initializes ModelPipeline object.
 
         Args:
@@ -186,6 +215,23 @@ class ModelPipeline:
         self.log = logging.getLogger('ATOM')
         self.run_mode = 'training'  # default, can be overridden later
         self.start_time = time.time()
+        
+        # initialize seed
+        if seed is None:
+            seed = getattr(params, 'seed', None)
+            self.random_gen = rs.RandomStateGenerator(params, seed)
+            self.seed = self.random_gen.get_seed()
+        else:
+            # pass the seed into the RandomStateGenerator
+            self.random_gen = rs.RandomStateGenerator(seed)
+            self.seed = self.random_gen.get_seed()
+        
+        if random_state is None:
+            self.random_state = self.random_gen.get_random_state()
+        else:
+            self.random_state = random_state
+        # log the seed used 
+        self.log.info('Initiating ModelPipeline with seed {}'.format(self.seed))
 
         # Default dataset_name parameter from dataset_key
         if params.dataset_name is None:
@@ -246,6 +292,7 @@ class ModelPipeline:
         Args:
             params (Namespace): Optional set of parameters to be used for featurization; by default this function
             uses the parameters used when the pipeline was created.
+            seed (int): Optional seed for reproducibility
 
         Side effects:
             Sets the following attributes of the ModelPipeline
@@ -264,26 +311,31 @@ class ModelPipeline:
                 self.log.info('Training in production mode. Ignoring '
                     'previous split and creating production split. '
                     'Production split will not be saved.')
-                self.data.split_dataset()
-            elif not (params.previously_split and self.data.load_presplit_dataset()):
-                self.data.split_dataset()
+                self.data.split_dataset(random_state=self.random_state, seed=self.seed)
+            elif not (params.previously_split and self.data.load_presplit_dataset(random_state=self.random_state, seed=self.seed)):
+                self.data.split_dataset(random_state=self.random_state, seed=self.seed)
                 self.data.save_split_dataset()
+                # write split metadata
+                self.create_split_metadata()
+                self.save_split_metadata()
             if self.data.params.prediction_type == 'classification':
                 self.data._validate_classification_dataset()
+
+        # apply sampling before fitting transformers
+        if self.run_mode == 'training':
+            for i, (train, valid) in enumerate(self.data.train_valid_dsets):
+                if self.data.params.prediction_type == 'classification' and self.params.sampling_method is not None:
+                    train = sample.apply_sampling_method(train, params, random_state=self.random_state, seed=self.seed)
+                    self.data.update_untransformed_responses(train.ids, train.y)
+                    self.data.train_valid_dsets[i] = (train, valid)
+
         # We now create transformers after splitting, to allow for the case where the transformer
         # is fitted to the training data only. The transformers are then applied to the training,
         # validation and test sets separately.
         if not params.split_only:
-            self.model_wrapper.create_transformers(self.data)
+            self.model_wrapper.create_transformers(trans.get_all_training_datasets(self.data))
         else:
             self.run_mode = ''
-
-        if self.run_mode == 'training':
-            for i, (train, valid) in enumerate(self.data.train_valid_dsets):
-                train = self.model_wrapper.transform_dataset(train)
-                valid = self.model_wrapper.transform_dataset(valid)
-                self.data.train_valid_dsets[i] = (train, valid)
-            self.data.test_dset = self.model_wrapper.transform_dataset(self.data.test_dset)
 
         # ****************************************************************************************
 
@@ -340,6 +392,13 @@ class ModelPipeline:
             hyperparam_uuid=self.params.hyperparam_uuid,
             ampl_version=mu.get_ampl_version()
         )
+        # add in sampling method parameters for documentation/reproducibility
+        if self.params.sampling_method is not None:
+            model_params['sampling_method'] = self.params.sampling_method
+        if self.params.sampling_ratio is not None:
+            model_params['sampling_ratio'] = self.params.sampling_ratio
+        if self.params.sampling_k_neighbors is not None:
+            model_params['sampling_k_neighbors'] = self.params.sampling_k_neighbors
 
         splitting_metadata = self.data.get_split_metadata()
         model_metadata = dict(
@@ -358,6 +417,8 @@ class ModelPipeline:
             model_metadata[key] = data
         for key, data in trans.get_transformer_specific_metadata(self.params).items():
             model_metadata[key] = data
+            
+        model_metadata['seed'] = self.seed
 
         self.model_metadata = model_metadata
 
@@ -410,6 +471,28 @@ class ModelPipeline:
             # If not using the model tracker, save the model state and metadata in a tarball in the filesystem
             trkr.save_model_tarball(self.output_dir, self.params.model_tarball_path)
         self.model_wrapper._clean_up_excess_files(self.model_wrapper.model_dir)
+
+   # ****************************************************************************************
+    def create_split_metadata(self):
+        """Creates metadata for each split dataset. 
+        It will save the seed used to create the split dataset and relevant parameters."""
+        self.split_data = dict(
+            dataset_key = self.params.dataset_key,
+            id_col = self.params.id_col, 
+            smiles_col = self.params.smiles_col, 
+            response_cols = self.params.response_cols,
+            seed = self.seed
+        )
+        self.splitting_metadata = self.data.get_split_metadata() 
+        self.split_data['splitting_metadata'] = self.splitting_metadata
+
+    # ****************************************************************************************
+    def save_split_metadata(self):
+        out_file = os.path.join(self.output_dir, 'split_metadata.json')
+ 
+        with open(out_file, 'w') as out:
+            json.dump(self.split_data, out, sort_keys=True, indent=4, separators=(',', ': '))
+            out.write("\n")
 
     # ****************************************************************************************
     def create_prediction_metadata(self, prediction_results):
@@ -533,6 +616,7 @@ class ModelPipeline:
             featurization = feat.create_featurization(self.params)
         self.featurization = featurization
         self.load_featurize_data()
+        self.params.split_uuid = self.data.split_uuid
         return self.data.split_uuid
 
 
@@ -572,7 +656,7 @@ class ModelPipeline:
 
         ## create model wrapper if not split_only
         if not self.params.split_only:
-            self.model_wrapper = model_wrapper.create_model_wrapper(self.params, self.featurization, self.ds_client)
+            self.model_wrapper = model_wrapper.create_model_wrapper(self.params, self.featurization, self.ds_client, random_state=self.random_state, seed=self.seed)
             self.model_wrapper.setup_model_dirs()
 
         self.load_featurize_data()
@@ -753,7 +837,7 @@ class ModelPipeline:
 
     # ****************************************************************************************
     def predict_full_dataset(self, dset_df, is_featurized=False, contains_responses=False, dset_params=None, AD_method=None, k=5, dist_metric="euclidean",
-                             max_train_records_for_AD=1000):
+                             max_train_records_for_AD=1000, AD_return_NN=False):
         """Compute predicted responses from a pretrained model on a set of compounds listed in
         a data frame. The data frame should contain, at minimum, a column of compound IDs; if
         SMILES strings are needed to compute features, they should be provided as well. Feature
@@ -796,6 +880,10 @@ class ModelPipeline:
             If the training dataset is larger than `max_train_records_for_AD`, a random sample of rows with
             this size is used instead for the AD calculations.
 
+            AD_return_NN (bool): If AD is calculated and this flag is set, additional columns will be added
+            that contain the compound_ids of the k nearest neighbors. These columns will be named
+            AD_NN_1 .. AD_NN_k. These neighbors are not in any particular order.
+
         Returns:
             result_df (DataFrame): Data frame indexed by compound IDs containing a column of SMILES
             strings, with additional columns containing the predicted values for each response variable.
@@ -832,8 +920,6 @@ class ModelPipeline:
             raise Exception("response_cols missing from model params")
         # Get features for each compound and construct a DeepChem Dataset from them
         self.data.get_featurized_data(dset_df, is_featurized)
-        # Transform the features and responses if needed
-        self.data.dataset = self.model_wrapper.transform_dataset(self.data.dataset)
 
         # Note that at this point, the dataset may contain fewer rows than the input. Typically this happens because
         # of invalid SMILES strings. Remove any rows from the input dataframe corresponding to SMILES strings that were
@@ -880,6 +966,10 @@ class ModelPipeline:
                 pred_data = self.predict_embedding(dset_df, dset_params=dset_params)
             else:
                 pred_data = copy.deepcopy(self.data.dataset.X)
+                
+            if self.featurization.feat_type=="computed_descriptors" and self.featurization.descriptor_type=='mordred_filtered':
+                pred_data = pred_data[:,~np.isnan(pred_data).all(axis=0)]
+                pred_data = np.where(np.isnan(pred_data), np.nanmean(pred_data, axis=0), pred_data)
 
             try:
                 if not hasattr(self, 'featurized_train_data'):
@@ -894,14 +984,19 @@ class ModelPipeline:
                     if len(self.data.train_valid_dsets) > 1:
                         # combine train and valid set for k-fold CV models
                         train_X = np.concatenate((self.data.train_valid_dsets[0][0].X, self.data.train_valid_dsets[0][1].X))
+                        ids = np.concatenate((self.data.train_valid_dsets[0][0].ids, self.data.train_valid_dsets[0][1].ids))
                     else:
                         train_X = self.data.train_valid_dsets[0][0].X
+                        ids = self.data.train_valid_dsets[0][0].ids
     
                     if self.featurization.feat_type == "graphconv":
                         self.log.debug("Computing training data embeddings for AD calculation.")
                         train_dset = dc.data.NumpyDataset(train_X)
                         self.featurized_train_data = self.model_wrapper.generate_embeddings(train_dset)
                     else:
+                        if self.featurization.feat_type=="computed_descriptors" and self.featurization.descriptor_type=='mordred_filtered':
+                            train_X = train_X[:,~np.isnan(train_X).all(axis=0)]
+                            train_X = np.where(np.isnan(train_X), np.nanmean(train_X, axis=0), train_X)
                         self.featurized_train_data = train_X
 
                 if not hasattr(self, "train_pair_dis") or not hasattr(self, "train_pair_dis_metric") or self.train_pair_dis_metric != dist_metric:
@@ -909,12 +1004,18 @@ class ModelPipeline:
                     self.train_pair_dis_metric = dist_metric
 
                 self.log.debug("Calculating AD index.")
-
-
+                
                 if AD_method == "local_density":
                     result_df["AD_index"] = calc_AD_kmean_local_density(self.featurized_train_data, pred_data, k, train_dset_pair_distance=self.train_pair_dis, dist_metric=dist_metric)
                 else:
-                    result_df["AD_index"] = calc_AD_kmean_dist(self.featurized_train_data, pred_data, k, train_dset_pair_distance=self.train_pair_dis, dist_metric=dist_metric)
+                    result_df["AD_index"], indexes = calc_AD_kmean_dist(self.featurized_train_data, pred_data, k, train_dset_pair_distance=self.train_pair_dis, dist_metric=dist_metric)
+
+                if AD_return_NN:
+                    for neigh in range(k):
+                        neigh_ids = []
+                        for comp in range(len(indexes)):
+                            neigh_ids.append(ids[indexes[comp][neigh]])
+                        result_df[f'AD_NN_{neigh}'] = neigh_ids
 
             except:
                 self.log.warning("AD index calculation failed")
@@ -956,7 +1057,7 @@ class ModelPipeline:
         self.data = model_datasets.create_minimal_dataset(self.params, self.featurization)
         self.data.get_featurized_data(dset_df, is_featurized=False)
         # Not sure the following is necessary
-        self.data.dataset = self.model_wrapper.transform_dataset(self.data.dataset)
+        self.data.dataset = self.model_wrapper.transform_dataset(self.data.dataset, fold='final')
 
         # Get the embeddings as a numpy array
         embeddings = self.model_wrapper.generate_embeddings(self.data.dataset)
@@ -1052,7 +1153,9 @@ def run_models(params, shared_featurization=None, generator=False):
 
         # Create the ModelWrapper object.
         pipeline.model_wrapper = model_wrapper.create_model_wrapper(pipeline.params, featurization,
-                                                                    pipeline.ds_client)
+                                                                    pipeline.ds_client,
+                                                                    random_state=pipeline.random_state,
+                                                                    seed=pipeline.seed)
 
         # Get the tarball containing the saved model from the datastore, and extract it into model_dir.
         model_dataset_oid = metadata_dict['model_parameters']['model_dataset_oid']
@@ -1144,7 +1247,9 @@ def regenerate_results(result_dir, params=None, metadata_dict=None, shared_featu
     # Create the ModelWrapper object.
 
     pipeline.model_wrapper = model_wrapper.create_model_wrapper(pipeline.params, featurization,
-                                                                pipeline.ds_client)
+                                                                pipeline.ds_client,
+                                                                random_state=pipeline.random_state,
+                                                                seed=pipeline.seed)
     # Get the tarball containing the saved model from the datastore, and extract it into model_dir (old format)
     # or output_dir (new format) according to the format of the tarball contents.
 
@@ -1372,7 +1477,9 @@ def create_prediction_pipeline_from_file(params, reload_dir, model_path=None, mo
     pipeline.orig_params = orig_params
 
     # Create the ModelWrapper object.
-    pipeline.model_wrapper = model_wrapper.create_model_wrapper(pipeline.params, featurization)
+    pipeline.model_wrapper = model_wrapper.create_model_wrapper(pipeline.params, featurization,
+                                                                random_state=pipeline.random_state,
+                                                                seed=pipeline.seed)
 
     orig_log_level = pipeline.log.getEffectiveLevel()
     if verbose:
@@ -1538,7 +1645,7 @@ def ensemble_predict(model_uuids, collections, dset_df, labels=None, dset_params
             raise Exception("response_cols missing from model params")
         is_featurized = (len(set(pipe.featurization.get_feature_columns()) - set(dset_df.columns.values)) == 0)
         pipe.data.get_featurized_data(dset_df, is_featurized)
-        pipe.data.dataset = pipe.model_wrapper.transform_dataset(pipe.data.dataset)
+        pipe.data.dataset = pipe.model_wrapper.transform_dataset(pipe.data.dataset, fold='final')
 
         # Create a temporary data frame to hold the compound IDs and predictions. The model may not
         # return predictions for all the requested compounds, so we have to outer join the predictions

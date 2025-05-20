@@ -235,7 +235,7 @@ models to select the best hyperparameters"**.
 
 
 Examples of Other Parameter Sets
-*****************************
+********************************
 
 Below are some parameters that can be used for **neural networks**,
 `XGBoost <https://en.wikipedia.org/wiki/XGBoost>`_ models,

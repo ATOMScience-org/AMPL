@@ -1,0 +1,41 @@
+{
+    "comment": "System",
+    "comment": "----------------------------------------",
+    "system": "LC",
+    "datastore": "False",
+    "save_results": "False",
+    "data_owner": "username",
+
+    "comment": "Input file",
+    "comment": "----------------------------------------",
+    "comment": "Note: dataset_key must be a path/file name: E.G. ./dataset.csv",
+    "dataset_key": "./delaney-processed_curated_fit.csv",
+    "id_col": "Compound ID",
+    "smiles_col": "smiles",
+
+    "comment": "Prediction Type",
+    "comment": "----------------------------------------",
+    "response_cols": "measured log solubility in mols per litre",
+    "prediction_type": "regression",
+
+    "comment": "Features",
+    "comment": "----------------------------------------",
+    "featurizer": "ecfp",
+
+    "comment": "Model",
+    "comment": "----------------------------------------",
+    "model_type": "NN",
+    "dropout": ".01,.01,.01",
+    "layer_sizes": "256,50,18",
+    "learning_rate": "0.00007",
+    "max_epochs": "5",
+    
+    "comment": "Training",
+    "comment": "----------------------------------------",
+    "comment": "This regulates how long to train the model",
+    "early_stopping_patience": "500",
+
+    "comment": "Results",
+    "comment": "----------------------------------------",    
+    "result_dir": "result"
+}

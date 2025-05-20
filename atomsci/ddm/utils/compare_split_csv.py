@@ -2,6 +2,13 @@ import pandas as pd
 import argparse
 
 def parse_args():
+    """
+    Parse command-line arguments for comparing two split files.
+    Returns:
+        argparse.Namespace: An object containing the parsed command-line arguments.
+            - split1 (str): Path to the first split file.
+            - split2 (str): Path to the second split file.
+    """
     parser = argparse.ArgumentParser()
 
     parser.add_argument('split1', type=str, help='First split file')
@@ -10,9 +17,48 @@ def parse_args():
     return parser.parse_args()
 
 def compare_split_files(split1, split2):
+    """
+    Compare two CSV files containing dataset splits.
+
+    This function reads two CSV files and compares their contents using the
+    `compare_splits` function.
+
+    Args:
+        split1 (str): Path to the first CSV file.
+        split2 (str): Path to the second CSV file.
+
+    Returns:
+        None: The function performs the comparison but ignores the return value from `compare_splits`.
+    """
     compare_splits(pd.read_csv(split1), pd.read_csv(split2))
 
 def compare_splits(split1, split2):
+    """
+    Compare two data splits to determine if they are effectively the same.
+    This function checks whether two pandas DataFrames, `split1` and `split2`, 
+    have the same subset/fold groupings and whether the compounds within each 
+    group are identical. It performs the following checks:
+    1. Verifies that the subset/fold pairs in both splits are identical.
+    2. Ensures that the number of compounds in each subset/fold group is the same.
+    3. Confirms that the compounds in each subset/fold group are identical.
+    4. Checks that the sorted lists of compounds in each group are identical.
+    If any of these checks fail, the function prints detailed information about 
+    the differences and returns `False`. If all checks pass, it prints a success 
+    message and returns `True`.
+    Args:
+        split1 (pd.DataFrame): The first data split to compare. Must contain 
+            columns `subset`, `fold`, and `cmpd_id`.
+        split2 (pd.DataFrame): The second data split to compare. Must contain 
+            columns `subset`, `fold`, and `cmpd_id`.
+    Returns:
+        bool: `True` if the splits are effectively the same, `False` otherwise.
+    Notes:
+        - The function assumes that the input DataFrames are grouped by the 
+          columns `subset` and `fold`.
+        - If there are differences in the compounds, the function prints the 
+          number of differing compounds and lists them if the count is less 
+          than 10.
+    """
     groups1 = split1.groupby(['subset', 'fold'])
     groups2 = split2.groupby(['subset', 'fold'])
 

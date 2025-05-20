@@ -50,5 +50,6 @@
     "comment": "Test",
     "comment": "just needs to run, doesn't need to pass",
     "comment": "----------------------------------------",    
-    "perf_threshold": "0.3"
+    "perf_threshold": "0.3",
+    "seed": "0"
 }
