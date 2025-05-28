@@ -1,0 +1,14 @@
+bokeh
+ipykernel
+jupyter
+jupyterlab
+maestrowf
+matplotlib
+matplotlib-venn
+pytest
+pytest-cov
+pytest-mock
+pytest-xdist
+ruff
+seaborn>=0.13.0
+umap-learn
