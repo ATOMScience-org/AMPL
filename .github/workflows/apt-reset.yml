@@ -1,6 +1,6 @@
 name: "APT Reset"
-on:
-  workflow_call:
+
+on: [push]
 
 jobs:
   show-apt-sources:
