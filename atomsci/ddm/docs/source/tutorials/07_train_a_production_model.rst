@@ -4,6 +4,12 @@
 
 *Published: June, 2024, ATOM DDM Team*
 
+Please check out the companion tutorial video: |youtube-image|
+
+.. |youtube-image| image:: ../_static/img/youtube_icon.png
+   :alt: Tutorial 07 Train Production Model
+   :target: https://www.youtube.com/watch?v=uC7aNILqnCc
+
 ------------
 
 In this tutorial, you will use the existing hyperparameters that yielded

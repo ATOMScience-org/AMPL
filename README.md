@@ -19,7 +19,9 @@ Check out our new tutorial series that walks through AMPL's end-to-end modeling 
 
 ![Static Badge](https://img.shields.io/badge/Announcement-1.7.0-blue)
 
-In addition to our written tutorials, we now provide a series of video tutorials on our YouTube channel, [ATOMScience-org](https://www.youtube.com/channel/UCOF6zZ7ltGwopYCoOGIFM-w). These videos are created to assist users in exploring and leveraging AMPL's robust capabilities.
+In addition to our written tutorials, we now provide a series of video tutorials on our YouTube channel, [ATOMScience-org](https://www.youtube.com/channel/UCOF6zZ7ltGwopYCoOGIFM-w). These videos are created to assist users in exploring and leveraging AMPL's robust capabilities. We provided a playlist for easy streamlined Learning: 
+
+[![AMPL Tutorial Playlist](https://img.shields.io/badge/AMPL_Tutorial_Playlist-%23FF0000.svg?logo=YouTube&logoColor=white)](https://www.youtube.com/playlist?list=PLe85Q-Gf8eFgYGQmUDSTlSjJorQZyDG8E)
 
 ---
 ## Table of contents
