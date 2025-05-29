@@ -3,6 +3,19 @@ on:
   workflow_call:
 
 jobs:
+  show-apt-sources:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Show apt sources
+        run: |
+          echo "=== /etc/apt/sources.list ==="
+          cat /etc/apt/sources.list
+          echo "=== /etc/apt/sources.list.d/ ==="
+          ls -l /etc/apt/sources.list.d/
+          for f in /etc/apt/sources.list.d/*.list; do
+            echo "=== $f ==="
+            cat "$f"
+          done
   reset-apt:
     runs-on: ubuntu-latest
     steps:

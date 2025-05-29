@@ -3,8 +3,6 @@ name: linter
 on: [push]
 
 jobs:
-  call-reset:
-    uses: ./.github/workflows/apt-reset.yml
   ruff:
     runs-on: ubuntu-latest
     strategy:
