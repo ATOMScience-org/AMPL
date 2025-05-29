@@ -4,8 +4,13 @@
 
 *Published: June, 2024, ATOM DDM Team*
 
-------------
+Please check out the companion tutorial video: |youtube-image|
 
+.. |youtube-image| image:: ../_static/img/youtube_icon.png
+   :alt: Tutorial 04 Application of a Trained Model
+   :target: https://www.youtube.com/watch?v=El5ZcyDRMhQ
+
+------------
 
 In this tutorial we will show you how to use a trained model to make
 predictions for a new set of compounds. As an example, we will take the

@@ -4,6 +4,12 @@
 
 *Published: June, 2024, ATOM DDM Team*
 
+Please check out the companion tutorial video: |youtube-image|
+
+.. |youtube-image| image:: ../_static/img/youtube_icon.png
+   :alt: Tutorial 05 Hyperparameter Optimization
+   :target: https://www.youtube.com/watch?v=lK-pP3mZAng
+
 ------------
 
 Hyperparameters dictate the parameters of the training process and the

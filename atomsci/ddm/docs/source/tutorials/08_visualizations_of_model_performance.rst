@@ -4,8 +4,13 @@
 
 *Published: June, 2024, ATOM DDM Team*
 
-------------
+Please check out the companion tutorial video: |youtube-image|
 
+.. |youtube-image| image:: ../_static/img/youtube_icon.png
+   :alt: Tutorial 08 Visualization Model Performance
+   :target: https://www.youtube.com/watch?v=D29yObV8AYI
+
+------------
 
 In this tutorial, we will use some of the tools provided by
 `AMPL <https://github.com/ATOMScience-org/AMPL>`_ to visualize the

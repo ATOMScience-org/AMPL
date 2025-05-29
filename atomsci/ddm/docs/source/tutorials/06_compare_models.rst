@@ -4,8 +4,13 @@
 
 *Published: June, 2024, ATOM DDM Team*
 
-------------
+Please check out the companion tutorial video: |youtube-image|
 
+.. |youtube-image| image:: ../_static/img/youtube_icon.png
+   :alt: Tutorial 06 Compare Models
+   :target: https://www.youtube.com/watch?v=fNdSZGtZjWk
+
+------------
 
 This tutorial will review
 `AMPL <https://github.com/ATOMScience-org/AMPL>`_ functions for
