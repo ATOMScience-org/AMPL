@@ -23,7 +23,7 @@ RUN pip install -U pip && \
     --trusted-host download.pytorch.org \
     -r ./pip/mchip_requirements.txt
 
-COPY ./pip/dev_requirements.txt ./pip/dev_requirements.txt
+COPY ./pip/mchip_dev_requirements.txt ./pip/mchip_dev_requirements.txt
 RUN pip install -U pip && \
     pip install --no-cache-dir \
     --trusted-host pypi.python.org \
@@ -31,7 +31,7 @@ RUN pip install -U pip && \
     --trusted-host pypi.org \
     --trusted-host data.dgl.ai \
     --trusted-host download.pytorch.org \
-    -r ./pip/dev_requirements.txt
+    -r ./pip/mchip_dev_requirements.txt
 
 COPY setup.py .
 COPY VERSION .
