@@ -5,6 +5,8 @@ on:
     types: [published]
 
 jobs:
+  call-reset:
+    uses: ./.github/workflows/apt-reset.yml
   build-gpu-image:
     runs-on: ubuntu-latest
     steps:

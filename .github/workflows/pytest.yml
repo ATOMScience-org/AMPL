@@ -10,6 +10,8 @@ on:
         - ready_for_review
 
 jobs:
+  call-reset:
+    uses: ./.github/workflows/apt-reset.yml
   pytest-unit:
     runs-on: ubuntu-latest
     strategy:

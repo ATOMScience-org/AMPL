@@ -1,0 +1,14 @@
+name: "APT Reset"
+on:
+  workflow_call:
+
+jobs:
+  reset-apt:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Reset apt sources
+        run: |
+          # your cleanup commands here
+          sudo rm -f /etc/apt/sources.list.d/*
+          sudo apt-get clean
+          sudo apt-get update
