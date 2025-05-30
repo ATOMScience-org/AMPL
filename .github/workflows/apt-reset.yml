@@ -6,6 +6,8 @@ jobs:
   show-apt-sources:
     runs-on: ubuntu-latest
     steps:
+      - name: Show image version
+        run: cat /etc/microsoft-prod-release || echo "File not found"
       - name: Show apt sources
         run: |
           echo "=== /etc/apt/sources.list ==="
