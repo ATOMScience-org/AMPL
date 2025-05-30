@@ -4,10 +4,14 @@ on: [push]
 
 jobs:
   show-apt-sources:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Show image version
-        run: cat /etc/microsoft-prod-release || echo "File not found"
+        run: |
+          cat /etc/microsoft-prod-release || echo "File not found"
+          dpkg -l | grep microsoft
+          dpkg -l | grep mssql
+          dpkg -l | grep azure
       - name: Show apt sources
         run: |
           echo "=== /etc/apt/sources.list ==="

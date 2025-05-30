@@ -5,7 +5,7 @@
 # for LC developers: comment out pypi index url and use t$
 # --extra-index-url https://wci-repo.llnl.gov/repository/$
 
-tensorflow~=2.14.0
+tensorflow-cpu~=2.14.0
 
 torch==2.0.1
 torch_geometric
