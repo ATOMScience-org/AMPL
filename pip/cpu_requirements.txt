@@ -7,7 +7,7 @@
 
 tensorflow-cpu~=2.14.0
 
-torch==2.0.1
+torch==2.7.0
 torch_geometric
 lightning
 
