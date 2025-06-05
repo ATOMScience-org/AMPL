@@ -38,11 +38,6 @@ def test_remove_outlier_replicates():
     n_removed = len(raw_df) - n_filt_rows
     assert (n_removed == 7), f"Error: {n_removed} rows were removed, expected 7"
 
-    filt_file = f"{script_path}/{test_file_prefix}-filtered.csv"
-    filt_df.to_csv(filt_file, index=False)
-    print(f"Wrote outlier-filtered data to {filt_file}")
-    return filt_df
-
 def test_aggregate_assay_data(filt_df=None):
     """Test curate_data.aggregate_assay_data, the preferred function for averaging replicate values over compounds"""
     if filt_df is None:

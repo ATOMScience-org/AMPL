@@ -4,6 +4,12 @@
 
 *Published: June, 2024, ATOM DDM Team*
 
+Please check out the companion tutorial video: |youtube-image|
+
+.. |youtube-image| image:: ../_static/img/youtube_icon.png
+   :alt: Tutorial 01 Data Curation
+   :target: https://www.youtube.com/watch?v=a-uRfjF8izs
+
 ------------
 
 To train a machine learning model from data, that data must first be
