@@ -3,11 +3,15 @@
 import pandas as pd
 import os
 
+import pytest
+
 import atomsci.ddm.utils.curate_data as curate_data
 
 script_path = os.path.dirname(os.path.realpath(__file__))
 test_file_prefix = 'pGP_MDCK_efflux_ratio_chembl29'
 test_files = [f"{script_path}/{test_file_prefix}-{suffix}.csv" for suffix in ['filtered', 'aggregated', 'averaged']]
+filt_file = f"{script_path}/{test_file_prefix}-filtered.csv"
+filt_df = None
 
 def clean():
     """
@@ -24,6 +28,11 @@ def get_raw_data():
     raw_df = pd.read_csv(dset_path)
     return raw_df
 
+def write_to_file(filt_df, filt_file):
+    filt_df.to_csv(filt_file, index=False)
+    print(f"Wrote outlier-filtered data to {filt_file}")
+    return filt_df
+
 def test_remove_outlier_replicates():
     """Test outlier removal using curate_data.remove_outlier_replicates"""
     raw_df = get_raw_data()
@@ -38,27 +47,28 @@ def test_remove_outlier_replicates():
     n_removed = len(raw_df) - n_filt_rows
     assert (n_removed == 7), f"Error: {n_removed} rows were removed, expected 7"
 
-    filt_file = f"{script_path}/{test_file_prefix}-filtered.csv"
-    filt_df.to_csv(filt_file, index=False)
-    print(f"Wrote outlier-filtered data to {filt_file}")
-    return filt_df
+    write_to_file(filt_df, filt_file)
 
-def test_aggregate_assay_data(filt_df=None):
+def test_aggregate_assay_data():
     """Test curate_data.aggregate_assay_data, the preferred function for averaging replicate values over compounds"""
-    if filt_df is None:
-        filt_df = test_remove_outlier_replicates()
-    agg_df = curate_data.aggregate_assay_data(filt_df, value_col='log_efflux_ratio', label_actives=False,
+    if not os.path.exists(filt_file):
+        test_remove_outlier_replicates()
+    else:
+        try:
+            filt_df = pd.read_csv(filt_file)
+            agg_df = curate_data.aggregate_assay_data(filt_df, value_col='log_efflux_ratio', label_actives=False,
                                               id_col='compound_id', smiles_col='base_rdkit_smiles', relation_col='relation')
-    n_agg_rows = len(agg_df)
-    n_agg_cmpds = len(set(agg_df.base_rdkit_smiles.values))
-    print(f"Aggregated data has {n_agg_rows} rows, {n_agg_cmpds} unique compounds")
-    assert (n_agg_rows == 803), "Error: expected 803 rows in aggregated data"
-    assert (n_agg_cmpds == 803), "Error: expected 803 unique compounds in aggregated data"
+            n_agg_rows = len(agg_df)
+            n_agg_cmpds = len(set(agg_df.base_rdkit_smiles.values))
+            print(f"Aggregated data has {n_agg_rows} rows, {n_agg_cmpds} unique compounds")
+            assert (n_agg_rows == 803), "Error: expected 803 rows in aggregated data"
+            assert (n_agg_cmpds == 803), "Error: expected 803 unique compounds in aggregated data"
 
-    agg_file = f"{script_path}/{test_file_prefix}-aggregated.csv"
-    agg_df.to_csv(agg_file, index=False)
-    print(f"Wrote aggregated data to {agg_file}")
-
+            agg_file = f"{script_path}/{test_file_prefix}-aggregated.csv"
+            agg_df.to_csv(agg_file, index=False)
+            print(f"Wrote aggregated data to {agg_file}")
+        except Exception as e:
+            pytest.fail(f"Could not read file {filt_file}: {e}")
 
 def test_average_and_remove_duplicates():
     """Test outlier removal and averaging using deprecated curation function"""
@@ -88,10 +98,10 @@ def test():
     clean()
 
     # Filter out outliers (preferred method)
-    filt_df = test_remove_outlier_replicates()
+    test_remove_outlier_replicates()
 
     # Average replicate values per compound (preferred method)
-    test_aggregate_assay_data(filt_df)
+    test_aggregate_assay_data()
     
     # Remove outliers and average over replicates (old method)
     test_average_and_remove_duplicates()
