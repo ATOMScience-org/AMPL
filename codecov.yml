@@ -9,6 +9,8 @@ ignore:
   - "venv"
   - ".venv"
   - "pip"
-
+  - "atomsci/ddm/tests/**"
+  - "atomsci/ddm/docs/**"
+  - "setup.py"
 github_checks:
   annotations: false
