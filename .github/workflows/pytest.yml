@@ -51,11 +51,18 @@ jobs:
           cd atomsci/ddm/test/unit && python3.9 -m pytest -n 2 --capture=sys --capture=fd --cov=atomsci -vv
         env:
           ENV: test
+
       - name: Upload coverage-part1
         uses: actions/upload-artifact@v4
         with:
           name: coverage-part1
           path: .coverage
+      
+      - name: Check current directory
+        run: pwd
+
+      - name: Check for .coverage file
+        run: ls -l .coverage
 
   pytest-integrative-1:
     runs-on: ubuntu-24.04
@@ -102,6 +109,12 @@ jobs:
         with:
           name: coverage-part2
           path: .coverage
+  
+      - name: Check current directory
+        run: pwd
+
+      - name: Check for .coverage file
+        run: ls -l .coverage
 
   pytest-integrative-2:
     runs-on: ubuntu-24.04
@@ -143,11 +156,18 @@ jobs:
           cd atomsci/ddm/test/integrative && ./integrative_batch_chunk_tests 1
         env:
           ENV: test
+      
       - name: Upload coverage-part3
         uses: actions/upload-artifact@v4
         with:
           name: coverage-part3
           path: .coverage
+
+      - name: Check current directory
+        run: pwd
+
+      - name: Check for .coverage file
+        run: ls -l .coverage
 
   pytest-integrative-3:
     runs-on: ubuntu-24.04
@@ -182,6 +202,7 @@ jobs:
           pip install -e .
           if [ -f pip/cpu_requirements.txt ]; then pip install -r pip/cpu_requirements.txt; fi
           if [ -f pip/dev_requirements.txt ]; then pip install -r pip/dev_requirements.txt; fi
+      
       - name: pytest
         run: |
           # TODO: Run this test with pytest for paralell testing
@@ -189,11 +210,18 @@ jobs:
           cd atomsci/ddm/test/integrative && ./integrative_batch_chunk_tests 2
         env:
           ENV: test
+      
       - name: Upload coverage-part4
         uses: actions/upload-artifact@v4
         with:
           name: coverage-part4
           path: .coverage
+  
+      - name: Check current directory
+        run: pwd
+        
+      - name: Check for .coverage file
+        run: ls -l .coverage
 
   pytest-integrative-4:
     runs-on: ubuntu-24.04
@@ -228,6 +256,7 @@ jobs:
           pip install -e .
           if [ -f pip/cpu_requirements.txt ]; then pip install -r pip/cpu_requirements.txt; fi
           if [ -f pip/dev_requirements.txt ]; then pip install -r pip/dev_requirements.txt; fi
+      
       - name: pytest
         run: |
           # TODO: Run this test with pytest for paralell testing
@@ -235,11 +264,18 @@ jobs:
           cd atomsci/ddm/test/integrative && ./integrative_batch_chunk_tests 3
         env:
           ENV: test
+      
       - name: Upload coverage-part5
         uses: actions/upload-artifact@v4
         with:
           name: coverage-part5
           path: .coverage
+  
+      - name: Check current directory
+        run: pwd
+
+      - name: Check for .coverage file
+        run: ls -l .coverage
 
   combine-and-upload:
     name: Combine codecov and upload
@@ -251,6 +287,9 @@ jobs:
         with:
           python-version: "3.9"
       - run: pip install coverage codecov
+
+      - name: Check current directory
+        run: pwd
 
       # Download all coverage artifacts
       - uses: actions/download-artifact@v4
