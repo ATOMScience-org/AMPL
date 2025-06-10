@@ -135,6 +135,7 @@ jobs:
           python3.9 -m pip install --upgrade pip
           pip install -e .
           if [ -f pip/cpu_requirements.txt ]; then pip install -r pip/cpu_requirements.txt; fi
+          if [ -f pip/dev_requirements.txt ]; then pip install -r pip/dev_requirements.txt; fi
       - name: pytest
         run: |
           # TODO: Run this test with pytest for paralell testing
@@ -179,6 +180,8 @@ jobs:
         run: |
           python3.9 -m pip install --upgrade pip
           pip install -e .
+          if [ -f pip/cpu_requirements.txt ]; then pip install -r pip/cpu_requirements.txt; fi
+          if [ -f pip/dev_requirements.txt ]; then pip install -r pip/dev_requirements.txt; fi
       - name: pytest
         run: |
           # TODO: Run this test with pytest for paralell testing
@@ -222,6 +225,9 @@ jobs:
       - name: Install dependencies
         run: |
           python3.9 -m pip install --upgrade pip
+          pip install -e .
+          if [ -f pip/cpu_requirements.txt ]; then pip install -r pip/cpu_requirements.txt; fi
+          if [ -f pip/dev_requirements.txt ]; then pip install -r pip/dev_requirements.txt; fi
       - name: pytest
         run: |
           # TODO: Run this test with pytest for paralell testing
