@@ -52,14 +52,19 @@ jobs:
         env:
           ENV: test
 
-      - name: Move .coverage to root
+      - name: Combine .coverage files (for parallel test run)
         run: |
-          if [ -f atomsci/ddm/test/unit/.coverage ]; then
-            mv atomsci/ddm/test/unit/.coverage .
+          cd atomsci/ddm/test/unit
+          python3.9 -m coverage combine || echo "No coverage files to combine"
+          if [ -f .coverage ]; then
+            mv .coverage $GITHUB_WORKSPACE
           fi
 
       - name: Check for .coverage file
         run: ls -l .coverage || echo ".coverage not found"
+
+      - name: Combine coverage files
+        run: coverage combine .coverage.*
 
       - name: Upload coverage-part1
         uses: actions/upload-artifact@v4
@@ -112,12 +117,15 @@ jobs:
       - name: Move .coverage to root
         run: |
           if [ -f atomsci/ddm/test/integrative/.coverage ]; then
-            mv atomsci/ddm/test/integrative/.coverage .
+            mv atomsci/ddm/test/integrative/.coverage.* .
           fi
 
       - name: Check for .coverage file
-        run: ls -l .coverage || echo ".coverage not found"
+        run: ls -l .coverage* || echo ".coverage not found"
 
+      - name: Combine coverage files
+        run: coverage combine .coverage.*
+      
       - name: Upload coverage-part2
         uses: actions/upload-artifact@v4
         with:
@@ -173,8 +181,11 @@ jobs:
           fi
 
       - name: Check for .coverage file
-        run: ls -l .coverage || echo ".coverage not found"
-        
+        run: ls -l .coverage* || echo ".coverage not found"
+
+      - name: Combine coverage files
+        run: coverage combine .coverage.*  
+      
       - name: Upload coverage-part3
         uses: actions/upload-artifact@v4
         with:
@@ -225,12 +236,15 @@ jobs:
 
       - name: Move .coverage to root
         run: |
-          if [ -f atomsci/ddm/test/integrative/.coverage ]; then
-            mv atomsci/ddm/test/integrative/.coverage .
+          if [ -f atomsci/ddm/test/integrative/.coverage.* ]; then
+            mv atomsci/ddm/test/integrative/.coverage.* .
           fi
 
       - name: Check for .coverage file
-        run: ls -l .coverage || echo ".coverage not found"
+        run: ls -l .coverage* || echo ".coverage not found"
+
+      - name: Combine coverage files
+        run: coverage combine .coverage.*
 
       - name: Upload coverage-part4
         uses: actions/upload-artifact@v4
@@ -282,12 +296,15 @@ jobs:
 
       - name: Move .coverage to root
         run: |
-          if [ -f atomsci/ddm/test/integrative/.coverage ]; then
-            mv atomsci/ddm/test/integrative/.coverage .
+          if [ -f atomsci/ddm/test/integrative/.coverage.* ]; then
+            mv atomsci/ddm/test/integrative/.coverage.* .
           fi
 
       - name: Check for .coverage file
-        run: ls -l .coverage || echo ".coverage not found"
+        run: ls -l .coverage* || echo ".coverage not found"
+
+      - name: Combine coverage files
+        run: coverage combine .coverage.*
 
       - name: Upload coverage-part5
         uses: actions/upload-artifact@v4
