@@ -52,25 +52,23 @@ jobs:
         env:
           ENV: test
 
-      - name: Combine .coverage files (for parallel test run)
+      - name: combine/move .coverage files (for parallel test run)
         run: |
           cd atomsci/ddm/test/unit
           python3.9 -m coverage combine || echo "No coverage files to combine"
-          if [ -f .coverage ]; then
-            mv .coverage $GITHUB_WORKSPACE
+          if [ -f .coverage* ]; then
+            mv .coverage* $GITHUB_WORKSPACE
           fi
 
       - name: Check for .coverage file
-        run: ls -l .coverage || echo ".coverage not found"
-
-      - name: Combine coverage files
-        run: coverage combine .coverage.*
+        run: ls -la .coverage* || echo ".coverage not found"
 
       - name: Upload coverage-part1
         uses: actions/upload-artifact@v4
         with:
           name: coverage-part1
           path: .coverage
+          if-no-files-found: ignore
 
   pytest-integrative-1:
     runs-on: ubuntu-24.04
@@ -117,20 +115,21 @@ jobs:
       - name: Move .coverage to root
         run: |
           if [ -f atomsci/ddm/test/integrative/.coverage ]; then
-            mv atomsci/ddm/test/integrative/.coverage.* .
+            mv atomsci/ddm/test/integrative/.coverage* $GITHUB_WORKSPACE
           fi
 
       - name: Check for .coverage file
-        run: ls -l .coverage* || echo ".coverage not found"
+        run: ls -la .coverage* || echo ".coverage not found"
 
       - name: Combine coverage files
-        run: coverage combine .coverage.*
+        run: coverage combine .coverage*
       
       - name: Upload coverage-part2
         uses: actions/upload-artifact@v4
         with:
           name: coverage-part2
           path: .coverage
+          if-no-files-found: ignore
 
   pytest-integrative-2:
     runs-on: ubuntu-24.04
@@ -176,21 +175,22 @@ jobs:
      
       - name: Move .coverage to root
         run: |
-          if [ -f atomsci/ddm/test/integrative/.coverage ]; then
-            mv atomsci/ddm/test/integrative/.coverage .
+          if [ -f atomsci/ddm/test/integrative/.coverage* ]; then
+            mv atomsci/ddm/test/integrative/.coverage*  $GITHUB_WORKSPACE
           fi
 
       - name: Check for .coverage file
-        run: ls -l .coverage* || echo ".coverage not found"
+        run: ls -la .coverage* || echo ".coverage not found"
 
       - name: Combine coverage files
-        run: coverage combine .coverage.*  
+        run: coverage combine .coverage*  
       
       - name: Upload coverage-part3
         uses: actions/upload-artifact@v4
         with:
           name: coverage-part3
           path: .coverage
+          if-no-files-found: ignore
 
   pytest-integrative-3:
     runs-on: ubuntu-24.04
@@ -236,21 +236,22 @@ jobs:
 
       - name: Move .coverage to root
         run: |
-          if [ -f atomsci/ddm/test/integrative/.coverage.* ]; then
-            mv atomsci/ddm/test/integrative/.coverage.* .
+          if [ -f atomsci/ddm/test/integrative/.coverage* ]; then
+            mv atomsci/ddm/test/integrative/.coverage*  $GITHUB_WORKSPACE
           fi
 
       - name: Check for .coverage file
-        run: ls -l .coverage* || echo ".coverage not found"
+        run: ls -la .coverage* || echo ".coverage not found"
 
       - name: Combine coverage files
-        run: coverage combine .coverage.*
+        run: coverage combine .coverage*
 
       - name: Upload coverage-part4
         uses: actions/upload-artifact@v4
         with:
           name: coverage-part4
           path: .coverage
+          if-no-files-found: ignore
 
   pytest-integrative-4:
     runs-on: ubuntu-24.04
@@ -296,21 +297,22 @@ jobs:
 
       - name: Move .coverage to root
         run: |
-          if [ -f atomsci/ddm/test/integrative/.coverage.* ]; then
-            mv atomsci/ddm/test/integrative/.coverage.* .
+          if [ -f atomsci/ddm/test/integrative/.coverage* ]; then
+            mv atomsci/ddm/test/integrative/.coverage*  $GITHUB_WORKSPACE
           fi
 
       - name: Check for .coverage file
-        run: ls -l .coverage* || echo ".coverage not found"
+        run: ls -la .coverage* || echo ".coverage not found"
 
       - name: Combine coverage files
-        run: coverage combine .coverage.*
+        run: coverage combine .coverage*
 
       - name: Upload coverage-part5
         uses: actions/upload-artifact@v4
         with:
           name: coverage-part5
           path: .coverage
+          if-no-files-found: ignore
 
   combine-and-upload:
     name: Combine codecov and upload
@@ -325,6 +327,9 @@ jobs:
 
       - name: Check current directory
         run: pwd
+
+      - name: Check for .coverage file
+        run: ls -la .coverage* coverage* || echo ".coverage not found"
 
       # Download all coverage artifacts
       - uses: actions/download-artifact@v4

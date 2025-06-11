@@ -42,9 +42,6 @@ for folder in "${folders[@]}"; do
             cd "$folder"
             echo "Testing $folder"
             pytest --capture=sys --capture=fd --cov=atomsci -vv
-            if [[ -f .coverage ]]; then
-                mv .coverage ../.coverage.$folder
-            fi
             cd ..
         else
           echo "Skipping folder: $folder. Not a test directory."
