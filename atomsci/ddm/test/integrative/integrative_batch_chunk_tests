@@ -43,7 +43,8 @@ for folder in "${folders[@]}"; do
             echo "Testing $folder"
             pytest --capture=sys --capture=fd --cov=atomsci -vv
             if [[ -f .coverage ]]; then # if .coverage generated, 
-                mv .coverage* $GITHUB_WORKSPACE/.coverage.$folder # Move coverage file to the root directory 
+                mkdir -p /home/runner/work/AMPL/AMPL/.coverage.$folder
+                mv .coverage* $GITHUB_WORKSPACE/.coverage.$folder/ # Move coverage file to the root directory 
             fi
             cd ..
         else

@@ -106,22 +106,12 @@ jobs:
           # TODO: Run this test with pytest for paralell testing
           # python3.9 -m pytest -n 2 --capture=sys --capture=fd --cov=atomsci -vv atomsci/ddm/test/integrative
           cd atomsci/ddm/test/integrative && ./integrative_batch_chunk_tests 0
-          ls -la atomsci/ddm/test/integrative/.coverage* || echo ".coverage not found"
-          if [ -f atomsci/ddm/test/integrative/.coverage* ]; then
-            mv atomsci/ddm/test/integrative/.coverage* $GITHUB_WORKSPACE
-          fi
-          ls -la .coverage* || echo ".coverage not found"
         env:
           ENV: test
 
-      - name: Check for .coverage file
-        run: ls -la .coverage* || echo ".coverage not found"
-
       - name: Combine coverage files
         run: |
-          if ls .coverage* 1> /dev/null 2>&1; then
-            coverage combine .coverage*
-          fi
+          coverage combine $(find . -name '.coverage')
       
       - name: Upload coverage-part2
         uses: actions/upload-artifact@v4
