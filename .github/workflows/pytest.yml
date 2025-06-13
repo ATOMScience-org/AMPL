@@ -112,6 +112,8 @@ jobs:
       - name: Combine coverage files
         run: |
           coverage combine $(find . -name '.coverage')
+          pwd
+        working-directory: ${{ github.workspace }}
       
       - name: Upload coverage-part2
         uses: actions/upload-artifact@v4
@@ -119,6 +121,7 @@ jobs:
           name: coverage-part2
           path: .coverage
           if-no-files-found: ignore
+        working-directory: ${{ github.workspace }}
 
   # pytest-integrative-2:
   #   runs-on: ubuntu-24.04
