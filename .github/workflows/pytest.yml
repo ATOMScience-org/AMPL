@@ -100,7 +100,10 @@ jobs:
           pip install -e .
           if [ -f pip/cpu_requirements.txt ]; then pip install -r pip/cpu_requirements.txt; fi
           if [ -f pip/dev_requirements.txt ]; then pip install -r pip/dev_requirements.txt; fi
-     
+      
+      - name: Install sqlite3
+        run: sudo apt-get update && sudo apt-get install -y sqlite3
+
       - name: pytest
         run: |
           # TODO: Run this test with pytest for paralell testing
@@ -111,8 +114,19 @@ jobs:
 
       - name: Combine coverage files
         run: |
+          find . -name '.coverage*' | while read covfile; do
+            echo "Report for $covfile"
+            COVERAGE_FILE="$covfile" coverage report
+            # To inspect the file as a database:
+            sqlite3 "$covfile" ".tables"
+          done
+          
           coverage combine $(find . -name '.coverage')
-          pwd
+          if ls -a .coverage* 1> /dev/null 2>&1; then
+            coverage report |more
+          else
+            echo ".coverage files not found"
+          fi
         working-directory: ${{ github.workspace }}
       
       - name: Upload coverage-part2
