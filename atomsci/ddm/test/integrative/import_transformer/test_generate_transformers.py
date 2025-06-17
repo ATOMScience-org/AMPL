@@ -16,17 +16,20 @@ def rel_path(filename):
     """
     return os.path.join(os.path.dirname(os.path.abspath(__file__)), filename)
 
-def clean(temp_dir):
+def clean(temp_dir, transformers_pkl_path):
     if os.path.exists(temp_dir):
         shutil.rmtree(temp_dir)
+
+    if os.path.exists(transformers_pkl_path):
+        os.remove(transformers_pkl_path)
 
 def test_transformer_generation():
     descriptor_type = 'rdkit_scaled'
     temp_root = rel_path('temp')
-    clean(temp_root)
+    transformers_pkl_path = rel_path('feature_transformers.pkl')
+    clean(temp_root, transformers_pkl_path)
     assert not os.path.exists(temp_root)
     os.makedirs(temp_root, exist_ok=True)
-
 
     prepared_H1 = gt.prepare_csv_and_descriptor_with_dummy_response(
         rel_path('data/H1_std_short.csv'),
@@ -81,10 +84,6 @@ def test_transformer_generation():
     # some compounds fail to featurize. There should be less than 600 compouds total
     assert len(combined_dataset) < 600
 
-    transformers_pkl_path = rel_path('feature_transformers.pkl')
-    if os.path.exists(transformers_pkl_path):
-        os.remove(transformers_pkl_path)
-
     # fit transformers
     gt.build_and_save_feature_transformers_from_csvs(
         dataset_key_configs,
@@ -136,7 +135,7 @@ def test_transformer_generation():
 
     # check that the PowerTransformer was used instead of RobustScaler
     assert model_pipeline.params.feature_transform_type == 'PowerTransformer'
-    transformers_x = model_pipeline.transformers_x
+    transformers_x = model_pipeline.model_wrapper.transformers_x
     assert len(transformers_x[0])==1
     assert isinstance(transformers_x[0][0], trans.SklearnPipelineWrapper)
     assert isinstance(transformers_x[0][0].sklearn_pipeline, Pipeline)
@@ -145,10 +144,7 @@ def test_transformer_generation():
 
 
     # cleanup
-    clean(temp_root)
-    if os.path.exists(transformers_pkl_path):
-        os.remove(transformers_pkl_path)
-
+    clean(temp_root, transformers_pkl_path)
 
 if __name__ == '__main__':
     test_transformer_generation()
