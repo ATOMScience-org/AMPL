@@ -16,6 +16,8 @@ properties. We have created easy to follow tutorials that walk through the steps
 `AMPL <https://github.com/ATOMScience-org/AMPL>`_, curate a dataset, effectively train and evaluate a machine 
 learning model, and use that model to make predictions.
 
+In addition to our written tutorials, we now provide a series of video tutorials on our YouTube channel, `ATOMScience-org <https://www.youtube.com/channel/UCOF6zZ7ltGwopYCoOGIFM-w>`_.  These videos are created to assist users in exploring and leveraging AMPL's robust capabilities.
+
 End-to-End Modeling Pipeline Tutorial Series
 ********************************************
 
@@ -27,6 +29,65 @@ End-to-End Modeling Pipeline Tutorial Series
 * Tutorial 6: Comparing models to select the best hyperparameters
 * Tutorial 7: Train a Production Model
 * Tutorial 8: Visualizations of Model Performance
+
+Tutorial Series on YouTube
+**************************
+
+.. image:: ../_static/img/ampl_intro_video.png
+   :target: https://www.youtube.com/watch?v=GIjT7tP0CBw
+   :alt: Intro to AMPL YouTube Video
+   :width: 160px
+   :height: 100px
+
+.. image:: ../_static/img/tutorial_1_video.png
+   :target: https://www.youtube.com/watch?v=a-uRfjF8izs
+   :alt: Tutorial 1: Data Curation YouTube Video
+   :width: 160px
+   :height: 100px
+
+.. image:: ../_static/img/tutorial_2_video.png
+   :target: https://www.youtube.com/watch?v=gsa2xfG3OSE
+   :alt: Tutorial 2: Splitting Datasets for Validation and Testing
+   :width: 160px
+   :height: 100px
+
+.. image:: ../_static/img/tutorial_3_video.png
+   :target: https://www.youtube.com/watch?v=46PhwXqqnyg
+   :alt: Tutorial 3: Train a Simple Regression Model
+   :width: 160px
+   :height: 100px
+
+.. image:: ../_static/img/tutorial_4_video.png
+   :target: https://www.youtube.com/watch?v=El5ZcyDRMhQ
+   :alt: Tutorial 4: Application of a Trained Model
+   :width: 160px
+   :height: 100px
+
+|
+
+.. image:: ../_static/img/tutorial_5_video.png
+   :target: https://www.youtube.com/watch?v=lK-pP3mZAng
+   :alt: Tutorial 5: Hyperparameter Optimization
+   :width: 160px
+   :height: 100px
+
+.. image:: ../_static/img/tutorial_6_video.png
+   :target: https://www.youtube.com/watch?v=fNdSZGtZjWk
+   :alt: Tutorial 6: Comparing models to select the best hyperparameters
+   :width: 160px
+   :height: 100px
+
+.. image:: ../_static/img/tutorial_7_video.png
+   :target: https://www.youtube.com/watch?v=uC7aNILqnCc
+   :alt: Tutorial 7: Train a Production Model
+   :width: 160px
+   :height: 100px
+
+.. image:: ../_static/img/tutorial_8_video.png
+   :target: https://www.youtube.com/watch?v=D29yObV8AYI
+   :alt: Tutorial 8: Visualizations of Model Performance
+   :width: 160px
+   :height: 100px
 
 How to Use These Tutorials
 **************************

@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 import os
 import sys
+import pytest
 
 import atomsci.ddm.pipeline.parameter_parser as parse
 from atomsci.ddm.pipeline import model_pipeline as mp
@@ -19,6 +20,7 @@ def clean():
         if os.path.isfile("./output/"+f):
             os.remove("./output/"+f)
 
+@pytest.mark.moe_required
 def test():
     """Test full model pipeline: Curate data, fit model, and predict property for new compounds"""
 

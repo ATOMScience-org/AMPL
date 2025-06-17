@@ -1714,7 +1714,7 @@ def parse_params(param_list):
     argparse.Namespace
 
     Args:
-        *any_arg: any single input of a str, dict, argparse.Namespace, or list
+        \*any_arg: any single input of a str, dict, argparse.Namespace, or list
 
     Returns:
         argparse.Namespace

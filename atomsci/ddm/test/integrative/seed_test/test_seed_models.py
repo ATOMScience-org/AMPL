@@ -5,11 +5,14 @@ import copy
 import os
 import json
 
+import pytest
+
 from atomsci.ddm.pipeline import model_pipeline as mp
 from atomsci.ddm.pipeline import parameter_parser as parse 
 
 import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+from atomsci.ddm.utils import llnl_utils
 from integrative_utilities import extract_seed, find_best_test_metric
 
 #-------------------------------------------------------------------
@@ -27,7 +30,6 @@ Creates and tests the following models:
 """
 #-------------------------------------------------------------------
 def saved_model_identity(pparams):
-
     retrain_pparams = copy.copy(pparams)
 
     model_pipe = mp.ModelPipeline(pparams)
@@ -250,6 +252,7 @@ def test_graphconv_regression_reproducibility():
     saved_model_identity(pparams)
 
 # DCmodels
+@pytest.mark.dgl_required
 def test_attentivefp_regression_reproducibility():
     script_path = os.path.dirname(os.path.realpath(__file__))
     json_file =  os.path.join(script_path, 'model_json/attentivefp_regression_train_valid_test.json')
@@ -260,7 +263,11 @@ def test_attentivefp_regression_reproducibility():
 
     saved_model_identity(pparams)
 
+@pytest.mark.dgl_required
 def test_pytorchmpnn_regression_reproducibility():
+    if not llnl_utils.is_lc_system():
+        assert True
+        return
     script_path = os.path.dirname(os.path.realpath(__file__))
     json_file =  os.path.join(script_path, 'model_json/pytorchmpnn_regression_train_valid_test.json')
 

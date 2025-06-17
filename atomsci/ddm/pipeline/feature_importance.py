@@ -138,32 +138,35 @@ def _get_scorer(score_type):
 
 # ===================================================================================================
 def base_feature_importance(model_pipeline=None, params=None):
-    """Minimal baseline feature importance function. Given an AMPL model (or the parameters to train a model),
-    returns a data frame with a row for each feature. The columns of the data frame depend on the model type and
-    prediction type. If the model is a binary classifier, the columns include  t-statistics and p-values
-    for the differences between the means of the active and inactive compounds. If the model is a random forest,
-    the columns will include the mean decrease in impurity (MDI) of each feature, computed by the scikit-learn
-    feature_importances_ function. See the scikit-learn documentation for warnings about interpreting the MDI
-    importance. For all models, the returned data frame will include feature names, means and standard deviations
-    for each feature. The importances are calculated using only the training subset of the data.
+    """Minimal baseline feature importance function.
 
-    This function has been tested on RFs and NNs with rdkit descriptors. Other models and feature combinations
+    Given an AMPL model (or the parameters to train a model), returns a DataFrame with a row for each feature. 
+    The columns of the DataFrame depend on the model type and prediction type. If the model is a binary classifier, 
+    the columns include t-statistics and p-values for the differences between the means of the active and inactive 
+    compounds. If the model is a random forest, the columns will include the mean decrease in impurity (MDI) of each 
+    feature, computed by the scikit-learn `feature_importances_` function. See the scikit-learn documentation for 
+    warnings about interpreting the MDI importance. For all models, the returned DataFrame will include feature names, 
+    means, and standard deviations for each feature. The importances are calculated using only the training subset of 
+    the data.
+
+    This function has been tested on RFs and NNs with rdkit descriptors. Other models and feature combinations 
     may not be supported.
 
     Args:
-        model_pipeline (`ModelPipeline`): A pipeline object for a model that was trained in the current Python session
-        or loaded from the model tracker or a tarball file. Either model_pipeline or params must be provided.
-
-        params (`dict`): Parameter dictionary for a model to be trained and analyzed. Either model_pipeline or a
-        params argument must be passed; if both are passed, params is ignored and the parameters from model_pipeline
-        are used.
+    
+        model_pipeline (ModelPipeline, optional): A pipeline object for a model that was trained in the current 
+            Python session or loaded from the model tracker or a tarball file. Either `model_pipeline` or `params` 
+            must be provided.
+        params (dict, optional): Parameter dictionary for a model to be trained and analyzed. Either `model_pipeline` 
+            or `params` must be passed; if both are passed, `params` is ignored and the parameters from `model_pipeline` 
+            are used.
 
     Returns:
-        (imp_df, model_pipeline, pparams) (tuple):
-            imp_df (`DataFrame`): Table of feature importance metrics.
-            model_pipeline (`ModelPipeline`): Pipeline object for model that was passed to or trained by function.
-            pparams (`Namespace`): Parsed parameters of model.
-
+    
+        tuple: A tuple containing:
+            - imp_df (DataFrame): Table of feature importance metrics.
+            - model_pipeline (ModelPipeline): Pipeline object for the model that was passed to or trained by the function.
+            - pparams (Namespace): Parsed parameters of the model.
     """
     log = logging.getLogger('ATOM')
     if model_pipeline is None:

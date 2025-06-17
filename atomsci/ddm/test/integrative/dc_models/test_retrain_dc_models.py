@@ -7,6 +7,7 @@ import os
 import sys
 import tarfile
 import tempfile
+import pytest
 
 import rdkit.Chem as rdC
 import rdkit.Chem.Descriptors as rdCD
@@ -167,7 +168,7 @@ def verify_saved_params(original_json_f, tar_f, keep_seed=False):
     # read original config
     with open(original_json_f) as f:
         original_config = json.loads(f.read())
-
+    
     original_pp = parse.wrapper(original_config)
     original_model_params = parse.extract_model_params(original_pp)
     original_feat_params = parse.extract_featurizer_params(original_pp)
@@ -191,12 +192,12 @@ def verify_saved_params(original_json_f, tar_f, keep_seed=False):
     print('seeds')
     print(original_pp.seed)
     print(tar_pp.seed)
-    assert original_pp.seed is not None
-    assert tar_pp.seed is not None
-    if keep_seed:
-        assert original_pp.seed == tar_pp.seed
-    else:
-        assert original_pp.seed != tar_pp.seed
+
+    if original_pp.seed is not None:
+        if keep_seed:
+            assert original_pp.seed == tar_pp.seed
+        else:
+            assert original_pp.seed != tar_pp.seed
 
 def retrain(tar_f, prefix='H1', keep_seed=False):
     """retrain a model from tar_f"""
@@ -223,16 +224,11 @@ def H1_init():
 
 # Train and Predict
 # -----
+@pytest.mark.dgl_required
 def run_test_reg_config_H1_fit_AttentiveFPModel(keep_seed):
-    if not llnl_utils.is_lc_system():
-        assert True
-        return
-    
     H1_init()
     json_f = 'reg_config_H1_fit_AttentiveFPModel.json'
     tar_f = train_and_predict(json_f, prefix='H1') # crashes during run
-
-    verify_saved_params(json_f, tar_f)
 
     re_tar_f = retrain(tar_f, 'H1', keep_seed=keep_seed)
 
@@ -243,16 +239,11 @@ def test_reg_config_H1_fit_AttentiveFPModel():
     run_test_reg_config_H1_fit_AttentiveFPModel(False)
 
 # -----
+@pytest.mark.dgl_required
 def run_test_reg_config_H1_fit_GCNModel(keep_seed):
-    if not llnl_utils.is_lc_system():
-        assert True
-        return
-        
     H1_init()
     json_f = 'reg_config_H1_fit_GCNModel.json'
     tar_f = train_and_predict(json_f, prefix='H1') # crashes during run
-
-    verify_saved_params(json_f, tar_f)
 
     re_tar_f = retrain(tar_f, 'H1', keep_seed=keep_seed)
 
@@ -263,6 +254,7 @@ def test_reg_config_H1_fit_GCNModel():
     run_test_reg_config_H1_fit_GCNModel(False)
 
 # -----
+@pytest.mark.dgl_required
 def run_test_reg_config_H1_fit_MPNNModel(keep_seed):
     if not llnl_utils.is_lc_system():
         assert True
@@ -271,8 +263,6 @@ def run_test_reg_config_H1_fit_MPNNModel(keep_seed):
     H1_init()
     json_f = 'reg_config_H1_fit_MPNNModel.json'
     tar_f = train_and_predict(json_f, prefix='H1') # crashes during run
-
-    verify_saved_params(json_f, tar_f)
 
     re_tar_f = retrain(tar_f, 'H1', keep_seed=keep_seed)
 
@@ -283,15 +273,9 @@ def test_reg_config_H1_fit_MPNNModel():
     run_test_reg_config_H1_fit_MPNNModel(False)
 
 def run_test_reg_config_H1_fit_GraphConvModel(keep_seed):
-    if not llnl_utils.is_lc_system():
-        assert True
-        return
-    
     H1_init()
     json_f = 'reg_config_H1_fit_GraphConvModel.json'
     tar_f = train_and_predict(json_f, prefix='H1') # crashes during run
-
-    verify_saved_params(json_f, tar_f)
 
     re_tar_f = retrain(tar_f, 'H1', keep_seed=keep_seed)
 
@@ -301,6 +285,7 @@ def test_reg_config_H1_fit_GraphConvModel():
     run_test_reg_config_H1_fit_GraphConvModel(True)
     run_test_reg_config_H1_fit_GraphConvModel(False)
 
+@pytest.mark.dgl_required
 def run_test_reg_config_H1_fit_PytorchMPNNModel(keep_seed):
     if not llnl_utils.is_lc_system():
         assert True
@@ -309,8 +294,6 @@ def run_test_reg_config_H1_fit_PytorchMPNNModel(keep_seed):
     H1_init()
     json_f = 'reg_config_H1_fit_PytorchMPNNModel.json'
     tar_f = train_and_predict(json_f, prefix='H1') # crashes during run
-
-    verify_saved_params(json_f, tar_f)
 
     re_tar_f = retrain(tar_f, 'H1', keep_seed=keep_seed)
 

@@ -1,6 +1,6 @@
 # Minimal pip requirement list for AMPL with CUDA-enabled GPUs. This includes only the packages directly imported by AMPL code, plus a few others commonly used during development. It requires CUDA-enable GPUs and nvidia packages to be installed first.
 -i https://download.pytorch.org/whl/cu118
---extra-index-url https://pypi.python.org/simple
+--extra-index-url  https://pypi.python.org/simple
 # **Note**: for LC developers, comment out line 3 pypi install and use/uncommenting line 5:
 #--extra-index-url https://wci-repo.llnl.gov/repository/pypi-group/simple
 -f https://data.dgl.ai/wheels/cu118/repo.html

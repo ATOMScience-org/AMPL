@@ -1,7 +1,7 @@
 # Minimal pip requirement list for AMPL with CPU support only. This includes only the packages directly imported by AMPL code, plus a few others commonly used during development.
 -i https://download.pytorch.org/whl/cpu
---extra-index-url https://data.dgl.ai/wheels/repo.html
---extra-index-url https://pypi.python.org/simple
+--find-links https://data.dgl.ai/wheels/repo.html
+--extra-index-url  https://pypi.python.org/simple
 # for LC developers: comment out pypi index url and use t$
 # --extra-index-url https://wci-repo.llnl.gov/repository/$
 

@@ -63,26 +63,27 @@ test_inactive_col = sat_cols[2]
 continuous_pal = sns.color_palette('crest', as_cmap=True)
 
 #------------------------------------------------------------------------------------------------------------------------
-def plot_pred_vs_actual(model, epoch_label='best', threshold=None, error_bars=False, plot_size=7, 
-                       external_training_data=None, pdf_dir=None):
-    """Plot predicted vs actual values from a trained regression model for each split subset (train,
+def plot_pred_vs_actual(model, epoch_label='best', threshold=None, error_bars=False, plot_size=7,
+                        external_training_data=None, pdf_dir=None):
+    """
+    Plot predicted vs actual values from a trained regression model for each split subset (train,
     valid, and test).
 
     Args:
-        model (`ModelPipeline` or str): Either a ModelPipeline object for a model that was trained in the current Python session,
-        or a path to a saved model .tar.gz file or directory.
-        epoch_label (str): Label for training epoch to draw predicted values from. Currently 'best' is the only allowed value.
-        threshold (float): Threshold activity value to mark on plot with dashed lines.
-        error_bars (bool): If true and if uncertainty estimates are included in the model predictions, draw error bars
-            at +- 1 SD from the predicted y values.
-        plot_size (float): Height of each subplot
-        external_training_data (str): Path to copy of training dataset, if different from path used when model was trained. Only
-        used for saved models.
-        pdf_dir (str): If given, output the plots to a PDF file in the given directory.
+        model (ModelPipeline or str): Either a ModelPipeline object for a model that was trained in the 
+            current Python session, or a path to a saved model .tar.gz file or directory.
+        epoch_label (str): Label for training epoch to draw predicted values from. Currently, 'best' 
+            is the only allowed value.
+        threshold (float, optional): Threshold activity value to mark on the plot with dashed lines.
+        error_bars (bool, optional): If True and if uncertainty estimates are included in the model 
+            predictions, draw error bars at ±1 SD from the predicted y values.
+        plot_size (float, optional): Height of each subplot.
+        external_training_data (str, optional): Path to a copy of the training dataset, if different 
+            from the path used when the model was trained. Only used for saved models.
+        pdf_dir (str, optional): If given, output the plots to a PDF file in the specified directory.
 
     Returns:
         None
-
     """
     if isinstance(model, str):
         return plot_pred_vs_actual_from_file(model, plot_size=plot_size, external_training_data=external_training_data, error_bars=error_bars)
