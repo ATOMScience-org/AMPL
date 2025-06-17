@@ -352,7 +352,7 @@ def compute_all_mordred_descrs(mols, max_cpus=None, quiet=True):
     res_df = calc.pandas(mols, quiet=quiet, nproc=max_cpus)
     log.debug("Done computing Mordred descriptors")
     try:
-        res_df = res_df.fill_missing().applymap(float)
+        res_df = res_df.fill_missing().map(float)
         return res_df
     except ValueError:
         log.error('Mordred descriptor calculation failed in MordredDataFrame.fill_missing')
@@ -1672,8 +1672,13 @@ class DescriptorFeaturization(PersistentFeaturization):
                 trans.SklearnPipelineWrapper(transform_X=True, dataset=dataset,
                     sklearn_pipeline=pipeline)
             ]
-        else:
+        elif params.feature_transform_type == 'Identity':
             transformers_x = []
+        else:
+            raise ValueError((
+                "feature_transform_type must be normalization, RobustScaler, "
+                f"PowerTransformer, or Identity. Got {params.feature_transform_type}"))
+
         return transformers_x
 
 

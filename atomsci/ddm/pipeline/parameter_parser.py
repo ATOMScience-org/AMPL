@@ -1282,7 +1282,7 @@ def get_parser():
     # model_building_parameters: transformers
     parser.add_argument(
         '--feature_transform_type', dest='feature_transform_type', 
-        choices=['normalization', 'RobustScaler', 'PowerTransformer'],
+        choices=['normalization', 'RobustScaler', 'PowerTransformer', 'Identity'],
         default='normalization', help='type of transformation for the features')
     parser.add_argument(
         '--response_transform_type', dest='response_transform_type', default='normalization',
@@ -1306,6 +1306,13 @@ def get_parser():
         '--transformers', dest='transformers', action='store_false',
         help='Boolean switch for using transformation on regression output. Default is True')
     parser.set_defaults(transformers=True)
+
+    # Load transformer
+    parser.add_argument(
+        '--feature_transform_path', dest='feature_transform_path',
+        type=str, default=None, help='Path to a transformer pkl created using generate_transformers. This '
+        'will overwrite any relevant transformer parameters with values loaded from the pkl'
+    )
 
     # RobustScaler parameters
     parser.add_argument(

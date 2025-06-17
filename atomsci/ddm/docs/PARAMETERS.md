@@ -625,7 +625,7 @@ the model will train for max_epochs regardless of validation error.|
   
 |||
 |-|-|
-|*Description:*|type of transformation for the features. Choices are {"normalization", "RobustScaler", "PowerTransformer"}.|
+|*Description:*|type of transformation for the features. Choices are {"normalization", "RobustScaler", "PowerTransformer", "Identity"}.|
 |*Default:*|"normalizaton"|
 |*Type:*|choice|
   
