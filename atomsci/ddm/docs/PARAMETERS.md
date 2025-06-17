@@ -637,6 +637,14 @@ the model will train for max_epochs regardless of validation error.|
 |*Default:*|"normalization"|
 |*Type:*|choice|
   
+- **weight\_transform\_type**  
+  
+|||
+|-|-|
+|*Description:*|type of transformation for class weights in a classification model loss function. Use the "balancing" option to offset the effect of imbalanced datasets. Works with NN, random forest and XGBoost models. |
+|*Default:*|None|
+|*Type:*|Choice|
+  
 - **transformer\_bucket**  
   
 |||
@@ -741,6 +749,20 @@ the model will train for max_epochs regardless of validation error.|
 |*Description:*|Minimum loss reduction required to make a further partition on a leaf node of the tree. Can be input as a comma separated list for hyperparameter search (e.g. '0.0,0.1,0.2')|
 |*Default:*|0.0|
   
+- **xgb\_alpha**  
+  
+|||
+|-|-|
+|*Description:*|L1 regularization term on weights. Increasing this value will make model more conservative. Can be input as a comma separated list for hyperparameter search (e.g. '0.0,0.1,0.2')|
+|*Default:*|0.0|
+  
+- **xgb\_lambda**  
+  
+|||
+|-|-|
+|*Description:*|L2 regularization term on weights. Increasing this value will make model more conservative. Can be input as a comma separated list for hyperparameter search (e.g. '0.0,0.1,0.2')|
+|*Default:*|1.0|
+  
 - **xgb\_learning\_rate**  
   
 |||
@@ -759,7 +781,7 @@ the model will train for max_epochs regardless of validation error.|
   
 |||
 |-|-|
-|*Description:*|Minimum sum of instance weight(hessian) needed in a child. Can be input as a comma separated list for hyperparameter search (e.g. '1.0,1.1,1.2')|
+|*Description:*|Minimum sum of instance weights (hessian) needed in a child. Can be input as a comma separated list for hyperparameter search (e.g. '1.0,1.1,1.2')|
 |*Default:*|1.0|
   
 - **xgb\_n\_estimators**  
@@ -1106,6 +1128,27 @@ tied to a specific model parameter. Only a subset of model parameters may be opt
 |*Description:*|Search domain for NN model `layer_sizes` parameter in Bayesian Optimization. The format is `scheme\|num_layers\|parameters`, e.g. `uniformint\|3\|8,512`, Note that the number of layers (number between two \|) can not be changed during optimization, if you want to try different number of layers, just run several optimizations.
 |*Default:*|None|
 
+- **ls_ratio**  
+  
+|||
+|-|-|
+|*Description:*|Alternative method to set search domain for NN model `layer_sizes` parameter in Bayesian Optimization by specifying layer_size/previous_layer_size ratios. The format is `scheme\|ratios`, e.g. `uniform\|0.1,0.9`; the number of layers and starting layer sizes are taken from the `ls` parameter.
+|*Default:*|None|
+
+- **wdp**  
+  
+|||
+|-|-|
+|*Description:*|Search domain for NN model `weight_decay_penalty` parameter in Bayesian Optimization. The format is `scheme\|parameters`, e.g. `loguniform\|-6.908,-4.605`.
+|*Default:*|None|
+
+- **wdt**  
+  
+|||
+|-|-|
+|*Description:*|Search domain for NN model `weight_decay_penalty_type` parameter in Bayesian Optimization. The format is `scheme\|parameters`, e.g. `choice\|l1,l2`.
+|*Default:*|None|
+
 - **rfe**  
   
 |||
@@ -1132,6 +1175,20 @@ tied to a specific model parameter. Only a subset of model parameters may be opt
 |||
 |-|-|
 |*Description:*|Search domain for XGBoost model `xgb_gamma` parameter in Bayesian Optimization. The format is `scheme\|parameters`, e.g. `loguniform\|-9.2,-4.6`.
+|*Default:*|None|
+
+- **xgba**  
+  
+|||
+|-|-|
+|*Description:*|Search domain for XGBoost model `xgb_alpha` parameter in Bayesian Optimization. The format is `scheme\|parameters`, e.g. `uniform\|0,0.4`.
+|*Default:*|None|
+
+- **xgbb**  
+  
+|||
+|-|-|
+|*Description:*|Search domain for XGBoost model `xgb_lambda` parameter in Bayesian Optimization. The format is `scheme\|parameters`, e.g. `uniform\|0,0.4`.
 |*Default:*|None|
 
 - **xgbl**  
