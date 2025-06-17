@@ -129,13 +129,17 @@ jobs:
             echo ".coverage files not found"
           fi
         working-directory: ${{ github.workspace }}
-      
+
+      - name: List .coverage before upload
+        run: ls -l ${{ github.workspace }}/.coverage
+
       - name: Upload coverage-part2
         uses: actions/upload-artifact@v4
         with:
           name: coverage-part2
           path: ${{ github.workspace }}/.coverage
           if-no-files-found: ignore
+          include-hidden-files: true
 
   # pytest-integrative-2:
   #   runs-on: ubuntu-24.04
