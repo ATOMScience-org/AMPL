@@ -7,7 +7,6 @@ import atomsci.ddm.pipeline.parameter_parser as pp
 import atomsci.ddm.pipeline.model_datasets as model_datasets
 from deepchem.data import NumpyDataset
 import numpy as np
-import tempfile
 import shutil
 
 def prepare_csv_and_descriptor_with_dummy_response(csv_path, descriptor_type, temp_root, split_uuid='split_uuid'):
