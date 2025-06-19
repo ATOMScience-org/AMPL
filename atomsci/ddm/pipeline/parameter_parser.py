@@ -1320,11 +1320,6 @@ def get_parser():
         type=str, default=None, help='Path to a transformer pkl created using generate_transformers. This '
         'will overwrite any relevant transformer parameters with values loaded from the pkl'
     )
-    parser.add_argument(
-        '--transformer_dataset_key_configs', dest='feature_transform_path',
-        type=str, default=None, help='This stores information used to create the transformers saved '
-        'in the feature_transform_path. This should not be set by the user and is stored automatically.'
-    )
 
     # RobustScaler parameters
     parser.add_argument(
