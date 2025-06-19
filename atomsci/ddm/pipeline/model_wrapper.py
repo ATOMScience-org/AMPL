@@ -509,8 +509,12 @@ class ModelWrapper(object):
             saved_transformers = pickle.load(transformers_pkl_file)
 
         # check that the loaded transformers are for the same features
-        assert self.params.featurizer == saved_transformers['params']['featurizer']
-        assert self.params.descriptor_type == saved_transformers['params']['descriptor_type']
+        if self.params.featurizer != saved_transformers['params']['featurizer']:
+            raise ValueError((f"Loaded transformers do not match featurizer. Expected {self.params.featurizer},"
+                             f" got {saved_transformers['params']['featurizer']}"))
+        if self.params.descriptor_type != saved_transformers['params']['descriptor_type']:
+            raise ValueError((f"Loaded transformers do not match descriptor_type. Expected {self.params.descriptor_type},"
+                             f" got {saved_transformers['params']['descriptor_type']}"))
 
         # update self.params with the loaded transformer data
         self.params.__dict__.update(saved_transformers['params'])

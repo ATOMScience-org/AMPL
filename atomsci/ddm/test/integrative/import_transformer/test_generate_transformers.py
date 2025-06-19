@@ -2,6 +2,8 @@ import atomsci.ddm.utils.generate_transformers as gt
 import atomsci.ddm.pipeline.parameter_parser as pp
 import atomsci.ddm.pipeline.model_pipeline as mp
 import atomsci.ddm.pipeline.transformations as trans
+import atomsci.ddm.pipeline.compare_models as cm
+import atomsci.ddm.utils.model_file_reader as mfr
 from sklearn.preprocessing import PowerTransformer
 from sklearn.pipeline import Pipeline
 
@@ -9,6 +11,8 @@ import os
 import shutil
 import pandas as pd
 import pickle as pkl
+import tempfile
+import pytest
 
 def rel_path(filename):
     """
@@ -75,8 +79,8 @@ def test_transformer_generation():
                 'response_cols':'pIC50',
             }
 
-    dataset_key_configs = [H1_config, delaney_config, aurk_config]
-    combined_dataset = gt.load_all_datasets(dataset_key_configs,
+    transformer_dataset_key_configs = [H1_config, delaney_config, aurk_config]
+    combined_dataset = gt.load_all_datasets(transformer_dataset_key_configs,
                                             featurizer='computed_descriptors',
                                             descriptor_type=descriptor_type)
 
@@ -86,7 +90,7 @@ def test_transformer_generation():
 
     # fit transformers
     gt.build_and_save_feature_transformers_from_csvs(
-        dataset_key_configs,
+        transformer_dataset_key_configs,
         dest_pkl_path=transformers_pkl_path,
         featurizer='computed_descriptors',
         descriptor_type=descriptor_type,
@@ -100,7 +104,7 @@ def test_transformer_generation():
     assert 'transformers_x' in saved_transformers
     assert 'params' in saved_transformers
 
-    assert dataset_key_configs == saved_transformers['params']['dataset_key_configs']
+    assert transformer_dataset_key_configs == saved_transformers['params']['transformer_dataset_key_configs']
     assert saved_transformers['params']['featurizer'] == 'computed_descriptors'
     assert saved_transformers['params']['descriptor_type'] == descriptor_type
     assert saved_transformers['params']['feature_transform_type'] == 'PowerTransformer'
@@ -121,14 +125,32 @@ def test_transformer_generation():
         "smiles_col" : "base_rdkit_smiles",
         "result_dir": temp_root,
         "model_type": "RF",
-        "featurizer": "computed_descriptors",
-        "descriptor_type": descriptor_type,
+        "featurizer": "ecfp",
+        "descriptor_type": 'rdkit_raw',
         "feature_transform_type": "RobustScaler",
         "feature_transform_path": transformers_pkl_path,
         "save_results": "False",
         "verbose": "False",
         "seed":"0"
     }
+
+    # this one will fail because it has the wrong featurizer
+    with pytest.raises(ValueError) as excinfo:
+        bad_params1 = pp.wrapper(params_json)
+        model_pipeline = mp.ModelPipeline(bad_params1)
+        model_pipeline.train_model()
+    assert 'Loaded transformers do not match featurizer.' in str(excinfo.value)
+
+    # This one will fail because it ahas the wrong descriptor type
+    params_json['featurizer'] = 'computed_descriptors'
+    with pytest.raises(ValueError) as excinfo:
+        bad_params2 = pp.wrapper(params_json)
+        model_pipeline = mp.ModelPipeline(bad_params2)
+        model_pipeline.train_model()
+    assert 'Loaded transformers do not match descriptor_type.' in str(excinfo.value)
+
+    # This one will succeed.
+    params_json['descriptor_type'] = descriptor_type
     test_params = pp.wrapper(params_json)
     model_pipeline = mp.ModelPipeline(test_params)
     model_pipeline.train_model()
@@ -141,6 +163,33 @@ def test_transformer_generation():
     assert isinstance(transformers_x[0][0].sklearn_pipeline, Pipeline)
     scaler = transformers_x[0][0].sklearn_pipeline.named_steps['PowerTransformer']
     assert isinstance(scaler, PowerTransformer)
+
+    # check that the saved transformer pkl is a PowerTransformer
+    # reload the pipeline and see that it was loaded correctly works
+    results = cm.get_filesystem_perf_results(temp_root, pred_type='regression')
+    model_path = results['model_path'].values[0]
+    pred_params = {
+        'featurizer': 'computed_descriptors',
+        'result_dir': tempfile.mkdtemp(),
+        'id_col': 'compound_id',
+        'smiles_col':'base_rdkit_smiles' 
+    }
+    pred_params = pp.wrapper(pred_params)
+    reloaded_pipeline = mp.create_prediction_pipeline_from_file(pred_params, reload_dir=None, model_path=model_path)
+
+    assert reloaded_pipeline.params.feature_transform_type == 'PowerTransformer'
+    rl_formers_x = reloaded_pipeline.model_wrapper.transformers_x
+    scaler = rl_formers_x[0][0].sklearn_pipeline.named_steps['PowerTransformer']
+    assert isinstance(scaler, PowerTransformer)
+
+    # check that model metadata shows that this was a PowerTransformer
+    # check that standardize is set to false
+    reader = mfr.ModelFileReader(model_path)
+    assert not reader.get_powertransformer_standardize()
+
+    # check that the dataset_key configs were also saved in the parameters
+    loaded_trans_dskey_configs = reader.get_transformer_dataset_key_configs()
+    assert loaded_trans_dskey_configs == transformer_dataset_key_configs
 
 
     # cleanup

@@ -62,7 +62,7 @@ def prepare_csv_and_descriptor_with_dummy_response(csv_path, descriptor_type, te
     return temp_csv_path
 
 def load_all_datasets(
-    dataset_key_configs,
+    transformer_dataset_key_configs,
     featurizer,
     descriptor_type
 ):
@@ -77,7 +77,7 @@ def load_all_datasets(
         NumpyDataset
     """
     featurized_datasets = []
-    for ds_config in dataset_key_configs:
+    for ds_config in transformer_dataset_key_configs:
         # Prepare params for this dataset
         params_dict = dict()
         params_dict.update(ds_config)
@@ -116,7 +116,7 @@ def load_all_datasets(
 
 
 def build_and_save_feature_transformers_from_csvs(
-    dataset_key_configs,
+    transformer_dataset_key_configs,
     dest_pkl_path,
     featurizer,
     descriptor_type,
@@ -129,7 +129,7 @@ def build_and_save_feature_transformers_from_csvs(
     for one fold. 
 
     Args:
-        dataset_key_configs (list): A list of dictionaries that contain information about each dataset_key such
+        transformer_dataset_key_configs (list): A list of dictionaries that contain information about each dataset_key such
         as id_col, smiles_col, response_cols, split_uuids, etc.
         dest_pkl_path (str): Path to save the pickle file.
         featurizer (str): The featurizer type (e.g., 'ecfp', 'graphconv', 'computed_descriptors', etc.).
@@ -140,7 +140,7 @@ def build_and_save_feature_transformers_from_csvs(
     Returns:
         None
     """
-    combined_dataset = load_all_datasets(dataset_key_configs=dataset_key_configs, featurizer=featurizer, descriptor_type=descriptor_type)
+    combined_dataset = load_all_datasets(transformer_dataset_key_configs=transformer_dataset_key_configs, featurizer=featurizer, descriptor_type=descriptor_type)
 
     # Build a single params object for transformer fitting
     params_dict = dict(
@@ -162,7 +162,7 @@ def build_and_save_feature_transformers_from_csvs(
         if k in params.__dict__:
             params_dict[k] = params.__dict__[k]
 
-    params_dict['dataset_key_configs'] = dataset_key_configs
+    params_dict['transformer_dataset_key_configs'] = transformer_dataset_key_configs
     with open(dest_pkl_path, 'wb') as f:
         pickle.dump({'transformers_x': transformers_x, 'params': params_dict}, f)
 

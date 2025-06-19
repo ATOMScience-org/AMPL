@@ -130,7 +130,9 @@ def get_transformer_specific_metadata(params):
         robustscaler_unit_variance = params.robustscaler_unit_variance,
         powertransformer_method = params.powertransformer_method,
         powertransformer_standardize = params.powertransformer_standardize,
-        imputer_strategy = params.imputer_strategy)
+        imputer_strategy = params.imputer_strategy,
+        transformer_dataset_key_configs=params.transformer_dataset_key_configs)
+
     return dict(transformer_specific=meta_dict)
 
 # ****************************************************************************************

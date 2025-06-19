@@ -140,6 +140,12 @@ class ModelFileReader:
         """
         return self.get_transformer_specific_parameters().get("imputer_strategy")
 
+    def get_transformer_dataset_key_configs(self):
+        """Returns:
+            (str): transformer_dataset_key_configs
+        """
+        return self.get_transformer_specific_parameters().get("transformer_dataset_key_configs")
+
     def get_embedding_specific_parameters(self):
         """Returns:
             (str): embedding specific parameters
