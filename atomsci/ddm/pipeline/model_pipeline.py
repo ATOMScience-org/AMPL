@@ -18,6 +18,7 @@ import numpy as np
 import pandas as pd
 import scipy as sp
 from sklearn.metrics import pairwise_distances
+from sklearn.impute import SimpleImputer
 import copy
 
 from atomsci.ddm.utils import datastore_functions as dsf
@@ -966,10 +967,6 @@ class ModelPipeline:
                 pred_data = self.predict_embedding(dset_df, dset_params=dset_params)
             else:
                 pred_data = copy.deepcopy(self.data.dataset.X)
-                
-            if self.featurization.feat_type=="computed_descriptors" and self.featurization.descriptor_type=='mordred_filtered':
-                pred_data = pred_data[:,~np.isnan(pred_data).all(axis=0)]
-                pred_data = np.where(np.isnan(pred_data), np.nanmean(pred_data, axis=0), pred_data)
 
             try:
                 if not hasattr(self, 'featurized_train_data'):
@@ -995,14 +992,19 @@ class ModelPipeline:
                         self.featurized_train_data = self.model_wrapper.generate_embeddings(train_dset)
                     else:
                         if self.featurization.feat_type=="computed_descriptors" and self.featurization.descriptor_type=='mordred_filtered':
-                            train_X = train_X[:,~np.isnan(train_X).all(axis=0)]
-                            train_X = np.where(np.isnan(train_X), np.nanmean(train_X, axis=0), train_X)
+                            # mordred: impute column means and all-nan's = 0
+                            imp_train_mean=SimpleImputer(strategy='mean', keep_empty_features=True)
+                            imp_train_mean.fit(train_X)
+                            train_X = imp_train_mean.transform(train_X)
+                            # repeat for prediction data using means of training data
+                            pred_data = imp_train_mean.transform(pred_data)
+                            
                         self.featurized_train_data = train_X
 
                 if not hasattr(self, "train_pair_dis") or not hasattr(self, "train_pair_dis_metric") or self.train_pair_dis_metric != dist_metric:
                     self.train_pair_dis = pairwise_distances(X=self.featurized_train_data, metric=dist_metric)
                     self.train_pair_dis_metric = dist_metric
-
+                
                 self.log.debug("Calculating AD index.")
                 
                 if AD_method == "local_density":
