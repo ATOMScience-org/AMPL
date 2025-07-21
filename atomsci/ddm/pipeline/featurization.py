@@ -12,7 +12,6 @@ import pandas as pd
 
 from atomsci.ddm.utils import datastore_functions as dsf
 
-import pdb
 from atomsci.ddm.pipeline import transformations as trans
 from atomsci.ddm.pipeline import parameter_parser as pp
 from atomsci.ddm.pipeline import model_datasets as md
@@ -547,8 +546,6 @@ def compute_all_moe_descriptors(smiles_df, params):
             output_file = '%s/smiles4moe.txt' % tmpdir
             if not os.path.exists(output_file):
                 log.error('MOE descriptor calculation failed.')
-                print(errbuf)
-                print(retcode)
                 return None
             log.debug("Reading descriptors from %s" % output_file)
             result_df = pd.read_csv(output_file, index_col=False,
