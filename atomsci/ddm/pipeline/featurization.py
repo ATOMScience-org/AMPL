@@ -11,6 +11,8 @@ import deepchem as dc
 import pandas as pd
 
 from atomsci.ddm.utils import datastore_functions as dsf
+
+import pdb
 from atomsci.ddm.pipeline import transformations as trans
 from atomsci.ddm.pipeline import parameter_parser as pp
 from atomsci.ddm.pipeline import model_datasets as md
@@ -496,10 +498,10 @@ def compute_all_moe_descriptors(smiles_df, params):
     moe_path = os.environ.get('MOE_PATH', '/usr/workspace/atom/moe2022_site/bin')
     if not os.path.exists(moe_path):
         raise Exception("MOE is not available, or MOE_PATH environment variable needs to be set.")
-    moe_root = os.path.abspath('%s/..' % moe_path)
-    # Make sure we have an environment variable that points to the license server
-    if os.environ.get('LM_LICENSE_FILE', None) is None:
-        os.environ['LM_LICENSE_FILE'] = '7002@bribe.llnl.gov'
+    
+    # Set MOE_SVL_ROOT
+    moe_svl_root = os.path.join(os.path.dirname(os.path.dirname(__file__)),
+        'data', 'moe_svl')
 
     moe_args = []
     moe_args.append("{moePath}/moebatch".format(moePath=moe_path))
@@ -515,8 +517,8 @@ def compute_all_moe_descriptors(smiles_df, params):
     # TODO: Directory with svl scripts should be part of AMPL installation. The code below is specific to the LC environment.
     moe_template = """db_Close db_Open['{fileMDB}','create']; db_ImportASCII[ascii_file: '{smilesFile}',
     db_file: '{fileMDB}',delimiter: ',', quotes: 0, names: ['original_smiles','cmpd_id'],types: ['char','char']];
-    run ['{moeRoot}/custom/ksm_svl/smp_WashMinimizeSMILES.svl', ['{fileMDB}', 'original_smiles']];
-    run ['{moeRoot}/custom/svl/db_desc_smp5.svl',['{fileMDB}','mol_prep', [], [codeset: 'All_No_MOPAC_Protein']]];
+    run ['{moe_svl_root}/custom/ksm_svl/smp_WashMinimizeSMILES.svl', ['{fileMDB}', 'original_smiles']];
+    run ['{moe_svl_root}/custom/svl/db_desc_smp5.svl',['{fileMDB}','mol_prep', [], [codeset: 'All_No_MOPAC_Protein']]];
     dir_export_ASCIIBB ['{fileMDB}',[quotes:1,titles:1]];"""
 
     #with tempfile.TemporaryDirectory() as tmpdir:
@@ -529,7 +531,7 @@ def compute_all_moe_descriptors(smiles_df, params):
         smiles_df.to_csv(smiles_file, index=False, columns=[params.smiles_col, params.id_col])
         log.debug("Wrote SMILES strings to %s" % smiles_file)
         os.chdir(tmpdir)
-        moe_cmds = '"' + moe_template.format(moeRoot=moe_root, smilesFile=smiles_file, fileMDB=file_mdb) + '"'
+        moe_cmds = '"' + moe_template.format(moe_svl_root=moe_svl_root, smilesFile=smiles_file, fileMDB=file_mdb) + '"'
         moe_args.append(moe_cmds)
         moe_args.append("-exit")
         log.debug('Computing MOE descriptors')
@@ -545,6 +547,8 @@ def compute_all_moe_descriptors(smiles_df, params):
             output_file = '%s/smiles4moe.txt' % tmpdir
             if not os.path.exists(output_file):
                 log.error('MOE descriptor calculation failed.')
+                print(errbuf)
+                print(retcode)
                 return None
             log.debug("Reading descriptors from %s" % output_file)
             result_df = pd.read_csv(output_file, index_col=False,
