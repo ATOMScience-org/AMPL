@@ -11,7 +11,6 @@ import deepchem as dc
 import pandas as pd
 
 from atomsci.ddm.utils import datastore_functions as dsf
-
 from atomsci.ddm.pipeline import transformations as trans
 from atomsci.ddm.pipeline import parameter_parser as pp
 from atomsci.ddm.pipeline import model_datasets as md
