@@ -111,7 +111,6 @@ def copy_featurizer_params(source, dest):
     """Copy all parameters related to featurization from source to target params
     Returns a deepcopy of dest object with featurization parameters copied from
     source object
-    
     Args:
         source (argparse.Namespace): Object containing source parameters
         dest (argparse.Namespace): Destination object for parameters
@@ -492,7 +491,6 @@ def compute_all_moe_descriptors(smiles_df, params):
         string prepared by MOE, a sequence index, and columns for each MOE descriptor.
     """
 
-    # TODO: Get MOE_PATH from params
     moe_path = os.environ.get('MOE_PATH', '/usr/workspace/atom/moe2022_site/bin')
     if not os.path.exists(moe_path):
         raise Exception("MOE is not available, or MOE_PATH environment variable needs to be set.")
