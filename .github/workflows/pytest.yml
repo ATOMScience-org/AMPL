@@ -139,8 +139,8 @@ jobs:
       - name: pytest
         run: |
           # TODO: Run this test with pytest for paralell testing
-          # python3.9 -m pytest -n 2 --capture=sys --capture=fd --cov=atomsci -vv atomsci/ddm/test/integrative
           cd atomsci/ddm/test/integrative && ./integrative_batch_chunk_tests 1
+          echo 'done'
         env:
           ENV: test
 
