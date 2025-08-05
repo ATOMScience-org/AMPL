@@ -18,5 +18,7 @@
     "result_dir": "./output",
     "num_model_tasks": 2,
     "ki_convert_ratio": 1.7241379310344829,
+    "learning_rate": 0.000001,
+    "batch_size":100,
     "is_ki": "True"
 }

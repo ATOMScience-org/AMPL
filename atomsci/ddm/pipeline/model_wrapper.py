@@ -1364,7 +1364,7 @@ class HybridModelWrapper(NNModelWrapper):
         pos_bind = np.where(~np.isnan(yreal[:,1]))[0]
 
         # Compute L2 loss for pKi predictions
-        loss_ki = torch.sum((yp[pos_ki, 0] - yr[pos_ki, 0]) ** 2)
+        loss_ki = torch.mean((yp[pos_ki, 0] - yr[pos_ki, 0]) ** 2)
         #convert the ki prediction back to Ki scale
         #hybrid models do not support kfold validation
         y_stds = self.transformers['final'][0].y_stds
@@ -1376,12 +1376,18 @@ class HybridModelWrapper(NNModelWrapper):
             rl_bind_pred = 1 - self._predict_binding(y_means + y_stds * yp[pos_bind, 0], conc=yr[pos_bind, 1])
         rl_bind_real = 1 - yr[pos_bind, 0]
         # Compute Poisson loss for radioligand binding
-        loss_bind = torch.sum(rl_bind_pred - rl_bind_real * torch.log(rl_bind_pred))
+        # sometimes rl_bind_pred can be 0 if the predicted activity is very large
+        loss_bind = torch.mean(rl_bind_pred - rl_bind_real * torch.log(torch.clamp(rl_bind_pred, min=1e-8)))
+
+        print('ki_pred', torch.mean(yp[pos_ki, 0]), 'ki_real', torch.mean(yr[pos_ki, 0]))
+        print('bind_pred', torch.mean(rl_bind_pred), 'bind_real', torch.mean(rl_bind_real))
+        print('loss_ki', loss_ki, 'loss_bind', loss_bind)
 
         if np.isnan(loss_ki.item()):
             raise Exception("Ki loss is NaN")
         if np.isnan(loss_bind.item()):
             raise Exception("Binding loss is NaN")
+
         return loss_ki, loss_bind
 
     def _loss_batch(self, loss_func, xb, yb, opt=None):
