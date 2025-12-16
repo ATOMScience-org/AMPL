@@ -2092,8 +2092,7 @@ class DCxgboostModelWrapper(ForestModelWrapper):
                                          missing=np.nan,
                                          importance_type='gain',
                                          n_jobs=-1,
-                                         gpu_id = -1,
-                                         n_gpus = 0,
+                                         device='cpu',
                                          max_bin = 16,
                                          )
         else:
@@ -2126,9 +2125,8 @@ class DCxgboostModelWrapper(ForestModelWrapper):
                                           random_state=self.seed,
                                           importance_type='gain',
                                           missing=np.nan,
-                                          gpu_id = -1,
+                                          device='cpu',
                                           n_jobs=-1,                                          
-                                          n_gpus = 0,
                                           max_bin = 16,
                                          )
 
@@ -2240,8 +2238,7 @@ class DCxgboostModelWrapper(ForestModelWrapper):
                                          missing=np.nan,
                                          importance_type='gain',
                                          n_jobs=-1,
-                                         gpu_id = -1,
-                                         n_gpus = 0,
+                                         device='cpu',
                                          max_bin = 16,
                                          )
         else:
@@ -2264,9 +2261,8 @@ class DCxgboostModelWrapper(ForestModelWrapper):
                                          random_state=self.seed, 
                                          importance_type='gain',
                                          missing=np.nan,
-                                         gpu_id = -1,
+                                         device='cpu',
                                          n_jobs=-1,                                          
-                                         n_gpus = 0,
                                          max_bin = 16,
                                          )
 
