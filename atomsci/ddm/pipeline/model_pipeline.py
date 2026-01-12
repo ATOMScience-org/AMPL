@@ -1007,10 +1007,17 @@ class ModelPipeline:
                 
                 self.log.debug("Calculating AD index.")
                 
-                if AD_method == "local_density":
-                    result_df["AD_index"] = calc_AD_kmean_local_density(self.featurized_train_data, pred_data, k, train_dset_pair_distance=self.train_pair_dis, dist_metric=dist_metric)
+                # label AD index
+                if self.featurization.feat_type=='computed_descriptors':
+                    ad_label=self.featurization.descriptor_type
                 else:
-                    result_df["AD_index"], indexes = calc_AD_kmean_dist(self.featurized_train_data, pred_data, k, train_dset_pair_distance=self.train_pair_dis, dist_metric=dist_metric)
+                    ad_label=self.featurization.feat_type
+                ad_label=ad_label.split("_")[0]
+                
+                if AD_method == "local_density":
+                    result_df[f"ADI_ld_{dist_metric}_{ad_label}"] = calc_AD_kmean_local_density(self.featurized_train_data, pred_data, k, train_dset_pair_distance=self.train_pair_dis, dist_metric=dist_metric)
+                else:
+                    result_df[f"ADI_zs_{dist_metric}_{ad_label}"], indexes = calc_AD_kmean_dist(self.featurized_train_data, pred_data, k, train_dset_pair_distance=self.train_pair_dis, dist_metric=dist_metric)
 
                 if AD_return_NN:
                     for neigh in range(k):
