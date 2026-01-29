@@ -1099,3 +1099,4 @@ activity_id,compound_id,base_rdkit_smiles,relation,efflux_ratio,log_efflux_ratio
 20668378,CHEMBL3892073,NC(=O)c1cc(-c2ccc(F)cc2)c2ccc(CN3C(=O)CCC3=O)cc2n1,=,7.0,0.8450980400142568
 20679457,CHEMBL4644751,C[C@H](C(=O)Nc1ccc(F)cc1)C12CC(NC(=O)c3ccc(F)c(F)c3)(C1)C2,=,1.3,0.11394335230683678
 20717398,CHEMBL4643105,COc1cc(/C=C2\CCCN3C2=NO[C@H](c2cc(F)cc(F)c2)[C@@H]3C)ccc1-n1cnc(C)c1,=,2.46,0.39093510710337914
+20717398,CHEMBL4643105,COc1cc(/C=C2\CCCN3C2=NO[C@H](c2cc(F)cc(F)c2)[C@@H]3C)ccc1-n1cnc(C)c1,=,,
