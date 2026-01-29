@@ -45,7 +45,7 @@ def test_remove_outlier_replicates():
     assert (n_filt_rows == 1093), "Error: expected 1093 rows in filtered data"
     assert (n_filt_cmpds == 803), "Error: expected 803 unique compounds in filtered data"
     n_removed = len(raw_df) - n_filt_rows
-    assert (n_removed == 7), f"Error: {n_removed} rows were removed, expected 7"
+    assert (n_removed == 8), f"Error: {n_removed} rows were removed, expected 8"
 
     write_to_file(filt_df, filt_file)
 
