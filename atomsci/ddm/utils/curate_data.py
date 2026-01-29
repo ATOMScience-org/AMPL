@@ -519,7 +519,8 @@ def remove_outlier_replicates(df, response_col='pIC50', id_col='compound_id', ma
         max_diff_from_median (float): Maximum absolute difference from median value allowed for retained replicates.
 
     Returns:
-        result_df (DataFrame): Filtered data frame with outlier replicates removed.
+        result_df (DataFrame): Filtered data frame with outlier replicates removed. Rows with NaN values in the 
+            response column are removed as a preprocessing step before outlier detection.
 
     """
     
