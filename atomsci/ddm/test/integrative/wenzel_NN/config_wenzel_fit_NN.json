@@ -35,6 +35,8 @@
 
     "comment": "Results",
     "comment": "----------------------------------------",    
-    "result_dir": "result"
+    "result_dir": "result",
+
+    "seed":0
 }
 
