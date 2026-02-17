@@ -5,9 +5,16 @@ import pandas as pd
 import atomsci.ddm.pipeline.featurization as feat
 import atomsci.ddm.pipeline.parameter_parser as pp
 import atomsci.ddm.pipeline.model_datasets as model_datasets
+import atomsci.ddm.pipeline.transformations as trans
+import atomsci.ddm.utils.struct_utils as struct_utils
 from deepchem.data import NumpyDataset
 import numpy as np
 import shutil
+import sklearn.utils as sku
+import logging
+logging.basicConfig(format='%(asctime)-15s %(message)s')
+log = logging.getLogger('ATOM')
+
 
 def prepare_csv_and_descriptor_with_dummy_response(csv_path, descriptor_type, temp_root, split_uuid='split_uuid'):
     """
@@ -88,11 +95,7 @@ def load_all_datasets(
         split_uuid = params_dict.get('split_uuid', None)
 
         params = pp.wrapper(params_dict)
-        featurization = feat.create_featurization(params)
-        dataset = model_datasets.create_model_dataset(params, featurization, ds_client=None)
-
-        # Load featurized data (this will use scaled_descriptors if available)
-        dataset.get_featurized_data()
+        dataset = model_datasets.create_and_load_model_dataset(params, ds_client=None)
 
         # If split_uuid is provided, use only the training subset
         if split_uuid:
@@ -112,6 +115,53 @@ def load_all_datasets(
     )
 
     return combined_dataset
+
+def filter_datasets(dataset_key_config, featurizer, descriptor_type, threshold=1e10, workers=8):
+    """
+    Filters datasets and looks for compounds with very large descriptor values.
+
+    Args:
+        dataset_key_configs (list): List of dataset key configuration dictionaries.
+        featurizer (str): The featurizer type (e.g., 'ecfp', 'graphconv', 'computed_descriptors', etc.).
+        descriptor_type (str): Descriptor type (e.g., 'moe', 'rdkit_raw', etc.).
+        threshold (float): Threshold for filtering large descriptor values.
+        workers (int): Number of workers to use for parallel processing in calculating molecular weights.
+
+
+    Returns:
+        list: Filtered list of dataset key configurations.
+    """
+    params_dict = dict()
+    params_dict.update(dataset_key_config)
+    params_dict['featurizer'] = featurizer
+    params_dict['descriptor_type'] = descriptor_type
+    params_dict['feature_transform_type'] = 'Identity'
+    params_dict['verbose'] = True
+    
+    params = pp.wrapper(params_dict)
+    dataset = model_datasets.create_and_load_model_dataset(params, ds_client=None)
+
+    abs_X = np.abs(dataset.dataset.X)
+    try:
+        sku.assert_all_finite(abs_X)
+    except ValueError:
+        # data contains inf or nan values
+        log.warning("SklearnPipelineWrapper: data contains NaN or Inf; replacing with zeros")
+        abs_X = trans.zero_out_inf_nan(abs_X)
+   
+
+    large_values = np.argwhere(abs_X > threshold)
+    if len(large_values) > 0:
+        print(large_values)
+        print(abs_X[large_values])
+        print(dataset.featrizer.get_feature_columns()[large_values[:,1]])
+
+    # molecular weight > 1000
+    # calculate molecular weight here.
+    dataset_df = pd.read_csv(params.dataset_key)
+    mol_weights = struct_utils.mol_wt_from_smiles(dataset_df[params.smiles_col].to_list(), workers=workers)
+    mw_large = np.argwhere(np.array(mol_weights) > 1000)
+    print('num compounds with MW > 1000:', len(mw_large))
 
 
 def build_and_save_feature_transformers_from_csvs(

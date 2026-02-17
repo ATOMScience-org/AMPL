@@ -5,8 +5,11 @@ provided by DeepChem.
 import logging
 
 import numpy as np
+import pandas as pd
 
 from deepchem.trans.transformers import Transformer, NormalizationTransformer, BalancingTransformer
+
+import sklearn.utils as sku
 
 logging.basicConfig(format='%(asctime)-15s %(message)s')
 log = logging.getLogger('ATOM')
@@ -203,9 +206,33 @@ def get_all_training_datasets(model_dataset):
 
 
 # ****************************************************************************************
+def zero_out_inf_nan(d):
+    """Return a copy of d with NaN and +/-Inf replaced by 0.
+
+    Supports numpy arrays and pandas Series/DataFrame.
+    """
+    # Handle pandas structures
+    if isinstance(d, (pd.Series, pd.DataFrame)):
+        arr = d.values.copy()
+        mask = ~np.isfinite(arr)
+        if mask.any():
+            arr[mask] = 0.0
+        if isinstance(d, pd.Series):
+            return pd.Series(arr, index=d.index, name=d.name)
+        else:
+            return pd.DataFrame(arr, index=d.index, columns=d.columns)
+    else:
+        # Fallback to numpy array
+        arr = np.array(d, copy=True)
+        mask = ~np.isfinite(arr)
+        if mask.any():
+            arr[mask] = 0.0
+        return arr
+
+
 class SklearnPipelineWrapper(Transformer):
     """
-    This wrapps a given sklearn transformer and converts it to a DeepChem style transformer
+    This wraps a given sklearn transformer and converts it to a DeepChem style transformer
     """
     def __init__(self, dataset, sklearn_pipeline, 
                  transform_X=False, transform_y=False, transform_w=False):
@@ -220,11 +247,21 @@ class SklearnPipelineWrapper(Transformer):
         self.sklearn_pipeline = sklearn_pipeline
 
         if self.transform_X:
-            self.sklearn_pipeline.fit(dataset.X)
+            data = dataset.X
         elif self.transform_y:
-            self.sklearn_pipeline.fit(dataset.y)
+            data = dataset.y
         else:
-            self.sklearn_pipeline.fit(dataset.w)
+            data = dataset.w
+
+        # Fit the sklearn pipeline
+        try:
+            sku.assert_all_finite(data)
+        except ValueError:
+            # data contains inf or nan values
+            log.warning("SklearnPipelineWrapper: data contains NaN or Inf; replacing with zeros")
+            data = zero_out_inf_nan(data)
+
+        self.sklearn_pipeline.fit(data)
 
     def transform(self, dataset, parallel=False):
         return dataset.transform(self)
