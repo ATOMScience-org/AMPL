@@ -10,6 +10,9 @@ jobs:
         python-version: ["3.9"]
 
     steps:
+      - name: Update apt cache
+        run: |
+          sudo apt-get update || sudo apt-get update --fix-missing
       - name: System Dependencies
         run: |
           sudo apt install -y build-essential \
