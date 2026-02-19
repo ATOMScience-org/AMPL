@@ -18,6 +18,7 @@ jobs:
     steps:
       - name: System Dependencies
         run: |
+          sudo apt-get update
           sudo apt install -y build-essential \
             libcairo2-dev \
             pkg-config \
@@ -64,6 +65,7 @@ jobs:
     steps:
       - name: System Dependencies
         run: |
+          sudo apt-get update
           sudo apt install -y build-essential \
             libcairo2-dev \
             pkg-config \
@@ -110,6 +112,7 @@ jobs:
     steps:
       - name: System Dependencies
         run: |
+          sudo apt-get update
           sudo apt install -y build-essential \
             libcairo2-dev \
             pkg-config \
@@ -156,6 +159,7 @@ jobs:
     steps:
       - name: System Dependencies
         run: |
+          sudo apt-get update
           sudo apt install -y build-essential \
             libcairo2-dev \
             pkg-config \
@@ -202,6 +206,7 @@ jobs:
     steps:
       - name: System Dependencies
         run: |
+          sudo apt-get update
           sudo apt install -y build-essential \
             libcairo2-dev \
             pkg-config \
