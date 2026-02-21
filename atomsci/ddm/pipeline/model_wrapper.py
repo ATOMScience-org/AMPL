@@ -1491,7 +1491,6 @@ class HybridModelWrapper(NNModelWrapper):
         em = perf.EpochManager(self,
                                 prediction_type="hybrid",
                                 model_dataset=pipeline.data,
-                                transformers=self.transformers,
                                 is_ki=self.params.is_ki,
                                 production=self.params.production,
                                 ki_convert_ratio=self.params.ki_convert_ratio)
@@ -1532,7 +1531,7 @@ class HybridModelWrapper(NNModelWrapper):
                 valid_loss_ep /= (valid_data.n_ki + valid_data.n_bind)
 
             train_perf, valid_perf, test_perf = em.update_epoch(ei,
-                                train_dset=train_dset, valid_dset=valid_dset, test_dset=test_dset, fold='final')
+                                train_dset=train_dset, valid_dset=valid_dset, test_dset=test_dset)
 
             self.log.info("Epoch %d: training %s = %.3f, training loss = %.3f, validation %s = %.3f, validation loss = %.3f, test %s = %.3f" % (
                           ei, pipeline.metric_type, train_perf, train_loss_ep, pipeline.metric_type, valid_perf, valid_loss_ep,
