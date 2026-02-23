@@ -251,44 +251,44 @@ jobs:
           name: coverage-pytest-integrative-4
           path: .coverage*
 
-coverage-merge:
-  runs-on: ubuntu-24.04
-  needs: [pytest-unit, pytest-integrative-1, pytest-integrative-2, pytest-integrative-3, pytest-integrative-4]
-  steps:
-    - uses: actions/checkout@v3
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: "3.9"
-    
-    - name: Install coverage
-      run: pip install coverage
-    
-    - name: Download all coverage artifacts
-      uses: actions/download-artifact@v5
-      with:
-        path: coverage-reports
-    
-    - name: Merge coverage reports
-      run: |
-        # List directory structure for debugging
-        ls -la
-        ls -la coverage-reports/ || echo "coverage-reports directory not found"
-        
-        # Find and combine all coverage files
-        find coverage-reports -name ".coverage*" -type f
-        
-        # Combine all coverage files
-        coverage combine coverage-reports/**/.coverage*
-        
-        # Generate XML report for codecov
-        coverage xml
-    
-    - name: Upload merged coverage to Codecov
-      uses: codecov/codecov-action@v4
-      with:
-        files: ./coverage.xml
-        flags: unittests
-        name: codecov-umbrella
-      env:
-        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+  coverage-merge:
+    runs-on: ubuntu-24.04
+    needs: [pytest-unit, pytest-integrative-1, pytest-integrative-2, pytest-integrative-3, pytest-integrative-4]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.9"
+      
+      - name: Install coverage
+        run: pip install coverage
+      
+      - name: Download all coverage artifacts
+        uses: actions/download-artifact@v5
+        with:
+          path: coverage-reports
+      
+      - name: Merge coverage reports
+        run: |
+          # List directory structure for debugging
+          ls -la
+          ls -la coverage-reports/ || echo "coverage-reports directory not found"
+          
+          # Find and combine all coverage files
+          find coverage-reports -name ".coverage*" -type f
+          
+          # Combine all coverage files
+          coverage combine coverage-reports/**/.coverage*
+          
+          # Generate XML report for codecov
+          coverage xml
+      
+      - name: Upload merged coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
