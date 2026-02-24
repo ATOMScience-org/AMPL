@@ -53,11 +53,30 @@ jobs:
         env:
           ENV: test
 
+      - name: Debug - Find all coverage files
+        run: |
+          echo "=== Current directory ==="
+          pwd
+          echo ""
+          echo "=== Contents of current directory ==="
+          ls -la
+          echo ""
+          echo "=== Searching for ALL .coverage files recursively ==="
+          find . -name ".coverage*" -type f 2>/dev/null || echo "No .coverage files found"
+          echo ""
+          echo "=== Contents of test directory ==="
+          ls -la atomsci/ddm/test/integrative/ || echo "Directory not found"
+          echo ""
+          echo "=== Checking if coverage was even run ==="
+          which coverage
+          coverage --version || echo "Coverage not installed"
+
       - name: Save coverage
         uses: actions/upload-artifact@v4
         with:
           name: coverage-pytest-unit
           path: atomsci/ddm/test/unit/.coverage*
+
   pytest-integrative-1:
     runs-on: ubuntu-24.04
     strategy:
@@ -100,6 +119,24 @@ jobs:
           cd atomsci/ddm/test/integrative && ./integrative_batch_chunk_tests 0
         env:
           ENV: test
+
+      - name: Debug - Find all coverage files
+        run: |
+          echo "=== Current directory ==="
+          pwd
+          echo ""
+          echo "=== Contents of current directory ==="
+          ls -la
+          echo ""
+          echo "=== Searching for ALL .coverage files recursively ==="
+          find . -name ".coverage*" -type f 2>/dev/null || echo "No .coverage files found"
+          echo ""
+          echo "=== Contents of test directory ==="
+          ls -la atomsci/ddm/test/integrative/ || echo "Directory not found"
+          echo ""
+          echo "=== Checking if coverage was even run ==="
+          which coverage
+          coverage --version || echo "Coverage not installed"
 
       - name: Save coverage
         uses: actions/upload-artifact@v4
@@ -149,6 +186,24 @@ jobs:
         env:
           ENV: test
 
+      - name: Debug - Find all coverage files
+        run: |
+          echo "=== Current directory ==="
+          pwd
+          echo ""
+          echo "=== Contents of current directory ==="
+          ls -la
+          echo ""
+          echo "=== Searching for ALL .coverage files recursively ==="
+          find . -name ".coverage*" -type f 2>/dev/null || echo "No .coverage files found"
+          echo ""
+          echo "=== Contents of test directory ==="
+          ls -la atomsci/ddm/test/integrative/ || echo "Directory not found"
+          echo ""
+          echo "=== Checking if coverage was even run ==="
+          which coverage
+          coverage --version || echo "Coverage not installed"
+
       - name: Save coverage
         uses: actions/upload-artifact@v4
         with:
@@ -197,6 +252,24 @@ jobs:
         env:
           ENV: test
 
+      - name: Debug - Find all coverage files
+        run: |
+          echo "=== Current directory ==="
+          pwd
+          echo ""
+          echo "=== Contents of current directory ==="
+          ls -la
+          echo ""
+          echo "=== Searching for ALL .coverage files recursively ==="
+          find . -name ".coverage*" -type f 2>/dev/null || echo "No .coverage files found"
+          echo ""
+          echo "=== Contents of test directory ==="
+          ls -la atomsci/ddm/test/integrative/ || echo "Directory not found"
+          echo ""
+          echo "=== Checking if coverage was even run ==="
+          which coverage
+          coverage --version || echo "Coverage not installed"
+
       - name: Save coverage
         uses: actions/upload-artifact@v4
         with:
@@ -244,6 +317,24 @@ jobs:
           cd atomsci/ddm/test/integrative && ./integrative_batch_chunk_tests 3
         env:
           ENV: test
+
+      - name: Debug - Find all coverage files
+        run: |
+          echo "=== Current directory ==="
+          pwd
+          echo ""
+          echo "=== Contents of current directory ==="
+          ls -la
+          echo ""
+          echo "=== Searching for ALL .coverage files recursively ==="
+          find . -name ".coverage*" -type f 2>/dev/null || echo "No .coverage files found"
+          echo ""
+          echo "=== Contents of test directory ==="
+          ls -la atomsci/ddm/test/integrative/ || echo "Directory not found"
+          echo ""
+          echo "=== Checking if coverage was even run ==="
+          which coverage
+          coverage --version || echo "Coverage not installed"
 
       - name: Save coverage
         uses: actions/upload-artifact@v4
