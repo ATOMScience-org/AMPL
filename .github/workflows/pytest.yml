@@ -78,6 +78,8 @@ jobs:
           path: |
             atomsci/ddm/test/unit/.coverage*
             atomsci/modac/test/unit/.coverage*
+          include-hidden-files: true
+          if-no-files-found: error
 
   pytest-integrative-1:
     runs-on: ubuntu-24.04
@@ -145,6 +147,8 @@ jobs:
         with:
           name: coverage-pytest-integrative-1
           path: atomsci/ddm/test/integrative/**/.coverage*
+          include-hidden-files: true
+          if-no-files-found: error
 
   pytest-integrative-2:
     runs-on: ubuntu-24.04
@@ -212,6 +216,8 @@ jobs:
         with:
           name: coverage-pytest-integrative-2
           path: atomsci/ddm/test/integrative/**/.coverage*
+          include-hidden-files: true
+          if-no-files-found: error
 
   pytest-integrative-3:
     runs-on: ubuntu-24.04
@@ -279,6 +285,8 @@ jobs:
         with:
           name: coverage-pytest-integrative-3
           path: atomsci/ddm/test/integrative/**/.coverage*
+          include-hidden-files: true
+          if-no-files-found: error
 
   pytest-integrative-4:
     runs-on: ubuntu-24.04
@@ -346,6 +354,8 @@ jobs:
         with:
           name: coverage-pytest-integrative-4
           path: atomsci/ddm/test/integrative/**/.coverage*
+          include-hidden-files: true
+          if-no-files-found: error
 
   coverage-merge:
     runs-on: ubuntu-24.04
@@ -375,7 +385,7 @@ jobs:
           find coverage-reports -name ".coverage*" -type f
           
           # Combine all coverage files
-          coverage combine coverage-reports/**/.coverage*
+          coverage combine $(find coverage-reports -name ".coverage*" -type f -print)
           
           # Generate XML report for codecov
           coverage xml
