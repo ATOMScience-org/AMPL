@@ -75,7 +75,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: coverage-pytest-unit
-          path: atomsci/ddm/test/unit/.coverage*
+          path: |
+            atomsci/ddm/test/unit/.coverage*
+            atomsci/modac/test/unit/.coverage*
 
   pytest-integrative-1:
     runs-on: ubuntu-24.04
@@ -142,7 +144,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: coverage-pytest-integrative-1
-          path: atomsci/ddm/test/integrative/.coverage*
+          path: atomsci/ddm/test/integrative/**/.coverage*
+
   pytest-integrative-2:
     runs-on: ubuntu-24.04
     strategy:
@@ -208,7 +211,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: coverage-pytest-integrative-2
-          path: atomsci/ddm/test/integrative/.coverage*
+          path: atomsci/ddm/test/integrative/**/.coverage*
+
   pytest-integrative-3:
     runs-on: ubuntu-24.04
     strategy:
@@ -274,7 +278,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: coverage-pytest-integrative-3
-          path: atomsci/ddm/test/integrative/.coverage*
+          path: atomsci/ddm/test/integrative/**/.coverage*
+
   pytest-integrative-4:
     runs-on: ubuntu-24.04
     strategy:
@@ -340,7 +345,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: coverage-pytest-integrative-4
-          path: atomsci/ddm/test/integrative/.coverage*
+          path: atomsci/ddm/test/integrative/**/.coverage*
 
   coverage-merge:
     runs-on: ubuntu-24.04
