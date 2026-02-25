@@ -33,42 +33,48 @@ def write_to_file(filt_df, filt_file):
     print(f"Wrote outlier-filtered data to {filt_file}")
     return filt_df
 
-def test_remove_outlier_replicates():
-    """Test outlier removal using curate_data.remove_outlier_replicates"""
+def create_raw_and_filt_file():
+    """Create filtered file for testing aggregation function"""
     raw_df = get_raw_data()
-    print(f"Raw data has {len(raw_df)} rows, {len(set(raw_df.base_rdkit_smiles.values))} unique compounds")
     filt_df = curate_data.remove_outlier_replicates(raw_df, response_col='log_efflux_ratio', id_col='base_rdkit_smiles',
                                                     max_diff_from_median=0.5)
+    write_to_file(filt_df, filt_file)
+
+    return raw_df, filt_df
+
+def test_remove_outlier_replicates(capsys):
+    """Test outlier removal using curate_data.remove_outlier_replicates"""
+     # Clean up old files
+    clean()
+
+    raw_df, filt_df = create_raw_and_filt_file()
+
+    captured = capsys.readouterr()
+    assert 'Removed 1 rows with missing log_efflux_ratio values' in captured.out, "Error: expected message about removed rows with missing values"
     n_filt_rows = len(filt_df)
     n_filt_cmpds = len(set(filt_df.base_rdkit_smiles.values))
     print(f"Filtered data has {n_filt_rows} rows, {n_filt_cmpds} unique compounds")
     assert (n_filt_rows == 1093), "Error: expected 1093 rows in filtered data"
     assert (n_filt_cmpds == 803), "Error: expected 803 unique compounds in filtered data"
     n_removed = len(raw_df) - n_filt_rows
-    assert (n_removed == 7), f"Error: {n_removed} rows were removed, expected 7"
-
-    write_to_file(filt_df, filt_file)
+    assert (n_removed == 8), f"Error: {n_removed} rows were removed, expected 8"
 
 def test_aggregate_assay_data():
     """Test curate_data.aggregate_assay_data, the preferred function for averaging replicate values over compounds"""
-    if not os.path.exists(filt_file):
-        test_remove_outlier_replicates()
-    else:
-        try:
-            filt_df = pd.read_csv(filt_file)
-            agg_df = curate_data.aggregate_assay_data(filt_df, value_col='log_efflux_ratio', label_actives=False,
-                                              id_col='compound_id', smiles_col='base_rdkit_smiles', relation_col='relation')
-            n_agg_rows = len(agg_df)
-            n_agg_cmpds = len(set(agg_df.base_rdkit_smiles.values))
-            print(f"Aggregated data has {n_agg_rows} rows, {n_agg_cmpds} unique compounds")
-            assert (n_agg_rows == 803), "Error: expected 803 rows in aggregated data"
-            assert (n_agg_cmpds == 803), "Error: expected 803 unique compounds in aggregated data"
+     # Clean up old files
+    clean()
+    raw_df, filt_df = create_raw_and_filt_file()
+    agg_df = curate_data.aggregate_assay_data(filt_df, value_col='log_efflux_ratio', label_actives=False,
+                                        id_col='compound_id', smiles_col='base_rdkit_smiles', relation_col='relation')
+    n_agg_rows = len(agg_df)
+    n_agg_cmpds = len(set(agg_df.base_rdkit_smiles.values))
+    print(f"Aggregated data has {n_agg_rows} rows, {n_agg_cmpds} unique compounds")
+    assert (n_agg_rows == 803), "Error: expected 803 rows in aggregated data"
+    assert (n_agg_cmpds == 803), "Error: expected 803 unique compounds in aggregated data"
 
-            agg_file = f"{script_path}/{test_file_prefix}-aggregated.csv"
-            agg_df.to_csv(agg_file, index=False)
-            print(f"Wrote aggregated data to {agg_file}")
-        except Exception as e:
-            pytest.fail(f"Could not read file {filt_file}: {e}")
+    agg_file = f"{script_path}/{test_file_prefix}-aggregated.csv"
+    agg_df.to_csv(agg_file, index=False)
+    print(f"Wrote aggregated data to {agg_file}")
 
 def test_average_and_remove_duplicates():
     """Test outlier removal and averaging using deprecated curation function"""
@@ -90,23 +96,3 @@ def test_average_and_remove_duplicates():
     curated_df.to_csv(curated_file, index=False)
     print(f"Wrote curated data to {curated_file}")
 
-
-def test():
-    """Test data curation functions"""
-
-    # Clean up old files
-    clean()
-
-    # Filter out outliers (preferred method)
-    test_remove_outlier_replicates()
-
-    # Average replicate values per compound (preferred method)
-    test_aggregate_assay_data()
-    
-    # Remove outliers and average over replicates (old method)
-    test_average_and_remove_duplicates()
-    
-
-
-if __name__ == '__main__':
-    test()

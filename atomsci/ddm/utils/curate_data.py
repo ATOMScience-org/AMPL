@@ -519,10 +519,16 @@ def remove_outlier_replicates(df, response_col='pIC50', id_col='compound_id', ma
         max_diff_from_median (float): Maximum absolute difference from median value allowed for retained replicates.
 
     Returns:
-        result_df (DataFrame): Filtered data frame with outlier replicates removed.
+        result_df (DataFrame): Filtered data frame with outlier replicates removed. Rows with NaN values in the 
+            response column are removed as a preprocessing step before outlier detection.
 
     """
-
+    
+    prev_len = len(df)
+    df = df.dropna(subset=[response_col])
+    if prev_len != len(df):
+        print(f"Removed {prev_len - len(df)} rows with missing {response_col} values")
+    
     fr_df = freq_table(df, id_col, min_freq=2)
     rep_ids = fr_df[id_col].values.tolist()
     has_rep_df = df[df[id_col].isin(rep_ids)]
