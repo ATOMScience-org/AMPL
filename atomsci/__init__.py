@@ -3,6 +3,6 @@
 # ddm __init__.py
 #
 
-import pkg_resources
+#import pkg_resources
 
-pkg_resources.declare_namespace(__name__)
+#pkg_resources.declare_namespace(__name__)
