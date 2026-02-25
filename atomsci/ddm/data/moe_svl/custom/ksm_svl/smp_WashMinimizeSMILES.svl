@@ -1,0 +1,196 @@
+#svl
+//	smp_WashMinimizeSMILES.svl	Washing and minimizing a SMILES
+//
+//	21-mar-2019 (gk) created
+//
+// COPYRIGHT (C) 2019 CHEMICAL COMPUTING GROUP ULC.  ALL RIGHTS RESERVED.
+//
+// PERMISSION TO USE, COPY, MODIFY AND DISTRIBUTE THIS SOFTWARE IS HEREBY
+// GRANTED PROVIDED THAT: (1) UNMODIFIED OR FUNCTIONALLY EQUIVALENT CODE
+// DERIVED FROM THIS SOFTWARE MUST CONTAIN THIS NOTICE; (2) ALL CODE DERIVED
+// FROM THIS SOFTWARE MUST ACKNOWLEDGE THE AUTHOR(S) AND INSTITUTION(S); (3)
+// THE NAMES OF THE AUTHOR(S) AND INSTITUTION(S) NOT BE USED IN ADVERTISING
+// OR PUBLICITY PERTAINING TO THE DISTRIBUTION OF THE SOFTWARE WITHOUT
+// SPECIFIC, WRITTEN PRIOR PERMISSION; (4) ALL CODE DERIVED FROM THIS SOFTWARE
+// BE EXECUTED WITH THE MOLECULAR OPERATING ENVIRONMENT (MOE) LICENSED FROM
+// CHEMICAL COMPUTING GROUP ULC.
+//
+// CHEMICAL COMPUTING GROUP ULC. DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS
+// SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS,
+// AND IN NO EVENT SHALL CHEMICAL COMPUTING GROUP ULC. BE LIABLE FOR ANY
+// SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER
+// RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF
+// CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
+// CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+//
+//
+//	DESCRIPTION
+//	MOE/smp version of ph4_Wash, Minimze and sm_Build
+//
+//	USAGE:  invoke MOE/smp
+//		run ['smp_WashMinimizeSMILES.svl', 'database', 'smilesfield']
+//	       
+//
+
+#set title 	'smp_WashMinimizeSMILES'
+#set class 	'MOE:SMP'
+#set main	'smp_main'
+#set version 	'2019.03'
+
+//------------------------------------------------------------------------------
+// imports
+//------------------------------------------------------------------------------
+
+function ph4_Wash, MM;
+
+//-----------------------------------------------------------------------------------
+// constants
+//-----------------------------------------------------------------------------------
+
+//const SCRIPT_FILENAME = 'smp_WashMinimizeSMILES.svl';
+const GLOBAL_FUNCTION = 'smp_WashMinimizeSMILES';
+const OUT_FIELDNAME   = 'mol_prep';
+const OUTFIELDTYPE    = 'molecule';
+
+//-----------------------------------------------------------------------------------
+// global functions
+//-----------------------------------------------------------------------------------
+
+global function smp_WashMinimizeSMILES smi
+
+    local mol, chain, atoms;
+
+    if sm_BuildSyntax smi === 0 then
+	return [];
+    endif
+
+    // create molecule
+    atoms = sm_Build smi;
+    chain = uniq aChain atoms;
+
+    // wash
+    local washed_atoms = first ph4_Wash[
+	atoms, 
+	[
+	    one_component: 1, delete_atoms: 1, coord_scale: 1, 
+	    set_fc: 1, acid_base: 1, add_h: 1
+        ]
+    ];
+   
+    // minimize
+    pot_FinalizeModel[];
+    (MM[]);
+
+    // get db_mol vector of updated molecule
+    mol = mol_Extract washed_atoms;
+
+    // destroy molecule from system
+    oDestroy chain;
+
+    // return db_mol vector
+    return mol;
+endfunction
+
+//-----------------------------------------------------------------------------------
+// local functions
+//-----------------------------------------------------------------------------------
+
+local function db_function_call [dbname, smfield]
+
+    // local variables
+    local mdb_key; 
+    local cmd, entry, task_id;
+    local src, i, smi;
+    local udataS, udataR, res, code, seq;
+    local SCRIPT_FILENAME = (modenv[]).filename;
+
+    // close system at start
+    Close [force: 1, viewreset: 1, delgobj: 1];
+
+    // open database and find fields of type molecule
+    mdb_key = db_Open [dbname, 'read-write'];
+    
+    // create fields for output
+    db_EnsureField [mdb_key, OUT_FIELDNAME, OUTFIELDTYPE];
+    db_EnsureField [mdb_key, 'smp_seq', 'int'];
+
+    // initialize variable for loop
+    cmd = 'call';
+    entry = 0;
+    task_id = task_key -1;
+
+    // distribute script to all nodes
+    src = freadb [SCRIPT_FILENAME, 'char', INT_MAX];
+    mpu_load [igen MPU_HOSTCOUNT, [src]];
+
+    // loop through database
+    for i = 1, INT_MAX loop
+
+	// get next molecules
+	if anytrue cmd then
+	    entry = db_NextEntry [mdb_key, entry];
+	    smi = token first db_ReadFields [mdb_key, entry, smfield];
+	endif
+
+	// set command to '' for collecting the last results
+	if allfalse entry then cmd = ''; endif
+
+	// MOE/smp call of global function
+	udataS = [task_id, entry];
+	[res, code, seq, udataR] = mpu_batch [cmd, GLOBAL_FUNCTION, smi, udataS];
+
+	// check return code
+	if code === 'skip' then
+
+	    // do nothing (skip is returned for the first calls when no results are to
+	    // be transferred back to the master
+
+	elseif code === 'error' then
+
+	    // we are in trouble !
+	    exit twrite['{}', res];
+
+	elseif code === 'eof' then
+
+	    // end is reached
+	    break;
+
+	elseif udataR(1) === task_id then
+
+	    // write updated molecule to database
+	    db_Write [mdb_key, udataR(2),tag[[OUT_FIELDNAME, 'smp_seq'], [res, i]]];
+
+	else
+
+	    // we are in trouble
+	    exit '!!!';
+
+	endif
+    endloop
+
+    // close database
+    db_Close mdb_key;
+
+    // inform user that run is complete
+    pr "finished";
+
+endfunction
+
+
+//====================================================================================
+// main function
+//====================================================================================
+
+local function smp_main [database, smilesfield]
+
+    local SCRIPT_FILENAME = (modenv[]).filename;
+    // check is argument is correct
+    if isnull database then 
+	pr cat["Usage: run ['", string SCRIPT_FILENAME, "', ['databasefilename', 'smilesfield']];"];
+    else
+	sleep 1;
+
+	// call smp function on database
+	db_function_call [database, smilesfield];
+    endif
+endfunction

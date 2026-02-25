@@ -3,6 +3,7 @@ import pytest
 import atomsci.ddm.pipeline.featurization as feat
 import deepchem as dc
 from atomsci.ddm.pipeline import model_datasets as md
+import pandas as pd
 
 try:
     from mol_vae_features import MoleculeVAEFeaturizer
@@ -203,5 +204,30 @@ def test_copy_featurizer_params():
     assert hasattr(result, "featurizer")
     assert hasattr(result, "mordred_cpus")
 
+#***********************************************************************************
+@pytest.mark.moe_required
+def test_compute_moe():
+    """Test the compute_all_moe_descriptors function to ensure it correctly generates moe features."""
+    smiles_df = pd.DataFrame({
+        'smiles': ['C(#Cc1c2c(nc3ccccc13)CCCCC2)CCN1CCCCC1', 
+                   'C(#Cc1cccc(CN2CCOCC2)c1)CCN1CCCCC1', 
+                   'C(=C/c1ccccc1)\CN1CCN(C(c2ccccc2)c2ccccc2)CC1'],
+        'compound_id': ['CHEMBL66660', 
+                        'CHEMBL237087', 
+                        'CHEMBL43064'],
+    })
+
+    params = Namespace(
+        smiles_col='smiles',
+        id_col='compound_id',
+        moe_threads=1,
+    )
+
+    moe_df = feat.compute_all_moe_descriptors(
+        smiles_df=smiles_df,
+        params=params)
+
+    assert moe_df is not None
+
 if __name__ == '__main__':
-    test_get_mordred_calculator()
+    test_compute_moe()

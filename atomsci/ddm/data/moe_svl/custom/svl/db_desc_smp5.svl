@@ -1,0 +1,356 @@
+#svl
+//	db_desc_smp.svl	Calculate descriptors for a database with MOE/smp
+//
+//	26-feb-2019 (gk) renamed mol_desc
+//	15-mar-2018 (me) fixed typo in validation if value already calculated
+//	05-mar-2018 (me) added calculate_all option to skip over calculated values
+//	13-nov-2017 (BB) print entry number
+//	01-mar-2011 (ah) bug fix for *acalc* descriptors
+//	28-feb-2011 (ah) replicate molecules from main MOE window to other nodes
+//	25-feb-2011 (sg) change default options (do nothing == default)
+//	25-feb-2011 (sg) make the SVL find itself
+//	25-oct-2010 (ah) created, based on from smp_template.svl
+//	20-jan-2005 (gk) added set priority = 1 on nodes
+//	17-dec-2004 (gk) rewritten as template
+//	23-nov-2004 (ms) created
+//
+// COPYRIGHT (C) 2019 CHEMICAL COMPUTING GROUP ULC ("CCG").
+// ALL RIGHTS RESERVED.
+//
+// PERMISSION TO USE, COPY, MODIFY AND DISTRIBUTE THIS SOFTWARE IS HEREBY
+// GRANTED PROVIDED THAT: (1) UNMODIFIED OR FUNCTIONALLY EQUIVALENT SOFTWARE
+// DERIVED FROM THIS SOFTWARE MUST CONTAIN THIS NOTICE; (2) ALL CODE DERIVED
+// FROM THIS SOFTWARE MUST ACKNOWLEDGE THE AUTHOR(S) AND INSTITUTION(S); (3)
+// THE NAMES OF THE AUTHOR(S) AND INSTITUTION(S) NOT BE USED IN ADVERTISING
+// OR PUBLICITY PERTAINING TO THIS SOFTWARE WITHOUT SPECIFIC WRITTEN PRIOR
+// PERMISSION; (4) ALL CODE DERIVED FROM THIS SOFTWARE BE EXECUTED WITH THE
+// MOLECULAR OPERATING ENVIRONMENT LICENSED FROM CCG.
+//
+// CCG DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE, INCLUDING
+// ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, AND IN NO EVENT
+// SHALL CCG BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR
+// ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER
+// IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
+// OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
+//
+//
+//	DESCRIPTION
+//
+//	Calculate descriptors for a MDB database of compounds, using MOE/smp
+//	If a molecule field is not specified, the field closest to the left
+//	edge of the database will be used.
+//	
+//	If no descriptor codes are specified, by default no descriptors will be
+//	calculated.
+//
+//	USAGE:  invoke MOE/smp and then
+//		run ['db_desc_smp.svl', [mdbfile, mfield, codes, opt]]
+//
+//	calculate all descriptors except the ones from MOPAC:
+//		run ['db_desc_smp.svl', 'lig.mdb']
+//
+//	calculate 32 VSA binned descriptors as well as Weight and TPSA
+//  run ['db_desc_smp.svl',['lig.mdb',[],['Weight','TPSA'],[codeset:'VSA_32']]]
+//
+//      calculate Lipinski and Oprea descriptors and no others for washed field
+//  run['db_desc_smp.svl',['lig.mdb','washed',['lip*','opr*'],[codeset:'None']]]
+//
+//	Run from MOE/batch with 3 CPUs or cores
+//
+//     $MOE/bin/moebatch -mpu 3 -exec "run ['db_desc_smp.svl', 'lig.mdb']" -exit
+//
+
+#set title 	'MOE/smp descriptor calculation'
+#set main	'db_desc_smp'
+#set version 	'2010.10'
+
+function QuaSAR_Descriptor_List, PartialChargeMethods, PartialChargeMDB;
+function __FlexAlign_Replicate;
+
+const DEFAULTS = [
+    codeset: 'None',	// 'All_No_MOPAC': all non-MOPAC descriptors
+    				// 'MOPAC'       : all MOPAC descriptors
+    				// '2D'          : all 2D descriptors
+    				// '3D'          : all 3D descriptors
+    				// 'x3D'         : all x3D descriptors
+    				// 'i3D'         : all i3D descriptors
+    				// 'i3DNotMOPAC' : all i3D descriptors except MOPAC
+    				// 'VSA_32'      : 32 binned property VSA descriptors
+    				// 'All'         : all descriptors
+				// 'None'	 : only specified descriptors
+    forcefield:	'',		// filename of forcefield to use
+    charge_meth: '',		// forcefield partial charges for fragment
+				// eg '' to leave unchanged, 'FF' for forcefield
+				// or 'AM1-BCC' for AM1-BCC charges
+    add_h: 1,			// add hydrogens
+    calculate_all: 1		// calculate all descriptors or just missing
+];
+
+//const SCRIPT_FILENAME = 'db_desc_smp.svl';	// replaced with local
+const GLOBAL_FUNCTION = 'smp_DescriptorCalcMol';
+const OUT_FIELDNAME = 'smp_seq';
+const i3DNotMOPAC = [
+'ASA', 'ASA+', 'ASA-', 'ASA_H', 'ASA_P', 'CASA+', 'CASA-', 'DASA', 'DCASA',
+'dens', 'dipole', 'dipoleX', 'dipoleY', 'dipoleZ', 'E', 'E_ang', 'E_ele',
+'E_nb', 'E_oop', 'E_rele', 'E_rnb', 'E_rsol', 'E_rvdw', 'E_sol', 'E_stb', 
+'E_str', 'E_strain', 'E_tor', 'E_vdw', 'FASA+', 'FASA-', 'FASA_H', 'FASA_P',
+'FCASA+', 'FCASA-', 'glob', 'npr1', 'npr2', 'pmi', 'pmi1', 'pmi2', 'pmi3', 
+'pmiX', 'pmiY', 'pmiZ', 'rgyr', 'std_dim1', 'std_dim2', 'std_dim3', 'vol', 
+'VSA', 'vsurf_A', 'vsurf_CP', 'vsurf_CW1', 'vsurf_CW2', 'vsurf_CW3', 'vsurf_CW4',
+'vsurf_CW5', 'vsurf_CW6', 'vsurf_CW7', 'vsurf_CW8', 'vsurf_D1', 'vsurf_D2', 'vsurf_D3', 
+'vsurf_D4', 'vsurf_D5', 'vsurf_D6', 'vsurf_D7', 'vsurf_D8', 'vsurf_DD12', 'vsurf_DD13',
+'vsurf_DD23', 'vsurf_DW12', 'vsurf_DW13', 'vsurf_DW23', 'vsurf_EDmin1', 'vsurf_EDmin2',
+'vsurf_EDmin3', 'vsurf_EWmin1', 'vsurf_EWmin2', 'vsurf_EWmin3', 'vsurf_G', 'vsurf_HB1', 
+'vsurf_HB2', 'vsurf_HB3', 'vsurf_HB4', 'vsurf_HB5', 'vsurf_HB6', 'vsurf_HB7', 'vsurf_HB8', 
+'vsurf_HL1', 'vsurf_HL2', 'vsurf_ID1', 'vsurf_ID2', 'vsurf_ID3', 'vsurf_ID4', 'vsurf_ID5', 
+'vsurf_ID6', 'vsurf_ID7', 'vsurf_ID8', 'vsurf_IW1', 'vsurf_IW2', 'vsurf_IW3', 'vsurf_IW4', 
+'vsurf_IW5', 'vsurf_IW6', 'vsurf_IW7', 'vsurf_IW8', 'vsurf_R', 'vsurf_S', 'vsurf_V', 'vsurf_W1', 
+'vsurf_W2', 'vsurf_W3', 'vsurf_W4', 'vsurf_W5', 'vsurf_W6', 'vsurf_W7', 'vsurf_W8', 'vsurf_Wp1', 
+'vsurf_Wp2', 'vsurf_Wp3', 'vsurf_Wp4', 'vsurf_Wp5', 'vsurf_Wp6', 'vsurf_Wp7', 'vsurf_Wp8'
+]; //BB
+
+const VSA_32 = [
+    'PEOE_VSA-6', 'PEOE_VSA-5', 'PEOE_VSA-4', 'PEOE_VSA-3', 'PEOE_VSA-2',
+    'PEOE_VSA-1', 'PEOE_VSA-0', 'PEOE_VSA+0', 'PEOE_VSA+1', 'PEOE_VSA+2',
+    'PEOE_VSA+3', 'PEOE_VSA+4', 'PEOE_VSA+5', 'PEOE_VSA+6',
+ 
+    'SlogP_VSA0', 'SlogP_VSA1', 'SlogP_VSA2', 'SlogP_VSA3', 'SlogP_VSA4',
+    'SlogP_VSA5', 'SlogP_VSA6', 'SlogP_VSA7', 'SlogP_VSA8', 'SlogP_VSA9',
+ 
+    'SMR_VSA0'  , 'SMR_VSA1'  , 'SMR_VSA2'  , 'SMR_VSA3'  , 'SMR_VSA4'  ,
+    'SMR_VSA5'  , 'SMR_VSA6'  , 'SMR_VSA7'
+];
+
+global function smp_DescriptorCalcMol [mol, descriptors]
+    local i, j = 0, codes, fcns, acalc, desc, counts, splcodes, splfcns;
+    local splacalc, chains, atoms;
+
+    [codes, fcns, acalc] = descriptors;
+
+    counts = mtoc m_uniq fcns;
+    [splcodes, splfcns, splacalc] = apt split [[codes, fcns, acalc], [counts]];
+
+    if anytrue acalc then 
+	chains = mol_Create mol;
+	atoms = cat cAtoms chains;
+    endif
+
+    for i = 1, length counts loop
+	j = inc j;
+	if istrue splacalc(i)(1) then
+	    desc(j) = call [splfcns(i)(1), [atoms, splcodes(i)]];
+	endif
+    endloop
+
+    if anytrue acalc then oDestroy chains;endif
+
+    for i = 1, length counts loop
+	j = inc j;
+	if isfalse splacalc(i)(1) then
+	    desc(j) = call [splfcns(i)(1), [  mol, splcodes(i)]];
+	endif
+    endloop
+
+    return cat desc;
+endfunction
+
+
+local function desc_smp [mdbfile, mfield, codes, opt]
+
+    local SCRIPT_FILENAME = (modenv[]).filename;
+    local mdb, cmd = 'call', ent=0, task_id, src, i, mol, udataS, record; 
+    local udataR, res, code, seq; 
+
+    mdb = db_Open mdbfile;
+    
+    local entno, entries = db_Entries mdb;    //(nl)
+
+	// create fields for output
+    db_EnsureField [mdb, OUT_FIELDNAME, 'int'];
+    apt db_EnsureField [mdb, codes, 'float'];
+
+    // initialize variable for loop
+    task_id = task_key -1;
+
+    local descinfo = QuaSAR_Descriptor_List [];
+
+	//ignore unrecognised descriptor codes
+    local descmask = indexof [codes, descinfo(1)];
+    if anyfalse descmask then
+	write 'Unrecognised descriptor codes:\n';
+	apt write ['{}\n', codes | not descmask];
+	write '\n';
+	codes = codes | descmask;
+    endif
+
+    local fcns = get [descinfo(5), pack descmask];
+    local acalc= get [descinfo(6), pack descmask]; 
+    [codes, fcns, acalc] = apt get [[codes, fcns, acalc],[x_sort fcns]];
+    local descs = [codes, fcns, acalc];
+
+	// Copy molecules from the main MOE window to all the MOE/smp nodes
+
+    __FlexAlign_Replicate [];			// replicate to MOE/smp
+
+	// distribute script to all nodes
+    src = freadb [SCRIPT_FILENAME, 'char', INT_MAX];
+    mpu_load [igen MPU_HOSTCOUNT, [src]];
+
+    for i = 1, INT_MAX loop
+	    // get next molecules
+	if anytrue cmd then
+	    ent = db_NextEntry [mdb, ent];
+	    record = db_Read [mdb, ent];
+            mol = first db_ReadFields [mdb, ent, mfield]; // (ME) fix 
+	   // mol = record.mol;  
+	endif
+
+	    // set command to '' for collecting the last results
+	    // or break if end of db and still call (nothing to do)
+	if ent == 0 and isnull code then break;
+	elseif ent == 0 then cmd = ''; endif
+
+	    // check if something to do for this entry
+	    // if calculate_all is 1 all descriptors will be calculated
+	    // if calculate_all is 0 only descriptos of empyt fields will be calculated
+	local record_descs;
+	if opt.calculate_all then
+	    record_descs = descs;
+	else
+	    record_descs = apt mget [descs, [app isnull tagget [record, codes]]];
+	    if allfalse record_descs and anytrue record then
+		continue;
+	    endif
+	endif
+
+	    // MOE/smp call of global function, keep track of the desc calculate for this entry
+	udataS = [task_id, ent, record_descs(1)];
+	[res,code,seq,udataR]=mpu_batch[cmd,GLOBAL_FUNCTION,[mol,record_descs],udataS];
+
+	    // check return code
+	if code == 'skip' then
+	    // do nothing (skip is returned for the first calls when no results
+	    // are to be transferred back to the master
+
+	elseif code == 'error' then // we are in trouble !
+	    exit res;
+
+	elseif code == 'eof' then // end is reached
+	    break;
+
+	elseif udataR(1) === task_id then
+	    // only write calculated fields to mdb
+	    local data = tag [udataR(3), res];
+	    data.(OUT_FIELDNAME) = seq; 
+	    db_Write [mdb, udataR(2), data];
+	    entno = indexof[udataR(2), entries];    // BB
+
+	else // uh oh, we are in trouble
+	    exit 'Error';
+	endif
+    endloop
+    sleep 1;
+    db_Close mdb;
+endfunction
+
+local function get_descriptors [codes, codeset]
+
+    local [allcodes, descriptions, classes] = QuaSAR_Descriptor_List [];
+    local m_mopac = m_findmatch [['PM3_*', 'AM1_*', 'MNDO_*'], allcodes];
+    local m_2d  = classes ==  '2D';
+    local m_x3d = classes == 'x3D';
+    local m_i3d = classes == 'i3D';
+    local m_pro = classes == 'Protein';
+
+    local m_codes = apt m_findmatch [codes, [allcodes]];
+    if anytrue app allfalse m_codes then
+	write ['Ignoring unrecognised descriptor{}:\n', 
+	    select ['s', '', length pack app allfalse m_codes > 1]];
+	apt write ['    {}\n', codes | app allfalse m_codes];
+	write '\n';
+    endif
+
+    codes = allcodes | orE m_codes;
+
+    if codeset === 'MOPAC' then
+	allcodes = allcodes | m_mopac;
+    elseif codeset === '2D' then
+	allcodes = allcodes | m_2d;
+    elseif codeset === '3D' then
+	allcodes = allcodes | m_x3d or m_i3d;
+    elseif codeset === 'x3D' then
+	allcodes = allcodes | m_x3d;
+    elseif codeset === 'i3D' then
+	allcodes = allcodes | m_i3d;
+    elseif codeset === 'All_No_MOPAC' then
+	allcodes = allcodes | not m_mopac;
+    elseif codeset === 'All_No_MOPAC_Protein' then   //BB
+	allcodes = allcodes | not orE [m_mopac, m_pro];
+    elseif codeset === 'VSA_32' then
+	allcodes = join [VSA_32, allcodes];
+    elseif codeset === 'i3DNotMOPAC' then
+	allcodes = join [i3DNotMOPAC, allcodes];
+    elseif codeset === 'All' then
+	// do nothing
+    elseif codeset === 'None' then
+	allcodes = [];
+    endif
+
+
+    return uniq cat [allcodes, codes];
+endfunction
+
+
+//=====================================================================
+// main function
+//=====================================================================
+
+global function db_desc_smp [mdbfile, mfield, codes, opt]
+
+    local mdb;
+
+    if MOE_BATCH and isnull mdbfile then 
+	exit 'Usage: run [\'db_desc_smp3.svl\', [mdbfile, mfield, codes, opt]]';
+    endif
+
+    if istrue indexof [storage mdbfile, ['tok', 'int']] then
+	mdb = db_Open [mdbfile, 'read-write'];
+    else 
+	mdb = dbv_DefaultView [];
+	mdbfile = db_Filename mdb;
+    endif
+
+    if isnull mfield then
+	mfield = db_FirstFieldType [mdb, 'molecule'];
+    endif
+
+    opt = tagcat [opt, DEFAULTS];
+
+    if tok_length opt.forcefield then
+	if ftype opt.forcefield == 'file' then pot_Load opt.forcefield;endif
+    endif
+
+    if istrue tok_length opt.charge_meth then
+	if not indexof [opt.charge_meth, first PartialChargeMethods []] then
+	    exit twrite ['{}: invalid partial charge method',
+		opt.charge_meth
+	    ];
+	else
+	    PartialChargeMDB [mdbfile, opt.charge_meth, mfield, mfield,
+		[add_h: opt.add_h]
+	    ];
+	endif
+    endif
+
+    sleep 1;
+
+	// set priority on all but parent nodes to highest
+    if MPU_HOSTCOUNT > 1 then
+	mpu_call [inc igen dec MPU_HOSTCOUNT, 'exe_setpriority', [[0,1]]];
+    endif
+
+	// call smp function on database
+    desc_smp [mdbfile, mfield, get_descriptors [codes, opt.codeset], opt];
+
+endfunction
