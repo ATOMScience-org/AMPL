@@ -45,4 +45,4 @@ ipykernel
 
 deepchem==2.7.1
 rdkit==2024.3.5
-pyyaml==5.4.1
+pyyaml>=6.0

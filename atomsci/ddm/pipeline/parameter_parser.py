@@ -32,7 +32,7 @@ parameter_synonyms = {'mode':'prediction_type',
                       'model_dir':'result_dir',
                     }
 
-model_wl = {'AttentiveFPModel':dcm.AttentiveFPModel, 
+model_wl = {'AttentiveFPModel':dcm.AttentiveFPModel,
             'GCNModel':dcm.GCNModel,
             'MPNNModel':dcm.MPNNModel,
             'GraphConvModel':dcm.GraphConvModel,
@@ -139,7 +139,7 @@ def all_auto_lists():
 def extract_model_params(params, strip_prefix=True):
     """Extract parameters specific to a model.
 
-    This function extracts parameters intended for a specific model. It should only be used 
+    This function extracts parameters intended for a specific model. It should only be used
     for arguments automatically added by an AutoArgumentAdder.
 
     Args:
@@ -148,7 +148,7 @@ def extract_model_params(params, strip_prefix=True):
             For example, 'AttentiveFP_mode' becomes 'mode'.
 
     Returns:
-        dict: A dictionary containing a subset of parameters from `params` that are relevant 
+        dict: A dictionary containing a subset of parameters from `params` that are relevant
             to the specified model.
     """
     assert params.model_type in model_wl
@@ -159,7 +159,7 @@ def extract_model_params(params, strip_prefix=True):
 def extract_featurizer_params(params, strip_prefix=True):
     """Extract parameters specific to a featurizer.
 
-    This function extracts parameters intended for a specific featurizer. It should only be used 
+    This function extracts parameters intended for a specific featurizer. It should only be used
     for arguments automatically added by an AutoArgumentAdder.
 
     Args:
@@ -168,7 +168,7 @@ def extract_featurizer_params(params, strip_prefix=True):
             For example, 'MolGraphConvFeaturizer_use_edges' becomes 'use_edges'.
 
     Returns:
-        dict: A dictionary containing a subset of parameters from `params` that are relevant 
+        dict: A dictionary containing a subset of parameters from `params` that are relevant
             to the specified featurizer.
     """
     assert params.featurizer in featurizer_wl
@@ -298,7 +298,7 @@ def is_list(p, type_annotation):
         return str(type_annotation).startswith('typing.List') or str(type_annotation) == "<class 'list'>"
 
 def strip_optional(type_annotation):
-    """In the upgrade to python 3.9 type_annotaions now use
+    """In the upgrade to python 3.10 type_annotaions now use
         typeing.Optional and we need to strip that off.
 
     Args:
@@ -781,7 +781,7 @@ def dict_to_list(inp_dictionary,replace_spaces=False):
     temp_list_to_command_line = []
 
     # Special case handling for arguments that are False or True by default
-    default_false = ['previously_split','use_shortlist','datastore', 'save_results','verbose', 'hyperparam', 'split_only', 'is_ki', 'production', 'embedding_and_features'] 
+    default_false = ['previously_split','use_shortlist','datastore', 'save_results','verbose', 'hyperparam', 'split_only', 'is_ki', 'production', 'embedding_and_features']
     default_true = ['transformers','previously_featurized','uncertainty', 'rerun']
     for key, value in inp_dictionary.items():
         if key in default_false:
@@ -1244,7 +1244,7 @@ def get_parser():
     parser.add_argument(
         '--sampling_method', dest='sampling_method', type=str, default=None,
         help='Method for sampling to address class imbalance (e.g., \'undersampling\', \'SMOTE\')')
-    
+
     parser.add_argument(
         '--sampling_ratio', dest='sampling_ratio', type=str, default='auto',
         help='The "sampling_ratio" parameter of SMOTE must be a float in the range (0.0, 1.0], a str '
@@ -1470,9 +1470,9 @@ def get_parser():
             help='Scaling factor for constraining network size based on number of parameters in the network for '
                  'hyperparam search')
     parser.add_argument(
-        '--python_path', dest='python_path', required=False, 
+        '--python_path', dest='python_path', required=False,
         # default to the version of python used to run this script
-        default=sys.executable, 
+        default=sys.executable,
         help='Path to desired python version')
     parser.add_argument(
             '--rerun', dest= 'rerun', required=False, action='store_false',
@@ -1480,7 +1480,7 @@ def get_parser():
                  'already been built')
     parser.set_defaults(rerun=True)
     parser.add_argument(
-        '--script_dir', dest='script_dir', required=False, 
+        '--script_dir', dest='script_dir', required=False,
         # use location of this file to generate script dir
         default=os.path.abspath(os.path.join(__file__, '../..')),
         help='Path where pipeline file you want to run hyperparam search from is located')
@@ -1788,7 +1788,7 @@ def postprocess_args(parsed_args):
 #***********************************************************************************************************
 def validate_sampling_strategy_argument(value):
     """Validates sampling_strategy parameter for SMOTE and undersampling.
-    Validates that the input value is either a float in the range (0.0, 1.0] or a string among 
+    Validates that the input value is either a float in the range (0.0, 1.0] or a string among
     {'auto', 'not majority', 'minority', 'all', 'not minority'}. Raises a ValueError if the validation fails.
 
     Args:
@@ -1798,7 +1798,7 @@ def validate_sampling_strategy_argument(value):
         ValueError: If the value is not a float in the range (0.0, 1.0] or a valid string.
     """
     valid_strings = {"auto", "not majority", "minority", "all", "not minority"}
-    
+
     try:
         float_value = float(value)
         if float_value <= 0.0 or float_value > 1.0:

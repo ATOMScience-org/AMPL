@@ -123,7 +123,7 @@ pytest-integrative:
 pytest-unit:
 	@echo "Running unit tests"
 	docker run -v $(shell pwd)/$(WORK_DIR):/$(WORK_DIR) $(IMAGE_REPO):$(TAG) \
-		       /bin/bash -l -c "cd atomsci/ddm/test/unit && python3.9 -m pytest --capture=sys --capture=fd --cov=atomsci -vv"
+		       /bin/bash -l -c "cd atomsci/ddm/test/unit && python3.10 -m pytest --capture=sys --capture=fd --cov=atomsci -vv"
 
 # Run ruff linter
 ruff:
@@ -144,7 +144,7 @@ setup:
 	@echo "Removing old environment"
 	rm -rf $(VENV)/ || true
 	@echo "Creating new venv"
-	python3.9 -m venv $(VENV)/
+	python3.10 -m venv $(VENV)/
 	$(VENV)/bin/pip install -U pip
 	@echo "Installing dependencies"
 	@if [ "$(PLATFORM)" = "gpu" ]; then \
