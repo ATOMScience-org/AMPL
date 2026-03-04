@@ -11,9 +11,13 @@ RUN apt-get update -y && apt-get install -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
+# Install uv
+# Option A (recommended): official installer
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+ENV PATH="/root/.local/bin:${PATH}"
+
 COPY ./pip/mchip_requirements.txt ./pip/mchip_requirements.txt
-RUN pip install -U pip && \
-    pip install -v --no-cache-dir \
+RUN uv pip install --system -v --no-cache-dir \
     --trusted-host pypi.python.org \
     --trusted-host files.pythonhosted.org \
     --trusted-host pypi.org \
@@ -22,8 +26,7 @@ RUN pip install -U pip && \
     -r ./pip/mchip_requirements.txt
 
 COPY ./pip/mchip_dev_requirements.txt ./pip/mchip_dev_requirements.txt
-RUN pip install -U pip && \
-    pip install -v --no-cache-dir \
+RUN uv pip install --system -v --no-cache-dir \
     --trusted-host pypi.python.org \
     --trusted-host files.pythonhosted.org \
     --trusted-host pypi.org \
@@ -38,7 +41,7 @@ COPY ./atomsci atomsci/
 
 # Install atomsci-ampl
 RUN ./build.sh
-RUN pip install -e .
+RUN uv pip install -e .
 
 # Clean up
 RUN apt-get purge -y build-essential && \

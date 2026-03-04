@@ -13,6 +13,7 @@ jobs:
       - name: Update apt cache
         run: |
           sudo apt-get update || sudo apt-get update --fix-missing
+
       - name: System Dependencies
         run: |
           sudo apt install -y build-essential \
@@ -21,30 +22,32 @@ jobs:
             python3-dev \
             python3-openssl
       - uses: actions/checkout@v3
+
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Cache Python dependencies
+      - name: Install uv
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Cache uv downloads
         uses: actions/cache@v3
         with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('pip/*.txt') }}
+          path: ~/.cache/uv
+          key: ${{ runner.os }}-uv-${{ hashFiles('pip/*.txt') }}
           restore-keys: |
-            ${{ runner.os }}-pip-
+            ${{ runner.os }}-uv-
 
       - name: Install dependencies
         run: |
-          python3.10 -m pip install --upgrade pip
           if [ -f pip/cpu_requirements.txt ]; then pip install -r pip/cpu_requirements.txt; fi
-
-      - name: Install ruff
-        run: |
-          python3.10 -m pip install ruff
+          uv pip install ruff
 
       - name: Lint with ruff
         run: |
           # Check all lint rules
-          python3.10 -m ruff check atomsci/
+          uv run ruff check atomsci/
 
